@@ -92,8 +92,8 @@ void MaybeStartBackgroudThread() {
     return;  // Can't spawn the thread anyway.
   }
 
-  static bool started = false;
-  if (!started) {
+  
+  if (static bool started = false; !started) {
     started = true;
     internal_start_thread(BackgroundThread, nullptr);
   }
@@ -181,8 +181,8 @@ void ProtectGap(uptr addr, uptr size, uptr zero_base_shadow_start,
                 uptr zero_base_max_shadow_start) {
   if (!size)
     return;
-  void *res = MmapFixedNoAccess(addr, size, "shadow gap");
-  if (addr == (uptr)res)
+  
+  if (void *res = MmapFixedNoAccess(addr, size, "shadow gap"); addr == (uptr)res)
     return;
   // A few pages at the start of the address space can not be protected.
   // But we really want to protect as much as possible, to prevent this memory
@@ -192,8 +192,8 @@ void ProtectGap(uptr addr, uptr size, uptr zero_base_shadow_start,
     while (size > step && addr < zero_base_max_shadow_start) {
       addr += step;
       size -= step;
-      void *res = MmapFixedNoAccess(addr, size, "shadow gap");
-      if (addr == (uptr)res)
+      
+      if (void *res = MmapFixedNoAccess(addr, size, "shadow gap"); addr == (uptr)res)
         return;
     }
   }
@@ -234,8 +234,8 @@ void MemCpyAccessible(void *dest, const void *src, uptr n) {
     const uptr udest = reinterpret_cast<uptr>(dest);
     const uptr usrc = reinterpret_cast<uptr>(src);
     void *d = reinterpret_cast<void *>(udest + (beg - usrc));
-    const uptr size = end - beg;
-    if (!TryMemCpy(d, reinterpret_cast<void *>(beg), size))
+    
+    if (const uptr size = end - beg; !TryMemCpy(d, reinterpret_cast<void *>(beg), size))
       internal_memset(d, 0, size);
   };
 

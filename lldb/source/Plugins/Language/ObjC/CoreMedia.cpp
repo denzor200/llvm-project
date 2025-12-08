@@ -50,9 +50,9 @@ bool lldb_private::formatters::CMTimeSummaryProvider(
 
   const unsigned int FlagPositiveInf = 4;
   const unsigned int FlagNegativeInf = 8;
-  const unsigned int FlagIndefinite = 16;
+  
 
-  if (flags.AnySet(FlagIndefinite)) {
+  if (const unsigned int FlagIndefinite = 16; flags.AnySet(FlagIndefinite)) {
     stream.Printf("indefinite");
     return true;
   }

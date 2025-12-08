@@ -346,8 +346,8 @@ Decl *Parser::ParseObjCAtInterfaceDeclaration(SourceLocation AtLoc,
   ParseObjCInterfaceDeclList(tok::objc_interface, ClsType);
 
   if (SkipBody.CheckSameAsPrevious) {
-    auto *PreviousDef = cast<ObjCInterfaceDecl>(SkipBody.Previous);
-    if (Actions.ActOnDuplicateODRHashDefinition(ClsType, PreviousDef)) {
+    
+    if (auto *PreviousDef = cast<ObjCInterfaceDecl>(SkipBody.Previous); Actions.ActOnDuplicateODRHashDefinition(ClsType, PreviousDef)) {
       ClsType->mergeDuplicateDefinitionWithCommon(PreviousDef->getDefinition());
     } else {
       ODRDiagsEmitter DiagsEmitter(Diags, Actions.getASTContext(),
@@ -831,10 +831,10 @@ void Parser::ParseObjCPropertyAttribute(ObjCDeclSpec &DS) {
       bool IsSetter = II->getNameStart()[0] == 's';
 
       // getter/setter require extra treatment.
-      unsigned DiagID = IsSetter ? diag::err_objc_expected_equal_for_setter :
-                                   diag::err_objc_expected_equal_for_getter;
+      
 
-      if (ExpectAndConsume(tok::equal, DiagID)) {
+      if (unsigned DiagID = IsSetter ? diag::err_objc_expected_equal_for_setter :
+                                   diag::err_objc_expected_equal_for_getter; ExpectAndConsume(tok::equal, DiagID)) {
         SkipUntil(tok::r_paren, StopAtSemi);
         return;
       }
@@ -1866,8 +1866,8 @@ Parser::ParseObjCAtProtocolDeclaration(SourceLocation AtLoc,
 
   ParseObjCInterfaceDeclList(tok::objc_protocol, ProtoType);
   if (SkipBody.CheckSameAsPrevious) {
-    auto *PreviousDef = cast<ObjCProtocolDecl>(SkipBody.Previous);
-    if (Actions.ActOnDuplicateODRHashDefinition(ProtoType, PreviousDef)) {
+    
+    if (auto *PreviousDef = cast<ObjCProtocolDecl>(SkipBody.Previous); Actions.ActOnDuplicateODRHashDefinition(ProtoType, PreviousDef)) {
       ProtoType->mergeDuplicateDefinitionWithCommon(
           PreviousDef->getDefinition());
     } else {
@@ -2709,8 +2709,8 @@ bool Parser::isStartOfObjCClassMessageMissingOpenBracket() {
 
   // FIXME: Should not be querying properties of types from the parser.
   if (Type.isUsable() && Type.get().get()->isObjCObjectOrInterfaceType()) {
-    const Token &AfterNext = GetLookAheadToken(2);
-    if (AfterNext.isOneOf(tok::colon, tok::r_square)) {
+    
+    if (const Token &AfterNext = GetLookAheadToken(2); AfterNext.isOneOf(tok::colon, tok::r_square)) {
       if (Tok.is(tok::identifier))
         TryAnnotateTypeOrScopeToken();
 
@@ -3266,10 +3266,10 @@ ExprResult Parser::ParseObjCSelectorExpression(SourceLocation AtLoc) {
 void Parser::ParseLexedObjCMethodDefs(LexedMethod &LM, bool parseMethod) {
   // MCDecl might be null due to error in method or c-function  prototype, etc.
   Decl *MCDecl = LM.D;
-  bool skip =
+  
+  if (bool skip =
       MCDecl && ((parseMethod && !Actions.ObjC().isObjCMethodDecl(MCDecl)) ||
-                 (!parseMethod && Actions.ObjC().isObjCMethodDecl(MCDecl)));
-  if (skip)
+                 (!parseMethod && Actions.ObjC().isObjCMethodDecl(MCDecl))); skip)
     return;
 
   // Save the current token position.

@@ -625,8 +625,8 @@ TEST_F(CloneFunc, DebugIntrinsics) {
   inst_iterator NewEnd = inst_end(NewFunc);
   while (OldIter != OldEnd && NewIter != NewEnd) {
     Instruction& OldI = *OldIter;
-    Instruction& NewI = *NewIter;
-    if (DbgDeclareInst* OldIntrin = dyn_cast<DbgDeclareInst>(&OldI)) {
+    
+    if (Instruction& NewI = *NewIter; DbgDeclareInst* OldIntrin = dyn_cast<DbgDeclareInst>(&OldI)) {
       DbgDeclareInst* NewIntrin = dyn_cast<DbgDeclareInst>(&NewI);
       EXPECT_TRUE(NewIntrin);
 

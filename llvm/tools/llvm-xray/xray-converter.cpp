@@ -221,10 +221,10 @@ static StackTrieNode *findOrCreateStackNode(
     std::forward_list<StackTrieNode> &NodeStore) {
   SmallVector<StackTrieNode *, 4> &ParentCallees =
       Parent == nullptr ? StackRootsByThreadId[TId] : Parent->Callees;
-  auto match = find_if(ParentCallees, [FuncId](StackTrieNode *ParentCallee) {
+  
+  if (auto match = find_if(ParentCallees, [FuncId](StackTrieNode *ParentCallee) {
     return FuncId == ParentCallee->FuncId;
-  });
-  if (match != ParentCallees.end())
+  }); match != ParentCallees.end())
     return *match;
 
   SmallVector<StackTrieNode *, 4> siblings =
@@ -295,8 +295,8 @@ void TraceConverter::exportAsChromeTraceEventFormat(const Trace &Records,
     // frequency or do some more involved calculation to avoid dangers of
     // conversion.
     double EventTimestampUs = double(1000000) / CycleFreq * double(R.TSC);
-    StackTrieNode *&StackCursor = StackCursorByThreadId[R.TId];
-    switch (R.Type) {
+    
+    switch (StackTrieNode *&StackCursor = StackCursorByThreadId[R.TId]; R.Type) {
     case RecordTypes::CUSTOM_EVENT:
     case RecordTypes::TYPED_EVENT:
       // TODO: Support typed and custom event rendering on Chrome Trace Viewer.
@@ -403,8 +403,8 @@ static CommandRegistration Unused(&Convert, []() -> Error {
             std::make_error_code(std::errc::executable_format_error)),
         TraceOrErr.takeError());
 
-  auto &T = *TraceOrErr;
-  switch (ConvertOutputFormat) {
+  
+  switch (auto &T = *TraceOrErr; ConvertOutputFormat) {
   case ConvertFormats::YAML:
     TC.exportAsYAML(T, OS);
     break;

@@ -604,8 +604,8 @@ ModuleInlinerWrapperPass::ModuleInlinerWrapperPass(InlineParams Params,
 
 PreservedAnalyses ModuleInlinerWrapperPass::run(Module &M,
                                                 ModuleAnalysisManager &MAM) {
-  auto &IAA = MAM.getResult<InlineAdvisorAnalysis>(M);
-  if (!IAA.tryCreate(Params, Mode,
+  
+  if (auto &IAA = MAM.getResult<InlineAdvisorAnalysis>(M); !IAA.tryCreate(Params, Mode,
                      {CGSCCInlineReplayFile,
                       CGSCCInlineReplayScope,
                       CGSCCInlineReplayFallback,

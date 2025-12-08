@@ -66,8 +66,8 @@ static void buildCluster(ArrayRef<SUnit *> Exports, ScheduleDAGInstrs *DAG) {
     // Copy all dependencies to the head of the chain to avoid any
     // computation being inserted into the chain.
     for (const SDep &Pred : SUb->Preds) {
-      SUnit *PredSU = Pred.getSUnit();
-      if (!isExport(*PredSU) && !Pred.isWeak())
+      
+      if (SUnit *PredSU = Pred.getSUnit(); !isExport(*PredSU) && !Pred.isWeak())
         DAG->addEdge(ChainHead, SDep(PredSU, SDep::Artificial));
     }
 
@@ -82,8 +82,8 @@ static void removeExportDependencies(ScheduleDAGInstrs *DAG, SUnit &SU) {
   SmallVector<SDep, 2> ToAdd, ToRemove;
 
   for (const SDep &Pred : SU.Preds) {
-    SUnit *PredSU = Pred.getSUnit();
-    if (Pred.isBarrier() && isExport(*PredSU)) {
+    
+    if (SUnit *PredSU = Pred.getSUnit(); Pred.isBarrier() && isExport(*PredSU)) {
       ToRemove.push_back(Pred);
       if (isExport(SU))
         continue;
@@ -91,8 +91,8 @@ static void removeExportDependencies(ScheduleDAGInstrs *DAG, SUnit &SU) {
       // If we remove a barrier we need to copy dependencies
       // from the predecessor to maintain order.
       for (const SDep &ExportPred : PredSU->Preds) {
-        SUnit *ExportPredSU = ExportPred.getSUnit();
-        if (ExportPred.isBarrier() && !isExport(*ExportPredSU))
+        
+        if (SUnit *ExportPredSU = ExportPred.getSUnit(); ExportPred.isBarrier() && !isExport(*ExportPredSU))
           ToAdd.push_back(SDep(ExportPredSU, SDep::Barrier));
       }
     }

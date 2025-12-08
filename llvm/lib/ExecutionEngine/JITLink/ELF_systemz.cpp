@@ -386,8 +386,8 @@ Expected<std::unique_ptr<LinkGraph>> createLinkGraphFromELFObject_systemz(
 void link_ELF_systemz(std::unique_ptr<LinkGraph> G,
                       std::unique_ptr<JITLinkContext> Ctx) {
   PassConfiguration Config;
-  const Triple &TT = G->getTargetTriple();
-  if (Ctx->shouldAddDefaultTargetPasses(TT)) {
+  
+  if (const Triple &TT = G->getTargetTriple(); Ctx->shouldAddDefaultTargetPasses(TT)) {
     // Add eh-frame passes.
     Config.PrePrunePasses.push_back(DWARFRecordSectionSplitter(".eh_frame"));
     Config.PrePrunePasses.push_back(

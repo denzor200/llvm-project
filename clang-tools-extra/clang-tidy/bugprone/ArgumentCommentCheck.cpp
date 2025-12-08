@@ -347,8 +347,8 @@ void ArgumentCommentCheck::checkCallArgs(ASTContext *Ctx,
 }
 
 void ArgumentCommentCheck::check(const MatchFinder::MatchResult &Result) {
-  const auto *E = Result.Nodes.getNodeAs<Expr>("expr");
-  if (const auto *Call = dyn_cast<CallExpr>(E)) {
+  
+  if (const auto *E = Result.Nodes.getNodeAs<Expr>("expr"); const auto *Call = dyn_cast<CallExpr>(E)) {
     const FunctionDecl *Callee = Call->getDirectCallee();
     if (!Callee)
       return;

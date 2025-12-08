@@ -244,8 +244,8 @@ VAListChecker::getStartCallSite(const ExplodedNode *N,
     } else if (SeenInitializedState) {
       break;
     }
-    const LocationContext *NContext = N->getLocationContext();
-    if (NContext == LeakContext || NContext->isParentOf(LeakContext))
+    
+    if (const LocationContext *NContext = N->getLocationContext(); NContext == LeakContext || NContext->isParentOf(LeakContext))
       StartCallNode = N;
     N = N->pred_empty() ? nullptr : *(N->pred_begin());
   }

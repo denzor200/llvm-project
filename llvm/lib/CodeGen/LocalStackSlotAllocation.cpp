@@ -114,8 +114,8 @@ namespace {
 PreservedAnalyses
 LocalStackSlotAllocationPass::run(MachineFunction &MF,
                                   MachineFunctionAnalysisManager &) {
-  bool Changed = LocalStackSlotImpl().runOnMachineFunction(MF);
-  if (!Changed)
+  
+  if (bool Changed = LocalStackSlotImpl().runOnMachineFunction(MF); !Changed)
     return PreservedAnalyses::all();
   auto PA = getMachineFunctionPassPreservedAnalyses();
   PA.preserveSet<CFGAnalyses>();
@@ -131,11 +131,11 @@ INITIALIZE_PASS(LocalStackSlotPass, DEBUG_TYPE,
 bool LocalStackSlotImpl::runOnMachineFunction(MachineFunction &MF) {
   MachineFrameInfo &MFI = MF.getFrameInfo();
   const TargetRegisterInfo *TRI = MF.getSubtarget().getRegisterInfo();
-  unsigned LocalObjectCount = MFI.getObjectIndexEnd();
+  
 
   // If the target doesn't want/need this pass, or if there are no locals
   // to consider, early exit.
-  if (LocalObjectCount == 0 || !TRI->requiresVirtualBaseRegisters(MF))
+  if (unsigned LocalObjectCount = MFI.getObjectIndexEnd(); LocalObjectCount == 0 || !TRI->requiresVirtualBaseRegisters(MF))
     return false;
 
   // Make sure we have enough space to store the local offsets.

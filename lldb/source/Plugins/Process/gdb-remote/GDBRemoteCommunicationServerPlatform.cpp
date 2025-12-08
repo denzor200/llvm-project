@@ -466,9 +466,9 @@ const FileSpec &GDBRemoteCommunicationServerPlatform::GetDomainSocketDir() {
   static llvm::once_flag g_once_flag;
 
   llvm::call_once(g_once_flag, []() {
-    const char *domainsocket_dir_env =
-        ::getenv("LLDB_DEBUGSERVER_DOMAINSOCKET_DIR");
-    if (domainsocket_dir_env != nullptr)
+    
+    if (const char *domainsocket_dir_env =
+        ::getenv("LLDB_DEBUGSERVER_DOMAINSOCKET_DIR"); domainsocket_dir_env != nullptr)
       g_domainsocket_dir = FileSpec(domainsocket_dir_env);
     else
       g_domainsocket_dir = HostInfo::GetProcessTempDir();

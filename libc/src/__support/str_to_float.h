@@ -951,8 +951,8 @@ decimal_string_to_float(const CharType *__restrict src, RoundDirection round) {
   // TODO: When adding max length argument, handle the case of a trailing
   // exponent marker, see scanf for more details.
   if (tolower(src[index]) == constants<CharType>::DECIMAL_EXPONENT_MARKER) {
-    int sign = get_sign(src + index + 1);
-    if (isdigit(src[index + 1 + static_cast<size_t>(sign != 0)])) {
+    
+    if (int sign = get_sign(src + index + 1); isdigit(src[index + 1 + static_cast<size_t>(sign != 0)])) {
       ++index;
       auto result = strtointeger<int32_t>(src + index, 10);
       if (result.has_error())
@@ -961,12 +961,12 @@ decimal_string_to_float(const CharType *__restrict src, RoundDirection round) {
       index += static_cast<size_t>(result.parsed_len);
 
       // Here we do this operation as int64 to avoid overflow.
-      int64_t temp_exponent = static_cast<int64_t>(exponent) +
-                              static_cast<int64_t>(add_to_exponent);
+      
 
       // If the result is in the valid range, then we use it. The valid range is
       // also within the int32 range, so this prevents overflow issues.
-      if (temp_exponent > FPBits::MAX_BIASED_EXPONENT) {
+      if (int64_t temp_exponent = static_cast<int64_t>(exponent) +
+                              static_cast<int64_t>(add_to_exponent); temp_exponent > FPBits::MAX_BIASED_EXPONENT) {
         exponent = FPBits::MAX_BIASED_EXPONENT;
       } else if (temp_exponent < -FPBits::MAX_BIASED_EXPONENT) {
         exponent = -FPBits::MAX_BIASED_EXPONENT;
@@ -1055,8 +1055,8 @@ hexadecimal_string_to_float(const CharType *__restrict src,
   exponent *= 4;
 
   if (tolower(src[index]) == constants<CharType>::HEX_EXPONENT_MARKER) {
-    int sign = get_sign(src + index + 1);
-    if (isdigit(src[index + 1 + static_cast<size_t>(sign != 0)])) {
+    
+    if (int sign = get_sign(src + index + 1); isdigit(src[index + 1 + static_cast<size_t>(sign != 0)])) {
       ++index;
       auto result = strtointeger<int32_t>(src + index, 10);
       if (result.has_error())
@@ -1066,12 +1066,12 @@ hexadecimal_string_to_float(const CharType *__restrict src,
       index += static_cast<size_t>(result.parsed_len);
 
       // Here we do this operation as int64 to avoid overflow.
-      int64_t temp_exponent = static_cast<int64_t>(exponent) +
-                              static_cast<int64_t>(add_to_exponent);
+      
 
       // If the result is in the valid range, then we use it. The valid range is
       // also within the int32 range, so this prevents overflow issues.
-      if (temp_exponent > FPBits::MAX_BIASED_EXPONENT) {
+      if (int64_t temp_exponent = static_cast<int64_t>(exponent) +
+                              static_cast<int64_t>(add_to_exponent); temp_exponent > FPBits::MAX_BIASED_EXPONENT) {
         exponent = FPBits::MAX_BIASED_EXPONENT;
       } else if (temp_exponent < -FPBits::MAX_BIASED_EXPONENT) {
         exponent = -FPBits::MAX_BIASED_EXPONENT;

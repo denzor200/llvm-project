@@ -47,8 +47,8 @@ struct DataForTest {
     Ehdr.e_flags = Flags;
     Ehdr.e_ehsize = sizeof(T);
 
-    bool IsLittleEndian = Encoding == ELF::ELFDATA2LSB;
-    if (sys::IsLittleEndianHost != IsLittleEndian) {
+    
+    if (bool IsLittleEndian = Encoding == ELF::ELFDATA2LSB; sys::IsLittleEndianHost != IsLittleEndian) {
       sys::swapByteOrder(Ehdr.e_type);
       sys::swapByteOrder(Ehdr.e_machine);
       sys::swapByteOrder(Ehdr.e_version);

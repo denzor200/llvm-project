@@ -105,9 +105,9 @@ ReportRetriever::RetrieveReportData(const ProcessSP process_sp) {
     return StructuredData::ObjectSP();
   }
 
-  int present = return_value_sp->GetValueForExpressionPath(".present")
-                    ->GetValueAsUnsigned(0);
-  if (present != 1)
+  
+  if (int present = return_value_sp->GetValueForExpressionPath(".present")
+                    ->GetValueAsUnsigned(0); present != 1)
     return StructuredData::ObjectSP();
 
   addr_t pc =

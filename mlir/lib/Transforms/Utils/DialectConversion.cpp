@@ -1625,8 +1625,8 @@ Block *ConversionPatternRewriterImpl::applySignatureConversion(
   // ops should be moved one-by-one ("slow path"), so that a separate
   // `MoveOperationRewrite` is enqueued for each moved op. Moving ops in bulk is
   // a bit more efficient, so we try to do that when possible.
-  bool fastPath = !config.listener;
-  if (fastPath) {
+  
+  if (bool fastPath = !config.listener; fastPath) {
     if (config.allowPatternRollback)
       appendRewrite<InlineBlockRewrite>(newBlock, block, newBlock->end());
     newBlock->getOperations().splice(newBlock->end(), block->getOperations());
@@ -3315,10 +3315,10 @@ LogicalResult ConversionPatternRewriter::legalize(Operation *op) {
 
 LogicalResult OperationConverter::convert(Operation *op,
                                           bool isRecursiveLegalization) {
-  const ConversionConfig &config = rewriter.getConfig();
+  
 
   // Legalize the given operation.
-  if (failed(opLegalizer.legalize(op))) {
+  if (const ConversionConfig &config = rewriter.getConfig(); failed(opLegalizer.legalize(op))) {
     // Handle the case of a failed conversion for each of the different modes.
     // Full conversions expect all operations to be converted.
     if (mode == OpConversionMode::Full) {
@@ -4019,8 +4019,8 @@ void ConversionTarget::setLegalityCallback(
 auto ConversionTarget::getOpInfo(OperationName op) const
     -> std::optional<LegalizationInfo> {
   // Check for info for this specific operation.
-  const auto *it = legalOperations.find(op);
-  if (it != legalOperations.end())
+  
+  if (const auto *it = legalOperations.find(op); it != legalOperations.end())
     return it->second;
   // Check for info for the parent dialect.
   auto dialectIt = legalDialects.find(op.getDialectNamespace());
@@ -4084,9 +4084,9 @@ void mlir::registerConversionPDLFunctions(RewritePatternSet &patterns) {
   patterns.getPDLPatterns().registerRewriteFunction(
       "convertType",
       [](PatternRewriter &rewriter, Type type) -> FailureOr<Type> {
-        auto &rewriterImpl =
-            static_cast<ConversionPatternRewriter &>(rewriter).getImpl();
-        if (const TypeConverter *converter =
+        
+        if (auto &rewriterImpl =
+            static_cast<ConversionPatternRewriter &>(rewriter).getImpl(); const TypeConverter *converter =
                 rewriterImpl.currentTypeConverter) {
           if (Type newType = converter->convertType(type))
             return newType;

@@ -132,8 +132,8 @@ static void testGPRLimits(const char *RegName, bool TestW32W64,
         FS = &W32FS;
 
       std::stringstream Table;
-      bool Success = testAndRecord(Table, ST, test, /*DynamicVGPRBlockSize=*/0);
-      if (!Success || PrintCpuRegLimits)
+      
+      if (bool Success = testAndRecord(Table, ST, test, /*DynamicVGPRBlockSize=*/0); !Success || PrintCpuRegLimits)
         TablePerCPUs[Table.str()].push_back((CanonCPUName + FS->second).str());
 
       if (FS != &W32FS)

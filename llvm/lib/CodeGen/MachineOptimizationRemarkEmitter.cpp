@@ -49,8 +49,8 @@ MachineOptimizationRemarkEmitter::computeHotness(const MachineBasicBlock &MBB) {
 
 void MachineOptimizationRemarkEmitter::computeHotness(
     DiagnosticInfoMIROptimization &Remark) {
-  const MachineBasicBlock *MBB = Remark.getBlock();
-  if (MBB)
+  
+  if (const MachineBasicBlock *MBB = Remark.getBlock(); MBB)
     Remark.setHotness(computeHotness(*MBB));
 }
 

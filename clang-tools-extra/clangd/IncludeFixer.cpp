@@ -404,8 +404,8 @@ std::optional<CheapUnresolvedName> extractUnresolvedNameCheaply(
     if (Nested.getKind() == NestedNameSpecifier::Kind::Global) {
       Result.ResolvedScope = "";
     } else if (Nested.getKind() == NestedNameSpecifier::Kind::Namespace) {
-      const NamespaceBaseDecl *NSB = Nested.getAsNamespaceAndPrefix().Namespace;
-      if (const auto *NS = dyn_cast<NamespaceDecl>(NSB)) {
+      
+      if (const NamespaceBaseDecl *NSB = Nested.getAsNamespaceAndPrefix().Namespace; const auto *NS = dyn_cast<NamespaceDecl>(NSB)) {
         std::string SpecifiedNS = printNamespaceScope(*NS);
         std::optional<std::string> Spelling = getSpelledSpecifier(*SS, SM);
 

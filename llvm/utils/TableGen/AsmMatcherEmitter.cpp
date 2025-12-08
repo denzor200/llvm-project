@@ -1454,8 +1454,8 @@ void AsmMatcherInfo::buildOperandClasses() {
     CI->ValueName = Rec->getName().str();
 
     // Get or construct the predicate method name.
-    const Init *PMName = Rec->getValueInit("PredicateMethod");
-    if (const StringInit *SI = dyn_cast<StringInit>(PMName)) {
+    
+    if (const Init *PMName = Rec->getValueInit("PredicateMethod"); const StringInit *SI = dyn_cast<StringInit>(PMName)) {
       CI->PredicateMethod = SI->getValue().str();
     } else {
       assert(isa<UnsetInit>(PMName) && "Unexpected PredicateMethod field!");
@@ -1756,8 +1756,8 @@ void AsmMatcherInfo::buildInstructionOperandReference(MatchableInfo *II,
   if (Op->SubOpIdx == -1 && Operands[*Idx].MINumOperands > 1) {
     const Record *Rec = Operands[*Idx].Rec;
     assert(Rec->isSubClassOf("Operand") && "Unexpected operand!");
-    const Record *MatchClass = Rec->getValueAsDef("ParserMatchClass");
-    if (MatchClass && MatchClass->getValueAsString("Name") == "Imm") {
+    
+    if (const Record *MatchClass = Rec->getValueAsDef("ParserMatchClass"); MatchClass && MatchClass->getValueAsString("Name") == "Imm") {
       // Insert remaining suboperands after AsmOpIdx in II->AsmOperands.
       StringRef Token = Op->Token; // save this in case Op gets moved
       for (unsigned SI = 1, SE = Operands[*Idx].MINumOperands; SI != SE; ++SI) {
@@ -1838,8 +1838,8 @@ void MatchableInfo::buildInstructionResultOperands() {
     if (OpInfo.MINumOperands == 1)
       TiedOp = OpInfo.getTiedRegister();
     if (TiedOp != -1) {
-      int TiedSrcOperand = findAsmOperandOriginallyNamed(OpInfo.Name);
-      if (TiedSrcOperand != -1 &&
+      
+      if (int TiedSrcOperand = findAsmOperandOriginallyNamed(OpInfo.Name); TiedSrcOperand != -1 &&
           ResOperands[TiedOp].Kind == ResOperand::RenderAsmOperand)
         ResOperands.push_back(ResOperand::getTiedOp(
             TiedOp, ResOperands[TiedOp].AsmOperandNum, TiedSrcOperand));
@@ -1943,11 +1943,11 @@ void MatchableInfo::buildAliasResultOperands(bool AliasConstraintsAreChecked) {
     for (; AliasOpNo < LastOpNo &&
            CGA.ResultInstOperandIndex[AliasOpNo].first == Idx;
          ++AliasOpNo) {
-      int SubIdx = CGA.ResultInstOperandIndex[AliasOpNo].second;
+      
 
       // Find out what operand from the asmparser that this MCInst operand
       // comes from.
-      switch (CGA.ResultOperands[AliasOpNo].Kind) {
+      switch (int SubIdx = CGA.ResultInstOperandIndex[AliasOpNo].second; CGA.ResultOperands[AliasOpNo].Kind) {
       case CodeGenInstAlias::ResultOperand::K_Record: {
         StringRef Name = CGA.ResultOperands[AliasOpNo].getName();
         int SrcOperand = findAsmOperand(Name, SubIdx);
@@ -2553,9 +2553,9 @@ static void emitValidateOperandClass(const CodeGenTarget &Target,
 
   const CodeGenRegBank &RegBank = Target.getRegBank();
   ArrayRef<const Record *> RegClassesByHwMode = Target.getAllRegClassByHwMode();
-  unsigned NumClassesByHwMode = RegClassesByHwMode.size();
+  
 
-  if (!RegClassesByHwMode.empty()) {
+  if (unsigned NumClassesByHwMode = RegClassesByHwMode.size(); !RegClassesByHwMode.empty()) {
     OS << "  if (Operand.isReg() && Kind > MCK_LAST_REGISTER &&"
           " Kind <= MCK_LAST_REGCLASS_BY_HWMODE) {\n";
 

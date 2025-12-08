@@ -306,8 +306,8 @@ void llvm::runDeltaPass(TestRunner &Test, const DeltaPass &Pass) {
           SmallString<0> Res = Future.get();
           TaskQueue.pop_front();
           if (Res.empty()) {
-            unsigned NumScheduledTasks = NumChunksProcessed + TaskQueue.size();
-            if (!AnyReduced && I + NumScheduledTasks != E) {
+            
+            if (unsigned NumScheduledTasks = NumChunksProcessed + TaskQueue.size(); !AnyReduced && I + NumScheduledTasks != E) {
               Chunk ChunkToCheck = *(I + NumScheduledTasks);
               TaskQueue.emplace_back(ChunkThreadPool.async(
                   ProcessChunkFromSerializedBitcode, ChunkToCheck,

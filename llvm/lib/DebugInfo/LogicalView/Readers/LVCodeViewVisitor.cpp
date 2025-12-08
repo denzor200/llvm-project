@@ -837,7 +837,7 @@ Error LVSymbolVisitor::visitKnownRecord(CVSymbol &Record,
     LVElement *Element = LogicalVisitor->getElement(StreamTPI, Local.Type);
     if (Element && Element->getIsScoped()) {
       // We have a local type. Find its parent function.
-      LVScope *Parent = Symbol->getFunctionParent();
+      
       // The element representing the type has been already finalized. If
       // the type is an aggregate type, its members have been already added.
       // As the type is local, its level will be changed.
@@ -845,7 +845,7 @@ Error LVSymbolVisitor::visitKnownRecord(CVSymbol &Record,
       // FIXME: Currently the algorithm used to scope lambda functions is
       // incorrect. Before we allocate the type at this scope, check if is
       // already allocated in other scope.
-      if (!Element->getParentScope()) {
+      if (LVScope *Parent = Symbol->getFunctionParent(); !Element->getParentScope()) {
         Parent->addElement(Element);
         Element->updateLevel(Parent);
       }
@@ -887,7 +887,7 @@ Error LVSymbolVisitor::visitKnownRecord(CVSymbol &Record,
     LVElement *Element = LogicalVisitor->getElement(StreamTPI, Local.Type);
     if (Element && Element->getIsScoped()) {
       // We have a local type. Find its parent function.
-      LVScope *Parent = Symbol->getFunctionParent();
+      
       // The element representing the type has been already finalized. If
       // the type is an aggregate type, its members have been already added.
       // As the type is local, its level will be changed.
@@ -895,7 +895,7 @@ Error LVSymbolVisitor::visitKnownRecord(CVSymbol &Record,
       // FIXME: Currently the algorithm used to scope lambda functions is
       // incorrect. Before we allocate the type at this scope, check if is
       // already allocated in other scope.
-      if (!Element->getParentScope()) {
+      if (LVScope *Parent = Symbol->getFunctionParent(); !Element->getParentScope()) {
         Parent->addElement(Element);
         Element->updateLevel(Parent);
       }
@@ -1884,9 +1884,9 @@ Error LVLogicalVisitor::visitKnownRecord(CVType &Record, ArrayRecord &AT,
     if (!TIElementType.isSimple()) {
       CVType CVElementType = Types.getType(TIElementType);
       if (CVElementType.kind() == LF_MODIFIER) {
-        LVElement *QualifiedType =
-            Shared->TypeRecords.find(StreamTPI, TIElementType);
-        if (Error Err =
+        
+        if (LVElement *QualifiedType =
+            Shared->TypeRecords.find(StreamTPI, TIElementType); Error Err =
                 finishVisitation(CVElementType, TIElementType, QualifiedType))
           return Err;
         // Get the TypeIndex of the type that the LF_MODIFIER modifies.
@@ -2176,8 +2176,8 @@ Error LVLogicalVisitor::visitKnownRecord(CVType &Record, MemberFuncIdRecord &Id,
     printTypeEnd(Record);
   });
 
-  LVScope *FunctionDcl = static_cast<LVScope *>(Element);
-  if (FunctionDcl->getIsInlinedAbstract()) {
+  
+  if (LVScope *FunctionDcl = static_cast<LVScope *>(Element); FunctionDcl->getIsInlinedAbstract()) {
     // For inlined functions, the inlined instance has been already processed
     // (all its information is contained in the Symbols section).
     // 'Element' points to the created 'abstract' (out-of-line) function.
@@ -3231,8 +3231,8 @@ LVType *LVLogicalVisitor::createPointerType(TypeIndex TI, StringRef TypeName) {
   if (LVElement *Element = Shared->TypeRecords.find(StreamTPI, TI))
     return static_cast<LVType *>(Element);
 
-  LVType *Pointee = createBaseType(TI, TypeName.drop_back(1));
-  if (createElement(TI, TypeLeafKind::LF_POINTER)) {
+  
+  if (LVType *Pointee = createBaseType(TI, TypeName.drop_back(1)); createElement(TI, TypeLeafKind::LF_POINTER)) {
     CurrentType->setIsFinalized();
     CurrentType->setType(Pointee);
     Reader->getCompileUnit()->addElement(CurrentType);
@@ -3425,8 +3425,8 @@ Error LVLogicalVisitor::inlineSiteAnnotation(LVScope *AbstractFunction,
   // Get the parent scope to update the address ranges of the nested
   // scope representing the inlined function.
   LVAddress ParentLowPC = 0;
-  LVScope *Parent = InlinedFunction->getParentScope();
-  if (const LVLocations *Locations = Parent->getRanges()) {
+  
+  if (LVScope *Parent = InlinedFunction->getParentScope(); const LVLocations *Locations = Parent->getRanges()) {
     if (!Locations->empty())
       ParentLowPC = (*Locations->begin())->getLowerAddress();
   }

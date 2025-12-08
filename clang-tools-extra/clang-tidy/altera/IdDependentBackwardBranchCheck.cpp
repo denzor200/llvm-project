@@ -250,8 +250,8 @@ void IdDependentBackwardBranchCheck::check(
     }
     // Conditional expression has DeclRefExpr(s), check ID-dependency.
     const IdDependencyRecord *IdDepVar = hasIdDepVar(CondExpr);
-    const IdDependencyRecord *IdDepField = hasIdDepField(CondExpr);
-    if (IdDepVar) {
+    
+    if (const IdDependencyRecord *IdDepField = hasIdDepField(CondExpr); IdDepVar) {
       diag(CondExpr->getBeginLoc(),
            "backward branch (%select{do|while|for}0 loop) is ID-dependent due "
            "to variable reference to %1 and may cause performance degradation")

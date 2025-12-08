@@ -84,8 +84,8 @@ struct GridShapeFolder
     SmallVector<size_t> newToOldResultsIndexMap;
 
     for (size_t i = 0; i < opGridAxes.size(); ++i) {
-      auto gridAxisSize = grid.getShape()[opGridAxes[i]];
-      if (ShapedType::isDynamic(gridAxisSize)) {
+      
+      if (auto gridAxisSize = grid.getShape()[opGridAxes[i]]; ShapedType::isDynamic(gridAxisSize)) {
         newToOldResultsIndexMap.push_back(i);
         newShapeOpGridAxes.push_back(opGridAxes[i]);
       } else {

@@ -78,8 +78,8 @@ void RegReAssign::swap(BinaryFunction &Function, MCPhysReg A, MCPhysReg B) {
       switch (CFI->getOperation()) {
       case MCCFIInstruction::OpRegister: {
         const unsigned CFIReg2 = CFI->getRegister2();
-        const MCPhysReg Reg2 = *BC.MRI->getLLVMRegNum(CFIReg2, /*isEH=*/false);
-        if (AliasA.test(Reg2)) {
+        
+        if (const MCPhysReg Reg2 = *BC.MRI->getLLVMRegNum(CFIReg2, /*isEH=*/false); AliasA.test(Reg2)) {
           Function.setCFIFor(
               Inst, MCCFIInstruction::createRegister(
                         nullptr, CFI->getRegister(),

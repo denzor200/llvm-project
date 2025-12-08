@@ -323,8 +323,8 @@ void Module::eraseNamedMetadata(NamedMDNode *NMD) {
 
 bool Module::isValidModFlagBehavior(Metadata *MD, ModFlagBehavior &MFB) {
   if (ConstantInt *Behavior = mdconst::dyn_extract_or_null<ConstantInt>(MD)) {
-    uint64_t Val = Behavior->getLimitedValue();
-    if (Val >= ModFlagBehaviorFirstVal && Val <= ModFlagBehaviorLastVal) {
+    
+    if (uint64_t Val = Behavior->getLimitedValue(); Val >= ModFlagBehaviorFirstVal && Val <= ModFlagBehaviorLastVal) {
       MFB = static_cast<ModFlagBehavior>(Val);
       return true;
     }
@@ -404,8 +404,8 @@ void Module::setModuleFlag(ModFlagBehavior Behavior, StringRef Key,
   NamedMDNode *ModFlags = getOrInsertModuleFlagsMetadata();
   // Replace the flag if it already exists.
   for (unsigned i = 0; i < ModFlags->getNumOperands(); ++i) {
-    MDNode *Flag = ModFlags->getOperand(i);
-    if (cast<MDString>(Flag->getOperand(1))->getString() == Key) {
+    
+    if (MDNode *Flag = ModFlags->getOperand(i); cast<MDString>(Flag->getOperand(1))->getString() == Key) {
       Type *Int32Ty = Type::getInt32Ty(Context);
       Metadata *Ops[3] = {
           ConstantAsMetadata::get(ConstantInt::get(Int32Ty, Behavior)),
@@ -724,9 +724,9 @@ void Module::setRtLibUseGOT() {
 }
 
 bool Module::getDirectAccessExternalData() const {
-  auto *Val = cast_or_null<ConstantAsMetadata>(
-      getModuleFlag("direct-access-external-data"));
-  if (Val)
+  
+  if (auto *Val = cast_or_null<ConstantAsMetadata>(
+      getModuleFlag("direct-access-external-data")); Val)
     return cast<ConstantInt>(Val->getValue())->getZExtValue() > 0;
   return getPICLevel() == PICLevel::NotPIC;
 }
@@ -756,8 +756,8 @@ void Module::setFramePointer(FramePointerKind Kind) {
 }
 
 StringRef Module::getStackProtectorGuard() const {
-  Metadata *MD = getModuleFlag("stack-protector-guard");
-  if (auto *MDS = dyn_cast_or_null<MDString>(MD))
+  
+  if (Metadata *MD = getModuleFlag("stack-protector-guard"); auto *MDS = dyn_cast_or_null<MDString>(MD))
     return MDS->getString();
   return {};
 }
@@ -768,8 +768,8 @@ void Module::setStackProtectorGuard(StringRef Kind) {
 }
 
 StringRef Module::getStackProtectorGuardReg() const {
-  Metadata *MD = getModuleFlag("stack-protector-guard-reg");
-  if (auto *MDS = dyn_cast_or_null<MDString>(MD))
+  
+  if (Metadata *MD = getModuleFlag("stack-protector-guard-reg"); auto *MDS = dyn_cast_or_null<MDString>(MD))
     return MDS->getString();
   return {};
 }
@@ -780,8 +780,8 @@ void Module::setStackProtectorGuardReg(StringRef Reg) {
 }
 
 StringRef Module::getStackProtectorGuardSymbol() const {
-  Metadata *MD = getModuleFlag("stack-protector-guard-symbol");
-  if (auto *MDS = dyn_cast_or_null<MDString>(MD))
+  
+  if (Metadata *MD = getModuleFlag("stack-protector-guard-symbol"); auto *MDS = dyn_cast_or_null<MDString>(MD))
     return MDS->getString();
   return {};
 }

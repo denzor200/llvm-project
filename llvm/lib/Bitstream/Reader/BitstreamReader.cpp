@@ -52,8 +52,8 @@ Error BitstreamCursor::EnterSubBlock(unsigned BlockID, unsigned *NumWordsP) {
   Expected<word_t> MaybeNum = Read(bitc::BlockSizeWidth);
   if (!MaybeNum)
     return MaybeNum.takeError();
-  word_t NumWords = MaybeNum.get();
-  if (NumWordsP)
+  
+  if (word_t NumWords = MaybeNum.get(); NumWordsP)
     *NumWordsP = NumWords;
 
   if (CurCodeSize == 0)
@@ -155,11 +155,11 @@ Expected<unsigned> BitstreamCursor::skipRecord(unsigned AbbrevID) {
 
       // Get the element encoding.
       assert(i+2 == e && "array op not second to last?");
-      const BitCodeAbbrevOp &EltEnc = Abbv->getOperandInfo(++i);
+      
 
       // Read all the elements.
       // Decode the value as we are commanded.
-      switch (EltEnc.getEncoding()) {
+      switch (const BitCodeAbbrevOp &EltEnc = Abbv->getOperandInfo(++i); EltEnc.getEncoding()) {
       default:
         return error("Array element type can't be an Array or a Blob");
       case BitCodeAbbrevOp::Fixed:
@@ -371,8 +371,8 @@ Error BitstreamCursor::ReadAbbrevRecord() {
     Expected<word_t> MaybeIsLiteral = Read(1);
     if (!MaybeIsLiteral)
       return MaybeIsLiteral.takeError();
-    bool IsLiteral = MaybeIsLiteral.get();
-    if (IsLiteral) {
+    
+    if (bool IsLiteral = MaybeIsLiteral.get(); IsLiteral) {
       Expected<uint64_t> MaybeOp = ReadVBR64(8);
       if (!MaybeOp)
         return MaybeOp.takeError();

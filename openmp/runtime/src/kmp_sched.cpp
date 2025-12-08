@@ -120,9 +120,9 @@ static void __kmp_for_static_init(ident_t *loc, kmp_int32 global_tid,
       } else if ((loc->flags & KMP_IDENT_WORK_DISTRIBUTE) != 0) {
         ompt_work_type = ompt_work_distribute;
       } else {
-        kmp_int8 bool_res =
-            KMP_COMPARE_AND_STORE_ACQ8(&warn, (kmp_int8)0, (kmp_int8)1);
-        if (bool_res)
+        
+        if (kmp_int8 bool_res =
+            KMP_COMPARE_AND_STORE_ACQ8(&warn, (kmp_int8)0, (kmp_int8)1); bool_res)
           KMP_WARNING(OmptOutdatedWorkshare);
       }
       KMP_DEBUG_ASSERT(ompt_work_type);

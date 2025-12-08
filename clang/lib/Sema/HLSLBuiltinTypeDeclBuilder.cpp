@@ -429,8 +429,8 @@ BuiltinTypeMethodBuilder::BuiltinTypeMethodBuilder(BuiltinTypeDeclBuilder &DB,
   assert((!NameStr.empty() || IsCtor) && "method needs a name");
   assert(((IsCtor && !IsConst) || !IsCtor) && "constructor cannot be const");
 
-  ASTContext &AST = DB.SemaRef.getASTContext();
-  if (IsCtor) {
+  
+  if (ASTContext &AST = DB.SemaRef.getASTContext(); IsCtor) {
     Name = AST.DeclarationNames.getCXXConstructorName(
         AST.getCanonicalTagType(DB.Record));
   } else {
@@ -769,8 +769,8 @@ BuiltinTypeDeclBuilder::BuiltinTypeDeclBuilder(Sema &SemaRef,
   CXXRecordDecl *PrevDecl = nullptr;
   if (SemaRef.LookupQualifiedName(Result, HLSLNamespace)) {
     // Declaration already exists (from precompiled headers)
-    NamedDecl *Found = Result.getFoundDecl();
-    if (auto *TD = dyn_cast<ClassTemplateDecl>(Found)) {
+    
+    if (NamedDecl *Found = Result.getFoundDecl(); auto *TD = dyn_cast<ClassTemplateDecl>(Found)) {
       PrevDecl = TD->getTemplatedDecl();
       PrevTemplate = TD;
     } else
@@ -1322,11 +1322,11 @@ BuiltinTypeDeclBuilder::addGetDimensionsMethodForBuffer() {
   QualType UIntTy = AST.UnsignedIntTy;
 
   QualType HandleTy = getResourceHandleField()->getType();
-  auto *AttrResTy = cast<HLSLAttributedResourceType>(HandleTy.getTypePtr());
+  
 
   // Structured buffers except {RW}ByteAddressBuffer have overload
   // GetDimensions(out uint numStructs, out uint stride).
-  if (AttrResTy->getAttrs().RawBuffer &&
+  if (auto *AttrResTy = cast<HLSLAttributedResourceType>(HandleTy.getTypePtr()); AttrResTy->getAttrs().RawBuffer &&
       AttrResTy->getContainedType() != AST.Char8Ty) {
     return BuiltinTypeMethodBuilder(*this, "GetDimensions", AST.VoidTy)
         .addParam("numStructs", UIntTy, HLSLParamModifierAttr::Keyword_out)

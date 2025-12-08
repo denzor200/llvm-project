@@ -59,8 +59,8 @@ const DWARFDebugAranges &DWARFDebugInfo::GetCompileUnitAranges() {
   // standard. Without that guarantee, we have to iterate over every CU in the
   // .debug_info and make sure there's a corresponding entry in the table and if
   // not, add one for every subprogram.
-  ObjectFile *OF = m_dwarf.GetObjectFile();
-  if (!OF || !OF->CanTrustAddressRanges()) {
+  
+  if (ObjectFile *OF = m_dwarf.GetObjectFile(); !OF || !OF->CanTrustAddressRanges()) {
     const size_t num_units = GetNumUnits();
     for (size_t idx = 0; idx < num_units; ++idx) {
       DWARFUnit *cu = GetUnitAtIndex(idx);
@@ -87,8 +87,8 @@ void DWARFDebugInfo::ParseUnitsFor(DIERef::Section section) {
         DWARFUnit::extract(m_dwarf, m_units.size(), data, section, &offset);
 
     if (!expected_unit_sp) {
-      Log *log = GetLog(DWARFLog::DebugInfo);
-      if (log)
+      
+      if (Log *log = GetLog(DWARFLog::DebugInfo); log)
         LLDB_LOG(log, "Unable to extract DWARFUnitHeader at {0:x}: {1}",
                  unit_header_offset,
                  llvm::toString(expected_unit_sp.takeError()));

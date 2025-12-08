@@ -66,8 +66,8 @@ static ClangTidyOptions::OptionMap::const_iterator
 findPriorityOption(const ClangTidyOptions::OptionMap &Options,
                    StringRef NamePrefix, StringRef LocalName,
                    ClangTidyContext *Context) {
-  llvm::StringSet<> *Collector = Context->getOptionsCollector();
-  if (Collector) {
+  
+  if (llvm::StringSet<> *Collector = Context->getOptionsCollector(); Collector) {
     Collector->insert((NamePrefix + LocalName).str());
     Collector->insert(LocalName);
   }
@@ -173,9 +173,9 @@ ClangTidyCheck::OptionsView::getEnumInt(StringRef LocalName,
       EditDistance = 0;
       continue;
     }
-    const unsigned Distance =
-        Value.edit_distance(NameAndEnum.second, true, EditDistance);
-    if (Distance < EditDistance) {
+    
+    if (const unsigned Distance =
+        Value.edit_distance(NameAndEnum.second, true, EditDistance); Distance < EditDistance) {
       EditDistance = Distance;
       Closest = NameAndEnum.second;
     }

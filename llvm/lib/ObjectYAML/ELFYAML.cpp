@@ -1283,8 +1283,8 @@ struct NormalizedOther {
     const auto *Object = static_cast<ELFYAML::Object *>(YamlIO.getContext());
     MapVector<StringRef, uint8_t> Flags = getFlags(Object->getMachine());
 
-    auto It = Flags.find(Name);
-    if (It != Flags.end())
+    
+    if (auto It = Flags.find(Name); It != Flags.end())
       return It->second;
 
     uint8_t Val;

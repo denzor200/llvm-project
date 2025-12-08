@@ -150,8 +150,8 @@ Error CtorDtorRunner::run() {
   assert(!LookupSet.containsDuplicates() &&
          "Ctor/Dtor list contains duplicates");
 
-  auto &ES = JD.getExecutionSession();
-  if (auto CtorDtorMap = ES.lookup(
+  
+  if (auto &ES = JD.getExecutionSession(); auto CtorDtorMap = ES.lookup(
           makeJITDylibSearchOrder(&JD, JITDylibLookupFlags::MatchAllSymbols),
           std::move(LookupSet))) {
     for (auto &KV : CtorDtorsByPriority) {

@@ -528,11 +528,11 @@ FailureOr<PackResult> linalg::pack(RewriterBase &rewriter,
           rewriter, loc, operand, innerPackSizes, innerPos,
           /*outerDimsPerm=*/{});
       ShapedType operandType = cast<ShapedType>(operand.getType());
-      bool areConstantTiles =
+      
+      if (bool areConstantTiles =
           llvm::all_of(innerPackSizes, [](OpFoldResult tile) {
             return getConstantIntValue(tile).has_value();
-          });
-      if (areConstantTiles && operandType.hasStaticShape() &&
+          }); areConstantTiles && operandType.hasStaticShape() &&
           !linalg::PackOp::requirePaddingValue(
               operandType.getShape(), innerPos,
               cast<ShapedType>(dest.getType()).getShape(), {},
@@ -1456,8 +1456,8 @@ FailureOr<Conv1DOp> DownscaleSizeOneWindowed2DConvolution<Conv2DOp, Conv1DOp>::
   int64_t khSize = kernelShape[khIndex], kwSize = kernelShape[kwIndex];
   int64_t ohSize = outputShape[ohIndex], owSize = outputShape[owIndex];
   bool removeH = (khSize == 1 && ohSize == 1);
-  bool removeW = (kwSize == 1 && owSize == 1);
-  if (!removeH && !removeW)
+  
+  if (bool removeW = (kwSize == 1 && owSize == 1); !removeH && !removeW)
     return failure();
 
   // Get new shapes and types for all operands by removing the size-1
@@ -1544,8 +1544,8 @@ DownscaleDepthwiseConv2DNhwcHwcOp::returningMatchAndRewrite(
   int64_t khSize = kernelShape[0], kwSize = kernelShape[1];
   int64_t ohSize = outputShape[1], owSize = outputShape[2];
   bool removeH = (khSize == 1 && ohSize == 1);
-  bool removeW = (kwSize == 1 && owSize == 1);
-  if (!removeH && !removeW)
+  
+  if (bool removeW = (kwSize == 1 && owSize == 1); !removeH && !removeW)
     return failure();
 
   // Get new shapes and types for all operands by removing the size-1
@@ -1612,8 +1612,8 @@ DownscaleConv2DOp::returningMatchAndRewrite(Conv2DOp convOp,
   int64_t khSize = kernelShape[0], kwSize = kernelShape[1];
   int64_t ohSize = outputShape[0], owSize = outputShape[1];
   bool removeH = (khSize == 1 && ohSize == 1);
-  bool removeW = (kwSize == 1 && owSize == 1);
-  if (!removeH && !removeW)
+  
+  if (bool removeW = (kwSize == 1 && owSize == 1); !removeH && !removeW)
     return failure();
 
   // Get new shapes and types for all operands by removing the size-1

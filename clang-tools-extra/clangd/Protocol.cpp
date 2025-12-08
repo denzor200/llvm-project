@@ -279,8 +279,8 @@ bool fromJSON(const llvm::json::Value &E, SymbolKindBitset &Out,
 
 SymbolKind adjustKindToCapability(SymbolKind Kind,
                                   SymbolKindBitset &SupportedSymbolKinds) {
-  auto KindVal = static_cast<size_t>(Kind);
-  if (KindVal >= SymbolKindMin && KindVal <= SupportedSymbolKinds.size() &&
+  
+  if (auto KindVal = static_cast<size_t>(Kind); KindVal >= SymbolKindMin && KindVal <= SupportedSymbolKinds.size() &&
       SupportedSymbolKinds[KindVal])
     return Kind;
 
@@ -1103,8 +1103,8 @@ bool fromJSON(const llvm::json::Value &E, CompletionItemKind &Out,
 CompletionItemKind
 adjustKindToCapability(CompletionItemKind Kind,
                        CompletionItemKindBitset &SupportedCompletionItemKinds) {
-  auto KindVal = static_cast<size_t>(Kind);
-  if (KindVal >= CompletionItemKindMin &&
+  
+  if (auto KindVal = static_cast<size_t>(Kind); KindVal >= CompletionItemKindMin &&
       KindVal <= SupportedCompletionItemKinds.size() &&
       SupportedCompletionItemKinds[KindVal])
     return Kind;

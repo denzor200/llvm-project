@@ -78,8 +78,8 @@ void SystemZInstPrinterCommon::printUImmOperand(const MCInst *MI, int OpNum,
 template <unsigned N>
 void SystemZInstPrinterCommon::printSImmOperand(const MCInst *MI, int OpNum,
                                                 raw_ostream &O) {
-  const MCOperand &MO = MI->getOperand(OpNum);
-  if (MO.isExpr()) {
+  
+  if (const MCOperand &MO = MI->getOperand(OpNum); MO.isExpr()) {
     MAI.printExpr(O, *MO.getExpr());
     return;
   }
@@ -156,8 +156,8 @@ void SystemZInstPrinterCommon::printPCRelOperand(const MCInst *MI,
   // If the label has already been resolved to an immediate offset (say, when
   // we're running the disassembler), just print the immediate.
   if (MO.isImm()) {
-    int64_t Offset = MO.getImm();
-    if (PrintBranchImmAsAddress)
+    
+    if (int64_t Offset = MO.getImm(); PrintBranchImmAsAddress)
       markup(O, Markup::Target) << formatHex(Address + Offset);
     else
       markup(O, Markup::Immediate) << formatImm(Offset);

@@ -567,8 +567,8 @@ void PrintPPOutputPPCallbacks::MacroDefined(const Token &MacroNameTok,
 
   SourceLocation DefLoc = MI->getDefinitionLoc();
   if (DirectivesOnly && !MI->isUsed()) {
-    SourceManager &SM = PP.getSourceManager();
-    if (SM.isInPredefinedFile(DefLoc))
+    
+    if (SourceManager &SM = PP.getSourceManager(); SM.isInPredefinedFile(DefLoc))
       return;
   }
   MoveToLine(DefLoc, /*RequireStartOfLine=*/true);
@@ -1052,8 +1052,8 @@ static void DoPrintMacros(Preprocessor &PP, raw_ostream *OS) {
   SmallVector<id_macro_pair, 128> MacrosByID;
   for (Preprocessor::macro_iterator I = PP.macro_begin(), E = PP.macro_end();
        I != E; ++I) {
-    auto *MD = I->second.getLatest();
-    if (MD && MD->isDefined())
+    
+    if (auto *MD = I->second.getLatest(); MD && MD->isDefined())
       MacrosByID.push_back(id_macro_pair(I->first, MD->getMacroInfo()));
   }
   llvm::array_pod_sort(MacrosByID.begin(), MacrosByID.end(), MacroIDCompare);

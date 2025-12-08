@@ -673,8 +673,8 @@ Value *llvm::lowerObjectSizeCall(
       cast<ConstantInt>(ObjectSize->getArgOperand(2))->isOne();
 
   auto *ResultType = cast<IntegerType>(ObjectSize->getType());
-  bool StaticOnly = cast<ConstantInt>(ObjectSize->getArgOperand(3))->isZero();
-  if (StaticOnly) {
+  
+  if (bool StaticOnly = cast<ConstantInt>(ObjectSize->getArgOperand(3))->isZero(); StaticOnly) {
     // FIXME: Does it make sense to just return a failure value if the size won't
     // fit in the output and `!MustSucceed`?
     uint64_t Size;
@@ -740,8 +740,8 @@ combinePossibleConstantValues(std::optional<APInt> LHS,
 
 static std::optional<APInt> aggregatePossibleConstantValuesImpl(
     const Value *V, ObjectSizeOpts::Mode EvalMode, unsigned recursionDepth) {
-  constexpr unsigned maxRecursionDepth = 4;
-  if (recursionDepth == maxRecursionDepth)
+  
+  if (constexpr unsigned maxRecursionDepth = 4; recursionDepth == maxRecursionDepth)
     return std::nullopt;
 
   if (const auto *CI = dyn_cast<ConstantInt>(V)) {
@@ -955,8 +955,8 @@ OffsetSpan ObjectSizeOffsetVisitor::visitAllocaInst(AllocaInst &I) {
   if (!I.isArrayAllocation())
     return OffsetSpan(Zero, align(Size, I.getAlign()));
 
-  Value *ArraySize = I.getArraySize();
-  if (auto PossibleSize =
+  
+  if (Value *ArraySize = I.getArraySize(); auto PossibleSize =
           aggregatePossibleConstantValues(ArraySize, Options.EvalMode)) {
     APInt NumElems = *PossibleSize;
     if (!CheckedZextOrTrunc(NumElems))
@@ -1095,9 +1095,9 @@ OffsetSpan ObjectSizeOffsetVisitor::findLoadOffsetRange(
     }
 
     if (auto *CB = dyn_cast<CallBase>(&I)) {
-      Function *Callee = CB->getCalledFunction();
+      
       // Bail out on indirect call.
-      if (!Callee)
+      if (Function *Callee = CB->getCalledFunction(); !Callee)
         return Unknown();
 
       LibFunc TLIFn;

@@ -52,9 +52,9 @@ DynamicLoader *DynamicLoaderPOSIXDYLD::CreateInstance(Process *process,
                                                       bool force) {
   bool create = force;
   if (!create) {
-    const llvm::Triple &triple_ref =
-        process->GetTarget().GetArchitecture().GetTriple();
-    if (triple_ref.getOS() == llvm::Triple::FreeBSD ||
+    
+    if (const llvm::Triple &triple_ref =
+        process->GetTarget().GetArchitecture().GetTriple(); triple_ref.getOS() == llvm::Triple::FreeBSD ||
         triple_ref.getOS() == llvm::Triple::Linux ||
         triple_ref.getOS() == llvm::Triple::NetBSD ||
         triple_ref.getOS() == llvm::Triple::OpenBSD)
@@ -109,10 +109,10 @@ void DynamicLoaderPOSIXDYLD::DidAttach() {
   EvalSpecialModulesStatus();
 
   // if we dont have a load address we cant re-base
-  bool rebase_exec = load_offset != LLDB_INVALID_ADDRESS;
+  
 
   // if the target executable should be re-based
-  if (rebase_exec) {
+  if (bool rebase_exec = load_offset != LLDB_INVALID_ADDRESS; rebase_exec) {
     ModuleList module_list;
 
     module_list.Append(executable_sp);
@@ -785,10 +785,10 @@ addr_t DynamicLoaderPOSIXDYLD::GetEntryPoint() {
 
   m_entry_point = static_cast<addr_t>(*entry_point);
 
-  const ArchSpec &arch = m_process->GetTarget().GetArchitecture();
+  
 
   // On ppc64, the entry point is actually a descriptor.  Dereference it.
-  if (arch.GetMachine() == llvm::Triple::ppc64)
+  if (const ArchSpec &arch = m_process->GetTarget().GetArchitecture(); arch.GetMachine() == llvm::Triple::ppc64)
     m_entry_point = ReadUnsignedIntWithSizeInBytes(m_entry_point, 8);
 
   return m_entry_point;

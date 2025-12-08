@@ -672,8 +672,8 @@ void CommandCompletions::Breakpoints(CommandInterpreter &interpreter,
     bp->GetDescription(&s, lldb::eDescriptionLevelBrief);
     llvm::StringRef bp_info = s.GetString();
 
-    const size_t colon_pos = bp_info.find_first_of(':');
-    if (colon_pos != llvm::StringRef::npos)
+    
+    if (const size_t colon_pos = bp_info.find_first_of(':'); colon_pos != llvm::StringRef::npos)
       bp_info = bp_info.drop_front(colon_pos + 2);
 
     request.TryCompleteCurrentArg(std::to_string(bp->GetID()), bp_info);

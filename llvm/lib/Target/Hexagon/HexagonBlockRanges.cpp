@@ -35,8 +35,8 @@ bool HexagonBlockRanges::IndexRange::overlaps(const IndexRange &A) const {
   if (AS == S)
     return true;
   bool SbAE = (S < AE) || (S == AE && A.TiedEnd);  // S-before-AE.
-  bool ASbE = (AS < E) || (AS == E && TiedEnd);    // AS-before-E.
-  if ((AS < S && SbAE) || (S < AS && ASbE))
+     // AS-before-E.
+  if (bool ASbE = (AS < E) || (AS == E && TiedEnd); (AS < S && SbAE) || (S < AS && ASbE))
     return true;
   // Otherwise no overlap.
   return false;
@@ -89,8 +89,8 @@ void HexagonBlockRanges::RangeList::unionize(bool MergeAdjacent) {
     iterator Next = std::next(Iter);
     // If MergeAdjacent is true, merge ranges A and B, where A.end == B.start.
     // This allows merging dead ranges, but is not valid for live ranges.
-    bool Merge = MergeAdjacent && (Iter->end() == Next->start());
-    if (Merge || Iter->overlaps(*Next)) {
+    
+    if (bool Merge = MergeAdjacent && (Iter->end() == Next->start()); Merge || Iter->overlaps(*Next)) {
       Iter->merge(*Next);
       erase(Next);
       continue;
@@ -141,8 +141,8 @@ void HexagonBlockRanges::RangeList::subtract(const IndexRange &Range) {
   // overlapping ranges.
   RangeList T;
   for (iterator Next, I = begin(); I != end(); I = Next) {
-    IndexRange &Rg = *I;
-    if (Rg.overlaps(Range)) {
+    
+    if (IndexRange &Rg = *I; Rg.overlaps(Range)) {
       T.addsub(Rg, Range);
       Next = this->erase(I);
     } else {
@@ -240,8 +240,8 @@ HexagonBlockRanges::RegisterSet HexagonBlockRanges::getLiveIns(
       continue;
     }
     for (; S.isValid(); ++S) {
-      unsigned SI = S.getSubRegIndex();
-      if ((I.LaneMask & TRI.getSubRegIndexLaneMask(SI)).any())
+      
+      if (unsigned SI = S.getSubRegIndex(); (I.LaneMask & TRI.getSubRegIndexLaneMask(SI)).any())
         Tmp.insert({S.getSubReg(), 0});
     }
   }

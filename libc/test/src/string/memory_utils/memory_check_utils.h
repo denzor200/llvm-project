@@ -135,8 +135,8 @@ inline bool CheckMemcmp(cpp::span<char> span1, cpp::span<char> span2,
   // Compare not equal if any byte differs
   for (size_t i = 0; i < size; ++i) {
     ++span2[i];
-    int ground_truth = __builtin_memcmp(span1.data(), span2.data(), size);
-    if (ground_truth > 0) {
+    
+    if (int ground_truth = __builtin_memcmp(span1.data(), span2.data(), size); ground_truth > 0) {
       if (int cmp = FnImpl(span1, span2, size); cmp <= 0)
         return false;
       if (int cmp = FnImpl(span2, span1, size); cmp >= 0)

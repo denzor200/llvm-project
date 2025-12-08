@@ -181,8 +181,8 @@ DiagnosedSilenceableFailure transform::MatchStructuredBodyOp::matchOperation(
     return DiagnosedSilenceableFailure::success();
   }
   if (getPassthrough()) {
-    Block &body = linalgOp->getRegion(0).front();
-    if (body.getTerminator()->getOperands() != linalgOp.getRegionInputArgs()) {
+    
+    if (Block &body = linalgOp->getRegion(0).front(); body.getTerminator()->getOperands() != linalgOp.getRegionInputArgs()) {
       return emitSilenceableError() << "not a passthrough";
     }
     return DiagnosedSilenceableFailure::success();
@@ -196,7 +196,8 @@ DiagnosedSilenceableFailure transform::MatchStructuredBodyOp::matchOperation(
     Block &body = linalgOp->getRegion(0).front();
     std::string message;
     llvm::raw_string_ostream os(message);
-    bool result = linalg::detail::isContractionBody(
+    
+    if (bool result = linalg::detail::isContractionBody(
         body,
         [&](Operation *elem, Operation *red) {
           return elem->getName().getStringRef() ==
@@ -204,8 +205,7 @@ DiagnosedSilenceableFailure transform::MatchStructuredBodyOp::matchOperation(
                  red->getName().getStringRef() ==
                      cast<StringAttr>((*contractionOps)[1]).getValue();
         },
-        os);
-    if (result)
+        os); result)
       return DiagnosedSilenceableFailure::success();
     return emitSilenceableError() << "contraction: " << message;
   }
@@ -213,10 +213,10 @@ DiagnosedSilenceableFailure transform::MatchStructuredBodyOp::matchOperation(
 }
 
 LogicalResult transform::MatchStructuredBodyOp::verify() {
-  int64_t numOptions = getReductionPosition().has_value() + getPassthrough() +
-                       getElementwise() + getContraction().has_value();
+  
 
-  if (numOptions > 1) {
+  if (int64_t numOptions = getReductionPosition().has_value() + getPassthrough() +
+                       getElementwise() + getContraction().has_value(); numOptions > 1) {
     StringAttr attributeNames[] = {
         getReductionPositionAttrName(), getPassthroughAttrName(),
         getElementwiseAttrName(), getContractionAttrName()};

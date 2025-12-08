@@ -48,8 +48,8 @@ plugin::dwarf::DecodeIndexSet(const DataExtractor &data,
   llvm::StringRef identifier((const char *)data.GetData(offset_ptr, 4), 4);
   if (identifier != kIdentifierManualDWARFIndex)
     return std::nullopt;
-  const uint32_t version = data.GetU32(offset_ptr);
-  if (version != CURRENT_CACHE_VERSION)
+  
+  if (const uint32_t version = data.GetU32(offset_ptr); version != CURRENT_CACHE_VERSION)
     return std::nullopt;
 
   IndexSet<NameToDIE> result;

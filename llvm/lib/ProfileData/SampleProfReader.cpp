@@ -122,8 +122,8 @@ static void dumpFunctionProfileJson(const FunctionSamples &S,
     if (TopLevel)
       JOS.attribute("head", S.getHeadSamples());
 
-    const auto &BodySamples = S.getBodySamples();
-    if (!BodySamples.empty())
+    
+    if (const auto &BodySamples = S.getBodySamples(); !BodySamples.empty())
       JOS.attributeArray("body", [&] { DumpBody(BodySamples); });
 
     const auto &CallsiteSamples = S.getCallsiteSamples();
@@ -266,8 +266,8 @@ static bool ParseLine(const StringRef &Input, LineType &LineTy, uint32_t &Depth,
 
   size_t n1 = Input.find(':');
   StringRef Loc = Input.substr(Depth, n1 - Depth);
-  size_t n2 = Loc.find('.');
-  if (n2 == StringRef::npos) {
+  
+  if (size_t n2 = Loc.find('.'); n2 == StringRef::npos) {
     if (Loc.getAsInteger(10, LineOffset) || !isOffsetLegal(LineOffset))
       return false;
     Discriminator = 0;
@@ -372,8 +372,8 @@ std::error_code SampleProfileReaderText::readImpl() {
   ProfileIsFS = ProfileIsFSDisciminator;
   FunctionSamples::ProfileIsFS = ProfileIsFS;
   for (; !LineIt.is_at_eof(); ++LineIt) {
-    size_t pos = LineIt->find_first_not_of(' ');
-    if (pos == LineIt->npos || (*LineIt)[pos] == '#')
+    
+    if (size_t pos = LineIt->find_first_not_of(' '); pos == LineIt->npos || (*LineIt)[pos] == '#')
       continue;
     // Read the header of each function.
     //
@@ -700,9 +700,9 @@ SampleProfileReaderBinary::readCallsiteVTableProf(FunctionSamples &FProfile) {
       return EC;
 
     // Here we handle FS discriminators:
-    const uint32_t DiscriminatorVal = (*Discriminator) & getDiscriminatorMask();
+    
 
-    if (std::error_code EC = readVTableTypeCountMap(FProfile.getTypeSamplesAt(
+    if (const uint32_t DiscriminatorVal = (*Discriminator) & getDiscriminatorMask(); std::error_code EC = readVTableTypeCountMap(FProfile.getTypeSamplesAt(
             LineLocation(*LineOffset, DiscriminatorVal))))
       return EC;
   }
@@ -1060,8 +1060,8 @@ std::error_code SampleProfileReaderExtBinaryBase::readFuncProfiles(
           (CommonContext && CommonContext->isPrefixOf(FContext))) {
         // Load profile for the current context which originated from
         // the common ancestor.
-        const uint8_t *FuncProfileAddr = Start + NameOffset.second;
-        if (std::error_code EC = readFuncProfile(FuncProfileAddr))
+        
+        if (const uint8_t *FuncProfileAddr = Start + NameOffset.second; std::error_code EC = readFuncProfile(FuncProfileAddr))
           return EC;
       }
     }
@@ -1072,8 +1072,8 @@ std::error_code SampleProfileReaderExtBinaryBase::readFuncProfiles(
       auto iter = FuncOffsetTable.find(GUID);
       if (iter == FuncOffsetTable.end())
         continue;
-      const uint8_t *FuncProfileAddr = Start + iter->second;
-      if (std::error_code EC = readFuncProfile(FuncProfileAddr, Profiles))
+      
+      if (const uint8_t *FuncProfileAddr = Start + iter->second; std::error_code EC = readFuncProfile(FuncProfileAddr, Profiles))
         return EC;
     }
   } else if (Remapper) {
@@ -1084,8 +1084,8 @@ std::error_code SampleProfileReaderExtBinaryBase::readFuncProfiles(
       StringRef FuncNameStr = FuncName.stringRef();
       if (!FuncsToUse.count(FuncNameStr) && !Remapper->exist(FuncNameStr))
         continue;
-      const uint8_t *FuncProfileAddr = Start + NameOffset.second;
-      if (std::error_code EC = readFuncProfile(FuncProfileAddr, Profiles))
+      
+      if (const uint8_t *FuncProfileAddr = Start + NameOffset.second; std::error_code EC = readFuncProfile(FuncProfileAddr, Profiles))
         return EC;
     }
   } else {
@@ -1095,8 +1095,8 @@ std::error_code SampleProfileReaderExtBinaryBase::readFuncProfiles(
       auto iter = FuncOffsetTable.find(MD5Hash(Name));
       if (iter == FuncOffsetTable.end())
         continue;
-      const uint8_t *FuncProfileAddr = Start + iter->second;
-      if (std::error_code EC = readFuncProfile(FuncProfileAddr, Profiles))
+      
+      if (const uint8_t *FuncProfileAddr = Start + iter->second; std::error_code EC = readFuncProfile(FuncProfileAddr, Profiles))
         return EC;
     }
   }
@@ -1111,11 +1111,11 @@ std::error_code SampleProfileReaderExtBinaryBase::readFuncProfiles() {
   // which will query FunctionSamples::HasUniqSuffix, so it has to be
   // called after FunctionSamples::HasUniqSuffix is set, i.e. after
   // NameTable section is read.
-  bool LoadFuncsToBeUsed = collectFuncsFromModule();
+  
 
   // When LoadFuncsToBeUsed is false, we are using LLVM tool, need to read all
   // profiles.
-  if (!LoadFuncsToBeUsed) {
+  if (bool LoadFuncsToBeUsed = collectFuncsFromModule(); !LoadFuncsToBeUsed) {
     while (Data < End) {
       if (std::error_code EC = readFuncProfile(Data))
         return EC;
@@ -1591,8 +1591,8 @@ static std::string getSecFlagsStr(const SecHdrTableEntry &Entry) {
   default:
     break;
   }
-  char &last = Flags.back();
-  if (last == ',')
+  
+  if (char &last = Flags.back(); last == ',')
     last = '}';
   else
     Flags.append("}");

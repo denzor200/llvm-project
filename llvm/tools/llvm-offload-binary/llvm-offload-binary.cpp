@@ -162,15 +162,15 @@ static Error unbundleImages() {
     for (const OffloadFile &File : Binaries) {
       const auto *Binary = File.getBinary();
       // We handle the 'file' and 'kind' identifiers differently.
-      bool Match = llvm::all_of(Args, [&](auto &Arg) {
+      
+      if (bool Match = llvm::all_of(Args, [&](auto &Arg) {
         const auto [Key, Value] = Arg;
         if (Key == "file")
           return true;
         if (Key == "kind")
           return Binary->getOffloadKind() == getOffloadKind(Value);
         return Binary->getString(Key) == Value;
-      });
-      if (Match)
+      }); Match)
         Extracted.push_back(Binary);
     }
 

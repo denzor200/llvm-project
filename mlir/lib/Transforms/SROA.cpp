@@ -84,9 +84,9 @@ computeDestructuringInfo(DestructurableMemorySlot &slot,
     for (OpOperand &subslotUse : mustBeUsedSafely.ptr.getUses()) {
       if (!visited.insert(&subslotUse).second)
         continue;
-      Operation *subslotUser = subslotUse.getOwner();
+      
 
-      if (auto memOp = dyn_cast<SafeMemorySlotAccessOpInterface>(subslotUser))
+      if (Operation *subslotUser = subslotUse.getOwner(); auto memOp = dyn_cast<SafeMemorySlotAccessOpInterface>(subslotUser))
         if (succeeded(memOp.ensureOnlySafeAccesses(
                 mustBeUsedSafely, usedSafelyWorklist, dataLayout)))
           continue;

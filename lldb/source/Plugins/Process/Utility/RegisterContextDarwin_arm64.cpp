@@ -169,32 +169,32 @@ int RegisterContextDarwin_arm64::GetSetForNativeRegNum(int reg) {
 }
 
 int RegisterContextDarwin_arm64::ReadGPR(bool force) {
-  int set = GPRRegSet;
-  if (force || !RegisterSetIsCached(set)) {
+  
+  if (int set = GPRRegSet; force || !RegisterSetIsCached(set)) {
     SetError(set, Read, DoReadGPR(GetThreadID(), set, gpr));
   }
   return GetError(GPRRegSet, Read);
 }
 
 int RegisterContextDarwin_arm64::ReadFPU(bool force) {
-  int set = FPURegSet;
-  if (force || !RegisterSetIsCached(set)) {
+  
+  if (int set = FPURegSet; force || !RegisterSetIsCached(set)) {
     SetError(set, Read, DoReadFPU(GetThreadID(), set, fpu));
   }
   return GetError(FPURegSet, Read);
 }
 
 int RegisterContextDarwin_arm64::ReadEXC(bool force) {
-  int set = EXCRegSet;
-  if (force || !RegisterSetIsCached(set)) {
+  
+  if (int set = EXCRegSet; force || !RegisterSetIsCached(set)) {
     SetError(set, Read, DoReadEXC(GetThreadID(), set, exc));
   }
   return GetError(EXCRegSet, Read);
 }
 
 int RegisterContextDarwin_arm64::ReadDBG(bool force) {
-  int set = DBGRegSet;
-  if (force || !RegisterSetIsCached(set)) {
+  
+  if (int set = DBGRegSet; force || !RegisterSetIsCached(set)) {
     SetError(set, Read, DoReadDBG(GetThreadID(), set, dbg));
   }
   return GetError(DBGRegSet, Read);
@@ -1018,8 +1018,8 @@ uint32_t RegisterContextDarwin_arm64::SetHardwareWatchpoint(lldb::addr_t addr,
 bool RegisterContextDarwin_arm64::ClearHardwareWatchpoint(uint32_t hw_index) {
   int kret = ReadDBG(false);
 
-  const uint32_t num_hw_points = NumSupportedHardwareWatchpoints();
-  if (kret == KERN_SUCCESS) {
+  
+  if (const uint32_t num_hw_points = NumSupportedHardwareWatchpoints(); kret == KERN_SUCCESS) {
     if (hw_index < num_hw_points) {
       dbg.wcr[hw_index] = 0;
       //            if (log) log->Printf

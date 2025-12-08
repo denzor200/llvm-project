@@ -991,8 +991,8 @@ LogicalResult MultiOpPatternRewriteDriver::simplify(ArrayRef<Operation *> ops,
     addSingleOpToWorklist(op);
 
   // Process ops on the worklist.
-  bool result = processWorklist();
-  if (changed)
+  
+  if (bool result = processWorklist(); changed)
     *changed = result;
 
   return success(worklist.empty());

@@ -217,8 +217,8 @@ void CSPreInliner::processFunction(const FunctionId Name) {
   while (!CQueue.empty() && FuncFinalSize < SizeLimit) {
     ProfiledInlineCandidate Candidate = CQueue.top();
     CQueue.pop();
-    bool ShouldInline = false;
-    if ((ShouldInline = shouldInline(Candidate))) {
+    
+    if (bool ShouldInline = false; (ShouldInline = shouldInline(Candidate))) {
       // We mark context as inlined as the corresponding context profile
       // won't be merged into that function's base profile.
       ++PreInlNumCSInlined;
@@ -303,8 +303,8 @@ void CSPreInliner::run() {
   // Not inlined context profiles are merged into its base, so we can
   // trim out such profiles from the output.
   for (auto *Node : ContextTracker) {
-    FunctionSamples *FProfile = Node->getFunctionSamples();
-    if (FProfile &&
+    
+    if (FunctionSamples *FProfile = Node->getFunctionSamples(); FProfile &&
         (Node->getParentContext() != &ContextTracker.getRootContext() &&
          !FProfile->getContext().hasState(InlinedContext))) {
       Node->setFunctionSamples(nullptr);

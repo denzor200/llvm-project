@@ -231,9 +231,9 @@ void InstructionInfoView::collectData(
       for (; Index != Last; ++Index) {
         if (!Index->ReleaseAtCycle)
           continue;
-        const MCProcResourceDesc *MCProc =
-            SM.getProcResource(Index->ProcResourceIdx);
-        if (Index->ReleaseAtCycle > 1) {
+        
+        if (const MCProcResourceDesc *MCProc =
+            SM.getProcResource(Index->ProcResourceIdx); Index->ReleaseAtCycle > 1) {
           // Output ReleaseAtCycle between [] if not 1 (default)
           // This is to be able to evaluate throughput.
           // See getReciprocalThroughput in MCSchedule.cpp

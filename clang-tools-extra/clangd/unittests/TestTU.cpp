@@ -137,7 +137,8 @@ ParsedAST TestTU::build() const {
   // This guards against accidental syntax errors silently subverting tests.
   // error-ok is awfully primitive - using clang -verify would be nicer.
   // Ownership and layering makes it pretty hard.
-  bool ErrorOk = [&, this] {
+  
+  if (bool ErrorOk = [&, this] {
     llvm::StringLiteral Marker = "error-ok";
     if (llvm::StringRef(Code).contains(Marker) ||
         llvm::StringRef(HeaderCode).contains(Marker))
@@ -146,8 +147,7 @@ ParsedAST TestTU::build() const {
       if (llvm::StringRef(KV.second).contains(Marker))
         return true;
     return false;
-  }();
-  if (!ErrorOk) {
+  }(); !ErrorOk) {
     // We always build AST with a fresh preamble in TestTU.
     for (const auto &D : AST->getDiagnostics())
       if (D.Severity >= DiagnosticsEngine::Error) {

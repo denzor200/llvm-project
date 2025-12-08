@@ -383,8 +383,8 @@ void Breakpoint::SetIgnoreCount(uint32_t n) {
 }
 
 void Breakpoint::DecrementIgnoreCount() {
-  uint32_t ignore = m_options.GetIgnoreCount();
-  if (ignore != 0)
+  
+  if (uint32_t ignore = m_options.GetIgnoreCount(); ignore != 0)
     m_options.SetIgnoreCount(ignore - 1);
 }
 
@@ -724,9 +724,9 @@ void Breakpoint::ModuleReplaced(ModuleSP old_module_sp,
     }
   }
 
-  size_t num_old_locations = old_break_locs.GetSize();
+  
 
-  if (num_old_locations == 0) {
+  if (size_t num_old_locations = old_break_locs.GetSize(); num_old_locations == 0) {
     // There were no locations in the old module, so we just need to check if
     // there were any in the new module.
     ModuleList temp_list;
@@ -748,9 +748,9 @@ void Breakpoint::ModuleReplaced(ModuleSP old_module_sp,
     BreakpointLocationCollection locations_to_remove;
     BreakpointLocationCollection locations_to_announce;
 
-    size_t num_new_locations = new_break_locs.GetSize();
+    
 
-    if (num_new_locations > 0) {
+    if (size_t num_new_locations = new_break_locs.GetSize(); num_new_locations > 0) {
       // Break out the case of one location -> one location since that's the
       // most common one, and there's no need to build up the structures needed
       // for the merge in that case.
@@ -897,8 +897,8 @@ size_t Breakpoint::GetNumResolvedLocations(bool use_facade) const {
   // in the inferior process.
   // All facade locations are considered to be resolved:
   if (use_facade) {
-    size_t num_facade_locs = m_facade_locations.GetSize();
-    if (num_facade_locs)
+    
+    if (size_t num_facade_locs = m_facade_locations.GetSize(); num_facade_locs)
       return num_facade_locs;
   }
   return m_locations.GetNumResolvedLocations();
@@ -910,8 +910,8 @@ bool Breakpoint::HasResolvedLocations() const {
 
 size_t Breakpoint::GetNumLocations(bool use_facade) const {
   if (use_facade) {
-    size_t num_facade_locs = m_facade_locations.GetSize();
-    if (num_facade_locs > 0)
+    
+    if (size_t num_facade_locs = m_facade_locations.GetSize(); num_facade_locs > 0)
       return num_facade_locs;
   }
   return m_locations.GetSize();
@@ -1072,11 +1072,11 @@ bool Breakpoint::GetMatchingFileLine(ConstString filename, uint32_t line_number,
   //
 
   if (m_resolver_sp) {
-    BreakpointResolverFileLine *resolverFileLine =
-        dyn_cast<BreakpointResolverFileLine>(m_resolver_sp.get());
+    
 
     // TODO: Handle SourceLocationSpec column information
-    if (resolverFileLine &&
+    if (BreakpointResolverFileLine *resolverFileLine =
+        dyn_cast<BreakpointResolverFileLine>(m_resolver_sp.get()); resolverFileLine &&
         resolverFileLine->m_location_spec.GetFileSpec().GetFilename() ==
             filename &&
         resolverFileLine->m_location_spec.GetLine() == line_number) {
@@ -1183,8 +1183,8 @@ void Breakpoint::BreakpointEventData::Dump(Stream *s) const {
 const Breakpoint::BreakpointEventData *
 Breakpoint::BreakpointEventData::GetEventDataFromEvent(const Event *event) {
   if (event) {
-    const EventData *event_data = event->GetData();
-    if (event_data &&
+    
+    if (const EventData *event_data = event->GetData(); event_data &&
         event_data->GetFlavor() == BreakpointEventData::GetFlavorString())
       return static_cast<const BreakpointEventData *>(event->GetData());
   }
@@ -1205,8 +1205,8 @@ BreakpointSP Breakpoint::BreakpointEventData::GetBreakpointFromEvent(
     const EventSP &event_sp) {
   BreakpointSP bp_sp;
 
-  const BreakpointEventData *data = GetEventDataFromEvent(event_sp.get());
-  if (data)
+  
+  if (const BreakpointEventData *data = GetEventDataFromEvent(event_sp.get()); data)
     bp_sp = data->m_new_breakpoint_sp;
 
   return bp_sp;
@@ -1214,8 +1214,8 @@ BreakpointSP Breakpoint::BreakpointEventData::GetBreakpointFromEvent(
 
 size_t Breakpoint::BreakpointEventData::GetNumBreakpointLocationsFromEvent(
     const EventSP &event_sp) {
-  const BreakpointEventData *data = GetEventDataFromEvent(event_sp.get());
-  if (data)
+  
+  if (const BreakpointEventData *data = GetEventDataFromEvent(event_sp.get()); data)
     return data->m_locations.GetSize();
 
   return 0;
@@ -1226,8 +1226,8 @@ Breakpoint::BreakpointEventData::GetBreakpointLocationAtIndexFromEvent(
     const lldb::EventSP &event_sp, uint32_t bp_loc_idx) {
   lldb::BreakpointLocationSP bp_loc_sp;
 
-  const BreakpointEventData *data = GetEventDataFromEvent(event_sp.get());
-  if (data) {
+  
+  if (const BreakpointEventData *data = GetEventDataFromEvent(event_sp.get()); data) {
     bp_loc_sp = data->m_locations.GetByIndex(bp_loc_idx);
   }
 

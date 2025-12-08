@@ -34,8 +34,8 @@ public:
 void
 UndefinedArraySubscriptChecker::checkPreStmt(const ArraySubscriptExpr *A,
                                              CheckerContext &C) const {
-  const Expr *Index = A->getIdx();
-  if (!C.getSVal(Index).isUndef())
+  
+  if (const Expr *Index = A->getIdx(); !C.getSVal(Index).isUndef())
     return;
 
   // Sema generates anonymous array variables for copying array struct fields.

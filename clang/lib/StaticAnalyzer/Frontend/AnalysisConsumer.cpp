@@ -276,8 +276,8 @@ public:
 
   /// Handle callbacks for arbitrary Decls.
   bool VisitDecl(Decl *D) override {
-    AnalysisMode Mode = getModeForDecl(D, RecVisitorMode);
-    if (Mode & AM_Syntax) {
+    
+    if (AnalysisMode Mode = getModeForDecl(D, RecVisitorMode); Mode & AM_Syntax) {
       if (SyntaxCheckTimer)
         SyntaxCheckTimer->startTimer();
       checkerMgr->runCheckersOnASTDecl(D, *Mgr, *RecVisitorBR);
@@ -317,8 +317,8 @@ public:
   }
 
   bool VisitFunctionDecl(FunctionDecl *FD) override {
-    IdentifierInfo *II = FD->getIdentifier();
-    if (II && II->getName().starts_with("__inline"))
+    
+    if (IdentifierInfo *II = FD->getIdentifier(); II && II->getName().starts_with("__inline"))
       return true;
 
     // We skip function template definitions, as their semantics is
@@ -469,8 +469,8 @@ AnalysisConsumer::getInliningModeForFunction(const Decl *D,
   // Count naming convention errors more aggressively. But we should tune down
   // inlining when reanalyzing an already inlined function.
   if (Visited.count(D) && isa<ObjCMethodDecl>(D)) {
-    const ObjCMethodDecl *ObjCM = cast<ObjCMethodDecl>(D);
-    if (ObjCM->getMethodFamily() != OMF_init)
+    
+    if (const ObjCMethodDecl *ObjCM = cast<ObjCMethodDecl>(D); ObjCM->getMethodFamily() != OMF_init)
       return ExprEngine::Inline_Minimal;
   }
 
@@ -553,10 +553,10 @@ static void reportAnalyzerFunctionMisuse(const AnalyzerOptions &Opts,
     llvm::errs() << "Pass the -analyzer-display-progress for tracking which "
                     "functions are analyzed.\n";
 
-  bool HasBrackets =
-      Opts.AnalyzeSpecificFunction.find("(") != std::string::npos;
+  
 
-  if (Ctx.getLangOpts().CPlusPlus && !HasBrackets) {
+  if (bool HasBrackets =
+      Opts.AnalyzeSpecificFunction.find("(") != std::string::npos; Ctx.getLangOpts().CPlusPlus && !HasBrackets) {
     llvm::errs()
         << "For analyzing C++ code you need to pass the function parameter "
            "list: -analyze-function=\"foobar(int, _Bool)\"\n";
@@ -621,8 +621,8 @@ void AnalysisConsumer::reportAnalyzerProgress(StringRef S) {
 
 void AnalysisConsumer::HandleTranslationUnit(ASTContext &C) {
   // Don't run the actions if an error has occurred with parsing the file.
-  DiagnosticsEngine &Diags = PP.getDiagnostics();
-  if (Diags.hasErrorOccurred() || Diags.hasFatalErrorOccurred())
+  
+  if (DiagnosticsEngine &Diags = PP.getDiagnostics(); Diags.hasErrorOccurred() || Diags.hasFatalErrorOccurred())
     return;
 
   Ctx = &C;
@@ -732,8 +732,8 @@ void AnalysisConsumer::HandleCode(Decl *D, AnalysisMode Mode,
   if (Mgr->getAnalysisDeclContext(D)->isBodyAutosynthesized())
     return;
 
-  CFG *DeclCFG = Mgr->getCFG(D);
-  if (DeclCFG)
+  
+  if (CFG *DeclCFG = Mgr->getCFG(D); DeclCFG)
     MaxCFGSize.updateMax(DeclCFG->size());
 
   DisplayFunction(D, Mode, IMode);

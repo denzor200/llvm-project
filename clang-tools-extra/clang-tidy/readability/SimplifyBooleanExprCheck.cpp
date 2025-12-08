@@ -366,8 +366,8 @@ public:
      * if (false) ThenStmt(); -> <Empty>;
      * if (false) ThenStmt(); else ElseStmt() -> ElseStmt();
      */
-    const Expr *Cond = If->getCond()->IgnoreImplicit();
-    if (std::optional<bool> Bool = getAsBoolLiteral(Cond, true)) {
+    
+    if (const Expr *Cond = If->getCond()->IgnoreImplicit(); std::optional<bool> Bool = getAsBoolLiteral(Cond, true)) {
       if (*Bool)
         Check->replaceWithThenStatement(Context, If, Cond);
       else
@@ -470,8 +470,8 @@ public:
          * if (Cond) return true; return false; -> return Cond;
          * if (Cond) return false; return true; -> return !Cond;
          */
-        auto *If = cast<IfStmt>(*First);
-        if (!If->hasInitStorage() && !If->hasVarStorage() &&
+        
+        if (auto *If = cast<IfStmt>(*First); !If->hasInitStorage() && !If->hasVarStorage() &&
             !If->isConsteval()) {
           const ExprAndBool ThenReturnBool =
               checkSingleStatement(If->getThen(), parseReturnLiteralBool);
@@ -494,8 +494,8 @@ public:
             isa<LabelStmt>(*First)  ? cast<LabelStmt>(*First)->getSubStmt()
             : isa<CaseStmt>(*First) ? cast<CaseStmt>(*First)->getSubStmt()
                                     : cast<DefaultStmt>(*First)->getSubStmt();
-        auto *SubIf = dyn_cast<IfStmt>(SubStmt);
-        if (SubIf && !SubIf->getElse() && !SubIf->hasInitStorage() &&
+        
+        if (auto *SubIf = dyn_cast<IfStmt>(SubStmt); SubIf && !SubIf->getElse() && !SubIf->hasInitStorage() &&
             !SubIf->hasVarStorage() && !SubIf->isConsteval()) {
           const ExprAndBool ThenReturnBool =
               checkSingleStatement(SubIf->getThen(), parseReturnLiteralBool);
@@ -753,11 +753,11 @@ void SimplifyBooleanExprCheck::replaceWithReturnCondition(
   const std::string Replacement = ("return " + Condition + Terminator).str();
   const SourceLocation Start = BoolLiteral->getBeginLoc();
 
-  const bool HasReplacement =
-      issueDiag(Context, Start, SimplifyConditionalReturnDiagnostic,
-                If->getSourceRange(), Replacement);
+  
 
-  if (!HasReplacement) {
+  if (const bool HasReplacement =
+      issueDiag(Context, Start, SimplifyConditionalReturnDiagnostic,
+                If->getSourceRange(), Replacement); !HasReplacement) {
     const SourceRange ConditionRange = If->getCond()->getSourceRange();
     if (ConditionRange.isValid())
       diag(ConditionRange.getBegin(), "conditions that can be simplified",
@@ -772,11 +772,11 @@ void SimplifyBooleanExprCheck::replaceCompoundReturnWithCondition(
   const std::string Replacement =
       "return " + replacementExpression(Context, Negated, If->getCond());
 
-  const bool HasReplacement = issueDiag(
-      Context, ThenReturn->getBeginLoc(), SimplifyConditionalReturnDiagnostic,
-      SourceRange(If->getBeginLoc(), Ret->getEndLoc()), Replacement);
+  
 
-  if (!HasReplacement) {
+  if (const bool HasReplacement = issueDiag(
+      Context, ThenReturn->getBeginLoc(), SimplifyConditionalReturnDiagnostic,
+      SourceRange(If->getBeginLoc(), Ret->getEndLoc()), Replacement); !HasReplacement) {
     const SourceRange ConditionRange = If->getCond()->getSourceRange();
     if (ConditionRange.isValid())
       diag(ConditionRange.getBegin(), "conditions that can be simplified",
@@ -849,8 +849,8 @@ flipDemorganBinaryOperator(SmallVectorImpl<FixItHint> &Fixes,
       // however this would trip the LogicalOpParentheses warning.
       // FIXME: Make this user configurable or detect if that warning is
       // enabled.
-      constexpr bool LogicalOpParentheses = true;
-      if (((*OuterBO == NewOp) || (!LogicalOpParentheses &&
+      
+      if (constexpr bool LogicalOpParentheses = true; ((*OuterBO == NewOp) || (!LogicalOpParentheses &&
                                    (*OuterBO == BO_LOr && NewOp == BO_LAnd))) &&
           Parens) {
         if (!Parens->getLParen().isMacroID() &&

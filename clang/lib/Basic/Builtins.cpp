@@ -325,8 +325,8 @@ void Builtin::Context::initializeBuiltins(IdentifierTable &Table,
     bool InStdNamespace = Name.consume_front("std-");
     auto NameIt = Table.find(Name);
     if (NameIt != Table.end()) {
-      unsigned ID = NameIt->second->getBuiltinID();
-      if (ID != Builtin::NotBuiltin && isPredefinedLibFunction(ID) &&
+      
+      if (unsigned ID = NameIt->second->getBuiltinID(); ID != Builtin::NotBuiltin && isPredefinedLibFunction(ID) &&
           isInStdNamespace(ID) == InStdNamespace) {
         NameIt->second->clearBuiltinID();
       }

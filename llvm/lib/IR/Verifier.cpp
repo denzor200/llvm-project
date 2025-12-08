@@ -975,8 +975,8 @@ void Verifier::visitAliaseeSubExpr(SmallPtrSetImpl<const GlobalAlias*> &Visited,
     visitConstantExprsRecursively(CE);
 
   for (const Use &U : C.operands()) {
-    Value *V = &*U;
-    if (const auto *GA2 = dyn_cast<GlobalAlias>(V))
+    
+    if (Value *V = &*U; const auto *GA2 = dyn_cast<GlobalAlias>(V))
       visitAliaseeSubExpr(Visited, GA, *GA2->getAliasee());
     else if (const auto *C2 = dyn_cast<Constant>(V))
       visitAliaseeSubExpr(Visited, GA, *C2);
@@ -1621,8 +1621,8 @@ void Verifier::visitDISubprogram(const DISubprogram &N) {
     CheckDI(isa<DICompileUnit>(Unit), "invalid unit type", &N, Unit);
     // There's no good way to cross the CU boundary to insert a nested
     // DISubprogram definition in one CU into a type defined in another CU.
-    auto *CT = dyn_cast_or_null<DICompositeType>(N.getRawScope());
-    if (CT && CT->getRawIdentifier() &&
+    
+    if (auto *CT = dyn_cast_or_null<DICompositeType>(N.getRawScope()); CT && CT->getRawIdentifier() &&
         M.getContext().isODRUniquingDebugTypes())
       CheckDI(N.getDeclaration(),
               "definition subprograms cannot be nested within DICompositeType "
@@ -2291,8 +2291,8 @@ void Verifier::verifyFunctionAttrs(FunctionType *FT, AttributeList Attrs,
   auto GetMaxParameterWidth = [&MaxParameterWidth](Type *Ty) {
     if (Ty->isVectorTy()) {
       if (auto *VT = dyn_cast<FixedVectorType>(Ty)) {
-        unsigned Size = VT->getPrimitiveSizeInBits().getFixedValue();
-        if (Size > MaxParameterWidth)
+        
+        if (unsigned Size = VT->getPrimitiveSizeInBits().getFixedValue(); Size > MaxParameterWidth)
           MaxParameterWidth = Size;
       }
     }
@@ -2487,8 +2487,8 @@ void Verifier::verifyFunctionAttrs(FunctionType *FT, AttributeList Attrs,
   if (Attribute A = Attrs.getFnAttr("alloc-variant-zeroed"); A.isValid()) {
     StringRef S = A.getValueAsString();
     Check(!S.empty(), "'alloc-variant-zeroed' must not be empty");
-    Function *Variant = M.getFunction(S);
-    if (Variant) {
+    
+    if (Function *Variant = M.getFunction(S); Variant) {
       Attribute Family = Attrs.getFnAttr("alloc-family");
       Attribute VariantFamily = Variant->getFnAttribute("alloc-family");
       if (Family.isValid())
@@ -3396,8 +3396,8 @@ void Verifier::visitBranchInst(BranchInst &BI) {
 
 void Verifier::visitReturnInst(ReturnInst &RI) {
   Function *F = RI.getParent()->getParent();
-  unsigned N = RI.getNumOperands();
-  if (F->getReturnType()->isVoidTy())
+  
+  if (unsigned N = RI.getNumOperands(); F->getReturnType()->isVoidTy())
     Check(N == 0,
           "Found return instr that returns non-void in Function of void "
           "return type!",
@@ -3833,8 +3833,8 @@ void Verifier::visitCallBase(CallBase &Call) {
   // We have a bug if we can find that there is an underlying alloca without
   // inalloca.
   if (Call.hasInAllocaArgument()) {
-    Value *InAllocaArg = Call.getArgOperand(FTy->getNumParams() - 1);
-    if (auto AI = dyn_cast<AllocaInst>(InAllocaArg->stripInBoundsOffsets()))
+    
+    if (Value *InAllocaArg = Call.getArgOperand(FTy->getNumParams() - 1); auto AI = dyn_cast<AllocaInst>(InAllocaArg->stripInBoundsOffsets()))
       Check(AI->isUsedWithInAlloca(),
             "inalloca argument for call has mismatched alloca", AI, Call);
   }
@@ -3975,8 +3975,8 @@ void Verifier::visitCallBase(CallBase &Call) {
        FoundAttachedCallBundle = false;
   for (unsigned i = 0, e = Call.getNumOperandBundles(); i < e; ++i) {
     OperandBundleUse BU = Call.getOperandBundleAt(i);
-    uint32_t Tag = BU.getTagID();
-    if (Tag == LLVMContext::OB_deopt) {
+    
+    if (uint32_t Tag = BU.getTagID(); Tag == LLVMContext::OB_deopt) {
       Check(!FoundDeoptBundle, "Multiple deopt operand bundles", Call);
       FoundDeoptBundle = true;
     } else if (Tag == LLVMContext::OB_gc_transition) {
@@ -4729,9 +4729,9 @@ void Verifier::visitEHPadPredecessors(Instruction &I) {
     if (auto *II = dyn_cast<InvokeInst>(TI)) {
       Check(II->getUnwindDest() == BB && II->getNormalDest() != BB,
             "EH pad must be jumped to via an unwind edge", ToPad, II);
-      auto *CalledFn =
-          dyn_cast<Function>(II->getCalledOperand()->stripPointerCasts());
-      if (CalledFn && CalledFn->isIntrinsic() && II->doesNotThrow() &&
+      
+      if (auto *CalledFn =
+          dyn_cast<Function>(II->getCalledOperand()->stripPointerCasts()); CalledFn && CalledFn->isIntrinsic() && II->doesNotThrow() &&
           !IntrinsicInst::mayLowerToFunctionCall(CalledFn->getIntrinsicID()))
         continue;
       if (auto Bundle = II->getOperandBundle(LLVMContext::OB_funclet))
@@ -5181,8 +5181,8 @@ void Verifier::visitProfMetadata(Instruction &I, MDNode *MD) {
 
   // Check consistency of !prof branch_weights metadata.
   if (ProfName == MDProfLabels::BranchWeights) {
-    unsigned NumBranchWeights = getNumBranchWeights(*MD);
-    if (isa<InvokeInst>(&I)) {
+    
+    if (unsigned NumBranchWeights = getNumBranchWeights(*MD); isa<InvokeInst>(&I)) {
       Check(NumBranchWeights == 1 || NumBranchWeights == 2,
             "Wrong number of InvokeInst branch_weights operands", MD);
     } else {
@@ -5897,8 +5897,8 @@ void Verifier::visitIntrinsicCall(Intrinsic::ID ID, CallBase &Call) {
   case Intrinsic::fptrunc_round: {
     // Check the rounding mode
     Metadata *MD = nullptr;
-    auto *MAV = dyn_cast<MetadataAsValue>(Call.getOperand(1));
-    if (MAV)
+    
+    if (auto *MAV = dyn_cast<MetadataAsValue>(Call.getOperand(1)); MAV)
       MD = MAV->getMetadata();
 
     Check(MD != nullptr, "missing rounding mode argument", Call);
@@ -5978,8 +5978,8 @@ void Verifier::visitIntrinsicCall(Intrinsic::ID ID, CallBase &Call) {
       auto *UseCall = dyn_cast<CallBase>(U);
       Check(UseCall != nullptr,
             "Uses of llvm.call.preallocated.setup must be calls");
-      Intrinsic::ID IID = UseCall->getIntrinsicID();
-      if (IID == Intrinsic::call_preallocated_arg) {
+      
+      if (Intrinsic::ID IID = UseCall->getIntrinsicID(); IID == Intrinsic::call_preallocated_arg) {
         auto *AllocArgIndex = dyn_cast<ConstantInt>(UseCall->getArgOperand(1));
         Check(AllocArgIndex != nullptr,
               "llvm.call.preallocated.alloc arg index must be a constant");
@@ -6728,8 +6728,8 @@ void Verifier::visitIntrinsicCall(Intrinsic::ID ID, CallBase &Call) {
     break;
   }
   case Intrinsic::amdgcn_cs_chain: {
-    auto CallerCC = Call.getCaller()->getCallingConv();
-    switch (CallerCC) {
+    
+    switch (auto CallerCC = Call.getCaller()->getCallingConv(); CallerCC) {
     case CallingConv::AMDGPU_CS:
     case CallingConv::AMDGPU_CS_Chain:
     case CallingConv::AMDGPU_CS_ChainPreserve:
@@ -6764,8 +6764,8 @@ void Verifier::visitIntrinsicCall(Intrinsic::ID ID, CallBase &Call) {
     break;
   }
   case Intrinsic::amdgcn_set_inactive_chain_arg: {
-    auto CallerCC = Call.getCaller()->getCallingConv();
-    switch (CallerCC) {
+    
+    switch (auto CallerCC = Call.getCaller()->getCallingConv(); CallerCC) {
     case CallingConv::AMDGPU_CS_Chain:
     case CallingConv::AMDGPU_CS_ChainPreserve:
       break;
@@ -7009,8 +7009,8 @@ void Verifier::visitIntrinsicCall(Intrinsic::ID ID, CallBase &Call) {
 
   // Verify that there aren't any unmediated control transfers between funclets.
   if (IntrinsicInst::mayLowerToFunctionCall(ID)) {
-    Function *F = Call.getParent()->getParent();
-    if (F->hasPersonalityFn() &&
+    
+    if (Function *F = Call.getParent()->getParent(); F->hasPersonalityFn() &&
         isScopedEHPersonality(classifyEHPersonality(F->getPersonalityFn()))) {
       // Run EH funclet coloring on-demand and cache results for other intrinsic
       // calls in this function
@@ -7580,9 +7580,9 @@ void Verifier::verifyAttachedCallBundle(const CallBase &Call,
         Call);
 
   auto *Fn = cast<Function>(BU.Inputs.front());
-  Intrinsic::ID IID = Fn->getIntrinsicID();
+  
 
-  if (IID) {
+  if (Intrinsic::ID IID = Fn->getIntrinsicID(); IID) {
     Check((IID == Intrinsic::objc_retainAutoreleasedReturnValue ||
            IID == Intrinsic::objc_claimAutoreleasedReturnValue ||
            IID == Intrinsic::objc_unsafeClaimAutoreleasedReturnValue),
@@ -7811,9 +7811,9 @@ TBAAVerifier::verifyTBAABaseNodeImpl(const Instruction *I,
 
   // Check the type size field.
   if (IsNewFormat) {
-    auto *TypeSizeNode = mdconst::dyn_extract_or_null<ConstantInt>(
-        BaseNode->getOperand(1));
-    if (!TypeSizeNode) {
+    
+    if (auto *TypeSizeNode = mdconst::dyn_extract_or_null<ConstantInt>(
+        BaseNode->getOperand(1)); !TypeSizeNode) {
       CheckFailed("Type size nodes must be constants!", I, BaseNode);
       return InvalidNode;
     }
@@ -7880,9 +7880,9 @@ TBAAVerifier::verifyTBAABaseNodeImpl(const Instruction *I,
     PrevOffset = OffsetEntryCI->getValue();
 
     if (IsNewFormat) {
-      auto *MemberSizeNode = mdconst::dyn_extract_or_null<ConstantInt>(
-          BaseNode->getOperand(Idx + 2));
-      if (!MemberSizeNode) {
+      
+      if (auto *MemberSizeNode = mdconst::dyn_extract_or_null<ConstantInt>(
+          BaseNode->getOperand(Idx + 2)); !MemberSizeNode) {
         CheckFailed("Member size entries must be constants!", I, BaseNode);
         Failed = true;
         continue;
@@ -7907,8 +7907,8 @@ static bool IsScalarTBAANodeImpl(const MDNode *MD,
     return false;
 
   if (MD->getNumOperands() == 3) {
-    auto *Offset = mdconst::dyn_extract<ConstantInt>(MD->getOperand(2));
-    if (!(Offset && Offset->isZero() && isa<MDString>(MD->getOperand(0))))
+    
+    if (auto *Offset = mdconst::dyn_extract<ConstantInt>(MD->getOperand(2)); !(Offset && Offset->isZero() && isa<MDString>(MD->getOperand(0))))
       return false;
   }
 
@@ -7951,9 +7951,9 @@ MDNode *TBAAVerifier::getFieldNodeFromTBAABaseNode(const Instruction *I,
   unsigned NumOpsPerField = IsNewFormat ? 3 : 2;
   for (unsigned Idx = FirstFieldOpNo; Idx < BaseNode->getNumOperands();
            Idx += NumOpsPerField) {
-    auto *OffsetEntryCI =
-        mdconst::extract<ConstantInt>(BaseNode->getOperand(Idx + 1));
-    if (OffsetEntryCI->getValue().ugt(Offset)) {
+    
+    if (auto *OffsetEntryCI =
+        mdconst::extract<ConstantInt>(BaseNode->getOperand(Idx + 1)); OffsetEntryCI->getValue().ugt(Offset)) {
       if (Idx == FirstFieldOpNo) {
         CheckFailed("Could not find TBAA parent in struct type node", I,
                     BaseNode, &Offset);

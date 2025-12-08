@@ -45,18 +45,18 @@ SystemRuntime *SystemRuntimeMacOSX::CreateInstance(Process *process) {
   bool create = false;
   if (!create) {
     create = true;
-    Module *exe_module = process->GetTarget().GetExecutableModulePointer();
-    if (exe_module) {
-      ObjectFile *object_file = exe_module->GetObjectFile();
-      if (object_file) {
+    
+    if (Module *exe_module = process->GetTarget().GetExecutableModulePointer(); exe_module) {
+      
+      if (ObjectFile *object_file = exe_module->GetObjectFile(); object_file) {
         create = (object_file->GetStrata() == ObjectFile::eStrataUser);
       }
     }
 
     if (create) {
-      const llvm::Triple &triple_ref =
-          process->GetTarget().GetArchitecture().GetTriple();
-      switch (triple_ref.getOS()) {
+      
+      switch (const llvm::Triple &triple_ref =
+          process->GetTarget().GetArchitecture().GetTriple(); triple_ref.getOS()) {
       case llvm::Triple::Darwin:
       case llvm::Triple::MacOSX:
       case llvm::Triple::IOS:
@@ -131,17 +131,17 @@ SystemRuntimeMacOSX::GetQueueNameFromThreadQAddress(addr_t dispatch_qaddr) {
     // thread - deref it to get the address of the dispatch_queue_t structure
     // for this thread's queue.
     Status error;
-    addr_t dispatch_queue_addr =
-        m_process->ReadPointerFromMemory(dispatch_qaddr, error);
-    if (error.Success()) {
+    
+    if (addr_t dispatch_queue_addr =
+        m_process->ReadPointerFromMemory(dispatch_qaddr, error); error.Success()) {
       if (m_libdispatch_offsets.dqo_version >= 4) {
         // libdispatch versions 4+, pointer to dispatch name is in the queue
         // structure.
         addr_t pointer_to_label_address =
             dispatch_queue_addr + m_libdispatch_offsets.dqo_label;
-        addr_t label_addr =
-            m_process->ReadPointerFromMemory(pointer_to_label_address, error);
-        if (error.Success()) {
+        
+        if (addr_t label_addr =
+            m_process->ReadPointerFromMemory(pointer_to_label_address, error); error.Success()) {
           m_process->ReadCStringFromMemory(label_addr, dispatch_queue_name,
                                            error);
         }
@@ -151,10 +151,10 @@ SystemRuntimeMacOSX::GetQueueNameFromThreadQAddress(addr_t dispatch_qaddr) {
         addr_t label_addr =
             dispatch_queue_addr + m_libdispatch_offsets.dqo_label;
         dispatch_queue_name.resize(m_libdispatch_offsets.dqo_label_size, '\0');
-        size_t bytes_read =
+        
+        if (size_t bytes_read =
             m_process->ReadMemory(label_addr, &dispatch_queue_name[0],
-                                  m_libdispatch_offsets.dqo_label_size, error);
-        if (bytes_read < m_libdispatch_offsets.dqo_label_size)
+                                  m_libdispatch_offsets.dqo_label_size, error); bytes_read < m_libdispatch_offsets.dqo_label_size)
           dispatch_queue_name.erase(bytes_read);
       }
     }
@@ -183,10 +183,10 @@ lldb::QueueKind SystemRuntimeMacOSX::GetQueueKind(addr_t dispatch_queue_addr) {
   if (m_libdispatch_offsets.IsValid() &&
       m_libdispatch_offsets.dqo_version >= 4) {
     Status error;
-    uint64_t width = m_process->ReadUnsignedIntegerFromMemory(
+    
+    if (uint64_t width = m_process->ReadUnsignedIntegerFromMemory(
         dispatch_queue_addr + m_libdispatch_offsets.dqo_width,
-        m_libdispatch_offsets.dqo_width_size, 0, error);
-    if (error.Success()) {
+        m_libdispatch_offsets.dqo_width_size, 0, error); error.Success()) {
       if (width == 1) {
         kind = eQueueKindSerial;
       }
@@ -200,8 +200,8 @@ lldb::QueueKind SystemRuntimeMacOSX::GetQueueKind(addr_t dispatch_queue_addr) {
 
 void SystemRuntimeMacOSX::AddThreadExtendedInfoPacketHints(
     lldb_private::StructuredData::ObjectSP dict_sp) {
-  StructuredData::Dictionary *dict = dict_sp->GetAsDictionary();
-  if (dict) {
+  
+  if (StructuredData::Dictionary *dict = dict_sp->GetAsDictionary(); dict) {
     ReadLibpthreadOffsets();
     if (m_libpthread_offsets.IsValid()) {
       dict->AddIntegerItem("plo_pthread_tsd_base_offset",
@@ -251,15 +251,15 @@ SystemRuntimeMacOSX::GetQueueIDFromThreadQAddress(lldb::addr_t dispatch_qaddr) {
     // thread - deref it to get the address of the dispatch_queue_t structure
     // for this thread's queue.
     Status error;
-    uint64_t dispatch_queue_addr =
-        m_process->ReadPointerFromMemory(dispatch_qaddr, error);
-    if (error.Success()) {
+    
+    if (uint64_t dispatch_queue_addr =
+        m_process->ReadPointerFromMemory(dispatch_qaddr, error); error.Success()) {
       addr_t serialnum_address =
           dispatch_queue_addr + m_libdispatch_offsets.dqo_serialnum;
-      queue_id_t serialnum = m_process->ReadUnsignedIntegerFromMemory(
+      
+      if (queue_id_t serialnum = m_process->ReadUnsignedIntegerFromMemory(
           serialnum_address, m_libdispatch_offsets.dqo_serialnum_size,
-          LLDB_INVALID_QUEUE_ID, error);
-      if (error.Success()) {
+          LLDB_INVALID_QUEUE_ID, error); error.Success()) {
         queue_id = serialnum;
       }
     }
@@ -827,8 +827,8 @@ SystemRuntimeMacOSX::GetPendingItemRefsForQueue(lldb::addr_t queue) {
 
           offset_t offset = 0;
           uint64_t i = 0;
-          uint32_t version = extractor.GetU32(&offset);
-          if (version == 1) {
+          
+          if (uint32_t version = extractor.GetU32(&offset); version == 1) {
             pending_item_refs.new_style = true;
             uint32_t item_size = extractor.GetU32(&offset);
             uint32_t start_of_array_offset = offset;
@@ -920,8 +920,8 @@ void SystemRuntimeMacOSX::PopulateQueuesUsingLibBTR(
     lldb_private::QueueList &queue_list) {
   Status error;
   DataBufferHeap data(queues_buffer_size, 0);
-  Log *log = GetLog(LLDBLog::SystemRuntime);
-  if (m_process->ReadMemory(queues_buffer, data.GetBytes(), queues_buffer_size,
+  
+  if (Log *log = GetLog(LLDBLog::SystemRuntime); m_process->ReadMemory(queues_buffer, data.GetBytes(), queues_buffer_size,
                             error) == queues_buffer_size &&
       error.Success()) {
     // We've read the information out of inferior memory; free it on the next

@@ -217,8 +217,8 @@ static char previousChar(const char *First, const char *&Current) {
     if (Current > First && *(Current - 1) == '\\') {
       // Use Lexer's getEscapedNewLineSize to get the size of the escaped
       // newline
-      unsigned EscapeSize = Lexer::getEscapedNewLineSize(Current);
-      if (EscapeSize > 0) {
+      
+      if (unsigned EscapeSize = Lexer::getEscapedNewLineSize(Current); EscapeSize > 0) {
         // Skip back over the entire escaped newline sequence (backslash +
         // newline)
         Current -= (1 + EscapeSize);
@@ -599,16 +599,16 @@ Scanner::lexIncludeFilename(const char *&First, const char *const End) {
 
 void Scanner::lexPPDirectiveBody(const char *&First, const char *const End) {
   while (true) {
-    const dependency_directives_scan::Token &Tok = lexToken(First, End);
-    if (Tok.is(tok::eod) || Tok.is(tok::eof))
+    
+    if (const dependency_directives_scan::Token &Tok = lexToken(First, End); Tok.is(tok::eod) || Tok.is(tok::eof))
       break;
   }
 }
 
 StringRef
 Scanner::cleanStringIfNeeded(const dependency_directives_scan::Token &Tok) {
-  bool NeedsCleaning = Tok.Flags & clang::Token::NeedsCleaning;
-  if (LLVM_LIKELY(!NeedsCleaning))
+  
+  if (bool NeedsCleaning = Tok.Flags & clang::Token::NeedsCleaning; LLVM_LIKELY(!NeedsCleaning))
     return Input.slice(Tok.Offset, Tok.getEnd());
 
   SmallString<64> Spelling;
@@ -661,8 +661,8 @@ bool Scanner::isNextIdentifierOrSkipLine(StringRef Id, const char *&First,
 
 bool Scanner::isNextTokenOrSkipLine(tok::TokenKind K, const char *&First,
                                     const char *const End) {
-  const dependency_directives_scan::Token &Tok = lexToken(First, End);
-  if (Tok.is(K))
+  
+  if (const dependency_directives_scan::Token &Tok = lexToken(First, End); Tok.is(K))
     return true;
   skipLine(First, End);
   return false;

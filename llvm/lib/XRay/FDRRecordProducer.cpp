@@ -91,8 +91,8 @@ FileBasedRecordProducer::findNextBufferExtent() {
           "Failed reading one byte from offset %" PRId64 ".", OffsetPtr);
 
     if (isMetadataIntroducer(FirstByte)) {
-      auto LoadedType = FirstByte >> 1;
-      if (LoadedType == MetadataRecordKinds::BufferExtentsKind) {
+      
+      if (auto LoadedType = FirstByte >> 1; LoadedType == MetadataRecordKinds::BufferExtentsKind) {
         auto MetadataRecordOrErr = metadataRecordType(Header, LoadedType);
         if (!MetadataRecordOrErr)
           return MetadataRecordOrErr.takeError();

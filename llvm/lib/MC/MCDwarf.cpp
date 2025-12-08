@@ -407,10 +407,10 @@ size_t MCDwarfLineStr::addString(StringRef Path) {
 void MCDwarfLineStr::emitRef(MCStreamer *MCOS, StringRef Path) {
   int RefSize =
       dwarf::getDwarfOffsetByteSize(MCOS->getContext().getDwarfFormat());
-  size_t Offset = addString(Path);
-  if (UseRelocs) {
-    MCContext &Ctx = MCOS->getContext();
-    if (Ctx.getAsmInfo()->needsDwarfSectionOffsetDirective()) {
+  
+  if (size_t Offset = addString(Path); UseRelocs) {
+    
+    if (MCContext &Ctx = MCOS->getContext(); Ctx.getAsmInfo()->needsDwarfSectionOffsetDirective()) {
       MCOS->emitCOFFSecRel32(LineStrLabel, Offset);
     } else {
       MCOS->emitValue(makeStartPlusIntExpr(Ctx, *LineStrLabel, Offset),
@@ -1295,8 +1295,8 @@ void MCGenDwarfLabelEntry::Make(MCSymbol *Symbol, MCStreamer *MCOS,
 static int getDataAlignmentFactor(MCStreamer &streamer) {
   MCContext &context = streamer.getContext();
   const MCAsmInfo *asmInfo = context.getAsmInfo();
-  int size = asmInfo->getCalleeSaveStackSlotSize();
-  if (asmInfo->isStackGrowthDirectionUp())
+  
+  if (int size = asmInfo->getCalleeSaveStackSlotSize(); asmInfo->isStackGrowthDirectionUp())
     return size;
   else
     return -size;
@@ -1305,8 +1305,8 @@ static int getDataAlignmentFactor(MCStreamer &streamer) {
 static unsigned getSizeForEncoding(MCStreamer &streamer,
                                    unsigned symbolEncoding) {
   MCContext &context = streamer.getContext();
-  unsigned format = symbolEncoding & 0x0f;
-  switch (format) {
+  
+  switch (unsigned format = symbolEncoding & 0x0f; format) {
   default: llvm_unreachable("Unknown Encoding");
   case dwarf::DW_EH_PE_absptr:
   case dwarf::DW_EH_PE_signed:
@@ -1330,8 +1330,8 @@ static void emitFDESymbol(MCObjectStreamer &streamer, const MCSymbol &symbol,
   const MCExpr *v = asmInfo->getExprForFDESymbol(&symbol,
                                                  symbolEncoding,
                                                  streamer);
-  unsigned size = getSizeForEncoding(streamer, symbolEncoding);
-  if (asmInfo->doDwarfFDESymbolsUseAbsDiff() && isEH)
+  
+  if (unsigned size = getSizeForEncoding(streamer, symbolEncoding); asmInfo->doDwarfFDESymbolsUseAbsDiff() && isEH)
     emitAbsValue(streamer, v, size);
   else
     streamer.emitValue(v, size);
@@ -1379,9 +1379,9 @@ static void emitEncodingByte(MCObjectStreamer &Streamer, unsigned Encoding) {
 
 void FrameEmitterImpl::emitCFIInstruction(const MCCFIInstruction &Instr) {
   int dataAlignmentFactor = getDataAlignmentFactor(Streamer);
-  auto *MRI = Streamer.getContext().getRegisterInfo();
+  
 
-  switch (Instr.getOperation()) {
+  switch (auto *MRI = Streamer.getContext().getRegisterInfo(); Instr.getOperation()) {
   case MCCFIInstruction::OpRegister: {
     unsigned Reg1 = Instr.getRegister();
     unsigned Reg2 = Instr.getRegister2();
@@ -1557,8 +1557,8 @@ void FrameEmitterImpl::emitCFIInstructions(ArrayRef<MCCFIInstruction> Instrs,
 
     // Advance row if new location.
     if (BaseLabel && Label) {
-      MCSymbol *ThisSym = Label;
-      if (ThisSym != BaseLabel) {
+      
+      if (MCSymbol *ThisSym = Label; ThisSym != BaseLabel) {
         Streamer.emitDwarfAdvanceFrameAddr(BaseLabel, ThisSym, Instr.getLoc());
         BaseLabel = ThisSym;
       }

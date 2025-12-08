@@ -298,8 +298,8 @@ static bool markTails(Function &F, OptimizationRemarkEmitter *ORE) {
     }
 
     for (auto *SuccBB : successors(BB)) {
-      auto &State = Visited[SuccBB];
-      if (State < Escaped) {
+      
+      if (auto &State = Visited[SuccBB]; State < Escaped) {
         State = Escaped;
         if (State == ESCAPED)
           WorklistEscaped.push_back(SuccBB);
@@ -358,8 +358,8 @@ static bool canMoveAboveCall(Instruction *I, CallInst *CI, AliasAnalysis *AA) {
       // does not write to memory and the load provably won't trap.
       // Writes to memory only matter if they may alias the pointer
       // being loaded from.
-      const DataLayout &DL = L->getDataLayout();
-      if (isModSet(AA->getModRefInfo(CI, MemoryLocation::get(L))) ||
+      
+      if (const DataLayout &DL = L->getDataLayout(); isModSet(AA->getModRefInfo(CI, MemoryLocation::get(L))) ||
           !isSafeToLoadUnconditionally(L->getPointerOperand(), L->getType(),
                                        L->getAlign(), DL, L))
         return false;
@@ -556,8 +556,8 @@ void TailRecursionEliminator::createTailRecurseLoopHeader(CallInst *CI) {
   // nodes to track our return value. We initialize RetPN with poison and
   // RetKnownPN with false since we can't know our return value at function
   // entry.
-  Type *RetType = F.getReturnType();
-  if (!RetType->isVoidTy()) {
+  
+  if (Type *RetType = F.getReturnType(); !RetType->isVoidTy()) {
     Type *BoolType = Type::getInt1Ty(F.getContext());
     RetPN = PHINode::Create(RetType, 2, "ret.tr");
     RetPN->insertBefore(InsertPos);
@@ -592,8 +592,8 @@ void TailRecursionEliminator::insertAccumulator(Instruction *AccRecInstr) {
   // Because we haven't added the branch in the current block to HeaderBB yet,
   // it will not show up as a predecessor.
   for (pred_iterator PI = PB; PI != PE; ++PI) {
-    BasicBlock *P = *PI;
-    if (P == &F.getEntryBlock()) {
+    
+    if (BasicBlock *P = *PI; P == &F.getEntryBlock()) {
       Constant *Identity =
           ConstantExpr::getIdentity(AccRecInstr, AccRecInstr->getType());
       AccPN->addIncoming(Identity, P);
@@ -767,8 +767,8 @@ bool TailRecursionEliminator::eliminateCall(CallInst *CI) {
         static_cast<double>(OrigEntryBBFreq);
     auto ToSubtract =
         static_cast<uint64_t>(std::round(RelativeBBFreq * OrigEntryCount));
-    auto OldEntryCount = F.getEntryCount()->getCount();
-    if (OldEntryCount <= ToSubtract) {
+    
+    if (auto OldEntryCount = F.getEntryCount()->getCount(); OldEntryCount <= ToSubtract) {
       LLVM_DEBUG(
           errs() << "[TRE] The entrycount attributable to the recursive call, "
                  << ToSubtract
@@ -891,9 +891,9 @@ bool TailRecursionEliminator::processBlock(BasicBlock &BB) {
     eliminateCall(CI);
     return true;
   } else if (isa<ReturnInst>(TI)) {
-    CallInst *CI = findTRECandidate(&BB);
+    
 
-    if (CI)
+    if (CallInst *CI = findTRECandidate(&BB); CI)
       return eliminateCall(CI);
   }
 
@@ -1001,10 +1001,10 @@ PreservedAnalyses TailCallElimPass::run(Function &F,
   // UpdateStrategy based on some test results. It is feasible to switch the
   // UpdateStrategy to Lazy if we find it profitable later.
   DomTreeUpdater DTU(DT, PDT, DomTreeUpdater::UpdateStrategy::Eager);
-  bool Changed =
-      TailRecursionEliminator::eliminate(F, &TTI, &AA, &ORE, DTU, BFI);
+  
 
-  if (!Changed)
+  if (bool Changed =
+      TailRecursionEliminator::eliminate(F, &TTI, &AA, &ORE, DTU, BFI); !Changed)
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserve<DominatorTreeAnalysis>();

@@ -282,10 +282,10 @@ void preprocess(StringRef Src, StringRef Dst, const RcOptions &Opts,
   // The llvm Support classes don't handle reading from stdout of a child
   // process; otherwise we could avoid using a temp file.
   std::string ErrMsg;
-  int Res =
+  
+  if (int Res =
       sys::ExecuteAndWait(Args[0], Args, /*Env=*/std::nullopt, /*Redirects=*/{},
-                          /*SecondsToWait=*/0, /*MemoryLimit=*/0, &ErrMsg);
-  if (Res) {
+                          /*SecondsToWait=*/0, /*MemoryLimit=*/0, &ErrMsg); Res) {
     if (!ErrMsg.empty())
       fatalError("llvm-rc: Preprocessing failed: " + ErrMsg);
     else

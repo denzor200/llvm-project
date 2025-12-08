@@ -1027,8 +1027,8 @@ approximateStandardConversionSequence(const TheCheck &Check, QualType From,
     }
 
     const auto *FromRecordPtr = FromPtr->getPointeeCXXRecordDecl();
-    const auto *ToRecordPtr = ToPtr->getPointeeCXXRecordDecl();
-    if (isDerivedToBase(FromRecordPtr, ToRecordPtr)) {
+    
+    if (const auto *ToRecordPtr = ToPtr->getPointeeCXXRecordDecl(); isDerivedToBase(FromRecordPtr, ToRecordPtr)) {
       LLVM_DEBUG(llvm::dbgs() << "--- approximateStdConv. Derived* to Base*\n");
       WorkType = QualType{ToPtr, FastQualifiersToApply};
     }
@@ -1050,9 +1050,9 @@ approximateStandardConversionSequence(const TheCheck &Check, QualType From,
     // to a non-noexcept one.
     const auto *FromFunctionPtr =
         FromPtr->getPointeeType()->getAs<FunctionProtoType>();
-    const auto *ToFunctionPtr =
-        ToPtr->getPointeeType()->getAs<FunctionProtoType>();
-    if (FromFunctionPtr && ToFunctionPtr &&
+    
+    if (const auto *ToFunctionPtr =
+        ToPtr->getPointeeType()->getAs<FunctionProtoType>(); FromFunctionPtr && ToFunctionPtr &&
         FromFunctionPtr->hasNoexceptExceptionSpec() &&
         !ToFunctionPtr->hasNoexceptExceptionSpec()) {
       LLVM_DEBUG(llvm::dbgs() << "--- approximateStdConv. noexcept function "
@@ -2079,9 +2079,9 @@ public:
 
     const bool AlreadySaidLHSAndCommonIsSame =
         calledWith({LHSType, CommonType, {}});
-    const bool AlreadySaidRHSAndCommonIsSame =
-        calledWith({RHSType, CommonType, {}});
-    if (AlreadySaidLHSAndCommonIsSame && AlreadySaidRHSAndCommonIsSame) {
+    
+    if (const bool AlreadySaidRHSAndCommonIsSame =
+        calledWith({RHSType, CommonType, {}}); AlreadySaidLHSAndCommonIsSame && AlreadySaidRHSAndCommonIsSame) {
       // "SomeInt == int" && "SomeOtherInt == int" => "Common(SomeInt,
       // SomeOtherInt) == int", no need to diagnose it. Save the 3-tuple only
       // for shortcut if it ever appears again.

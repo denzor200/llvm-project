@@ -98,10 +98,10 @@ GraphResult GraphBuilder::buildFlowGraph(const FileAnalysis &Analysis,
   Result.BaseAddress = Address.Address;
   DenseSet<uint64_t> OpenedNodes;
 
-  const auto &IndirectInstructions = Analysis.getIndirectInstructions();
+  
 
   // check that IndirectInstructions contains specified Address
-  if (IndirectInstructions.find(Address) == IndirectInstructions.end()) {
+  if (const auto &IndirectInstructions = Analysis.getIndirectInstructions(); IndirectInstructions.find(Address) == IndirectInstructions.end()) {
     return Result;
   }
 
@@ -323,8 +323,8 @@ void GraphBuilder::buildFlowGraphImpl(const FileAnalysis &Analysis,
   // To mark the second call as protected, we recognize indirect calls that
   // directly follow calls to functions that will trap on CFI violations.
   if (CFCrossRefs.empty()) {
-    const Instr *PrevInstr = Analysis.getPrevInstructionSequential(ChildMeta);
-    if (PrevInstr && Analysis.willTrapOnCFIViolation(*PrevInstr)) {
+    
+    if (const Instr *PrevInstr = Analysis.getPrevInstructionSequential(ChildMeta); PrevInstr && Analysis.willTrapOnCFIViolation(*PrevInstr)) {
       Result.IntermediateNodes[PrevInstr->VMAddress] = Address;
       HasValidCrossRef = true;
     }

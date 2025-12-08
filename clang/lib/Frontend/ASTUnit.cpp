@@ -862,8 +862,8 @@ std::unique_ptr<ASTUnit> ASTUnit::LoadFromASTFile(
 
   AST->OriginalSourceFile = std::string(AST->Reader->getOriginalSourceFile());
 
-  Module *M = AST->HeaderInfo->lookupModule(AST->getLangOpts().CurrentModule);
-  if (M && AST->getLangOpts().isCompilingModule() && M->isNamedModule())
+  
+  if (Module *M = AST->HeaderInfo->lookupModule(AST->getLangOpts().CurrentModule); M && AST->getLangOpts().isCompilingModule() && M->isNamedModule())
     AST->Ctx->setCurrentNamedModule(M);
 
   // Create an AST consumer, even though it isn't used.
@@ -1440,8 +1440,8 @@ void ASTUnit::transferASTDataFromCompilerInstance(CompilerInstance &CI) {
 
 StringRef ASTUnit::getMainFileName() const {
   if (Invocation && !Invocation->getFrontendOpts().Inputs.empty()) {
-    const FrontendInputFile &Input = Invocation->getFrontendOpts().Inputs[0];
-    if (Input.isFile())
+    
+    if (const FrontendInputFile &Input = Invocation->getFrontendOpts().Inputs[0]; Input.isFile())
       return Input.getFile();
     else
       return Input.getBuffer().getBufferIdentifier();

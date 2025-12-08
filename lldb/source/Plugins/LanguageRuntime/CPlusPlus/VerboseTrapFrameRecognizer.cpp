@@ -81,9 +81,9 @@ VerboseTrapFrameRecognizer::RecognizeFrame(lldb::StackFrameSP frame_sp) {
   // The runtime error is set as the function name in the inlined function info
   // of frame #0 by the compiler
   const InlineFunctionInfo *inline_info = nullptr;
-  Block *inline_block = sc.block->GetContainingInlinedBlock();
+  
 
-  if (!inline_block)
+  if (Block *inline_block = sc.block->GetContainingInlinedBlock(); !inline_block)
     return {};
 
   inline_info = sc.block->GetInlinedFunctionInfo();

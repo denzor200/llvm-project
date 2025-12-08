@@ -887,8 +887,8 @@ protected:
   /// See namespace `memory_passed_to_fn_call_free_through_fn_ptr` in
   /// clang/test/Analysis/NewDeleteLeaks.cpp.
   bool isFreeingCallAsWritten(const CallExpr &Call) const {
-    const auto *MallocChk = static_cast<const MallocChecker *>(&Checker);
-    if (MallocChk->FreeingMemFnMap.lookupAsWritten(Call) ||
+    
+    if (const auto *MallocChk = static_cast<const MallocChecker *>(&Checker); MallocChk->FreeingMemFnMap.lookupAsWritten(Call) ||
         MallocChk->ReallocatingMemFnMap.lookupAsWritten(Call))
       return true;
 
@@ -1431,8 +1431,8 @@ void MallocChecker::checkAlloca(ProgramStateRef State, const CallEvent &Call,
 
 void MallocChecker::checkStrdup(ProgramStateRef State, const CallEvent &Call,
                                 CheckerContext &C) const {
-  const auto *CE = dyn_cast_or_null<CallExpr>(Call.getOriginExpr());
-  if (!CE)
+  
+  if (const auto *CE = dyn_cast_or_null<CallExpr>(Call.getOriginExpr()); !CE)
     return;
   State = MallocMemAux(C, Call, UnknownVal(), UnknownVal(), State,
                        AllocationFamily(AF_Malloc));
@@ -2067,14 +2067,14 @@ static ProgramStateRef MallocUpdateRefState(CheckerContext &C, const Expr *E,
   if (!RetVal->getAs<Loc>())
     return nullptr;
 
-  SymbolRef Sym = RetVal->getAsLocSymbol();
+  
 
   // NOTE: If this was an `alloca()` call, then `RetVal` holds an
   // `AllocaRegion`, so `Sym` will be a nullpointer because `AllocaRegion`s do
   // not have an associated symbol. However, this distinct region type means
   // that we don't need to store anything about them in `RegionState`.
 
-  if (Sym)
+  if (SymbolRef Sym = RetVal->getAsLocSymbol(); Sym)
     return State->set<RegionState>(Sym, RefState::getAllocated(Family, E));
 
   return State;
@@ -2123,8 +2123,8 @@ ProgramStateRef MallocChecker::FreeMemAux(CheckerContext &C,
 /// failed, returns true. Also, returns the corresponding return value symbol.
 static bool didPreviousFreeFail(ProgramStateRef State,
                                 SymbolRef Sym, SymbolRef &RetStatusSymbol) {
-  const SymbolRef *Ret = State->get<FreeReturnValue>(Sym);
-  if (Ret) {
+  
+  if (const SymbolRef *Ret = State->get<FreeReturnValue>(Sym); Ret) {
     assert(*Ret && "We should not store the null return symbol");
     ConstraintManager &CMgr = State->getConstraintManager();
     ConditionTruthVal FreeFailed = CMgr.isNull(State, *Ret);
@@ -2368,8 +2368,8 @@ MallocChecker::FreeMemAux(CheckerContext &C, const Expr *ArgExpr,
         RsBase->isEscaped()) {
 
       // Check if an expected deallocation function matches the real one.
-      bool DeallocMatchesAlloc = RsBase->getAllocationFamily() == Family;
-      if (!DeallocMatchesAlloc) {
+      
+      if (bool DeallocMatchesAlloc = RsBase->getAllocationFamily() == Family; !DeallocMatchesAlloc) {
         HandleMismatchedDealloc(C, ArgExpr->getSourceRange(), ParentExpr,
                                 RsBase, SymBase, Hold);
         return nullptr;
@@ -2402,8 +2402,8 @@ MallocChecker::FreeMemAux(CheckerContext &C, const Expr *ArgExpr,
   // failed.
   if (ReturnsNullOnFailure) {
     SVal RetVal = C.getSVal(ParentExpr);
-    SymbolRef RetStatusSymbol = RetVal.getAsSymbol();
-    if (RetStatusSymbol) {
+    
+    if (SymbolRef RetStatusSymbol = RetVal.getAsSymbol(); RetStatusSymbol) {
       C.getSymbolManager().addSymbolDependency(SymBase, RetStatusSymbol);
       State = State->set<FreeReturnValue>(SymBase, RetStatusSymbol);
     }
@@ -2495,8 +2495,8 @@ bool MallocChecker::SummarizeRegion(ProgramStateRef State, raw_ostream &os,
                                     const MemRegion *MR) {
   switch (MR->getKind()) {
   case MemRegion::FunctionCodeRegionKind: {
-    const NamedDecl *FD = cast<FunctionCodeRegion>(MR)->getDecl();
-    if (FD)
+    
+    if (const NamedDecl *FD = cast<FunctionCodeRegion>(MR)->getDecl(); FD)
       os << "the address of the function '" << *FD << '\'';
     else
       os << "the address of a function";
@@ -2590,9 +2590,9 @@ void MallocChecker::HandleNonHeapDealloc(CheckerContext &C, SVal ArgVal,
       os << "deallocator";
 
     os << " is ";
-    bool Summarized =
-        MR ? SummarizeRegion(C.getState(), os, MR) : SummarizeValue(os, ArgVal);
-    if (Summarized)
+    
+    if (bool Summarized =
+        MR ? SummarizeRegion(C.getState(), os, MR) : SummarizeValue(os, ArgVal); Summarized)
       os << ", which is not memory allocated by ";
     else
       os << "not memory allocated by ";
@@ -2999,10 +2999,10 @@ MallocChecker::LeakInfo MallocChecker::getAllocationSite(const ExplodedNode *N,
       if (const MemRegion *MR = C.getLocationRegionIfPostStore(N)) {
         SVal Val = State->getSVal(MR);
         if (Val.getAsLocSymbol() == Sym) {
-          const VarRegion *VR = MR->getBaseRegion()->getAs<VarRegion>();
+          
           // Do not show local variables belonging to a function other than
           // where the error is reported.
-          if (!VR || (VR->getStackFrame() == LeakContext->getStackFrame()))
+          if (const VarRegion *VR = MR->getBaseRegion()->getAs<VarRegion>(); !VR || (VR->getStackFrame() == LeakContext->getStackFrame()))
             ReferenceRegion = MR;
         }
       }
@@ -3010,8 +3010,8 @@ MallocChecker::LeakInfo MallocChecker::getAllocationSite(const ExplodedNode *N,
 
     // Allocation node, is the last node in the current or parent context in
     // which the symbol was tracked.
-    const LocationContext *NContext = N->getLocationContext();
-    if (NContext == LeakContext ||
+    
+    if (const LocationContext *NContext = N->getLocationContext(); NContext == LeakContext ||
         NContext->isParentOf(LeakContext))
       AllocNode = N;
     N = N->pred_empty() ? nullptr : *(N->pred_begin());
@@ -3220,8 +3220,8 @@ static bool hasSmartPtrField(const CXXRecordDecl *CRD,
         if (!NewFC)
           continue;
       }
-      bool Found = hasSmartPtrField(BaseDecl, NewFC);
-      if (Found && !FC)
+      
+      if (bool Found = hasSmartPtrField(BaseDecl, NewFC); Found && !FC)
         return true;
     }
   }
@@ -3310,8 +3310,8 @@ ProgramStateRef MallocChecker::handleSmartPointerConstructorArguments(
   const auto *CD = cast<CXXConstructorDecl>(Call.getDecl());
   for (unsigned I = 0, E = std::min(Call.getNumArgs(), CD->getNumParams());
        I != E; ++I) {
-    const Expr *ArgExpr = Call.getArgExpr(I);
-    if (!ArgExpr)
+    
+    if (const Expr *ArgExpr = Call.getArgExpr(I); !ArgExpr)
       continue;
 
     QualType ParamType = CD->getParamDecl(I)->getType();
@@ -3319,10 +3319,10 @@ ProgramStateRef MallocChecker::handleSmartPointerConstructorArguments(
         !ParamType->isVoidPointerType()) {
       // This argument is a pointer being passed to smart pointer constructor
       SVal ArgVal = Call.getArgSVal(I);
-      SymbolRef Sym = ArgVal.getAsSymbol();
-      if (Sym && State->contains<RegionState>(Sym)) {
-        const RefState *RS = State->get<RegionState>(Sym);
-        if (RS && (RS->isAllocated() || RS->isAllocatedOfSizeZero())) {
+      
+      if (SymbolRef Sym = ArgVal.getAsSymbol(); Sym && State->contains<RegionState>(Sym)) {
+        
+        if (const RefState *RS = State->get<RegionState>(Sym); RS && (RS->isAllocated() || RS->isAllocatedOfSizeZero())) {
           State = State->set<RegionState>(Sym, RefState::getEscaped(RS));
         }
       }
@@ -3442,8 +3442,8 @@ void MallocChecker::checkPreCall(const CallEvent &Call,
   // reports via the same pathway (because double free is essentially a specia
   // case of use-after-free).
   if (const AnyFunctionCall *FC = dyn_cast<AnyFunctionCall>(&Call)) {
-    const FunctionDecl *FD = FC->getDecl();
-    if (!FD)
+    
+    if (const FunctionDecl *FD = FC->getDecl(); !FD)
       return;
 
     // FIXME: I suspect we should remove `MallocChecker.isEnabled() &&` because
@@ -3455,8 +3455,8 @@ void MallocChecker::checkPreCall(const CallEvent &Call,
 
   // Check if the callee of a method is deleted.
   if (const CXXInstanceCall *CC = dyn_cast<CXXInstanceCall>(&Call)) {
-    SymbolRef Sym = CC->getCXXThisVal().getAsSymbol();
-    if (!Sym || checkUseAfterFree(Sym, C, CC->getCXXThisExpr()))
+    
+    if (SymbolRef Sym = CC->getCXXThisVal().getAsSymbol(); !Sym || checkUseAfterFree(Sym, C, CC->getCXXThisExpr()))
       return;
   }
 
@@ -3611,8 +3611,8 @@ void MallocChecker::checkUseZeroAllocated(SymbolRef Sym, CheckerContext &C,
 // Check if the location is a freed symbolic region.
 void MallocChecker::checkLocation(SVal l, bool isLoad, const Stmt *S,
                                   CheckerContext &C) const {
-  SymbolRef Sym = l.getLocSymbolInBase();
-  if (Sym) {
+  
+  if (SymbolRef Sym = l.getLocSymbolInBase(); Sym) {
     checkUseAfterFree(Sym, C, S);
     checkUseZeroAllocated(Sym, C, S);
   }
@@ -3642,8 +3642,8 @@ ProgramStateRef MallocChecker::evalAssume(ProgramStateRef state,
     if (!AllocFailed.isConstrainedTrue())
       continue;
 
-    SymbolRef ReallocSym = ReallocPair.ReallocatedSym;
-    if (const RefState *RS = state->get<RegionState>(ReallocSym)) {
+    
+    if (SymbolRef ReallocSym = ReallocPair.ReallocatedSym; const RefState *RS = state->get<RegionState>(ReallocSym)) {
       if (RS->isReleased()) {
         switch (ReallocPair.Kind) {
         case OAR_ToBeFreedAfterFailure:
@@ -3756,8 +3756,8 @@ bool MallocChecker::mayFreeAnyEscapedMemoryOrIsModeledExplicitly(
     // is not transferred only if the deallocator argument is
     // 'kCFAllocatorNull'.
     for (unsigned i = 1; i < Call->getNumArgs(); ++i) {
-      const Expr *ArgE = Call->getArgExpr(i)->IgnoreParenCasts();
-      if (const DeclRefExpr *DE = dyn_cast<DeclRefExpr>(ArgE)) {
+      
+      if (const Expr *ArgE = Call->getArgExpr(i)->IgnoreParenCasts(); const DeclRefExpr *DE = dyn_cast<DeclRefExpr>(ArgE)) {
         StringRef DeallocatorName = DE->getFoundDecl()->getName();
         if (DeallocatorName == "kCFAllocatorNull")
           return false;
@@ -3780,8 +3780,8 @@ bool MallocChecker::mayFreeAnyEscapedMemoryOrIsModeledExplicitly(
   if (FName == "setbuf" || FName =="setbuffer" ||
       FName == "setlinebuf" || FName == "setvbuf") {
     if (Call->getNumArgs() >= 1) {
-      const Expr *ArgE = Call->getArgExpr(0)->IgnoreParenCasts();
-      if (const DeclRefExpr *ArgDRE = dyn_cast<DeclRefExpr>(ArgE))
+      
+      if (const Expr *ArgE = Call->getArgExpr(0)->IgnoreParenCasts(); const DeclRefExpr *ArgDRE = dyn_cast<DeclRefExpr>(ArgE))
         if (const VarDecl *D = dyn_cast<VarDecl>(ArgDRE->getDecl()))
           if (D->getCanonicalDecl()->getName().contains("std"))
             return true;
@@ -3903,8 +3903,8 @@ static SymbolRef findFailedReallocSymbol(ProgramStateRef currState,
   ReallocPairsTy prevMap = prevState->get<ReallocPairs>();
 
   for (const ReallocPairsTy::value_type &Pair : prevMap) {
-    SymbolRef sym = Pair.first;
-    if (!currMap.lookup(sym))
+    
+    if (SymbolRef sym = Pair.first; !currMap.lookup(sym))
       return sym;
   }
 
@@ -3967,10 +3967,10 @@ PathDiagnosticPieceRef MallocBugVisitor::VisitNode(const ExplodedNode *N,
       // and operator calls.
       if (const auto *MD =
               dyn_cast_or_null<CXXMethodDecl>(CE->getDirectCallee())) {
-        const CXXRecordDecl *RD = MD->getParent();
+        
         // A bit wobbly with ".contains()" because it may be like
         // "__atomic_base" or something.
-        if (StringRef(RD->getNameAsString()).contains("atomic")) {
+        if (const CXXRecordDecl *RD = MD->getParent(); StringRef(RD->getNameAsString()).contains("atomic")) {
           BR.markInvalid(getTag(), S);
           // After report is considered invalid there is no need to proceed
           // futher.
@@ -4020,8 +4020,8 @@ PathDiagnosticPieceRef MallocBugVisitor::VisitNode(const ExplodedNode *N,
               Sym, "Returning; inner buffer was deallocated");
         } else {
           OS << "reallocated by call to '";
-          const Stmt *S = RSCurr->getStmt();
-          if (const auto *MemCallE = dyn_cast<CXXMemberCallExpr>(S)) {
+          
+          if (const Stmt *S = RSCurr->getStmt(); const auto *MemCallE = dyn_cast<CXXMemberCallExpr>(S)) {
             OS << MemCallE->getMethodDecl()->getDeclName();
           } else if (const auto *OpCallE = dyn_cast<CXXOperatorCallExpr>(S)) {
             OS << OpCallE->getDirectCallee()->getDeclName();

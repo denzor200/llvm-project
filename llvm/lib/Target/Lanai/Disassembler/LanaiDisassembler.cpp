@@ -179,8 +179,8 @@ static void PostOperandDecodeAdjust(MCInst &Instr, uint32_t Insn) {
   }
 
   if (PqShift != -1) {
-    unsigned PQ = (Insn >> PqShift) & 0x3;
-    switch (PQ) {
+    
+    switch (unsigned PQ = (Insn >> PqShift) & 0x3; PQ) {
     case 0x0:
       if (Instr.getOperand(2).isReg()) {
         Instr.getOperand(2).setReg(Lanai::R0);

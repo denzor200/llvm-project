@@ -91,9 +91,9 @@ uint32_t RegisterValue::SetFromMemoryData(const RegisterInfo &reg_info,
   //   |AABB| Address contents
   //   |AABB0000| Register contents [on little-endian hardware]
   //   |0000AABB| Register contents [on big-endian hardware]
-  const uint32_t dst_len = reg_info.byte_size;
+  
 
-  if (src_len > dst_len) {
+  if (const uint32_t dst_len = reg_info.byte_size; src_len > dst_len) {
     error = Status::FromErrorStringWithFormat(
         "%u bytes is too big to store in register %s (%u bytes)", src_len,
         reg_info.name, dst_len);

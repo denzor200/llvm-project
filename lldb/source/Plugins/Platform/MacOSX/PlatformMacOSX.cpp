@@ -189,8 +189,8 @@ lldb_private::Status PlatformMacOSX::GetSharedModule(
   if (module_sp) {
     if (module_spec.GetArchitecture().GetCore() ==
         ArchSpec::eCore_x86_64_x86_64h) {
-      ObjectFile *objfile = module_sp->GetObjectFile();
-      if (objfile == nullptr) {
+      
+      if (ObjectFile *objfile = module_sp->GetObjectFile(); objfile == nullptr) {
         // We didn't find an x86_64h slice, fall back to a x86_64 slice
         ModuleSpec module_spec_x86_64(module_spec);
         module_spec_x86_64.GetArchitecture() = ArchSpec("x86_64-apple-macosx");

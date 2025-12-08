@@ -350,9 +350,9 @@ void SizeofExpressionCheck::registerMatchers(MatchFinder *Finder) {
 }
 
 void SizeofExpressionCheck::check(const MatchFinder::MatchResult &Result) {
-  const ASTContext &Ctx = *Result.Context;
+  
 
-  if (const auto *E = Result.Nodes.getNodeAs<Expr>("sizeof-constant")) {
+  if (const ASTContext &Ctx = *Result.Context; const auto *E = Result.Nodes.getNodeAs<Expr>("sizeof-constant")) {
     diag(E->getBeginLoc(), "suspicious usage of 'sizeof(K)'; did you mean 'K'?")
         << E->getSourceRange();
   } else if (const auto *E =
@@ -459,10 +459,10 @@ void SizeofExpressionCheck::check(const MatchFinder::MatchResult &Result) {
     const auto *LPtrTy = Result.Nodes.getNodeAs<Type>("left-ptr-type");
     const auto *RPtrTy = Result.Nodes.getNodeAs<Type>("right-ptr-type");
     const auto *SizeofArgTy = Result.Nodes.getNodeAs<Type>("sizeof-arg-type");
-    const auto *SizeOfExpr =
-        Result.Nodes.getNodeAs<UnaryExprOrTypeTraitExpr>("sizeof-ptr-mul-expr");
+    
 
-    if (ASTContext::hasSameType(LPtrTy, RPtrTy) &&
+    if (const auto *SizeOfExpr =
+        Result.Nodes.getNodeAs<UnaryExprOrTypeTraitExpr>("sizeof-ptr-mul-expr"); ASTContext::hasSameType(LPtrTy, RPtrTy) &&
         ASTContext::hasSameType(LPtrTy, SizeofArgTy)) {
       diag(SizeOfExpr->getBeginLoc(), "suspicious usage of 'sizeof(...)' in "
                                       "pointer arithmetic")
@@ -474,10 +474,10 @@ void SizeofExpressionCheck::check(const MatchFinder::MatchResult &Result) {
     const auto *LPtrTy = Result.Nodes.getNodeAs<Type>("left-ptr-type");
     const auto *RPtrTy = Result.Nodes.getNodeAs<Type>("right-ptr-type");
     const auto *SizeofArgTy = Result.Nodes.getNodeAs<Type>("sizeof-arg-type");
-    const auto *SizeOfExpr =
-        Result.Nodes.getNodeAs<UnaryExprOrTypeTraitExpr>("sizeof-ptr-div-expr");
+    
 
-    if (ASTContext::hasSameType(LPtrTy, RPtrTy) &&
+    if (const auto *SizeOfExpr =
+        Result.Nodes.getNodeAs<UnaryExprOrTypeTraitExpr>("sizeof-ptr-div-expr"); ASTContext::hasSameType(LPtrTy, RPtrTy) &&
         ASTContext::hasSameType(LPtrTy, SizeofArgTy)) {
       diag(SizeOfExpr->getBeginLoc(), "suspicious usage of 'sizeof(...)' in "
                                       "pointer arithmetic")

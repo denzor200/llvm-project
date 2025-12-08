@@ -49,12 +49,12 @@ Thumb1FrameLowering::Thumb1FrameLowering(const ARMSubtarget &sti)
 
 bool Thumb1FrameLowering::hasReservedCallFrame(const MachineFunction &MF) const{
   const MachineFrameInfo &MFI = MF.getFrameInfo();
-  unsigned CFSize = MFI.getMaxCallFrameSize();
+  
   // It's not always a good idea to include the call frame as part of the
   // stack frame. ARM (especially Thumb) has small immediate offset to
   // address the stack frame. So a large call frame can cause poor codegen
   // and may even makes it impossible to scavenge a register.
-  if (CFSize >= ((1 << 8) - 1) * 4 / 2) // Half of imm8 * 4
+  if (unsigned CFSize = MFI.getMaxCallFrameSize(); CFSize >= ((1 << 8) - 1) * 4 / 2) // Half of imm8 * 4
     return false;
 
   return !MFI.hasVarSizedObjects();
@@ -76,8 +76,8 @@ emitPrologueEpilogueSPUpdate(MachineBasicBlock &MBB,
     if (ScratchReg == ARM::NoRegister)
       report_fatal_error("Failed to emit Thumb1 stack adjustment");
     MachineFunction &MF = *MBB.getParent();
-    const ARMSubtarget &ST = MF.getSubtarget<ARMSubtarget>();
-    if (ST.genExecuteOnly()) {
+    
+    if (const ARMSubtarget &ST = MF.getSubtarget<ARMSubtarget>(); ST.genExecuteOnly()) {
       unsigned XOInstr = ST.useMovt() ? ARM::t2MOVi32imm : ARM::tMOVi32imm;
       BuildMI(MBB, MBBI, dl, TII.get(XOInstr), ScratchReg)
           .addImm(NumBytes).setMIFlags(MIFlags);
@@ -114,24 +114,24 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator I) const {
   const Thumb1InstrInfo &TII =
       *static_cast<const Thumb1InstrInfo *>(STI.getInstrInfo());
-  const ThumbRegisterInfo *RegInfo =
-      static_cast<const ThumbRegisterInfo *>(STI.getRegisterInfo());
-  if (!hasReservedCallFrame(MF)) {
+  
+  if (const ThumbRegisterInfo *RegInfo =
+      static_cast<const ThumbRegisterInfo *>(STI.getRegisterInfo()); !hasReservedCallFrame(MF)) {
     // If we have alloca, convert as follows:
     // ADJCALLSTACKDOWN -> sub, sp, sp, amount
     // ADJCALLSTACKUP   -> add, sp, sp, amount
     MachineInstr &Old = *I;
     DebugLoc dl = Old.getDebugLoc();
-    unsigned Amount = TII.getFrameSize(Old);
-    if (Amount != 0) {
+    
+    if (unsigned Amount = TII.getFrameSize(Old); Amount != 0) {
       // We need to keep the stack aligned properly.  To do this, we round the
       // amount of space needed for the outgoing arguments up to the next
       // alignment boundary.
       Amount = alignTo(Amount, getStackAlign());
 
       // Replace the pseudo instruction with a new instruction...
-      unsigned Opc = Old.getOpcode();
-      if (Opc == ARM::ADJCALLSTACKDOWN || Opc == ARM::tADJCALLSTACKDOWN) {
+      
+      if (unsigned Opc = Old.getOpcode(); Opc == ARM::ADJCALLSTACKDOWN || Opc == ARM::tADJCALLSTACKDOWN) {
         emitCallSPUpdate(MBB, I, TII, dl, *RegInfo, -Amount);
       } else {
         assert(Opc == ARM::ADJCALLSTACKUP || Opc == ARM::tADJCALLSTACKUP);
@@ -200,8 +200,8 @@ void Thumb1FrameLowering::emitPrologue(MachineFunction &MF,
 
   for (const CalleeSavedInfo &I : CSI) {
     MCRegister Reg = I.getReg();
-    int FI = I.getFrameIdx();
-    if (Reg == FramePtr.asMCReg())
+    
+    if (int FI = I.getFrameIdx(); Reg == FramePtr.asMCReg())
       FramePtrSpillFI = FI;
     switch (Reg) {
     case ARM::R11:
@@ -567,9 +567,9 @@ bool Thumb1FrameLowering::canUseAsEpilogue(const MachineBasicBlock &MBB) const {
 }
 
 bool Thumb1FrameLowering::needPopSpecialFixUp(const MachineFunction &MF) const {
-  ARMFunctionInfo *AFI =
-      const_cast<MachineFunction *>(&MF)->getInfo<ARMFunctionInfo>();
-  if (AFI->getArgRegsSaveSize())
+  
+  if (ARMFunctionInfo *AFI =
+      const_cast<MachineFunction *>(&MF)->getInfo<ARMFunctionInfo>(); AFI->getArgRegsSaveSize())
     return true;
 
   // LR cannot be encoded with Thumb1, i.e., it requires a special fix-up.

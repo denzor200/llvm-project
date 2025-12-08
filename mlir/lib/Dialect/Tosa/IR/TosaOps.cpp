@@ -578,10 +578,10 @@ static LogicalResult verifyRescaleValueAndZpTypes(Operation *op, Value val,
 
   bool bothInts =
       mlir::isa<IntegerType>(eType) && mlir::isa<IntegerType>(eZpType);
-  bool sameBitWidth =
-      (eType.getIntOrFloatBitWidth() == eZpType.getIntOrFloatBitWidth());
+  
 
-  if (!bothInts || !sameBitWidth) {
+  if (bool sameBitWidth =
+      (eType.getIntOrFloatBitWidth() == eZpType.getIntOrFloatBitWidth()); !bothInts || !sameBitWidth) {
     return op->emitOpError()
            << "expected " << name << " and " << name
            << "_zp to both be integer of the same bitwidth, but got " << eType
@@ -1193,9 +1193,9 @@ LogicalResult tosa::ClampOp::verify() {
   auto maxValAttr = getMaxValAttr();
   auto minValAttr = getMinValAttr();
 
-  unsigned dataTypeBitWidth = inputETy.getIntOrFloatBitWidth();
+  
 
-  if (inputETy.isInteger(dataTypeBitWidth)) {
+  if (unsigned dataTypeBitWidth = inputETy.getIntOrFloatBitWidth(); inputETy.isInteger(dataTypeBitWidth)) {
     // if input datatype is integer, check that the min_val/max_val attributes
     // are integer attributes, and that their type is the same as the input's
     // datatype
@@ -1528,11 +1528,11 @@ LogicalResult tosa::RFFT2dOp::inferReturnTypeComponents(
   outputShape.resize(3, ShapedType::kDynamic);
   outputShape[0] = inputShape.getDimSize(0);
   outputShape[1] = inputShape.getDimSize(1);
-  int64_t inWidth = inputShape.getDimSize(2);
+  
 
   // Note that we can support this calculation symbolically
   // in the future e.g. [x, y, z] -> [x, y, z / 2 + 1]
-  if (inWidth != ShapedType::kDynamic)
+  if (int64_t inWidth = inputShape.getDimSize(2); inWidth != ShapedType::kDynamic)
     outputShape[2] = inWidth / 2 + 1;
 
   inferredReturnShapes.push_back(ShapedTypeComponents(outputShape));
@@ -1543,8 +1543,8 @@ LogicalResult tosa::RFFT2dOp::inferReturnTypeComponents(
 
 static LogicalResult verifyDimIsPowerOfTwo(Operation *op, const int64_t dimSize,
                                            const llvm::StringRef dimName) {
-  const bool isPowerOfTwo = (dimSize & (dimSize - 1)) == 0 && dimSize > 0;
-  if (!isPowerOfTwo)
+  
+  if (const bool isPowerOfTwo = (dimSize & (dimSize - 1)) == 0 && dimSize > 0; !isPowerOfTwo)
     return op->emitOpError("expected ")
            << dimName << " to be a power of two, got " << dimSize;
 
@@ -1561,8 +1561,8 @@ LogicalResult tosa::RFFT2dOp::verify() {
   if (!inputType)
     return success();
 
-  const int64_t height = inputType.getDimSize(1);
-  if (ShapedType::isStatic(height) &&
+  
+  if (const int64_t height = inputType.getDimSize(1); ShapedType::isStatic(height) &&
       failed(verifyDimIsPowerOfTwo(*this, height, "height")))
     return failure();
 
@@ -1616,9 +1616,9 @@ LogicalResult tosa::FFT2dOp::verify() {
     return ShapedType::isDynamic(a) ? a : b;
   };
 
-  const int64_t height = trySelectStaticDim(inputRealType.getDimSize(1),
-                                            inputImagType.getDimSize(1));
-  if (ShapedType::isStatic(height) &&
+  
+  if (const int64_t height = trySelectStaticDim(inputRealType.getDimSize(1),
+                                            inputImagType.getDimSize(1)); ShapedType::isStatic(height) &&
       failed(verifyDimIsPowerOfTwo(*this, height, "height")))
     return failure();
 
@@ -1925,8 +1925,8 @@ LogicalResult tosa::MatmulTBlockScaledOp::inferReturnTypeComponents(
   // If B batch size is 1, it is broadcast across A's batch size
   const auto bDataShape = cast<ShapedType>(adaptor.getBData().getType());
   if (bDataShape.hasRank()) {
-    const int64_t bDataBatchSize = bDataShape.getDimSize(0);
-    if (bDataBatchSize != 1)
+    
+    if (const int64_t bDataBatchSize = bDataShape.getDimSize(0); bDataBatchSize != 1)
       outShape[0] =
           ShapedType::isDynamic(outShape[0]) ? bDataBatchSize : outShape[0];
     outShape[2] = bDataShape.getDimSize(1);
@@ -1934,8 +1934,8 @@ LogicalResult tosa::MatmulTBlockScaledOp::inferReturnTypeComponents(
 
   const auto bScaleShape = cast<ShapedType>(adaptor.getBScale().getType());
   if (bScaleShape.hasRank()) {
-    const int64_t bScaleBatchSize = bScaleShape.getDimSize(0);
-    if (bScaleBatchSize != 1)
+    
+    if (const int64_t bScaleBatchSize = bScaleShape.getDimSize(0); bScaleBatchSize != 1)
       outShape[0] =
           ShapedType::isDynamic(outShape[0]) ? bScaleBatchSize : outShape[0];
     outShape[2] = ShapedType::isDynamic(outShape[2]) ? bScaleShape.getDimSize(1)
@@ -2241,9 +2241,9 @@ LogicalResult tosa::SliceOp::verify() {
                  "expect input1 and output to have the same ranks, got ")
              << inputRank << " and " << outputShape.getRank();
 
-    const auto startShapeRank =
-        llvm::cast<tosa::shapeType>(getStart().getType()).getRank();
-    if (inputRank != startShapeRank)
+    
+    if (const auto startShapeRank =
+        llvm::cast<tosa::shapeType>(getStart().getType()).getRank(); inputRank != startShapeRank)
       return emitOpError("length of start is not equal to rank of input shape");
 
     const auto sizeShapeRank =
@@ -2303,8 +2303,8 @@ LogicalResult tosa::MulOp::verify() {
     // verify shift has value 0 for non-integer types
     ElementsAttr shift_elem;
     if (matchPattern(getShift(), m_Constant(&shift_elem))) {
-      int32_t shift = shift_elem.getValues<IntegerAttr>()[0].getInt();
-      if (shift != 0) {
+      
+      if (int32_t shift = shift_elem.getValues<IntegerAttr>()[0].getInt(); shift != 0) {
         return emitOpError() << "require shift to be 0 for float type";
       }
     }
@@ -2547,8 +2547,8 @@ llvm::LogicalResult tosa::ReshapeOp::verify() {
     return mlir::success();
   }
 
-  int missingDims = llvm::count(shapeValues, -1);
-  if (missingDims > 1)
+  
+  if (int missingDims = llvm::count(shapeValues, -1); missingDims > 1)
     return emitOpError() << "expected at most one target dimension to be -1";
 
   const auto outputType = dyn_cast<RankedTensorType>(getType());
@@ -2583,9 +2583,9 @@ llvm::LogicalResult tosa::ReshapeOp::verify() {
         llvm::accumulate(shapeValues, int64_t(1), [](int64_t acc, int64_t dim) {
           return (dim > 0) ? acc * dim : acc;
         });
-    bool isStaticNewShape =
-        llvm::all_of(shapeValues, [](int64_t s) { return s > 0; });
-    if ((isStaticNewShape && inputElementsNum != newShapeElementsNum) ||
+    
+    if (bool isStaticNewShape =
+        llvm::all_of(shapeValues, [](int64_t s) { return s > 0; }); (isStaticNewShape && inputElementsNum != newShapeElementsNum) ||
         (!isStaticNewShape && newShapeElementsNum > inputElementsNum)) {
       return emitOpError() << "cannot reshape " << inputElementsNum
                            << " elements into " << newShapeElementsNum;
@@ -2832,8 +2832,8 @@ LogicalResult TransposeOp::reifyResultShapes(
 
   SmallVector<OpFoldResult> returnedDims(inputType.getRank());
   for (auto dim : transposePerms) {
-    int32_t dimInInput = transposePerms[dim];
-    if (inputType.isDynamicDim(dimInInput))
+    
+    if (int32_t dimInInput = transposePerms[dim]; inputType.isDynamicDim(dimInInput))
       returnedDims[dim] =
           tensor::DimOp::create(builder, getLoc(), input, dimInInput)
               .getResult();
@@ -3762,8 +3762,8 @@ LogicalResult TransposeConv2DOp::verify() {
       llvm::dyn_cast<RankedTensorType>(getWeight().getType());
 
   if (weightType) {
-    const int64_t kernelHeight = weightType.getDimSize(1);
-    if (ShapedType::isStatic(kernelHeight)) {
+    
+    if (const int64_t kernelHeight = weightType.getDimSize(1); ShapedType::isStatic(kernelHeight)) {
       if (failed(checkPadAgainstKernelDim(outPadTop, kernelHeight,
                                           "out_pad_top", "KH")))
         return failure();
@@ -4048,8 +4048,8 @@ LogicalResult CastToBlockScaledOp::inferReturnTypeComponents(
   SmallVector<int64_t> outputScaleShape;
   inputShape.getDims(outputScaleShape);
   const int64_t lastDimLoc = inputShape.getRank() - 1;
-  const int64_t lastDimSize = inputShape.getDimSize(lastDimLoc);
-  if (ShapedType::isStatic(lastDimSize)) {
+  
+  if (const int64_t lastDimSize = inputShape.getDimSize(lastDimLoc); ShapedType::isStatic(lastDimSize)) {
     const unsigned int blockSize =
         BlockSizeAttr::getBlockSizeValue(adaptor.getBlockSize());
     outputScaleShape[lastDimLoc] = lastDimSize / blockSize;
@@ -4183,8 +4183,8 @@ LogicalResult WhileOp::inferReturnTypeComponents(
       return failure();
 
     for (const auto &it : llvm::enumerate(yieldOp.getOperands())) {
-      int32_t index = it.index();
-      if (auto meet = ValueKnowledge::meet(
+      
+      if (int32_t index = it.index(); auto meet = ValueKnowledge::meet(
               resultKnowledge[index],
               ValueKnowledge::getKnowledgeFromType(it.value().getType()))) {
         resultKnowledge[index] = meet;
@@ -4321,8 +4321,8 @@ void IfOp::print(OpAsmPrinter &p) {
   p.printRegion(getThenGraph());
 
   // Print the 'else' regions if it exists and has a block.
-  auto &elseRegion = getElseGraph();
-  if (!elseRegion.empty()) {
+  
+  if (auto &elseRegion = getElseGraph(); !elseRegion.empty()) {
     p << " else ";
     p.printRegion(elseRegion);
   }
@@ -4594,8 +4594,8 @@ mlir::tosa::shapeType::verify(function_ref<InFlightDiagnostic()> emitError,
 LogicalResult OpTrait::tosa::verifyTosaResolvableShapeOperands(Operation *op) {
   for (auto v : op->getOperands()) {
     if (mlir::isa<::mlir::tosa::shapeType>(v.getType())) {
-      Operation *definingOp = v.getDefiningOp();
-      if (!definingOp || !definingOp->hasTrait<TosaShapeOperator>()) {
+      
+      if (Operation *definingOp = v.getDefiningOp(); !definingOp || !definingOp->hasTrait<TosaShapeOperator>()) {
         return op->emitOpError("shape operand is not compile time resolvable");
       }
     }
@@ -4650,8 +4650,8 @@ OpTrait::tosa::verifyTosaShapeOperatorWithSameRanks(Operation *op) {
 
 LogicalResult tosa::ConstShapeOp::verify() {
   // check one dimensional rank
-  auto valuesRank = getValues().getType().getRank();
-  if (valuesRank != 1)
+  
+  if (auto valuesRank = getValues().getType().getRank(); valuesRank != 1)
     return emitOpError("expect elements in attribute values with rank 1");
   // check that number of elements in values attr equal to rank of result shape
   auto count = getValues().getNumElements();

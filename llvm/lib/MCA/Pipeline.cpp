@@ -53,8 +53,8 @@ Error Pipeline::runCycle() {
   Error Err = ErrorSuccess();
   // Update stages before we start processing new instructions.
   for (auto I = Stages.rbegin(), E = Stages.rend(); I != E && !Err; ++I) {
-    const std::unique_ptr<Stage> &S = *I;
-    if (isPaused())
+    
+    if (const std::unique_ptr<Stage> &S = *I; isPaused())
       Err = S->cycleResume();
     else
       Err = S->cycleStart();

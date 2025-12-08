@@ -187,8 +187,8 @@ void instrumentAddress(Module &M, IRBuilder<> &IRB, Instruction *OrigIns,
                        int AsanScale, int AsanOffset) {
   if (!TypeStoreSize.isScalable()) {
     unsigned Granularity = 1 << AsanScale;
-    const auto FixedSize = TypeStoreSize.getFixedValue();
-    switch (FixedSize) {
+    
+    switch (const auto FixedSize = TypeStoreSize.getFixedValue(); FixedSize) {
     case 8:
     case 16:
     case 32:
@@ -220,8 +220,8 @@ void instrumentAddress(Module &M, IRBuilder<> &IRB, Instruction *OrigIns,
 void getInterestingMemoryOperands(
     Module &M, Instruction *I,
     SmallVectorImpl<InterestingMemoryOperand> &Interesting) {
-  const DataLayout &DL = M.getDataLayout();
-  if (LoadInst *LI = dyn_cast<LoadInst>(I)) {
+  
+  if (const DataLayout &DL = M.getDataLayout(); LoadInst *LI = dyn_cast<LoadInst>(I)) {
     Interesting.emplace_back(I, LI->getPointerOperandIndex(), false,
                              LI->getType(), LI->getAlign());
   } else if (StoreInst *SI = dyn_cast<StoreInst>(I)) {
@@ -286,8 +286,8 @@ void getInterestingMemoryOperands(
         // Use the pointer alignment as the element alignment if the stride is a
         // mutiple of the pointer alignment. Otherwise, the element alignment
         // should be Align(1).
-        unsigned PointerAlign = Alignment.valueOrOne().value();
-        if (!isa<ConstantInt>(Stride) ||
+        
+        if (unsigned PointerAlign = Alignment.valueOrOne().value(); !isa<ConstantInt>(Stride) ||
             cast<ConstantInt>(Stride)->getZExtValue() % PointerAlign != 0)
           Alignment = Align(1);
       }

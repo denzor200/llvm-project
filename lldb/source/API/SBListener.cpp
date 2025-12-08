@@ -59,8 +59,8 @@ SBListener::operator bool() const {
 void SBListener::AddEvent(const SBEvent &event) {
   LLDB_INSTRUMENT_VA(this, event);
 
-  EventSP &event_sp = event.GetSP();
-  if (event_sp)
+  
+  if (EventSP &event_sp = event.GetSP(); event_sp)
     m_opaque_sp->AddEvent(event_sp);
 }
 

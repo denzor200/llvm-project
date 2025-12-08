@@ -130,10 +130,10 @@ bool MSP430BSel::expandBranches(OffsetVector &BlockOffsets) {
       // instruction.
       int BlockDistance =
           BlockOffsets[DestBB->getNumber()] - BlockOffsets[MBB->getNumber()];
-      int BranchDistance = BlockDistance - MBBStartOffset;
+      
 
       // If this branch is in range, ignore it.
-      if (isInRage(BranchDistance)) {
+      if (int BranchDistance = BlockDistance - MBBStartOffset; isInRage(BranchDistance)) {
         continue;
       }
 
@@ -234,11 +234,11 @@ bool MSP430BSel::runOnMachineFunction(MachineFunction &mf) {
   // the beginning of each basic block.
   OffsetVector BlockOffsets;
 
-  unsigned FunctionSize = measureFunction(BlockOffsets);
+  
   // If the entire function is smaller than the displacement of a branch field,
   // we know we don't need to expand any branches in this
   // function. This is a common case.
-  if (isInRage(FunctionSize)) {
+  if (unsigned FunctionSize = measureFunction(BlockOffsets); isInRage(FunctionSize)) {
     return false;
   }
 

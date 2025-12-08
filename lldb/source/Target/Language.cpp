@@ -280,8 +280,8 @@ void Language::PrintSupportedLanguagesForExpressions(Stream &s,
                                                      llvm::StringRef suffix) {
   auto supported = Language::GetLanguagesSupportingTypeSystemsForExpressions();
   for (size_t idx = 0; idx < num_languages; ++idx) {
-    auto const &lang = language_names[idx];
-    if (supported[lang.type])
+    
+    if (auto const &lang = language_names[idx]; supported[lang.type])
       s << prefix << lang.name << suffix;
   }
 }
@@ -456,9 +456,9 @@ size_t Language::TypeScavenger::Find(ExecutionContextScope *exe_scope,
   if (!append)
     results.clear();
 
-  size_t old_size = results.size();
+  
 
-  if (this->Find_Impl(exe_scope, key, results))
+  if (size_t old_size = results.size(); this->Find_Impl(exe_scope, key, results))
     return results.size() - old_size;
   return 0;
 }
@@ -467,8 +467,8 @@ bool Language::ImageListTypeScavenger::Find_Impl(
     ExecutionContextScope *exe_scope, const char *key, ResultSet &results) {
   bool result = false;
 
-  Target *target = exe_scope->CalculateTarget().get();
-  if (target) {
+  
+  if (Target *target = exe_scope->CalculateTarget().get(); target) {
     const auto &images(target->GetImages());
     TypeQuery query(key);
     TypeResults type_results;

@@ -140,8 +140,8 @@ static inline BasicBlock::iterator getEndIterator(BasicBlock &BB) {
     return End;
   }
 
-  Instruction *EffectiveTerminator = getEffectiveTerminator(BB);
-  if (EffectiveTerminator != BB.getTerminator()) {
+  
+  if (Instruction *EffectiveTerminator = getEffectiveTerminator(BB); EffectiveTerminator != BB.getTerminator()) {
     // Adjust range for special cases such as tail call.
     End = std::prev(BB.end());
   }
@@ -256,8 +256,8 @@ void InstModificationIRStrategy::mutate(Instruction &Inst,
                                         RandomIRBuilder &IB) {
   SmallVector<std::function<void()>, 8> Modifications;
   CmpInst *CI = nullptr;
-  GetElementPtrInst *GEP = nullptr;
-  switch (Inst.getOpcode()) {
+  
+  switch (GetElementPtrInst *GEP = nullptr; Inst.getOpcode()) {
   default:
     break;
   // Add nsw, nuw flag
@@ -336,8 +336,8 @@ void InstModificationIRStrategy::mutate(Instruction &Inst,
   case Instruction::FRem: {
     // Verify that the after shuffle the second operand is not
     // constant 0.
-    Value *Operand = Inst.getOperand(0);
-    if (Constant *C = dyn_cast<Constant>(Operand)) {
+    
+    if (Value *Operand = Inst.getOperand(0); Constant *C = dyn_cast<Constant>(Operand)) {
       if (!C->isZeroValue()) {
         ShuffleItems = {0, 1};
       }
@@ -526,9 +526,9 @@ void InsertCFGStrategy::mutate(BasicBlock &BB, RandomIRBuilder &IB) {
   BasicBlock *Sink = Block->splitBasicBlock(Insts[IP], "BB");
 
   Function *F = BB.getParent();
-  LLVMContext &C = F->getParent()->getContext();
+  
   // A coin decides if it is branch or switch
-  if (uniform<uint64_t>(IB.Rand, 0, 1)) {
+  if (LLVMContext &C = F->getParent()->getContext(); uniform<uint64_t>(IB.Rand, 0, 1)) {
     // Branch
     BasicBlock *IfTrue = BasicBlock::Create(C, "T", F);
     BasicBlock *IfFalse = BasicBlock::Create(C, "F", F);
@@ -595,8 +595,8 @@ void InsertCFGStrategy::connectBlocksToSink(ArrayRef<BasicBlock *> Blocks,
                                  IB.Rand, 0, CFGToSink::EndOfCFGToLink - 1));
     BasicBlock *BB = Blocks[i];
     Function *F = BB->getParent();
-    LLVMContext &C = F->getParent()->getContext();
-    switch (ToSink) {
+    
+    switch (LLVMContext &C = F->getParent()->getContext(); ToSink) {
     case CFGToSink::Return: {
       Type *RetTy = F->getReturnType();
       Value *RetValue = nullptr;
@@ -668,9 +668,9 @@ void SinkInstructionStrategy::mutate(BasicBlock &BB, RandomIRBuilder &IB) {
   Instruction *Inst = Insts[Idx];
   // `Idx + 1` so we don't sink to ourselves.
   auto InstsAfter = ArrayRef(Insts).slice(Idx + 1);
-  Type *Ty = Inst->getType();
+  
   // Don't sink terminators, void function calls, token, etc.
-  if (!Ty->isVoidTy() && !Ty->isTokenTy())
+  if (Type *Ty = Inst->getType(); !Ty->isVoidTy() && !Ty->isTokenTy())
     // Find a new sink and wire up the results of the operation.
     IB.connectToSink(BB, InstsAfter, Inst);
 }

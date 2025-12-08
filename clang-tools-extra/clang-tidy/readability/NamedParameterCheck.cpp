@@ -100,8 +100,8 @@ void NamedParameterCheck::check(const MatchFinder::MatchResult &Result) {
 
       // If the method is overridden, try to copy the name from the base method
       // into the overrider.
-      const auto *M = dyn_cast<CXXMethodDecl>(P.first);
-      if (M && M->size_overridden_methods() > 0) {
+      
+      if (const auto *M = dyn_cast<CXXMethodDecl>(P.first); M && M->size_overridden_methods() > 0) {
         const ParmVarDecl *OtherParm =
             (*M->begin_overridden_methods())->getParamDecl(P.second);
         const StringRef Name = OtherParm->getName();

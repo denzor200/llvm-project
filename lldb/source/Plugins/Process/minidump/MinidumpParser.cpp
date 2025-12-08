@@ -251,8 +251,8 @@ std::optional<LinuxProcStatus> MinidumpParser::GetLinuxProcStatus() {
 }
 
 std::optional<lldb::pid_t> MinidumpParser::GetPid() {
-  const MinidumpMiscInfo *misc_info = GetMiscInfo();
-  if (misc_info != nullptr) {
+  
+  if (const MinidumpMiscInfo *misc_info = GetMiscInfo(); misc_info != nullptr) {
     return misc_info->GetPid();
   }
 
@@ -419,10 +419,10 @@ std::vector<const minidump::Module *> MinidumpParser::GetFilteredModuleList() {
       ConstString name(*ExpectedName);
       bool is_executable =
           CheckForLinuxExecutable(name, linux_regions, module.BaseOfImage);
-      bool dup_is_executable =
-          CheckForLinuxExecutable(name, linux_regions, dup_module->BaseOfImage);
+      
 
-      if (is_executable != dup_is_executable) {
+      if (bool dup_is_executable =
+          CheckForLinuxExecutable(name, linux_regions, dup_module->BaseOfImage); is_executable != dup_is_executable) {
         if (is_executable)
           filtered_modules[iter->second] = &module;
         continue;

@@ -29,8 +29,8 @@ unsigned WebAssemblyTTIImpl::getNumberOfRegisters(unsigned ClassID) const {
   unsigned Result = BaseT::getNumberOfRegisters(ClassID);
 
   // For SIMD, use at least 16 registers, as a rough guess.
-  bool Vector = (ClassID == 1);
-  if (Vector)
+  
+  if (bool Vector = (ClassID == 1); Vector)
     Result = std::max(Result, 16u);
 
   return Result;
@@ -99,10 +99,10 @@ InstructionCost WebAssemblyTTIImpl::getCastInstrCost(
 
   if (I && I->hasOneUser()) {
     auto *SingleUser = cast<Instruction>(*I->user_begin());
-    int UserISD = TLI->InstructionOpcodeToISD(SingleUser->getOpcode());
+    
 
     // extmul_low support
-    if (UserISD == ISD::MUL &&
+    if (int UserISD = TLI->InstructionOpcodeToISD(SingleUser->getOpcode()); UserISD == ISD::MUL &&
         (ISD == ISD::ZERO_EXTEND || ISD == ISD::SIGN_EXTEND)) {
       // Free low extensions.
       if ((SrcVT == MVT::v8i8 && DstVT == MVT::v8i16) ||
@@ -241,8 +241,8 @@ InstructionCost WebAssemblyTTIImpl::getMemoryOpCost(
     return InstructionCost::getInvalid();
 
   int ISD = TLI->InstructionOpcodeToISD(Opcode);
-  unsigned width = VT.getSizeInBits();
-  if (ISD == ISD::LOAD) {
+  
+  if (unsigned width = VT.getSizeInBits(); ISD == ISD::LOAD) {
     // 128-bit loads are a single instruction. 32-bit and 64-bit vector loads
     // can be lowered to load32_zero and load64_zero respectively. Assume SIMD
     // loads are twice as expensive as scalar.
@@ -287,8 +287,8 @@ InstructionCost WebAssemblyTTIImpl::getInterleavedMemoryOpCost(
                                              Alignment, AddressSpace, CostKind,
                                              UseMaskForCond, UseMaskForGaps);
 
-  constexpr unsigned MaxInterleaveFactor = 4;
-  if (Factor <= MaxInterleaveFactor) {
+  
+  if (constexpr unsigned MaxInterleaveFactor = 4; Factor <= MaxInterleaveFactor) {
     unsigned MinElts = VecTy->getElementCount().getKnownMinValue();
     // Ensure the number of vector elements is greater than 1.
     if (MinElts < 2 || MinElts % Factor != 0)

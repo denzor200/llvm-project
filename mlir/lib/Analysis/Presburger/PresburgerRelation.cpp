@@ -859,8 +859,8 @@ bool SetCoalescer::isFacetContained(ArrayRef<DynamicAPInt> ineq,
 void SetCoalescer::addCoalescedDisjunct(unsigned i, unsigned j,
                                         const IntegerRelation &disjunct) {
   assert(i != j && "The indices must refer to different disjuncts");
-  unsigned n = disjuncts.size();
-  if (j == n - 1) {
+  
+  if (unsigned n = disjuncts.size(); j == n - 1) {
     // This case needs special handling since position `n` - 1 is removed
     // from the vector, hence the `IntegerRelation` at position `n` - 2 is
     // lost otherwise.

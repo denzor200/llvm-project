@@ -66,8 +66,8 @@ ProgramStateRef getWidenedLoopState(ProgramStateRef PrevState,
   // is located in a method, constructor or destructor, the value of 'this'
   // pointer should remain unchanged.  Ignore static methods, since they do not
   // have 'this' pointers.
-  const CXXMethodDecl *CXXMD = dyn_cast<CXXMethodDecl>(STC->getDecl());
-  if (CXXMD && CXXMD->isImplicitObjectMemberFunction()) {
+  
+  if (const CXXMethodDecl *CXXMD = dyn_cast<CXXMethodDecl>(STC->getDecl()); CXXMD && CXXMD->isImplicitObjectMemberFunction()) {
     const CXXThisRegion *ThisR =
         MRMgr.getCXXThisRegion(CXXMD->getThisType(), STC);
     ITraits.setTrait(ThisR,

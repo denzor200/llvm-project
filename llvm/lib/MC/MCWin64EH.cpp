@@ -394,8 +394,8 @@ bool MCUnwindV2EpilogTargetExpr::evaluateAsRelocatableImpl(
     return false;
   }
   assert(*Offset > 0);
-  constexpr uint16_t MaxEpilogOffset = 0x0fff;
-  if (*Offset > MaxEpilogOffset) {
+  
+  if (constexpr uint16_t MaxEpilogOffset = 0x0fff; *Offset > MaxEpilogOffset) {
     Asm->getContext().reportError(
         Loc,
         "Epilog offset is too large for Unwind v2 in " + Function->getName());
@@ -499,8 +499,8 @@ static void checkARM64Instructions(MCStreamer &Streamer,
     }
   }
   // Exclude the end opcode which doesn't map to an instruction.
-  uint32_t InstructionBytes = 4 * (Insns.size() - 1);
-  if (Distance != InstructionBytes) {
+  
+  if (uint32_t InstructionBytes = 4 * (Insns.size() - 1); Distance != InstructionBytes) {
     Streamer.getContext().reportError(
         SMLoc(), "Incorrect size for " + Name + " " + Type + ": " +
                      Twine(Distance) +
@@ -622,8 +622,8 @@ static uint32_t ARM64CountOfUnwindCodes(ArrayRef<WinEH::Instruction> Insns) {
 // https://docs.microsoft.com/en-us/cpp/build/arm64-exception-handling
 static void ARM64EmitUnwindCode(MCStreamer &streamer,
                                 const WinEH::Instruction &inst) {
-  uint8_t b, reg;
-  switch (static_cast<Win64EH::UnwindOpcodes>(inst.Operation)) {
+  
+  switch (uint8_t b, reg; static_cast<Win64EH::UnwindOpcodes>(inst.Operation)) {
   default:
     llvm_unreachable("Unsupported ARM64 unwind code");
   case Win64EH::UOP_AllocSmall:
@@ -980,9 +980,9 @@ static int checkARM64PackedEpilog(MCStreamer &streamer, WinEH::FrameInfo *info,
 
   // Check that the epilog actually is at the very end of the function,
   // otherwise it can't be packed.
-  uint32_t DistanceFromEnd =
-      (uint32_t)(Seg->Offset + Seg->Length - Seg->Epilogs.begin()->second);
-  if (DistanceFromEnd / 4 != Epilog.size())
+  
+  if (uint32_t DistanceFromEnd =
+      (uint32_t)(Seg->Offset + Seg->Length - Seg->Epilogs.begin()->second); DistanceFromEnd / 4 != Epilog.size())
     return -1;
 
   int RetVal = -1;
@@ -1310,8 +1310,8 @@ static void ARM64ProcessEpilogs(WinEH::FrameInfo *info,
 
     MCSymbol* MatchingEpilog =
       FindMatchingEpilog(EpilogInstrs, AddedEpilogs, info);
-    int PrologOffset;
-    if (MatchingEpilog) {
+    
+    if (int PrologOffset; MatchingEpilog) {
       assert(EpilogInfo.contains(MatchingEpilog) &&
              "Duplicate epilog not found");
       EpilogInfo[EpilogStart] = EpilogInfo.lookup(MatchingEpilog);
@@ -1813,8 +1813,8 @@ static bool isARMTerminator(const WinEH::Instruction &inst) {
 static void ARMEmitUnwindCode(MCStreamer &streamer,
                               const WinEH::Instruction &inst) {
   uint32_t w, lr;
-  int i;
-  switch (static_cast<Win64EH::UnwindOpcodes>(inst.Operation)) {
+  
+  switch (int i; static_cast<Win64EH::UnwindOpcodes>(inst.Operation)) {
   default:
     llvm_unreachable("Unsupported ARM unwind code");
   case Win64EH::UOP_AllocSmall:
@@ -2593,8 +2593,8 @@ static void ARMEmitUnwindInfo(MCStreamer &streamer, WinEH::FrameInfo *info,
 
     MCSymbol *MatchingEpilog =
         FindMatchingEpilog(EpilogInstrs, AddedEpilogs, info);
-    int PrologOffset;
-    if (MatchingEpilog) {
+    
+    if (int PrologOffset; MatchingEpilog) {
       assert(EpilogInfo.contains(MatchingEpilog) &&
              "Duplicate epilog not found");
       EpilogInfo[EpilogStart] = EpilogInfo.lookup(MatchingEpilog);

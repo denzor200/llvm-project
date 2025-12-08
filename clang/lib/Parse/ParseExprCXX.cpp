@@ -435,8 +435,8 @@ bool Parser::ParseOptionalCXXScopeSpecifier(
       }
 
       if (ColonIsSacred) {
-        const Token &Next2 = GetLookAheadToken(2);
-        if (Next2.is(tok::kw_private) || Next2.is(tok::kw_protected) ||
+        
+        if (const Token &Next2 = GetLookAheadToken(2); Next2.is(tok::kw_private) || Next2.is(tok::kw_protected) ||
             Next2.is(tok::kw_public) || Next2.is(tok::kw_virtual)) {
           Diag(Next2, diag::err_unexpected_token_in_nested_name_spec)
               << Next2.getName()
@@ -462,8 +462,8 @@ bool Parser::ParseOptionalCXXScopeSpecifier(
       SourceLocation CCLoc = ConsumeToken();
 
       bool IsCorrectedToColon = false;
-      bool *CorrectionFlagPtr = ColonIsSacred ? &IsCorrectedToColon : nullptr;
-      if (Actions.ActOnCXXNestedNameSpecifier(
+      
+      if (bool *CorrectionFlagPtr = ColonIsSacred ? &IsCorrectedToColon : nullptr; Actions.ActOnCXXNestedNameSpecifier(
               getCurScope(), IdInfo, EnteringContext, SS, CorrectionFlagPtr,
               OnlyNamespace)) {
         // Identifier is not recognized as a nested name, but we can have
@@ -1025,10 +1025,10 @@ bool Parser::ParseLambdaIntroducer(LambdaIntroducer &Intro,
             EllipsisLoc = Loc;
         }
       } else {
-        unsigned NumEllipses = std::accumulate(
+        
+        if (unsigned NumEllipses = std::accumulate(
             std::begin(EllipsisLocs), std::end(EllipsisLocs), 0,
-            [](int N, SourceLocation Loc) { return N + Loc.isValid(); });
-        if (NumEllipses > 1)
+            [](int N, SourceLocation Loc) { return N + Loc.isValid(); }); NumEllipses > 1)
           DiagID = diag::err_lambda_capture_multiple_ellipses;
       }
       if (DiagID) {
@@ -3274,9 +3274,9 @@ ExprResult Parser::ParseRequiresExpression() {
                 // Skip to the closing parenthesis
                 unsigned Depth = 1;
                 while (Depth != 0) {
-                  bool FoundParen = SkipUntil(tok::l_paren, tok::r_paren,
-                                              SkipUntilFlags::StopBeforeMatch);
-                  if (!FoundParen)
+                  
+                  if (bool FoundParen = SkipUntil(tok::l_paren, tok::r_paren,
+                                              SkipUntilFlags::StopBeforeMatch); !FoundParen)
                     break;
                   if (Tok.is(tok::l_paren))
                     Depth++;

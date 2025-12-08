@@ -165,8 +165,8 @@ static u32 FindRegistrationSite(const Global *g) {
   mu_for_globals.CheckLocked();
   CHECK(global_registration_site_vector);
   for (uptr i = 0, n = global_registration_site_vector->size(); i < n; i++) {
-    GlobalRegistrationSite &grs = (*global_registration_site_vector)[i];
-    if (g >= grs.g_first && g <= grs.g_last)
+    
+    if (GlobalRegistrationSite &grs = (*global_registration_site_vector)[i]; g >= grs.g_first && g <= grs.g_last)
       return grs.stack_id;
   }
   return 0;
@@ -209,8 +209,8 @@ static void CheckODRViolationViaIndicator(const Global *g)
 
   ListOfGlobals &relevant_globals = GlobalsByIndicator(g->odr_indicator);
 
-  u8 *odr_indicator = reinterpret_cast<u8 *>(g->odr_indicator);
-  if (*odr_indicator == REGISTERED) {
+  
+  if (u8 *odr_indicator = reinterpret_cast<u8 *>(g->odr_indicator); *odr_indicator == REGISTERED) {
     // If *odr_indicator is REGISTERED, some module have already registered
     // externally visible symbol with the same name. This is an ODR violation.
     for (const auto &l : relevant_globals) {
@@ -354,8 +354,8 @@ const char *MaybeDemangleGlobalName(const char *name) {
 // Check if the global is a zero-terminated ASCII string. If so, print it.
 void PrintGlobalNameIfASCII(InternalScopedString *str, const __asan_global &g) {
   for (uptr p = g.beg; p < g.beg + g.size - 1; p++) {
-    unsigned char c = *(unsigned char *)p;
-    if (c == '\0' || !IsASCII(c)) return;
+    
+    if (unsigned char c = *(unsigned char *)p; c == '\0' || !IsASCII(c)) return;
   }
   if (*(char *)(g.beg + g.size - 1) != '\0') return;
   str->AppendF("  '%s' is ascii string '%s'\n", MaybeDemangleGlobalName(g.name),

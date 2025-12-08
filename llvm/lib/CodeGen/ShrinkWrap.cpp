@@ -1017,9 +1017,9 @@ PreservedAnalyses ShrinkWrapPass::run(MachineFunction &MF,
 }
 
 bool ShrinkWrapImpl::isShrinkWrapEnabled(const MachineFunction &MF) {
-  const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering();
+  
 
-  switch (EnableShrinkWrapOpt) {
+  switch (const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering(); EnableShrinkWrapOpt) {
   case cl::BOU_UNSET:
     return TFI->enableShrinkWrapping(MF) &&
            // Windows with CFI has some limitations that make it impossible

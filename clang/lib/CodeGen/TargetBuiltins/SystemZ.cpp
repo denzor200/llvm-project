@@ -141,8 +141,8 @@ Value *CodeGenFunction::EmitSystemZBuiltinExpr(unsigned BuiltinID,
     llvm::Type *ResultType = ConvertType(E->getType());
     Value *X = EmitScalarExpr(E->getArg(0));
     Value *Y = EmitScalarExpr(E->getArg(1));
-    Value *Z = EmitScalarExpr(E->getArg(2));
-    if (Builder.getIsFPConstrained()) {
+    
+    if (Value *Z = EmitScalarExpr(E->getArg(2)); Builder.getIsFPConstrained()) {
       Function *F = CGM.getIntrinsic(Intrinsic::experimental_constrained_fma, ResultType);
       return Builder.CreateConstrainedFPCall(F, {X, Y, Z});
     } else {
@@ -155,8 +155,8 @@ Value *CodeGenFunction::EmitSystemZBuiltinExpr(unsigned BuiltinID,
     llvm::Type *ResultType = ConvertType(E->getType());
     Value *X = EmitScalarExpr(E->getArg(0));
     Value *Y = EmitScalarExpr(E->getArg(1));
-    Value *Z = EmitScalarExpr(E->getArg(2));
-    if (Builder.getIsFPConstrained()) {
+    
+    if (Value *Z = EmitScalarExpr(E->getArg(2)); Builder.getIsFPConstrained()) {
       Function *F = CGM.getIntrinsic(Intrinsic::experimental_constrained_fma, ResultType);
       return Builder.CreateConstrainedFPCall(F, {X, Y, Builder.CreateFNeg(Z, "neg")});
     } else {
@@ -169,8 +169,8 @@ Value *CodeGenFunction::EmitSystemZBuiltinExpr(unsigned BuiltinID,
     llvm::Type *ResultType = ConvertType(E->getType());
     Value *X = EmitScalarExpr(E->getArg(0));
     Value *Y = EmitScalarExpr(E->getArg(1));
-    Value *Z = EmitScalarExpr(E->getArg(2));
-    if (Builder.getIsFPConstrained()) {
+    
+    if (Value *Z = EmitScalarExpr(E->getArg(2)); Builder.getIsFPConstrained()) {
       Function *F = CGM.getIntrinsic(Intrinsic::experimental_constrained_fma, ResultType);
       return Builder.CreateFNeg(Builder.CreateConstrainedFPCall(F, {X, Y,  Z}), "neg");
     } else {
@@ -183,8 +183,8 @@ Value *CodeGenFunction::EmitSystemZBuiltinExpr(unsigned BuiltinID,
     llvm::Type *ResultType = ConvertType(E->getType());
     Value *X = EmitScalarExpr(E->getArg(0));
     Value *Y = EmitScalarExpr(E->getArg(1));
-    Value *Z = EmitScalarExpr(E->getArg(2));
-    if (Builder.getIsFPConstrained()) {
+    
+    if (Value *Z = EmitScalarExpr(E->getArg(2)); Builder.getIsFPConstrained()) {
       Function *F = CGM.getIntrinsic(Intrinsic::experimental_constrained_fma, ResultType);
       Value *NegZ = Builder.CreateFNeg(Z, "sub");
       return Builder.CreateFNeg(Builder.CreateConstrainedFPCall(F, {X, Y, NegZ}));

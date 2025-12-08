@@ -72,10 +72,10 @@ static bool adjustRelativeBranch(unsigned Size, const MCFixup &Fixup,
     const int32_t FlashSize = 0x2000;
     int32_t SignedValue = Value;
 
-    uint64_t WrappedValue = SignedValue > 0 ? (uint64_t)(Value - FlashSize)
-                                            : (uint64_t)(FlashSize + Value);
+    
 
-    if (isIntN(Size, WrappedValue)) {
+    if (uint64_t WrappedValue = SignedValue > 0 ? (uint64_t)(Value - FlashSize)
+                                            : (uint64_t)(FlashSize + Value); isIntN(Size, WrappedValue)) {
       Value = WrappedValue;
     }
   }
@@ -251,8 +251,8 @@ void AVRAsmBackend::adjustFixupValue(const MCFixup &Fixup,
   // The size of the fixup in bits.
   uint64_t Size = AVRAsmBackend::getFixupKindInfo(Fixup.getKind()).TargetSize;
 
-  unsigned Kind = Fixup.getKind();
-  switch (Kind) {
+  
+  switch (unsigned Kind = Fixup.getKind(); Kind) {
   default:
     llvm_unreachable("unhandled fixup");
   case AVR::fixup_7_pcrel:

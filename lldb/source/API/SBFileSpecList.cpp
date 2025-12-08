@@ -99,9 +99,9 @@ const lldb_private::FileSpecList &SBFileSpecList::ref() const {
 bool SBFileSpecList::GetDescription(SBStream &description) const {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_up) {
+  if (Stream &strm = description.ref(); m_opaque_up) {
     uint32_t num_files = m_opaque_up->GetSize();
     strm.Printf("%d files: ", num_files);
     for (uint32_t i = 0; i < num_files; i++) {

@@ -294,10 +294,10 @@ bool AVRAsmParser::invalidOperand(SMLoc const &Loc,
     if (ErrorInfo >= Operands.size()) {
       Diag = "too few operands for instruction.";
     } else {
-      AVROperand const &Op = (AVROperand const &)*Operands[ErrorInfo];
+      
 
       // TODO: See if we can do a better error than just "invalid ...".
-      if (Op.getStartLoc() != SMLoc()) {
+      if (AVROperand const &Op = (AVROperand const &)*Operands[ErrorInfo]; Op.getStartLoc() != SMLoc()) {
         ErrorLoc = Op.getStartLoc();
       }
     }
@@ -327,10 +327,10 @@ bool AVRAsmParser::matchAndEmitInstruction(SMLoc Loc, unsigned &Opcode,
                                            MCStreamer &Out, uint64_t &ErrorInfo,
                                            bool MatchingInlineAsm) {
   MCInst Inst;
-  unsigned MatchResult =
-      MatchInstructionImpl(Operands, Inst, ErrorInfo, MatchingInlineAsm);
+  
 
-  switch (MatchResult) {
+  switch (unsigned MatchResult =
+      MatchInstructionImpl(Operands, Inst, ErrorInfo, MatchingInlineAsm); MatchResult) {
   case Match_Success:
     return emit(Inst, Loc, Out);
   case Match_MissingFeature:
@@ -696,8 +696,8 @@ ParseStatus AVRAsmParser::parseLiteralValues(unsigned SizeInBytes, SMLoc L) {
   AVRMCELFStreamer &AVRStreamer =
       static_cast<AVRMCELFStreamer &>(Parser.getStreamer());
   AsmToken Tokens[2];
-  size_t ReadCount = Parser.getLexer().peekTokens(Tokens);
-  if (ReadCount == 2 && Parser.getTok().getKind() == AsmToken::Identifier &&
+  
+  if (size_t ReadCount = Parser.getLexer().peekTokens(Tokens); ReadCount == 2 && Parser.getTok().getKind() == AsmToken::Identifier &&
       Tokens[0].getKind() == AsmToken::Minus &&
       Tokens[1].getKind() == AsmToken::Identifier) {
     MCSymbol *Symbol = getContext().getOrCreateSymbol(".text");

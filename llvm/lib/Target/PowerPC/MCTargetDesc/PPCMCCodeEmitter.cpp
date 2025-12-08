@@ -304,8 +304,8 @@ PPCMCCodeEmitter::getDispRI34PCRelEncoding(const MCInst &MI, unsigned OpNo,
   // At this point in the function it is known that MO is of type MCExpr.
   // Therefore we are dealing with either case 1) a symbol ref or
   // case 2) a symbol ref plus a constant.
-  const MCExpr *Expr = MO.getExpr();
-  switch (Expr->getKind()) {
+  
+  switch (const MCExpr *Expr = MO.getExpr(); Expr->getKind()) {
   default:
     llvm_unreachable("Unsupported MCExpr for getMemRI34PCRelEncoding.");
   case MCExpr::SymbolRef: {
@@ -445,8 +445,8 @@ get_crbitm_encoding(const MCInst &MI, unsigned OpNo,
 // different operands.
 static unsigned getOpIdxForMO(const MCInst &MI, const MCOperand &MO) {
   for (unsigned i = 0; i < MI.getNumOperands(); i++) {
-    const MCOperand &Op = MI.getOperand(i);
-    if (&Op == &MO)
+    
+    if (const MCOperand &Op = MI.getOperand(i); &Op == &MO)
       return i;
   }
   llvm_unreachable("This operand is not part of this instruction");

@@ -54,8 +54,8 @@ static FixItHint generateFixItHint(const FunctionDecl *Decl) {
   size_t Index = 0;
   bool AtWordBoundary = true;
   while (Index < NewName.size()) {
-    const char Ch = NewName[Index];
-    if (isalnum(Ch)) {
+    
+    if (const char Ch = NewName[Index]; isalnum(Ch)) {
       // Capitalize the first letter after every word boundary.
       if (AtWordBoundary) {
         NewName[Index] = toupper(NewName[Index]);

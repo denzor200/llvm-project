@@ -623,8 +623,8 @@ inline void SampleProfileInference<Function>::findUnlikelyJumps(
     const Instruction *TI = BB->getTerminator();
     // Check if a block ends with InvokeInst and mark non-taken branch unlikely.
     // In that case block Succ should be a landing pad
-    const auto &Succs = Successors[BB];
-    if (Succs.size() == 2 && Succs.back() == Succ) {
+    
+    if (const auto &Succs = Successors[BB]; Succs.size() == 2 && Succs.back() == Succ) {
       if (isa<InvokeInst>(TI)) {
         Jump.IsUnlikely = true;
       }
@@ -656,8 +656,8 @@ ErrorOr<uint64_t> SampleProfileLoader::getInstWeight(const Instruction &Inst) {
   if (FunctionSamples::ProfileIsProbeBased)
     return getProbeWeight(Inst);
 
-  const DebugLoc &DLoc = Inst.getDebugLoc();
-  if (!DLoc)
+  
+  if (const DebugLoc &DLoc = Inst.getDebugLoc(); !DLoc)
     return std::error_code();
 
   // Ignore all intrinsics, phinodes and branch instructions.
@@ -1014,8 +1014,8 @@ void SampleProfileLoader::emitOptimizationRemarksForInlineCandidates(
     const SmallVectorImpl<CallBase *> &Candidates, const Function &F,
     bool Hot) {
   for (auto *I : Candidates) {
-    Function *CalledFunction = I->getCalledFunction();
-    if (CalledFunction) {
+    
+    if (Function *CalledFunction = I->getCalledFunction(); CalledFunction) {
       ORE->emit(OptimizationRemarkAnalysis(getAnnotatedRemarkPassName(),
                                            "InlineAttempt", I->getDebugLoc(),
                                            I->getParent())
@@ -1093,8 +1093,8 @@ void SampleProfileLoader::findExternalInlineCandidate(
     for (const auto &BS : CalleeSample->getBodySamples())
       for (const auto &TS : BS.second.getCallTargets())
         if (TS.second > Threshold) {
-          const Function *Callee = SymbolMap.lookup(TS.first);
-          if (!Callee || Callee->isDeclaration())
+          
+          if (const Function *Callee = SymbolMap.lookup(TS.first); !Callee || Callee->isDeclaration())
             InlinedGUIDs.insert(TS.first.getHashCode());
         }
 
@@ -1387,8 +1387,8 @@ SampleProfileLoader::shouldInlineCandidate(InlineCandidate &Candidate) {
     // Once two node are merged due to promotion, we're losing some context
     // so the original context-sensitive preinliner decision should be ignored
     // for SyntheticContext.
-    SampleContext &Context = Candidate.CalleeSamples->getContext();
-    if (!Context.hasState(SyntheticContext) &&
+    
+    if (SampleContext &Context = Candidate.CalleeSamples->getContext(); !Context.hasState(SyntheticContext) &&
         Context.hasAttribute(ContextShouldBeInlined))
       return InlineCost::getAlways("preinliner");
   }
@@ -2146,8 +2146,8 @@ void SampleProfileLoader::removePseudoProbeInstsDiscriminator(Module &M) {
         else if (isa<CallBase>(&I))
           if (const DILocation *DIL = I.getDebugLoc().get()) {
             // Restore dwarf discriminator for call.
-            unsigned Discriminator = DIL->getDiscriminator();
-            if (DILocation::isPseudoProbeDiscriminator(Discriminator)) {
+            
+            if (unsigned Discriminator = DIL->getDiscriminator(); DILocation::isPseudoProbeDiscriminator(Discriminator)) {
               std::optional<uint32_t> DwarfDiscriminator =
                   PseudoProbeDwarfDiscriminator::extractDwarfBaseDiscriminator(
                       Discriminator);
@@ -2358,8 +2358,8 @@ PreservedAnalyses SampleProfileLoaderPass::run(Module &M,
   if (!SampleLoader.doInitialization(M, &FAM))
     return PreservedAnalyses::all();
 
-  ProfileSummaryInfo *PSI = &AM.getResult<ProfileSummaryAnalysis>(M);
-  if (!SampleLoader.runOnModule(M, AM, PSI))
+  
+  if (ProfileSummaryInfo *PSI = &AM.getResult<ProfileSummaryAnalysis>(M); !SampleLoader.runOnModule(M, AM, PSI))
     return PreservedAnalyses::all();
 
   return PreservedAnalyses::none();

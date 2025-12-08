@@ -112,8 +112,8 @@ bool HexagonCP::interpretAsCopy(const MachineInstr *MI, EqualityMap &EM) {
   };
 
   DataFlowGraph &DFG = getDFG();
-  unsigned Opc = MI->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI->getOpcode(); Opc) {
     case Hexagon::A2_combinew: {
       const MachineOperand &DstOp = MI->getOperand(0);
       const MachineOperand &HiOp = MI->getOperand(1);
@@ -126,8 +126,8 @@ bool HexagonCP::interpretAsCopy(const MachineInstr *MI, EqualityMap &EM) {
       return true;
     }
     case Hexagon::A2_addi: {
-      const MachineOperand &A = MI->getOperand(2);
-      if (!A.isImm() || A.getImm() != 0)
+      
+      if (const MachineOperand &A = MI->getOperand(2); !A.isImm() || A.getImm() != 0)
         return false;
       [[fallthrough]];
     }
@@ -144,8 +144,8 @@ bool HexagonCP::interpretAsCopy(const MachineInstr *MI, EqualityMap &EM) {
 }
 
 bool HexagonDCE::run() {
-  bool Collected = collect();
-  if (!Collected)
+  
+  if (bool Collected = collect(); !Collected)
     return false;
 
   const SetVector<NodeId> &DeadNodes = getDeadNodes();
@@ -201,8 +201,8 @@ void HexagonDCE::removeOperand(NodeAddr<InstrNode*> IA, unsigned OpNum) {
   MI->removeOperand(OpNum);
 
   for (NodeAddr<RefNode*> RA : Refs) {
-    unsigned N = OpMap[RA.Id];
-    if (N < OpNum)
+    
+    if (unsigned N = OpMap[RA.Id]; N < OpNum)
       RA.Addr->setRegRef(&MI->getOperand(N), DFG);
     else if (N > OpNum)
       RA.Addr->setRegRef(&MI->getOperand(N-1), DFG);

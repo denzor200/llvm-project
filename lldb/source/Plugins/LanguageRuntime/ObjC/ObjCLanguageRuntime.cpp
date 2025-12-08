@@ -64,8 +64,8 @@ bool ObjCLanguageRuntime::AddClass(ObjCISA isa,
 void ObjCLanguageRuntime::AddToMethodCache(lldb::addr_t class_addr,
                                            lldb::addr_t selector,
                                            lldb::addr_t impl_addr) {
-  Log *log = GetLog(LLDBLog::Step);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Step); log) {
     LLDB_LOGF(log,
               "Caching: class 0x%" PRIx64 " selector 0x%" PRIx64
               " implementation 0x%" PRIx64 ".",
@@ -127,9 +127,9 @@ ObjCLanguageRuntime::LookupInCompleteClassCache(ConstString &name) {
 
   SymbolContextList sc_list;
   modules.FindSymbolsWithNameAndType(name, eSymbolTypeObjCClass, sc_list);
-  const size_t matching_symbols = sc_list.GetSize();
+  
 
-  if (matching_symbols) {
+  if (const size_t matching_symbols = sc_list.GetSize(); matching_symbols) {
     SymbolContext sc;
 
     sc_list.GetContextAtIndex(0, sc);
@@ -270,15 +270,15 @@ ObjCLanguageRuntime::GetClassDescriptor(ValueObject &valobj) {
   // pointers returned by the expression parser, don't consider this a valid
   // ObjC object)
   if (valobj.GetCompilerType().IsValid()) {
-    addr_t isa_pointer = valobj.GetPointerValue().address;
-    if (isa_pointer != LLDB_INVALID_ADDRESS) {
+    
+    if (addr_t isa_pointer = valobj.GetPointerValue().address; isa_pointer != LLDB_INVALID_ADDRESS) {
       ExecutionContext exe_ctx(valobj.GetExecutionContextRef());
 
-      Process *process = exe_ctx.GetProcessPtr();
-      if (process) {
+      
+      if (Process *process = exe_ctx.GetProcessPtr(); process) {
         Status error;
-        ObjCISA isa = process->ReadPointerFromMemory(isa_pointer, error);
-        if (isa != LLDB_INVALID_ADDRESS)
+        
+        if (ObjCISA isa = process->ReadPointerFromMemory(isa_pointer, error); isa != LLDB_INVALID_ADDRESS)
           objc_class_sp = GetClassDescriptorFromISA(isa);
       }
     }
@@ -368,8 +368,8 @@ ObjCLanguageRuntime::GetTypeBitSize(const CompilerType &compiler_type) {
 
   for (size_t idx = 0; idx < class_descriptor_sp->GetNumIVars(); idx++) {
     const auto &ivar = class_descriptor_sp->GetIVarAtIndex(idx);
-    int32_t cur_offset = ivar.m_offset;
-    if (cur_offset > max_offset) {
+    
+    if (int32_t cur_offset = ivar.m_offset; cur_offset > max_offset) {
       max_offset = cur_offset;
       sizeof_max = ivar.m_size;
       found = true;

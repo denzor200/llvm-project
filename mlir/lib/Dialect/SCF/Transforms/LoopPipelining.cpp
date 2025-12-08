@@ -236,8 +236,8 @@ bool LoopPipelinerInternal::verifySchedule() {
       // Skip producer coming from outside the loop.
       if (it == unrolledCyles.end())
         continue;
-      int64_t producerCycle = it->second;
-      if (consumerCycle < producerCycle - numCylesPerIter * distance) {
+      
+      if (int64_t producerCycle = it->second; consumerCycle < producerCycle - numCylesPerIter * distance) {
         consumer->emitError("operation scheduled before its operands");
         return false;
       }
@@ -257,8 +257,8 @@ cloneAndUpdateOperands(RewriterBase &rewriter, Operation *op,
   clone->walk<WalkOrder::PreOrder>([&](Operation *nested) {
     // 'clone' itself will be visited first.
     for (OpOperand &operand : nested->getOpOperands()) {
-      Operation *def = operand.get().getDefiningOp();
-      if ((def && !clone->isAncestor(def)) || isa<BlockArgument>(operand.get()))
+      
+      if (Operation *def = operand.get().getDefiningOp(); (def && !clone->isAncestor(def)) || isa<BlockArgument>(operand.get()))
         callback(&operand);
     }
   });
@@ -589,8 +589,8 @@ LogicalResult LoopPipelinerInternal::createKernel(
     // defStage.
     if (!peelEpilogue &&
         !forOp.getResult(yieldOperand.getOperandNumber()).use_empty()) {
-      Operation *def = getDefiningOpAndDistance(yieldOperand.get()).first;
-      if (def) {
+      
+      if (Operation *def = getDefiningOpAndDistance(yieldOperand.get()).first; def) {
         auto defStage = stages.find(def);
         if (defStage != stages.end() && defStage->second < maxStage) {
           Value pred = predicates[defStage->second];

@@ -292,10 +292,10 @@ Symbol mergeSymbol(const Symbol &L, const Symbol &R) {
     // is a definition and it didn't provide one. S is often an undocumented
     // class, and O is a non-canonical forward decl preceded by an irrelevant
     // comment.
-    bool IsClass = S.SymInfo.Kind == index::SymbolKind::Class ||
+    
+    if (bool IsClass = S.SymInfo.Kind == index::SymbolKind::Class ||
                    S.SymInfo.Kind == index::SymbolKind::Struct ||
-                   S.SymInfo.Kind == index::SymbolKind::Union;
-    if (!IsClass || !S.Definition)
+                   S.SymInfo.Kind == index::SymbolKind::Union; !IsClass || !S.Definition)
       S.Documentation = O.Documentation;
   }
   if (S.ReturnType == "")

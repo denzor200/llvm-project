@@ -240,8 +240,8 @@ TwoAddressInstructionPass::run(MachineFunction &MF,
     Impl.setOptLevel(CodeGenOptLevel::None);
 
   MFPropsModifier _(*this, MF);
-  bool Changed = Impl.run();
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(); !Changed)
     return PreservedAnalyses::all();
   auto PA = getMachineFunctionPassPreservedAnalyses();
   PA.preserve<LiveIntervalsAnalysis>();
@@ -470,8 +470,8 @@ bool TwoAddressInstructionImpl::isKilled(MachineInstr &MI, Register Reg,
 /// use. If so, return the destination register by reference.
 static bool isTwoAddrUse(MachineInstr &MI, Register Reg, Register &DstReg) {
   for (unsigned i = 0, NumOps = MI.getNumOperands(); i != NumOps; ++i) {
-    const MachineOperand &MO = MI.getOperand(i);
-    if (!MO.isReg() || !MO.isUse() || MO.getReg() != Reg)
+    
+    if (const MachineOperand &MO = MI.getOperand(i); !MO.isReg() || !MO.isUse() || MO.getReg() != Reg)
       continue;
     unsigned ti;
     if (MI.isRegTiedToDefOperand(i, &ti)) {
@@ -517,8 +517,8 @@ MachineInstr *TwoAddressInstructionImpl::findOnlyInterestingUse(
     unsigned Src1 = TargetInstrInfo::CommuteAnyOperandIndex;
     unsigned Src2 = UseOp->getOperandNo();
     if (TII->findCommutedOpIndices(UseMI, Src1, Src2)) {
-      MachineOperand &MO = UseMI.getOperand(Src1);
-      if (MO.isReg() && MO.isUse() &&
+      
+      if (MachineOperand &MO = UseMI.getOperand(Src1); MO.isReg() && MO.isUse() &&
           isTwoAddrUse(UseMI, MO.getReg(), DstReg)) {
         IsDstPhys = DstReg.isPhysical();
         return &UseMI;
@@ -745,9 +745,9 @@ bool TwoAddressInstructionImpl::commuteInstruction(MachineInstr *MI,
                                                    unsigned Dist) {
   Register RegC = MI->getOperand(RegCIdx).getReg();
   LLVM_DEBUG(dbgs() << "2addr: COMMUTING  : " << *MI);
-  MachineInstr *NewMI = TII->commuteInstruction(*MI, false, RegBIdx, RegCIdx);
+  
 
-  if (NewMI == nullptr) {
+  if (MachineInstr *NewMI = TII->commuteInstruction(*MI, false, RegBIdx, RegCIdx); NewMI == nullptr) {
     LLVM_DEBUG(dbgs() << "2addr: COMMUTING FAILED!\n");
     return false;
   }
@@ -864,13 +864,13 @@ void TwoAddressInstructionImpl::scanUses(Register DstReg) {
     Register ToReg = VirtRegPairs.pop_back_val();
     while (!VirtRegPairs.empty()) {
       Register FromReg = VirtRegPairs.pop_back_val();
-      bool isNew = DstRegMap.insert(std::make_pair(FromReg, ToReg)).second;
-      if (!isNew)
+      
+      if (bool isNew = DstRegMap.insert(std::make_pair(FromReg, ToReg)).second; !isNew)
         assert(DstRegMap[FromReg] == ToReg &&"Can't map to two dst registers!");
       ToReg = FromReg;
     }
-    bool isNew = DstRegMap.insert(std::make_pair(DstReg, ToReg)).second;
-    if (!isNew)
+    
+    if (bool isNew = DstRegMap.insert(std::make_pair(DstReg, ToReg)).second; !isNew)
       assert(DstRegMap[DstReg] == ToReg && "Can't map to two dst registers!");
   }
 }
@@ -899,8 +899,8 @@ void TwoAddressInstructionImpl::processCopy(MachineInstr *MI) {
   if (IsDstPhys && !IsSrcPhys) {
     DstRegMap.insert(std::make_pair(SrcReg, DstReg));
   } else if (!IsDstPhys && IsSrcPhys) {
-    bool isNew = SrcRegMap.insert(std::make_pair(DstReg, SrcReg)).second;
-    if (!isNew)
+    
+    if (bool isNew = SrcRegMap.insert(std::make_pair(DstReg, SrcReg)).second; !isNew)
       assert(SrcRegMap[DstReg] == SrcReg &&
              "Can't map to two src physical registers!");
 
@@ -1401,14 +1401,14 @@ bool TwoAddressInstructionImpl::tryInstructionTransform(
   if (MI.mayLoad() && !regBKilled) {
     // Determine if a load can be unfolded.
     unsigned LoadRegIndex;
-    unsigned NewOpc =
+    
+    if (unsigned NewOpc =
       TII->getOpcodeAfterMemoryUnfold(MI.getOpcode(),
                                       /*UnfoldLoad=*/true,
                                       /*UnfoldStore=*/false,
-                                      &LoadRegIndex);
-    if (NewOpc != 0) {
-      const MCInstrDesc &UnfoldMCID = TII->get(NewOpc);
-      if (UnfoldMCID.getNumDefs() == 1) {
+                                      &LoadRegIndex); NewOpc != 0) {
+      
+      if (const MCInstrDesc &UnfoldMCID = TII->get(NewOpc); UnfoldMCID.getNumDefs() == 1) {
         // Unfold the load.
         LLVM_DEBUG(dbgs() << "2addr:   UNFOLDING: " << MI);
         const TargetRegisterClass *RC = TRI->getAllocatableClass(
@@ -1789,8 +1789,8 @@ bool TwoAddressInstructionImpl::processStatepoint(
     // TODO: Recompute LIS/LV information for new range here.
     if (LIS) {
       const auto &UseLI = LIS->getInterval(RegB);
-      const auto &DefLI = LIS->getInterval(RegA);
-      if (DefLI.overlaps(UseLI)) {
+      
+      if (const auto &DefLI = LIS->getInterval(RegA); DefLI.overlaps(UseLI)) {
         LLVM_DEBUG(dbgs() << "LIS: " << printReg(RegB, TRI, 0)
                           << " UseLI overlaps with DefLI\n");
         NeedCopy = true;
@@ -1950,8 +1950,8 @@ bool TwoAddressInstructionImpl::run() {
         // Update LiveIntervals.
         if (LIS) {
           Register Reg = mi->getOperand(0).getReg();
-          LiveInterval &LI = LIS->getInterval(Reg);
-          if (LI.hasSubRanges()) {
+          
+          if (LiveInterval &LI = LIS->getInterval(Reg); LI.hasSubRanges()) {
             // The COPY no longer defines subregs of %reg except for
             // %reg.subidx.
             LaneBitmask LaneMask =
@@ -1959,8 +1959,8 @@ bool TwoAddressInstructionImpl::run() {
             SlotIndex Idx = LIS->getInstructionIndex(*mi).getRegSlot();
             for (auto &S : LI.subranges()) {
               if ((S.LaneMask & LaneMask).none()) {
-                LiveRange::iterator DefSeg = S.FindSegmentContaining(Idx);
-                if (mi->getOperand(0).isUndef()) {
+                
+                if (LiveRange::iterator DefSeg = S.FindSegmentContaining(Idx); mi->getOperand(0).isUndef()) {
                   S.removeValNo(DefSeg->valno);
                 } else {
                   LiveRange::iterator UseSeg = std::prev(DefSeg);

@@ -498,8 +498,8 @@ public:
         continue;
       if (isa<LoadInst>(&*I))
         continue;
-      CallInst *CI = dyn_cast<CallInst>(&*I);
-      if (CI && CI->onlyReadsMemory())
+      
+      if (CallInst *CI = dyn_cast<CallInst>(&*I); CI && CI->onlyReadsMemory())
         continue;
       InvokeInst *II = dyn_cast<InvokeInst>(&*I);
       if (II && II->onlyReadsMemory())
@@ -805,10 +805,10 @@ void GVNSink::sinkLastInstruction(ArrayRef<BasicBlock *> Blocks,
 
   SmallVector<Value *, 4> NewOperands;
   for (unsigned O = 0, E = I0->getNumOperands(); O != E; ++O) {
-    bool NeedPHI = llvm::any_of(Insts, [&I0, O](const Instruction *I) {
+    
+    if (bool NeedPHI = llvm::any_of(Insts, [&I0, O](const Instruction *I) {
       return I->getOperand(O) != I0->getOperand(O);
-    });
-    if (!NeedPHI) {
+    }); !NeedPHI) {
       NewOperands.push_back(I0->getOperand(O));
       continue;
     }

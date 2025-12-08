@@ -176,11 +176,11 @@ LayoutInfo LayoutInfo::transpose(ArrayRef<int64_t> permutation) const {
   // Check if the permutation is valid.
   llvm::SmallSet<int64_t, 4> seen(permutation.begin(), permutation.end());
   bool hasDuplicates = seen.size() != permutation.size();
-  bool withinRange = llvm::all_of(permutation, [&](int64_t idx) {
-    return idx >= 0 && idx < static_cast<int64_t>(permutation.size());
-  });
+  
 
-  if (!withinRange || hasDuplicates) {
+  if (bool withinRange = llvm::all_of(permutation, [&](int64_t idx) {
+    return idx >= 0 && idx < static_cast<int64_t>(permutation.size());
+  }); !withinRange || hasDuplicates) {
     assert(false && "Invalid permutation for transpose.");
     return {};
   }

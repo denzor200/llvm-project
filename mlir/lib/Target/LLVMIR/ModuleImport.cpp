@@ -109,10 +109,10 @@ static StringRef getLLVMSyncScope(llvm::Instruction *inst) {
   SmallVector<StringRef> syncScopeName;
   llvm::LLVMContext &llvmContext = inst->getContext();
   llvmContext.getSyncScopeNames(syncScopeName);
-  auto *it = llvm::find_if(syncScopeName, [&](StringRef name) {
+  
+  if (auto *it = llvm::find_if(syncScopeName, [&](StringRef name) {
     return *syncScopeID == llvmContext.getOrInsertSyncScopeID(name);
-  });
-  if (it != syncScopeName.end())
+  }); it != syncScopeName.end())
     return *it;
   llvm_unreachable("incorrect sync scope identifier");
 }
@@ -1279,8 +1279,8 @@ Attribute ModuleImport::getConstantAsAttr(llvm::Constant *constant) {
     if (!shape)
       return {};
     // Convert splat constants to splat elements attributes.
-    auto *constVector = dyn_cast<llvm::ConstantDataVector>(constant);
-    if (constVector && constVector->isSplat()) {
+    
+    if (auto *constVector = dyn_cast<llvm::ConstantDataVector>(constant); constVector && constVector->isSplat()) {
       // A vector is guaranteed to have at least size one.
       Attribute splatAttr = getScalarConstantAsAttr(
           builder, constVector->getElementAsConstant(0));
@@ -1553,9 +1553,9 @@ ModuleImport::convertGlobalCtorsAndDtors(llvm::GlobalVariable *globalVar) {
     return failure();
   llvm::Constant *initializer = globalVar->getInitializer();
 
-  bool knownInit = isa<llvm::ConstantArray>(initializer) ||
-                   isa<llvm::ConstantAggregateZero>(initializer);
-  if (!knownInit)
+  
+  if (bool knownInit = isa<llvm::ConstantArray>(initializer) ||
+                   isa<llvm::ConstantAggregateZero>(initializer); !knownInit)
     return failure();
 
   // ConstantAggregateZero does not engage with the operand initialization
@@ -3114,8 +3114,8 @@ static LogicalResult setDebugIntrinsicBuilderInsertionPoint(
       // which means the insertion point is set to the start of the block. If
       // this block is a target destination of an invoke, the insertion point
       // must happen after the landing pad operation.
-      Block *insertionBlock = argOperand.getParentBlock();
-      if (!insertionBlock->empty() &&
+      
+      if (Block *insertionBlock = argOperand.getParentBlock(); !insertionBlock->empty() &&
           isa<LandingpadOp>(insertionBlock->front()))
         insertPt = cast<LandingpadOp>(insertionBlock->front()).getRes();
     }
@@ -3271,8 +3271,8 @@ ModuleImport::processDebugRecord(llvm::DbgVariableRecord &dbgRecord,
 LogicalResult ModuleImport::processDebugIntrinsics() {
   DominanceInfo domInfo;
   for (llvm::Instruction *inst : debugIntrinsics) {
-    auto *intrCall = cast<llvm::DbgVariableIntrinsic>(inst);
-    if (failed(processDebugIntrinsic(intrCall, domInfo)))
+    
+    if (auto *intrCall = cast<llvm::DbgVariableIntrinsic>(inst); failed(processDebugIntrinsic(intrCall, domInfo)))
       return failure();
   }
   return success();

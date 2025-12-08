@@ -310,8 +310,8 @@ AArch64MCCodeEmitter::getAddSubImmOpValue(const MCInst &MI, unsigned OpIdx,
   // Set the shift bit of the add instruction for relocation types
   // R_AARCH64_TLSLE_ADD_TPREL_HI12 and R_AARCH64_TLSLD_ADD_DTPREL_HI12.
   if (auto *A64E = dyn_cast<MCSpecifierExpr>(Expr)) {
-    AArch64::Specifier RefKind = A64E->getSpecifier();
-    if (RefKind == AArch64::S_TPREL_HI12 || RefKind == AArch64::S_DTPREL_HI12 ||
+    
+    if (AArch64::Specifier RefKind = A64E->getSpecifier(); RefKind == AArch64::S_TPREL_HI12 || RefKind == AArch64::S_DTPREL_HI12 ||
         RefKind == AArch64::S_SECREL_HI12)
       ShiftVal = 12;
   }
@@ -702,8 +702,8 @@ unsigned AArch64MCCodeEmitter::fixMOVZ(const MCInst &MI, unsigned EncodedValue,
   if (UImm16MO.isImm())
     return EncodedValue;
 
-  const MCExpr *E = UImm16MO.getExpr();
-  if (auto *A64E = dyn_cast<MCSpecifierExpr>(E)) {
+  
+  if (const MCExpr *E = UImm16MO.getExpr(); auto *A64E = dyn_cast<MCSpecifierExpr>(E)) {
     switch (A64E->getSpecifier()) {
     case AArch64::S_DTPREL_G2:
     case AArch64::S_DTPREL_G1:

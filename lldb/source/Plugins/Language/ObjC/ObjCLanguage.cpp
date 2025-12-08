@@ -103,9 +103,9 @@ ObjCLanguage::ObjCMethodName::Create(llvm::StringRef name, bool strict) {
 llvm::StringRef ObjCLanguage::ObjCMethodName::GetClassName() const {
   llvm::StringRef full = m_full;
   const size_t class_start_pos = (full.front() == '[' ? 1 : 2);
-  const size_t paren_pos = full.find('(', class_start_pos);
+  
   // If there's a category we want to stop there
-  if (paren_pos != llvm::StringRef::npos)
+  if (const size_t paren_pos = full.find('(', class_start_pos); paren_pos != llvm::StringRef::npos)
     return full.substr(class_start_pos, paren_pos - class_start_pos);
 
   // Otherwise we find the space separating the class and method
@@ -145,8 +145,8 @@ llvm::StringRef ObjCLanguage::ObjCMethodName::GetCategory() const {
 std::string ObjCLanguage::ObjCMethodName::GetFullNameWithoutCategory() const {
   llvm::StringRef full = m_full;
   const size_t open_paren_pos = full.find('(');
-  const size_t close_paren_pos = full.find(')');
-  if (open_paren_pos == llvm::StringRef::npos ||
+  
+  if (const size_t close_paren_pos = full.find(')'); open_paren_pos == llvm::StringRef::npos ||
       close_paren_pos == llvm::StringRef::npos)
     return std::string();
 
@@ -893,10 +893,10 @@ ObjCLanguage::GetPossibleFormattersMatches(ValueObject &valobj,
 
   const bool check_cpp = false;
   const bool check_objc = true;
-  bool canBeObjCDynamic =
-      compiler_type.IsPossibleDynamicType(nullptr, check_cpp, check_objc);
+  
 
-  if (canBeObjCDynamic && ClangUtil::IsClangType(compiler_type)) {
+  if (bool canBeObjCDynamic =
+      compiler_type.IsPossibleDynamicType(nullptr, check_cpp, check_objc); canBeObjCDynamic && ClangUtil::IsClangType(compiler_type)) {
     do {
       lldb::ProcessSP process_sp = valobj.GetProcessSP();
       if (!process_sp)
@@ -974,10 +974,10 @@ std::unique_ptr<Language::TypeScavenger> ObjCLanguage::GetTypeScavenger() {
       bool result = false;
 
       if (auto *target = exe_scope->CalculateTarget().get()) {
-        auto *persistent_vars = llvm::cast<ClangPersistentVariables>(
+        
+        if (auto *persistent_vars = llvm::cast<ClangPersistentVariables>(
             target->GetPersistentExpressionStateForLanguage(
-                lldb::eLanguageTypeC));
-        if (std::shared_ptr<ClangModulesDeclVendor> clang_modules_decl_vendor =
+                lldb::eLanguageTypeC)); std::shared_ptr<ClangModulesDeclVendor> clang_modules_decl_vendor =
                 persistent_vars->GetClangModulesDeclVendor()) {
           ConstString key_cs(key);
           auto types = clang_modules_decl_vendor->FindTypes(
@@ -1040,9 +1040,9 @@ ObjCLanguage::GetFormatterPrefixSuffix(llvm::StringRef type_hint) {
 
 bool ObjCLanguage::IsNilReference(ValueObject &valobj) {
   const uint32_t mask = eTypeIsObjC | eTypeIsPointer;
-  bool isObjCpointer =
-      (((valobj.GetCompilerType().GetTypeInfo(nullptr)) & mask) == mask);
-  if (!isObjCpointer)
+  
+  if (bool isObjCpointer =
+      (((valobj.GetCompilerType().GetTypeInfo(nullptr)) & mask) == mask); !isObjCpointer)
     return false;
   bool canReadValue = true;
   bool isZero = valobj.GetValueAsUnsigned(0, &canReadValue) == 0;

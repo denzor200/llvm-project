@@ -630,8 +630,8 @@ void XCOFFWriter::executePostLayoutBinding() {
       Strings.add(XSym->getSymbolTableName());
   }
 
-  std::unique_ptr<CInfoSymInfo> &CISI = CInfoSymSection.Entry;
-  if (CISI && nameShouldBeInStringTable(CISI->Name))
+  
+  if (std::unique_ptr<CInfoSymInfo> &CISI = CInfoSymSection.Entry; CISI && nameShouldBeInStringTable(CISI->Name))
     Strings.add(CISI->Name);
 
   // Emit ".file" as the source file name when there is no file name.
@@ -1423,10 +1423,10 @@ void XCOFFWriter::assignAddressesAndIndices(MCAssembler &Asm) {
   bool HasTDataSection = false;
 
   for (auto *Section : Sections) {
-    const bool IsEmpty =
+    
+    if (const bool IsEmpty =
         llvm::all_of(Section->Groups,
-                     [](const CsectGroup *Group) { return Group->empty(); });
-    if (IsEmpty)
+                     [](const CsectGroup *Group) { return Group->empty(); }); IsEmpty)
       continue;
 
     if (SectionIndex > MaxSectionIndex)

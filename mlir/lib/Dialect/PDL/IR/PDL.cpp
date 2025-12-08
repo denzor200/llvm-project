@@ -218,10 +218,10 @@ static LogicalResult verifyResultTypesAreInferrable(OperationOp op,
     // expected at least one result. This doesn't cover all cases, but this
     // should cover many cases in which the user intended to infer the results
     // of an operation, but it isn't actually possible.
-    bool expectedAtLeastOneResult =
+    
+    if (bool expectedAtLeastOneResult =
         !opName->hasTrait<OpTrait::ZeroResults>() &&
-        !opName->hasTrait<OpTrait::VariadicResults>();
-    if (expectedAtLeastOneResult) {
+        !opName->hasTrait<OpTrait::VariadicResults>(); expectedAtLeastOneResult) {
       return op
           .emitOpError("must have inferable or constrained result types when "
                        "nested within `pdl.rewrite`")
@@ -356,8 +356,8 @@ LogicalResult PatternOp::verifyRegions() {
     // Determine if the operation has a user in `pdl.rewrite`.
     bool hasUserInRewrite = false;
     for (Operation *user : op.getUsers()) {
-      Region *region = user->getParentRegion();
-      if (isa<RewriteOp>(user) ||
+      
+      if (Region *region = user->getParentRegion(); isa<RewriteOp>(user) ||
           (region && isa<RewriteOp>(region->getParentOp()))) {
         hasUserInRewrite = true;
         break;

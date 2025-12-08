@@ -277,8 +277,8 @@ Expected<StringRef> linkDeviceCode(ArrayRef<std::string> InputFiles,
     if (!LibMod)
       return LibMod.takeError();
     if ((*LibMod)->getTargetTriple() == Triple) {
-      unsigned Flags = Linker::Flags::LinkOnlyNeeded;
-      if (L.linkInModule(std::move(*LibMod), Flags))
+      
+      if (unsigned Flags = Linker::Flags::LinkOnlyNeeded; L.linkInModule(std::move(*LibMod), Flags))
         return createStringError("Could not link IR");
     }
   }

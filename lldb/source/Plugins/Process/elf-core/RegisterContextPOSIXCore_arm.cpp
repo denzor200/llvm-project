@@ -59,8 +59,8 @@ bool RegisterContextCorePOSIX_arm::ReadRegister(const RegisterInfo *reg_info,
     }
   } else if (IsFPR(reg)) {
     assert(reg_info->byte_offset >= GetGPRSize());
-    lldb::offset_t offset = reg_info->byte_offset - GetGPRSize();
-    if (m_fpr.ValidOffsetForDataOfSize(offset, reg_info->byte_size))
+    
+    if (lldb::offset_t offset = reg_info->byte_offset - GetGPRSize(); m_fpr.ValidOffsetForDataOfSize(offset, reg_info->byte_size))
       return value
           .SetValueFromData(*reg_info, m_fpr, offset, /*partial_data_ok=*/false)
           .Success();

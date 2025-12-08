@@ -141,8 +141,8 @@ bool VarBypassDetector::BuildScopeInformation(CodeGenModule &CGM, const Stmt *S,
 void VarBypassDetector::Detect() {
   for (const auto &S : FromScopes) {
     const Stmt *St = S.first;
-    unsigned from = S.second;
-    if (const GotoStmt *GS = dyn_cast<GotoStmt>(St)) {
+    
+    if (unsigned from = S.second; const GotoStmt *GS = dyn_cast<GotoStmt>(St)) {
       if (const LabelStmt *LS = GS->getLabel()->getStmt())
         Detect(from, ToScopes[LS]);
     } else if (const SwitchStmt *SS = dyn_cast<SwitchStmt>(St)) {

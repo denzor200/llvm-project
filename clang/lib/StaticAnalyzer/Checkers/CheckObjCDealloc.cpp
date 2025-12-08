@@ -199,10 +199,10 @@ void ObjCDeallocChecker::checkASTDecl(const ObjCImplementationDecl *D,
   assert(!Mgr.getLangOpts().ObjCAutoRefCount);
   initIdentifierInfoAndSelectors(Mgr.getASTContext());
 
-  const ObjCInterfaceDecl *ID = D->getClassInterface();
+  
   // If the class is known to have a lifecycle with a separate teardown method
   // then it may not require a -dealloc method.
-  if (classHasSeparateTeardown(ID))
+  if (const ObjCInterfaceDecl *ID = D->getClassInterface(); classHasSeparateTeardown(ID))
     return;
 
   // Does the class contain any synthesized properties that are retainable?
@@ -370,8 +370,8 @@ void ObjCDeallocChecker::checkPreObjCMessage(
 /// call to Block_release().
 void ObjCDeallocChecker::checkPreCall(const CallEvent &Call,
                                       CheckerContext &C) const {
-  const IdentifierInfo *II = Call.getCalleeIdentifier();
-  if (II != Block_releaseII)
+  
+  if (const IdentifierInfo *II = Call.getCalleeIdentifier(); II != Block_releaseII)
     return;
 
   if (Call.getNumArgs() != 1)
@@ -463,8 +463,8 @@ ProgramStateRef ObjCDeallocChecker::checkPointerEscape(
   // of this checker. Because the checker diagnoses missing releases in the
   // post-message handler for '[super dealloc], escaping here would cause
   // the checker to never warn.
-  auto *OMC = dyn_cast_or_null<ObjCMethodCall>(Call);
-  if (OMC && isSuperDeallocMessage(*OMC))
+  
+  if (auto *OMC = dyn_cast_or_null<ObjCMethodCall>(Call); OMC && isSuperDeallocMessage(*OMC))
     return State;
 
   for (const auto &Sym : Escaped) {
@@ -966,8 +966,8 @@ bool ObjCDeallocChecker::isInInstanceDealloc(const CheckerContext &C,
 bool ObjCDeallocChecker::isInInstanceDealloc(const CheckerContext &C,
                                              const LocationContext *LCtx,
                                              SVal &SelfValOut) const {
-  auto *MD = dyn_cast<ObjCMethodDecl>(LCtx->getDecl());
-  if (!MD || !MD->isInstanceMethod() || MD->getSelector() != DeallocSel)
+  
+  if (auto *MD = dyn_cast<ObjCMethodDecl>(LCtx->getDecl()); !MD || !MD->isInstanceMethod() || MD->getSelector() != DeallocSel)
     return false;
 
   const ImplicitParamDecl *SelfDecl = LCtx->getSelfDecl();
@@ -1032,8 +1032,8 @@ bool ObjCDeallocChecker::isReleasedByCIFilterDealloc(
   StringRef PropName = PropImpl->getPropertyDecl()->getName();
   StringRef IvarName = PropImpl->getPropertyIvarDecl()->getName();
 
-  const char *ReleasePrefix = "input";
-  if (!(PropName.starts_with(ReleasePrefix) ||
+  
+  if (const char *ReleasePrefix = "input"; !(PropName.starts_with(ReleasePrefix) ||
         IvarName.starts_with(ReleasePrefix))) {
     return false;
   }
@@ -1041,8 +1041,8 @@ bool ObjCDeallocChecker::isReleasedByCIFilterDealloc(
   const ObjCInterfaceDecl *ID =
       PropImpl->getPropertyIvarDecl()->getContainingInterface();
   for ( ; ID ; ID = ID->getSuperClass()) {
-    IdentifierInfo *II = ID->getIdentifier();
-    if (II == CIFilterII)
+    
+    if (IdentifierInfo *II = ID->getIdentifier(); II == CIFilterII)
       return true;
   }
 

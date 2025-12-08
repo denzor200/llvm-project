@@ -258,8 +258,8 @@ void OverridePureVirtuals::collectMissingPureVirtuals() {
   // Filter AllPureVirtualsInHierarchy to find those not in
   // ImplementedOrOverriddenSet, which needs to be overriden.
   for (const CXXMethodDecl *BaseMethod : AllPureVirtualsInHierarchy) {
-    bool AlreadyHandled = ImplementedOrOverriddenSet.contains(BaseMethod);
-    if (!AlreadyHandled)
+    
+    if (bool AlreadyHandled = ImplementedOrOverriddenSet.contains(BaseMethod); !AlreadyHandled)
       MissingMethodsByAccess[BaseMethod->getAccess()].emplace_back(BaseMethod);
   }
 }
@@ -319,8 +319,8 @@ Expected<Tweak::Effect> OverridePureVirtuals::apply(const Selection &Sel) {
         generateOverridesStringForGroup(Methods, LangOpts);
 
     auto *ExistingSpecLocIter = AccessSpecifierLocations.find(AS);
-    bool ASExists = ExistingSpecLocIter != AccessSpecifierLocations.end();
-    if (ASExists) {
+    
+    if (bool ASExists = ExistingSpecLocIter != AccessSpecifierLocations.end(); ASExists) {
       // Access specifier section already exists in the class.
       // Get location immediately *after* the colon.
       SourceLocation InsertLoc =

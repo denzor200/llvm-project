@@ -445,8 +445,8 @@ void MutexInvalidAccess(ThreadState *thr, uptr pc, uptr addr) {
   StackID creation_stack_id = kInvalidStackID;
   {
     SlotLocker locker(thr);
-    auto s = ctx->metamap.GetSyncOrCreate(thr, pc, addr, true);
-    if (s)
+    
+    if (auto s = ctx->metamap.GetSyncOrCreate(thr, pc, addr, true); s)
       creation_stack_id = s->creation_stack_id;
   }
   ReportMutexMisuse(thr, pc, ReportTypeMutexInvalidAccess, addr,

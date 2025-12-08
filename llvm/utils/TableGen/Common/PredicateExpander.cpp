@@ -542,8 +542,8 @@ void STIPredicateExpander::expandEpilogue(raw_ostream &OS,
 
 void STIPredicateExpander::expandSTIPredicate(raw_ostream &OS,
                                               const STIPredicateFunction &Fn) {
-  const Record *Rec = Fn.getDeclaration();
-  if (shouldExpandForMC() && !Rec->getValueAsBit("ExpandForMC"))
+  
+  if (const Record *Rec = Fn.getDeclaration(); shouldExpandForMC() && !Rec->getValueAsBit("ExpandForMC"))
     return;
 
   expandHeader(OS, Fn);

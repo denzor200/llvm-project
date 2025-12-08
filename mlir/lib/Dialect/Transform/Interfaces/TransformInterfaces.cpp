@@ -1305,9 +1305,9 @@ void transform::TrackingListener::notifyOperationReplaced(
   // Check if there are any handles that must be updated.
   Value aliveHandle;
   if (config.skipHandleFn) {
-    auto it = llvm::find_if(opHandles,
-                            [&](Value v) { return !config.skipHandleFn(v); });
-    if (it != opHandles.end())
+    
+    if (auto it = llvm::find_if(opHandles,
+                            [&](Value v) { return !config.skipHandleFn(v); }); it != opHandles.end())
       aliveHandle = *it;
   } else if (!opHandles.empty()) {
     aliveHandle = opHandles.front();
@@ -1514,8 +1514,8 @@ void transform::detail::setApplyToOneResults(
   }
 
   for (OpResult r : transformOp->getResults()) {
-    unsigned position = r.getResultNumber();
-    if (llvm::isa<TransformParamTypeInterface>(r.getType())) {
+    
+    if (unsigned position = r.getResultNumber(); llvm::isa<TransformParamTypeInterface>(r.getType())) {
       transformResults.setParams(r,
                                  castVector<Attribute>(transposed[position]));
     } else if (llvm::isa<TransformValueHandleTypeInterface>(r.getType())) {

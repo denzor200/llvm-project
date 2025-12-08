@@ -61,12 +61,12 @@ MachineBasicBlock::~MachineBasicBlock() = default;
 MCSymbol *MachineBasicBlock::getSymbol() const {
   if (!CachedMCSymbol) {
     const MachineFunction *MF = getParent();
-    MCContext &Ctx = MF->getContext();
+    
 
     // We emit a non-temporary symbol -- with a descriptive name -- if it begins
     // a section (with basic block sections). Otherwise we fall back to use temp
     // label.
-    if (MF->hasBBSections() && isBeginSection()) {
+    if (MCContext &Ctx = MF->getContext(); MF->hasBBSections() && isBeginSection()) {
       SmallString<5> Suffix;
       if (SectionID == MBBSectionID::ColdSectionID) {
         Suffix += ".cold";
@@ -1006,8 +1006,8 @@ MachineBasicBlock *MachineBasicBlock::getFallThrough(bool JumpToFallThrough) {
   // Analyze the branches, if any, at the end of the block.
   MachineBasicBlock *TBB = nullptr, *FBB = nullptr;
   SmallVector<MachineOperand, 4> Cond;
-  const TargetInstrInfo *TII = getParent()->getSubtarget().getInstrInfo();
-  if (TII->analyzeBranch(*this, TBB, FBB, Cond)) {
+  
+  if (const TargetInstrInfo *TII = getParent()->getSubtarget().getInstrInfo(); TII->analyzeBranch(*this, TBB, FBB, Cond)) {
     // If we couldn't analyze the branch, examine the last instruction.
     // If the block doesn't end in a known control barrier, assume fallthrough
     // is possible. The isPredicated check is needed because this code can be
@@ -1113,8 +1113,8 @@ static bool jumpTableHasOtherUses(const MachineFunction &MF,
       // analyzable direct jump
       continue;
     }
-    int PredJTI = findJumpTableIndex(*Pred);
-    if (PredJTI >= 0) {
+    
+    if (int PredJTI = findJumpTableIndex(*Pred); PredJTI >= 0) {
       if (PredJTI == JumpTableIndex)
         return true;
       continue;
@@ -1191,8 +1191,8 @@ MachineBasicBlock *MachineBasicBlock::SplitCriticalEdge(
 
   // Is there an indirect jump with jump table?
   bool ChangedIndirectJump = false;
-  int JTI = findJumpTableIndex(*this);
-  if (JTI >= 0) {
+  
+  if (int JTI = findJumpTableIndex(*this); JTI >= 0) {
     MachineJumpTableInfo &MJTI = *MF->getJumpTableInfo();
     MJTI.ReplaceMBBInJumpTable(JTI, Succ, NMBB);
     ChangedIndirectJump = true;
@@ -1359,8 +1359,8 @@ MachineBasicBlock *MachineBasicBlock::SplitCriticalEdge(
         LI.addSegment(LiveInterval::Segment(StartIndex, EndIndex, VNI));
         // Update subranges with live values
         for (auto &SR : LI.subranges()) {
-          VNInfo *VNI = SR.getVNInfoAt(PrevIndex);
-          if (VNI)
+          
+          if (VNInfo *VNI = SR.getVNInfoAt(PrevIndex); VNI)
             SR.addSegment(LiveInterval::Segment(StartIndex, EndIndex, VNI));
         }
       } else if (!isLiveOut && !isLastMBB) {
@@ -1540,8 +1540,8 @@ void MachineBasicBlock::replacePhiUsesWith(MachineBasicBlock *Old,
                                            MachineBasicBlock *New) {
   for (MachineInstr &MI : phis())
     for (unsigned i = 2, e = MI.getNumOperands() + 1; i != e; i += 2) {
-      MachineOperand &MO = MI.getOperand(i);
-      if (MO.getMBB() == Old)
+      
+      if (MachineOperand &MO = MI.getOperand(i); MO.getMBB() == Old)
         MO.setMBB(New);
     }
 }

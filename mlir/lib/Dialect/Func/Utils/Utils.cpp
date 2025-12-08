@@ -227,9 +227,9 @@ func::deduplicateArgsOfFuncOp(RewriterBase &rewriter, func::FuncOp funcOp,
     oldArgIdxToNewArgIdx[operandIdx] = iterator->second;
   }
 
-  bool hasDuplicateOperands =
-      valueToNewArgIdx.size() != callOp.getNumOperands();
-  if (!hasDuplicateOperands) {
+  
+  if (bool hasDuplicateOperands =
+      valueToNewArgIdx.size() != callOp.getNumOperands(); !hasDuplicateOperands) {
     LDBG() << "function " << funcOp.getName()
            << " does not have duplicate operands";
     return failure();

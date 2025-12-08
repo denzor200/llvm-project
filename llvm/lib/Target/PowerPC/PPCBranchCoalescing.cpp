@@ -360,8 +360,8 @@ bool PPCBranchCoalescing::identicalOperands(
     if (Op1.isReg() && Op2.isReg() && Op1.getReg().isVirtual() &&
         Op2.getReg().isVirtual()) {
       MachineInstr *Op1Def = MRI->getVRegDef(Op1.getReg());
-      MachineInstr *Op2Def = MRI->getVRegDef(Op2.getReg());
-      if (TII->produceSameValue(*Op1Def, *Op2Def, MRI)) {
+      
+      if (MachineInstr *Op2Def = MRI->getVRegDef(Op2.getReg()); TII->produceSameValue(*Op1Def, *Op2Def, MRI)) {
         LLVM_DEBUG(dbgs() << "Op1Def: " << *Op1Def << " and " << *Op2Def
                           << " produce the same value!\n");
       } else {
@@ -401,8 +401,8 @@ void PPCBranchCoalescing::moveAndUpdatePHIs(MachineBasicBlock *SourceMBB,
   for (MachineBasicBlock::iterator Iter = MI; Iter != ME; Iter++) {
     MachineInstr &PHIInst = *Iter;
     for (unsigned i = 2, e = PHIInst.getNumOperands() + 1; i != e; i += 2) {
-      MachineOperand &MO = PHIInst.getOperand(i);
-      if (MO.getMBB() == SourceMBB)
+      
+      if (MachineOperand &MO = PHIInst.getOperand(i); MO.getMBB() == SourceMBB)
         MO.setMBB(TargetMBB);
     }
   }
@@ -459,8 +459,8 @@ bool PPCBranchCoalescing::canMoveToEnd(const MachineInstr &MI,
 
   for (auto &Use : MI.uses()) {
     if (Use.isReg() && Use.getReg().isVirtual()) {
-      MachineInstr *DefInst = MRI->getVRegDef(Use.getReg());
-      if (DefInst->isPHI() && DefInst->getParent() == MI.getParent()) {
+      
+      if (MachineInstr *DefInst = MRI->getVRegDef(Use.getReg()); DefInst->isPHI() && DefInst->getParent() == MI.getParent()) {
         LLVM_DEBUG(dbgs() << "    *** Cannot move this instruction ***\n");
         return false;
       } else {

@@ -271,8 +271,8 @@ bool CFGuardImpl::runOnFunction(Function &F) {
   // deleted as the checks are added.
   for (BasicBlock &BB : F) {
     for (Instruction &I : BB) {
-      auto *CB = dyn_cast<CallBase>(&I);
-      if (CB && CB->isIndirectCall() && !CB->hasFnAttr("guard_nocf")) {
+      
+      if (auto *CB = dyn_cast<CallBase>(&I); CB && CB->isIndirectCall() && !CB->hasFnAttr("guard_nocf")) {
         IndirectCalls.push_back(CB);
         CFGuardCounter++;
       }

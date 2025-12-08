@@ -512,8 +512,8 @@ static SmallVector<int64_t> computePropagationShuffleMask(
     if (hasSameInput)
       continue;
 
-    unsigned rhsIdx = i + lhsRhsOffset;
-    if (rhsShuffleMask[i] != ShuffleOp::kPoisonIndex) {
+    
+    if (unsigned rhsIdx = i + lhsRhsOffset; rhsShuffleMask[i] != ShuffleOp::kPoisonIndex) {
       assert(rhsIdx < outputVectorSize && "RHS index out of bounds");
       assert(mask[rhsIdx] == ShuffleOp::kPoisonIndex && "mask already set");
       mask[rhsIdx] = i + inputVectorSize;

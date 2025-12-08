@@ -40,13 +40,13 @@ static bool containsMisleadingBidi(StringRef Buffer,
   //
   // Warn if we end up with an unclosed context.
   while (CurPtr < Buffer.end()) {
-    const unsigned char C = *CurPtr;
-    if (isASCII(C)) {
+    
+    if (const unsigned char C = *CurPtr; isASCII(C)) {
       ++CurPtr;
       const bool IsParagrapSep =
           (C == 0xA || C == 0xD || (0x1C <= C && C <= 0x1E) || C == 0x85);
-      const bool IsSegmentSep = (C == 0x9 || C == 0xB || C == 0x1F);
-      if (IsParagrapSep || IsSegmentSep)
+      
+      if (const bool IsSegmentSep = (C == 0x9 || C == 0xB || C == 0x1F); IsParagrapSep || IsSegmentSep)
         BidiContexts.clear();
       continue;
     }

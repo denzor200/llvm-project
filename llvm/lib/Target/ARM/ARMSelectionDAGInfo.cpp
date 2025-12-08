@@ -383,10 +383,10 @@ SDValue ARMSelectionDAGInfo::EmitTargetCodeForMemset(
   const ARMSubtarget &Subtarget =
       DAG.getMachineFunction().getSubtarget<ARMSubtarget>();
 
-  ConstantSDNode *ConstantSize = dyn_cast<ConstantSDNode>(Size);
+  
 
   // Generate TP loop for llvm.memset
-  if (Subtarget.hasMVEIntegerOps() &&
+  if (ConstantSDNode *ConstantSize = dyn_cast<ConstantSDNode>(Size); Subtarget.hasMVEIntegerOps() &&
       shouldGenerateInlineTPLoop(Subtarget, DAG, ConstantSize, Alignment,
                                  false)) {
     Src = DAG.getSplatBuildVector(MVT::v16i8, dl,

@@ -359,8 +359,8 @@ static void symbolizeInput(const opt::InputArgList &Args,
     });
     return;
   }
-  bool ShouldInline = Args.hasFlag(OPT_inlines, OPT_no_inlines, !IsAddr2Line);
-  if (!BuildID.empty()) {
+  
+  if (bool ShouldInline = Args.hasFlag(OPT_inlines, OPT_no_inlines, !IsAddr2Line); !BuildID.empty()) {
     assert(ModuleName.empty());
     if (!Args.hasArg(OPT_no_debuginfod))
       enableDebuginfod(Symbolizer, Args);

@@ -321,8 +321,8 @@ void ObjFile::initializeECThunks() {
         chunk->getContents().data() + chunk->getContents().size();
     for (const uint8_t *iter = chunk->getContents().data(); iter != end;
          iter += sizeof(ECMapEntry)) {
-      auto entry = reinterpret_cast<const ECMapEntry *>(iter);
-      switch (entry->type) {
+      
+      switch (auto entry = reinterpret_cast<const ECMapEntry *>(iter); entry->type) {
       case Arm64ECThunkType::Entry:
         symtab.addEntryThunk(getSymbol(entry->src), getSymbol(entry->dst));
         break;
@@ -366,8 +366,8 @@ void ObjFile::initializeChunks() {
   uint32_t numSections = coffObj->getNumberOfSections();
   sparseChunks.resize(numSections + 1);
   for (uint32_t i = 1; i < numSections + 1; ++i) {
-    const coff_section *sec = getSection(i);
-    if (sec->Characteristics & IMAGE_SCN_LNK_COMDAT)
+    
+    if (const coff_section *sec = getSection(i); sec->Characteristics & IMAGE_SCN_LNK_COMDAT)
       sparseChunks[i] = pendingComdat;
     else
       sparseChunks[i] = readSection(i, nullptr, "");
@@ -481,8 +481,8 @@ void ObjFile::readAssociativeDefinition(COFFSymbolRef sym,
     StringRef name = check(coffObj->getSymbolName(sym));
 
     StringRef parentName;
-    const coff_section *parentSec = getSection(parentIndex);
-    if (Expected<StringRef> e = coffObj->getSectionName(parentSec))
+    
+    if (const coff_section *parentSec = getSection(parentIndex); Expected<StringRef> e = coffObj->getSectionName(parentSec))
       parentName = *e;
     Err(symtab.ctx) << toString(this) << ": associative comdat " << name
                     << " (sec " << sectionNumber
@@ -522,8 +522,8 @@ void ObjFile::recordPrevailingSymbolForMingw(
   // name, for cases where the names differ (i386 mangling/decorations,
   // cases where the leader is a weak symbol named .weak.func.default*).
   int32_t sectionNumber = sym.getSectionNumber();
-  SectionChunk *sc = sparseChunks[sectionNumber];
-  if (sc && sc->getOutputCharacteristics() & IMAGE_SCN_MEM_EXECUTE) {
+  
+  if (SectionChunk *sc = sparseChunks[sectionNumber]; sc && sc->getOutputCharacteristics() & IMAGE_SCN_MEM_EXECUTE) {
     StringRef name = sc->getSectionName().split('$').second;
     prevailingSectionMap[name] = sectionNumber;
   }
@@ -674,8 +674,8 @@ Symbol *ObjFile::createUndefined(COFFSymbolRef sym, bool overrideLazy) {
   // Add an anti-dependency alias for undefined AMD64 symbols on the ARM64EC
   // target.
   if (symtab.isEC() && getMachineType() == AMD64) {
-    auto u = dyn_cast<Undefined>(s);
-    if (u && !u->weakAlias) {
+    
+    if (auto u = dyn_cast<Undefined>(s); u && !u->weakAlias) {
       if (std::optional<std::string> mangledName =
               getArm64ECMangledFunctionName(name)) {
         Symbol *m = symtab.addUndefined(saver().save(*mangledName), this,
@@ -1484,8 +1484,8 @@ std::string lld::coff::replaceThinLTOSuffix(StringRef path, StringRef suffix,
 
 static bool isRVACode(COFFObjectFile *coffObj, uint64_t rva, InputFile *file) {
   for (size_t i = 1, e = coffObj->getNumberOfSections(); i <= e; i++) {
-    const coff_section *sec = CHECK(coffObj->getSection(i), file);
-    if (rva >= sec->VirtualAddress &&
+    
+    if (const coff_section *sec = CHECK(coffObj->getSection(i), file); rva >= sec->VirtualAddress &&
         rva <= sec->VirtualAddress + sec->VirtualSize) {
       return (sec->Characteristics & COFF::IMAGE_SCN_CNT_CODE) != 0;
     }

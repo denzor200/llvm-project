@@ -80,8 +80,8 @@ void tools::uefi::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   AddLinkerInputs(TC, Inputs, Args, CmdArgs, JA);
 
   // Sample these options first so they are claimed even under -nostdlib et al.
-  bool NoLibc = Args.hasArg(options::OPT_nolibc);
-  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
+  
+  if (bool NoLibc = Args.hasArg(options::OPT_nolibc); !Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
                    options::OPT_r)) {
     addSanitizerRuntimes(TC, Args, CmdArgs);
 

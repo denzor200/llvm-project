@@ -132,8 +132,8 @@ void ConstReturnTypeCheck::check(const MatchFinder::MatchResult &Result) {
       Diagnostic << CR.ConstRange;
 
     // Do not propose fixes for virtual function.
-    const auto *Method = dyn_cast<CXXMethodDecl>(Def);
-    if (Method && Method->isVirtual())
+    
+    if (const auto *Method = dyn_cast<CXXMethodDecl>(Def); Method && Method->isVirtual())
       return;
 
     for (auto &Hint : CR.Hints)

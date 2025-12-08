@@ -69,9 +69,9 @@ static bool parseLdr(uint32_t insn, Ldr &ldr) {
   ldr.destRegister = insn & 0x1f;
   ldr.baseRegister = (insn >> 5) & 0x1f;
   uint8_t size = insn >> 30;
-  uint8_t opc = (insn >> 22) & 3;
+  
 
-  if ((insn & 0x3fc00000) == 0x39400000) {
+  if (uint8_t opc = (insn >> 22) & 3; (insn & 0x3fc00000) == 0x39400000) {
     // LDR (immediate), LDRB (immediate), LDRH (immediate)
     ldr.p2Size = size;
     ldr.extendType = ZeroExtend;
@@ -219,8 +219,8 @@ static void applyAdrpAdrp(uint8_t *buf, const ConcatInputSection *isec,
     return;
 
   uint64_t page1 = pageBits(offset1 + isec->getVA()) + adrp1.addend;
-  uint64_t page2 = pageBits(offset2 + isec->getVA()) + adrp2.addend;
-  if (page1 != page2)
+  
+  if (uint64_t page2 = pageBits(offset2 + isec->getVA()) + adrp2.addend; page1 != page2)
     return;
 
   writeNop(buf + offset2);
@@ -373,8 +373,8 @@ static void forEachHint(ArrayRef<uint8_t> data, Callback callback) {
 
     uint64_t argCount = readNext();
     for (unsigned i = 0; i < argCount; ++i) {
-      uint64_t arg = readNext();
-      if (i < 3)
+      
+      if (uint64_t arg = readNext(); i < 3)
         args[i] = arg;
     }
     // All known LOH types as of 2022-09 have 3 or fewer arguments; skip others.

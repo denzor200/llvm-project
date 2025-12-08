@@ -100,10 +100,10 @@ llvm::Error SystemInitializerFull::Initialize() {
       // function.
       // TODO: mangle this differently for your system - on OSX, the first
       // underscore needs to be removed and the second one stays
-      LLDBCommandPluginInit init_func =
+      
+      if (LLDBCommandPluginInit init_func =
           (LLDBCommandPluginInit)(uintptr_t)dynlib.getAddressOfSymbol(
-              "_ZN4lldb16PluginInitializeENS_10SBDebuggerE");
-      if (init_func) {
+              "_ZN4lldb16PluginInitializeENS_10SBDebuggerE"); init_func) {
         if (init_func(debugger_sb))
           return dynlib;
         else

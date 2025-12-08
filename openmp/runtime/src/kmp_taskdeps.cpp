@@ -428,8 +428,8 @@ __kmp_process_dep_all(kmp_int32 gtid, kmp_depnode_t *node, kmp_dephash_t *h,
       // for each entry the omp_all_memory works as OUT dependence
       kmp_depnode_t *last_out = info->last_out;
       kmp_depnode_list_t *last_set = info->last_set;
-      kmp_depnode_list_t *prev_set = info->prev_set;
-      if (last_set) {
+      
+      if (kmp_depnode_list_t *prev_set = info->prev_set; last_set) {
         npredecessors +=
             __kmp_depnode_link_successor(gtid, thread, task, node, last_set);
         __kmp_depnode_list_free(thread, last_set);

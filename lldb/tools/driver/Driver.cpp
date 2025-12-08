@@ -172,8 +172,8 @@ void Driver::WriteCommandsForSourcing(CommandPlacement placement,
   }
 
   for (const auto &command_entry : *command_set) {
-    const char *command = command_entry.contents.c_str();
-    if (command_entry.is_file) {
+    
+    if (const char *command = command_entry.contents.c_str(); command_entry.is_file) {
       bool source_quietly =
           m_option_data.m_source_quietly || command_entry.source_quietly;
       strm.Printf("command source -s %i '%s'\n",
@@ -264,8 +264,8 @@ SBError Driver::ProcessArgs(const opt::InputArgList &args, bool &exiting) {
   }
 
   if (auto *arg = args.getLastArg(OPT_arch)) {
-    auto *arg_value = arg->getValue();
-    if (!lldb::SBDebugger::SetDefaultArchitecture(arg_value)) {
+    
+    if (auto *arg_value = arg->getValue(); !lldb::SBDebugger::SetDefaultArchitecture(arg_value)) {
       error.SetErrorStringWithFormat(
           "invalid architecture in the -a or --arch option: '%s'", arg_value);
       return error;
@@ -403,8 +403,8 @@ SBError Driver::ProcessArgs(const opt::InputArgList &args, bool &exiting) {
     SBFileSpec python_file_spec = SBHostOS::GetLLDBPythonPath();
     if (python_file_spec.IsValid()) {
       char python_path[PATH_MAX];
-      size_t num_chars = python_file_spec.GetPath(python_path, PATH_MAX);
-      if (num_chars < PATH_MAX) {
+      
+      if (size_t num_chars = python_file_spec.GetPath(python_path, PATH_MAX); num_chars < PATH_MAX) {
         llvm::outs() << python_path << '\n';
       } else
         llvm::outs() << "<PATH TOO LONG>\n";
@@ -579,8 +579,8 @@ int Driver::MainLoop() {
   // If we're not in --repl mode, add the commands to process the file
   // arguments, and the commands specified to run afterwards.
   if (!m_option_data.m_repl) {
-    const size_t num_args = m_option_data.m_args.size();
-    if (num_args > 0) {
+    
+    if (const size_t num_args = m_option_data.m_args.size(); num_args > 0) {
       char arch_name[64];
       if (lldb::SBDebugger::GetDefaultArchitecture(arch_name,
                                                    sizeof(arch_name)))
@@ -708,8 +708,8 @@ int Driver::MainLoop() {
       SBError error(
           m_debugger.RunREPL(m_option_data.m_repl_lang, repl_options));
       if (error.Fail()) {
-        const char *error_cstr = error.GetCString();
-        if ((error_cstr != nullptr) && (error_cstr[0] != 0))
+        
+        if (const char *error_cstr = error.GetCString(); (error_cstr != nullptr) && (error_cstr[0] != 0))
           WithColor::error() << error_cstr << '\n';
         else
           WithColor::error() << error.GetError() << '\n';

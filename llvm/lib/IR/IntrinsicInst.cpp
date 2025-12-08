@@ -202,8 +202,8 @@ std::optional<uint64_t> DbgVariableIntrinsic::getFragmentSizeInBits() const {
 }
 
 Value *DbgAssignIntrinsic::getAddress() const {
-  auto *MD = getRawAddress();
-  if (auto *V = dyn_cast<ValueAsMetadata>(MD))
+  
+  if (auto *MD = getRawAddress(); auto *V = dyn_cast<ValueAsMetadata>(MD))
     return V->getValue();
 
   // When the value goes to null, it gets replaced by an empty MDNode.
@@ -276,8 +276,8 @@ void InstrProfCallsite::setCallee(Value *Callee) {
 std::optional<RoundingMode> ConstrainedFPIntrinsic::getRoundingMode() const {
   unsigned NumOperands = arg_size();
   Metadata *MD = nullptr;
-  auto *MAV = dyn_cast<MetadataAsValue>(getArgOperand(NumOperands - 2));
-  if (MAV)
+  
+  if (auto *MAV = dyn_cast<MetadataAsValue>(getArgOperand(NumOperands - 2)); MAV)
     MD = MAV->getMetadata();
   if (!MD || !isa<MDString>(MD))
     return std::nullopt;
@@ -288,8 +288,8 @@ std::optional<fp::ExceptionBehavior>
 ConstrainedFPIntrinsic::getExceptionBehavior() const {
   unsigned NumOperands = arg_size();
   Metadata *MD = nullptr;
-  auto *MAV = dyn_cast<MetadataAsValue>(getArgOperand(NumOperands - 1));
-  if (MAV)
+  
+  if (auto *MAV = dyn_cast<MetadataAsValue>(getArgOperand(NumOperands - 1)); MAV)
     MD = MAV->getMetadata();
   if (!MD || !isa<MDString>(MD))
     return std::nullopt;

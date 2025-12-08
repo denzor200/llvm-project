@@ -69,11 +69,11 @@ void PPCELFStreamer::emitPrefixedInstruction(const MCInst &Inst,
       InstLoc.isValid()) {
     const SourceMgr *SourceManager = getContext().getSourceManager();
     unsigned InstLine = SourceManager->FindLineNumber(InstLoc);
-    unsigned LabelLine = SourceManager->FindLineNumber(LastLabelLoc);
+    
     // If the Label and the Instruction are on the same line then move the
     // label to the top of the fragment containing the aligned instruction that
     // was just added.
-    if (InstLine == LabelLine) {
+    if (unsigned LabelLine = SourceManager->FindLineNumber(LastLabelLoc); InstLine == LabelLine) {
       LastLabel->setFragment(InstructionFragment);
       LastLabel->setOffset(0);
     }

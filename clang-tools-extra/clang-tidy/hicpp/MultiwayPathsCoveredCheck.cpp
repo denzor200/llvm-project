@@ -152,7 +152,10 @@ void MultiwayPathsCoveredCheck::handleSwitchWithoutDefault(
   assert(CaseCount > 0 && "Switch statement without any case found. This case "
                           "should be excluded by the matcher and is handled "
                           "separately.");
-  const std::size_t MaxPathsPossible = [&]() {
+  
+
+  // FIXME: Transform the 'switch' into an 'if' for CaseCount == 1.
+  if (const std::size_t MaxPathsPossible = [&]() {
     if (const auto *GeneralCondition =
             Result.Nodes.getNodeAs<DeclRefExpr>("non-enum-condition")) {
       return getNumberOfPossibleValues(GeneralCondition->getType(),
@@ -164,10 +167,7 @@ void MultiwayPathsCoveredCheck::handleSwitchWithoutDefault(
     }
 
     return static_cast<std::size_t>(0);
-  }();
-
-  // FIXME: Transform the 'switch' into an 'if' for CaseCount == 1.
-  if (CaseCount < MaxPathsPossible)
+  }(); CaseCount < MaxPathsPossible)
     diag(Switch->getBeginLoc(),
          CaseCount == 1 ? "switch with only one case; use an if statement"
                         : "potential uncovered code path; add a default label");

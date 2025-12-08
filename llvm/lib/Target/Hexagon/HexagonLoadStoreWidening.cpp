@@ -219,8 +219,8 @@ int64_t HexagonLoadStoreWidening::getOffset(const MachineInstr *MI) {
   unsigned Base, Offset;
 
   HII->getBaseAndOffsetPosition(*MI, Base, Offset);
-  const MachineOperand &MO = MI->getOperand(Offset);
-  switch (MO.getType()) {
+  
+  switch (const MachineOperand &MO = MI->getOperand(Offset); MO.getType()) {
   case MachineOperand::MO_Immediate:
     return MO.getImm();
   case MachineOperand::MO_GlobalAddress:
@@ -242,8 +242,8 @@ HexagonLoadStoreWidening::getPostIncrementValue(const MachineInstr *MI) {
 // Filtering function: any loads/stores whose opcodes are not "approved" of by
 // this function will not be subjected to widening.
 inline bool HexagonLoadStoreWidening::handledInstType(const MachineInstr *MI) {
-  unsigned Opc = MI->getOpcode();
-  if (Mode == WideningMode::Store) {
+  
+  if (unsigned Opc = MI->getOpcode(); Mode == WideningMode::Store) {
     switch (Opc) {
     case Hexagon::S4_storeirb_io:
     case Hexagon::S4_storeirh_io:
@@ -562,9 +562,9 @@ bool HexagonLoadStoreWidening::createWideStores(InstrGroup &OG, InstrGroup &NG,
                              : MI->getOperand(2); // Source.
     unsigned NBits;
     uint64_t Mask;
-    uint64_t Val;
+    
 
-    switch (SO.getType()) {
+    switch (uint64_t Val; SO.getType()) {
     case MachineOperand::MO_Immediate:
       LLVM_DEBUG(dbgs() << "Have store immediate\n");
       HaveImm = true;
@@ -599,8 +599,8 @@ bool HexagonLoadStoreWidening::createWideStores(InstrGroup &OG, InstrGroup &NG,
   MachineOperand &MR =
       (HII->isPostIncrement(*FirstSt) ? FirstSt->getOperand(1)
                                       : FirstSt->getOperand(0));
-  auto SecondSt = OG.back();
-  if (HaveReg) {
+  
+  if (auto SecondSt = OG.back(); HaveReg) {
     MachineOperand FReg =
         (HII->isPostIncrement(*FirstSt) ? FirstSt->getOperand(3)
                                         : FirstSt->getOperand(2));
@@ -838,9 +838,9 @@ bool HexagonLoadStoreWidening::processGroup(InstrGroup &Group) {
     OG.clear();
     NG.clear();
 
-    bool Succ = selectInsts(I++, E, OG, CollectedSize, MaxWideSize) &&
-                createWideInsts(OG, NG, CollectedSize) && replaceInsts(OG, NG);
-    if (!Succ)
+    
+    if (bool Succ = selectInsts(I++, E, OG, CollectedSize, MaxWideSize) &&
+                createWideInsts(OG, NG, CollectedSize) && replaceInsts(OG, NG); !Succ)
       continue;
 
     assert(OG.size() > 1 && "Created invalid group");

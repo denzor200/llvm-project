@@ -136,8 +136,8 @@ SBBreakpointLocation SBBreakpoint::FindLocationByAddress(addr_t vm_addr) {
       std::lock_guard<std::recursive_mutex> guard(
           bkpt_sp->GetTarget().GetAPIMutex());
       Address address;
-      Target &target = bkpt_sp->GetTarget();
-      if (!target.ResolveLoadAddress(vm_addr, address)) {
+      
+      if (Target &target = bkpt_sp->GetTarget(); !target.ResolveLoadAddress(vm_addr, address)) {
         address.SetRawAddress(vm_addr);
       }
       sb_bp_location.SetLocation(bkpt_sp->FindLocationByAddress(address));
@@ -156,8 +156,8 @@ break_id_t SBBreakpoint::FindLocationIDByAddress(addr_t vm_addr) {
     std::lock_guard<std::recursive_mutex> guard(
         bkpt_sp->GetTarget().GetAPIMutex());
     Address address;
-    Target &target = bkpt_sp->GetTarget();
-    if (!target.ResolveLoadAddress(vm_addr, address)) {
+    
+    if (Target &target = bkpt_sp->GetTarget(); !target.ResolveLoadAddress(vm_addr, address)) {
       address.SetRawAddress(vm_addr);
     }
     break_id = bkpt_sp->FindLocationIDByAddress(address);
@@ -393,9 +393,9 @@ uint32_t SBBreakpoint::GetThreadIndex() const {
   if (bkpt_sp) {
     std::lock_guard<std::recursive_mutex> guard(
         bkpt_sp->GetTarget().GetAPIMutex());
-    const ThreadSpec *thread_spec =
-        bkpt_sp->GetOptions().GetThreadSpecNoCreate();
-    if (thread_spec != nullptr)
+    
+    if (const ThreadSpec *thread_spec =
+        bkpt_sp->GetOptions().GetThreadSpecNoCreate(); thread_spec != nullptr)
       thread_idx = thread_spec->GetIndex();
   }
 

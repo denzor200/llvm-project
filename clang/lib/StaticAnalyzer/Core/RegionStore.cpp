@@ -996,8 +996,8 @@ static bool isCompatibleWithFields(BindingKey K, const FieldVector &Fields) {
   FieldVector FieldsInBindingKey;
   getSymbolicOffsetFields(K, FieldsInBindingKey);
 
-  ptrdiff_t Delta = FieldsInBindingKey.size() - Fields.size();
-  if (Delta >= 0)
+  
+  if (ptrdiff_t Delta = FieldsInBindingKey.size() - Fields.size(); Delta >= 0)
     return std::equal(FieldsInBindingKey.begin() + Delta,
                       FieldsInBindingKey.end(),
                       Fields.begin());
@@ -1067,8 +1067,8 @@ collectSubRegionBindings(SmallVectorImpl<BindingPair> &Bindings,
       }
 
     } else if (NextKey.hasSymbolicOffset()) {
-      const MemRegion *Base = NextKey.getConcreteOffsetRegion();
-      if (Top->isSubRegionOf(Base) && Top != Base) {
+      
+      if (const MemRegion *Base = NextKey.getConcreteOffsetRegion(); Top->isSubRegionOf(Base) && Top != Base) {
         // Case 3: The next key is symbolic and we just changed something within
         // its concrete region. We don't know if the binding is still valid, so
         // we'll be conservative and include it.
@@ -1257,8 +1257,8 @@ void InvalidateRegionsWorker::VisitCluster(const MemRegion *baseR,
   if (const BlockDataRegion *BR = dyn_cast<BlockDataRegion>(baseR)) {
     for (auto Var : BR->referenced_vars()) {
       const VarRegion *VR = Var.getCapturedRegion();
-      const VarDecl *VD = VR->getDecl();
-      if (VD->hasAttr<BlocksAttr>() || !VD->hasLocalStorage()) {
+      
+      if (const VarDecl *VD = VR->getDecl(); VD->hasAttr<BlocksAttr>() || !VD->hasLocalStorage()) {
         AddToWorkList(VR);
       }
       else if (Loc::isLocType(VR->getValueType())) {
@@ -1321,11 +1321,11 @@ void InvalidateRegionsWorker::VisitCluster(const MemRegion *baseR,
   }
 
   if (const ArrayType *AT = Ctx.getAsArrayType(T)) {
-    bool doNotInvalidateSuperRegion = ITraits.hasTrait(
-        baseR,
-        RegionAndSymbolInvalidationTraits::TK_DoNotInvalidateSuperRegion);
+    
 
-    if (doNotInvalidateSuperRegion) {
+    if (bool doNotInvalidateSuperRegion = ITraits.hasTrait(
+        baseR,
+        RegionAndSymbolInvalidationTraits::TK_DoNotInvalidateSuperRegion); doNotInvalidateSuperRegion) {
       // We are not doing blank invalidation of the whole array region so we
       // have to manually invalidate each elements.
       std::optional<uint64_t> NumElements;
@@ -1643,10 +1643,10 @@ SVal RegionStoreManager::getBinding(RegionBindingsConstRef B, Loc L, QualType T)
     return svalBuilder.evalCast(getBindingForVar(B, VR), T, QualType{});
   }
 
-  const SVal *V = B.lookup(R, BindingKey::Direct);
+  
 
   // Check if the region has a binding.
-  if (V)
+  if (const SVal *V = B.lookup(R, BindingKey::Direct); V)
     return *V;
 
   // The location does not have a bound value.  This means that it has
@@ -2123,15 +2123,15 @@ SVal RegionStoreManager::getBindingForField(RegionBindingsConstRef B,
   // If the containing record was initialized, try to get its constant value.
   const FieldDecl *FD = R->getDecl();
   QualType Ty = FD->getType();
-  const MemRegion* superR = R->getSuperRegion();
-  if (const auto *VR = dyn_cast<VarRegion>(superR)) {
+  
+  if (const MemRegion* superR = R->getSuperRegion(); const auto *VR = dyn_cast<VarRegion>(superR)) {
     const VarDecl *VD = VR->getDecl();
     QualType RecordVarTy = VD->getType();
-    unsigned Index = FD->getFieldIndex();
+    
     // Either the record variable or the field has an initializer that we can
     // trust. We trust initializers of constants and, additionally, respect
     // initializers of globals when analyzing main().
-    if (RecordVarTy.isConstQualified() || Ty.isConstQualified() ||
+    if (unsigned Index = FD->getFieldIndex(); RecordVarTy.isConstQualified() || Ty.isConstQualified() ||
         (B.isMainAnalysis() && VD->hasGlobalStorage()))
       if (const Expr *Init = VD->getAnyInitializer())
         if (const auto *InitList = dyn_cast<InitListExpr>(Init)) {
@@ -2321,10 +2321,10 @@ SVal RegionStoreManager::getBindingForObjCIvar(RegionBindingsConstRef B,
   if (const std::optional<SVal> &V = B.getDirectBinding(R))
     return *V;
 
-  const MemRegion *superR = R->getSuperRegion();
+  
 
   // Check if the super region has a default binding.
-  if (const std::optional<SVal> &V = B.getDefaultBinding(superR)) {
+  if (const MemRegion *superR = R->getSuperRegion(); const std::optional<SVal> &V = B.getDefaultBinding(superR)) {
     if (SymbolRef parentSym = V->getAsSymbol())
       return svalBuilder.getDerivedRegionValueSymbolVal(parentSym, R);
 
@@ -2451,9 +2451,9 @@ NonLoc RegionStoreManager::createLazyBinding(RegionBindingsConstRef B,
 
 SVal RegionStoreManager::getBindingForStruct(RegionBindingsConstRef B,
                                              const TypedValueRegion *R) {
-  const RecordDecl *RD =
-      R->getValueType()->castAsCanonical<RecordType>()->getDecl();
-  if (!RD->getDefinition())
+  
+  if (const RecordDecl *RD =
+      R->getValueType()->castAsCanonical<RecordType>()->getDecl(); !RD->getDefinition())
     return UnknownVal();
 
   // We also create a LCV for copying empty structs because then the store
@@ -2680,9 +2680,9 @@ RegionStoreManager::bindArray(LimitedRegionBindingsConstRef B,
       return NewB.withValuesEscaped(VI, VE);
 
     NonLoc Idx = svalBuilder.makeArrayIndex(i);
-    const ElementRegion *ER = MRMgr.getElementRegion(ElementTy, Idx, R, Ctx);
+    
 
-    if (ElementTy->isStructureOrClassType())
+    if (const ElementRegion *ER = MRMgr.getElementRegion(ElementTy, Idx, R, Ctx); ElementTy->isStructureOrClassType())
       NewB = bindStruct(NewB, ER, *VI);
     else if (ElementTy->isArrayType())
       NewB = bindArray(NewB, ER, *VI);
@@ -2735,9 +2735,9 @@ RegionStoreManager::bindVector(LimitedRegionBindingsConstRef B,
       return NewB.withValuesEscaped(VI, VE);
 
     NonLoc Idx = svalBuilder.makeArrayIndex(index);
-    const ElementRegion *ER = MRMgr.getElementRegion(ElemType, Idx, R, Ctx);
+    
 
-    if (ElemType->isArrayType())
+    if (const ElementRegion *ER = MRMgr.getElementRegion(ElemType, Idx, R, Ctx); ElemType->isArrayType())
       NewB = bindArray(NewB, ER, *VI);
     else if (ElemType->isStructureOrClassType())
       NewB = bindStruct(NewB, ER, *VI);
@@ -2898,9 +2898,9 @@ RegionStoreManager::bindStruct(LimitedRegionBindingsConstRef B,
       continue;
 
     QualType FTy = FI->getType();
-    const FieldRegion* FR = MRMgr.getFieldRegion(*FI, R);
+    
 
-    if (FTy->isArrayType())
+    if (const FieldRegion* FR = MRMgr.getFieldRegion(*FI, R); FTy->isArrayType())
       NewB = bindArray(NewB, FR, *VI);
     else if (FTy->isStructureOrClassType())
       NewB = bindStruct(NewB, FR, *VI);
@@ -3000,8 +3000,8 @@ void RemoveDeadBindingsWorker::VisitAddedToCluster(const MemRegion *baseR,
   if (const CXXThisRegion *TR = dyn_cast<CXXThisRegion>(baseR)) {
     const auto *StackReg =
         cast<StackArgumentsSpaceRegion>(TR->getSuperRegion());
-    const StackFrameContext *RegCtx = StackReg->getStackFrame();
-    if (CurrentLCtx &&
+    
+    if (const StackFrameContext *RegCtx = StackReg->getStackFrame(); CurrentLCtx &&
         (RegCtx == CurrentLCtx || RegCtx->isParentOf(CurrentLCtx)))
       AddToWorkList(TR, &C);
   }

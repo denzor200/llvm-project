@@ -144,10 +144,10 @@ LIBC_INLINE static constexpr double atan2(double y, double x) {
       return fputil::multiply_add(IS_NEG[y_sign], r.hi, IS_NEG[y_sign] * r.lo);
     }
     bool scale_up = min_exp < 128U;
-    bool scale_down = max_exp > 0x7ffU - 128U;
+    
     // At least one input is denormal, multiply both numerator and denominator
     // by some large enough power of 2 to normalize denormal inputs.
-    if (scale_up) {
+    if (bool scale_down = max_exp > 0x7ffU - 128U; scale_up) {
       num *= 0x1.0p64;
       if (!scale_down)
         den *= 0x1.0p64;

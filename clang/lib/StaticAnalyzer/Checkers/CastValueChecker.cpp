@@ -491,8 +491,8 @@ bool CastValueChecker::evalCall(const CallEvent &Call,
   }
   case CallKind::InstanceOf: {
     // We need to obtain the only template argument to determinte the type.
-    const FunctionDecl *FD = Call.getDecl()->getAsFunction();
-    if (!FD || !FD->getTemplateSpecializationArgs())
+    
+    if (const FunctionDecl *FD = Call.getDecl()->getAsFunction(); !FD || !FD->getTemplateSpecializationArgs())
       return false;
 
     DV = Call.getArgSVal(0).getAs<DefinedOrUnknownSVal>();

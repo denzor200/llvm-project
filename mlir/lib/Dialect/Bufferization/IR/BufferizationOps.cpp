@@ -308,8 +308,8 @@ struct ReplaceStaticShapeDims : OpRewritePattern<AllocTensorOp> {
       Value value = op.getDynamicSizes()[dynValCounter++];
       APInt intVal;
       if (matchPattern(value, m_ConstantInt(&intVal))) {
-        int64_t dim = intVal.getSExtValue();
-        if (dim >= 0)
+        
+        if (int64_t dim = intVal.getSExtValue(); dim >= 0)
           newShape[i] = intVal.getSExtValue();
         else
           newDynamicSizes.push_back(value);
@@ -967,8 +967,8 @@ struct DeallocRemoveDuplicateDeallocMemrefs
       if (memrefToCondition.count(memref)) {
         // If the dealloc conditions don't match, we need to make sure that the
         // dealloc happens on the union of cases.
-        Value &newCond = newConditions[memrefToCondition[memref]];
-        if (newCond != cond)
+        
+        if (Value &newCond = newConditions[memrefToCondition[memref]]; newCond != cond)
           newCond =
               arith::OrIOp::create(rewriter, deallocOp.getLoc(), newCond, cond);
       } else {

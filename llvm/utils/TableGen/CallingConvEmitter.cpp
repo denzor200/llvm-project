@@ -341,8 +341,8 @@ void CallingConvEmitter::emitArgRegisterLists(raw_ostream &O) {
       Worklist.pop_front();
 
       const std::string &CCName = Entry.first;
-      std::set<std::string> &Registers = Entry.second;
-      if (!Registers.empty())
+      
+      if (std::set<std::string> &Registers = Entry.second; !Registers.empty())
         continue;
 
       for (auto &InnerEntry : Worklist) {

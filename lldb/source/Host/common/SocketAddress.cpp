@@ -233,8 +233,8 @@ SocketAddress::GetAddressInfo(const char *hostname, const char *servname,
   hints.ai_flags = ai_flags;
 
   struct addrinfo *service_info_list = nullptr;
-  int err = ::getaddrinfo(hostname, servname, &hints, &service_info_list);
-  if (err == 0 && service_info_list) {
+  
+  if (int err = ::getaddrinfo(hostname, servname, &hints, &service_info_list); err == 0 && service_info_list) {
     for (struct addrinfo *service_ptr = service_info_list;
          service_ptr != nullptr; service_ptr = service_ptr->ai_next) {
       addr_list.emplace_back(SocketAddress(service_ptr));

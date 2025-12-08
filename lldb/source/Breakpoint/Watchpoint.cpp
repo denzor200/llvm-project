@@ -518,8 +518,8 @@ void Watchpoint::WatchpointEventData::Dump(Stream *s) const {}
 const Watchpoint::WatchpointEventData *
 Watchpoint::WatchpointEventData::GetEventDataFromEvent(const Event *event) {
   if (event) {
-    const EventData *event_data = event->GetData();
-    if (event_data &&
+    
+    if (const EventData *event_data = event->GetData(); event_data &&
         event_data->GetFlavor() == WatchpointEventData::GetFlavorString())
       return static_cast<const WatchpointEventData *>(event->GetData());
   }
@@ -540,8 +540,8 @@ WatchpointSP Watchpoint::WatchpointEventData::GetWatchpointFromEvent(
     const EventSP &event_sp) {
   WatchpointSP wp_sp;
 
-  const WatchpointEventData *data = GetEventDataFromEvent(event_sp.get());
-  if (data)
+  
+  if (const WatchpointEventData *data = GetEventDataFromEvent(event_sp.get()); data)
     wp_sp = data->m_new_watchpoint_sp;
 
   return wp_sp;

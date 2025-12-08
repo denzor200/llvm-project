@@ -149,8 +149,8 @@ void LiveRegUnits::addLiveOuts(const MachineBasicBlock &MBB) {
 
   // For the return block: Add all callee saved registers.
   if (MBB.isReturnBlock()) {
-    const MachineFrameInfo &MFI = MF.getFrameInfo();
-    if (MFI.isCalleeSavedInfoValid())
+    
+    if (const MachineFrameInfo &MFI = MF.getFrameInfo(); MFI.isCalleeSavedInfoValid())
       addCalleeSavedRegs(*this, MF);
   }
 }

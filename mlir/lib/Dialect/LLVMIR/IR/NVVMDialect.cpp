@@ -130,8 +130,8 @@ LogicalResult CpAsyncBulkTensorSharedCTAToGlobalOp::verify() {
       return emitError("Inline-ptx lowering unsupported with L2 cache-hint.");
   }
 
-  size_t dims = getCoordinates().size();
-  switch (mode) {
+  
+  switch (size_t dims = getCoordinates().size(); mode) {
   case TMAStoreMode::TILE:
     return cpAsyncBulkTensorCommonVerifier(dims, false, 0, getLoc());
   case TMAStoreMode::IM2COL:
@@ -197,8 +197,8 @@ LogicalResult CpAsyncBulkTensorPrefetchOp::verify() {
 
 LogicalResult CpAsyncBulkTensorGlobalToSharedClusterOp::verify() {
   TMALoadMode mode = getMode();
-  bool isCTAOnly = getIsCTAOnly();
-  if (getPredicate()) { // Inline-asm based lowering
+  
+  if (bool isCTAOnly = getIsCTAOnly(); getPredicate()) { // Inline-asm based lowering
     if (isCTAOnly)
       return emitError("Predicate is supported only for shared::cluster mode.");
     if (mode != TMALoadMode::TILE && mode != TMALoadMode::IM2COL)
@@ -207,9 +207,9 @@ LogicalResult CpAsyncBulkTensorGlobalToSharedClusterOp::verify() {
   } else { // Intrinsics-based lowering
     NVVMMemorySpace expectedAS =
         isCTAOnly ? NVVMMemorySpace::Shared : NVVMMemorySpace::SharedCluster;
-    unsigned AS = llvm::cast<LLVM::LLVMPointerType>(getDstMem().getType())
-                      .getAddressSpace();
-    if (AS != expectedAS)
+    
+    if (unsigned AS = llvm::cast<LLVM::LLVMPointerType>(getDstMem().getType())
+                      .getAddressSpace(); AS != expectedAS)
       return emitError()
              << (isCTAOnly
                      ? "Shared::cta destination requires address-space 3."
@@ -229,8 +229,8 @@ LogicalResult CpAsyncBulkTensorGlobalToSharedClusterOp::verify() {
 
 LogicalResult CpAsyncBulkTensorReduceOp::verify() {
   TMAStoreMode mode = getMode();
-  size_t dims = getCoordinates().size();
-  switch (mode) {
+  
+  switch (size_t dims = getCoordinates().size(); mode) {
   case TMAStoreMode::TILE:
     return cpAsyncBulkTensorCommonVerifier(dims, false, 0, getLoc());
   case TMAStoreMode::IM2COL:
@@ -242,8 +242,8 @@ LogicalResult CpAsyncBulkTensorReduceOp::verify() {
 }
 
 LogicalResult CpAsyncBulkGlobalToSharedClusterOp::verify() {
-  bool isSharedCTA = isPtrInSharedCTASpace(getDstMem());
-  if (isSharedCTA && getMulticastMask())
+  
+  if (bool isSharedCTA = isPtrInSharedCTASpace(getDstMem()); isSharedCTA && getMulticastMask())
     return emitError("Multicast is not supported with shared::cta mode.");
 
   return success();
@@ -300,9 +300,9 @@ LogicalResult ConvertFloatToTF32Op::verify() {
 }
 
 LogicalResult ConvertF32x2ToF6x2Op::verify() {
-  mlir::MLIRContext *ctx = getContext();
+  
 
-  if (!llvm::isa<mlir::Float6E2M3FNType, mlir::Float6E3M2FNType>(getDstTy())) {
+  if (mlir::MLIRContext *ctx = getContext(); !llvm::isa<mlir::Float6E2M3FNType, mlir::Float6E3M2FNType>(getDstTy())) {
     return emitOpError("Only ")
            << mlir::Float6E2M3FNType::get(ctx) << " and "
            << mlir::Float6E3M2FNType::get(ctx)
@@ -365,9 +365,9 @@ LogicalResult ConvertF32x2ToF8x2Op::verify() {
 }
 
 LogicalResult ConvertF16x2ToF8x2Op::verify() {
-  mlir::MLIRContext *ctx = getContext();
+  
 
-  if (!llvm::isa<mlir::Float8E4M3FNType, mlir::Float8E5M2Type>(getDstTy())) {
+  if (mlir::MLIRContext *ctx = getContext(); !llvm::isa<mlir::Float8E4M3FNType, mlir::Float8E5M2Type>(getDstTy())) {
     return emitOpError("Only ")
            << mlir::Float8E4M3FNType::get(ctx) << " and "
            << mlir::Float8E5M2Type::get(ctx)
@@ -393,9 +393,9 @@ LogicalResult ConvertBF16x2ToF8x2Op::verify() {
 }
 
 LogicalResult ConvertF32x2ToF4x2Op::verify() {
-  mlir::MLIRContext *ctx = getContext();
+  
 
-  if (!llvm::isa<mlir::Float4E2M1FNType>(getDstTy()))
+  if (mlir::MLIRContext *ctx = getContext(); !llvm::isa<mlir::Float4E2M1FNType>(getDstTy()))
     return emitOpError("Only ")
            << mlir::Float4E2M1FNType::get(ctx)
            << " type is supported for conversions from f32x2 to f4x2.";
@@ -404,9 +404,9 @@ LogicalResult ConvertF32x2ToF4x2Op::verify() {
 }
 
 LogicalResult ConvertF8x2ToF16x2Op::verify() {
-  mlir::MLIRContext *ctx = getContext();
+  
 
-  if (!llvm::isa<Float8E4M3FNType, Float8E5M2Type>(getSrcType()))
+  if (mlir::MLIRContext *ctx = getContext(); !llvm::isa<Float8E4M3FNType, Float8E5M2Type>(getSrcType()))
     return emitOpError("Only ")
            << mlir::Float8E4M3FNType::get(ctx) << " and "
            << mlir::Float8E5M2Type::get(ctx)
@@ -416,8 +416,8 @@ LogicalResult ConvertF8x2ToF16x2Op::verify() {
 }
 
 LogicalResult ConvertF8x2ToBF16x2Op::verify() {
-  mlir::MLIRContext *ctx = getContext();
-  if (!llvm::isa<Float8E8M0FNUType>(getSrcType()))
+  
+  if (mlir::MLIRContext *ctx = getContext(); !llvm::isa<Float8E8M0FNUType>(getSrcType()))
     return emitOpError("Only ")
            << mlir::Float8E8M0FNUType::get(ctx)
            << " type is supported for conversions from f8x2 to bf16x2.";
@@ -426,9 +426,9 @@ LogicalResult ConvertF8x2ToBF16x2Op::verify() {
 }
 
 LogicalResult ConvertF6x2ToF16x2Op::verify() {
-  mlir::MLIRContext *ctx = getContext();
+  
 
-  if (!llvm::isa<Float6E2M3FNType, Float6E3M2FNType>(getSrcType()))
+  if (mlir::MLIRContext *ctx = getContext(); !llvm::isa<Float6E2M3FNType, Float6E3M2FNType>(getSrcType()))
     return emitOpError("Only ")
            << mlir::Float6E2M3FNType::get(ctx) << " and "
            << mlir::Float6E3M2FNType::get(ctx)
@@ -438,9 +438,9 @@ LogicalResult ConvertF6x2ToF16x2Op::verify() {
 }
 
 LogicalResult ConvertF4x2ToF16x2Op::verify() {
-  mlir::MLIRContext *ctx = getContext();
+  
 
-  if (!llvm::isa<Float4E2M1FNType>(getSrcType()))
+  if (mlir::MLIRContext *ctx = getContext(); !llvm::isa<Float4E2M1FNType>(getSrcType()))
     return emitOpError("Only ")
            << mlir::Float4E2M1FNType::get(ctx)
            << " type is supported for conversions from f4x2 to f16x2.";
@@ -491,9 +491,9 @@ LogicalResult ConvertF32x2ToBF16x2Op::verify() {
 }
 
 LogicalResult ConvertF32x4ToF8x4Op::verify() {
-  mlir::MLIRContext *ctx = getContext();
+  
 
-  if (!llvm::isa<mlir::Float8E4M3FNType, mlir::Float8E5M2Type>(getDstTy()))
+  if (mlir::MLIRContext *ctx = getContext(); !llvm::isa<mlir::Float8E4M3FNType, mlir::Float8E5M2Type>(getDstTy()))
     return emitOpError("Only ")
            << mlir::Float8E4M3FNType::get(ctx) << " and "
            << mlir::Float8E5M2Type::get(ctx)
@@ -503,9 +503,9 @@ LogicalResult ConvertF32x4ToF8x4Op::verify() {
 }
 
 LogicalResult ConvertF32x4ToF6x4Op::verify() {
-  mlir::MLIRContext *ctx = getContext();
+  
 
-  if (!llvm::isa<mlir::Float6E2M3FNType, mlir::Float6E3M2FNType>(getDstTy()))
+  if (mlir::MLIRContext *ctx = getContext(); !llvm::isa<mlir::Float6E2M3FNType, mlir::Float6E3M2FNType>(getDstTy()))
     return emitOpError("Only ")
            << mlir::Float6E2M3FNType::get(ctx) << " and "
            << mlir::Float6E3M2FNType::get(ctx)
@@ -515,9 +515,9 @@ LogicalResult ConvertF32x4ToF6x4Op::verify() {
 }
 
 LogicalResult ConvertF32x4ToF4x4Op::verify() {
-  mlir::MLIRContext *ctx = getContext();
+  
 
-  if (!llvm::isa<mlir::Float4E2M1FNType>(getDstTy()))
+  if (mlir::MLIRContext *ctx = getContext(); !llvm::isa<mlir::Float4E2M1FNType>(getDstTy()))
     return emitOpError("Only ") << mlir::Float4E2M1FNType::get(ctx)
                                 << " type is supported for conversions from "
                                    "f32x4 to f4x4.";
@@ -961,9 +961,9 @@ LogicalResult MmaOp::verify() {
     SmallVector<Type, 4> operandTySeg(operand_type_begin() + spec.first,
                                       operand_type_begin() + spec.first +
                                           spec.second);
-    bool match = llvm::is_contained(iter.value(), operandTySeg);
+    
 
-    if (!match) {
+    if (bool match = llvm::is_contained(iter.value(), operandTySeg); !match) {
       errorStream << "Could not match types for the "
                   << operandNames[iter.index()]
                   << " operands; expected one of ";
@@ -1006,11 +1006,11 @@ LogicalResult MmaOp::verify() {
   // Validate layout combinations. According to the operation description, most
   // MMA operations require layoutA=row and layoutB=col. Only m8n8k4 with f16
   // can use other layout combinations.
-  bool isM8N8K4_F16 =
-      (mmaShape[0] == 8 && mmaShape[1] == 8 && mmaShape[2] == 4 &&
-       getMultiplicandAPtxType() == MMATypes::f16);
+  
 
-  if (!isM8N8K4_F16) {
+  if (bool isM8N8K4_F16 =
+      (mmaShape[0] == 8 && mmaShape[1] == 8 && mmaShape[2] == 4 &&
+       getMultiplicandAPtxType() == MMATypes::f16); !isM8N8K4_F16) {
     // For all other shapes/types, layoutA must be row and layoutB must be col
     if (getLayoutA() != MMALayout::row || getLayoutB() != MMALayout::col) {
       return emitOpError("requires layoutA = #nvvm.mma_layout<row> and "
@@ -1453,9 +1453,9 @@ LogicalResult MmaSpOp::verify() {
     SmallVector<Type, 4> operandTySeg(operand_type_begin() + spec.first,
                                       operand_type_begin() + spec.first +
                                           spec.second);
-    bool match = llvm::is_contained(iter.value(), operandTySeg);
+    
 
-    if (!match) {
+    if (bool match = llvm::is_contained(iter.value(), operandTySeg); !match) {
       errorStream << "Could not match types for the "
                   << operandNames[iter.index()]
                   << " operands; expected one of ";
@@ -1609,9 +1609,9 @@ inferMMATypeFromMNK(NVVM::MMATypes type, NVVM::MMAFrag frag, int m, int n,
 }
 
 LogicalResult NVVM::WMMALoadOp::verify() {
-  unsigned addressSpace =
-      llvm::cast<LLVM::LLVMPointerType>(getPtr().getType()).getAddressSpace();
-  if (addressSpace != 0 && addressSpace != NVVMMemorySpace::Global &&
+  
+  if (unsigned addressSpace =
+      llvm::cast<LLVM::LLVMPointerType>(getPtr().getType()).getAddressSpace(); addressSpace != 0 && addressSpace != NVVMMemorySpace::Global &&
       addressSpace != NVVMMemorySpace::Shared)
     return emitOpError("expected source pointer in memory "
                        "space 0, 1, 3");
@@ -1638,9 +1638,9 @@ LogicalResult NVVM::WMMALoadOp::verify() {
 }
 
 LogicalResult NVVM::WMMAStoreOp::verify() {
-  unsigned addressSpace =
-      llvm::cast<LLVM::LLVMPointerType>(getPtr().getType()).getAddressSpace();
-  if (addressSpace != 0 && addressSpace != NVVMMemorySpace::Global &&
+  
+  if (unsigned addressSpace =
+      llvm::cast<LLVM::LLVMPointerType>(getPtr().getType()).getAddressSpace(); addressSpace != 0 && addressSpace != NVVMMemorySpace::Global &&
       addressSpace != NVVMMemorySpace::Shared)
     return emitOpError("expected operands to be a source pointer in memory "
                        "space 0, 1, 3");
@@ -1747,8 +1747,8 @@ LogicalResult NVVM::LdMatrixOp::verify() {
 }
 
 LogicalResult NVVM::StMatrixOp::verify() {
-  int numMatrix = getSources().size();
-  if (numMatrix != 1 && numMatrix != 2 && numMatrix != 4)
+  
+  if (int numMatrix = getSources().size(); numMatrix != 1 && numMatrix != 2 && numMatrix != 4)
     return emitOpError("expected num attribute to be 1, 2 or 4");
 
   int m = getShape().getM(), n = getShape().getN();
@@ -2294,8 +2294,8 @@ packValInto64Bits(llvm::IRBuilderBase &builder,
                   unsigned start) {    // Starting bit within `result`
   field = builder.CreateZExtOrBitCast(field, builder.getInt32Ty());
 
-  unsigned mask = (sizeInBits < 32 ? ((1u << sizeInBits) - 1) : 0xffffffffu);
-  if (mask != 0xffffffffu)
+  
+  if (unsigned mask = (sizeInBits < 32 ? ((1u << sizeInBits) - 1) : 0xffffffffu); mask != 0xffffffffu)
     field = builder.CreateAnd(field, builder.getInt32(mask));
 
   field = builder.CreateZExtOrBitCast(field, builder.getInt64Ty());
@@ -2787,10 +2787,10 @@ CpAsyncBulkTensorGlobalToSharedClusterOp::getIntrinsicIDAndArgs(
   // Hence, the +1 to getGroup().
   const int32_t val =
       thisOp.getGroup() ? (static_cast<int32_t>(*thisOp.getGroup()) + 1) : 0;
-  llvm::Value *cg =
-      llvm::ConstantInt::get(llvm::Type::getInt32Ty(mt.getLLVMContext()), val);
+  
 
-  if (!isCTAOnly) {
+  if (llvm::Value *cg =
+      llvm::ConstantInt::get(llvm::Type::getInt32Ty(mt.getLLVMContext()), val); !isCTAOnly) {
     // For shared::cluster, all the arguments that we build are applicable.
     args.push_back(hasMC ? mt.lookupValue(mcMask) : i16Zero);
     args.push_back(hasCacheHint ? mt.lookupValue(cacheHint) : i64Zero);
@@ -3119,8 +3119,8 @@ llvm::Intrinsic::ID
 ConvertFloatToTF32Op::getIntrinsicID(NVVM::FPRoundingMode rnd,
                                      NVVM::SaturationMode sat, bool hasRelu) {
   using RndMode = NVVM::FPRoundingMode;
-  bool hasSatFinite = (sat == NVVM::SaturationMode::SATFINITE);
-  switch (rnd) {
+  
+  switch (bool hasSatFinite = (sat == NVVM::SaturationMode::SATFINITE); rnd) {
   case RndMode::RN:
     return GET_CVT_F2TF32_ID(rn, _relu, _satfinite);
   case RndMode::RZ:
@@ -3230,8 +3230,8 @@ llvm::Intrinsic::ID ConvertF16x2ToF8x2Op::getIntrinsicID(mlir::Type dstTy,
 llvm::Intrinsic::ID
 ConvertBF16x2ToF8x2Op::getIntrinsicID(NVVM::FPRoundingMode rnd,
                                       NVVM::SaturationMode sat) {
-  bool hasSatFinite = (sat == NVVM::SaturationMode::SATFINITE);
-  switch (rnd) {
+  
+  switch (bool hasSatFinite = (sat == NVVM::SaturationMode::SATFINITE); rnd) {
   case NVVM::FPRoundingMode::RZ:
     return GET_BF16X2_TO_F8X2_ID(rz, hasSatFinite);
   case NVVM::FPRoundingMode::RP:

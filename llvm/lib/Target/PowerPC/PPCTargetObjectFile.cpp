@@ -37,9 +37,9 @@ MCSection *PPC64LinuxTargetObjectFile::SelectSectionForGlobal(
   // For more information, see the description of ELIMINATE_COPY_RELOCS in
   // GNU ld.
   if (Kind.isReadOnly()) {
-    const auto *GVar = dyn_cast<GlobalVariable>(GO);
+    
 
-    if (GVar && GVar->isConstant() &&
+    if (const auto *GVar = dyn_cast<GlobalVariable>(GO); GVar && GVar->isConstant() &&
         GVar->getInitializer()->needsDynamicRelocation())
       Kind = SectionKind::getReadOnlyWithRel();
   }

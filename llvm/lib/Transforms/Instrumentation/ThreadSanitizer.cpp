@@ -374,8 +374,8 @@ static bool shouldInstrumentReadWriteFromAddress(const Module *M, Value *Addr) {
   // Do not instrument accesses from different address spaces; we cannot deal
   // with them.
   if (Addr) {
-    Type *PtrTy = cast<PointerType>(Addr->getType()->getScalarType());
-    if (PtrTy->getPointerAddressSpace() != 0)
+    
+    if (Type *PtrTy = cast<PointerType>(Addr->getType()->getScalarType()); PtrTy->getPointerAddressSpace() != 0)
       return false;
   }
 
@@ -434,10 +434,10 @@ void ThreadSanitizer::chooseInstructionsToInstrument(
         auto &WI = All[WriteEntry->second];
         // If we distinguish volatile accesses and if either the read or write
         // is volatile, do not omit any instrumentation.
-        const bool AnyVolatile =
+        
+        if (const bool AnyVolatile =
             ClDistinguishVolatile && (cast<LoadInst>(I)->isVolatile() ||
-                                      cast<StoreInst>(WI.Inst)->isVolatile());
-        if (!AnyVolatile) {
+                                      cast<StoreInst>(WI.Inst)->isVolatile()); !AnyVolatile) {
           // We will write to this temp, so no reason to analyze the read.
           // Mark the write instruction as compound.
           WI.Flags |= InstructionInfo::kCompoundRW;

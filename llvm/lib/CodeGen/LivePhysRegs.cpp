@@ -163,8 +163,8 @@ void LivePhysRegs::addRegMaskPair(
     return;
   }
   for (; S.isValid(); ++S) {
-    unsigned SI = S.getSubRegIndex();
-    if ((Mask & TRI->getSubRegIndexLaneMask(SI)).any())
+    
+    if (unsigned SI = S.getSubRegIndex(); (Mask & TRI->getSubRegIndexLaneMask(SI)).any())
       addReg(S.getSubReg());
   }
 }
@@ -229,8 +229,8 @@ void LivePhysRegs::addLiveOutsNoPristines(const MachineBasicBlock &MBB) {
     // FIXME: PEI should add explicit markings to return instructions
     // instead of implicitly handling them here.
     const MachineFunction &MF = *MBB.getParent();
-    const MachineFrameInfo &MFI = MF.getFrameInfo();
-    if (MFI.isCalleeSavedInfoValid()) {
+    
+    if (const MachineFrameInfo &MFI = MF.getFrameInfo(); MFI.isCalleeSavedInfoValid()) {
       for (const CalleeSavedInfo &Info : MFI.getCalleeSavedInfo())
         if (Info.isRestored())
           addReg(Info.getReg());

@@ -138,8 +138,8 @@ void SIPreAllocateWWMRegs::rewriteRegs(MachineFunction &MF) {
           continue;
 
         Register PhysReg = VRM->getPhys(VirtReg);
-        const unsigned SubReg = MO.getSubReg();
-        if (SubReg != 0) {
+        
+        if (const unsigned SubReg = MO.getSubReg(); SubReg != 0) {
           PhysReg = TRI->getSubReg(PhysReg, SubReg);
           MO.setSubReg(0);
         }

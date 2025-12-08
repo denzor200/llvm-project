@@ -144,8 +144,8 @@ bool SBProcess::RemoteLaunch(char const **argv, char const **envp,
       ProcessLaunchInfo launch_info(FileSpec(stdin_path), FileSpec(stdout_path),
                                     FileSpec(stderr_path),
                                     FileSpec(working_directory), launch_flags);
-      Module *exe_module = process_sp->GetTarget().GetExecutableModulePointer();
-      if (exe_module)
+      
+      if (Module *exe_module = process_sp->GetTarget().GetExecutableModulePointer(); exe_module)
         launch_info.SetExecutableFile(exe_module->GetPlatformFileSpec(), true);
       if (argv)
         launch_info.GetArguments().AppendArguments(argv);
@@ -1193,9 +1193,9 @@ const char *SBProcess::GetExtendedBacktraceTypeAtIndex(uint32_t idx) {
   ProcessSP process_sp(GetSP());
   if (process_sp && process_sp->GetSystemRuntime()) {
     SystemRuntime *runtime = process_sp->GetSystemRuntime();
-    const std::vector<ConstString> &names =
-        runtime->GetExtendedBacktraceTypes();
-    if (idx < names.size()) {
+    
+    if (const std::vector<ConstString> &names =
+        runtime->GetExtendedBacktraceTypes(); idx < names.size()) {
       return names[idx].AsCString();
     }
   }

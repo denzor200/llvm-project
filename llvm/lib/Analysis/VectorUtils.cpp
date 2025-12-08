@@ -307,8 +307,8 @@ Value *llvm::findScalarElement(Value *V, unsigned EltNo) {
   VectorType *VTy = cast<VectorType>(V->getType());
   // For fixed-length vector, return poison for out of range access.
   if (auto *FVTy = dyn_cast<FixedVectorType>(VTy)) {
-    unsigned Width = FVTy->getNumElements();
-    if (EltNo >= Width)
+    
+    if (unsigned Width = FVTy->getNumElements(); EltNo >= Width)
       return PoisonValue::get(FVTy->getElementType());
   }
 
@@ -561,8 +561,8 @@ bool llvm::widenShuffleMaskElts(int Scale, ArrayRef<int> Mask,
     assert((int)MaskSlice.size() == Scale && "Expected Scale-sized slice.");
 
     // The first element of the slice determines how we evaluate this slice.
-    int SliceFront = MaskSlice.front();
-    if (SliceFront < 0) {
+    
+    if (int SliceFront = MaskSlice.front(); SliceFront < 0) {
       // Negative values (undef or other "sentinel" values) must be equal across
       // the entire slice.
       if (!all_equal(MaskSlice))
@@ -699,9 +699,9 @@ void llvm::processShuffleMasks(
   // Process split mask.
   for (unsigned I : seq<unsigned>(NumOfUsedRegs)) {
     auto &Dest = Res[I];
-    int NumSrcRegs =
-        count_if(Dest, [](ArrayRef<int> Mask) { return !Mask.empty(); });
-    switch (NumSrcRegs) {
+    
+    switch (int NumSrcRegs =
+        count_if(Dest, [](ArrayRef<int> Mask) { return !Mask.empty(); }); NumSrcRegs) {
     case 0:
       // No input vectors were used!
       NoInputAction();
@@ -795,8 +795,8 @@ void llvm::getHorizDemandedEltsForFirstOperand(unsigned VectorBitWidth,
     if (!DemandedElts[Idx])
       continue;
     int LaneIdx = (Idx / NumEltsPerLane) * NumEltsPerLane;
-    int LocalIdx = Idx % NumEltsPerLane;
-    if (LocalIdx < HalfEltsPerLane) {
+    
+    if (int LocalIdx = Idx % NumEltsPerLane; LocalIdx < HalfEltsPerLane) {
       DemandedLHS.setBit(LaneIdx + 2 * LocalIdx);
     } else {
       LocalIdx -= HalfEltsPerLane;
@@ -949,10 +949,10 @@ llvm::computeMinimumValueSizes(ArrayRef<BasicBlock *> Blocks, DemandedBits &DB,
       auto *Call = dyn_cast<CallBase>(MI);
       auto Ops = Call ? Call->args() : MI->operands();
       if (any_of(Ops, [&DB, MinBW](Use &U) {
-            auto *CI = dyn_cast<ConstantInt>(U);
+            
             // For constants shift amounts, check if the shift would result in
             // poison.
-            if (CI &&
+            if (auto *CI = dyn_cast<ConstantInt>(U); CI &&
                 isa<ShlOperator, LShrOperator, AShrOperator>(U.getUser()) &&
                 U.getOperandNo() == 1)
               return CI->uge(MinBW);
@@ -1086,9 +1086,9 @@ Instruction *llvm::propagateMetadata(Instruction *Inst, ArrayRef<Value *> VL) {
   for (auto &[Kind, MD] : Metadata) {
     for (int J = 1, E = VL.size(); MD && J != E; ++J) {
       const Instruction *IJ = cast<Instruction>(VL[J]);
-      MDNode *IMD = IJ->getMetadata(Kind);
+      
 
-      switch (Kind) {
+      switch (MDNode *IMD = IJ->getMetadata(Kind); Kind) {
       case LLVMContext::MD_mmra: {
         MD = MMRAMetadata::combine(Inst->getContext(), MD, IMD);
         break;
@@ -1642,8 +1642,8 @@ void InterleavedAccessInfo::analyzeInterleaving(
     Instruction *Member = Group->getMember(Index);
     assert(Member && "Group member does not exist");
     Value *MemberPtr = getLoadStorePointerOperand(Member);
-    Type *AccessTy = getLoadStoreType(Member);
-    if (getPtrStride(PSE, AccessTy, MemberPtr, TheLoop, *DT, Strides,
+    
+    if (Type *AccessTy = getLoadStoreType(Member); getPtrStride(PSE, AccessTy, MemberPtr, TheLoop, *DT, Strides,
                      /*Assume=*/false, /*ShouldCheckWrap=*/true)
             .value_or(0))
       return false;

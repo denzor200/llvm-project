@@ -117,8 +117,8 @@ bool BPFDAGToDAGISel::SelectAddr(SDValue Addr, SDValue &Base, SDValue &Offset) {
 
   // Addresses of the form Addr+const or Addr|const
   if (CurDAG->isBaseWithConstantOffset(Addr)) {
-    auto *CN = cast<ConstantSDNode>(Addr.getOperand(1));
-    if (isInt<16>(CN->getSExtValue())) {
+    
+    if (auto *CN = cast<ConstantSDNode>(Addr.getOperand(1)); isInt<16>(CN->getSExtValue())) {
       // If the first operand is a FI, get the TargetFI Node
       if (auto *FIN = dyn_cast<FrameIndexSDNode>(Addr.getOperand(0)))
         Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i64);
@@ -144,8 +144,8 @@ bool BPFDAGToDAGISel::SelectFIAddr(SDValue Addr, SDValue &Base,
     return false;
 
   // Addresses of the form Addr+const or Addr|const
-  auto *CN = cast<ConstantSDNode>(Addr.getOperand(1));
-  if (isInt<16>(CN->getSExtValue())) {
+  
+  if (auto *CN = cast<ConstantSDNode>(Addr.getOperand(1)); isInt<16>(CN->getSExtValue())) {
     // If the first operand is a FI, get the TargetFI Node
     if (auto *FIN = dyn_cast<FrameIndexSDNode>(Addr.getOperand(0)))
       Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i64);
@@ -301,8 +301,8 @@ void BPFDAGToDAGISel::PreprocessISelDAG() {
                                        E = CurDAG->allnodes_end();
        I != E;) {
     SDNode *Node = &*I++;
-    unsigned Opcode = Node->getOpcode();
-    if (Opcode == ISD::LOAD)
+    
+    if (unsigned Opcode = Node->getOpcode(); Opcode == ISD::LOAD)
       PreprocessLoad(Node, I);
     else if (Opcode == ISD::AND)
       PreprocessTrunc(Node, I);
@@ -428,8 +428,8 @@ bool BPFDAGToDAGISel::fillConstantStruct(const DataLayout &DL,
   const StructLayout *Layout = DL.getStructLayout(CS->getType());
   for (unsigned i = 0, e = CS->getNumOperands(); i != e; ++i) {
     const Constant *Field = CS->getOperand(i);
-    uint64_t SizeSoFar = Layout->getElementOffset(i);
-    if (fillGenericConstant(DL, Field, Vals, Offset + SizeSoFar) == false)
+    
+    if (uint64_t SizeSoFar = Layout->getElementOffset(i); fillGenericConstant(DL, Field, Vals, Offset + SizeSoFar) == false)
       return false;
   }
   return true;

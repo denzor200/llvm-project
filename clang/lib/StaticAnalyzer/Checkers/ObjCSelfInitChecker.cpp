@@ -396,9 +396,9 @@ static bool shouldRunOnFunctionOrMethod(const NamedDecl *ND) {
   IdentifierInfo* NSObjectII = &Ctx.Idents.get("NSObject");
   ObjCInterfaceDecl *ID = MD->getClassInterface()->getSuperClass();
   for ( ; ID ; ID = ID->getSuperClass()) {
-    IdentifierInfo *II = ID->getIdentifier();
+    
 
-    if (II == NSObjectII)
+    if (IdentifierInfo *II = ID->getIdentifier(); II == NSObjectII)
       break;
   }
   return ID != nullptr;

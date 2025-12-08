@@ -76,8 +76,8 @@ size_t StringList::GetSize() const { return m_strings.size(); }
 size_t StringList::GetMaxStringLength() const {
   size_t max_length = 0;
   for (const auto &s : m_strings) {
-    const size_t len = s.size();
-    if (max_length < len)
+    
+    if (const size_t len = s.size(); max_length < len)
       max_length = len;
   }
   return max_length;

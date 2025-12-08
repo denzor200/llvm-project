@@ -59,10 +59,10 @@ void llvm::emitWebAssemblyDisassemblerTables(
       // should be the canonical one. This determines which variant gets
       // printed in a disassembly. We want e.g. "call" not "i32.call", and
       // "end" when we don't know if its "end_loop" or "end_block" etc.
-      bool IsCanonicalExisting =
-          CGIP.second->TheDef->getValueAsBit("IsCanonical");
+      
       // We already have one marked explicitly as canonical, so keep it.
-      if (IsCanonicalExisting)
+      if (bool IsCanonicalExisting =
+          CGIP.second->TheDef->getValueAsBit("IsCanonical"); IsCanonicalExisting)
         continue;
       bool IsCanonicalNew = Def.getValueAsBit("IsCanonical");
       // If the new one is explicitly marked as canonical, take it.

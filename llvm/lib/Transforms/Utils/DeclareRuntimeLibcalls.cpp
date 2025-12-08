@@ -69,9 +69,9 @@ PreservedAnalyses DeclareRuntimeLibcallsPass::run(Module &M,
 
     StringRef FuncName = RTLCI.getLibcallImplName(Impl);
 
-    Function *Func =
-        cast<Function>(M.getOrInsertFunction(FuncName, FuncTy).getCallee());
-    if (Func->getFunctionType() == FuncTy) {
+    
+    if (Function *Func =
+        cast<Function>(M.getOrInsertFunction(FuncName, FuncTy).getCallee()); Func->getFunctionType() == FuncTy) {
       mergeAttributes(Ctx, M, DL, TT, Func, FuncTy, FuncAttrs);
       Func->setCallingConv(RTLCI.getLibcallImplCallingConv(Impl));
     }

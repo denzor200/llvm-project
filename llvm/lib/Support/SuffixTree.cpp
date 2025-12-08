@@ -128,8 +128,8 @@ void SuffixTree::setLeafNodes() {
 
   // Traverse the tree in post-order.
   while (!ToVisit.empty()) {
-    SuffixTreeNode *CurrNode = ToVisit.pop_back_val();
-    if (auto *CurrInternalNode = dyn_cast<SuffixTreeInternalNode>(CurrNode)) {
+    
+    if (SuffixTreeNode *CurrNode = ToVisit.pop_back_val(); auto *CurrInternalNode = dyn_cast<SuffixTreeInternalNode>(CurrNode)) {
       // The current node is an internal node.
       auto I = ChildrenMap.find(CurrInternalNode);
       if (I == ChildrenMap.end()) {
@@ -208,11 +208,11 @@ unsigned SuffixTree::extend(unsigned EndIdx, unsigned SuffixesToAdd) {
       // insert a new node.
       SuffixTreeNode *NextNode = It->second;
 
-      unsigned SubstringLen = numElementsInSubstring(NextNode);
+      
 
       // Is the current suffix we're trying to insert longer than the size of
       // the child we want to move to?
-      if (Active.Len >= SubstringLen) {
+      if (unsigned SubstringLen = numElementsInSubstring(NextNode); Active.Len >= SubstringLen) {
         // If yes, then consume the characters we've seen and move to the next
         // node.
         assert(isa<SuffixTreeInternalNode>(NextNode) &&

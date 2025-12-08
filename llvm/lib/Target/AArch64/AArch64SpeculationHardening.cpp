@@ -546,9 +546,9 @@ bool AArch64SpeculationHardening::expandSpeculationSafeValue(
     bool UsesFullSpeculationBarrier) {
   MachineInstr &MI = *MBBI;
   unsigned Opcode = MI.getOpcode();
-  bool Is64Bit = true;
+  
 
-  switch (Opcode) {
+  switch (bool Is64Bit = true; Opcode) {
   default:
     break;
   case AArch64::SpeculationSafeValueW:

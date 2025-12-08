@@ -492,8 +492,8 @@ public:
 
     // Any of the above code sequences assume the fall-through basic block
     // is a dead-end trap instruction.
-    const BinaryBasicBlock *BreakBB = BB.getFallthrough();
-    if (!BreakBB || BreakBB->empty() || !isTrap(BreakBB->front()))
+    
+    if (const BinaryBasicBlock *BreakBB = BB.getFallthrough(); !BreakBB || BreakBB->empty() || !isTrap(BreakBB->front()))
       return std::nullopt;
 
     // Iterate over the instructions of BB in reverse order, matching opcodes
@@ -759,8 +759,8 @@ public:
   }
 
   bool isLDRB(const MCInst &Inst) const {
-    const unsigned opcode = Inst.getOpcode();
-    switch (opcode) {
+    
+    switch (const unsigned opcode = Inst.getOpcode(); opcode) {
     case AArch64::LDRBpost:
     case AArch64::LDRBBpost:
     case AArch64::LDRBBpre:
@@ -797,8 +797,8 @@ public:
   }
 
   bool isLDRH(const MCInst &Inst) const {
-    const unsigned opcode = Inst.getOpcode();
-    switch (opcode) {
+    
+    switch (const unsigned opcode = Inst.getOpcode(); opcode) {
     case AArch64::LDRHpost:
     case AArch64::LDRHHpost:
     case AArch64::LDRHHpre:
@@ -835,8 +835,8 @@ public:
   }
 
   bool isLDRW(const MCInst &Inst) const {
-    const unsigned opcode = Inst.getOpcode();
-    switch (opcode) {
+    
+    switch (const unsigned opcode = Inst.getOpcode(); opcode) {
     case AArch64::LDRWpost:
     case AArch64::LDRWpre:
     case AArch64::LDRWroW:
@@ -869,8 +869,8 @@ public:
   }
 
   bool isLDRX(const MCInst &Inst) const {
-    const unsigned opcode = Inst.getOpcode();
-    switch (opcode) {
+    
+    switch (const unsigned opcode = Inst.getOpcode(); opcode) {
     case AArch64::LDRXpost:
     case AArch64::LDRXpre:
     case AArch64::LDRXroW:
@@ -892,8 +892,8 @@ public:
   }
 
   bool isLDRS(const MCInst &Inst) const {
-    const unsigned opcode = Inst.getOpcode();
-    switch (opcode) {
+    
+    switch (const unsigned opcode = Inst.getOpcode(); opcode) {
     case AArch64::LDRSl:
     case AArch64::LDRSui:
     case AArch64::LDRSroW:
@@ -914,8 +914,8 @@ public:
   }
 
   bool isLDRD(const MCInst &Inst) const {
-    const unsigned opcode = Inst.getOpcode();
-    switch (opcode) {
+    
+    switch (const unsigned opcode = Inst.getOpcode(); opcode) {
     case AArch64::LDRDl:
     case AArch64::LDRDui:
     case AArch64::LDRDpre:
@@ -936,8 +936,8 @@ public:
   }
 
   bool isLDRQ(const MCInst &Inst) const {
-    const unsigned opcode = Inst.getOpcode();
-    switch (opcode) {
+    
+    switch (const unsigned opcode = Inst.getOpcode(); opcode) {
     case AArch64::LDRQui:
     case AArch64::LDRQl:
     case AArch64::LDRQpre:
@@ -1016,8 +1016,8 @@ public:
     for (const MCOperand &Operand : useOperands(Inst)) {
       if (!Operand.isReg())
         continue;
-      unsigned Reg = Operand.getReg();
-      if (Reg == AArch64::SP || Reg == AArch64::WSP)
+      
+      if (unsigned Reg = Operand.getReg(); Reg == AArch64::SP || Reg == AArch64::WSP)
         return true;
     }
     return false;
@@ -1266,8 +1266,8 @@ public:
   }
 
   const MCSymbol *getTargetSymbol(const MCExpr *Expr) const override {
-    auto *AArchExpr = dyn_cast<MCSpecifierExpr>(Expr);
-    if (AArchExpr && AArchExpr->getSubExpr())
+    
+    if (auto *AArchExpr = dyn_cast<MCSpecifierExpr>(Expr); AArchExpr && AArchExpr->getSubExpr())
       return getTargetSymbol(AArchExpr->getSubExpr());
 
     return MCPlusBuilder::getTargetSymbol(Expr);
@@ -1286,8 +1286,8 @@ public:
   }
 
   int64_t getTargetAddend(const MCExpr *Expr) const override {
-    auto *AArchExpr = dyn_cast<MCSpecifierExpr>(Expr);
-    if (AArchExpr && AArchExpr->getSubExpr())
+    
+    if (auto *AArchExpr = dyn_cast<MCSpecifierExpr>(Expr); AArchExpr && AArchExpr->getSubExpr())
       return getTargetAddend(AArchExpr->getSubExpr());
 
     auto *BinExpr = dyn_cast<MCBinaryExpr>(Expr);
@@ -2096,8 +2096,8 @@ public:
       if (!Operand.isReg())
         continue;
 
-      unsigned Reg = Operand.getReg();
-      if (Reg == AArch64::SP || Reg == AArch64::WSP)
+      
+      if (unsigned Reg = Operand.getReg(); Reg == AArch64::SP || Reg == AArch64::WSP)
         return true;
     }
 
@@ -2524,8 +2524,8 @@ public:
   }
 
   void convertIndirectCallToLoad(MCInst &Inst, MCPhysReg Reg) override {
-    bool IsTailCall = isTailCall(Inst);
-    if (IsTailCall)
+    
+    if (bool IsTailCall = isTailCall(Inst); IsTailCall)
       removeAnnotation(Inst, MCPlus::MCAnnotation::kTailCall);
     if (Inst.getOpcode() == AArch64::BR || Inst.getOpcode() == AArch64::BLR) {
       Inst.setOpcode(AArch64::ORRXrs);

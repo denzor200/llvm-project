@@ -661,8 +661,8 @@ public:
 
   /// Clears the list of SUs mapped to V.
   void inline clearList(ValueType V) {
-    iterator Itr = find(V);
-    if (Itr != end()) {
+    
+    if (iterator Itr = find(V); Itr != end()) {
       assert(NumNodes >= Itr->second.size());
       NumNodes -= Itr->second.size();
 
@@ -702,8 +702,8 @@ void ScheduleDAGInstrs::addChainDependencies(SUnit *SU,
 void ScheduleDAGInstrs::addChainDependencies(SUnit *SU,
                                              Value2SUsMap &Val2SUsMap,
                                              ValueType V) {
-  Value2SUsMap::iterator Itr = Val2SUsMap.find(V);
-  if (Itr != Val2SUsMap.end())
+  
+  if (Value2SUsMap::iterator Itr = Val2SUsMap.find(V); Itr != Val2SUsMap.end())
     addChainDependencies(SU, Itr->second,
                          Val2SUsMap.getTrueMemOrderLatency());
 }
@@ -758,9 +758,9 @@ void ScheduleDAGInstrs::buildSchedGraph(AAResults *AA,
                                         LiveIntervals *LIS,
                                         bool TrackLaneMasks) {
   const TargetSubtargetInfo &ST = MF.getSubtarget();
-  bool UseAA = EnableAASchedMI.getNumOccurrences() > 0 ? EnableAASchedMI
-                                                       : ST.useAA();
-  if (UseAA && AA)
+  
+  if (bool UseAA = EnableAASchedMI.getNumOccurrences() > 0 ? EnableAASchedMI
+                                                       : ST.useAA(); UseAA && AA)
     AAForDep.emplace(*AA);
 
   BarrierChain = nullptr;
@@ -915,9 +915,9 @@ void ScheduleDAGInstrs::buildSchedGraph(AAResults *AA,
     // isLoadFromStackSLot are not usable after stack slots are lowered to
     // actual addresses).
 
-    const TargetInstrInfo *TII = ST.getInstrInfo();
+    
     // This is a barrier event that acts as a pivotal node in the DAG.
-    if (TII->isGlobalMemoryObject(&MI)) {
+    if (const TargetInstrInfo *TII = ST.getInstrInfo(); TII->isGlobalMemoryObject(&MI)) {
 
       // Become the barrier chain.
       if (BarrierChain)
@@ -1096,8 +1096,8 @@ void ScheduleDAGInstrs::reduceHugeMemNodeMaps(Value2SUsMap &stores,
   // the lowest NodeNum of them will become the new BarrierChain to
   // let the not yet seen SUs have a dependency to the removed SUs.
   assert(N <= NodeNums.size());
-  SUnit *newBarrierChain = &SUnits[*(NodeNums.end() - N)];
-  if (BarrierChain) {
+  
+  if (SUnit *newBarrierChain = &SUnits[*(NodeNums.end() - N)]; BarrierChain) {
     // The aliasing and non-aliasing maps reduce independently of each
     // other, but share a common BarrierChain. Check if the
     // newBarrierChain is above the former one. If it is not, it may
@@ -1156,8 +1156,8 @@ void ScheduleDAGInstrs::fixupKills(MachineBasicBlock &MBB) {
     // instruction are now dead. Mark register and all subregs as they
     // are completely defined.
     for (ConstMIBundleOperands O(MI); O.isValid(); ++O) {
-      const MachineOperand &MO = *O;
-      if (MO.isReg()) {
+      
+      if (const MachineOperand &MO = *O; MO.isReg()) {
         if (!MO.isDef())
           continue;
         Register Reg = MO.getReg();

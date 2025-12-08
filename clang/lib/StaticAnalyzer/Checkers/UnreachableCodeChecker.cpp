@@ -166,8 +166,8 @@ void UnreachableCodeChecker::checkEndAnalysis(ExplodedGraph &G,
       continue;
 
     // Check if the SourceLocation is in a system header
-    const SourceManager &SM = B.getSourceManager();
-    if (SM.isInSystemHeader(SL) || SM.isInExternCSystemHeader(SL))
+    
+    if (const SourceManager &SM = B.getSourceManager(); SM.isInSystemHeader(SL) || SM.isInExternCSystemHeader(SL))
       continue;
 
     B.EmitBasicReport(D, this, "Unreachable code", categories::UnusedCode,

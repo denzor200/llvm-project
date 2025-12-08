@@ -94,8 +94,8 @@ static void collectRelocatedSymbols(const ObjectFile *Obj,
         continue;
       Expected<StringRef> RelocSymName = RelocSymI->getName();
       error(errorToErrorCode(RelocSymName.takeError()));
-      uint64_t Offset = Reloc.getOffset();
-      if (Offset >= SymOffset && Offset < SymEnd) {
+      
+      if (uint64_t Offset = Reloc.getOffset(); Offset >= SymOffset && Offset < SymEnd) {
         *I = *RelocSymName;
         ++I;
       }
@@ -116,8 +116,8 @@ static void collectRelocationOffsets(
         continue;
       Expected<StringRef> RelocSymName = RelocSymI->getName();
       error(errorToErrorCode(RelocSymName.takeError()));
-      uint64_t Offset = Reloc.getOffset();
-      if (Offset >= SymOffset && Offset < SymEnd)
+      
+      if (uint64_t Offset = Reloc.getOffset(); Offset >= SymOffset && Offset < SymEnd)
         Collection[std::make_pair(SymName, Offset - SymOffset)] = *RelocSymName;
     }
   }
@@ -531,9 +531,9 @@ static void dumpInput(StringRef File) {
     reportError(File, EC);
     return;
   }
-  Binary &Binary = *BinaryOrErr.get().getBinary();
+  
 
-  if (Archive *Arc = dyn_cast<Archive>(&Binary))
+  if (Binary &Binary = *BinaryOrErr.get().getBinary(); Archive *Arc = dyn_cast<Archive>(&Binary))
     dumpArchive(Arc);
   else if (ObjectFile *Obj = dyn_cast<ObjectFile>(&Binary))
     dumpCXXData(Obj);

@@ -168,10 +168,10 @@ DwarfLinkerForBinary::loadObject(const DebugMapObject &Obj,
 static Error remarksErrorHandler(const DebugMapObject &DMO,
                                  DwarfLinkerForBinary &Linker,
                                  std::unique_ptr<FileError> FE) {
-  bool IsArchive = DMO.getObjectFilename().ends_with(")");
+  
   // Don't report errors for missing remark files from static
   // archives.
-  if (!IsArchive)
+  if (bool IsArchive = DMO.getObjectFilename().ends_with(")"); !IsArchive)
     return Error(std::move(FE));
 
   std::string Message = FE->message();
@@ -706,9 +706,9 @@ bool DwarfLinkerForBinary::linkImpl(
       // Try and emit more helpful warnings by applying some heuristics.
       StringRef ObjFile = ContainerName;
       bool IsClangModule = sys::path::extension(Path) == ".pcm";
-      bool IsArchive = ObjFile.ends_with(")");
+      
 
-      if (IsClangModule) {
+      if (bool IsArchive = ObjFile.ends_with(")"); IsClangModule) {
         StringRef ModuleCacheDir = sys::path::parent_path(Path);
         if (sys::fs::exists(ModuleCacheDir)) {
           // If the module's parent directory exists, we assume that the

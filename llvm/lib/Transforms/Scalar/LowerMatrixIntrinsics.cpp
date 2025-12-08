@@ -765,8 +765,8 @@ public:
 
     auto pushInstruction = [](Value *V,
                               SmallVectorImpl<Instruction *> &WorkList) {
-      Instruction *I = dyn_cast<Instruction>(V);
-      if (I)
+      
+      if (Instruction *I = dyn_cast<Instruction>(V); I)
         WorkList.push_back(I);
     };
     // Pop an element with known shape.  Traverse the operands, if their shape
@@ -2055,9 +2055,9 @@ public:
 
     Value *APtr = getNonAliasingPointer(LoadOp0, Store, MatMul);
     Value *BPtr = getNonAliasingPointer(LoadOp1, Store, MatMul);
-    Value *CPtr = Store->getPointerOperand();
+    
 
-    if (TileUseLoops && (R % TileSize == 0 && C % TileSize == 0))
+    if (Value *CPtr = Store->getPointerOperand(); TileUseLoops && (R % TileSize == 0 && C % TileSize == 0))
       createTiledLoops(MatMul, APtr, LShape, BPtr, RShape, Store);
     else {
       IRBuilder<> Builder(Store);
@@ -2169,8 +2169,8 @@ public:
     // since the single store user will be lowered as part of this.
     auto *LoadOp0 = dyn_cast<LoadInst>(A);
     auto *LoadOp1 = dyn_cast<LoadInst>(B);
-    auto *Store = dyn_cast<StoreInst>(*MatMul->user_begin());
-    if (LoadOp0 && LoadOp1 && Store) {
+    
+    if (auto *Store = dyn_cast<StoreInst>(*MatMul->user_begin()); LoadOp0 && LoadOp1 && Store) {
       // The store address must dominate the MatMul instruction, otherwise
       // we create invalid IR.
       SetVector<Value *> WorkList;
@@ -2524,8 +2524,8 @@ public:
     /// If \p V is a matrix value, print its shape as NumRows x NumColumns to
     /// \p SS.
     void prettyPrintMatrixType(Value *V, raw_string_ostream &SS) {
-      auto M = Inst2Matrix.find(V);
-      if (M == Inst2Matrix.end())
+      
+      if (auto M = Inst2Matrix.find(V); M == Inst2Matrix.end())
         SS << "unknown";
       else {
         SS << M->second.getNumRows();
@@ -2779,8 +2779,8 @@ public:
       OpInfoTy Count;
 
       auto I = Shared.find(Root);
-      auto CM = Inst2Matrix.find(Root);
-      if (I->second.size() == 1)
+      
+      if (auto CM = Inst2Matrix.find(Root); I->second.size() == 1)
         Count = CM->second.getOpInfo();
       else
         SharedCount = CM->second.getOpInfo();

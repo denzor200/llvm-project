@@ -643,8 +643,8 @@ std::vector<Chain> Vectorizer::splitChainByContiguity(Chain &C) {
     bool AreContiguous = false;
     if (It->OffsetFromLeader.sle(PrevReadEnd)) {
       // Check overlap is a multiple of the element size after vectorization.
-      uint64_t Overlap = (PrevReadEnd - It->OffsetFromLeader).getZExtValue();
-      if (8 * Overlap % ChainElemTyBits == 0)
+      
+      if (uint64_t Overlap = (PrevReadEnd - It->OffsetFromLeader).getZExtValue(); 8 * Overlap % ChainElemTyBits == 0)
         AreContiguous = true;
     }
 
@@ -776,9 +776,9 @@ std::vector<Chain> Vectorizer::splitChainByAlignment(Chain &C) {
       unsigned VF = 8 * VecRegBytes / VecElemBits;
 
       // Check that TTI is happy with this vectorization factor.
-      unsigned TargetVF = GetVectorFactor(VF, VecElemBits,
-                                          VecElemBits * NumVecElems / 8, VecTy);
-      if (TargetVF != VF && TargetVF < NumVecElems) {
+      
+      if (unsigned TargetVF = GetVectorFactor(VF, VecElemBits,
+                                          VecElemBits * NumVecElems / 8, VecTy); TargetVF != VF && TargetVF < NumVecElems) {
         LLVM_DEBUG(
             dbgs() << "LSV: splitChainByAlignment discarding candidate chain "
                       "because TargetVF="
@@ -796,9 +796,9 @@ std::vector<Chain> Vectorizer::splitChainByAlignment(Chain &C) {
         if (Alignment.value() % SizeBytes == 0)
           return true;
         unsigned VectorizedSpeed = 0;
-        bool AllowsMisaligned = TTI.allowsMisalignedMemoryAccesses(
-            F.getContext(), SizeBytes * 8, AS, Alignment, &VectorizedSpeed);
-        if (!AllowsMisaligned) {
+        
+        if (bool AllowsMisaligned = TTI.allowsMisalignedMemoryAccesses(
+            F.getContext(), SizeBytes * 8, AS, Alignment, &VectorizedSpeed); !AllowsMisaligned) {
           LLVM_DEBUG(dbgs()
                      << "LSV: Access of " << SizeBytes << "B in addrspace "
                      << AS << " with alignment " << Alignment.value()
@@ -952,8 +952,8 @@ bool Vectorizer::vectorizeChain(Chain &C) {
       Type *T = getLoadStoreType(I);
       unsigned EOffset =
           (E.OffsetFromLeader - C[0].OffsetFromLeader).getZExtValue();
-      unsigned VecIdx = 8 * EOffset / DL.getTypeSizeInBits(VecElemTy);
-      if (!VecTy->isVectorTy()) {
+      
+      if (unsigned VecIdx = 8 * EOffset / DL.getTypeSizeInBits(VecElemTy); !VecTy->isVectorTy()) {
         V = VecInst;
       } else if (auto *VT = dyn_cast<FixedVectorType>(T)) {
         auto Mask = llvm::to_vector<8>(
@@ -1005,8 +1005,8 @@ bool Vectorizer::vectorizeChain(Chain &C) {
       auto *I = cast<StoreInst>(E.Inst);
       unsigned EOffset =
           (E.OffsetFromLeader - C[0].OffsetFromLeader).getZExtValue();
-      unsigned VecIdx = 8 * EOffset / DL.getTypeSizeInBits(VecElemTy);
-      if (FixedVectorType *VT =
+      
+      if (unsigned VecIdx = 8 * EOffset / DL.getTypeSizeInBits(VecElemTy); FixedVectorType *VT =
               dyn_cast<FixedVectorType>(getLoadStoreType(I))) {
         for (int J = 0, JE = VT->getNumElements(); J < JE; ++J) {
           InsertElem(Builder.CreateExtractElement(I->getValueOperand(),
@@ -1098,8 +1098,8 @@ bool Vectorizer::isSafeToMove(
       //   - ChainElem's offset is less than I's, but ChainElem touches past the
       //     beginning of I.
       const APInt &IOffset = OffsetIt->second;
-      unsigned IElemSize = DL.getTypeStoreSize(getLoadStoreType(I));
-      if (IOffset == ChainElemOffset ||
+      
+      if (unsigned IElemSize = DL.getTypeStoreSize(getLoadStoreType(I)); IOffset == ChainElemOffset ||
           (IOffset.sle(ChainElemOffset) &&
            (IOffset + IElemSize).sgt(ChainElemOffset)) ||
           (ChainElemOffset.sle(IOffset) &&
@@ -1176,9 +1176,9 @@ static bool checkIfSafeAddSequence(const APInt &IdxDiff, Instruction *AddOpA,
     if (OtherInstrB && OtherInstrB->getOpcode() == Instruction::Add &&
         checkNoWrapFlags(OtherInstrB, Signed) &&
         isa<ConstantInt>(OtherInstrB->getOperand(1))) {
-      int64_t CstVal =
-          cast<ConstantInt>(OtherInstrB->getOperand(1))->getSExtValue();
-      if (OtherInstrB->getOperand(0) == OtherOperandA &&
+      
+      if (int64_t CstVal =
+          cast<ConstantInt>(OtherInstrB->getOperand(1))->getSExtValue(); OtherInstrB->getOperand(0) == OtherOperandA &&
           IdxDiff.getSExtValue() == CstVal)
         return true;
     }
@@ -1186,9 +1186,9 @@ static bool checkIfSafeAddSequence(const APInt &IdxDiff, Instruction *AddOpA,
     if (OtherInstrA && OtherInstrA->getOpcode() == Instruction::Add &&
         checkNoWrapFlags(OtherInstrA, Signed) &&
         isa<ConstantInt>(OtherInstrA->getOperand(1))) {
-      int64_t CstVal =
-          cast<ConstantInt>(OtherInstrA->getOperand(1))->getSExtValue();
-      if (OtherInstrA->getOperand(0) == OtherOperandB &&
+      
+      if (int64_t CstVal =
+          cast<ConstantInt>(OtherInstrA->getOperand(1))->getSExtValue(); OtherInstrA->getOperand(0) == OtherOperandB &&
           IdxDiff.getSExtValue() == -CstVal)
         return true;
     }
@@ -1203,9 +1203,9 @@ static bool checkIfSafeAddSequence(const APInt &IdxDiff, Instruction *AddOpA,
         isa<ConstantInt>(OtherInstrB->getOperand(1))) {
       int64_t CstValA =
           cast<ConstantInt>(OtherInstrA->getOperand(1))->getSExtValue();
-      int64_t CstValB =
-          cast<ConstantInt>(OtherInstrB->getOperand(1))->getSExtValue();
-      if (OtherInstrA->getOperand(0) == OtherInstrB->getOperand(0) &&
+      
+      if (int64_t CstValB =
+          cast<ConstantInt>(OtherInstrB->getOperand(1))->getSExtValue(); OtherInstrA->getOperand(0) == OtherInstrB->getOperand(0) &&
           IdxDiff.getSExtValue() == (CstValB - CstValA))
         return true;
     }
@@ -1411,8 +1411,8 @@ void Vectorizer::mergeEquivalenceClasses(EquivalenceClassMap &EQClasses) const {
     UObjectToUObjectMap IndirectionMap;
     for (const auto *UObject : UObjects) {
       const unsigned MaxLookupDepth = 1; // look for 1-level indirections only
-      const auto *UltimateTarget = getUnderlyingObject(UObject, MaxLookupDepth);
-      if (UltimateTarget != UObject)
+      
+      if (const auto *UltimateTarget = getUnderlyingObject(UObject, MaxLookupDepth); UltimateTarget != UObject)
         IndirectionMap[UObject] = UltimateTarget;
     }
     UObjectToUObjectMap UltimateTargetsMap;

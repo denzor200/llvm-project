@@ -369,8 +369,8 @@ void TargetLoweringObjectFileELF::emitModuleMetadata(MCStreamer &Streamer,
 
 void TargetLoweringObjectFileELF::emitLinkerDirectives(MCStreamer &Streamer,
                                                        Module &M) const {
-  auto &C = getContext();
-  if (NamedMDNode *LinkerOptions = M.getNamedMetadata("llvm.linker.options")) {
+  
+  if (auto &C = getContext(); NamedMDNode *LinkerOptions = M.getNamedMetadata("llvm.linker.options")) {
     auto *S = C.getELFSection(".linker-options", ELF::SHT_LLVM_LINKER_OPTIONS,
                               ELF::SHF_EXCLUDE);
 
@@ -438,8 +438,8 @@ const MCExpr *TargetLoweringObjectFileELF::getTTypeGlobalReference(
 
     // Add information about the stub reference to ELFMMI so that the stub
     // gets emitted by the asmprinter.
-    MachineModuleInfoImpl::StubValueTy &StubSym = ELFMMI.getGVStubEntry(SSym);
-    if (!StubSym.getPointer()) {
+    
+    if (MachineModuleInfoImpl::StubValueTy &StubSym = ELFMMI.getGVStubEntry(SSym); !StubSym.getPointer()) {
       MCSymbol *Sym = TM.getSymbol(GV);
       StubSym = MachineModuleInfoImpl::StubValueTy(Sym, !GV->hasLocalLinkage());
     }
@@ -717,8 +717,8 @@ calcUniqueIDUpdateFlagsAndSize(const GlobalObject *GO, StringRef SectionName,
 
   // A section can have at most one associated section. Put each global with
   // MD_associated in a unique section.
-  const bool Associated = GO->getMetadata(LLVMContext::MD_associated);
-  if (Associated) {
+  
+  if (const bool Associated = GO->getMetadata(LLVMContext::MD_associated); Associated) {
     Flags |= ELF::SHF_LINK_ORDER;
     return NextUniqueID++;
   }
@@ -803,8 +803,8 @@ static StringRef handlePragmaClangSection(const GlobalObject *GO,
   // Check if '#pragma clang section' name is applicable.
   // Note that pragma directive overrides -ffunction-section, -fdata-section
   // and so section name is exactly as user specified and not uniqued.
-  const GlobalVariable *GV = dyn_cast<GlobalVariable>(GO);
-  if (GV && GV->hasImplicitSection()) {
+  
+  if (const GlobalVariable *GV = dyn_cast<GlobalVariable>(GO); GV && GV->hasImplicitSection()) {
     auto Attrs = GV->getAttributes();
     if (Attrs.hasAttribute("bss-section") && Kind.isBSS())
       return Attrs.getAttribute("bss-section").getValueAsString();
@@ -1506,8 +1506,8 @@ const MCExpr *TargetLoweringObjectFileMachO::getTTypeGlobalReference(
 
     // Add information about the stub reference to MachOMMI so that the stub
     // gets emitted by the asmprinter.
-    MachineModuleInfoImpl::StubValueTy &StubSym = MachOMMI.getGVStubEntry(SSym);
-    if (!StubSym.getPointer()) {
+    
+    if (MachineModuleInfoImpl::StubValueTy &StubSym = MachOMMI.getGVStubEntry(SSym); !StubSym.getPointer()) {
       MCSymbol *Sym = TM.getSymbol(GV);
       StubSym = MachineModuleInfoImpl::StubValueTy(Sym, !GV->hasLocalLinkage());
     }
@@ -1532,8 +1532,8 @@ MCSymbol *TargetLoweringObjectFileMachO::getCFIPersonalitySymbol(
 
   // Add information about the stub reference to MachOMMI so that the stub
   // gets emitted by the asmprinter.
-  MachineModuleInfoImpl::StubValueTy &StubSym = MachOMMI.getGVStubEntry(SSym);
-  if (!StubSym.getPointer()) {
+  
+  if (MachineModuleInfoImpl::StubValueTy &StubSym = MachOMMI.getGVStubEntry(SSym); !StubSym.getPointer()) {
     MCSymbol *Sym = TM.getSymbol(GV);
     StubSym = MachineModuleInfoImpl::StubValueTy(Sym, !GV->hasLocalLinkage());
   }
@@ -1599,9 +1599,9 @@ const MCExpr *TargetLoweringObjectFileMachO::getIndirectSymViaGOTPCRel(
   Name += Suffix;
   MCSymbol *Stub = Ctx.getOrCreateSymbol(Name);
 
-  MachineModuleInfoImpl::StubValueTy &StubSym = MachOMMI.getGVStubEntry(Stub);
+  
 
-  if (!StubSym.getPointer())
+  if (MachineModuleInfoImpl::StubValueTy &StubSym = MachOMMI.getGVStubEntry(Stub); !StubSym.getPointer())
     StubSym = MachineModuleInfoImpl::StubValueTy(const_cast<MCSymbol *>(Sym),
                                                  !GV->hasLocalLinkage());
 
@@ -1648,9 +1648,9 @@ void TargetLoweringObjectFileMachO::getNameWithPrefix(
 static unsigned
 getCOFFSectionFlags(SectionKind K, const TargetMachine &TM) {
   unsigned Flags = 0;
-  bool isThumb = TM.getTargetTriple().getArch() == Triple::thumb;
+  
 
-  if (K.isMetadata())
+  if (bool isThumb = TM.getTargetTriple().getArch() == Triple::thumb; K.isMetadata())
     Flags |=
       COFF::IMAGE_SCN_MEM_DISCARDABLE;
   else if (K.isExclude())
@@ -1864,8 +1864,8 @@ MCSection *TargetLoweringObjectFileCOFF::getSectionForJumpTable(
   // If the function can be removed, produce a unique section so that
   // the table doesn't prevent the removal.
   const Comdat *C = F.getComdat();
-  bool EmitUniqueSection = TM.getFunctionSections() || C;
-  if (!EmitUniqueSection)
+  
+  if (bool EmitUniqueSection = TM.getFunctionSections() || C; !EmitUniqueSection)
     return ReadOnlySection;
 
   // FIXME: we should produce a symbol for F instead.
@@ -1994,8 +1994,8 @@ void TargetLoweringObjectFileCOFF::Initialize(MCContext &Ctx,
                                               const TargetMachine &TM) {
   TargetLoweringObjectFile::Initialize(Ctx, TM);
   this->TM = &TM;
-  const Triple &T = TM.getTargetTriple();
-  if (T.isWindowsMSVCEnvironment() || T.isWindowsItaniumEnvironment()) {
+  
+  if (const Triple &T = TM.getTargetTriple(); T.isWindowsMSVCEnvironment() || T.isWindowsItaniumEnvironment()) {
     StaticCtorSection =
         Ctx.getCOFFSection(".CRT$XCU", COFF::IMAGE_SCN_CNT_INITIALIZED_DATA |
                                            COFF::IMAGE_SCN_MEM_READ);
@@ -2078,8 +2078,8 @@ MCSection *TargetLoweringObjectFileCOFF::getStaticDtorSection(
 const MCExpr *TargetLoweringObjectFileCOFF::lowerRelativeReference(
     const GlobalValue *LHS, const GlobalValue *RHS, int64_t Addend,
     std::optional<int64_t> PCRelativeOffset, const TargetMachine &TM) const {
-  const Triple &T = TM.getTargetTriple();
-  if (T.isOSCygMing())
+  
+  if (const Triple &T = TM.getTargetTriple(); T.isOSCygMing())
     return nullptr;
 
   // Our symbols should exist in address space zero, cowardly no-op if
@@ -2121,8 +2121,8 @@ static std::string APIntToHexString(const APInt &AI) {
 }
 
 static std::string scalarConstantToHexString(const Constant *C) {
-  Type *Ty = C->getType();
-  if (isa<UndefValue>(C)) {
+  
+  if (Type *Ty = C->getType(); isa<UndefValue>(C)) {
     return APIntToHexString(APInt::getZero(Ty->getPrimitiveSizeInBits()));
   } else if (const auto *CFP = dyn_cast<ConstantFP>(C)) {
     return APIntToHexString(CFP->getValueAPF().bitcastToAPInt());
@@ -2369,8 +2369,8 @@ bool TargetLoweringObjectFileXCOFF::ShouldEmitEHBlock(
 
 bool TargetLoweringObjectFileXCOFF::ShouldSetSSPCanaryBitInTB(
     const MachineFunction *MF) {
-  const Function &F = MF->getFunction();
-  if (!F.hasStackProtectorFnAttr())
+  
+  if (const Function &F = MF->getFunction(); !F.hasStackProtectorFnAttr())
     return false;
   // FIXME: check presence of canary word
   // There are cases that the stack protectors are not really inserted even if
@@ -2820,9 +2820,9 @@ MCSection *TargetLoweringObjectFileGOFF::getSectionForLSDA(
 
 MCSection *TargetLoweringObjectFileGOFF::SelectSectionForGlobal(
     const GlobalObject *GO, SectionKind Kind, const TargetMachine &TM) const {
-  auto *Symbol = TM.getSymbol(GO);
+  
 
-  if (Kind.isBSS() || Kind.isData()) {
+  if (auto *Symbol = TM.getSymbol(GO); Kind.isBSS() || Kind.isData()) {
     GOFF::ESDBindingScope PRBindingScope =
         GO->hasExternalLinkage()
             ? (GO->hasDefaultVisibility() ? GOFF::ESD_BSC_ImportExport

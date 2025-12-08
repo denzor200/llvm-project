@@ -262,8 +262,8 @@ public:
 
     // Ref-counted smartpointers actually have raw-pointer to uncounted type as
     // a member but we trust them to handle it correctly.
-    auto CXXRD = llvm::dyn_cast_or_null<CXXRecordDecl>(RD);
-    if (CXXRD && isSmartPtr(CXXRD))
+    
+    if (auto CXXRD = llvm::dyn_cast_or_null<CXXRecordDecl>(RD); CXXRD && isSmartPtr(CXXRD))
       return true;
 
     return false;

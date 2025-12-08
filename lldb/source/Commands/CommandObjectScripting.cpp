@@ -48,9 +48,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'l':
         language = (lldb::ScriptLanguage)OptionArgParser::ToOptionEnum(
             option_arg, GetDefinitions()[option_idx].enum_values,
@@ -151,9 +151,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'l':
         m_language = (lldb::ScriptLanguage)OptionArgParser::ToOptionEnum(
             option_arg, GetDefinitions()[option_idx].enum_values,

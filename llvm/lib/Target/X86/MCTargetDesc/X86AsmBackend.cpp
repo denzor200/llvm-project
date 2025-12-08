@@ -228,8 +228,8 @@ static unsigned getRelaxedOpcode(const MCInst &MI, bool Is16BitMode) {
 
 static X86::CondCode getCondFromBranch(const MCInst &MI,
                                        const MCInstrInfo &MCII) {
-  unsigned Opcode = MI.getOpcode();
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = MI.getOpcode(); Opcode) {
   default:
     return X86::COND_INVALID;
   case X86::JCC_1: {
@@ -341,8 +341,8 @@ uint8_t X86AsmBackend::determinePaddingPrefix(const MCInst &Inst) const {
 
 /// Check if the two instructions will be macro-fused on the target cpu.
 bool X86AsmBackend::isMacroFused(const MCInst &Cmp, const MCInst &Jcc) const {
-  const MCInstrDesc &InstDesc = MCII->get(Jcc.getOpcode());
-  if (!InstDesc.isConditionalBranch())
+  
+  if (const MCInstrDesc &InstDesc = MCII->get(Jcc.getOpcode()); !InstDesc.isConditionalBranch())
     return false;
   if (!isFirstMacroFusibleInst(Cmp, *MCII))
     return false;
@@ -358,8 +358,8 @@ static bool hasVariantSymbol(const MCInst &MI) {
   for (auto &Operand : MI) {
     if (!Operand.isExpr())
       continue;
-    const MCExpr &Expr = *Operand.getExpr();
-    if (Expr.getKind() == MCExpr::SymbolRef &&
+    
+    if (const MCExpr &Expr = *Operand.getExpr(); Expr.getKind() == MCExpr::SymbolRef &&
         cast<MCSymbolRefExpr>(&Expr)->getSpecifier())
       return true;
   }
@@ -412,8 +412,8 @@ bool X86AsmBackend::canPadInst(const MCInst &Inst, MCObjectStreamer &OS) const {
 
   // If this instruction follows any data, there is no clear instruction
   // boundary, inserting a nop/prefix would change semantic.
-  auto Offset = OS.getCurFragSize();
-  if (Offset && (OS.getCurrentFragment() != PrevInstPosition.first ||
+  
+  if (auto Offset = OS.getCurFragSize(); Offset && (OS.getCurrentFragment() != PrevInstPosition.first ||
                  Offset != PrevInstPosition.second))
     return false;
 
@@ -451,8 +451,8 @@ bool X86AsmBackend::needAlign(const MCInst &Inst) const {
 
 void X86_MC::emitInstruction(MCObjectStreamer &S, const MCInst &Inst,
                              const MCSubtargetInfo &STI) {
-  bool AutoPadding = S.getAllowAutoPadding();
-  if (LLVM_LIKELY(!AutoPadding && !X86PadForAlign)) {
+  
+  if (bool AutoPadding = S.getAllowAutoPadding(); LLVM_LIKELY(!AutoPadding && !X86PadForAlign)) {
     S.MCObjectStreamer::emitInstruction(Inst, STI);
     return;
   }
@@ -668,11 +668,11 @@ std::optional<bool> X86AsmBackend::evaluateFixup(const MCFragment &,
       break;
     default: {
       Target.setConstant(Target.getConstant() - 4);
-      auto *Add = Target.getAddSym();
+      
       // If this is a pc-relative load off _GLOBAL_OFFSET_TABLE_:
       // leaq _GLOBAL_OFFSET_TABLE_(%rip), %r15
       // this needs to be a GOTPC32 relocation.
-      if (Add && Add->getName() == GotSymName)
+      if (auto *Add = Target.getAddSym(); Add && Add->getName() == GotSymName)
         Fixup = MCFixup::create(Fixup.getOffset(), Fixup.getValue(),
                                 X86::reloc_global_offset_table);
     } break;
@@ -1015,8 +1015,8 @@ bool X86AsmBackend::writeNopData(raw_ostream &OS, uint64_t Count,
     const uint8_t Prefixes = ThisNopLength <= 10 ? 0 : ThisNopLength - 10;
     for (uint8_t i = 0; i < Prefixes; i++)
       OS << '\x66';
-    const uint8_t Rest = ThisNopLength - Prefixes;
-    if (Rest != 0)
+    
+    if (const uint8_t Rest = ThisNopLength - Prefixes; Rest != 0)
       OS.write(Nops[Rest - 1], Rest);
     Count -= ThisNopLength;
   } while (Count != 0);

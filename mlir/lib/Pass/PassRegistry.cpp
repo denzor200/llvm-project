@@ -235,8 +235,8 @@ static StringRef extractArgAndUpdateOptions(StringRef &options,
   // be stripped in cases such as "arg={...},{...}", which can be used to denote
   // lists of nested option structs.
   if (str.front() == '{') {
-    unsigned match = findChar(str, 1, '}');
-    if (match == str.size() - 1)
+    
+    if (unsigned match = findChar(str, 1, '}'); match == str.size() - 1)
       str = str.drop_front().drop_back().trim();
   }
 
@@ -286,8 +286,8 @@ parseNextArg(StringRef options) {
   auto tryProcessPunct = [&](size_t &currentPos, char punct) {
     if (options[currentPos] != punct)
       return false;
-    size_t nextIt = options.find_first_of(punct, currentPos + 1);
-    if (nextIt != StringRef::npos)
+    
+    if (size_t nextIt = options.find_first_of(punct, currentPos + 1); nextIt != StringRef::npos)
       currentPos = nextIt;
     return true;
   };
@@ -635,10 +635,10 @@ LogicalResult TextualPipeline::parsePipelineText(StringRef text,
       break;
 
     text = text.substr(pos);
-    char sep = text[0];
+    
 
     // Handle pulling ... from 'pass{...}' out as PipelineElement.options.
-    if (sep == '{') {
+    if (char sep = text[0]; sep == '{') {
       text = text.substr(1);
 
       // Skip over everything until the closing '}' and store as options.

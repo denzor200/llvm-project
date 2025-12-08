@@ -738,8 +738,8 @@ OptionalFileEntryRef DirectoryLookup::DoFrameworkLookup(
         break;
     } while (true);
 
-    bool IsSystem = getDirCharacteristic() != SrcMgr::C_User;
-    if (FoundFramework) {
+    
+    if (bool IsSystem = getDirCharacteristic() != SrcMgr::C_User; FoundFramework) {
       if (!HS.findUsableModuleForFrameworkHeader(*File, FrameworkPath,
                                                  RequestingModule,
                                                  SuggestedModule, IsSystem))
@@ -953,14 +953,14 @@ OptionalFileEntryRef HeaderSearch::LookupFile(
       // If we have no includer, that means we're processing a #include
       // from a module build. We should treat this as a system header if we're
       // building a [system] module.
-      bool IncluderIsSystemHeader = [&]() {
+      
+      if (bool IncluderIsSystemHeader = [&]() {
         if (!Includer)
           return BuildSystemModule;
         const HeaderFileInfo *HFI = getExistingFileInfo(*Includer);
         assert(HFI && "includer without file info");
         return HFI->DirInfo != SrcMgr::C_User;
-      }();
-      if (OptionalFileEntryRef FE = getFileAndSuggestModule(
+      }(); OptionalFileEntryRef FE = getFileAndSuggestModule(
               TmpDir, IncludeLoc, IncluderAndDir.second, IncluderIsSystemHeader,
               RequestingModule, SuggestedModule)) {
         if (!Includer) {
@@ -1127,8 +1127,8 @@ OptionalFileEntryRef HeaderSearch::LookupFile(
       return MSFE;
     }
 
-    bool FoundByHeaderMap = !IsMapped ? false : *IsMapped;
-    if (!Includers.empty())
+    
+    if (bool FoundByHeaderMap = !IsMapped ? false : *IsMapped; !Includers.empty())
       diagnoseFrameworkInclude(Diags, IncludeLoc,
                                Includers.front().second.getName(), Filename,
                                *File, isAngled, FoundByHeaderMap);
@@ -1382,8 +1382,8 @@ void HeaderSearch::MarkFileModuleHeader(FileEntryRef FE,
   if (!isCompilingModuleHeader) {
     if ((Role & ModuleMap::ExcludedHeader))
       return;
-    auto *HFI = getExistingFileInfo(FE);
-    if (HFI && !moduleMembershipNeedsMerge(HFI, Role))
+    
+    if (auto *HFI = getExistingFileInfo(FE); HFI && !moduleMembershipNeedsMerge(HFI, Role))
       return;
   }
 
@@ -2054,8 +2054,8 @@ void HeaderSearch::loadSubdirectoryModuleMaps(DirectoryLookup &SearchDir) {
        Dir != DirEnd && !EC; Dir.increment(EC)) {
     if (Dir->type() == llvm::sys::fs::file_type::regular_file)
       continue;
-    bool IsFramework = llvm::sys::path::extension(Dir->path()) == ".framework";
-    if (IsFramework == SearchDir.isFramework())
+    
+    if (bool IsFramework = llvm::sys::path::extension(Dir->path()) == ".framework"; IsFramework == SearchDir.isFramework())
       parseAndLoadModuleMapFile(Dir->path(),
                                 SearchDir.isSystemHeaderDirectory(),
                                 SearchDir.isFramework());
@@ -2098,8 +2098,8 @@ std::string HeaderSearch::suggestPathToFileForDiagnostics(
          NI != NE; ++NI, ++DI) {
       if (DI == DE) {
         // Dir is a prefix of File, up to choice of path separators.
-        unsigned PrefixLength = NI - path::begin(File);
-        if (PrefixLength > BestPrefixLength) {
+        
+        if (unsigned PrefixLength = NI - path::begin(File); PrefixLength > BestPrefixLength) {
           BestPrefixLength = PrefixLength;
           return true;
         }

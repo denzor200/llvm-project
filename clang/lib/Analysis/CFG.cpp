@@ -465,8 +465,8 @@ reverse_children::reverse_children(Stmt *S, ASTContext &Ctx) {
     auto *AS = cast<AttributedStmt>(S);
     for (const auto *Attr : AS->getAttrs()) {
       if (const auto *AssumeAttr = dyn_cast<CXXAssumeAttr>(Attr)) {
-        Expr *AssumeExpr = AssumeAttr->getAssumption();
-        if (!AssumeExpr->HasSideEffects(Ctx)) {
+        
+        if (Expr *AssumeExpr = AssumeAttr->getAssumption(); !AssumeExpr->HasSideEffects(Ctx)) {
           childrenBuf.push_back(AssumeExpr);
         }
       }
@@ -767,8 +767,8 @@ private:
                 std::is_base_of_v<ObjCMessageExpr, CallLikeExpr>>>
   void findConstructionContextsForArguments(CallLikeExpr *E) {
     for (unsigned i = 0, e = E->getNumArgs(); i != e; ++i) {
-      Expr *Arg = E->getArg(i);
-      if (Arg->getType()->getAsCXXRecordDecl() && !Arg->isGLValue())
+      
+      if (Expr *Arg = E->getArg(i); Arg->getType()->getAsCXXRecordDecl() && !Arg->isGLValue())
         findConstructionContexts(
             ConstructionContextLayer::create(cfg->getBumpVectorContext(),
                                              ConstructionContextItem(E, i)),
@@ -842,8 +842,8 @@ private:
   }
 
   void appendConstructor(CXXConstructExpr *CE) {
-    CXXConstructorDecl *C = CE->getConstructor();
-    if (C && C->isNoReturn())
+    
+    if (CXXConstructorDecl *C = CE->getConstructor(); C && C->isNoReturn())
       Block = createNoReturnBlock();
     else
       autoCreateBlock();
@@ -1052,9 +1052,9 @@ private:
     if (const auto *UnOp = dyn_cast<UnaryOperator>(E->IgnoreParens())) {
       // Get the sub expression of the unary expression and get the Integer
       // Literal.
-      const Expr *SubExpr = UnOp->getSubExpr()->IgnoreParens();
+      
 
-      if (const auto *IntLiteral = dyn_cast<IntegerLiteral>(SubExpr)) {
+      if (const Expr *SubExpr = UnOp->getSubExpr()->IgnoreParens(); const auto *IntLiteral = dyn_cast<IntegerLiteral>(SubExpr)) {
 
         llvm::APInt Value = IntLiteral->getValue();
 
@@ -1559,8 +1559,8 @@ void CFGBuilder::findConstructionContexts(
   case Stmt::CXXOperatorCallExprClass:
   case Stmt::UserDefinedLiteralClass:
   case Stmt::ObjCMessageExprClass: {
-    auto *E = cast<Expr>(Child);
-    if (CFGCXXRecordTypedCall::isCXXRecordTypedCall(E))
+    
+    if (auto *E = cast<Expr>(Child); CFGCXXRecordTypedCall::isCXXRecordTypedCall(E))
       consumeConstructionContext(Layer, E);
     break;
   }
@@ -1575,9 +1575,9 @@ void CFGBuilder::findConstructionContexts(
     break;
   }
   case Stmt::ImplicitCastExprClass: {
-    auto *Cast = cast<ImplicitCastExpr>(Child);
+    
     // Should we support other implicit cast kinds?
-    switch (Cast->getCastKind()) {
+    switch (auto *Cast = cast<ImplicitCastExpr>(Child); Cast->getCastKind()) {
     case CK_NoOp:
     case CK_ConstructorConversion:
       findConstructionContexts(Layer, Cast->getSubExpr());
@@ -1621,8 +1621,8 @@ void CFGBuilder::findConstructionContexts(
     break;
   }
   case Stmt::InitListExprClass: {
-    auto *ILE = cast<InitListExpr>(Child);
-    if (ILE->isTransparent()) {
+    
+    if (auto *ILE = cast<InitListExpr>(Child); ILE->isTransparent()) {
       findConstructionContexts(Layer, ILE->getInit(0));
       break;
     }
@@ -1667,8 +1667,8 @@ std::unique_ptr<CFG> CFGBuilder::buildCFG(const Decl *D, Stmt *Statement) {
   Block = nullptr;  // the EXIT block is empty.  Create all other blocks lazily.
 
   // Add parameters to the initial scope to handle their dtos and lifetime ends.
-  LocalScope *paramScope = nullptr;
-  if (const auto *FD = dyn_cast_or_null<FunctionDecl>(D))
+  
+  if (LocalScope *paramScope = nullptr; const auto *FD = dyn_cast_or_null<FunctionDecl>(D))
     for (ParmVarDecl *PD : FD->parameters())
       paramScope = addLocalScopeForVarDecl(PD, paramScope);
 
@@ -1727,8 +1727,8 @@ std::unique_ptr<CFG> CFGBuilder::buildCFG(const Decl *D, Stmt *Statement) {
   for (BackpatchBlocksTy::iterator I = BackpatchBlocks.begin(),
                                    E = BackpatchBlocks.end(); I != E; ++I ) {
 
-    CFGBlock *B = I->block;
-    if (auto *G = dyn_cast<GotoStmt>(B->getTerminator())) {
+    
+    if (CFGBlock *B = I->block; auto *G = dyn_cast<GotoStmt>(B->getTerminator())) {
       LabelMapTy::iterator LI = LabelMap.find(G->getLabel());
       // If there is no target for the goto, then we are looking at an
       // incomplete AST.  Handle this by not registering a successor.
@@ -1881,8 +1881,8 @@ static QualType getReferenceInitTemporaryType(const Expr *Init,
     }
 
     // Skip sub-object accesses into rvalues.
-    const Expr *SkippedInit = Init->skipRValueSubobjectAdjustments();
-    if (SkippedInit != Init) {
+    
+    if (const Expr *SkippedInit = Init->skipRValueSubobjectAdjustments(); SkippedInit != Init) {
       Init = SkippedInit;
       continue;
     }
@@ -1974,8 +1974,8 @@ void CFGBuilder::addAutomaticObjDestruction(LocalScope::const_iterator B,
         Ty = getReferenceInitTemporaryType(VD->getInit());
       Ty = Context->getBaseElementType(Ty);
 
-      const CXXRecordDecl *CRD = Ty->getAsCXXRecordDecl();
-      if (CRD && CRD->isAnyDestructorNoReturn())
+      
+      if (const CXXRecordDecl *CRD = Ty->getAsCXXRecordDecl(); CRD && CRD->isAnyDestructorNoReturn())
         Block = createNoReturnBlock();
     }
 
@@ -2108,8 +2108,8 @@ void CFGBuilder::addImplicitDtorsForDestructor(const CXXDestructorDecl *DD) {
     // TODO: Add a VirtualBaseBranch to see if the most derived class
     // (which is different from the current class) is responsible for
     // destroying them.
-    const CXXRecordDecl *CD = VI.getType()->getAsCXXRecordDecl();
-    if (CD && !CD->hasTrivialDestructor()) {
+    
+    if (const CXXRecordDecl *CD = VI.getType()->getAsCXXRecordDecl(); CD && !CD->hasTrivialDestructor()) {
       autoCreateBlock();
       appendBaseDtor(Block, &VI);
     }
@@ -2118,8 +2118,8 @@ void CFGBuilder::addImplicitDtorsForDestructor(const CXXDestructorDecl *DD) {
   // Before virtual bases destroy direct base objects.
   for (const auto &BI : RD->bases()) {
     if (!BI.isVirtual()) {
-      const CXXRecordDecl *CD = BI.getType()->getAsCXXRecordDecl();
-      if (CD && !CD->hasTrivialDestructor()) {
+      
+      if (const CXXRecordDecl *CD = BI.getType()->getAsCXXRecordDecl(); CD && !CD->hasTrivialDestructor()) {
         autoCreateBlock();
         appendBaseDtor(Block, &BI);
       }
@@ -2163,13 +2163,13 @@ void CFGBuilder::addLocalScopeForStmt(Stmt *S) {
       !BuildOpts.AddScopes)
     return;
 
-  LocalScope *Scope = nullptr;
+  
 
   // For compound statement we will be creating explicit scope.
-  if (CompoundStmt *CS = dyn_cast<CompoundStmt>(S)) {
+  if (LocalScope *Scope = nullptr; CompoundStmt *CS = dyn_cast<CompoundStmt>(S)) {
     for (auto *BI : CS->body()) {
-      Stmt *SI = BI->stripLabelLikeStatements();
-      if (DeclStmt *DS = dyn_cast<DeclStmt>(SI))
+      
+      if (Stmt *SI = BI->stripLabelLikeStatements(); DeclStmt *DS = dyn_cast<DeclStmt>(SI))
         Scope = addLocalScopeForDeclStmt(DS, Scope);
     }
     return;
@@ -2593,8 +2593,8 @@ CFGBlock *CFGBuilder::VisitAttributedStmt(AttributedStmt *A,
   // So only add the AttributedStmt for FallThrough, which has CFG effects and
   // also no children, and omit the others. None of the other current StmtAttrs
   // have semantic meaning for the CFG.
-  bool isInterestingAttribute = isFallthroughStatement(A) || isCXXAssumeAttr(A);
-  if (isInterestingAttribute && asc.alwaysAdd(*this, A)) {
+  
+  if (bool isInterestingAttribute = isFallthroughStatement(A) || isCXXAssumeAttr(A); isInterestingAttribute && asc.alwaysAdd(*this, A)) {
     autoCreateBlock();
     appendStmt(Block, A);
   }
@@ -2790,8 +2790,8 @@ static bool CanThrow(Expr *E, ASTContext &Ctx) {
   if (Ty->isFunctionPointerType() || Ty->isBlockPointerType())
     Ty = Ty->getPointeeType();
 
-  const FunctionType *FT = Ty->getAs<FunctionType>();
-  if (FT) {
+  
+  if (const FunctionType *FT = Ty->getAs<FunctionType>(); FT) {
     if (const FunctionProtoType *Proto = dyn_cast<FunctionProtoType>(FT))
       if (!isUnresolvedExceptionSpec(Proto->getExceptionSpecType()) &&
           Proto->isNothrow())
@@ -2802,8 +2802,8 @@ static bool CanThrow(Expr *E, ASTContext &Ctx) {
 
 static bool isBuiltinAssumeWithSideEffects(const ASTContext &Ctx,
                                            const CallExpr *CE) {
-  unsigned BuiltinID = CE->getBuiltinCallee();
-  if (BuiltinID != Builtin::BI__assume &&
+  
+  if (unsigned BuiltinID = CE->getBuiltinCallee(); BuiltinID != Builtin::BI__assume &&
       BuiltinID != Builtin::BI__builtin_assume)
     return false;
 
@@ -2942,10 +2942,10 @@ CFGBlock *CFGBuilder::VisitCompoundStmt(CompoundStmt *C,
   for (Stmt *S : llvm::reverse(C->body())) {
     // If we hit a segment of code just containing ';' (NullStmts), we can
     // get a null block back.  In such cases, just use the LastBlock
-    CFGBlock *newBlock = Visit(S, AddStmtChoice::AlwaysAdd,
-                               ExternallyDestructed);
+    
 
-    if (newBlock)
+    if (CFGBlock *newBlock = Visit(S, AddStmtChoice::AlwaysAdd,
+                               ExternallyDestructed); newBlock)
       LastBlock = newBlock;
 
     if (badCFG)
@@ -2978,8 +2978,8 @@ CFGBlock *CFGBuilder::VisitConditionalOperator(AbstractConditionalOperator *C,
   Succ = ConfluenceBlock;
   Block = nullptr;
   CFGBlock *LHSBlock = nullptr;
-  const Expr *trueExpr = C->getTrueExpr();
-  if (trueExpr != opaqueValue) {
+  
+  if (const Expr *trueExpr = C->getTrueExpr(); trueExpr != opaqueValue) {
     LHSBlock = Visit(C->getTrueExpr(), alwaysAdd);
     if (badCFG)
       return nullptr;
@@ -3151,8 +3151,8 @@ CFGBlock *CFGBuilder::VisitDeclSubExpr(DeclStmt *DS) {
     if (HasTemporaries) {
       // For expression with temporaries go directly to subexpression to omit
       // generating destructors for the second time.
-      ExprWithCleanups *EC = cast<ExprWithCleanups>(Init);
-      if (CFGBlock *newBlock = Visit(EC->getSubExpr()))
+      
+      if (ExprWithCleanups *EC = cast<ExprWithCleanups>(Init); CFGBlock *newBlock = Visit(EC->getSubExpr()))
         LastBlock = newBlock;
     }
     else {
@@ -3539,8 +3539,8 @@ CFGBlock *CFGBuilder::VisitBlockExpr(BlockExpr *E, AddStmtChoice asc) {
   CFGBlock *LastBlock = VisitNoRecurse(E, asc);
   for (const BlockDecl::Capture &CI : E->getBlockDecl()->captures()) {
     if (Expr *CopyExpr = CI.getCopyExpr()) {
-      CFGBlock *Tmp = Visit(CopyExpr);
-      if (Tmp)
+      
+      if (CFGBlock *Tmp = Visit(CopyExpr); Tmp)
         LastBlock = Tmp;
     }
   }
@@ -3564,8 +3564,8 @@ CFGBlock *CFGBuilder::VisitLambdaExpr(LambdaExpr *E, AddStmtChoice asc) {
                                    cfg->getBumpVectorContext(), {E, Idx}),
                                AILEInit ? AILEInit : Init);
 
-      CFGBlock *Tmp = Visit(Init);
-      if (Tmp)
+      
+      if (CFGBlock *Tmp = Visit(Init); Tmp)
         LastBlock = Tmp;
     }
   }
@@ -3933,11 +3933,11 @@ CFGBlock *CFGBuilder::VisitObjCAtSynchronizedStmt(ObjCAtSynchronizedStmt *S) {
   // FIXME: Add locking 'primitives' to CFG for @synchronized.
 
   // Inline the body.
-  CFGBlock *SyncBlock = addStmt(S->getSynchBody());
+  
 
   // The sync body starts its own basic block.  This makes it a little easier
   // for diagnostic clients.
-  if (SyncBlock) {
+  if (CFGBlock *SyncBlock = addStmt(S->getSynchBody()); SyncBlock) {
     if (badCFG)
       return nullptr;
 
@@ -4575,9 +4575,9 @@ static bool shouldAddCase(bool &switchExclusivelyCovered,
     if (switchCond->Val.isInt()) {
       // Evaluate the LHS of the case value.
       const llvm::APSInt &lhsInt = CS->getLHS()->EvaluateKnownConstInt(Ctx);
-      const llvm::APSInt &condInt = switchCond->Val.getInt();
+      
 
-      if (condInt == lhsInt) {
+      if (const llvm::APSInt &condInt = switchCond->Val.getInt(); condInt == lhsInt) {
         addCase = true;
         switchExclusivelyCovered = true;
       }
@@ -4993,8 +4993,8 @@ CFGBlock *CFGBuilder::VisitCXXDeleteExpr(CXXDeleteExpr *DE,
   QualType DTy = DE->getDestroyedType();
   if (!DTy.isNull()) {
     DTy = DTy.getNonReferenceType();
-    CXXRecordDecl *RD = Context->getBaseElementType(DTy)->getAsCXXRecordDecl();
-    if (RD) {
+    
+    if (CXXRecordDecl *RD = Context->getBaseElementType(DTy)->getAsCXXRecordDecl(); RD) {
       if (RD->isCompleteDefinition() && !RD->hasTrivialDestructor())
         appendDeleteDtor(Block, RD, DE);
     }
@@ -5232,9 +5232,9 @@ CFGBlock *CFGBuilder::VisitCXXBindTemporaryExprForTemporaryDtors(
     // If lifetime of temporary is not prolonged (by assigning to constant
     // reference) add destructor for it.
 
-    const CXXDestructorDecl *Dtor = E->getTemporary()->getDestructor();
+    
 
-    if (Dtor->getParent()->isAnyDestructorNoReturn()) {
+    if (const CXXDestructorDecl *Dtor = E->getTemporary()->getDestructor(); Dtor->getParent()->isAnyDestructorNoReturn()) {
       // If the destructor is marked as a no-return destructor, we need to
       // create a new block for the destructor which does not have as a
       // successor anything built thus far. Control won't flow out of this

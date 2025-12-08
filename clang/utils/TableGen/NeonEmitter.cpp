@@ -1988,11 +1988,11 @@ Intrinsic &NeonEmitter::getIntrinsic(StringRef Name, ArrayRef<Type> Types,
       continue;
 
     unsigned ArgNum = 0;
-    bool MatchingArgumentTypes = all_of(Types, [&](const auto &Type) {
-      return Type == I.getParamType(ArgNum++);
-    });
+    
 
-    if (MatchingArgumentTypes)
+    if (bool MatchingArgumentTypes = all_of(Types, [&](const auto &Type) {
+      return Type == I.getParamType(ArgNum++);
+    }); MatchingArgumentTypes)
       GoodVec.push_back(&I);
   }
 

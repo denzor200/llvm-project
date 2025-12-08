@@ -298,15 +298,15 @@ std::optional<MutexDescriptor>
 BlockInCriticalSectionChecker::checkDescriptorMatch(const CallEvent &Call,
                                                     CheckerContext &C,
                                                     bool IsLock) const {
-  const auto Descriptor =
+  
+  if (const auto Descriptor =
       llvm::find_if(MutexDescriptors, [&Call, IsLock](auto &&Descriptor) {
         return std::visit(
             [&Call, IsLock](auto &&DescriptorImpl) {
               return DescriptorImpl.matches(Call, IsLock);
             },
             Descriptor);
-      });
-  if (Descriptor != MutexDescriptors.end())
+      }); Descriptor != MutexDescriptors.end())
     return *Descriptor;
   return std::nullopt;
 }

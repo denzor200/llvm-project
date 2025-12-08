@@ -87,8 +87,8 @@ void AsyncTaskRunner::runAsync(const llvm::Twine &Name,
 
   auto CleanupTask = llvm::make_scope_exit([this]() {
     std::lock_guard<std::mutex> Lock(Mutex);
-    int NewTasksCnt = --InFlightTasks;
-    if (NewTasksCnt == 0) {
+    
+    if (int NewTasksCnt = --InFlightTasks; NewTasksCnt == 0) {
       // Note: we can't unlock here because we don't want the object to be
       // destroyed before we notify.
       TasksReachedZero.notify_one();

@@ -164,8 +164,8 @@ llvm::Expected<Regex> llvm::MachO::createRegexFromGlob(StringRef Glob) {
   SmallString<128> RegexString("^");
   unsigned NumWildcards = 0;
   for (unsigned i = 0; i < Glob.size(); ++i) {
-    char C = Glob[i];
-    switch (C) {
+    
+    switch (char C = Glob[i]; C) {
     case '?':
       RegexString += '.';
       break;
@@ -177,9 +177,9 @@ llvm::Expected<Regex> llvm::MachO::createRegexFromGlob(StringRef Glob) {
         ++NumWildcards;
         ++i;
       }
-      const char *NextChar = i < Glob.size() ? Glob.data() + i : nullptr;
+      
 
-      if ((NumWildcards > 1) && (PrevChar == nullptr || *PrevChar == '/') &&
+      if (const char *NextChar = i < Glob.size() ? Glob.data() + i : nullptr; (NumWildcards > 1) && (PrevChar == nullptr || *PrevChar == '/') &&
           (NextChar == nullptr || *NextChar == '/')) {
         RegexString += "(([^/]*(/|$))*)";
       } else

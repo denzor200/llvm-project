@@ -1259,10 +1259,10 @@ static void AddAliasScopeMetadata(CallBase &CB, ValueToValueMapTy &VMap,
         // Is this value a constant that cannot be derived from any pointer
         // value (we need to exclude constant expressions, for example, that
         // are formed from arithmetic on global symbols).
-        bool IsNonPtrConst = isa<ConstantInt>(V) || isa<ConstantFP>(V) ||
+        
+        if (bool IsNonPtrConst = isa<ConstantInt>(V) || isa<ConstantFP>(V) ||
                              isa<ConstantPointerNull>(V) ||
-                             isa<ConstantDataVector>(V) || isa<UndefValue>(V);
-        if (IsNonPtrConst)
+                             isa<ConstantDataVector>(V) || isa<UndefValue>(V); IsNonPtrConst)
           continue;
 
         // If this is anything other than a noalias argument, then we cannot
@@ -1719,12 +1719,12 @@ static void HandleByValArgumentInit(Type *ByValType, Value *Dst, Value *Src,
   Align DstAlign = Dst->getPointerAlignment(M->getDataLayout());
 
   // Generate a memcpy with the correct alignments.
-  CallInst *CI = Builder.CreateMemCpy(Dst, DstAlign, Src, SrcAlign, Size);
+  
 
   // The verifier requires that all calls of debug-info-bearing functions
   // from debug-info-bearing functions have a debug location (for inlining
   // purposes). Assign a dummy location to satisfy the constraint.
-  if (!CI->getDebugLoc() && InsertBlock->getParent()->getSubprogram())
+  if (CallInst *CI = Builder.CreateMemCpy(Dst, DstAlign, Src, SrcAlign, Size); !CI->getDebugLoc() && InsertBlock->getParent()->getSubprogram())
     if (DISubprogram *SP = CalledFunc->getSubprogram())
       CI->setDebugLoc(DILocation::get(SP->getContext(), 0, 0, SP));
 }
@@ -1749,12 +1749,12 @@ static Value *HandleByValArgument(Type *ByValType, Value *Arg,
     if (ByValAlignment.valueOrOne() == 1)
       return Arg;
 
-    AssumptionCache *AC =
-        IFI.GetAssumptionCache ? &IFI.GetAssumptionCache(*Caller) : nullptr;
+    
 
     // If the pointer is already known to be sufficiently aligned, or if we can
     // round it up to a larger alignment, then we don't need a temporary.
-    if (getOrEnforceKnownAlignment(Arg, *ByValAlignment, DL, TheCall, AC) >=
+    if (AssumptionCache *AC =
+        IFI.GetAssumptionCache ? &IFI.GetAssumptionCache(*Caller) : nullptr; getOrEnforceKnownAlignment(Arg, *ByValAlignment, DL, TheCall, AC) >=
         *ByValAlignment)
       return Arg;
 
@@ -1954,8 +1954,8 @@ static at::StorageToVarsMap collectEscapedLocals(const DataLayout &DL,
       continue;
     }
 
-    const Instruction *I = dyn_cast<Instruction>(Arg);
-    if (!I) {
+    
+    if (const Instruction *I = dyn_cast<Instruction>(Arg); !I) {
       LLVM_DEBUG(errs() << " | SKIP: Not result of instruction\n");
       continue;
     }
@@ -2078,8 +2078,8 @@ void llvm::updateProfileCallee(
 
   auto updateVTableProfWeight = [](CallBase *CB, const uint64_t NewEntryCount,
                                    const uint64_t PriorEntryCount) {
-    Instruction *VPtr = PGOIndirectCallVisitor::tryGetVTableInstruction(CB);
-    if (VPtr)
+    
+    if (Instruction *VPtr = PGOIndirectCallVisitor::tryGetVTableInstruction(CB); VPtr)
       scaleProfData(*VPtr, NewEntryCount, PriorEntryCount);
   };
 
@@ -2427,16 +2427,16 @@ llvm::InlineResult llvm::InlineFunction(
     assert(CalleeCtx.guid() == CalleeGUID);
 
     for (auto I = 0U; I < CalleeCtx.counters().size(); ++I) {
-      const int64_t NewIndex = CalleeCounterMap[I];
-      if (NewIndex >= 0) {
+      
+      if (const int64_t NewIndex = CalleeCounterMap[I]; NewIndex >= 0) {
         assert(NewIndex != 0 && "counter index mapping shouldn't happen to a 0 "
                                 "index, that's the caller's entry BB");
         Ctx.counters()[NewIndex] = CalleeCtx.counters()[I];
       }
     }
     for (auto &[I, OtherSet] : CalleeCtx.callsites()) {
-      const int64_t NewCSIdx = CalleeCallsiteMap[I];
-      if (NewCSIdx >= 0) {
+      
+      if (const int64_t NewCSIdx = CalleeCallsiteMap[I]; NewCSIdx >= 0) {
         assert(NewCSIdx != 0 &&
                "callsite index mapping shouldn't happen to a 0 index, the "
                "caller must've had at least one callsite (with such an index)");
@@ -2640,9 +2640,9 @@ void llvm::InlineFunctionImpl(CallBase &CB, InlineFunctionInfo &IFI,
   }
 
   if (CalledFunc->hasPersonalityFn()) {
-    Constant *CalledPersonality =
-        CalledFunc->getPersonalityFn()->stripPointerCasts();
-    if (!Caller->hasPersonalityFn()) {
+    
+    if (Constant *CalledPersonality =
+        CalledFunc->getPersonalityFn()->stripPointerCasts(); !Caller->hasPersonalityFn()) {
       Caller->setPersonalityFn(CalledPersonality);
     } else
       assert(Caller->getPersonalityFn()->stripPointerCasts() ==
@@ -2840,8 +2840,8 @@ void llvm::InlineFunctionImpl(CallBase &CB, InlineFunctionInfo &IFI,
   }
 
   if (IFI.ConvergenceControlToken) {
-    IntrinsicInst *IntrinsicCall = getConvergenceEntry(*FirstNewBlock);
-    if (IntrinsicCall) {
+    
+    if (IntrinsicInst *IntrinsicCall = getConvergenceEntry(*FirstNewBlock); IntrinsicCall) {
       IntrinsicCall->replaceAllUsesWith(IFI.ConvergenceControlToken);
       IntrinsicCall->eraseFromParent();
     }
@@ -3082,8 +3082,8 @@ void llvm::InlineFunctionImpl(CallBase &CB, InlineFunctionInfo &IFI,
         if (isa<ConstantTokenNone>(CatchSwitch->getParentPad()))
           CatchSwitch->setParentPad(IFI.CallSiteEHPad);
       } else {
-        auto *FPI = cast<FuncletPadInst>(I);
-        if (isa<ConstantTokenNone>(FPI->getParentPad()))
+        
+        if (auto *FPI = cast<FuncletPadInst>(I); isa<ConstantTokenNone>(FPI->getParentPad()))
           FPI->setParentPad(IFI.CallSiteEHPad);
       }
     }
@@ -3224,8 +3224,8 @@ void llvm::InlineFunctionImpl(CallBase &CB, InlineFunctionInfo &IFI,
     // If the return instruction returned a value, replace uses of the call with
     // uses of the returned value.
     if (!CB.use_empty()) {
-      ReturnInst *R = Returns[0];
-      if (&CB == R->getReturnValue())
+      
+      if (ReturnInst *R = Returns[0]; &CB == R->getReturnValue())
         CB.replaceAllUsesWith(PoisonValue::get(CB.getType()));
       else
         CB.replaceAllUsesWith(R->getReturnValue());
@@ -3399,8 +3399,8 @@ void llvm::InlineFunctionImpl(CallBase &CB, InlineFunctionInfo &IFI,
   if (PHI) {
     AssumptionCache *AC =
         IFI.GetAssumptionCache ? &IFI.GetAssumptionCache(*Caller) : nullptr;
-    auto &DL = Caller->getDataLayout();
-    if (Value *V = simplifyInstruction(PHI, {DL, nullptr, nullptr, AC})) {
+    
+    if (auto &DL = Caller->getDataLayout(); Value *V = simplifyInstruction(PHI, {DL, nullptr, nullptr, AC})) {
       PHI->replaceAllUsesWith(V);
       PHI->eraseFromParent();
     }

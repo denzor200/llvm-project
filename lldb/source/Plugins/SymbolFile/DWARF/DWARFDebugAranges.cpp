@@ -54,8 +54,8 @@ void DWARFDebugAranges::Dump(Log *log) const {
 
   const size_t num_entries = m_aranges.GetSize();
   for (size_t i = 0; i < num_entries; ++i) {
-    const RangeToDIE::Entry *entry = m_aranges.GetEntryAtIndex(i);
-    if (entry)
+    
+    if (const RangeToDIE::Entry *entry = m_aranges.GetEntryAtIndex(i); entry)
       LLDB_LOG(log, "{0:x8}: [{1:x16} - {2:x16})", entry->data,
                entry->GetRangeBase(), entry->GetRangeEnd());
   }
@@ -76,8 +76,8 @@ void DWARFDebugAranges::Sort(bool minimize) {
 
 // FindAddress
 dw_offset_t DWARFDebugAranges::FindAddress(dw_addr_t address) const {
-  const RangeToDIE::Entry *entry = m_aranges.FindEntryThatContains(address);
-  if (entry)
+  
+  if (const RangeToDIE::Entry *entry = m_aranges.FindEntryThatContains(address); entry)
     return entry->data;
   return DW_INVALID_OFFSET;
 }

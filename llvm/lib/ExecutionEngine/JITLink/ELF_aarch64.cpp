@@ -276,8 +276,8 @@ private:
       break;
     }
     case ELFLdrLo19: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isLDRLiteral(Instr))
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isLDRLiteral(Instr))
         return make_error<JITLinkError>(
             "R_AARCH64_LDR_PREL_LO19 target is not an LDR Literal instruction");
 
@@ -285,8 +285,8 @@ private:
       break;
     }
     case ELFAdrLo21: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isADR(Instr))
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isADR(Instr))
         return make_error<JITLinkError>(
             "R_AARCH64_ADR_PREL_LO21 target is not an ADR instruction");
 
@@ -302,8 +302,8 @@ private:
       break;
     }
     case ELFLdSt8Abs12: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isLoadStoreImm12(Instr) ||
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isLoadStoreImm12(Instr) ||
           aarch64::getPageOffset12Shift(Instr) != 0)
         return make_error<JITLinkError>(
             "R_AARCH64_LDST8_ABS_LO12_NC target is not a "
@@ -313,8 +313,8 @@ private:
       break;
     }
     case ELFLdSt16Abs12: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isLoadStoreImm12(Instr) ||
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isLoadStoreImm12(Instr) ||
           aarch64::getPageOffset12Shift(Instr) != 1)
         return make_error<JITLinkError>(
             "R_AARCH64_LDST16_ABS_LO12_NC target is not a "
@@ -324,8 +324,8 @@ private:
       break;
     }
     case ELFLdSt32Abs12: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isLoadStoreImm12(Instr) ||
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isLoadStoreImm12(Instr) ||
           aarch64::getPageOffset12Shift(Instr) != 2)
         return make_error<JITLinkError>(
             "R_AARCH64_LDST32_ABS_LO12_NC target is not a "
@@ -335,8 +335,8 @@ private:
       break;
     }
     case ELFLdSt64Abs12: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isLoadStoreImm12(Instr) ||
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isLoadStoreImm12(Instr) ||
           aarch64::getPageOffset12Shift(Instr) != 3)
         return make_error<JITLinkError>(
             "R_AARCH64_LDST64_ABS_LO12_NC target is not a "
@@ -346,8 +346,8 @@ private:
       break;
     }
     case ELFLdSt128Abs12: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isLoadStoreImm12(Instr) ||
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isLoadStoreImm12(Instr) ||
           aarch64::getPageOffset12Shift(Instr) != 4)
         return make_error<JITLinkError>(
             "R_AARCH64_LDST128_ABS_LO12_NC target is not a "
@@ -357,8 +357,8 @@ private:
       break;
     }
     case ELFMovwAbsG0: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isMoveWideImm16(Instr) ||
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isMoveWideImm16(Instr) ||
           aarch64::getMoveWide16Shift(Instr) != 0)
         return make_error<JITLinkError>(
             "R_AARCH64_MOVW_UABS_G0_NC target is not a "
@@ -368,8 +368,8 @@ private:
       break;
     }
     case ELFMovwAbsG1: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isMoveWideImm16(Instr) ||
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isMoveWideImm16(Instr) ||
           aarch64::getMoveWide16Shift(Instr) != 16)
         return make_error<JITLinkError>(
             "R_AARCH64_MOVW_UABS_G1_NC target is not a "
@@ -379,8 +379,8 @@ private:
       break;
     }
     case ELFMovwAbsG2: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isMoveWideImm16(Instr) ||
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isMoveWideImm16(Instr) ||
           aarch64::getMoveWide16Shift(Instr) != 32)
         return make_error<JITLinkError>(
             "R_AARCH64_MOVW_UABS_G2_NC target is not a "
@@ -390,8 +390,8 @@ private:
       break;
     }
     case ELFMovwAbsG3: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isMoveWideImm16(Instr) ||
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isMoveWideImm16(Instr) ||
           aarch64::getMoveWide16Shift(Instr) != 48)
         return make_error<JITLinkError>(
             "R_AARCH64_MOVW_UABS_G3 target is not a "
@@ -401,8 +401,8 @@ private:
       break;
     }
     case ELFTstBr14: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isTestAndBranchImm14(Instr))
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isTestAndBranchImm14(Instr))
         return make_error<JITLinkError>("R_AARCH64_TSTBR14 target is not a "
                                         "test and branch instruction");
 
@@ -410,8 +410,8 @@ private:
       break;
     }
     case ELFCondBr19: {
-      uint32_t Instr = *(const ulittle32_t *)FixupContent;
-      if (!aarch64::isCondBranchImm19(Instr) &&
+      
+      if (uint32_t Instr = *(const ulittle32_t *)FixupContent; !aarch64::isCondBranchImm19(Instr) &&
           !aarch64::isCompAndBranchImm19(Instr))
         return make_error<JITLinkError>("R_AARCH64_CONDBR19 target is not a "
                                         "conditional branch instruction");
@@ -700,8 +700,8 @@ Expected<std::unique_ptr<LinkGraph>> createLinkGraphFromELFObject_aarch64(
 void link_ELF_aarch64(std::unique_ptr<LinkGraph> G,
                       std::unique_ptr<JITLinkContext> Ctx) {
   PassConfiguration Config;
-  const Triple &TT = G->getTargetTriple();
-  if (Ctx->shouldAddDefaultTargetPasses(TT)) {
+  
+  if (const Triple &TT = G->getTargetTriple(); Ctx->shouldAddDefaultTargetPasses(TT)) {
     // Add eh-frame passes.
     Config.PrePrunePasses.push_back(DWARFRecordSectionSplitter(".eh_frame"));
     Config.PrePrunePasses.push_back(EHFrameEdgeFixer(

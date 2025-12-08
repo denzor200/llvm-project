@@ -581,10 +581,10 @@ void UnifyAliasedResourcePass::runOnOperation() {
     // WGSL or MSL. The translation has limitations.
     spirv::TargetEnvAttr targetEnv = getTargetEnvFn(moduleOp);
     spirv::ClientAPI clientAPI = targetEnv.getClientAPI();
-    bool isVulkanOnAppleDevices =
+    
+    if (bool isVulkanOnAppleDevices =
         clientAPI == spirv::ClientAPI::Vulkan &&
-        targetEnv.getVendorID() == spirv::Vendor::Apple;
-    if (clientAPI != spirv::ClientAPI::WebGPU &&
+        targetEnv.getVendorID() == spirv::Vendor::Apple; clientAPI != spirv::ClientAPI::WebGPU &&
         clientAPI != spirv::ClientAPI::Metal && !isVulkanOnAppleDevices)
       return;
   }
@@ -612,8 +612,8 @@ void UnifyAliasedResourcePass::runOnOperation() {
   AliasedResourceMap resourceMap =
       collectAliasedResources(cast<spirv::ModuleOp>(moduleOp));
   for (const auto &dr : resourceMap) {
-    const auto &resources = dr.second;
-    if (resources.size() == 1)
+    
+    if (const auto &resources = dr.second; resources.size() == 1)
       resources.front()->removeAttr("aliased");
   }
 }

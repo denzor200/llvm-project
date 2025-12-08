@@ -228,8 +228,8 @@ void TpiSource::remapRecord(MutableArrayRef<uint8_t> rec,
                             ArrayRef<TiReference> typeRefs) {
   MutableArrayRef<uint8_t> contents = rec.drop_front(sizeof(RecordPrefix));
   for (const TiReference &ref : typeRefs) {
-    unsigned byteSize = ref.Count * sizeof(TypeIndex);
-    if (contents.size() < ref.Offset + byteSize)
+    
+    if (unsigned byteSize = ref.Count * sizeof(TypeIndex); contents.size() < ref.Offset + byteSize)
       Fatal(ctx) << "symbol record too short";
 
     MutableArrayRef<TypeIndex> indices(

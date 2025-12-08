@@ -196,8 +196,8 @@ bool ODRDiagsEmitter::diagnoseSubMismatchField(
 
   if (IsFirstBitField && IsSecondBitField) {
     unsigned FirstBitWidthHash = computeODRHash(FirstField->getBitWidth());
-    unsigned SecondBitWidthHash = computeODRHash(SecondField->getBitWidth());
-    if (FirstBitWidthHash != SecondBitWidthHash) {
+    
+    if (unsigned SecondBitWidthHash = computeODRHash(SecondField->getBitWidth()); FirstBitWidthHash != SecondBitWidthHash) {
       DiagError(FieldDifferentWidthBitField)
           << FirstII << FirstField->getBitWidth()->getSourceRange();
       DiagNote(FieldDifferentWidthBitField)
@@ -230,8 +230,8 @@ bool ODRDiagsEmitter::diagnoseSubMismatchField(
 
   if (FirstInitializer && SecondInitializer) {
     unsigned FirstInitHash = computeODRHash(FirstInitializer);
-    unsigned SecondInitHash = computeODRHash(SecondInitializer);
-    if (FirstInitHash != SecondInitHash) {
+    
+    if (unsigned SecondInitHash = computeODRHash(SecondInitializer); FirstInitHash != SecondInitHash) {
       DiagError(FieldDifferentInitializers)
           << FirstII << FirstInitializer->getSourceRange();
       DiagNote(FieldDifferentInitializers)
@@ -549,8 +549,8 @@ bool ODRDiagsEmitter::diagnoseSubMismatchObjCProperty(
 
   // Go over the property attributes and stop at the first mismatch.
   unsigned FirstAttrs = (unsigned)FirstProp->getPropertyAttributes();
-  unsigned SecondAttrs = (unsigned)SecondProp->getPropertyAttributes();
-  if (FirstAttrs != SecondAttrs) {
+  
+  if (unsigned SecondAttrs = (unsigned)SecondProp->getPropertyAttributes(); FirstAttrs != SecondAttrs) {
     for (unsigned I = 0; I < NumObjCPropertyAttrsBits; ++I) {
       unsigned CheckedAttr = (1 << I);
       if ((FirstAttrs & CheckedAttr) == (SecondAttrs & CheckedAttr))
@@ -985,8 +985,8 @@ bool ODRDiagsEmitter::diagnoseMismatch(
     const Expr *FirstExpr = FirstSA->getAssertExpr();
     const Expr *SecondExpr = SecondSA->getAssertExpr();
     unsigned FirstODRHash = computeODRHash(FirstExpr);
-    unsigned SecondODRHash = computeODRHash(SecondExpr);
-    if (FirstODRHash != SecondODRHash) {
+    
+    if (unsigned SecondODRHash = computeODRHash(SecondExpr); FirstODRHash != SecondODRHash) {
       DiagError(FirstExpr->getBeginLoc(), FirstExpr->getSourceRange(),
                 StaticAssertCondition);
       DiagNote(SecondExpr->getBeginLoc(), SecondExpr->getSourceRange(),
@@ -1023,8 +1023,8 @@ bool ODRDiagsEmitter::diagnoseMismatch(
 
     if (FirstMessage && SecondMessage) {
       unsigned FirstMessageODRHash = computeODRHash(FirstMessage);
-      unsigned SecondMessageODRHash = computeODRHash(SecondMessage);
-      if (FirstMessageODRHash != SecondMessageODRHash) {
+      
+      if (unsigned SecondMessageODRHash = computeODRHash(SecondMessage); FirstMessageODRHash != SecondMessageODRHash) {
         DiagError(FirstMessage->getBeginLoc(), FirstMessage->getSourceRange(),
                   StaticAssertMessage);
         DiagNote(SecondMessage->getBeginLoc(), SecondMessage->getSourceRange(),
@@ -2074,8 +2074,8 @@ bool ODRDiagsEmitter::diagnoseMismatch(
 
     // Check if the access match.
     const ObjCIvarDecl *FirstIvar = cast<ObjCIvarDecl>(FirstDecl);
-    const ObjCIvarDecl *SecondIvar = cast<ObjCIvarDecl>(SecondDecl);
-    if (FirstIvar->getCanonicalAccessControl() !=
+    
+    if (const ObjCIvarDecl *SecondIvar = cast<ObjCIvarDecl>(SecondDecl); FirstIvar->getCanonicalAccessControl() !=
         SecondIvar->getCanonicalAccessControl()) {
       DiagError(FirstIvar->getLocation(), FirstIvar->getSourceRange(),
                 IVarAccess)
@@ -2126,8 +2126,8 @@ bool ODRDiagsEmitter::diagnoseMismatch(
     // Check both protocols reference the same protocols.
     const ObjCProtocolList &FirstProtocols =
         FirstProtocol->getReferencedProtocols();
-    const ObjCProtocolList &SecondProtocols = SecondDD->ReferencedProtocols;
-    if (diagnoseSubMismatchProtocols(FirstProtocols, FirstProtocol, FirstModule,
+    
+    if (const ObjCProtocolList &SecondProtocols = SecondDD->ReferencedProtocols; diagnoseSubMismatchProtocols(FirstProtocols, FirstProtocol, FirstModule,
                                      SecondProtocols, SecondProtocol,
                                      SecondModule))
       return true;

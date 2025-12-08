@@ -244,8 +244,8 @@ void WebAssemblyMCInstLower::lower(const MachineInstr *MI,
       break;
     }
     case MachineOperand::MO_Immediate: {
-      unsigned DescIndex = I - NumVariadicDefs;
-      if (DescIndex < Desc.NumOperands) {
+      
+      if (unsigned DescIndex = I - NumVariadicDefs; DescIndex < Desc.NumOperands) {
         auto Operands = Desc.operands();
         const MCOperandInfo &Info = Operands[DescIndex];
         // Replace type index placeholder with actual type index. The type index
@@ -311,9 +311,9 @@ void WebAssemblyMCInstLower::lower(const MachineInstr *MI,
     }
     case MachineOperand::MO_FPImmediate: {
       const ConstantFP *Imm = MO.getFPImm();
-      const uint64_t BitPattern =
-          Imm->getValueAPF().bitcastToAPInt().getZExtValue();
-      if (Imm->getType()->isFloatTy())
+      
+      if (const uint64_t BitPattern =
+          Imm->getValueAPF().bitcastToAPInt().getZExtValue(); Imm->getType()->isFloatTy())
         MCOp = MCOperand::createSFPImm(static_cast<uint32_t>(BitPattern));
       else if (Imm->getType()->isDoubleTy())
         MCOp = MCOperand::createDFPImm(BitPattern);
@@ -368,8 +368,8 @@ static void removeRegisterOperands(const MachineInstr *MI, MCInst &OutMI) {
 
   // Remove register operands.
   for (auto I = OutMI.getNumOperands(); I; --I) {
-    auto &MO = OutMI.getOperand(I - 1);
-    if (MO.isReg()) {
+    
+    if (auto &MO = OutMI.getOperand(I - 1); MO.isReg()) {
       OutMI.erase(&MO);
     }
   }

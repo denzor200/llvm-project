@@ -80,8 +80,8 @@ static Value permuteVectorOffset(OpBuilder &b, Location loc,
   // Use the src bits to permute the target bits b[N:M] containing the
   // vector offset.
   if (permuteEveryN > 1) {
-    int64_t shlBits = n - llvm::Log2_64(permuteEveryN);
-    if (shlBits > 0) {
+    
+    if (int64_t shlBits = n - llvm::Log2_64(permuteEveryN); shlBits > 0) {
       Value finalShiftVal = arith::ConstantIndexOp::create(b, loc, shlBits);
       srcBits = b.createOrFold<arith::ShLIOp>(loc, srcBits, finalShiftVal);
     } else if (shlBits < 0) {
@@ -169,9 +169,9 @@ mlir::nvgpu::optimizeSharedMemoryReadsAndWrites(Operation *parentOp,
   const int64_t rowsPerLine =
       (8 * kSharedMemoryLineSizeBytes / memRefType.getElementTypeBitWidth()) /
       rowSize;
-  const int64_t threadGroupSize =
-      1LL << (7 - llvm::Log2_64(kDefaultVectorSizeBits / 8));
-  if (rowsPerLine >= threadGroupSize)
+  
+  if (const int64_t threadGroupSize =
+      1LL << (7 - llvm::Log2_64(kDefaultVectorSizeBits / 8)); rowsPerLine >= threadGroupSize)
     return failure();
 
   // Get sets of operations within the function that read/write to shared

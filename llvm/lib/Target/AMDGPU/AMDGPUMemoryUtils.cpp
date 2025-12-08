@@ -235,7 +235,9 @@ LDSUsesInfoTy getTransitiveUsesOfLDS(const CallGraph &CG, Module &M) {
 
     // Check if the kernel encounters unknows calls, wheher directly or
     // indirectly.
-    bool SeesUnknownCalls = [&]() {
+    
+
+    if (bool SeesUnknownCalls = [&]() {
       SmallVector<Function *> WorkList = {CG[&Func]->getFunction()};
       SmallPtrSet<Function *, 8> Visited;
 
@@ -255,9 +257,7 @@ LDSUsesInfoTy getTransitiveUsesOfLDS(const CallGraph &CG, Module &M) {
         }
       }
       return false;
-    }();
-
-    if (SeesUnknownCalls) {
+    }(); SeesUnknownCalls) {
       set_union(IndirectMapKernel[&Func],
                 VariablesReachableThroughFunctionPointer);
     }
@@ -277,9 +277,9 @@ LDSUsesInfoTy getTransitiveUsesOfLDS(const CallGraph &CG, Module &M) {
     for (auto &[Fn, GVs] : Map) {
       for (auto *GV : GVs) {
         bool IsAbsolute = GV->isAbsoluteSymbolRef();
-        bool IsDirectMapDynLDSGV =
-            AMDGPU::isDynamicLDS(*GV) && DirectMapKernel.contains(Fn);
-        if (IsDirectMapDynLDSGV)
+        
+        if (bool IsDirectMapDynLDSGV =
+            AMDGPU::isDynamicLDS(*GV) && DirectMapKernel.contains(Fn); IsDirectMapDynLDSGV)
           continue;
         if (isNamedBarrier(*GV)) {
           if (IsAbsolute) {
@@ -325,8 +325,8 @@ void removeFnAttrFromReachable(CallGraph &CG, Function *KernelRoot,
       if (!CallRecord.second)
         continue;
 
-      Function *Callee = CallRecord.second->getFunction();
-      if (!Callee) {
+      
+      if (Function *Callee = CallRecord.second->getFunction(); !Callee) {
         if (!SeenUnknownCall) {
           SeenUnknownCall = true;
 

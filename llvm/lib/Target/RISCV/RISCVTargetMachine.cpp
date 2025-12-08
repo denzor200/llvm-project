@@ -340,9 +340,9 @@ static cl::opt<RVVRegisterRegAlloc::FunctionPassCtor, false,
                 cl::desc("Register allocator to use for RVV register."));
 
 static void initializeDefaultRVVRegisterAllocatorOnce() {
-  RegisterRegAlloc::FunctionPassCtor Ctor = RVVRegisterRegAlloc::getDefault();
+  
 
-  if (!Ctor) {
+  if (RegisterRegAlloc::FunctionPassCtor Ctor = RVVRegisterRegAlloc::getDefault(); !Ctor) {
     Ctor = RVVRegAlloc;
     RVVRegisterRegAlloc::setDefault(RVVRegAlloc);
   }
@@ -423,8 +423,8 @@ FunctionPass *RISCVPassConfig::createRVVRegAllocPass(bool Optimized) {
   llvm::call_once(InitializeDefaultRVVRegisterAllocatorFlag,
                   initializeDefaultRVVRegisterAllocatorOnce);
 
-  RegisterRegAlloc::FunctionPassCtor Ctor = RVVRegisterRegAlloc::getDefault();
-  if (Ctor != useDefaultRegisterAllocator)
+  
+  if (RegisterRegAlloc::FunctionPassCtor Ctor = RVVRegisterRegAlloc::getDefault(); Ctor != useDefaultRegisterAllocator)
     return Ctor();
 
   if (Optimized)

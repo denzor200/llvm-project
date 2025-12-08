@@ -257,8 +257,8 @@ bool X86LoadValueInjectionLoadHardeningPass::runOnMachineFunction(
     report_fatal_error("LVI load hardening is only supported on 64-bit", false);
 
   // Don't skip functions with the "optnone" attr but participate in opt-bisect.
-  const Function &F = MF.getFunction();
-  if (!F.hasOptNone() && skipFunction(F))
+  
+  if (const Function &F = MF.getFunction(); !F.hasOptNone() && skipFunction(F))
     return false;
 
   ++NumFunctionsConsidered;
@@ -471,8 +471,8 @@ X86LoadValueInjectionLoadHardeningPass::getGadgetGraph(
   for (NodeAddr<BlockNode *> BA : DFG.getFunc().Addr->members(DFG)) {
     for (NodeAddr<StmtNode *> SA :
          BA.Addr->members_if(DataFlowGraph::IsCode<NodeAttrs::Stmt>, DFG)) {
-      MachineInstr *MI = SA.Addr->getCode();
-      if (isFence(MI)) {
+      
+      if (MachineInstr *MI = SA.Addr->getCode(); isFence(MI)) {
         MaybeAddNode(MI);
         ++FenceCount;
       } else if (MI->mayLoad()) {
@@ -539,8 +539,8 @@ int X86LoadValueInjectionLoadHardeningPass::elimMitigatedEdgesAndNodes(
     // Eliminate fences and CFG edges that ingress and egress the fence, as
     // they are trivially mitigated.
     for (const Edge &E : G.edges()) {
-      const Node *Dest = E.getDest();
-      if (isFence(Dest->getValue())) {
+      
+      if (const Node *Dest = E.getDest(); isFence(Dest->getValue())) {
         ElimNodes.insert(*Dest);
         ElimEdges.insert(E);
         for (const Edge &DE : Dest->edges())
@@ -563,8 +563,8 @@ int X86LoadValueInjectionLoadHardeningPass::elimMitigatedEdgesAndNodes(
           if (!FirstNode)
             ReachableNodes.insert(*N);
           for (const Edge &E : N->edges()) {
-            const Node *Dest = E.getDest();
-            if (MachineGadgetGraph::isCFGEdge(E) && !ElimEdges.contains(E) &&
+            
+            if (const Node *Dest = E.getDest(); MachineGadgetGraph::isCFGEdge(E) && !ElimEdges.contains(E) &&
                 !ReachableNodes.contains(*Dest))
               FindReachableNodes(Dest, false);
           }

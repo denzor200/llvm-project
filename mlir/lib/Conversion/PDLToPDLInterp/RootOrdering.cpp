@@ -150,8 +150,8 @@ unsigned OptimalBranching::solve() {
       Value &bestSource = parents[node];
       std::pair<unsigned, unsigned> bestCost;
       for (const auto &inner : it->second) {
-        const RootOrderingEntry &entry = inner.second;
-        if (!bestSource /* initial */ || bestCost > entry.cost) {
+        
+        if (const RootOrderingEntry &entry = inner.second; !bestSource /* initial */ || bestCost > entry.cost) {
           bestSource = inner.first;
           bestCost = entry.cost;
         }

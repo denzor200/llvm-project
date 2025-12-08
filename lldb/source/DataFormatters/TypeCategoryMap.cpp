@@ -74,8 +74,8 @@ bool TypeCategoryMap::Disable(KeyType category_name) {
 bool TypeCategoryMap::Enable(TypeCategoryImplSP category, Position pos) {
   std::lock_guard<std::recursive_mutex> guard(m_map_mutex);
   if (category.get()) {
-    Position pos_w = pos;
-    if (pos == First || m_active_categories.size() == 0)
+    
+    if (Position pos_w = pos; pos == First || m_active_categories.size() == 0)
       m_active_categories.push_front(category);
     else if (pos == Last || pos == m_active_categories.size())
       m_active_categories.push_back(category);

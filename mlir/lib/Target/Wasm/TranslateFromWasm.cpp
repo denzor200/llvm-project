@@ -1001,8 +1001,8 @@ parsed_inst_t ExpressionParser::parseBlockLikeOp(OpBuilder &builder) {
   builder.setInsertionPointToEnd(curBlock);
   auto blockOp =
       OpToCreate::create(builder, *currentOpLoc, *inputOps, successor);
-  auto *blockBody = blockOp.createBlock();
-  if (failed(parseBlockContent(builder, blockBody, resTypes, *opLoc, blockOp)))
+  
+  if (auto *blockBody = blockOp.createBlock(); failed(parseBlockContent(builder, blockBody, resTypes, *opLoc, blockOp)))
     return failure();
   builder.setInsertionPointToStart(successor);
   return {ValueRange{successor->getArguments()}};
@@ -1490,8 +1490,8 @@ private:
                        std::optional<section_location_t>,
                        ArrayRef<section_location_t>>
     getContentForSection() const {
-      constexpr auto idx = static_cast<size_t>(SecType);
-      if constexpr (sectionShouldBeUnique(SecType)) {
+      
+      if constexpr (constexpr auto idx = static_cast<size_t>(SecType); sectionShouldBeUnique(SecType)) {
         return registry[idx].empty() ? std::nullopt
                                      : std::make_optional(registry[idx][0]);
       } else {

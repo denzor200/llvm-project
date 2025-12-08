@@ -1022,8 +1022,8 @@ AttributeSet::intersectWith(LLVMContext &C, AttributeSet Other) const {
     else if (ItBegin0 == ItEnd0)
       Attr0 = *ItBegin1++;
     else {
-      int Cmp = ItBegin0->cmpKind(*ItBegin1);
-      if (Cmp == 0) {
+      
+      if (int Cmp = ItBegin0->cmpKind(*ItBegin1); Cmp == 0) {
         Attr0 = *ItBegin0++;
         Attr1 = *ItBegin1++;
       } else if (Cmp < 0)
@@ -1759,8 +1759,8 @@ AttributeList AttributeList::addParamAttribute(LLVMContext &C,
   assert(llvm::is_sorted(ArgNos));
 
   SmallVector<AttributeSet, 4> AttrSets(this->begin(), this->end());
-  unsigned MaxIndex = attrIdxToArrayIdx(ArgNos.back() + FirstArgIndex);
-  if (MaxIndex >= AttrSets.size())
+  
+  if (unsigned MaxIndex = attrIdxToArrayIdx(ArgNos.back() + FirstArgIndex); MaxIndex >= AttrSets.size())
     AttrSets.resize(MaxIndex + 1);
 
   for (unsigned ArgNo : ArgNos) {
@@ -2120,8 +2120,8 @@ struct AttributeComparator {
 template <typename K>
 static void addAttributeImpl(SmallVectorImpl<Attribute> &Attrs, K Kind,
                              Attribute Attr) {
-  auto It = lower_bound(Attrs, Kind, AttributeComparator());
-  if (It != Attrs.end() && It->hasAttribute(Kind))
+  
+  if (auto It = lower_bound(Attrs, Kind, AttributeComparator()); It != Attrs.end() && It->hasAttribute(Kind))
     std::swap(*It, Attr);
   else
     Attrs.insert(It, Attr);
@@ -2147,15 +2147,15 @@ AttrBuilder &AttrBuilder::addAttribute(StringRef A, StringRef V) {
 
 AttrBuilder &AttrBuilder::removeAttribute(Attribute::AttrKind Val) {
   assert((unsigned)Val < Attribute::EndAttrKinds && "Attribute out of range!");
-  auto It = lower_bound(Attrs, Val, AttributeComparator());
-  if (It != Attrs.end() && It->hasAttribute(Val))
+  
+  if (auto It = lower_bound(Attrs, Val, AttributeComparator()); It != Attrs.end() && It->hasAttribute(Val))
     Attrs.erase(It);
   return *this;
 }
 
 AttrBuilder &AttrBuilder::removeAttribute(StringRef A) {
-  auto It = lower_bound(Attrs, A, AttributeComparator());
-  if (It != Attrs.end() && It->hasAttribute(A))
+  
+  if (auto It = lower_bound(Attrs, A, AttributeComparator()); It != Attrs.end() && It->hasAttribute(A))
     Attrs.erase(It);
   return *this;
 }
@@ -2365,15 +2365,15 @@ bool AttrBuilder::overlaps(const AttributeMask &AM) const {
 
 Attribute AttrBuilder::getAttribute(Attribute::AttrKind A) const {
   assert((unsigned)A < Attribute::EndAttrKinds && "Attribute out of range!");
-  auto It = lower_bound(Attrs, A, AttributeComparator());
-  if (It != Attrs.end() && It->hasAttribute(A))
+  
+  if (auto It = lower_bound(Attrs, A, AttributeComparator()); It != Attrs.end() && It->hasAttribute(A))
     return *It;
   return {};
 }
 
 Attribute AttrBuilder::getAttribute(StringRef A) const {
-  auto It = lower_bound(Attrs, A, AttributeComparator());
-  if (It != Attrs.end() && It->hasAttribute(A))
+  
+  if (auto It = lower_bound(Attrs, A, AttributeComparator()); It != Attrs.end() && It->hasAttribute(A))
     return *It;
   return {};
 }

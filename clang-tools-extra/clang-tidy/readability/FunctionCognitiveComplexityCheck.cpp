@@ -523,8 +523,8 @@ void FunctionCognitiveComplexityCheck::check(
   SourceLocation Loc;
 
   const auto *TheDecl = Result.Nodes.getNodeAs<FunctionDecl>("func");
-  const auto *TheLambdaExpr = Result.Nodes.getNodeAs<LambdaExpr>("lambda");
-  if (TheDecl) {
+  
+  if (const auto *TheLambdaExpr = Result.Nodes.getNodeAs<LambdaExpr>("lambda"); TheDecl) {
     assert(TheDecl->hasBody() &&
            "The matchers should only match the functions that "
            "have user-provided body.");

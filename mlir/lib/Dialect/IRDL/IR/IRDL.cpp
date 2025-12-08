@@ -295,10 +295,10 @@ static ParseResult
 parseValueWithVariadicity(OpAsmParser &p,
                           OpAsmParser::UnresolvedOperand &operand,
                           VariadicityAttr &variadicityAttr) {
-  MLIRContext *ctx = p.getBuilder().getContext();
+  
 
   // Parse the variadicity, if present
-  if (p.parseOptionalKeyword("single").succeeded()) {
+  if (MLIRContext *ctx = p.getBuilder().getContext(); p.parseOptionalKeyword("single").succeeded()) {
     variadicityAttr = VariadicityAttr::get(ctx, Variadicity::single);
   } else if (p.parseOptionalKeyword("optional").succeeded()) {
     variadicityAttr = VariadicityAttr::get(ctx, Variadicity::optional);

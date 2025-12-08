@@ -176,8 +176,8 @@ GsymReader::parse() {
       return createStringError(std::errc::invalid_argument,
                                "failed to read address table");
     // Read the file table.
-    const uint32_t NumFiles = Data.getU32(&Offset);
-    if (NumFiles > 0) {
+    
+    if (const uint32_t NumFiles = Data.getU32(&Offset); NumFiles > 0) {
       Swap->Files.resize(NumFiles);
       if (Data.getU32(&Offset, &Swap->Files[0].Dir, NumFiles*2))
         Files = ArrayRef<FileEntry>(Swap->Files);
@@ -215,8 +215,8 @@ std::optional<uint64_t> GsymReader::getAddress(size_t Index) const {
 }
 
 std::optional<uint64_t> GsymReader::getAddressInfoOffset(size_t Index) const {
-  const auto NumAddrInfoOffsets = AddrInfoOffsets.size();
-  if (Index < NumAddrInfoOffsets)
+  
+  if (const auto NumAddrInfoOffsets = AddrInfoOffsets.size(); Index < NumAddrInfoOffsets)
     return AddrInfoOffsets[Index];
   return std::nullopt;
 }
@@ -286,8 +286,8 @@ GsymReader::getFunctionInfoDataForAddress(uint64_t Addr,
     // The first thing the encoding of a FunctionInfo object is the function
     // size.
     uint64_t Offset = 0;
-    uint32_t FuncSize = ExpextedData->getU32(&Offset);
-    if (FuncSize == 0 ||
+    
+    if (uint32_t FuncSize = ExpextedData->getU32(&Offset); FuncSize == 0 ||
         AddressRange(FuncStartAddr, FuncStartAddr + FuncSize).contains(Addr))
       return ExpextedData;
   }

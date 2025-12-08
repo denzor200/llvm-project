@@ -45,8 +45,8 @@ void __kmp_print_structure(void); // Forward declaration
 // Compute how many threads to have polling each cache-line.
 // We want to limit the number of writes to IDEAL_GO_RESOLUTION.
 void distributedBarrier::computeVarsForN(size_t n) {
-  int nsockets = 1;
-  if (__kmp_topology) {
+  
+  if (int nsockets = 1; __kmp_topology) {
     int socket_level = __kmp_topology->get_level(KMP_HW_SOCKET);
     int core_level = __kmp_topology->get_level(KMP_HW_CORE);
     int ncores_per_socket =
@@ -296,8 +296,8 @@ static void __kmp_dist_barrier_gather(
       }
       // Execute tasks here
       if (__kmp_tasking_mode != tskm_immediate_exec) {
-        kmp_task_team_t *task_team = this_thr->th.th_task_team;
-        if (task_team != NULL) {
+        
+        if (kmp_task_team_t *task_team = this_thr->th.th_task_team; task_team != NULL) {
           if (TCR_SYNC_4(task_team->tt.tt_active)) {
             if (KMP_TASKING_ENABLED(task_team)) {
               int tasks_completed = FALSE;
@@ -345,8 +345,8 @@ static void __kmp_dist_barrier_gather(
       }
       // Execute tasks here
       if (__kmp_tasking_mode != tskm_immediate_exec) {
-        kmp_task_team_t *task_team = this_thr->th.th_task_team;
-        if (task_team != NULL) {
+        
+        if (kmp_task_team_t *task_team = this_thr->th.th_task_team; task_team != NULL) {
           if (TCR_SYNC_4(task_team->tt.tt_active)) {
             if (KMP_TASKING_ENABLED(task_team)) {
               int tasks_completed = FALSE;
@@ -1336,8 +1336,8 @@ static bool __kmp_init_hierarchical_barrier_thread(enum barrier_type bt,
       kmp_uint32 d = 0;
       while (d < thr_bar->depth) { // find parent based on level of thread in
         // hierarchy, and note level
-        kmp_uint32 rem;
-        if (d == thr_bar->depth - 2) { // reached level right below the primary
+        
+        if (kmp_uint32 rem; d == thr_bar->depth - 2) { // reached level right below the primary
           thr_bar->parent_tid = 0;
           thr_bar->my_level = d;
           break;
@@ -1831,8 +1831,8 @@ static int __kmp_barrier_template(enum barrier_type bt, int gtid, int is_split,
     // It is OK to report the barrier state after the barrier begin callback.
     // According to the OMPT specification, a compliant implementation may
     // even delay reporting this state until the barrier begins to wait.
-    auto *ompt_thr_info = &this_thr->th.ompt_thread_info;
-    switch (barrier_kind) {
+    
+    switch (auto *ompt_thr_info = &this_thr->th.ompt_thread_info; barrier_kind) {
     case ompt_sync_region_barrier_explicit:
       ompt_thr_info->state = ompt_state_wait_barrier_explicit;
       break;
@@ -1958,9 +1958,9 @@ static int __kmp_barrier_template(enum barrier_type bt, int gtid, int is_split,
 #endif
 
       if (__kmp_omp_cancellation) {
-        kmp_int32 cancel_request = KMP_ATOMIC_LD_RLX(&team->t.t_cancel_request);
+        
         // Reset cancellation flag for worksharing constructs
-        if (cancel_request == cancel_loop ||
+        if (kmp_int32 cancel_request = KMP_ATOMIC_LD_RLX(&team->t.t_cancel_request); cancel_request == cancel_loop ||
             cancel_request == cancel_sections) {
           KMP_ATOMIC_ST_RLX(&team->t.t_cancel_request, cancel_noreq);
         }
@@ -1984,8 +1984,8 @@ static int __kmp_barrier_template(enum barrier_type bt, int gtid, int is_split,
         kmp_uint64 cur_time = __itt_get_timestamp();
         kmp_info_t **other_threads = team->t.t_threads;
         int nproc = this_thr->th.th_team_nproc;
-        int i;
-        switch (__kmp_forkjoin_frames_mode) {
+        
+        switch (int i; __kmp_forkjoin_frames_mode) {
         case 1:
           __kmp_itt_frame_submit(gtid, this_thr->th.th_frame_time, cur_time, 0,
                                  loc, nproc);
@@ -2141,8 +2141,8 @@ int __kmp_barrier_gomp_cancel(int gtid) {
                                                  0, NULL, NULL);
     if (cancelled) {
       int tid = __kmp_tid_from_gtid(gtid);
-      kmp_info_t *this_thr = __kmp_threads[gtid];
-      if (KMP_MASTER_TID(tid)) {
+      
+      if (kmp_info_t *this_thr = __kmp_threads[gtid]; KMP_MASTER_TID(tid)) {
         // Primary thread does not need to revert anything
       } else {
         // Workers need to revert their private b_arrived flag
@@ -2163,9 +2163,9 @@ void __kmp_end_split_barrier(enum barrier_type bt, int gtid) {
   KMP_DEBUG_ASSERT(bt < bs_last_barrier);
   int tid = __kmp_tid_from_gtid(gtid);
   kmp_info_t *this_thr = __kmp_threads[gtid];
-  kmp_team_t *team = this_thr->th.th_team;
+  
 
-  if (!team->t.t_serialized) {
+  if (kmp_team_t *team = this_thr->th.th_team; !team->t.t_serialized) {
     if (KMP_MASTER_GTID(gtid)) {
       switch (__kmp_barrier_release_pattern[bt]) {
       case bp_dist_bar: {
@@ -2385,8 +2385,8 @@ void __kmp_join_barrier(int gtid) {
         team->t.t_active_level == 1) {
       kmp_uint64 cur_time = __itt_get_timestamp();
       ident_t *loc = team->t.t_ident;
-      kmp_info_t **other_threads = team->t.t_threads;
-      switch (__kmp_forkjoin_frames_mode) {
+      
+      switch (kmp_info_t **other_threads = team->t.t_threads; __kmp_forkjoin_frames_mode) {
       case 1:
         __kmp_itt_frame_submit(gtid, this_thr->th.th_frame_time, cur_time, 0,
                                loc, nproc);

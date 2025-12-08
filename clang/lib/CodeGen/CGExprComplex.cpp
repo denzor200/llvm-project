@@ -293,8 +293,7 @@ public:
         Ctx.GetHigherPrecisionFPType(ElementType);
     const llvm::fltSemantics &ElementTypeSemantics =
         Ctx.getFloatTypeSemantics(ElementType);
-    const llvm::fltSemantics &HigherElementTypeSemantics =
-        Ctx.getFloatTypeSemantics(HigherElementType);
+    
     // Check that the promoted type can handle the intermediate values without
     // overflowing. This can be interpreted as:
     // (SmallerType.LargestFiniteVal * SmallerType.LargestFiniteVal) * 2 <=
@@ -302,7 +301,8 @@ public:
     // In terms of exponent it gives this formula:
     // (SmallerType.LargestFiniteVal * SmallerType.LargestFiniteVal
     // doubles the exponent of SmallerType.LargestFiniteVal)
-    if (llvm::APFloat::semanticsMaxExponent(ElementTypeSemantics) * 2 + 1 <=
+    if (const llvm::fltSemantics &HigherElementTypeSemantics =
+        Ctx.getFloatTypeSemantics(HigherElementType); llvm::APFloat::semanticsMaxExponent(ElementTypeSemantics) * 2 + 1 <=
         llvm::APFloat::semanticsMaxExponent(HigherElementTypeSemantics)) {
       if (!Ctx.getTargetInfo().hasLongDoubleType() &&
           HigherElementType.getCanonicalType().getUnqualifiedType() ==
@@ -325,11 +325,11 @@ public:
       bool IsComplexRangePromoted = CGF.getLangOpts().getComplexRange() ==
                                     LangOptions::ComplexRangeKind::CX_Promoted;
       bool HasNoComplexRangeOverride = !Features.hasComplexRangeOverride();
-      bool HasMatchingComplexRange = Features.hasComplexRangeOverride() &&
-                                     Features.getComplexRangeOverride() ==
-                                         CGF.getLangOpts().getComplexRange();
+      
 
-      if (IsComplexDivisor && IsFloatingType && IsComplexRangePromoted &&
+      if (bool HasMatchingComplexRange = Features.hasComplexRangeOverride() &&
+                                     Features.getComplexRangeOverride() ==
+                                         CGF.getLangOpts().getComplexRange(); IsComplexDivisor && IsFloatingType && IsComplexRangePromoted &&
           (HasNoComplexRangeOverride || HasMatchingComplexRange))
         return HigherPrecisionTypeForComplexArithmetic(ElementType);
       if (ElementType.UseExcessPrecision(CGF.getContext()))
@@ -1098,9 +1098,9 @@ ComplexPairTy ComplexExprEmitter::EmitBinDiv(const BinOpInfo &Op) {
 
     llvm::Value *Tmp7 = Builder.CreateMul(LHSi, RHSr); // b*c
     llvm::Value *Tmp8 = Builder.CreateMul(LHSr, RHSi); // a*d
-    llvm::Value *Tmp9 = Builder.CreateSub(Tmp7, Tmp8); // bc-ad
+    // bc-ad
 
-    if (Op.Ty->castAs<ComplexType>()->getElementType()->isUnsignedIntegerType()) {
+    if (llvm::Value *Tmp9 = Builder.CreateSub(Tmp7, Tmp8); Op.Ty->castAs<ComplexType>()->getElementType()->isUnsignedIntegerType()) {
       DSTr = Builder.CreateUDiv(Tmp3, Tmp6);
       DSTi = Builder.CreateUDiv(Tmp9, Tmp6);
     } else {

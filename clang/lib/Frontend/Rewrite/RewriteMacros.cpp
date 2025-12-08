@@ -126,8 +126,8 @@ void clang::RewriteMacrosInInput(Preprocessor &PP, raw_ostream *OS) {
       // If this is a #warning directive or #pragma mark (GNU extensions),
       // comment the line out.
       if (RawTokens[CurRawTok].is(tok::identifier)) {
-        const IdentifierInfo *II = RawTokens[CurRawTok].getIdentifierInfo();
-        if (II->getName() == "warning") {
+        
+        if (const IdentifierInfo *II = RawTokens[CurRawTok].getIdentifierInfo(); II->getName() == "warning") {
           // Comment out #warning.
           RB.InsertTextAfter(SM.getFileOffset(RawTok.getLocation()), "//");
         } else if (II->getName() == "pragma" &&

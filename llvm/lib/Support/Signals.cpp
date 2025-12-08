@@ -183,9 +183,9 @@ collectAddressSymbols(void **AddressList, unsigned AddressCount,
                       "--relative-address",
 #endif
                       "--demangle"};
-  int RunResult =
-      sys::ExecuteAndWait(LLVMSymbolizerPath, Args, std::nullopt, Redirects);
-  if (RunResult != 0)
+  
+  if (int RunResult =
+      sys::ExecuteAndWait(LLVMSymbolizerPath, Args, std::nullopt, Redirects); RunResult != 0)
     return {};
 
   SmallVector<std::pair<unsigned, std::string>, 0> Result;
@@ -334,8 +334,8 @@ static bool printMarkupContext(raw_ostream &OS, const char *MainExecutableName);
 LLVM_ATTRIBUTE_USED
 static bool printMarkupStackTrace(StringRef Argv0, void **StackTrace, int Depth,
                                   raw_ostream &OS) {
-  const char *Env = getenv(EnableSymbolizerMarkupEnv);
-  if (!Env || !*Env)
+  
+  if (const char *Env = getenv(EnableSymbolizerMarkupEnv); !Env || !*Env)
     return false;
 
   std::string MainExecutableName =

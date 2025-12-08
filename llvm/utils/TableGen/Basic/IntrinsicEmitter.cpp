@@ -456,8 +456,8 @@ static bool compareFnAttributes(const CodeGenIntrinsic *L,
 
   // Try to order by readonly/readnone attribute.
   uint32_t LME = getEffectiveME(*L).toIntValue();
-  uint32_t RME = getEffectiveME(*R).toIntValue();
-  if (LME != RME)
+  
+  if (uint32_t RME = getEffectiveME(*R).toIntValue(); LME != RME)
     return LME > RME;
 
   return false;

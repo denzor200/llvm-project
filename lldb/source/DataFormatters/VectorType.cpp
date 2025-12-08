@@ -316,8 +316,8 @@ bool lldb_private::formatters::VectorTypeSummaryProvider(
     child_sp = child_sp->GetQualifiedRepresentationIfAvailable(
         lldb::eDynamicDontRunTarget, true);
 
-    const char *child_value = child_sp->GetValueAsCString();
-    if (child_value && *child_value) {
+    
+    if (const char *child_value = child_sp->GetValueAsCString(); child_value && *child_value) {
       if (first) {
         s.Printf("%s", child_value);
         first = false;

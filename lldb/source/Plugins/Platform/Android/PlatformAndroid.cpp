@@ -298,8 +298,8 @@ Status PlatformAndroid::DownloadModuleSlice(const FileSpec &src_file_spec,
   // For zip .so file, src_file_spec will be "zip_path!/so_path".
   // Extract "zip_path" from the source_file.
   static constexpr llvm::StringLiteral k_zip_separator("!/");
-  size_t pos = source_file.find(k_zip_separator);
-  if (pos != std::string::npos)
+  
+  if (size_t pos = source_file.find(k_zip_separator); pos != std::string::npos)
     source_file.resize(pos);
 
   Status error;
@@ -400,8 +400,8 @@ Status PlatformAndroid::DownloadSymbolFile(const lldb::ModuleSP &module_sp,
         command.Printf("rm -rf %s", s->c_str());
         Status error = adb->Shell(command.GetData(), seconds(5), nullptr);
 
-        Log *log = GetLog(LLDBLog::Platform);
-        if (log && error.Fail())
+        
+        if (Log *log = GetLog(LLDBLog::Platform); log && error.Fail())
           LLDB_LOGF(log, "Failed to remove temp directory: %s",
                     error.AsCString());
       });
@@ -588,10 +588,10 @@ PlatformAndroid::FindProcesses(const ProcessInstanceInfoMatch &match_info,
   broad_match_info.SetNameMatchType(NameMatch::Ignore);
 
   ProcessInstanceInfoList all_procs;
-  uint32_t count =
-      m_remote_platform_sp->FindProcesses(broad_match_info, all_procs);
+  
 
-  if (count > 0) {
+  if (uint32_t count =
+      m_remote_platform_sp->FindProcesses(broad_match_info, all_procs); count > 0) {
     Status error;
     AdbClientUP adb(GetAdbClient(error));
     if (error.Success())

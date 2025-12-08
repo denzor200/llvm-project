@@ -49,12 +49,12 @@ ThreadPlanStepThrough::ThreadPlanStepThrough(Thread &thread,
     if (return_frame_sp) {
       m_backstop_addr = return_frame_sp->GetFrameCodeAddress().GetLoadAddress(
           thread.CalculateTarget().get());
-      Breakpoint *return_bp =
+      
+
+      if (Breakpoint *return_bp =
           m_process.GetTarget()
               .CreateBreakpoint(m_backstop_addr, true, false)
-              .get();
-
-      if (return_bp != nullptr) {
+              .get(); return_bp != nullptr) {
         if (return_bp->IsHardware() && !return_bp->HasResolvedLocations())
           m_could_not_resolve_hw_bp = true;
         return_bp->SetThreadID(m_tid);
@@ -79,8 +79,8 @@ void ThreadPlanStepThrough::DidPush() {
 
 void ThreadPlanStepThrough::LookForPlanToStepThroughFromCurrentPC() {
   Thread &thread = GetThread();
-  DynamicLoader *loader = thread.GetProcess()->GetDynamicLoader();
-  if (loader)
+  
+  if (DynamicLoader *loader = thread.GetProcess()->GetDynamicLoader(); loader)
     m_sub_plan_sp = loader->GetStepThroughTrampolinePlan(thread, m_stop_others);
 
   // If the DynamicLoader was unable to provide us with a ThreadPlan, then we
@@ -97,8 +97,8 @@ void ThreadPlanStepThrough::LookForPlanToStepThroughFromCurrentPC() {
 
   Log *log = GetLog(LLDBLog::Step);
   if (log) {
-    lldb::addr_t current_address = GetThread().GetRegisterContext()->GetPC(0);
-    if (m_sub_plan_sp) {
+    
+    if (lldb::addr_t current_address = GetThread().GetRegisterContext()->GetPC(0); m_sub_plan_sp) {
       StreamString s;
       m_sub_plan_sp->GetDescription(&s, lldb::eDescriptionLevelFull);
       LLDB_LOGF(log, "Found step through plan from 0x%" PRIx64 ": %s",
@@ -228,9 +228,9 @@ void ThreadPlanStepThrough::ClearBackstopBreakpoint() {
 }
 
 bool ThreadPlanStepThrough::MischiefManaged() {
-  Log *log = GetLog(LLDBLog::Step);
+  
 
-  if (!IsPlanComplete()) {
+  if (Log *log = GetLog(LLDBLog::Step); !IsPlanComplete()) {
     return false;
   } else {
     LLDB_LOGF(log, "Completed step through step plan.");
@@ -253,8 +253,8 @@ bool ThreadPlanStepThrough::HitOurBackstopBreakpoint() {
       StackID cur_frame_zero_id = thread.GetStackFrameAtIndex(0)->GetStackID();
 
       if (cur_frame_zero_id == m_return_stack_id) {
-        Log *log = GetLog(LLDBLog::Step);
-        if (log)
+        
+        if (Log *log = GetLog(LLDBLog::Step); log)
           log->PutCString("ThreadPlanStepThrough hit backstop breakpoint.");
         return true;
       }

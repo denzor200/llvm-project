@@ -447,8 +447,8 @@ bool ObjectFilePECOFF::ParseHeader() {
 
     if (ParseDOSHeader(m_data, m_dos_header)) {
       offset = m_dos_header.e_lfanew;
-      uint32_t pe_signature = m_data.GetU32(&offset);
-      if (pe_signature != IMAGE_NT_SIGNATURE)
+      
+      if (uint32_t pe_signature = m_data.GetU32(&offset); pe_signature != IMAGE_NT_SIGNATURE)
         return false;
       if (ParseCOFFHeader(m_data, &offset, m_coff_header)) {
         if (m_coff_header.hdrsize > 0)
@@ -468,8 +468,8 @@ bool ObjectFilePECOFF::SetLoadAddress(Target &target, addr_t value,
   ModuleSP module_sp = GetModule();
   if (module_sp) {
     size_t num_loaded_sections = 0;
-    SectionList *section_list = GetSectionList();
-    if (section_list) {
+    
+    if (SectionList *section_list = GetSectionList(); section_list) {
       if (!value_is_offset) {
         value -= m_image_base;
       }
@@ -611,9 +611,9 @@ bool ObjectFilePECOFF::ParseCOFFOptionalHeader(lldb::offset_t *offset_ptr) {
     m_coff_header_opt.entry = m_data.GetU32(offset_ptr);
     m_coff_header_opt.code_offset = m_data.GetU32(offset_ptr);
 
-    const uint32_t addr_byte_size = GetAddressByteSize();
+    
 
-    if (*offset_ptr < end_offset) {
+    if (const uint32_t addr_byte_size = GetAddressByteSize(); *offset_ptr < end_offset) {
       if (m_coff_header_opt.magic == OPT_HEADER_MAGIC_PE32) {
         // PE32 only
         m_coff_header_opt.data_offset = m_data.GetU32(offset_ptr);
@@ -692,10 +692,10 @@ DataExtractor ObjectFilePECOFF::ReadImageData(uint32_t offset, size_t size) {
   if (process_sp) {
     auto data_up = std::make_unique<DataBufferHeap>(size, 0);
     Status readmem_error;
-    size_t bytes_read =
+    
+    if (size_t bytes_read =
         process_sp->ReadMemory(m_image_base + offset, data_up->GetBytes(),
-                               data_up->GetByteSize(), readmem_error);
-    if (bytes_read == size) {
+                               data_up->GetByteSize(), readmem_error); bytes_read == size) {
       DataBufferSP buffer_sp(data_up.release());
       data.SetData(buffer_sp, 0, buffer_sp->GetByteSize());
     }
@@ -730,8 +730,8 @@ bool ObjectFilePECOFF::ParseSectionHeaders(
       m_sect_headers.resize(nsects);
 
       for (uint32_t idx = 0; idx < nsects; ++idx) {
-        const void *name_data = section_header_data.GetData(&offset, 8);
-        if (name_data) {
+        
+        if (const void *name_data = section_header_data.GetData(&offset, 8); name_data) {
           memcpy(m_sect_headers[idx].name, name_data, 8);
           m_sect_headers[idx].vmsize = section_header_data.GetU32(&offset);
           m_sect_headers[idx].vmaddr = section_header_data.GetU32(&offset);
@@ -802,9 +802,9 @@ void ObjectFilePECOFF::AppendFromCOFFSymbolTable(
     const llvm::StringRef sym_name = *name_or_error;
     Symbol symbol;
     symbol.GetMangled().SetValue(ConstString(sym_name));
-    int16_t section_number =
-        static_cast<int16_t>(coff_sym_ref.getSectionNumber());
-    if (section_number >= 1) {
+    
+    if (int16_t section_number =
+        static_cast<int16_t>(coff_sym_ref.getSectionNumber()); section_number >= 1) {
       symbol.GetAddressRef() = Address(
           sect_list->FindSectionByID(section_number), coff_sym_ref.getValue());
       const auto symbol_type = MapSymbolType(coff_sym_ref.getType());
@@ -1159,9 +1159,9 @@ lldb_private::Address ObjectFilePECOFF::GetEntryPointAddress() {
     return m_entry_point_address;
 
   SectionList *section_list = GetSectionList();
-  addr_t file_addr = m_coff_header_opt.entry + m_coff_header_opt.image_base;
+  
 
-  if (!section_list)
+  if (addr_t file_addr = m_coff_header_opt.entry + m_coff_header_opt.image_base; !section_list)
     m_entry_point_address.SetOffset(file_addr);
   else
     m_entry_point_address.ResolveAddressUsingFileSections(file_addr,
@@ -1190,8 +1190,8 @@ void ObjectFilePECOFF::Dump(Stream *s) {
     *s << ", file = '" << m_file
        << "', arch = " << header_arch.GetArchitectureName() << "\n";
 
-    SectionList *sections = GetSectionList();
-    if (sections)
+    
+    if (SectionList *sections = GetSectionList(); sections)
       sections->Dump(s->AsRawOstream(), s->GetIndentLevel(), nullptr, true,
                      UINT32_MAX);
 
@@ -1351,8 +1351,8 @@ void ObjectFilePECOFF::DumpSectionHeaders(Stream *s) {
 //
 // Dump all of the dependent modules to the specified output stream
 void ObjectFilePECOFF::DumpDependentModules(lldb_private::Stream *s) {
-  auto num_modules = ParseDependentModules();
-  if (num_modules > 0) {
+  
+  if (auto num_modules = ParseDependentModules(); num_modules > 0) {
     s->PutCString("Dependent Modules\n");
     for (unsigned i = 0; i < num_modules; ++i) {
       auto spec = m_deps_filespec->GetFileSpecAtIndex(i);
@@ -1377,8 +1377,8 @@ bool ObjectFilePECOFF::IsWindowsSubsystem() {
 }
 
 ArchSpec ObjectFilePECOFF::GetArchitecture() {
-  uint16_t machine = m_coff_header.machine;
-  switch (machine) {
+  
+  switch (uint16_t machine = m_coff_header.machine; machine) {
   default:
     break;
   case llvm::COFF::IMAGE_FILE_MACHINE_AMD64:

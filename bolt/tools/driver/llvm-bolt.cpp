@@ -229,9 +229,9 @@ int main(int argc, char **argv) {
         createBinary(opts::InputFilename);
     if (Error E = BinaryOrErr.takeError())
       report_error(opts::InputFilename, std::move(E));
-    Binary &Binary = *BinaryOrErr.get().getBinary();
+    
 
-    if (auto *e = dyn_cast<ELFObjectFileBase>(&Binary)) {
+    if (Binary &Binary = *BinaryOrErr.get().getBinary(); auto *e = dyn_cast<ELFObjectFileBase>(&Binary)) {
       auto RIOrErr = RewriteInstance::create(e, argc, argv, ToolPath,
                                              *BOLTJournalOut, *BOLTJournalErr);
       if (Error E = RIOrErr.takeError())
@@ -294,8 +294,8 @@ int main(int argc, char **argv) {
   if (Error E = BinaryOrErr2.takeError())
     report_error(opts::InputFilename2, std::move(E));
   Binary &Binary1 = *BinaryOrErr1.get().getBinary();
-  Binary &Binary2 = *BinaryOrErr2.get().getBinary();
-  if (auto *ELFObj1 = dyn_cast<ELFObjectFileBase>(&Binary1)) {
+  
+  if (Binary &Binary2 = *BinaryOrErr2.get().getBinary(); auto *ELFObj1 = dyn_cast<ELFObjectFileBase>(&Binary1)) {
     if (auto *ELFObj2 = dyn_cast<ELFObjectFileBase>(&Binary2)) {
       auto RI1OrErr = RewriteInstance::create(ELFObj1, argc, argv, ToolPath);
       if (Error E = RI1OrErr.takeError())

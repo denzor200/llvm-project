@@ -240,10 +240,10 @@ public:
       std::optional<int64_t> cstHigh = getConstantIntValue(high);
       if (!cstHigh)
         return failure();
-      int64_t paddingSize = outerShapeWithoutTranspose[pos] * tileSize -
-                            unpackedType.getDimSize(pos);
+      
       // Do not fold the op if it requires artificial padding.
-      if (paddingSize + cstHigh.value() >= tileSize)
+      if (int64_t paddingSize = outerShapeWithoutTranspose[pos] * tileSize -
+                            unpackedType.getDimSize(pos); paddingSize + cstHigh.value() >= tileSize)
         return failure();
     }
 

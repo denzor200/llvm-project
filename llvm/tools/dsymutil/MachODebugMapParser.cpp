@@ -239,8 +239,8 @@ void MachODebugMapParser::switchToNewLibDebugMapObject(
   // 1) libName.dylib.dSYM/Contents/Resources/DWARF/libName_debug.dylib
   // 2) libName.dylib.dSYM/Contents/Resources/DWARF/libName.dylib
 
-  size_t libExt = LeafName.rfind(".dylib");
-  if (libExt != StringRef::npos) {
+  
+  if (size_t libExt = LeafName.rfind(".dylib"); libExt != StringRef::npos) {
     if (!VariantSuffix.empty()) {
       VariantLeafName.append(LeafName.substr(0, libExt));
       VariantLeafName.append(VariantSuffix);
@@ -516,8 +516,8 @@ void MachODebugMapParser::dumpSymTabEntry(raw_ostream &OS, uint64_t Index,
      // n_value
      << format_hex_no_prefix(Value, 16);
 
-  const char *Name = &MainBinaryStrings.data()[StringIndex];
-  if (Name && Name[0])
+  
+  if (const char *Name = &MainBinaryStrings.data()[StringIndex]; Name && Name[0])
     OS << " '" << Name << "'";
 
   OS << "\n";
@@ -718,8 +718,8 @@ void MachODebugMapParser::handleStabSymbolTableEntry(
     for (auto Iter = CurrentObjectAddresses.begin();
          Iter != CurrentObjectAddresses.end(); ++Iter) {
       llvm::StringRef SymbolName = Iter->getKey();
-      auto Pos = SymbolName.rfind(".llvm.");
-      if (Pos != llvm::StringRef::npos && SymbolName.substr(0, Pos) == Name) {
+      
+      if (auto Pos = SymbolName.rfind(".llvm."); Pos != llvm::StringRef::npos && SymbolName.substr(0, Pos) == Name) {
         ObjectSymIt = Iter;
         break;
       }
@@ -761,8 +761,8 @@ void MachODebugMapParser::loadCurrentObjectFileSymbols(
     // relocations will use the symbol itself, and won't need an
     // object file address. The object file address field is optional
     // in the DebugMap, leave it unassigned for these symbols.
-    uint32_t Flags = cantFail(Sym.getFlags());
-    if (Flags & SymbolRef::SF_Absolute) {
+    
+    if (uint32_t Flags = cantFail(Sym.getFlags()); Flags & SymbolRef::SF_Absolute) {
       CurrentObjectAddresses[*Name] = std::nullopt;
     } else if (Flags & SymbolRef::SF_Common) {
       CurrentObjectAddresses[*Name] = std::nullopt;

@@ -341,9 +341,9 @@ getTcgen05LdIntrinsicID(mlir::NVVM::Tcgen05LdStShape shape, uint32_t num) {
 
   // `num` contains the length of vector and log2 of `num` returns the index
   // into the shape array
-  unsigned Idx = std::log2(num);
+  
 
-  switch (shape) {
+  switch (unsigned Idx = std::log2(num); shape) {
   case NVVM::Tcgen05LdStShape::SHAPE_16X64B:
     return Shape16x64b[Idx];
   case NVVM::Tcgen05LdStShape::SHAPE_16X128B:
@@ -394,9 +394,9 @@ getTcgen05StIntrinsicID(mlir::NVVM::Tcgen05LdStShape shape, uint32_t num) {
 
   // `num` contains the length of vector and log2 of `num` returns the index
   // into the shape array
-  unsigned Idx = std::log2(num);
+  
 
-  switch (shape) {
+  switch (unsigned Idx = std::log2(num); shape) {
   case NVVM::Tcgen05LdStShape::SHAPE_16X64B:
     return Shape16x64b[Idx];
   case NVVM::Tcgen05LdStShape::SHAPE_16X128B:
@@ -438,9 +438,9 @@ public:
     auto func = dyn_cast<LLVM::LLVMFuncOp>(op);
     if (!func)
       return failure();
-    llvm::Function *llvmFunc = moduleTranslation.lookupFunction(func.getName());
+    
 
-    if (attribute.getName() == NVVM::NVVMDialect::getMaxntidAttrName()) {
+    if (llvm::Function *llvmFunc = moduleTranslation.lookupFunction(func.getName()); attribute.getName() == NVVM::NVVMDialect::getMaxntidAttrName()) {
       if (!isa<DenseI32ArrayAttr>(attribute.getValue()))
         return failure();
       auto values = cast<DenseI32ArrayAttr>(attribute.getValue());
@@ -492,10 +492,10 @@ public:
                        LLVM::ModuleTranslation &moduleTranslation) const final {
 
     llvm::LLVMContext &llvmContext = moduleTranslation.getLLVMContext();
-    llvm::Function *llvmFunc =
-        moduleTranslation.lookupFunction(funcOp.getName());
+    
 
-    if (attribute.getName() == NVVM::NVVMDialect::getGridConstantAttrName()) {
+    if (llvm::Function *llvmFunc =
+        moduleTranslation.lookupFunction(funcOp.getName()); attribute.getName() == NVVM::NVVMDialect::getGridConstantAttrName()) {
       llvmFunc->addParamAttr(
           argIdx, llvm::Attribute::get(llvmContext, "nvvm.grid_constant"));
     }

@@ -272,8 +272,8 @@ Expected<stable_hash> mergeCodeGenData(ArrayRef<StringRef> ObjFiles) {
     if (!BinOrErr)
       return BinOrErr.takeError();
 
-    std::unique_ptr<object::ObjectFile> &Obj = BinOrErr.get();
-    if (auto E = CodeGenDataReader::mergeFromObjectFile(
+    
+    if (std::unique_ptr<object::ObjectFile> &Obj = BinOrErr.get(); auto E = CodeGenDataReader::mergeFromObjectFile(
             Obj.get(), GlobalOutlineRecord, GlobalStableFunctionMapRecord,
             &CombinedHash))
       return E;

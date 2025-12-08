@@ -545,8 +545,8 @@ static DiagnosedSilenceableFailure isOpSibling(Operation *target,
     bool failed = false;
     OpOperand *failedValue = nullptr;
     visitUsedValuesDefinedAbove(target->getRegions(), [&](OpOperand *operand) {
-      Operation *operandOp = operand->get().getDefiningOp();
-      if (operandOp && !domInfo.properlyDominates(operandOp, source,
+      
+      if (Operation *operandOp = operand->get().getDefiningOp(); operandOp && !domInfo.properlyDominates(operandOp, source,
                                                   /*enclosingOpOk=*/false)) {
         // `operand` is not an argument of an enclosing block and the defining
         // op of `operand` is outside `target` but does not dominate `source`.

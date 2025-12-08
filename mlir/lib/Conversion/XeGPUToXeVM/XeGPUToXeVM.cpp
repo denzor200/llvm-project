@@ -311,8 +311,8 @@ class LoadStorePrefetchNdToXeVMPattern : public OpConversionPattern<OpType> {
       // Get tile height from the tensor descriptor type.
       auto tileH = tdescTy.getDimSize(0);
       // Get vblocks from the tensor descriptor type.
-      int32_t vblocks = tdescTy.getArrayLength();
-      if constexpr (std::is_same_v<OpType, xegpu::StoreNdOp>) {
+      
+      if constexpr (int32_t vblocks = tdescTy.getArrayLength(); std::is_same_v<OpType, xegpu::StoreNdOp>) {
         Value src = adaptor.getValue();
         // If store value is a scalar, get value from op instead of adaptor.
         // Adaptor might have optimized away single element vector
@@ -488,15 +488,15 @@ class LoadStoreToXeVMPattern : public OpConversionPattern<OpType> {
     if constexpr (std::is_same_v<OpType, xegpu::LoadGatherOp>) {
       basePtrI64 = adaptor.getSource();
       if (auto memRefTy = dyn_cast<MemRefType>(op.getSource().getType())) {
-        auto addrSpace = memRefTy.getMemorySpaceAsInt();
-        if (addrSpace != 0)
+        
+        if (auto addrSpace = memRefTy.getMemorySpaceAsInt(); addrSpace != 0)
           ptrTypeLLVM = LLVM::LLVMPointerType::get(ctxt, addrSpace);
       }
     } else {
       basePtrI64 = adaptor.getDest();
       if (auto memRefTy = dyn_cast<MemRefType>(op.getDest().getType())) {
-        auto addrSpace = memRefTy.getMemorySpaceAsInt();
-        if (addrSpace != 0)
+        
+        if (auto addrSpace = memRefTy.getMemorySpaceAsInt(); addrSpace != 0)
           ptrTypeLLVM = LLVM::LLVMPointerType::get(ctxt, addrSpace);
       }
     }
@@ -757,8 +757,8 @@ class PrefetchToXeVMPattern : public OpConversionPattern<xegpu::PrefetchOp> {
           ctxt, getNumericXeVMAddrSpace(tdescTy.getMemorySpace()));
     // If source is a memref, we use its memory space.
     if (auto memRefTy = dyn_cast<MemRefType>(op.getSource().getType())) {
-      auto addrSpace = memRefTy.getMemorySpaceAsInt();
-      if (addrSpace != 0)
+      
+      if (auto addrSpace = memRefTy.getMemorySpaceAsInt(); addrSpace != 0)
         ptrTypeLLVM = LLVM::LLVMPointerType::get(ctxt, addrSpace);
     }
     // Convert base pointer (i64) to LLVM pointer type.

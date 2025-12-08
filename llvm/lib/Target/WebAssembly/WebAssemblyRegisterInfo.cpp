@@ -68,15 +68,15 @@ bool WebAssemblyRegisterInfo::eliminateFrameIndex(
 
   // If this is the address operand of a load or store, make it relative to SP
   // and fold the frame offset directly in.
-  unsigned AddrOperandNum = WebAssembly::getNamedOperandIdx(
-      MI.getOpcode(), WebAssembly::OpName::addr);
-  if (AddrOperandNum == FIOperandNum) {
+  
+  if (unsigned AddrOperandNum = WebAssembly::getNamedOperandIdx(
+      MI.getOpcode(), WebAssembly::OpName::addr); AddrOperandNum == FIOperandNum) {
     unsigned OffsetOperandNum = WebAssembly::getNamedOperandIdx(
         MI.getOpcode(), WebAssembly::OpName::off);
     assert(FrameOffset >= 0 && MI.getOperand(OffsetOperandNum).getImm() >= 0);
-    int64_t Offset = MI.getOperand(OffsetOperandNum).getImm() + FrameOffset;
+    
 
-    if (static_cast<uint64_t>(Offset) <= std::numeric_limits<uint32_t>::max()) {
+    if (int64_t Offset = MI.getOperand(OffsetOperandNum).getImm() + FrameOffset; static_cast<uint64_t>(Offset) <= std::numeric_limits<uint32_t>::max()) {
       MI.getOperand(OffsetOperandNum).setImm(Offset);
       MI.getOperand(FIOperandNum)
           .ChangeToRegister(FrameRegister, /*isDef=*/false);
@@ -87,19 +87,19 @@ bool WebAssemblyRegisterInfo::eliminateFrameIndex(
   // If this is an address being added to a constant, fold the frame offset
   // into the constant.
   if (MI.getOpcode() == WebAssemblyFrameLowering::getOpcAdd(MF)) {
-    MachineOperand &OtherMO = MI.getOperand(3 - FIOperandNum);
-    if (OtherMO.isReg()) {
+    
+    if (MachineOperand &OtherMO = MI.getOperand(3 - FIOperandNum); OtherMO.isReg()) {
       Register OtherMOReg = OtherMO.getReg();
       if (OtherMOReg.isVirtual()) {
-        MachineInstr *Def = MF.getRegInfo().getUniqueVRegDef(OtherMOReg);
+        
         // TODO: For now we just opportunistically do this in the case where
         // the CONST_I32/64 happens to have exactly one def and one use. We
         // should generalize this to optimize in more cases.
-        if (Def && Def->getOpcode() ==
+        if (MachineInstr *Def = MF.getRegInfo().getUniqueVRegDef(OtherMOReg); Def && Def->getOpcode() ==
               WebAssemblyFrameLowering::getOpcConst(MF) &&
             MRI.hasOneNonDBGUse(Def->getOperand(0).getReg())) {
-          MachineOperand &ImmMO = Def->getOperand(1);
-          if (ImmMO.isImm()) {
+          
+          if (MachineOperand &ImmMO = Def->getOperand(1); ImmMO.isImm()) {
             ImmMO.setImm(ImmMO.getImm() + uint32_t(FrameOffset));
             MI.getOperand(FIOperandNum)
                 .ChangeToRegister(FrameRegister, /*isDef=*/false);

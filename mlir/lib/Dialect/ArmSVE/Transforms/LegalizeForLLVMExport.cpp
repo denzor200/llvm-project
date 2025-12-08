@@ -167,8 +167,8 @@ struct CreateMaskOpLowering
       return rewriter.notifyMatchFailure(createMaskOp, "not 1-D and scalable");
 
     // TODO: Support masks which are multiples of SVE predicates.
-    auto maskBaseSize = maskType.getDimSize(0);
-    if (maskBaseSize < 2 || maskBaseSize > 16 ||
+    
+    if (auto maskBaseSize = maskType.getDimSize(0); maskBaseSize < 2 || maskBaseSize > 16 ||
         !llvm::isPowerOf2_32(uint32_t(maskBaseSize)))
       return rewriter.notifyMatchFailure(createMaskOp,
                                          "not SVE predicate-sized");

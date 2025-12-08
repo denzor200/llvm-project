@@ -417,8 +417,8 @@ static void emitElementAccessors(
     // Count the number of simple elements
     unsigned numSimpleLength = 0;
     for (unsigned i = 0; i < numElements; ++i) {
-      const NamedTypeConstraint &element = getElement(op, i);
-      if (!element.isVariableLength()) {
+      
+      if (const NamedTypeConstraint &element = getElement(op, i); !element.isVariableLength()) {
         ++numSimpleLength;
       }
     }
@@ -1088,8 +1088,8 @@ static void emitSegmentSpec(
     raw_ostream &os) {
   std::string segmentSpec("[");
   for (int i = 0, e = getNumElements(op); i < e; ++i) {
-    const NamedTypeConstraint &element = getElement(op, i);
-    if (element.isOptional()) {
+    
+    if (const NamedTypeConstraint &element = getElement(op, i); element.isOptional()) {
       segmentSpec.append("0,");
     } else if (element.isVariadic()) {
       segmentSpec.append("-1,");

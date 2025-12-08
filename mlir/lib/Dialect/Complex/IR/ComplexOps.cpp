@@ -112,9 +112,9 @@ LogicalResult BitcastOp::verify() {
                                 .getElementType()
                                 .getIntOrFloatBitWidth() *
                             2;
-  int32_t resultBitwidth = resultType.getIntOrFloatBitWidth();
+  
 
-  if (operandBitwidth != resultBitwidth) {
+  if (int32_t resultBitwidth = resultType.getIntOrFloatBitWidth(); operandBitwidth != resultBitwidth) {
     return emitOpError("casting bitwidths do not match");
   }
 

@@ -51,13 +51,13 @@ unsigned BPFELFObjectWriter::getRelocType(const MCFixup &Fixup,
     if (Fixup.isPCRel()) // CALL instruction
       return ELF::R_BPF_64_32;
     if (const auto *A = Target.getAddSym()) {
-      const MCSymbol &Sym = *A;
+      
 
-      if (Sym.isDefined()) {
+      if (const MCSymbol &Sym = *A; Sym.isDefined()) {
         auto &Section = static_cast<const MCSectionELF &>(Sym.getSection());
-        unsigned Flags = Section.getFlags();
+        
 
-        if (Sym.isTemporary()) {
+        if (unsigned Flags = Section.getFlags(); Sym.isTemporary()) {
           // .BTF.ext generates FK_Data_4 relocations for
           // insn offset by creating temporary labels.
           // The reloc symbol should be in text section.

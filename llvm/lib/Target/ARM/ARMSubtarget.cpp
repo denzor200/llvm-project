@@ -130,8 +130,8 @@ const RegisterBankInfo *ARMSubtarget::getRegBankInfo() const {
 }
 
 void ARMSubtarget::initLibcallLoweringInfo(LibcallLoweringInfo &Info) const {
-  const Triple &TT = getTargetTriple();
-  if (TT.isOSBinFormatMachO()) {
+  
+  if (const Triple &TT = getTargetTriple(); TT.isOSBinFormatMachO()) {
     // Uses VFP for Thumb libfuncs if available.
     if (isThumb() && hasVFP2Base() && hasARMOps() && !useSoftFloat()) {
       // clang-format off
@@ -290,8 +290,8 @@ void ARMSubtarget::initSubtargetFeatures(StringRef CPU, StringRef FS) {
   }
 
   // NEON f32 ops are non-IEEE 754 compliant. Darwin is ok with it by default.
-  const FeatureBitset &Bits = getFeatureBits();
-  if ((Bits[ARM::ProcA5] || Bits[ARM::ProcA8]) && // Where this matters
+  
+  if (const FeatureBitset &Bits = getFeatureBits(); (Bits[ARM::ProcA5] || Bits[ARM::ProcA8]) && // Where this matters
       (isTargetDarwin() || DM == DenormalMode::getPreserveSign()))
     HasNEONForFP = true;
 

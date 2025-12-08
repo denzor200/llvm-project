@@ -298,8 +298,8 @@ raw_ostream &raw_ostream::operator<<(const format_object_base &Fmt) {
   // If we have more than a few bytes left in our output buffer, try
   // formatting directly onto its end.
   size_t NextBufferSize = 127;
-  size_t BufferBytesLeft = OutBufEnd - OutBufCur;
-  if (BufferBytesLeft > 3) {
+  
+  if (size_t BufferBytesLeft = OutBufEnd - OutBufCur; BufferBytesLeft > 3) {
     size_t BytesUsed = Fmt.print(OutBufCur, BufferBytesLeft);
 
     // Common case is that we have plenty of space.
@@ -342,8 +342,8 @@ raw_ostream &raw_ostream::operator<<(const formatv_object_base &Obj) {
 raw_ostream &raw_ostream::operator<<(const FormattedString &FS) {
   unsigned LeftIndent = 0;
   unsigned RightIndent = 0;
-  const ssize_t Difference = FS.Width - FS.Str.size();
-  if (Difference > 0) {
+  
+  if (const ssize_t Difference = FS.Width - FS.Str.size(); Difference > 0) {
     switch (FS.Justify) {
     case FormattedString::JustifyNone:
       break;
@@ -510,11 +510,11 @@ raw_ostream &raw_ostream::changeColor(enum Colors colors, bool bold, bool bg) {
   if (!prepare_colors())
     return *this;
 
-  const char *colorcode =
+  
+  if (const char *colorcode =
       (colors == SAVEDCOLOR)
           ? sys::Process::OutputBold(bg)
-          : sys::Process::OutputColor(static_cast<char>(colors), bold, bg);
-  if (colorcode)
+          : sys::Process::OutputColor(static_cast<char>(colors), bold, bg); colorcode)
     write(colorcode, strlen(colorcode));
   return *this;
 }

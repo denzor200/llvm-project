@@ -44,8 +44,8 @@ ThreadGDBRemote::ThreadGDBRemote(Process &process, lldb::tid_t tid)
            GetID());
   // At this point we can clone reg_info for architectures supporting
   // run-time update to register sizes and offsets..
-  auto &gdb_process = static_cast<ProcessGDBRemote &>(process);
-  if (!gdb_process.m_register_info_sp->IsReconfigurable())
+  
+  if (auto &gdb_process = static_cast<ProcessGDBRemote &>(process); !gdb_process.m_register_info_sp->IsReconfigurable())
     m_reg_info_sp = gdb_process.m_register_info_sp;
   else
     m_reg_info_sp = std::make_shared<GDBRemoteDynamicRegisterInfo>(
@@ -105,8 +105,8 @@ const char *ThreadGDBRemote::GetQueueName() {
       m_thread_dispatch_qaddr != LLDB_INVALID_ADDRESS) {
     ProcessSP process_sp(GetProcess());
     if (process_sp) {
-      SystemRuntime *runtime = process_sp->GetSystemRuntime();
-      if (runtime)
+      
+      if (SystemRuntime *runtime = process_sp->GetSystemRuntime(); runtime)
         m_dispatch_queue_name =
             runtime->GetQueueNameFromThreadQAddress(m_thread_dispatch_qaddr);
       else
@@ -135,8 +135,8 @@ QueueKind ThreadGDBRemote::GetQueueKind() {
       m_thread_dispatch_qaddr != LLDB_INVALID_ADDRESS) {
     ProcessSP process_sp(GetProcess());
     if (process_sp) {
-      SystemRuntime *runtime = process_sp->GetSystemRuntime();
-      if (runtime)
+      
+      if (SystemRuntime *runtime = process_sp->GetSystemRuntime(); runtime)
         m_queue_kind = runtime->GetQueueKind(m_thread_dispatch_qaddr);
       return m_queue_kind;
     }
@@ -159,8 +159,8 @@ queue_id_t ThreadGDBRemote::GetQueueID() {
       m_thread_dispatch_qaddr != LLDB_INVALID_ADDRESS) {
     ProcessSP process_sp(GetProcess());
     if (process_sp) {
-      SystemRuntime *runtime = process_sp->GetSystemRuntime();
-      if (runtime) {
+      
+      if (SystemRuntime *runtime = process_sp->GetSystemRuntime(); runtime) {
         return runtime->GetQueueIDFromThreadQAddress(m_thread_dispatch_qaddr);
       }
     }
@@ -186,8 +186,8 @@ addr_t ThreadGDBRemote::GetQueueLibdispatchQueueAddress() {
         m_thread_dispatch_qaddr != LLDB_INVALID_ADDRESS) {
       ProcessSP process_sp(GetProcess());
       if (process_sp) {
-        SystemRuntime *runtime = process_sp->GetSystemRuntime();
-        if (runtime) {
+        
+        if (SystemRuntime *runtime = process_sp->GetSystemRuntime(); runtime) {
           m_dispatch_queue_t =
               runtime->GetLibdispatchQueueAddressFromThreadQAddress(
                   m_thread_dispatch_qaddr);
@@ -242,9 +242,9 @@ void ThreadGDBRemote::WillResume(StateType resume_state) {
 
   ProcessSP process_sp(GetProcess());
   if (process_sp) {
-    ProcessGDBRemote *gdb_process =
-        static_cast<ProcessGDBRemote *>(process_sp.get());
-    switch (resume_state) {
+    
+    switch (ProcessGDBRemote *gdb_process =
+        static_cast<ProcessGDBRemote *>(process_sp.get()); resume_state) {
     case eStateSuspended:
     case eStateStopped:
       // Don't append anything for threads that should stay stopped.

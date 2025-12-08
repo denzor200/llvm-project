@@ -306,13 +306,13 @@ int includeFixerMain(int argc, const char **argv) {
     assert(!HeaderInfos.empty());
     // We only accept one unique header.
     // Check all elements in HeaderInfos have the same header.
-    bool IsUniqueHeader = std::equal(
+    
+    if (bool IsUniqueHeader = std::equal(
         HeaderInfos.begin()+1, HeaderInfos.end(), HeaderInfos.begin(),
         [](const IncludeFixerContext::HeaderInfo &LHS,
            const IncludeFixerContext::HeaderInfo &RHS) {
           return LHS.Header == RHS.Header;
-        });
-    if (!IsUniqueHeader) {
+        }); !IsUniqueHeader) {
       errs() << "Expect exactly one unique header.\n";
       return 1;
     }

@@ -184,9 +184,9 @@ static Value *handleElementwiseF16ToF32(CodeGenFunction &CGF,
   if (CGF.CGM.getTriple().isSPIRV()) {
     // We use the SPIRV UnpackHalf2x16 operation to avoid the need for the
     // Int16 and Float16 capabilities
-    auto UnpackType =
-        llvm::VectorType::get(CGF.FloatTy, ElementCount::getFixed(2));
-    if (NumElements == 0) {
+    
+    if (auto UnpackType =
+        llvm::VectorType::get(CGF.FloatTy, ElementCount::getFixed(2)); NumElements == 0) {
       // a scalar input - simply extract the first element of the unpacked
       // vector
       Value *Unpack = CGF.Builder.CreateIntrinsic(
@@ -576,10 +576,10 @@ Value *CodeGenFunction::EmitHLSLBuiltinExpr(unsigned BuiltinID,
     Value *Op0 = EmitScalarExpr(E->getArg(0));
     Value *Op1 = EmitScalarExpr(E->getArg(1));
     llvm::Type *T0 = Op0->getType();
-    llvm::Type *T1 = Op1->getType();
+    
 
     // If the arguments are scalars, just emit a multiply
-    if (!T0->isVectorTy() && !T1->isVectorTy()) {
+    if (llvm::Type *T1 = Op1->getType(); !T0->isVectorTy() && !T1->isVectorTy()) {
       if (T0->isFloatingPointTy())
         return Builder.CreateFMul(Op0, Op1, "hlsl.dot");
 

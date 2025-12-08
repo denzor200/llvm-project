@@ -44,8 +44,8 @@ void AssumeModelingChecker::checkPostStmt(const AttributedStmt *A,
     if (AssumptionVal.isUnknown())
       continue;
 
-    const auto *Assumption = AssumptionVal.getAsInteger();
-    if (Assumption && Assumption->isZero()) {
+    
+    if (const auto *Assumption = AssumptionVal.getAsInteger(); Assumption && Assumption->isZero()) {
       C.addSink();
     }
   }

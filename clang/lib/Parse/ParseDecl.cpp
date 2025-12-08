@@ -1363,8 +1363,8 @@ void Parser::ParseAvailabilityAttribute(
     // deprecated.
     if ((Keyword == Ident_introduced || Keyword == Ident_deprecated) &&
         Tok.is(tok::identifier)) {
-      IdentifierInfo *NA = Tok.getIdentifierInfo();
-      if (NA->getName() == "NA") {
+      
+      if (IdentifierInfo *NA = Tok.getIdentifierInfo(); NA->getName() == "NA") {
         ConsumeToken();
         if (Keyword == Ident_introduced)
           UnavailableLoc = KeywordLoc;
@@ -2673,9 +2673,9 @@ Decl *Parser::ParseDeclarationAfterDeclaratorAndAttributes(
       ExpressionStarts = SetPreferredType;
     }
 
-    bool SawError = ParseExpressionList(Exprs, ExpressionStarts);
+    
 
-    if (SawError) {
+    if (bool SawError = ParseExpressionList(Exprs, ExpressionStarts); SawError) {
       if (ThisVarDecl && PP.isCodeCompletionReached() && !CalledSignatureHelp) {
         Actions.CodeCompletion().ProduceConstructorSignatureHelp(
             ThisVarDecl->getType()->getCanonicalTypeInternal(),
@@ -3253,10 +3253,10 @@ Parser::DiagnoseMissingSemiAfterTagDefinition(DeclSpec &DS, AccessSpecifier AS,
                                               LateParsedAttrList *LateAttrs) {
   assert(DS.hasTagDefinition() && "shouldn't call this");
 
-  bool EnteringContext = (DSContext == DeclSpecContext::DSC_class ||
-                          DSContext == DeclSpecContext::DSC_top_level);
+  
 
-  if (getLangOpts().CPlusPlus &&
+  if (bool EnteringContext = (DSContext == DeclSpecContext::DSC_class ||
+                          DSContext == DeclSpecContext::DSC_top_level); getLangOpts().CPlusPlus &&
       Tok.isOneOf(tok::identifier, tok::coloncolon, tok::kw_decltype,
                   tok::annot_template_id) &&
       TryAnnotateCXXScopeToken(EnteringContext)) {
@@ -3277,16 +3277,16 @@ Parser::DiagnoseMissingSemiAfterTagDefinition(DeclSpec &DS, AccessSpecifier AS,
   } else if (AfterScope.is(tok::annot_template_id)) {
     // If we have a type expressed as a template-id, this cannot be a
     // declarator-id (such a type cannot be redeclared in a simple-declaration).
-    TemplateIdAnnotation *Annot =
-        static_cast<TemplateIdAnnotation *>(AfterScope.getAnnotationValue());
-    if (Annot->Kind == TNK_Type_template)
+    
+    if (TemplateIdAnnotation *Annot =
+        static_cast<TemplateIdAnnotation *>(AfterScope.getAnnotationValue()); Annot->Kind == TNK_Type_template)
       MightBeDeclarator = false;
   } else if (AfterScope.is(tok::identifier)) {
-    const Token &Next = HasScope ? GetLookAheadToken(2) : NextToken();
+    
 
     // These tokens cannot come after the declarator-id in a
     // simple-declaration, and are likely to come after a type-specifier.
-    if (Next.isOneOf(tok::star, tok::amp, tok::ampamp, tok::identifier,
+    if (const Token &Next = HasScope ? GetLookAheadToken(2) : NextToken(); Next.isOneOf(tok::star, tok::amp, tok::ampamp, tok::identifier,
                      tok::annot_cxxscope, tok::coloncolon)) {
       // Missing a semicolon.
       MightBeDeclarator = false;
@@ -4215,8 +4215,8 @@ void Parser::ParseDeclarationSpecifiers(
     case tok::kw_friend:
       if (DSContext == DeclSpecContext::DSC_class) {
         isInvalid = DS.SetFriendSpec(Loc, PrevSpec, DiagID);
-        Scope *CurS = getCurScope();
-        if (!isInvalid && CurS)
+        
+        if (Scope *CurS = getCurScope(); !isInvalid && CurS)
           CurS->setFlags(CurS->getFlags() | Scope::FriendScope);
       } else {
         PrevSpec = ""; // not actually used by the diagnostic
@@ -4766,8 +4766,8 @@ void Parser::ParseStructDeclaration(
     MaybeParseGNUAttributes(DeclaratorInfo.D, LateFieldAttrs);
 
     // We're done with this declarator;  invoke the callback.
-    Decl *Field = FieldsCallback(DeclaratorInfo);
-    if (Field)
+    
+    if (Decl *Field = FieldsCallback(DeclaratorInfo); Field)
       DistributeCLateParsedAttrs(Field, LateFieldAttrs);
 
     // If we don't have a comma, it is either the end of the list (a ';')
@@ -5492,8 +5492,8 @@ void Parser::ParseEnumBody(SourceLocation StartLoc, Decl *EnumDecl,
 
   // The next token must be valid after an enum definition. If not, a ';'
   // was probably forgotten.
-  bool CanBeBitfield = getCurScope()->isClassScope();
-  if (!isValidAfterTypeSpecifier(CanBeBitfield)) {
+  
+  if (bool CanBeBitfield = getCurScope()->isClassScope(); !isValidAfterTypeSpecifier(CanBeBitfield)) {
     ExpectAndConsume(tok::semi, diag::err_expected_after, "enum");
     // Push this token back into the preprocessor and change our current token
     // to ';' so that the rest of the code recovers as though there were an
@@ -5907,8 +5907,8 @@ bool Parser::isDeclarationSpecifier(
 
     // placeholder-type-specifier
   case tok::annot_template_id: {
-    TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok);
-    if (TemplateId->hasInvalidName())
+    
+    if (TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok); TemplateId->hasInvalidName())
       return true;
     // FIXME: What about type templates that have only been annotated as
     // annot_template_id, not as annot_typename?
@@ -5917,11 +5917,11 @@ bool Parser::isDeclarationSpecifier(
   }
 
   case tok::annot_cxxscope: {
-    TemplateIdAnnotation *TemplateId =
+    
+    if (TemplateIdAnnotation *TemplateId =
         NextToken().is(tok::annot_template_id)
             ? takeTemplateIdAnnotation(NextToken())
-            : nullptr;
-    if (TemplateId && TemplateId->hasInvalidName())
+            : nullptr; TemplateId && TemplateId->hasInvalidName())
       return true;
     // FIXME: What about type templates that have only been annotated as
     // annot_template_id, not as annot_typename?
@@ -6508,8 +6508,8 @@ void Parser::ParseDeclaratorInternal(Declarator &D,
 
     if (D.getNumTypeObjects() > 0) {
       // C++ [dcl.ref]p4: There shall be no references to references.
-      DeclaratorChunk& InnerChunk = D.getTypeObject(D.getNumTypeObjects() - 1);
-      if (InnerChunk.Kind == DeclaratorChunk::Reference) {
+      
+      if (DeclaratorChunk& InnerChunk = D.getTypeObject(D.getNumTypeObjects() - 1); InnerChunk.Kind == DeclaratorChunk::Reference) {
         if (const IdentifierInfo *II = D.getIdentifier())
           Diag(InnerChunk.Loc, diag::err_illegal_decl_reference_to_reference)
            << II;
@@ -7926,8 +7926,8 @@ void Parser::ParseTypeofSpecifier(DeclSpec &DS) {
          "Not a typeof specifier");
 
   bool IsUnqual = Tok.is(tok::kw_typeof_unqual);
-  const IdentifierInfo *II = Tok.getIdentifierInfo();
-  if (getLangOpts().C23 && !II->getName().starts_with("__"))
+  
+  if (const IdentifierInfo *II = Tok.getIdentifierInfo(); getLangOpts().C23 && !II->getName().starts_with("__"))
     Diag(Tok.getLocation(), diag::warn_c23_compat_keyword) << Tok.getName();
 
   Token OpTok = Tok;
@@ -8062,8 +8062,8 @@ bool Parser::TryAltiVecVectorTokenOutOfLine() {
 bool Parser::TryAltiVecTokenOutOfLine(DeclSpec &DS, SourceLocation Loc,
                                       const char *&PrevSpec, unsigned &DiagID,
                                       bool &isInvalid) {
-  const PrintingPolicy &Policy = Actions.getASTContext().getPrintingPolicy();
-  if (Tok.getIdentifierInfo() == Ident_vector) {
+  
+  if (const PrintingPolicy &Policy = Actions.getASTContext().getPrintingPolicy(); Tok.getIdentifierInfo() == Ident_vector) {
     Token Next = NextToken();
     switch (Next.getKind()) {
     case tok::kw_short:

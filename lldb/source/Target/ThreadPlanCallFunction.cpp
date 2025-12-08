@@ -150,8 +150,8 @@ ThreadPlanCallFunction::~ThreadPlanCallFunction() {
 }
 
 void ThreadPlanCallFunction::ReportRegisterState(const char *message) {
-  Log *log = GetLog(LLDBLog::Step);
-  if (log && log->GetVerbose()) {
+  
+  if (Log *log = GetLog(LLDBLog::Step); log && log->GetVerbose()) {
     StreamString strm;
     RegisterContext *reg_ctx = GetThread().GetRegisterContext().get();
 
@@ -161,8 +161,8 @@ void ThreadPlanCallFunction::ReportRegisterState(const char *message) {
 
     for (uint32_t reg_idx = 0, num_registers = reg_ctx->GetRegisterCount();
          reg_idx < num_registers; ++reg_idx) {
-      const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoAtIndex(reg_idx);
-      if (reg_ctx->ReadRegister(reg_info, reg_value)) {
+      
+      if (const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoAtIndex(reg_idx); reg_ctx->ReadRegister(reg_info, reg_value)) {
         DumpRegisterValue(reg_value, strm, *reg_info, true, false,
                           eFormatDefault);
         strm.EOL();
@@ -399,9 +399,9 @@ void ThreadPlanCallFunction::DidPush() {
 bool ThreadPlanCallFunction::WillStop() { return true; }
 
 bool ThreadPlanCallFunction::MischiefManaged() {
-  Log *log = GetLog(LLDBLog::Step);
+  
 
-  if (IsPlanComplete()) {
+  if (Log *log = GetLog(LLDBLog::Step); IsPlanComplete()) {
     LLDB_LOGF(log, "ThreadPlanCallFunction(%p): Completed call function plan.",
               static_cast<void *>(this));
 
@@ -476,8 +476,8 @@ void ThreadPlanCallFunction::RestoreThreadState() {
 }
 
 void ThreadPlanCallFunction::SetReturnValue() {
-  const ABI *abi = m_process.GetABI().get();
-  if (abi && m_return_type.IsValid()) {
+  
+  if (const ABI *abi = m_process.GetABI().get(); abi && m_return_type.IsValid()) {
     const bool persistent = false;
     m_return_valobj_sp =
         abi->GetReturnValueObject(GetThread(), m_return_type, persistent);

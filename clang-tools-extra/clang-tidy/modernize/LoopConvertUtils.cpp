@@ -113,8 +113,8 @@ bool DeclFinderASTVisitor::VisitForStmt(ForStmt *TheLoop) {
 /// If any named declaration within the AST subtree has the same name,
 /// then consider Name already taken.
 bool DeclFinderASTVisitor::VisitNamedDecl(NamedDecl *D) {
-  const IdentifierInfo *Ident = D->getIdentifier();
-  if (Ident && Ident->getName() == Name) {
+  
+  if (const IdentifierInfo *Ident = D->getIdentifier(); Ident && Ident->getName() == Name) {
     Found = true;
     return false;
   }
@@ -739,8 +739,8 @@ bool ForLoopIndexUseVisitor::TraverseArraySubscriptExpr(ArraySubscriptExpr *E) {
 ///      obj.foo(10); // using `obj` is considered risky
 /// \endcode
 bool ForLoopIndexUseVisitor::VisitDeclRefExpr(DeclRefExpr *E) {
-  const ValueDecl *TheDecl = E->getDecl();
-  if (areSameVariable(IndexVar, TheDecl) ||
+  
+  if (const ValueDecl *TheDecl = E->getDecl(); areSameVariable(IndexVar, TheDecl) ||
       exprReferencesVariable(IndexVar, E) || areSameVariable(EndVar, TheDecl) ||
       exprReferencesVariable(EndVar, E))
     OnlyUsedAsIndex = false;

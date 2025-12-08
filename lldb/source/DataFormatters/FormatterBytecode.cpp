@@ -135,8 +135,8 @@ static llvm::Error TypeCheck(llvm::ArrayRef<DataStackElement> data,
   if (data.size() < 1)
     return llvm::createStringError("not enough elements on data stack");
 
-  auto &elem = data.back();
-  switch (type) {
+  
+  switch (auto &elem = data.back(); type) {
   case Any:
     break;
   case String:

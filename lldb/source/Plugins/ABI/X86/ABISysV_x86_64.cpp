@@ -327,9 +327,9 @@ Status ABISysV_x86_64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
     }
     lldb::offset_t offset = 0;
     if (num_bytes <= 8) {
-      uint64_t raw_value = data.GetMaxU64(&offset, num_bytes);
+      
 
-      if (reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
+      if (uint64_t raw_value = data.GetMaxU64(&offset, num_bytes); reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
         set_it_simple = true;
     } else {
       error = Status::FromErrorString(
@@ -417,8 +417,8 @@ ValueObjectSP ABISysV_x86_64::GetReturnValueObjectSimple(
         return return_valobj_sp;
       uint64_t raw_value = thread.GetRegisterContext()->ReadRegisterAsUnsigned(
           reg_ctx->GetRegisterInfoByName("rax", 0), 0);
-      const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-      switch (*byte_size) {
+      
+      switch (const bool is_signed = (type_flags & eTypeIsSigned) != 0; *byte_size) {
       default:
         break;
 
@@ -529,9 +529,9 @@ ValueObjectSP ABISysV_x86_64::GetReturnValueObjectSimple(
             }
           }
         } else if (*byte_size <= altivec_reg->byte_size * 2) {
-          const RegisterInfo *altivec_reg2 =
-              reg_ctx->GetRegisterInfoByName("xmm1", 0);
-          if (altivec_reg2) {
+          
+          if (const RegisterInfo *altivec_reg2 =
+              reg_ctx->GetRegisterInfoByName("xmm1", 0); altivec_reg2) {
             ProcessSP process_sp(thread.GetProcess());
             if (process_sp) {
               std::unique_ptr<DataBufferHeap> heap_data_up(
@@ -601,8 +601,8 @@ static bool FlattenAggregateType(
 
     uint32_t field_byte_offset = field_bit_offset / 8 + data_byte_offset;
 
-    const uint32_t field_type_flags = field_compiler_type.GetTypeInfo();
-    if (field_compiler_type.IsIntegerOrEnumerationType(is_signed) ||
+    
+    if (const uint32_t field_type_flags = field_compiler_type.GetTypeInfo(); field_compiler_type.IsIntegerOrEnumerationType(is_signed) ||
         field_compiler_type.IsPointerType() ||
         field_compiler_type.IsFloatingPointType(is_complex)) {
       aggregate_field_offsets.push_back(field_byte_offset);

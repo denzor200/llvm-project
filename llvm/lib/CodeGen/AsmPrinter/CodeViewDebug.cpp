@@ -513,8 +513,8 @@ void CodeViewDebug::maybeRecordLocation(const DebugLoc &DL,
   if (!DL || DL == PrevInstLoc)
     return;
 
-  const DIScope *Scope = DL->getScope();
-  if (!Scope)
+  
+  if (const DIScope *Scope = DL->getScope(); !Scope)
     return;
 
   // Skip this line if it is longer than the maximum we can record.
@@ -548,9 +548,9 @@ void CodeViewDebug::maybeRecordLocation(const DebugLoc &DL,
     // Ensure we have links in the tree of inline call sites.
     bool FirstLoc = true;
     while ((SiteLoc = Loc->getInlinedAt())) {
-      InlineSite &Site =
-          getInlineSite(SiteLoc, Loc->getScope()->getSubprogram());
-      if (!FirstLoc)
+      
+      if (InlineSite &Site =
+          getInlineSite(SiteLoc, Loc->getScope()->getSubprogram()); !FirstLoc)
         addLocIfNotPresent(Site.ChildSites, Loc);
       FirstLoc = false;
       Loc = SiteLoc;

@@ -64,8 +64,8 @@ SBThreadPlan::SBThreadPlan(const SBThreadPlan &rhs)
 SBThreadPlan::SBThreadPlan(lldb::SBThread &sb_thread, const char *class_name) {
   LLDB_INSTRUMENT_VA(this, sb_thread, class_name);
 
-  Thread *thread = sb_thread.get();
-  if (thread)
+  
+  if (Thread *thread = sb_thread.get(); thread)
     m_opaque_wp = std::make_shared<ScriptedThreadPlan>(*thread, class_name,
                                                        StructuredDataImpl());
 }
@@ -74,8 +74,8 @@ SBThreadPlan::SBThreadPlan(lldb::SBThread &sb_thread, const char *class_name,
                            lldb::SBStructuredData &args_data) {
   LLDB_INSTRUMENT_VA(this, sb_thread, class_name, args_data);
 
-  Thread *thread = sb_thread.get();
-  if (thread)
+  
+  if (Thread *thread = sb_thread.get(); thread)
     m_opaque_wp = std::make_shared<ScriptedThreadPlan>(*thread, class_name,
                                                        *args_data.m_impl_up);
 }

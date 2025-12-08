@@ -301,13 +301,13 @@ bool ScopArrayInfo::updateSizes(ArrayRef<const SCEV *> NewSizes,
                                 bool CheckConsistency) {
   int SharedDims = std::min(NewSizes.size(), DimensionSizes.size());
   int ExtraDimsNew = NewSizes.size() - SharedDims;
-  int ExtraDimsOld = DimensionSizes.size() - SharedDims;
+  
 
-  if (CheckConsistency) {
+  if (int ExtraDimsOld = DimensionSizes.size() - SharedDims; CheckConsistency) {
     for (int i = 0; i < SharedDims; i++) {
       auto *NewSize = NewSizes[i + ExtraDimsNew];
-      auto *KnownSize = DimensionSizes[i + ExtraDimsOld];
-      if (NewSize && KnownSize && NewSize != KnownSize)
+      
+      if (auto *KnownSize = DimensionSizes[i + ExtraDimsOld]; NewSize && KnownSize && NewSize != KnownSize)
         return false;
     }
 
@@ -1445,17 +1445,17 @@ void Scop::createParameterId(const SCEV *Parameter) {
   std::string ParameterName = "p_" + std::to_string(getNumParams() - 1);
 
   if (const SCEVUnknown *ValueParameter = dyn_cast<SCEVUnknown>(Parameter)) {
-    Value *Val = ValueParameter->getValue();
+    
 
-    if (UseInstructionNames) {
+    if (Value *Val = ValueParameter->getValue(); UseInstructionNames) {
       // If this parameter references a specific Value and this value has a name
       // we use this name as it is likely to be unique and more useful than just
       // a number.
       if (Val->hasName())
         ParameterName = Val->getName().str();
       else if (LoadInst *LI = dyn_cast<LoadInst>(Val)) {
-        auto *LoadOrigin = LI->getPointerOperand()->stripInBoundsOffsets();
-        if (LoadOrigin->hasName()) {
+        
+        if (auto *LoadOrigin = LI->getPointerOperand()->stripInBoundsOffsets(); LoadOrigin->hasName()) {
           ParameterName += "_loaded_from_";
           ParameterName +=
               LI->getPointerOperand()->stripInBoundsOffsets()->getName();
@@ -1954,10 +1954,10 @@ bool Scop::trackAssumption(AssumptionKind Kind, isl::set Set, DebugLoc Loc,
     if (Sign == AS_ASSUMPTION)
       Univ = isl::set::universe(Set.get_space());
 
-    bool IsTrivial = (Sign == AS_RESTRICTION && Set.is_empty()) ||
-                     (Sign == AS_ASSUMPTION && Univ.is_equal(Set));
+    
 
-    if (IsTrivial)
+    if (bool IsTrivial = (Sign == AS_RESTRICTION && Set.is_empty()) ||
+                     (Sign == AS_ASSUMPTION && Univ.is_equal(Set)); IsTrivial)
       return false;
   }
 
@@ -2145,8 +2145,8 @@ void Scop::print(raw_ostream &OS, bool PrintInstructions) const {
   OS.indent(4) << "Max Loop Depth:  " << getMaxLoopDepth() << "\n";
   OS.indent(4) << "Invariant Accesses: {\n";
   for (const auto &IAClass : InvariantEquivClasses) {
-    const auto &MAs = IAClass.InvariantAccesses;
-    if (MAs.empty()) {
+    
+    if (const auto &MAs = IAClass.InvariantAccesses; MAs.empty()) {
       OS.indent(12) << "Class Pointer: " << *IAClass.IdentifyingPointer << "\n";
     } else {
       MAs.front()->print(OS);
@@ -2477,8 +2477,8 @@ bool Scop::isEscaping(Instruction *Inst) {
                            "values defined inside the SCoP");
 
   for (Use &Use : Inst->uses()) {
-    BasicBlock *UserBB = getUseBlock(Use);
-    if (!contains(UserBB))
+    
+    if (BasicBlock *UserBB = getUseBlock(Use); !contains(UserBB))
       return true;
 
     // When the SCoP region exit needs to be simplified, PHIs in the region exit

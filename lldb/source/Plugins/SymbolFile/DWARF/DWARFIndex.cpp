@@ -36,8 +36,8 @@ IterationAction DWARFIndex::ProcessFunctionDIE(
     if (const char *mangled_die_name = die.GetMangledName()) {
       name_to_match_against = ConstString(mangled_die_name);
     } else {
-      SymbolFileDWARF *symbols = die.GetDWARF();
-      if (ConstString demangled_die_name =
+      
+      if (SymbolFileDWARF *symbols = die.GetDWARF(); ConstString demangled_die_name =
               symbols->ConstructFunctionDemangledName(die))
         name_to_match_against = demangled_die_name;
     }
@@ -49,9 +49,9 @@ IterationAction DWARFIndex::ProcessFunctionDIE(
 
   // Exit early if we're searching exclusively for methods or selectors and
   // we have a context specified (no methods in namespaces).
-  uint32_t looking_for_nonmethods =
-      name_type_mask & ~(eFunctionNameTypeMethod | eFunctionNameTypeSelector);
-  if (!looking_for_nonmethods && parent_decl_ctx.IsValid())
+  
+  if (uint32_t looking_for_nonmethods =
+      name_type_mask & ~(eFunctionNameTypeMethod | eFunctionNameTypeSelector); !looking_for_nonmethods && parent_decl_ctx.IsValid())
     return IterationAction::Continue;
 
   // Otherwise, we need to also check that the context matches. If it does not

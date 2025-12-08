@@ -57,8 +57,8 @@ bool RegisterContextCorePOSIX_s390x::ReadRegister(const RegisterInfo *reg_info,
 
   if (IsGPR(reg)) {
     lldb::offset_t offset = reg_info->byte_offset;
-    uint64_t v = m_gpr.GetMaxU64(&offset, reg_info->byte_size);
-    if (offset == reg_info->byte_offset + reg_info->byte_size) {
+    
+    if (uint64_t v = m_gpr.GetMaxU64(&offset, reg_info->byte_size); offset == reg_info->byte_offset + reg_info->byte_size) {
       value.SetUInt(v, reg_info->byte_size);
       return true;
     }
@@ -66,8 +66,8 @@ bool RegisterContextCorePOSIX_s390x::ReadRegister(const RegisterInfo *reg_info,
 
   if (IsFPR(reg)) {
     lldb::offset_t offset = reg_info->byte_offset;
-    uint64_t v = m_fpr.GetMaxU64(&offset, reg_info->byte_size);
-    if (offset == reg_info->byte_offset + reg_info->byte_size) {
+    
+    if (uint64_t v = m_fpr.GetMaxU64(&offset, reg_info->byte_size); offset == reg_info->byte_offset + reg_info->byte_size) {
       value.SetUInt(v, reg_info->byte_size);
       return true;
     }

@@ -86,9 +86,9 @@ static bool checkSafeInstruction(const Instruction &I,
                                  const CmpInst *OuterLoopLatchCmp,
                                  std::optional<Loop::LoopBounds> OuterLoopLB) {
 
-  bool IsAllowed =
-      isSafeToSpeculativelyExecute(&I) || isa<PHINode>(I) || isa<BranchInst>(I);
-  if (!IsAllowed)
+  
+  if (bool IsAllowed =
+      isSafeToSpeculativelyExecute(&I) || isa<PHINode>(I) || isa<BranchInst>(I); !IsAllowed)
     return false;
   // The only binary instruction allowed is the outer loop step instruction,
   // the only comparison instructions allowed are the inner loop guard
@@ -160,9 +160,9 @@ LoopNest::LoopNestEnum LoopNest::analyzeLoopNestForPerfectNest(
   // unsafe.
   const BasicBlock *OuterLoopHeader = OuterLoop.getHeader();
   const BasicBlock *OuterLoopLatch = OuterLoop.getLoopLatch();
-  const BasicBlock *InnerLoopPreHeader = InnerLoop.getLoopPreheader();
+  
 
-  if (!containsOnlySafeInstructions(*OuterLoopHeader) ||
+  if (const BasicBlock *InnerLoopPreHeader = InnerLoop.getLoopPreheader(); !containsOnlySafeInstructions(*OuterLoopHeader) ||
       !containsOnlySafeInstructions(*OuterLoopLatch) ||
       (InnerLoopPreHeader != OuterLoopHeader &&
        !containsOnlySafeInstructions(*InnerLoopPreHeader)) ||
@@ -246,8 +246,8 @@ LoopNest::getPerfectLoops(ScalarEvolution &SE) const {
     if (PerfectNest.empty())
       PerfectNest.push_back(L);
 
-    auto &SubLoops = L->getSubLoops();
-    if (SubLoops.size() == 1 && arePerfectlyNested(*L, *SubLoops.front(), SE)) {
+    
+    if (auto &SubLoops = L->getSubLoops(); SubLoops.size() == 1 && arePerfectlyNested(*L, *SubLoops.front(), SE)) {
       PerfectNest.push_back(SubLoops.front());
     } else {
       LV.push_back(PerfectNest);
@@ -359,11 +359,11 @@ static bool checkLoopsStructure(const Loop &OuterLoop, const Loop &InnerLoop,
   // Ensure the only branch that may exist between the loops is the inner loop
   // guard.
   if (OuterLoopHeader != InnerLoopPreHeader) {
-    const BasicBlock &SingleSucc =
-        LoopNest::skipEmptyBlockUntil(OuterLoopHeader, InnerLoopPreHeader);
+    
 
     // no conditional branch present
-    if (&SingleSucc != InnerLoopPreHeader) {
+    if (const BasicBlock &SingleSucc =
+        LoopNest::skipEmptyBlockUntil(OuterLoopHeader, InnerLoopPreHeader); &SingleSucc != InnerLoopPreHeader) {
       const BranchInst *BI = dyn_cast<BranchInst>(SingleSucc.getTerminator());
 
       if (!BI || BI != InnerLoop.getLoopGuardBranch())

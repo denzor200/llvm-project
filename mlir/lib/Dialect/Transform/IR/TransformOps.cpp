@@ -227,8 +227,8 @@ void transform::AlternativesOp::getEffects(
 LogicalResult transform::AlternativesOp::verify() {
   for (Region &alternative : getAlternatives()) {
     Block &block = alternative.front();
-    Operation *terminator = block.getTerminator();
-    if (terminator->getOperands().getTypes() != getResults().getTypes()) {
+    
+    if (Operation *terminator = block.getTerminator(); terminator->getOperands().getTypes() != getResults().getTypes()) {
       InFlightDiagnostic diag = emitOpError()
                                 << "expects terminator operands to have the "
                                    "same type as results of the operation";
@@ -336,8 +336,8 @@ DiagnosedSilenceableFailure transform::ApplyDeadCodeEliminationOp::applyToOne(
   auto eraseOp = [&](Operation *op) {
     // Remove op and nested ops from the worklist.
     op->walk([&](Operation *op) {
-      const auto *it = llvm::find(worklist, op);
-      if (it != worklist.end())
+      
+      if (const auto *it = llvm::find(worklist, op); it != worklist.end())
         worklist.erase(it);
     });
     rewriter.eraseOp(op);
@@ -1805,9 +1805,9 @@ transform::GetParentOp::apply(transform::TransformRewriter &rewriter,
         bool checkIsolatedFromAbove =
             !getIsolatedFromAbove() ||
             parent->hasTrait<OpTrait::IsIsolatedFromAbove>();
-        bool checkOpName = !getOpName().has_value() ||
-                           parent->getName().getStringRef() == *getOpName();
-        if (checkIsolatedFromAbove && checkOpName)
+        
+        if (bool checkOpName = !getOpName().has_value() ||
+                           parent->getName().getStringRef() == *getOpName(); checkIsolatedFromAbove && checkOpName)
           break;
         parent = parent->getParentOp();
       }

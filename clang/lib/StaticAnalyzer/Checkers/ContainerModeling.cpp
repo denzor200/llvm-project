@@ -173,8 +173,8 @@ void ContainerModeling::checkPostCall(const CallEvent &Call,
     }
   } else {
     if (const auto *InstCall = dyn_cast<CXXInstanceCall>(&Call)) {
-      const NoItParamFn *Handler0 = NoIterParamFunctions.lookup(Call);
-      if (Handler0) {
+      
+      if (const NoItParamFn *Handler0 = NoIterParamFunctions.lookup(Call); Handler0) {
         (this->**Handler0)(C, InstCall->getCXXThisVal(),
                            InstCall->getCXXThisExpr());
         return;
@@ -314,11 +314,11 @@ void ContainerModeling::handleAssignment(CheckerContext &C, SVal Cont,
   // In case of move, iterators of the old container (except the past-end
   // iterators) remain valid but refer to the new container
   if (!OldCont.isUndef()) {
-    const auto *OldContReg = OldCont.getAsRegion();
-    if (OldContReg) {
+    
+    if (const auto *OldContReg = OldCont.getAsRegion(); OldContReg) {
       OldContReg = OldContReg->getMostDerivedObjectRegion();
-      const auto OldCData = getContainerData(State, OldContReg);
-      if (OldCData) {
+      
+      if (const auto OldCData = getContainerData(State, OldContReg); OldCData) {
         if (const auto OldEndSym = OldCData->getEnd()) {
           // If we already assigned an "end" symbol to the old container, then
           // first reassign all iterator positions to the new container which
@@ -398,8 +398,8 @@ void ContainerModeling::handleClear(CheckerContext &C, SVal Cont,
   auto State = C.getState();
   if (!hasSubscriptOperator(State, ContReg) ||
       !backModifiable(State, ContReg)) {
-    const auto CData = getContainerData(State, ContReg);
-    if (CData) {
+    
+    if (const auto CData = getContainerData(State, ContReg); CData) {
       if (const auto EndSym = CData->getEnd()) {
         State =
             invalidateAllIteratorPositionsExcept(State, ContReg, EndSym, BO_GE);

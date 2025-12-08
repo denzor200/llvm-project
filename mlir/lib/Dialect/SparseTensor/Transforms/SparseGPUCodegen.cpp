@@ -506,8 +506,8 @@ static Value genFirstPosOrCrds(OpBuilder &builder, Location loc, Value a,
 /// Generates the second coordinates of a sparse matrix.
 static Value genSecondCrds(OpBuilder &builder, Location loc, Value a,
                            CuSparseFormat format, bool enableRT) {
-  bool isCOO = format == CuSparseFormat::kCOO;
-  if (isCOO && !enableRT)
+  
+  if (bool isCOO = format == CuSparseFormat::kCOO; isCOO && !enableRT)
     return Value(); // nothing needed
   // Formats CSR/CSC and BSR use coordinates at 1.
   return ToCoordinatesOp::create(builder, loc, a, 1);

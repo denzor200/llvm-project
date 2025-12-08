@@ -1997,9 +1997,9 @@ void OMPClausePrinter::VisitOMPLoopRangeClause(OMPLoopRangeClause *Node) {
   OS << "looprange";
 
   Expr *First = Node->getFirst();
-  Expr *Count = Node->getCount();
+  
 
-  if (First && Count) {
+  if (Expr *Count = Node->getCount(); First && Count) {
     OS << "(";
     First->printPretty(OS, nullptr, Policy, 0);
     OS << ",";

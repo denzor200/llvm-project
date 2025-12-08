@@ -519,8 +519,8 @@ static void DumpEllipsisOrElidedLines(raw_ostream &OS, std::string &ElidedLines,
                                       unsigned LabelWidth) {
   if (ElidedLines.empty())
     return;
-  unsigned EllipsisLines = 3;
-  if (EllipsisLines < StringRef(ElidedLines).count('\n')) {
+  
+  if (unsigned EllipsisLines = 3; EllipsisLines < StringRef(ElidedLines).count('\n')) {
     for (unsigned i = 0; i < EllipsisLines; ++i) {
       WithColor(OS, raw_ostream::BLACK, /*Bold=*/true)
           << right_justify(".", LabelWidth);
@@ -709,8 +709,8 @@ static void DumpAnnotatedInput(raw_ostream &OS, const FileCheckRequest &Req,
       for (++Col; Col < AnnotationItr->InputEndCol && Col <= InputLineWidth;
            ++Col)
         COS << '~';
-      const std::string &Note = AnnotationItr->Marker.Note;
-      if (!Note.empty()) {
+      
+      if (const std::string &Note = AnnotationItr->Marker.Note; !Note.empty()) {
         // Put the note at the end of the input line.  If we were to instead
         // put the note right after the marker, subsequent annotations for the
         // same input line might appear to mark this note instead of the input

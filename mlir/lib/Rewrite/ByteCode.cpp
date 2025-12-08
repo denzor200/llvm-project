@@ -663,8 +663,8 @@ void Generator::allocateMemoryIndices(pdl_interp::FuncOp matcherFunc,
 
     // Try to allocate to an existing index.
     for (const auto &existingIndexIt : llvm::enumerate(allocatedIndices)) {
-      ByteCodeLiveRange &existingRange = existingIndexIt.value();
-      if (!defRange.overlaps(existingRange)) {
+      
+      if (ByteCodeLiveRange &existingRange = existingIndexIt.value(); !defRange.overlaps(existingRange)) {
         existingRange.unionWith(defRange);
         memIndex = existingIndexIt.index() + 1;
 
@@ -943,8 +943,8 @@ void Generator::generate(pdl_interp::GetDefiningOpOp op,
   writer.appendPDLValue(op.getValue());
 }
 void Generator::generate(pdl_interp::GetOperandOp op, ByteCodeWriter &writer) {
-  uint32_t index = op.getIndex();
-  if (index < 4)
+  
+  if (uint32_t index = op.getIndex(); index < 4)
     writer.append(static_cast<OpCode>(OpCode::GetOperand0 + index));
   else
     writer.append(OpCode::GetOperandN, index);
@@ -963,8 +963,8 @@ void Generator::generate(pdl_interp::GetOperandsOp op, ByteCodeWriter &writer) {
   writer.append(result);
 }
 void Generator::generate(pdl_interp::GetResultOp op, ByteCodeWriter &writer) {
-  uint32_t index = op.getIndex();
-  if (index < 4)
+  
+  if (uint32_t index = op.getIndex(); index < 4)
     writer.append(static_cast<OpCode>(OpCode::GetResult0 + index));
   else
     writer.append(OpCode::GetResultN, index);
@@ -1532,9 +1532,9 @@ void ByteCodeExecutor::executeAreRangesEqual() {
   LDBG() << "Executing AreRangesEqual:";
   PDLValue::Kind valueKind = read<PDLValue::Kind>();
   const void *lhs = read<const void *>();
-  const void *rhs = read<const void *>();
+  
 
-  switch (valueKind) {
+  switch (const void *rhs = read<const void *>(); valueKind) {
   case PDLValue::Kind::TypeRange: {
     const TypeRange *lhsRange = reinterpret_cast<const TypeRange *>(lhs);
     const TypeRange *rhsRange = reinterpret_cast<const TypeRange *>(rhs);
@@ -1641,8 +1641,8 @@ void ByteCodeExecutor::executeCreateOperation(PatternRewriter &rewriter,
 
   // Read in the result types. If the "size" is the sentinel value, this
   // indicates that the result types should be inferred.
-  unsigned numResults = read();
-  if (numResults == kInferTypesMarker) {
+  
+  if (unsigned numResults = read(); numResults == kInferTypesMarker) {
     InferTypeOpInterface::Concept *inferInterface =
         state.name.getInterface<InferTypeOpInterface>();
     assert(inferInterface &&

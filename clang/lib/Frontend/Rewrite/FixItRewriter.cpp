@@ -155,9 +155,9 @@ void FixItRewriter::HandleDiagnostic(DiagnosticsEngine::Level DiagLevel,
   edit::Commit commit(Editor);
   for (unsigned Idx = 0, Last = Info.getNumFixItHints();
        Idx < Last; ++Idx) {
-    const FixItHint &Hint = Info.getFixItHint(Idx);
+    
 
-    if (Hint.CodeToInsert.empty()) {
+    if (const FixItHint &Hint = Info.getFixItHint(Idx); Hint.CodeToInsert.empty()) {
       if (Hint.InsertFromRange.isValid())
         commit.insertFromRange(Hint.RemoveRange.getBegin(),
                            Hint.InsertFromRange, /*afterToken=*/false,
@@ -173,9 +173,9 @@ void FixItRewriter::HandleDiagnostic(DiagnosticsEngine::Level DiagLevel,
                     /*afterToken=*/false, Hint.BeforePreviousInsertions);
     }
   }
-  bool CanRewrite = Info.getNumFixItHints() > 0 && commit.isCommitable();
+  
 
-  if (!CanRewrite) {
+  if (bool CanRewrite = Info.getNumFixItHints() > 0 && commit.isCommitable(); !CanRewrite) {
     if (Info.getNumFixItHints() > 0)
       Diag(Info.getLocation(), diag::note_fixit_in_macro);
 

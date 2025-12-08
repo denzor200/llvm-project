@@ -351,8 +351,8 @@ bool MIRParserImpl::parseMachineFunction(Module &M, MachineModuleInfo &MMI,
                    "'");
 
     // Create the MachineFunction.
-    MachineFunction &MF = MMI.getOrCreateMachineFunction(*F);
-    if (initializeMachineFunction(YamlMF, MF))
+    
+    if (MachineFunction &MF = MMI.getOrCreateMachineFunction(*F); initializeMachineFunction(YamlMF, MF))
       return true;
   } else {
     auto &FAM =
@@ -378,8 +378,8 @@ static bool isSSA(const MachineFunction &MF) {
       return false;
 
     // Subregister defs are invalid in SSA.
-    const MachineOperand *RegDef = MRI.getOneDef(Reg);
-    if (RegDef && RegDef->getSubReg() != 0)
+    
+    if (const MachineOperand *RegDef = MRI.getOneDef(Reg); RegDef && RegDef->getSubReg() != 0)
       return false;
   }
   return true;
@@ -447,8 +447,8 @@ bool MIRParserImpl::computeFunctionProperties(
                  " has explicit property IsSSA, but is not valid SSA");
   }
 
-  const MachineRegisterInfo &MRI = MF.getRegInfo();
-  if (ComputedPropertyHelper(YamlMF.NoVRegs, MRI.getNumVirtRegs() == 0,
+  
+  if (const MachineRegisterInfo &MRI = MF.getRegInfo(); ComputedPropertyHelper(YamlMF.NoVRegs, MRI.getNumVirtRegs() == 0,
                              MachineFunctionProperties::Property::NoVRegs)) {
     return error(
         MF.getName() +
@@ -701,8 +701,8 @@ bool MIRParserImpl::parseRegisterInfo(PerFunctionMIParsingState &PFS,
       Info.Kind = VRegInfo::GENERIC;
       Info.D.RegBank = nullptr;
     } else {
-      const auto *RC = Target->getRegClass(VReg.Class.Value);
-      if (RC) {
+      
+      if (const auto *RC = Target->getRegClass(VReg.Class.Value); RC) {
         Info.Kind = VRegInfo::NORMAL;
         Info.D.RC = RC;
       } else {
@@ -931,8 +931,8 @@ bool MIRParserImpl::initializeFrameInfo(PerFunctionMIParsingState &PFS,
   for (const auto &Object : YamlMF.StackObjects) {
     int ObjectIdx;
     const AllocaInst *Alloca = nullptr;
-    const yaml::StringValue &Name = Object.Name;
-    if (!Name.Value.empty()) {
+    
+    if (const yaml::StringValue &Name = Object.Name; !Name.Value.empty()) {
       Alloca = dyn_cast_or_null<AllocaInst>(
           F.getValueSymbolTable()->lookup(Name.Value));
       if (!Alloca)
@@ -1236,8 +1236,8 @@ SMDiagnostic MIRParserImpl::diagFromBlockStringDiag(const SMDiagnostic &Error,
     if (L.line_number() == Line) {
       LineStr = *L;
       Loc = SMLoc::getFromPointer(LineStr.data());
-      auto Indent = LineStr.find(Error.getLineContents());
-      if (Indent != StringRef::npos)
+      
+      if (auto Indent = LineStr.find(Error.getLineContents()); Indent != StringRef::npos)
         Column += Indent;
       break;
     }

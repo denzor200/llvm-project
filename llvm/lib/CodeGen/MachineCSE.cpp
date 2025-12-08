@@ -472,8 +472,8 @@ bool MachineCSEImpl::isProfitableToCSE(Register CSReg, Register Reg,
   // an immediate predecessor. We don't want to increase register pressure and
   // end up causing other computation to be spilled.
   if (TII->isAsCheapAsAMove(*MI)) {
-    MachineBasicBlock *BB = MI->getParent();
-    if (CSBB != BB && !CSBB->isSuccessor(BB))
+    
+    if (MachineBasicBlock *BB = MI->getParent(); CSBB != BB && !CSBB->isSuccessor(BB))
       return false;
   }
 
@@ -584,8 +584,8 @@ bool MachineCSEImpl::ProcessBlockCSE(MachineBasicBlock *MBB) {
       // defines the same physical register, which was detected above.
       if (!PhysUseDef) {
         unsigned CSVN = VNT.lookup(&MI);
-        MachineInstr *CSMI = Exps[CSVN];
-        if (PhysRegDefsReach(CSMI, &MI, PhysRefs, PhysDefs, CrossMBBPhysDef))
+        
+        if (MachineInstr *CSMI = Exps[CSVN]; PhysRegDefsReach(CSMI, &MI, PhysRefs, PhysDefs, CrossMBBPhysDef))
           FoundCSE = true;
       }
     }
@@ -757,8 +757,8 @@ void MachineCSEImpl::ExitScopeIfDone(
 
   // Now traverse upwards to pop ancestors whose offsprings are all done.
   while (MachineDomTreeNode *Parent = Node->getIDom()) {
-    unsigned Left = --OpenChildren[Parent];
-    if (Left != 0)
+    
+    if (unsigned Left = --OpenChildren[Parent]; Left != 0)
       break;
     ExitScope(Parent->getBlock());
     Node = Parent;
@@ -845,8 +845,8 @@ bool MachineCSEImpl::ProcessBlockPRE(MachineDominatorTree *DT,
     // Two instrs are partial redundant if their basic blocks are reachable
     // from one to another but one doesn't dominate another.
     if (CMBB != MBB1) {
-      auto BB = MBB->getBasicBlock(), BB1 = MBB1->getBasicBlock();
-      if (BB != nullptr && BB1 != nullptr &&
+      
+      if (auto BB = MBB->getBasicBlock(), BB1 = MBB1->getBasicBlock(); BB != nullptr && BB1 != nullptr &&
           (isPotentiallyReachable(BB1, BB) ||
            isPotentiallyReachable(BB, BB1))) {
         // The following check extends the definition of `isConvergent` to
@@ -955,8 +955,8 @@ PreservedAnalyses MachineCSEPass::run(MachineFunction &MF,
   MachineBlockFrequencyInfo &MBFI =
       MFAM.getResult<MachineBlockFrequencyAnalysis>(MF);
   MachineCSEImpl Impl(&MDT, &MBFI);
-  bool Changed = Impl.run(MF);
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(MF); !Changed)
     return PreservedAnalyses::all();
 
   auto PA = getMachineFunctionPassPreservedAnalyses();

@@ -50,8 +50,8 @@ public:
       return {};
 
     while (!m_done) {
-      int n = poll(&fds, 1, g_timeout);
-      if (n > 0) {
+      
+      if (int n = poll(&fds, 1, g_timeout); n > 0) {
         if (fds.revents & POLLERR)
           return {};
         if (fds.revents & POLLPRI)

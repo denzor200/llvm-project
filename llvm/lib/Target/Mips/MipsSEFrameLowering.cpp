@@ -658,10 +658,10 @@ void MipsSEFrameLowering::emitEpilogue(MachineFunction &MF,
   unsigned SP = ABI.GetStackPtr();
   unsigned FP = ABI.GetFramePtr();
   unsigned ZERO = ABI.GetNullPtr();
-  unsigned MOVE = ABI.GetGPRMoveOp();
+  
 
   // if framepointer enabled, restore the stack pointer.
-  if (hasFP(MF)) {
+  if (unsigned MOVE = ABI.GetGPRMoveOp(); hasFP(MF)) {
     // Find the first instruction that restores a callee-saved register.
     MachineBasicBlock::iterator I = MBBI;
 

@@ -21,8 +21,8 @@ EvalEmitter::EvalEmitter(Context &Ctx, Program &P, State &Parent,
 
 EvalEmitter::~EvalEmitter() {
   for (auto &V : Locals) {
-    Block *B = reinterpret_cast<Block *>(V.get());
-    if (B->isInitialized())
+    
+    if (Block *B = reinterpret_cast<Block *>(V.get()); B->isInitialized())
       B->invokeDtor();
   }
 }
@@ -359,8 +359,8 @@ void EvalEmitter::updateGlobalTemporaries() {
     UnsignedOrNone GlobalIndex = P.getGlobal(E);
     assert(GlobalIndex);
     const Pointer &Ptr = P.getPtrGlobal(*GlobalIndex);
-    APValue *Cached = Temp->getOrCreateValue(true);
-    if (OptPrimType T = Ctx.classify(E->getType())) {
+    
+    if (APValue *Cached = Temp->getOrCreateValue(true); OptPrimType T = Ctx.classify(E->getType())) {
       TYPE_SWITCH(*T,
                   { *Cached = Ptr.deref<T>().toAPValue(Ctx.getASTContext()); });
     } else {

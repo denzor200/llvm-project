@@ -123,8 +123,8 @@ bool GCNPreRAOptimizationsImpl::processReg(Register Reg) {
         break;
 
       // Check if source of copy is from another AGPR.
-      bool IsAGPRSrc = TRI->isAGPRClass(MRI->getRegClass(SrcReg));
-      if (!IsAGPRSrc)
+      
+      if (bool IsAGPRSrc = TRI->isAGPRClass(MRI->getRegClass(SrcReg)); !IsAGPRSrc)
         break;
 
       // def_instructions() does not look at subregs so it may give us a
@@ -136,12 +136,12 @@ bool GCNPreRAOptimizationsImpl::processReg(Register Reg) {
           continue;
 
         if (Def.getOpcode() == AMDGPU::V_ACCVGPR_WRITE_B32_e64) {
-          const MachineOperand &DefSrcMO = Def.getOperand(1);
+          
 
           // Immediates are not an issue and can be propagated in
           // postrapseudos pass. Only handle cases where defining
           // accvgpr_write source is a vreg.
-          if (DefSrcMO.isReg() && DefSrcMO.getReg().isVirtual()) {
+          if (const MachineOperand &DefSrcMO = Def.getOperand(1); DefSrcMO.isReg() && DefSrcMO.getReg().isVirtual()) {
             // Propagate source reg of accvgpr write to this copy instruction
             I.getOperand(1).setReg(DefSrcMO.getReg());
             I.getOperand(1).setSubReg(DefSrcMO.getSubReg());
@@ -252,8 +252,8 @@ bool GCNPreRAOptimizationsImpl::run(MachineFunction &MF) {
     Register Reg = Register::index2VirtReg(I);
     if (!LIS->hasInterval(Reg))
       continue;
-    const TargetRegisterClass *RC = MRI->getRegClass(Reg);
-    if ((RC->MC->getSizeInBits() != 64 || !TRI->isSGPRClass(RC)) &&
+    
+    if (const TargetRegisterClass *RC = MRI->getRegClass(Reg); (RC->MC->getSizeInBits() != 64 || !TRI->isSGPRClass(RC)) &&
         (ST.hasGFX90AInsts() || !TRI->isAGPRClass(RC)))
       continue;
 

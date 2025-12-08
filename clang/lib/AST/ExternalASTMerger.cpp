@@ -283,9 +283,9 @@ void ExternalASTMerger::ForEachMatchingDC(const DeclContext *DC,
     for (const std::unique_ptr<ASTImporter> &Importer : Importers) {
       Source<TranslationUnitDecl *> SourceTU =
           Importer->getFromContext().getTranslationUnitDecl();
-      ASTImporter &Reverse =
-          static_cast<LazyASTImporter *>(Importer.get())->GetReverse();
-      if (auto SourceDC = LookupSameContext(SourceTU, DC, Reverse)) {
+      
+      if (ASTImporter &Reverse =
+          static_cast<LazyASTImporter *>(Importer.get())->GetReverse(); auto SourceDC = LookupSameContext(SourceTU, DC, Reverse)) {
         DidCallback = true;
         if (Callback(*Importer, Reverse, SourceDC))
           break;

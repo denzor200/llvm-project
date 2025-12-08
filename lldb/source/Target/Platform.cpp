@@ -482,8 +482,8 @@ Status Platform::Install(const FileSpec &src, const FileSpec &dst) {
 
   if (dst) {
     if (dst.GetDirectory()) {
-      const char first_dst_dir_char = dst.GetDirectory().GetCString()[0];
-      if (first_dst_dir_char == '/' || first_dst_dir_char == '\\') {
+      
+      if (const char first_dst_dir_char = dst.GetDirectory().GetCString()[0]; first_dst_dir_char == '/' || first_dst_dir_char == '\\') {
         fixed_dst.SetDirectory(dst.GetDirectory());
       }
       // If the fixed destination file doesn't have a directory yet, then we
@@ -1054,8 +1054,8 @@ lldb::ProcessSP Platform::DebugProcess(ProcessLaunchInfo &launch_info,
         // been used where the secondary side was given as the file to open for
         // stdin/out/err after we have already opened the primary so we can
         // read/write stdin/out/err.
-        int pty_fd = launch_info.GetPTY().ReleasePrimaryFileDescriptor();
-        if (pty_fd != PseudoTerminal::invalid_fd) {
+        
+        if (int pty_fd = launch_info.GetPTY().ReleasePrimaryFileDescriptor(); pty_fd != PseudoTerminal::invalid_fd) {
           process_sp->SetSTDIOFileDescriptor(pty_fd);
         }
       } else {
@@ -1331,8 +1331,8 @@ OptionGroupPlatformRSync::SetOptionValue(uint32_t option_idx,
                                          llvm::StringRef option_arg,
                                          ExecutionContext *execution_context) {
   Status error;
-  char short_option = (char)GetDefinitions()[option_idx].short_option;
-  switch (short_option) {
+  
+  switch (char short_option = (char)GetDefinitions()[option_idx].short_option; short_option) {
   case 'r':
     m_rsync = true;
     break;
@@ -1378,8 +1378,8 @@ OptionGroupPlatformSSH::SetOptionValue(uint32_t option_idx,
                                        llvm::StringRef option_arg,
                                        ExecutionContext *execution_context) {
   Status error;
-  char short_option = (char)GetDefinitions()[option_idx].short_option;
-  switch (short_option) {
+  
+  switch (char short_option = (char)GetDefinitions()[option_idx].short_option; short_option) {
   case 's':
     m_ssh = true;
     break;
@@ -1410,8 +1410,8 @@ lldb_private::Status OptionGroupPlatformCaching::SetOptionValue(
     uint32_t option_idx, llvm::StringRef option_arg,
     ExecutionContext *execution_context) {
   Status error;
-  char short_option = (char)GetDefinitions()[option_idx].short_option;
-  switch (short_option) {
+  
+  switch (char short_option = (char)GetDefinitions()[option_idx].short_option; short_option) {
   case 'c':
     m_cache_dir.assign(std::string(option_arg));
     break;

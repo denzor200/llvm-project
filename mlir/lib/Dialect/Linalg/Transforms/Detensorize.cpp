@@ -110,9 +110,9 @@ struct FunctionNonEntryBlockConversion
           /*numOrigInputs=*/block.getNumArguments());
 
       for (BlockArgument blockArgument : block.getArguments()) {
-        int idx = blockArgument.getArgNumber();
+        
 
-        if (blockArgsToDetensor.count(blockArgument))
+        if (int idx = blockArgument.getArgNumber(); blockArgsToDetensor.count(blockArgument))
           conversion.addInputs(idx, {getTypeConverter()->convertType(
                                         block.getArgumentTypes()[idx])});
         else

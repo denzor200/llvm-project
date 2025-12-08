@@ -95,8 +95,8 @@ bool SuppressionContext::Match(const char *str, const char *type,
   if (!HasSuppressionType(type))
     return false;
   for (uptr i = 0; i < suppressions_.size(); i++) {
-    Suppression &cur = suppressions_[i];
-    if (0 == internal_strcmp(cur.type, type) && TemplateMatch(cur.templ, str)) {
+    
+    if (Suppression &cur = suppressions_[i]; 0 == internal_strcmp(cur.type, type) && TemplateMatch(cur.templ, str)) {
       *s = &cur;
       return true;
     }
@@ -131,8 +131,8 @@ void SuppressionContext::Parse(const char *str) {
         end2--;
       int type;
       for (type = 0; type < suppression_types_num_; type++) {
-        const char *next_char = StripPrefix(line, suppression_types_[type]);
-        if (next_char && *next_char == ':') {
+        
+        if (const char *next_char = StripPrefix(line, suppression_types_[type]); next_char && *next_char == ':') {
           line = ++next_char;
           break;
         }

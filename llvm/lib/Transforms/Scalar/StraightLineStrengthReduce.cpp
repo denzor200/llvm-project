@@ -312,8 +312,8 @@ bool StraightLineStrengthReduce::isFoldable(const Candidate &C,
 static bool hasOnlyOneNonZeroIndex(GetElementPtrInst *GEP) {
   unsigned NumNonZeroIndices = 0;
   for (Use &Idx : GEP->indices()) {
-    ConstantInt *ConstIdx = dyn_cast<ConstantInt>(Idx);
-    if (ConstIdx == nullptr || !ConstIdx->isZero())
+    
+    if (ConstantInt *ConstIdx = dyn_cast<ConstantInt>(Idx); ConstIdx == nullptr || !ConstIdx->isZero())
       ++NumNonZeroIndices;
   }
   return NumNonZeroIndices <= 1;
@@ -695,8 +695,8 @@ bool StraightLineStrengthReduce::runOnFunction(Function &F) {
   // Rewrite candidates in the reverse depth-first order. This order makes sure
   // a candidate being rewritten is not a basis for any other candidate.
   while (!Candidates.empty()) {
-    const Candidate &C = Candidates.back();
-    if (C.Basis != nullptr) {
+    
+    if (const Candidate &C = Candidates.back(); C.Basis != nullptr) {
       rewriteCandidateWithBasis(C, *C.Basis);
     }
     Candidates.pop_back();
@@ -721,9 +721,9 @@ StraightLineStrengthReducePass::run(Function &F, FunctionAnalysisManager &AM) {
   const DataLayout *DL = &F.getDataLayout();
   auto *DT = &AM.getResult<DominatorTreeAnalysis>(F);
   auto *SE = &AM.getResult<ScalarEvolutionAnalysis>(F);
-  auto *TTI = &AM.getResult<TargetIRAnalysis>(F);
+  
 
-  if (!StraightLineStrengthReduce(DL, DT, SE, TTI).runOnFunction(F))
+  if (auto *TTI = &AM.getResult<TargetIRAnalysis>(F); !StraightLineStrengthReduce(DL, DT, SE, TTI).runOnFunction(F))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

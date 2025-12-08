@@ -838,8 +838,8 @@ void BytecodeWriter::writeDialectSection(EncodingEmitter &emitter) {
 
   // Emit the referenced operation names grouped by dialect.
   auto emitOpName = [&](OpNameNumbering &name) {
-    size_t stringId = stringSection.insert(name.name.stripDialect());
-    if (config.bytecodeVersion < bytecode::kNativePropertiesEncoding)
+    
+    if (size_t stringId = stringSection.insert(name.name.stripDialect()); config.bytecodeVersion < bytecode::kNativePropertiesEncoding)
       dialectEmitter.emitVarInt(stringId, "dialect op name");
     else
       dialectEmitter.emitVarIntWithFlag(stringId, name.name.isRegistered(),

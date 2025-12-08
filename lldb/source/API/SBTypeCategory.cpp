@@ -358,9 +358,9 @@ bool SBTypeCategory::AddTypeSummary(SBTypeNameSpecifier type_name,
     for (uint32_t j = 0; j < num_debuggers; j++) {
       DebuggerSP debugger_sp = lldb_private::Debugger::GetDebuggerAtIndex(j);
       if (debugger_sp) {
-        ScriptInterpreter *interpreter_ptr =
-            debugger_sp->GetScriptInterpreter();
-        if (interpreter_ptr) {
+        
+        if (ScriptInterpreter *interpreter_ptr =
+            debugger_sp->GetScriptInterpreter(); interpreter_ptr) {
           std::string output;
           if (interpreter_ptr->GenerateTypeScriptFunction(input, output,
                                                           name_token) &&
@@ -450,9 +450,9 @@ bool SBTypeCategory::AddTypeSynthetic(SBTypeNameSpecifier type_name,
     for (uint32_t j = 0; j < num_debuggers; j++) {
       DebuggerSP debugger_sp = lldb_private::Debugger::GetDebuggerAtIndex(j);
       if (debugger_sp) {
-        ScriptInterpreter *interpreter_ptr =
-            debugger_sp->GetScriptInterpreter();
-        if (interpreter_ptr) {
+        
+        if (ScriptInterpreter *interpreter_ptr =
+            debugger_sp->GetScriptInterpreter(); interpreter_ptr) {
           std::string output;
           if (interpreter_ptr->GenerateTypeSynthClass(input, output,
                                                       name_token) &&

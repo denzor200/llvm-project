@@ -475,9 +475,9 @@ static void unaryOpKnownBitsMapHelper(const MCExpr *Expr, KnownBitsMap &KBM,
 static void targetOpKnownBitsMapHelper(const MCExpr *Expr, KnownBitsMap &KBM,
                                        unsigned Depth) {
   static constexpr unsigned BitWidth = 64;
-  const AMDGPUMCExpr *AGVK = cast<AMDGPUMCExpr>(Expr);
+  
 
-  switch (AGVK->getKind()) {
+  switch (const AMDGPUMCExpr *AGVK = cast<AMDGPUMCExpr>(Expr); AGVK->getKind()) {
   default:
     KBM[Expr] = KnownBits(BitWidth);
     return;
@@ -653,8 +653,8 @@ static const MCExpr *tryFoldHelper(const MCExpr *Expr, KnownBitsMap &KBM,
     }
     }
     const MCExpr *NewLHS = tryFoldHelper(LHS, KBM, Ctx);
-    const MCExpr *NewRHS = tryFoldHelper(RHS, KBM, Ctx);
-    if (NewLHS != LHS || NewRHS != RHS)
+    
+    if (const MCExpr *NewRHS = tryFoldHelper(RHS, KBM, Ctx); NewLHS != LHS || NewRHS != RHS)
       return MCBinaryExpr::create(BExpr->getOpcode(), NewLHS, NewRHS, Ctx,
                                   BExpr->getLoc());
     return Expr;
@@ -662,8 +662,8 @@ static const MCExpr *tryFoldHelper(const MCExpr *Expr, KnownBitsMap &KBM,
   case MCExpr::ExprKind::Unary: {
     const MCUnaryExpr *UExpr = cast<MCUnaryExpr>(Expr);
     const MCExpr *SubExpr = UExpr->getSubExpr();
-    const MCExpr *NewSubExpr = tryFoldHelper(SubExpr, KBM, Ctx);
-    if (SubExpr != NewSubExpr)
+    
+    if (const MCExpr *NewSubExpr = tryFoldHelper(SubExpr, KBM, Ctx); SubExpr != NewSubExpr)
       return MCUnaryExpr::create(UExpr->getOpcode(), NewSubExpr, Ctx,
                                  UExpr->getLoc());
     return Expr;

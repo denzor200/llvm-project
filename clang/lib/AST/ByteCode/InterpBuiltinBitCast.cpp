@@ -421,8 +421,8 @@ bool clang::interp::DoBitCastPtr(InterpState &S, CodePtr OpPC,
 
         // If any of the bits are uninitialized, we need to abort unless the
         // target type is std::byte or unsigned char.
-        bool Initialized = Buffer.rangeInitialized(BitOffset, BitWidth);
-        if (!Initialized) {
+        
+        if (bool Initialized = Buffer.rangeInitialized(BitOffset, BitWidth); !Initialized) {
           if (!PtrType->isStdByteType() &&
               !PtrType->isSpecificBuiltinType(BuiltinType::UChar) &&
               !PtrType->isSpecificBuiltinType(BuiltinType::Char_U)) {

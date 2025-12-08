@@ -231,8 +231,8 @@ ExprEngine::ExprEngine(cross_tu::CrossTranslationUnitContext &CTU,
       svalBuilder(StateMgr.getSValBuilder()), ObjCNoRet(mgr.getASTContext()),
       BR(mgr, *this), VisitedCallees(VisitedCalleesIn),
       HowToInline(HowToInlineIn) {
-  unsigned TrimInterval = mgr.options.GraphTrimInterval;
-  if (TrimInterval != 0) {
+  
+  if (unsigned TrimInterval = mgr.options.GraphTrimInterval; TrimInterval != 0) {
     // Enable eager node reclamation when constructing the ExplodedGraph.
     G.enableNodeReclamation(TrimInterval);
   }
@@ -253,8 +253,8 @@ ProgramStateRef ExprEngine::getInitialState(const LocationContext *InitLoc) {
     if (const auto *FD = dyn_cast<FunctionDecl>(D)) {
       // Precondition: the first argument of 'main' is an integer guaranteed
       //  to be > 0.
-      const IdentifierInfo *II = FD->getIdentifier();
-      if (!II || !(II->getName() == "main" && FD->getNumParams() > 0))
+      
+      if (const IdentifierInfo *II = FD->getIdentifier(); !II || !(II->getName() == "main" && FD->getNumParams() > 0))
         break;
 
       const ParmVarDecl *PD = FD->getParamDecl(0);
@@ -304,8 +304,8 @@ ProgramStateRef ExprEngine::getInitialState(const LocationContext *InitLoc) {
       // Precondition: 'this' is always non-null upon entry to the
       // top-level function.  This is our starting assumption for
       // analyzing an "open" program.
-      const StackFrameContext *SFC = InitLoc->getStackFrame();
-      if (SFC->getParent() == nullptr) {
+      
+      if (const StackFrameContext *SFC = InitLoc->getStackFrame(); SFC->getParent() == nullptr) {
         loc::MemRegionVal L = svalBuilder.getCXXThis(MD, SFC);
         SVal V = state->getSVal(L);
         if (std::optional<Loc> LV = V.getAs<Loc>()) {
@@ -1324,11 +1324,11 @@ void ExprEngine::ProcessNewAllocator(const CXXNewExpr *NE,
                                      ExplodedNode *Pred) {
   ExplodedNodeSet Dst;
   AnalysisManager &AMgr = getAnalysisManager();
-  AnalyzerOptions &Opts = AMgr.options;
+  
   // TODO: We're not evaluating allocators for all cases just yet as
   // we're not handling the return value correctly, which causes false
   // positives when the alpha.cplusplus.NewDeleteLeaks check is on.
-  if (Opts.MayInlineCXXAllocator)
+  if (AnalyzerOptions &Opts = AMgr.options; Opts.MayInlineCXXAllocator)
     VisitCXXNewAllocatorCall(NE, Pred, Dst);
   else {
     NodeBuilder Bldr(Pred, Dst, *currBldrCtx);
@@ -1651,8 +1651,8 @@ void ExprEngine::processCleanupTemporaryBranch(const CXXBindTemporaryExpr *BTE,
                                                const CFGBlock *DstF) {
   BranchNodeBuilder TempDtorBuilder(Pred, Dst, BldCtx, DstT, DstF);
   ProgramStateRef State = Pred->getState();
-  const LocationContext *LC = Pred->getLocationContext();
-  if (getObjectUnderConstruction(State, BTE, LC)) {
+  
+  if (const LocationContext *LC = Pred->getLocationContext(); getObjectUnderConstruction(State, BTE, LC)) {
     TempDtorBuilder.generateNode(State, true, Pred);
   } else {
     TempDtorBuilder.generateNode(State, false, Pred);
@@ -1674,8 +1674,8 @@ void ExprEngine::VisitCXXBindTemporaryExpr(const CXXBindTemporaryExpr *BTE,
   StmtNodeBuilder StmtBldr(PreVisit, Dst, *currBldrCtx);
   for (ExplodedNode *Node : PreVisit) {
     ProgramStateRef State = Node->getState();
-    const LocationContext *LC = Node->getLocationContext();
-    if (!getObjectUnderConstruction(State, BTE, LC)) {
+    
+    if (const LocationContext *LC = Node->getLocationContext(); !getObjectUnderConstruction(State, BTE, LC)) {
       // FIXME: Currently the state might also already contain the marker due to
       // incorrect handling of temporaries bound to default parameters; for
       // those, we currently skip the CXXBindTemporaryExpr but rely on adding
@@ -2158,8 +2158,8 @@ void ExprEngine::Visit(const Stmt *S, ExplodedNode *Pred,
 
       // For instance method operators, make sure the 'this' argument has a
       // valid region.
-      const Decl *Callee = OCE->getCalleeDecl();
-      if (const auto *MD = dyn_cast_or_null<CXXMethodDecl>(Callee)) {
+      
+      if (const Decl *Callee = OCE->getCalleeDecl(); const auto *MD = dyn_cast_or_null<CXXMethodDecl>(Callee)) {
         if (MD->isImplicitObjectMemberFunction()) {
           ProgramStateRef State = Pred->getState();
           const LocationContext *LCtx = Pred->getLocationContext();
@@ -2424,8 +2424,8 @@ void ExprEngine::Visit(const Stmt *S, ExplodedNode *Pred,
 
     case Stmt::UnaryOperatorClass: {
       Bldr.takeNodes(Pred);
-      const auto *U = cast<UnaryOperator>(S);
-      if (AMgr.options.ShouldEagerlyAssume && (U->getOpcode() == UO_LNot)) {
+      
+      if (const auto *U = cast<UnaryOperator>(S); AMgr.options.ShouldEagerlyAssume && (U->getOpcode() == UO_LNot)) {
         ExplodedNodeSet Tmp;
         VisitUnaryOperator(U, Pred, Tmp);
         evalEagerlyAssumeBifurcation(Dst, Tmp, U);
@@ -2439,8 +2439,8 @@ void ExprEngine::Visit(const Stmt *S, ExplodedNode *Pred,
     case Stmt::PseudoObjectExprClass: {
       Bldr.takeNodes(Pred);
       ProgramStateRef state = Pred->getState();
-      const auto *PE = cast<PseudoObjectExpr>(S);
-      if (const Expr *Result = PE->getResultExpr()) {
+      
+      if (const auto *PE = cast<PseudoObjectExpr>(S); const Expr *Result = PE->getResultExpr()) {
         SVal V = state->getSVal(Result, Pred->getLocationContext());
         Bldr.generateNode(S, Pred,
                           state->BindExpr(S, Pred->getLocationContext(), V));
@@ -2540,10 +2540,10 @@ bool ExprEngine::replayWithoutInlining(ExplodedNode *N,
 static const LocationContext *getInlinedLocationContext(ExplodedNode *Node,
                                                         ExplodedGraph &G) {
   const LocationContext *CalleeLC = Node->getLocation().getLocationContext();
-  const LocationContext *RootLC =
-      G.getRoot()->getLocation().getLocationContext();
+  
 
-  if (CalleeLC->getStackFrame() == RootLC->getStackFrame())
+  if (const LocationContext *RootLC =
+      G.getRoot()->getLocation().getLocationContext(); CalleeLC->getStackFrame() == RootLC->getStackFrame())
     return nullptr;
 
   return CalleeLC;
@@ -2557,8 +2557,8 @@ void ExprEngine::processCFGBlockEntrance(const BlockEdge &L,
   // other constraints) then consider completely unrolling it.
   if(AMgr.options.ShouldUnrollLoops) {
     unsigned maxBlockVisitOnPath = AMgr.options.maxBlockVisitOnPath;
-    const Stmt *Term = nodeBuilder.getContext().getBlock()->getTerminatorStmt();
-    if (Term) {
+    
+    if (const Stmt *Term = nodeBuilder.getContext().getBlock()->getTerminatorStmt(); Term) {
       ProgramStateRef NewState = updateLoopStack(Term, AMgr.getASTContext(),
                                                  Pred, maxBlockVisitOnPath);
       if (NewState != Pred->getState()) {
@@ -2672,8 +2672,8 @@ static SVal RecoverCastedSymbol(ProgramStateRef state,
     if (!T->isIntegralOrEnumerationType())
       return UnknownVal();
 
-    uint64_t newBits = Ctx.getTypeSize(T);
-    if (!bitsInit || newBits < bits) {
+    
+    if (uint64_t newBits = Ctx.getTypeSize(T); !bitsInit || newBits < bits) {
       bitsInit = true;
       bits = newBits;
     }
@@ -2723,8 +2723,8 @@ static const Stmt *ResolveCondition(const Stmt *Condition,
   if (const auto *Ex = dyn_cast<Expr>(Condition))
     Condition = Ex->IgnoreParens();
 
-  const auto *BO = dyn_cast<BinaryOperator>(Condition);
-  if (!BO || !BO->isLogicalOp())
+  
+  if (const auto *BO = dyn_cast<BinaryOperator>(Condition); !BO || !BO->isLogicalOp())
     return Condition;
 
   assert(B->getTerminator().isStmtBranch() &&
@@ -2898,13 +2898,13 @@ void ExprEngine::processBranch(
       //   two iterations". (This pattern is common in FFMPEG and appears in
       //   many other projects as well.)
       bool CompletedTwoIterations = IterationsCompletedInLoop.value_or(0) >= 2;
-      bool SkipTrueBranch = BothFeasible && CompletedTwoIterations;
+      
 
       // FIXME: This "don't assume third iteration" heuristic partially
       // conflicts with the widen-loop analysis option (which is off by
       // default). If we intend to support and stabilize the loop widening,
       // we must ensure that it 'plays nicely' with this logic.
-      if (!SkipTrueBranch || AMgr.options.ShouldWidenLoops) {
+      if (bool SkipTrueBranch = BothFeasible && CompletedTwoIterations; !SkipTrueBranch || AMgr.options.ShouldWidenLoops) {
         Builder.generateNode(StTrue, true, PredN);
       } else if (!AMgr.options.InlineFunctionsWithAmbiguousLoops) {
         // FIXME: There is an ancient and arbitrary heuristic in
@@ -2943,9 +2943,9 @@ void ExprEngine::processBranch(
       // this and will produce false positives when it assumes that the loop is
       // skipped.
       bool BeforeFirstIteration = IterationsCompletedInLoop == std::optional{0};
-      bool SkipFalseBranch = BothFeasible && BeforeFirstIteration &&
-                             AMgr.options.ShouldAssumeAtLeastOneIteration;
-      if (!SkipFalseBranch)
+      
+      if (bool SkipFalseBranch = BothFeasible && BeforeFirstIteration &&
+                             AMgr.options.ShouldAssumeAtLeastOneIteration; !SkipFalseBranch)
         Builder.generateNode(StFalse, false, PredN);
     }
   }
@@ -3170,8 +3170,8 @@ void ExprEngine::processSwitch(SwitchNodeBuilder& builder) {
   // a case for a particular enum value as long as that enum value isn't
   // feasible then it shouldn't be considered for making 'default:' reachable.
   const SwitchStmt *SS = builder.getSwitch();
-  const Expr *CondExpr = SS->getCond()->IgnoreParenImpCasts();
-  if (CondExpr->getType()->isEnumeralType()) {
+  
+  if (const Expr *CondExpr = SS->getCond()->IgnoreParenImpCasts(); CondExpr->getType()->isEnumeralType()) {
     if (SS->isAllEnumCasesCovered())
       return;
   }
@@ -3194,8 +3194,8 @@ void ExprEngine::VisitCommonDeclRefExpr(const Expr *Ex, const NamedDecl *D,
   auto resolveAsLambdaCapturedVar =
       [&](const ValueDecl *VD) -> std::optional<std::pair<SVal, QualType>> {
     const auto *MD = dyn_cast<CXXMethodDecl>(LCtx->getDecl());
-    const auto *DeclRefEx = dyn_cast<DeclRefExpr>(Ex);
-    if (AMgr.options.ShouldInlineLambdas && DeclRefEx &&
+    
+    if (const auto *DeclRefEx = dyn_cast<DeclRefExpr>(Ex); AMgr.options.ShouldInlineLambdas && DeclRefEx &&
         DeclRefEx->refersToEnclosingVariableOrCapture() && MD &&
         MD->getParent()->isLambda()) {
       // Lookup the field of the lambda.
@@ -3228,11 +3228,11 @@ void ExprEngine::VisitCommonDeclRefExpr(const Expr *Ex, const NamedDecl *D,
       VInfo = std::make_pair(state->getLValue(VD, LocCtxt), VD->getType());
 
     SVal V = VInfo->first;
-    bool IsReference = VInfo->second->isReferenceType();
+    
 
     // For references, the 'lvalue' is the pointer address stored in the
     // reference region.
-    if (IsReference) {
+    if (bool IsReference = VInfo->second->isReferenceType(); IsReference) {
       if (const MemRegion *R = V.getAsRegion())
         V = state->getSVal(R);
       else
@@ -3554,9 +3554,9 @@ void ExprEngine::VisitMemberExpr(const MemberExpr *M, ExplodedNode *Pred,
         // pointers as soon as they are used.
         if (!M->isGLValue()) {
           assert(M->getType()->isArrayType());
-          const auto *PE =
-            dyn_cast<ImplicitCastExpr>(I->getParentMap().getParentIgnoreParens(M));
-          if (!PE || PE->getCastKind() != CK_ArrayToPointerDecay) {
+          
+          if (const auto *PE =
+            dyn_cast<ImplicitCastExpr>(I->getParentMap().getParentIgnoreParens(M)); !PE || PE->getCastKind() != CK_ArrayToPointerDecay) {
             llvm_unreachable("should always be wrapped in ArrayToPointerDecay");
           }
         }
@@ -4141,10 +4141,10 @@ void ExprEngine::ConstructInitList(const Expr *E, ArrayRef<Expr *> Args,
   ProgramStateRef S = Pred->getState();
   QualType T = E->getType().getCanonicalType();
 
-  bool IsCompound = T->isArrayType() || T->isRecordType() ||
-                    T->isAnyComplexType() || T->isVectorType();
+  
 
-  if (Args.size() > 1 || (E->isPRValue() && IsCompound && !IsTransparent)) {
+  if (bool IsCompound = T->isArrayType() || T->isRecordType() ||
+                    T->isAnyComplexType() || T->isVectorType(); Args.size() > 1 || (E->isPRValue() && IsCompound && !IsTransparent)) {
     llvm::ImmutableList<SVal> ArgList = getBasicVals().getEmptySValList();
     for (Expr *E : llvm::reverse(Args))
       ArgList = getBasicVals().prependSVal(S->getSVal(E, LC), ArgList);

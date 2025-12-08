@@ -198,9 +198,9 @@ ConstantArrayType *
 ConstantArrayType::Create(const ASTContext &Ctx, QualType ET, QualType Can,
                           const llvm::APInt &Sz, const Expr *SzExpr,
                           ArraySizeModifier SzMod, unsigned Qual) {
-  bool NeedsExternalSize = SzExpr != nullptr || Sz.ugt(0x0FFFFFFFFFFFFFFF) ||
-                           Sz.getBitWidth() > 0xFF;
-  if (!NeedsExternalSize)
+  
+  if (bool NeedsExternalSize = SzExpr != nullptr || Sz.ugt(0x0FFFFFFFFFFFFFFF) ||
+                           Sz.getBitWidth() > 0xFF; !NeedsExternalSize)
     return new (Ctx, alignof(ConstantArrayType)) ConstantArrayType(
         ET, Can, Sz.getBitWidth(), Sz.getZExtValue(), SzMod, Qual);
 
@@ -1610,26 +1610,26 @@ struct StripObjCKindOfTypeVisitor
 } // namespace
 
 bool QualType::UseExcessPrecision(const ASTContext &Ctx) {
-  const BuiltinType *BT = getTypePtr()->getAs<BuiltinType>();
-  if (!BT) {
-    const VectorType *VT = getTypePtr()->getAs<VectorType>();
-    if (VT) {
+  
+  if (const BuiltinType *BT = getTypePtr()->getAs<BuiltinType>(); !BT) {
+    
+    if (const VectorType *VT = getTypePtr()->getAs<VectorType>(); VT) {
       QualType ElementType = VT->getElementType();
       return ElementType.UseExcessPrecision(Ctx);
     }
   } else {
     switch (BT->getKind()) {
     case BuiltinType::Kind::Float16: {
-      const TargetInfo &TI = Ctx.getTargetInfo();
-      if (TI.hasFloat16Type() && !TI.hasFastHalfType() &&
+      
+      if (const TargetInfo &TI = Ctx.getTargetInfo(); TI.hasFloat16Type() && !TI.hasFastHalfType() &&
           Ctx.getLangOpts().getFloat16ExcessPrecision() !=
               Ctx.getLangOpts().ExcessPrecisionKind::FPP_None)
         return true;
       break;
     }
     case BuiltinType::Kind::BFloat16: {
-      const TargetInfo &TI = Ctx.getTargetInfo();
-      if (TI.hasBFloat16Type() && !TI.hasFullBFloat16Type() &&
+      
+      if (const TargetInfo &TI = Ctx.getTargetInfo(); TI.hasBFloat16Type() && !TI.hasFullBFloat16Type() &&
           Ctx.getLangOpts().getBFloat16ExcessPrecision() !=
               Ctx.getLangOpts().ExcessPrecisionKind::FPP_None)
         return true;
@@ -1684,8 +1684,8 @@ Type::getObjCSubstitutions(const DeclContext *dc) const {
   // was declared.
   const auto *dcClassDecl = dyn_cast<ObjCInterfaceDecl>(dc);
   const ObjCCategoryDecl *dcCategoryDecl = nullptr;
-  ObjCTypeParamList *dcTypeParams = nullptr;
-  if (dcClassDecl) {
+  
+  if (ObjCTypeParamList *dcTypeParams = nullptr; dcClassDecl) {
     // If the class does not have any type parameters, there's no
     // substitution to do.
     dcTypeParams = dcClassDecl->getTypeParamList();
@@ -2646,8 +2646,8 @@ QualType Type::getSizelessVectorEltType(const ASTContext &Ctx) const {
 QualType Type::getSveEltType(const ASTContext &Ctx) const {
   assert(isSveVLSBuiltinType() && "unsupported type!");
 
-  const BuiltinType *BTy = castAs<BuiltinType>();
-  if (BTy->getKind() == BuiltinType::SveBool)
+  
+  if (const BuiltinType *BTy = castAs<BuiltinType>(); BTy->getKind() == BuiltinType::SveBool)
     // Represent predicates as i8 rather than i1 to avoid any layout issues.
     // The type is bitcasted to a scalable predicate type when casting between
     // scalable and fixed-length vectors.
@@ -3169,8 +3169,8 @@ bool QualType::isCXX11PODType(const ASTContext &Context) const {
 
 bool Type::isNothrowT() const {
   if (const auto *RD = getAsCXXRecordDecl()) {
-    IdentifierInfo *II = RD->getIdentifier();
-    if (II && II->isStr("nothrow_t") && RD->isInStdNamespace())
+    
+    if (IdentifierInfo *II = RD->getIdentifier(); II && II->isStr("nothrow_t") && RD->isInStdNamespace())
       return true;
   }
   return false;
@@ -3179,8 +3179,8 @@ bool Type::isNothrowT() const {
 bool Type::isAlignValT() const {
   if (const auto *ET = getAsCanonical<EnumType>()) {
     const auto *ED = ET->getDecl();
-    IdentifierInfo *II = ED->getIdentifier();
-    if (II && II->isStr("align_val_t") && ED->isInStdNamespace())
+    
+    if (IdentifierInfo *II = ED->getIdentifier(); II && II->isStr("align_val_t") && ED->isInStdNamespace())
       return true;
   }
   return false;
@@ -3189,8 +3189,8 @@ bool Type::isAlignValT() const {
 bool Type::isStdByteType() const {
   if (const auto *ET = getAsCanonical<EnumType>()) {
     const auto *ED = ET->getDecl();
-    IdentifierInfo *II = ED->getIdentifier();
-    if (II && II->isStr("byte") && ED->isInStdNamespace())
+    
+    if (IdentifierInfo *II = ED->getIdentifier(); II && II->isStr("byte") && ED->isInStdNamespace())
       return true;
   }
   return false;
@@ -5731,8 +5731,8 @@ const HLSLAttributedResourceType *
 HLSLAttributedResourceType::findHandleTypeOnResource(const Type *RT) {
   // If the type RT is an HLSL resource class, the first field must
   // be the resource handle of type HLSLAttributedResourceType
-  const clang::Type *Ty = RT->getUnqualifiedDesugaredType();
-  if (const RecordDecl *RD = Ty->getAsCXXRecordDecl()) {
+  
+  if (const clang::Type *Ty = RT->getUnqualifiedDesugaredType(); const RecordDecl *RD = Ty->getAsCXXRecordDecl()) {
     if (!RD->fields().empty()) {
       const auto &FirstFD = RD->fields().begin();
       return dyn_cast<HLSLAttributedResourceType>(

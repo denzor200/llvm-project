@@ -225,11 +225,11 @@ void msp430::Linker::AddEndFiles(bool UseExceptions, const ArgList &Args,
 }
 
 static void AddSspArgs(const ArgList &Args, ArgStringList &CmdArgs) {
-  Arg *SspFlag = Args.getLastArg(
-      options::OPT_fno_stack_protector, options::OPT_fstack_protector,
-      options::OPT_fstack_protector_all, options::OPT_fstack_protector_strong);
+  
 
-  if (SspFlag &&
+  if (Arg *SspFlag = Args.getLastArg(
+      options::OPT_fno_stack_protector, options::OPT_fstack_protector,
+      options::OPT_fstack_protector_all, options::OPT_fstack_protector_strong); SspFlag &&
       !SspFlag->getOption().matches(options::OPT_fno_stack_protector)) {
     CmdArgs.push_back("-lssp_nonshared");
     CmdArgs.push_back("-lssp");

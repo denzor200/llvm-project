@@ -217,11 +217,11 @@ void TypeStreamMerger::addMapping(TypeIndex Idx) {
 
 bool TypeStreamMerger::remapIndexFallback(TypeIndex &Idx,
                                           ArrayRef<TypeIndex> Map) {
-  size_t MapPos = slotForIndex(Idx);
+  
 
   // If this is the second pass and this index isn't in the map, then it points
   // outside the current type stream, and this is a corrupt record.
-  if (IsSecondPass && MapPos >= Map.size()) {
+  if (size_t MapPos = slotForIndex(Idx); IsSecondPass && MapPos >= Map.size()) {
     // FIXME: Print a more useful error. We can give the current record and the
     // index that we think its pointing to.
     if (LastError)
@@ -359,9 +359,9 @@ Error TypeStreamMerger::remapType(const CVType &Type) {
         [this, Type](MutableArrayRef<uint8_t> Storage) -> ArrayRef<uint8_t> {
       return remapIndices(Type, Storage);
     };
-    unsigned AlignedSize = alignTo(Type.RecordData.size(), 4);
+    
 
-    if (LLVM_LIKELY(UseGlobalHashes)) {
+    if (unsigned AlignedSize = alignTo(Type.RecordData.size(), 4); LLVM_LIKELY(UseGlobalHashes)) {
       GlobalTypeTableBuilder &Dest =
           isIdRecord(Type.kind()) ? *DestGlobalIdStream : *DestGlobalTypeStream;
       GloballyHashedType H = GlobalHashes[CurIndex.toArrayIndex()];
@@ -408,9 +408,9 @@ TypeStreamMerger::remapIndices(const CVType &OriginalType,
 
     for (size_t I = 0; I < Ref.Count; ++I) {
       TypeIndex &TI = DestTIs[I];
-      bool Success = (Ref.Kind == TiRefKind::IndexRef) ? remapItemIndex(TI)
-                                                       : remapTypeIndex(TI);
-      if (LLVM_UNLIKELY(!Success))
+      
+      if (bool Success = (Ref.Kind == TiRefKind::IndexRef) ? remapItemIndex(TI)
+                                                       : remapTypeIndex(TI); LLVM_UNLIKELY(!Success))
         return {};
     }
   }

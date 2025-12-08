@@ -35,8 +35,8 @@ void CodeViewContext::finish() {
 /// This is a valid number for use with .cv_loc if we've already seen a .cv_file
 /// for it.
 bool CodeViewContext::isValidFileNumber(unsigned FileNumber) const {
-  unsigned Idx = FileNumber - 1;
-  if (Idx < Files.size())
+  
+  if (unsigned Idx = FileNumber - 1; Idx < Files.size())
     return Files[Idx].Assigned;
   return false;
 }
@@ -272,8 +272,8 @@ CodeViewContext::getFunctionLineEntries(unsigned FuncId) {
 
   MCCVFunctionInfo *SiteInfo = getCVFunctionInfo(FuncId);
   for (size_t Idx = LocBegin; Idx != LocEnd; ++Idx) {
-    unsigned LocationFuncId = MCCVLines[Idx].getFunctionId();
-    if (LocationFuncId == FuncId) {
+    
+    if (unsigned LocationFuncId = MCCVLines[Idx].getFunctionId(); LocationFuncId == FuncId) {
       // This was a .cv_loc directly for FuncId, so record it.
       FilteredLines.push_back(MCCVLines[Idx]);
     } else {
@@ -281,11 +281,11 @@ CodeViewContext::getFunctionLineEntries(unsigned FuncId) {
       // synthesize a statement .cv_loc at the original inlined call site.
       auto I = SiteInfo->InlinedAtMap.find(LocationFuncId);
       if (I != SiteInfo->InlinedAtMap.end()) {
-        MCCVFunctionInfo::LineInfo &IA = I->second;
+        
         // Only add the location if it differs from the previous location.
         // Large inlined calls will have many .cv_loc entries and we only need
         // one line table entry in the parent function.
-        if (FilteredLines.empty() ||
+        if (MCCVFunctionInfo::LineInfo &IA = I->second; FilteredLines.empty() ||
             FilteredLines.back().getFileNum() != IA.File ||
             FilteredLines.back().getLine() != IA.Line ||
             FilteredLines.back().getColumn() != IA.Col) {
@@ -314,8 +314,8 @@ CodeViewContext::getLineExtentIncludingInlinees(unsigned FuncId) {
   std::tie(LocBegin, LocEnd) = getLineExtent(FuncId);
 
   // Include all child inline call sites in our extent.
-  MCCVFunctionInfo *SiteInfo = getCVFunctionInfo(FuncId);
-  if (SiteInfo) {
+  
+  if (MCCVFunctionInfo *SiteInfo = getCVFunctionInfo(FuncId); SiteInfo) {
     for (auto &KV : SiteInfo->InlinedAtMap) {
       unsigned ChildId = KV.first;
       auto Extent = getLineExtent(ChildId);
@@ -517,8 +517,8 @@ void CodeViewContext::encodeInlineLineTable(const MCAssembler &Asm,
     // loop ends.
     constexpr uint32_t InlineSiteSize = 12;
     constexpr uint32_t AnnotationSize = 8;
-    size_t MaxBufferSize = MaxRecordLength - InlineSiteSize - AnnotationSize;
-    if (Buffer.size() >= MaxBufferSize)
+    
+    if (size_t MaxBufferSize = MaxRecordLength - InlineSiteSize - AnnotationSize; Buffer.size() >= MaxBufferSize)
       break;
 
     if (Loc.getFunctionId() == Frag.SiteFuncId) {
@@ -596,8 +596,8 @@ void CodeViewContext::encodeInlineLineTable(const MCAssembler &Asm,
   ArrayRef<MCCVLoc> LocAfter = getLinesForExtent(LocEnd, LocEnd + 1);
   if (!LocAfter.empty()) {
     // Only try to compute this difference if we're in the same section.
-    const MCCVLoc &Loc = LocAfter[0];
-    if (&Loc.getLabel()->getSection() == &LastLabel->getSection())
+    
+    if (const MCCVLoc &Loc = LocAfter[0]; &Loc.getLabel()->getSection() == &LastLabel->getSection())
       LocAfterLength = computeLabelDiff(Asm, LastLabel, Loc.getLabel());
   }
 

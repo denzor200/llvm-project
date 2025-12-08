@@ -177,8 +177,8 @@ void TrackingOutputBuffer::printRightImpl(const FunctionType &N) {
 void TrackingOutputBuffer::printLeftImpl(const FunctionEncoding &N) {
   auto Scoped = enterFunctionTypePrinting();
 
-  const Node *Ret = N.getReturnType();
-  if (Ret) {
+  
+  if (const Node *Ret = N.getReturnType(); Ret) {
     printLeft(*Ret);
     if (!Ret->hasRHSComponent(*this))
       *this += " ";
@@ -199,9 +199,9 @@ void TrackingOutputBuffer::printRightImpl(const FunctionEncoding &N) {
 
   finalizeArgumentEnd();
 
-  const Node *Ret = N.getReturnType();
+  
 
-  if (Ret)
+  if (const Node *Ret = N.getReturnType(); Ret)
     printRight(*Ret);
 
   finalizeQualifiersStart();

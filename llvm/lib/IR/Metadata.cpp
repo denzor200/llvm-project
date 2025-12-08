@@ -172,8 +172,8 @@ void DebugValueUser::handleChangedValue(void *Old, Metadata *New) {
 
 void DebugValueUser::trackDebugValue(size_t Idx) {
   assert(Idx < 3 && "Invalid debug value index.");
-  Metadata *&MD = DebugValues[Idx];
-  if (MD)
+  
+  if (Metadata *&MD = DebugValues[Idx]; MD)
     MetadataTracking::track(&MD, *MD, *this);
 }
 
@@ -185,8 +185,8 @@ void DebugValueUser::trackDebugValues() {
 
 void DebugValueUser::untrackDebugValue(size_t Idx) {
   assert(Idx < 3 && "Invalid debug value index.");
-  Metadata *&MD = DebugValues[Idx];
-  if (MD)
+  
+  if (Metadata *&MD = DebugValues[Idx]; MD)
     MetadataTracking::untrack(MD);
 }
 
@@ -256,8 +256,8 @@ SmallVector<Metadata *> ReplaceableMetadataImpl::getAllArgListUsers() {
       continue;
     if (!isa<Metadata *>(Owner))
       continue;
-    Metadata *OwnerMD = cast<Metadata *>(Owner);
-    if (OwnerMD->getMetadataID() == Metadata::DIArgListKind)
+    
+    if (Metadata *OwnerMD = cast<Metadata *>(Owner); OwnerMD->getMetadataID() == Metadata::DIArgListKind)
       MDUsersWithID.push_back(&UseMap[Pair.first]);
   }
   llvm::sort(MDUsersWithID, [](auto UserA, auto UserB) {
@@ -1248,10 +1248,10 @@ MDNode *MDNode::getMergedProfMetadata(MDNode *A, MDNode *B,
          "Caller should guarantee");
 
   const CallInst *ACall = dyn_cast<CallInst>(AInstr);
-  const CallInst *BCall = dyn_cast<CallInst>(BInstr);
+  
 
   // Both ACall and BCall are direct callsites.
-  if (ACall && BCall && ACall->getCalledFunction() &&
+  if (const CallInst *BCall = dyn_cast<CallInst>(BInstr); ACall && BCall && ACall->getCalledFunction() &&
       BCall->getCalledFunction())
     return mergeDirectCallProfMetadata(A, B, AInstr, BInstr);
 
@@ -1335,9 +1335,9 @@ MDNode *MDNode::getMostGenericRange(MDNode *A, MDNode *B) {
   unsigned BN = B->getNumOperands() / 2;
   while (AI < AN && BI < BN) {
     ConstantInt *ALow = mdconst::extract<ConstantInt>(A->getOperand(2 * AI));
-    ConstantInt *BLow = mdconst::extract<ConstantInt>(B->getOperand(2 * BI));
+    
 
-    if (ALow->getValue().slt(BLow->getValue())) {
+    if (ConstantInt *BLow = mdconst::extract<ConstantInt>(B->getOperand(2 * BI)); ALow->getValue().slt(BLow->getValue())) {
       addRange(EndPoints, ALow,
                mdconst::extract<ConstantInt>(A->getOperand(2 * AI + 1)));
       ++AI;
@@ -1361,11 +1361,11 @@ MDNode *MDNode::getMostGenericRange(MDNode *A, MDNode *B) {
   // We haven't handled wrap in the previous merge,
   // if we have at least 2 ranges (4 endpoints) we have to try to merge
   // the last and first ones.
-  unsigned Size = EndPoints.size();
-  if (Size > 2) {
+  
+  if (unsigned Size = EndPoints.size(); Size > 2) {
     ConstantInt *FB = EndPoints[0];
-    ConstantInt *FE = EndPoints[1];
-    if (tryMergeRange(EndPoints, FB, FE)) {
+    
+    if (ConstantInt *FE = EndPoints[1]; tryMergeRange(EndPoints, FB, FE)) {
       for (unsigned i = 0; i < Size - 2; ++i) {
         EndPoints[i] = EndPoints[i + 2];
       }
@@ -1430,8 +1430,8 @@ MDNode *MDNode::getMostGenericAlignmentOrDereferenceable(MDNode *A, MDNode *B) {
     return nullptr;
 
   ConstantInt *AVal = mdconst::extract<ConstantInt>(A->getOperand(0));
-  ConstantInt *BVal = mdconst::extract<ConstantInt>(B->getOperand(0));
-  if (AVal->getZExtValue() < BVal->getZExtValue())
+  
+  if (ConstantInt *BVal = mdconst::extract<ConstantInt>(B->getOperand(0)); AVal->getZExtValue() < BVal->getZExtValue())
     return A;
   return B;
 }
@@ -1777,8 +1777,8 @@ void Instruction::addAnnotationMetadata(SmallVector<StringRef> Annotations) {
         Names.push_back(N);
         continue;
       }
-      auto *MDAnnotationTuple = cast<MDTuple>(N);
-      if (any_of(MDAnnotationTuple->operands(), [&AnnotationsSet](auto &Op) {
+      
+      if (auto *MDAnnotationTuple = cast<MDTuple>(N); any_of(MDAnnotationTuple->operands(), [&AnnotationsSet](auto &Op) {
             return AnnotationsSet.contains(cast<MDString>(Op)->getString());
           }))
         return;

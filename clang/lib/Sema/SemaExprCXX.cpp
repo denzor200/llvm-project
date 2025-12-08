@@ -95,8 +95,8 @@ ParsedType Sema::getConstructorName(const IdentifierInfo &II,
   // CheckCompletedCXXClass).
   CXXRecordDecl *InjectedClassName = nullptr;
   for (NamedDecl *ND : CurClass->lookup(&II)) {
-    auto *RD = dyn_cast<CXXRecordDecl>(ND);
-    if (RD && RD->isInjectedClassName()) {
+    
+    if (auto *RD = dyn_cast<CXXRecordDecl>(ND); RD && RD->isInjectedClassName()) {
       InjectedClassName = RD;
       break;
     }
@@ -1423,8 +1423,8 @@ bool Sema::CheckCXXThisType(SourceLocation Loc, QualType Type) {
   //   category are defined within such member functions as they are within
   //   an implicit object member function).
   DeclContext *DC = getFunctionLevelDeclContext();
-  const auto *Method = dyn_cast<CXXMethodDecl>(DC);
-  if (Method && Method->isExplicitObjectMemberFunction()) {
+  
+  if (const auto *Method = dyn_cast<CXXMethodDecl>(DC); Method && Method->isExplicitObjectMemberFunction()) {
     Diag(Loc, diag::err_invalid_this_use) << 1;
   } else if (Method && isLambdaCallWithExplicitObjectParameter(CurContext)) {
     Diag(Loc, diag::err_invalid_this_use) << 1;
@@ -1867,8 +1867,8 @@ namespace {
           const auto *DC = dyn_cast<CXXRecordDecl>(Found->getDeclContext());
           const auto *OtherDC =
               dyn_cast<CXXRecordDecl>(Other.Found->getDeclContext());
-          unsigned ImplicitArgCount = Destroying + IDP.getNumImplicitArgs();
-          if (FunctionTemplateDecl *Best = S.getMoreSpecializedTemplate(
+          
+          if (unsigned ImplicitArgCount = Destroying + IDP.getNumImplicitArgs(); FunctionTemplateDecl *Best = S.getMoreSpecializedTemplate(
                   PrimaryTemplate, OtherPrimaryTemplate, SourceLocation(),
                   TPOC_Call, ImplicitArgCount,
                   DC ? S.Context.getCanonicalTagType(DC) : QualType{},
@@ -2041,8 +2041,8 @@ Sema::ActOnCXXNew(SourceLocation StartLoc, bool UseGlobal,
       if (D.getTypeObject(I).Kind != DeclaratorChunk::Array)
         break;
 
-      DeclaratorChunk::ArrayTypeInfo &Array = D.getTypeObject(I).Arr;
-      if (Expr *NumElts = Array.NumElts) {
+      
+      if (DeclaratorChunk::ArrayTypeInfo &Array = D.getTypeObject(I).Arr; Expr *NumElts = Array.NumElts) {
         if (!NumElts->isTypeDependent() && !NumElts->isValueDependent()) {
           // FIXME: GCC permits constant folding here. We should either do so consistently
           // or not do so at all, rather than changing behavior in C++14 onwards.
@@ -2394,9 +2394,9 @@ ExprResult Sema::BuildCXXNew(SourceRange Range, bool UseGlobal,
       }
 
       if (!AllocType->isDependentType()) {
-        unsigned ActiveSizeBits =
-            ConstantArrayType::getNumAddressingBits(Context, AllocType, *Value);
-        if (ActiveSizeBits > ConstantArrayType::getMaxSizeBits(Context))
+        
+        if (unsigned ActiveSizeBits =
+            ConstantArrayType::getNumAddressingBits(Context, AllocType, *Value); ActiveSizeBits > ConstantArrayType::getMaxSizeBits(Context))
           return ExprError(
               Diag((*ArraySize)->getBeginLoc(), diag::err_array_too_large)
               << toString(*Value, 10, Value->isSigned(),
@@ -2606,8 +2606,8 @@ ExprResult Sema::BuildCXXNew(SourceRange Range, bool UseGlobal,
     // initializer is no greater than that constant value.
 
     if (ArraySize && !*ArraySize) {
-      auto *CAT = Context.getAsConstantArrayType(Initializer->getType());
-      if (CAT) {
+      
+      if (auto *CAT = Context.getAsConstantArrayType(Initializer->getType()); CAT) {
         // FIXME: Track that the array size was inferred rather than explicitly
         // specified.
         ArraySize = IntegerLiteral::Create(
@@ -2693,8 +2693,8 @@ static bool resolveAllocationOverloadInterior(
     // Even member operator new/delete are implicitly treated as
     // static, so don't use AddMemberCandidate.
     NamedDecl *D = (*Alloc)->getUnderlyingDecl();
-    bool IsTypeAware = D->getAsFunction()->isTypeAwareOperatorNewOrDelete();
-    if (IsTypeAware == (Mode != ResolveMode::Typed))
+    
+    if (bool IsTypeAware = D->getAsFunction()->isTypeAwareOperatorNewOrDelete(); IsTypeAware == (Mode != ResolveMode::Typed))
       continue;
 
     if (FunctionTemplateDecl *FnTemplate = dyn_cast<FunctionTemplateDecl>(D)) {
@@ -2860,8 +2860,8 @@ static void LookupGlobalDeallocationFunctions(Sema &S, SourceLocation Loc,
     bool RemoveTypedDecl = Mode == DeallocLookupMode::Untyped;
     LookupResult::Filter Filter = FoundDelete.makeFilter();
     while (Filter.hasNext()) {
-      FunctionDecl *FD = Filter.next()->getUnderlyingDecl()->getAsFunction();
-      if (FD->isTypeAwareOperatorNewOrDelete() == RemoveTypedDecl)
+      
+      if (FunctionDecl *FD = Filter.next()->getUnderlyingDecl()->getAsFunction(); FD->isTypeAwareOperatorNewOrDelete() == RemoveTypedDecl)
         Filter.erase();
     }
     Filter.done();
@@ -3074,8 +3074,8 @@ bool Sema::FindAllocationFunctions(
   {
     LookupResult::Filter Filter = FoundDelete.makeFilter();
     while (Filter.hasNext()) {
-      auto *FD = dyn_cast<FunctionDecl>(Filter.next()->getUnderlyingDecl());
-      if (FD && FD->isDestroyingOperatorDelete())
+      
+      if (auto *FD = dyn_cast<FunctionDecl>(Filter.next()->getUnderlyingDecl()); FD && FD->isDestroyingOperatorDelete())
         Filter.erase();
     }
     Filter.done();
@@ -3242,15 +3242,15 @@ bool Sema::FindAllocationFunctions(
   if (Matches.size() == 1) {
     OperatorDelete = Matches[0].second;
     DeclContext *OperatorDeleteContext = GetRedeclContext(OperatorDelete);
-    bool FoundTypeAwareOperator =
+    
+    if (bool FoundTypeAwareOperator =
         OperatorDelete->isTypeAwareOperatorNewOrDelete() ||
-        OperatorNew->isTypeAwareOperatorNewOrDelete();
-    if (Diagnose && FoundTypeAwareOperator) {
+        OperatorNew->isTypeAwareOperatorNewOrDelete(); Diagnose && FoundTypeAwareOperator) {
       bool MismatchedTypeAwareness =
           OperatorDelete->isTypeAwareOperatorNewOrDelete() !=
           OperatorNew->isTypeAwareOperatorNewOrDelete();
-      bool MismatchedContext = OperatorDeleteContext != OperatorNewContext;
-      if (MismatchedTypeAwareness || MismatchedContext) {
+      
+      if (bool MismatchedContext = OperatorDeleteContext != OperatorNewContext; MismatchedTypeAwareness || MismatchedContext) {
         FunctionDecl *Operators[] = {OperatorDelete, OperatorNew};
         bool TypeAwareOperatorIndex =
             OperatorNew->isTypeAwareOperatorNewOrDelete();
@@ -3796,8 +3796,8 @@ MismatchingNewDeleteDetector::analyzeDeleteExpr(const CXXDeleteExpr *DE) {
   NewExprs.clear();
   assert(DE && "Expected delete-expression");
   IsArrayForm = DE->isArrayForm();
-  const Expr *E = DE->getArgument()->IgnoreParenImpCasts();
-  if (const MemberExpr *ME = dyn_cast<const MemberExpr>(E)) {
+  
+  if (const Expr *E = DE->getArgument()->IgnoreParenImpCasts(); const MemberExpr *ME = dyn_cast<const MemberExpr>(E)) {
     return analyzeMemberExpr(ME);
   } else if (const DeclRefExpr *D = dyn_cast<const DeclRefExpr>(E)) {
     if (!hasMatchingVarInit(D))
@@ -3820,8 +3820,8 @@ MismatchingNewDeleteDetector::getNewExprFromInitListOrExpr(const Expr *E) {
 
 bool MismatchingNewDeleteDetector::hasMatchingNewInCtorInit(
     const CXXCtorInitializer *CI) {
-  const CXXNewExpr *NE = nullptr;
-  if (Field == CI->getMember() &&
+  
+  if (const CXXNewExpr *NE = nullptr; Field == CI->getMember() &&
       (NE = getNewExprFromInitListOrExpr(CI->getInit()))) {
     if (NE->isArray() == IsArrayForm)
       return true;
@@ -3890,8 +3890,8 @@ MismatchingNewDeleteDetector::analyzeMemberExpr(const MemberExpr *ME) {
 }
 
 bool MismatchingNewDeleteDetector::hasMatchingVarInit(const DeclRefExpr *D) {
-  const CXXNewExpr *NE = nullptr;
-  if (const VarDecl *VD = dyn_cast<const VarDecl>(D->getDecl())) {
+  
+  if (const CXXNewExpr *NE = nullptr; const VarDecl *VD = dyn_cast<const VarDecl>(D->getDecl())) {
     if (VD->hasInit() && (NE = getNewExprFromInitListOrExpr(VD->getInit())) &&
         NE->isArray() != IsArrayForm) {
       NewExprs.push_back(NE);
@@ -5533,9 +5533,9 @@ static bool TryClassUnification(Sema &Self, Expr *From, Expr *To,
   QualType TTy = To->getType();
   const RecordType *FRec = FTy->getAsCanonical<RecordType>();
   const RecordType *TRec = TTy->getAsCanonical<RecordType>();
-  bool FDerivedFromT = FRec && TRec && FRec != TRec &&
-                       Self.IsDerivedFrom(QuestionLoc, FTy, TTy);
-  if (FRec && TRec && (FRec == TRec || FDerivedFromT ||
+  
+  if (bool FDerivedFromT = FRec && TRec && FRec != TRec &&
+                       Self.IsDerivedFrom(QuestionLoc, FTy, TTy); FRec && TRec && (FRec == TRec || FDerivedFromT ||
                        Self.IsDerivedFrom(QuestionLoc, TTy, FTy))) {
     //         E1 can be converted to match E2 if the class of T2 is the
     //         same type as, or a base class of, the class of T1, and
@@ -6193,8 +6193,8 @@ QualType Sema::FindCompositePointerType(SourceLocation Loc,
         Quals.setAddressSpace(Q1.getAddressSpace());
       } else if (Steps.size() == 1) {
         bool MaybeQ1 = Q1.isAddressSpaceSupersetOf(Q2, getASTContext());
-        bool MaybeQ2 = Q2.isAddressSpaceSupersetOf(Q1, getASTContext());
-        if (MaybeQ1 == MaybeQ2) {
+        
+        if (bool MaybeQ2 = Q2.isAddressSpaceSupersetOf(Q1, getASTContext()); MaybeQ1 == MaybeQ2) {
           // Exception for ptr size address spaces. Should be able to choose
           // either address space during comparison.
           if (isPtrSizeAddressSpace(Q1.getAddressSpace()) ||
@@ -6266,8 +6266,8 @@ QualType Sema::FindCompositePointerType(SourceLocation Loc,
       }
     }
 
-    const PointerType *Ptr1, *Ptr2;
-    if ((Ptr1 = Composite1->getAs<PointerType>()) &&
+    
+    if (const PointerType *Ptr1, *Ptr2; (Ptr1 = Composite1->getAs<PointerType>()) &&
         (Ptr2 = Composite2->getAs<PointerType>())) {
       Composite1 = Ptr1->getPointeeType();
       Composite2 = Ptr2->getPointeeType();
@@ -6787,8 +6787,8 @@ static void noteOperatorArrows(Sema &S,
                                ArrayRef<FunctionDecl *> OperatorArrows) {
   unsigned SkipStart = OperatorArrows.size(), SkipCount = 0;
   // FIXME: Make this configurable?
-  unsigned Limit = 9;
-  if (OperatorArrows.size() > Limit) {
+  
+  if (unsigned Limit = 9; OperatorArrows.size() > Limit) {
     // Produce Limit-1 normal notes and one 'skipping' note.
     SkipStart = (Limit - 1) / 2 + (Limit - 1) % 2;
     SkipCount = OperatorArrows.size() - (Limit - 1);
@@ -6880,8 +6880,8 @@ ExprResult Sema::ActOnStartCXXMemberReference(Scope *S, Expr *Base,
           }
           Diag(OpLoc, diag::err_typecheck_member_reference_arrow)
             << BaseType << Base->getSourceRange();
-          CallExpr *CE = dyn_cast<CallExpr>(Base);
-          if (Decl *CD = (CE ? CE->getCalleeDecl() : nullptr)) {
+          
+          if (CallExpr *CE = dyn_cast<CallExpr>(Base); Decl *CD = (CE ? CE->getCalleeDecl() : nullptr)) {
             Diag(CD->getBeginLoc(),
                  diag::note_member_reference_arrow_from_operator_arrow);
           }
@@ -7693,8 +7693,8 @@ ExprResult Sema::ActOnFinishFullExpr(Expr *FE, SourceLocation CC,
   DeclContext *DC = CurContext;
   while (isa_and_nonnull<CapturedDecl>(DC))
     DC = DC->getParent();
-  const bool IsInLambdaDeclContext = isLambdaCallOperator(DC);
-  if (IsInLambdaDeclContext && CurrentLSI &&
+  
+  if (const bool IsInLambdaDeclContext = isLambdaCallOperator(DC); IsInLambdaDeclContext && CurrentLSI &&
       CurrentLSI->hasPotentialCaptures() && !FullExpr.isInvalid())
     CheckIfAnyEnclosingLambdasMustCaptureAnyPotentialCaptures(FE, CurrentLSI,
                                                               *this);

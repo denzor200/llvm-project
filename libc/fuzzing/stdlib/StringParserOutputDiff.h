@@ -26,9 +26,9 @@ void StringParserOutputDiff(StringInputSingleOutputFunc<T> func1,
   const char *x = reinterpret_cast<const char *>(data);
 
   T result1 = func1(x);
-  T result2 = func2(x);
+  
 
-  if (!ValuesEqual(result1, result2))
+  if (T result2 = func2(x); !ValuesEqual(result1, result2))
     __builtin_trap();
 }
 
@@ -50,9 +50,9 @@ void StringToNumberOutputDiff(StringToNumberFunc<T> func1,
   char *outPtr2 = nullptr;
 
   T result1 = func1(x, &outPtr1, base);
-  T result2 = func2(x, &outPtr2, base);
+  
 
-  if (!(ValuesEqual(result1, result2) && (*outPtr1 == *outPtr2)))
+  if (T result2 = func2(x, &outPtr2, base); !(ValuesEqual(result1, result2) && (*outPtr1 == *outPtr2)))
     __builtin_trap();
 }
 

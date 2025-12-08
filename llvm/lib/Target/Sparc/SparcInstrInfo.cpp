@@ -342,8 +342,8 @@ unsigned SparcInstrInfo::insertBranch(MachineBasicBlock &MBB,
 
   // Conditional branch
   unsigned Opc = Cond[0].getImm();
-  unsigned CC = Cond[1].getImm();
-  if (isRegCondBranchOpcode(Opc)) {
+  
+  if (unsigned CC = Cond[1].getImm(); isRegCondBranchOpcode(Opc)) {
     Register Reg = Cond[2].getReg();
     BuildMI(&MBB, DL, get(Opc)).addMBB(TBB).addImm(CC).addReg(Reg);
   } else {
@@ -534,12 +534,12 @@ void SparcInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
 
   MachineFunction *MF = MBB.getParent();
   const MachineFrameInfo &MFI = MF->getFrameInfo();
-  MachineMemOperand *MMO = MF->getMachineMemOperand(
-      MachinePointerInfo::getFixedStack(*MF, FI), MachineMemOperand::MOStore,
-      MFI.getObjectSize(FI), MFI.getObjectAlign(FI));
+  
 
   // On the order of operands here: think "[FrameIdx + 0] = SrcReg".
-  if (RC == &SP::I64RegsRegClass)
+  if (MachineMemOperand *MMO = MF->getMachineMemOperand(
+      MachinePointerInfo::getFixedStack(*MF, FI), MachineMemOperand::MOStore,
+      MFI.getObjectSize(FI), MFI.getObjectAlign(FI)); RC == &SP::I64RegsRegClass)
     BuildMI(MBB, I, DL, get(SP::STXri)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill)).addMemOperand(MMO);
   else if (RC == &SP::IntRegsRegClass)
@@ -574,11 +574,11 @@ void SparcInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
 
   MachineFunction *MF = MBB.getParent();
   const MachineFrameInfo &MFI = MF->getFrameInfo();
-  MachineMemOperand *MMO = MF->getMachineMemOperand(
-      MachinePointerInfo::getFixedStack(*MF, FI), MachineMemOperand::MOLoad,
-      MFI.getObjectSize(FI), MFI.getObjectAlign(FI));
+  
 
-  if (RC == &SP::I64RegsRegClass)
+  if (MachineMemOperand *MMO = MF->getMachineMemOperand(
+      MachinePointerInfo::getFixedStack(*MF, FI), MachineMemOperand::MOLoad,
+      MFI.getObjectSize(FI), MFI.getObjectAlign(FI)); RC == &SP::I64RegsRegClass)
     BuildMI(MBB, I, DL, get(SP::LDXri), DestReg).addFrameIndex(FI).addImm(0)
       .addMemOperand(MMO);
   else if (RC == &SP::IntRegsRegClass)
@@ -752,8 +752,8 @@ bool SparcInstrInfo::optimizeCompareInstr(
       bool IsICCMove =
           I->getOpcode() == SP::MOVICCrr || I->getOpcode() == SP::MOVICCri ||
           I->getOpcode() == SP::MOVXCCrr || I->getOpcode() == SP::MOVXCCri;
-      bool IsICCConditional = IsICCBranch || IsICCMove;
-      if (!IsICCConditional ||
+      
+      if (bool IsICCConditional = IsICCBranch || IsICCMove; !IsICCConditional ||
           (I->getOperand(IsICCBranch ? 1 : 3).getImm() != SPCC::ICC_E &&
            I->getOperand(IsICCBranch ? 1 : 3).getImm() != SPCC::ICC_NE))
         return false;
@@ -764,8 +764,8 @@ bool SparcInstrInfo::optimizeCompareInstr(
   }
 
   if (!IsICCModified) {
-    MachineBasicBlock *MBB = CmpInstr.getParent();
-    if (any_of(MBB->successors(),
+    
+    if (MachineBasicBlock *MBB = CmpInstr.getParent(); any_of(MBB->successors(),
                [](MachineBasicBlock *Succ) { return Succ->isLiveIn(SP::ICC); }))
       return false;
   }

@@ -562,11 +562,11 @@ class AtomicOperandChecker {
   }
 
   StmtResult CheckUpdate() {
-    Expr *AssocExpr = RequireExpr(
-        AssocStmt.get(), SemaRef.PDiag(diag::note_acc_atomic_expr_must_be)
-                             << diag::OACCAtomicExpr::UnaryCompAssign);
+    
 
-    if (!AssocExpr ||
+    if (Expr *AssocExpr = RequireExpr(
+        AssocStmt.get(), SemaRef.PDiag(diag::note_acc_atomic_expr_must_be)
+                             << diag::OACCAtomicExpr::UnaryCompAssign); !AssocExpr ||
         CheckIncDecAssignCompoundAssign(AssocExpr, SimpleAssignKind::None)
             .Failed)
       return getRecoveryExpr();

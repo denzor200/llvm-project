@@ -241,10 +241,10 @@ bool LanaiRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 }
 
 bool LanaiRegisterInfo::hasBasePointer(const MachineFunction &MF) const {
-  const MachineFrameInfo &MFI = MF.getFrameInfo();
+  
   // When we need stack realignment and there are dynamic allocas, we can't
   // reference off of the stack pointer, so we reserve a base pointer.
-  if (hasStackRealignment(MF) && MFI.hasVarSizedObjects())
+  if (const MachineFrameInfo &MFI = MF.getFrameInfo(); hasStackRealignment(MF) && MFI.hasVarSizedObjects())
     return true;
 
   return false;

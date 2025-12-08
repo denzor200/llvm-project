@@ -207,9 +207,9 @@ Expected<int64_t> CounterMappingContext::evaluate(const Counter &C) const {
   int64_t LastPoppedValue;
 
   while (!CounterStack.empty()) {
-    StackElem &Current = CounterStack.top();
+    
 
-    switch (Current.ICounter.getKind()) {
+    switch (StackElem &Current = CounterStack.top(); Current.ICounter.getKind()) {
     case Counter::Zero:
       LastPoppedValue = 0;
       CounterStack.pop();
@@ -223,8 +223,8 @@ Expected<int64_t> CounterMappingContext::evaluate(const Counter &C) const {
     case Counter::Expression: {
       if (Current.ICounter.getExpressionID() >= Expressions.size())
         return errorCodeToError(errc::argument_out_of_domain);
-      const auto &E = Expressions[Current.ICounter.getExpressionID()];
-      if (Current.VisitCount == StackElem::KNeverVisited) {
+      
+      if (const auto &E = Expressions[Current.ICounter.getExpressionID()]; Current.VisitCount == StackElem::KNeverVisited) {
         CounterStack.push(StackElem{E.LHS});
         Current.VisitCount = StackElem::KVisitedOnce;
       } else if (Current.VisitCount == StackElem::KVisitedOnce) {
@@ -576,9 +576,9 @@ unsigned CounterMappingContext::getMaxCounterID(const Counter &C) const {
   int64_t LastPoppedValue;
 
   while (!CounterStack.empty()) {
-    StackElem &Current = CounterStack.top();
+    
 
-    switch (Current.ICounter.getKind()) {
+    switch (StackElem &Current = CounterStack.top(); Current.ICounter.getKind()) {
     case Counter::Zero:
       LastPoppedValue = 0;
       CounterStack.pop();
@@ -592,8 +592,8 @@ unsigned CounterMappingContext::getMaxCounterID(const Counter &C) const {
         LastPoppedValue = 0;
         CounterStack.pop();
       } else {
-        const auto &E = Expressions[Current.ICounter.getExpressionID()];
-        if (Current.VisitCount == StackElem::KNeverVisited) {
+        
+        if (const auto &E = Expressions[Current.ICounter.getExpressionID()]; Current.VisitCount == StackElem::KNeverVisited) {
           CounterStack.push(StackElem{E.LHS});
           Current.VisitCount = StackElem::KVisitedOnce;
         } else if (Current.VisitCount == StackElem::KVisitedOnce) {
@@ -652,8 +652,8 @@ static unsigned getMaxBitmapSize(const CoverageMappingRecord &Record,
   for (const auto &Region : reverse(Record.MappingRegions)) {
     if (Region.Kind != CounterMappingRegion::MCDCDecisionRegion)
       continue;
-    const auto &DecisionParams = Region.getDecisionParams();
-    if (MaxBitmapIdx <= DecisionParams.BitmapIdx) {
+    
+    if (const auto &DecisionParams = Region.getDecisionParams(); MaxBitmapIdx <= DecisionParams.BitmapIdx) {
       MaxBitmapIdx = DecisionParams.BitmapIdx;
       NumConditions = DecisionParams.NumConditions;
     }
@@ -981,8 +981,8 @@ Error CoverageMapping::loadFromReaders(
     for (auto RecordOrErr : *CoverageReader) {
       if (Error E = RecordOrErr.takeError())
         return E;
-      const auto &Record = *RecordOrErr;
-      if (Error E = Coverage.loadFunctionRecord(Record, ProfileReader))
+      
+      if (const auto &Record = *RecordOrErr; Error E = Coverage.loadFunctionRecord(Record, ProfileReader))
         return E;
     }
   }
@@ -1170,8 +1170,8 @@ class SegmentBuilder {
 
     // If the new segment wouldn't affect coverage rendering, skip it.
     if (!Segments.empty() && !IsRegionEntry && !EmitSkippedRegion) {
-      const auto &Last = Segments.back();
-      if (Last.HasCount == HasCount && Last.Count == Region.ExecutionCount &&
+      
+      if (const auto &Last = Segments.back(); Last.HasCount == HasCount && Last.Count == Region.ExecutionCount &&
           !Last.IsRegionEntry)
         return;
     }
@@ -1235,8 +1235,8 @@ class SegmentBuilder {
       startSegment(*CompletedRegion, CompletedSegmentLoc, false);
     }
 
-    auto Last = ActiveRegions.back();
-    if (FirstCompletedRegion && Last->endLoc() != *Loc) {
+    
+    if (auto Last = ActiveRegions.back(); FirstCompletedRegion && Last->endLoc() != *Loc) {
       // If there's a gap after the end of the last completed region and the
       // start of the new region, use the last active region to fill the gap.
       startSegment(*ActiveRegions[FirstCompletedRegion - 1], Last->endLoc(),
@@ -1256,12 +1256,12 @@ class SegmentBuilder {
       auto CurStartLoc = CR.value().startLoc();
 
       // Active regions which end before the current region need to be popped.
-      auto CompletedRegions =
+      
+      if (auto CompletedRegions =
           std::stable_partition(ActiveRegions.begin(), ActiveRegions.end(),
                                 [&](const CountedRegion *Region) {
                                   return !(Region->endLoc() <= CurStartLoc);
-                                });
-      if (CompletedRegions != ActiveRegions.end()) {
+                                }); CompletedRegions != ActiveRegions.end()) {
         unsigned FirstCompletedRegion =
             std::distance(ActiveRegions.begin(), CompletedRegions);
         completeRegionsUntil(CurStartLoc, FirstCompletedRegion);

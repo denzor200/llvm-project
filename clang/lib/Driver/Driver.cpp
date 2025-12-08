@@ -799,8 +799,8 @@ static llvm::Triple computeTargetTriple(const Driver &D,
       auto ISAInfo = llvm::RISCVISAInfo::parseArchString(
           ArchName, /*EnableExperimentalExtensions=*/true);
       if (!llvm::errorToBool(ISAInfo.takeError())) {
-        unsigned XLen = (*ISAInfo)->getXLen();
-        if (XLen == 32)
+        
+        if (unsigned XLen = (*ISAInfo)->getXLen(); XLen == 32)
           Target.setArch(llvm::Triple::riscv32);
         else if (XLen == 64)
           Target.setArch(llvm::Triple::riscv64);
@@ -1133,9 +1133,9 @@ void Driver::CreateOffloadingDeviceToolChains(Compilation &C,
 
       // Emit a warning if the detected CUDA version is too new.
       if (Kind == Action::OFK_Cuda) {
-        auto &CudaInstallation =
-            static_cast<const toolchains::CudaToolChain &>(TC).CudaInstallation;
-        if (CudaInstallation.isValid())
+        
+        if (auto &CudaInstallation =
+            static_cast<const toolchains::CudaToolChain &>(TC).CudaInstallation; CudaInstallation.isValid())
           CudaInstallation.WarnIfUnsupportedVersion();
       }
 
@@ -1654,13 +1654,13 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
   // Process -fembed-bitcode= flags.
   if (Arg *A = Args.getLastArg(options::OPT_fembed_bitcode_EQ)) {
     StringRef Name = A->getValue();
-    unsigned Model = llvm::StringSwitch<unsigned>(Name)
+    
+    if (unsigned Model = llvm::StringSwitch<unsigned>(Name)
         .Case("off", EmbedNone)
         .Case("all", EmbedBitcode)
         .Case("bitcode", EmbedBitcode)
         .Case("marker", EmbedMarker)
-        .Default(~0U);
-    if (Model == ~0U) {
+        .Default(~0U); Model == ~0U) {
       Diags.Report(diag::err_drv_invalid_value) << A->getAsString(Args)
                                                 << Name;
     } else
@@ -1692,11 +1692,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
       CXX20HeaderType = HeaderMode_Default;
     else {
       StringRef ArgName = A->getValue();
-      unsigned Kind = llvm::StringSwitch<unsigned>(ArgName)
+      
+      if (unsigned Kind = llvm::StringSwitch<unsigned>(ArgName)
                           .Case("user", HeaderMode_User)
                           .Case("system", HeaderMode_System)
-                          .Default(~0U);
-      if (Kind == ~0U) {
+                          .Default(~0U); Kind == ~0U) {
         Diags.Report(diag::err_drv_invalid_value)
             << A->getAsString(Args) << ArgName;
       } else
@@ -2073,8 +2073,8 @@ void Driver::generateCompilationDiagnostics(
   if (!Inputs.empty()) {
     // Construct the list of abstract actions to perform for this compilation.
     // On Darwin OSes this uses the driver-driver and builds universal actions.
-    const ToolChain &TC = C.getDefaultToolChain();
-    if (TC.getTriple().isOSBinFormatMachO())
+    
+    if (const ToolChain &TC = C.getDefaultToolChain(); TC.getTriple().isOSBinFormatMachO())
       BuildUniversalActions(C, TC, Inputs);
     else
       BuildActions(C, C.getArgs(), Inputs, C.getActions());
@@ -2719,9 +2719,9 @@ static unsigned PrintActions1(const Compilation &C, Action *A,
           SibKind = OtherSibAction;
         });
   } else {
-    const ActionList *AL = &A->getInputs();
+    
 
-    if (AL->size()) {
+    if (const ActionList *AL = &A->getInputs(); AL->size()) {
       const char *Prefix = "{";
       for (Action *PreRequisite : *AL) {
         os << Prefix << PrintActions1(C, PreRequisite, Ids, SibIndent, SibKind);
@@ -2837,9 +2837,9 @@ void Driver::BuildUniversalActions(Compilation &C, const ToolChain &TC,
 
     // Handle debug info queries.
     Arg *A = Args.getLastArg(options::OPT_g_Group);
-    bool enablesDebugInfo = A && !A->getOption().matches(options::OPT_g0) &&
-                            !A->getOption().matches(options::OPT_gstabs);
-    if ((enablesDebugInfo || willEmitRemarks(Args)) &&
+    
+    if (bool enablesDebugInfo = A && !A->getOption().matches(options::OPT_g0) &&
+                            !A->getOption().matches(options::OPT_gstabs); (enablesDebugInfo || willEmitRemarks(Args)) &&
         ContainsCompileOrAssembleAction(Actions.back())) {
 
       // Add a 'dsymutil' step if necessary, when debug info is enabled and we
@@ -2990,8 +2990,8 @@ void Driver::BuildInputs(const ToolChain &TC, DerivedArgList &Args,
   // Warn -x after last input file has no effect
   {
     Arg *LastXArg = Args.getLastArgNoClaim(options::OPT_x);
-    Arg *LastInputArg = Args.getLastArgNoClaim(options::OPT_INPUT);
-    if (LastXArg && LastInputArg &&
+    
+    if (Arg *LastInputArg = Args.getLastArgNoClaim(options::OPT_INPUT); LastXArg && LastInputArg &&
         LastInputArg->getIndex() < LastXArg->getIndex())
       Diag(clang::diag::warn_drv_unused_x) << LastXArg->getValue();
   }
@@ -3090,8 +3090,8 @@ void Driver::BuildInputs(const ToolChain &TC, DerivedArgList &Args,
         if (!InputTypeArg->getOption().matches(options::OPT_x)) {
           // If emulating cl.exe, make sure that /TC and /TP don't affect input
           // object files.
-          const char *Ext = strrchr(Value, '.');
-          if (Ext && TC.LookupTypeForExtension(Ext + 1) == types::TY_Object)
+          
+          if (const char *Ext = strrchr(Value, '.'); Ext && TC.LookupTypeForExtension(Ext + 1) == types::TY_Object)
             Ty = types::TY_Object;
         }
         if (Ty == types::TY_INVALID) {
@@ -5003,9 +5003,9 @@ Action *Driver::BuildOffloadingActions(Compilation &C,
       // The translator path has a linking step, whereas the SPIR-V backend path
       // does not to avoid any external dependency such as spirv-link. The
       // linking step is skipped for the SPIR-V backend path.
-      bool IsAMDGCNSPIRVWithBackend = IsAMDGCNSPIRV && UseSPIRVBackend;
+      
 
-      if ((A->getType() != types::TY_Object && !IsAMDGCNSPIRV &&
+      if (bool IsAMDGCNSPIRVWithBackend = IsAMDGCNSPIRV && UseSPIRVBackend; (A->getType() != types::TY_Object && !IsAMDGCNSPIRV &&
            A->getType() != types::TY_LTO_BC) ||
           HIPRelocatableObj || !HIPNoRDC || !offloadDeviceOnly() ||
           (IsAMDGCNSPIRVWithBackend && offloadDeviceOnly()))
@@ -5172,8 +5172,8 @@ Action *Driver::ConstructPhaseAction(
 
     // If we're given a module name, precompile header file inputs as a
     // module, not as a precompiled header.
-    const char *ModName = nullptr;
-    if (OutputTy == types::TY_PCH) {
+    
+    if (const char *ModName = nullptr; OutputTy == types::TY_PCH) {
       if (Arg *A = Args.getLastArg(options::OPT_fmodule_name_EQ))
         ModName = A->getValue();
       if (ModName)
@@ -5479,8 +5479,8 @@ void Driver::BuildJobs(Compilation &C) const {
 
       // Suppress the warning automatically if this is just a flag, and it is an
       // instance of an argument we already claimed.
-      const Option &Opt = A->getOption();
-      if (Opt.getKind() == Option::FlagClass) {
+      
+      if (const Option &Opt = A->getOption(); Opt.getKind() == Option::FlagClass) {
         bool DuplicateClaimed = false;
 
         for (const Arg *AA : C.getArgs().filtered(&Opt)) {
@@ -5652,8 +5652,8 @@ class ToolSelector final {
     // When using -fembed-bitcode, it is required to have the same tool (clang)
     // for both CompilerJA and BackendJA. Otherwise, combine two stages.
     if (EmbedBitcode) {
-      const Tool *BT = TC.SelectTool(*BJ);
-      if (BT == T)
+      
+      if (const Tool *BT = TC.SelectTool(*BJ); BT == T)
         return nullptr;
     }
 
@@ -6238,8 +6238,8 @@ const char *Driver::CreateTempFile(Compilation &C, StringRef Prefix,
       llvm::sys::fs::create_directories(*CrashDirectory);
     SmallString<128> Path(*CrashDirectory);
     llvm::sys::path::append(Path, Prefix);
-    const char *Middle = !Suffix.empty() ? "-%%%%%%." : "-%%%%%%";
-    if (std::error_code EC =
+    
+    if (const char *Middle = !Suffix.empty() ? "-%%%%%%." : "-%%%%%%"; std::error_code EC =
             llvm::sys::fs::createUniqueFile(Path + Middle + Suffix, TmpName)) {
       Diag(clang::diag::err_unable_to_make_temp) << EC.message();
       return "";
@@ -6337,11 +6337,11 @@ const char *Driver::GetNamedOutputPath(Compilation &C, const JobAction &JA,
     // should set the final result file. Otherwise we should emit to a
     // temporary.
     if (C.getDefaultToolChain().getTriple().isDXIL()) {
-      const auto &TC = static_cast<const toolchains::HLSLToolChain &>(
-          C.getDefaultToolChain());
+      
       // Fo can be empty here if the validator is running for a compiler flow
       // that is using Fc or just printing disassembly.
-      if (TC.isLastJob(C.getArgs(), JA.getKind()) && !FoValue.empty())
+      if (const auto &TC = static_cast<const toolchains::HLSLToolChain &>(
+          C.getDefaultToolChain()); TC.isLastJob(C.getArgs(), JA.getKind()) && !FoValue.empty())
         return C.addResultFile(C.getArgs().MakeArgString(FoValue.str()), &JA);
       StringRef Name = llvm::sys::path::filename(BaseInput);
       std::pair<StringRef, StringRef> Split = Name.split('.');

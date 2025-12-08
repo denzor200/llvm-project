@@ -453,8 +453,8 @@ void clang::ApplyHeaderSearchOptions(HeaderSearch &HS,
 
   // Add the user defined entries.
   for (unsigned i = 0, e = HSOpts.UserEntries.size(); i != e; ++i) {
-    const HeaderSearchOptions::Entry &E = HSOpts.UserEntries[i];
-    if (E.IgnoreSysRoot) {
+    
+    if (const HeaderSearchOptions::Entry &E = HSOpts.UserEntries[i]; E.IgnoreSysRoot) {
       Init.AddUnmappedPath(E.Path, E.Group, E.IsFramework, i);
     } else {
       Init.AddPath(E.Path, E.Group, E.IsFramework, i);

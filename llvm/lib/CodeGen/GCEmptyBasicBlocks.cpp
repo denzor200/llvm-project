@@ -60,11 +60,11 @@ bool GCEmptyBasicBlocks::runOnMachineFunction(MachineFunction &MF) {
     if (MBB->isEHPad() || MBB->hasAddressTaken())
       continue;
     // Skip blocks with real code.
-    bool HasAnyRealCode = llvm::any_of(*MBB, [](const MachineInstr &MI) {
+    
+    if (bool HasAnyRealCode = llvm::any_of(*MBB, [](const MachineInstr &MI) {
       return !MI.isPosition() && !MI.isImplicitDef() && !MI.isKill() &&
              !MI.isDebugInstr();
-    });
-    if (HasAnyRealCode)
+    }); HasAnyRealCode)
       continue;
 
     LLVM_DEBUG(dbgs() << "Removing basic block " << MBB->getName()

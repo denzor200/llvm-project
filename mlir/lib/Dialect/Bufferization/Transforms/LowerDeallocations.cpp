@@ -367,8 +367,8 @@ public:
     if (adaptor.getMemrefs().size() == 1)
       return rewriteOneMemrefMultipleRetainCase(op, adaptor, rewriter);
 
-    Operation *symtableOp = op->getParentWithTrait<OpTrait::SymbolTable>();
-    if (!deallocHelperFuncMap.contains(symtableOp))
+    
+    if (Operation *symtableOp = op->getParentWithTrait<OpTrait::SymbolTable>(); !deallocHelperFuncMap.contains(symtableOp))
       return op->emitError(
           "library function required for generic lowering, but cannot be "
           "automatically inserted when operating on functions");

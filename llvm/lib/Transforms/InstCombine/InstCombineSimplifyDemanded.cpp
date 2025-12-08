@@ -713,8 +713,8 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
 
       // Do not simplify if shl is part of funnel-shift pattern
       if (I->hasOneUse()) {
-        auto *Inst = dyn_cast<Instruction>(I->user_back());
-        if (Inst && Inst->getOpcode() == BinaryOperator::Or) {
+        
+        if (auto *Inst = dyn_cast<Instruction>(I->user_back()); Inst && Inst->getOpcode() == BinaryOperator::Or) {
           if (auto Opt = convertOrOfShiftsToFunnelShift(*Inst)) {
             auto [IID, FShiftArgs] = *Opt;
             if ((IID == Intrinsic::fshl || IID == Intrinsic::fshr) &&
@@ -732,9 +732,9 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
       if (DemandedMask.countr_zero() >= ShiftAmt) {
         if (I->hasNoSignedWrap()) {
           unsigned NumHiDemandedBits = BitWidth - DemandedMask.countr_zero();
-          unsigned SignBits =
-              ComputeNumSignBits(I->getOperand(0), Q.CxtI, Depth + 1);
-          if (SignBits > ShiftAmt && SignBits - ShiftAmt >= NumHiDemandedBits)
+          
+          if (unsigned SignBits =
+              ComputeNumSignBits(I->getOperand(0), Q.CxtI, Depth + 1); SignBits > ShiftAmt && SignBits - ShiftAmt >= NumHiDemandedBits)
             return I->getOperand(0);
         }
 
@@ -746,9 +746,9 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
         Constant *C;
         if (match(I->getOperand(0), m_LShr(m_ImmConstant(C), m_Value(X)))) {
           Constant *LeftShiftAmtC = ConstantInt::get(VTy, ShiftAmt);
-          Constant *NewC = ConstantFoldBinaryOpOperands(Instruction::Shl, C,
-                                                        LeftShiftAmtC, DL);
-          if (ConstantFoldBinaryOpOperands(Instruction::LShr, NewC,
+          
+          if (Constant *NewC = ConstantFoldBinaryOpOperands(Instruction::Shl, C,
+                                                        LeftShiftAmtC, DL); ConstantFoldBinaryOpOperands(Instruction::LShr, NewC,
                                            LeftShiftAmtC, DL) == C) {
             Instruction *Lshr = BinaryOperator::CreateLShr(NewC, X);
             return InsertNewInstWith(Lshr, I->getIterator());
@@ -795,8 +795,8 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
 
       // Do not simplify if lshr is part of funnel-shift pattern
       if (I->hasOneUse()) {
-        auto *Inst = dyn_cast<Instruction>(I->user_back());
-        if (Inst && Inst->getOpcode() == BinaryOperator::Or) {
+        
+        if (auto *Inst = dyn_cast<Instruction>(I->user_back()); Inst && Inst->getOpcode() == BinaryOperator::Or) {
           if (auto Opt = convertOrOfShiftsToFunnelShift(*Inst)) {
             auto [IID, FShiftArgs] = *Opt;
             if ((IID == Intrinsic::fshl || IID == Intrinsic::fshr) &&
@@ -814,9 +814,9 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
         // If we only want bits that already match the signbit then we don't
         // need to shift.
         unsigned NumHiDemandedBits = BitWidth - DemandedMask.countr_zero();
-        unsigned SignBits =
-            ComputeNumSignBits(I->getOperand(0), Q.CxtI, Depth + 1);
-        if (SignBits >= NumHiDemandedBits)
+        
+        if (unsigned SignBits =
+            ComputeNumSignBits(I->getOperand(0), Q.CxtI, Depth + 1); SignBits >= NumHiDemandedBits)
           return I->getOperand(0);
 
         // If we can pre-shift a left-shifted constant to the right without
@@ -827,9 +827,9 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
         Constant *C;
         if (match(I->getOperand(0), m_Shl(m_ImmConstant(C), m_Value(X)))) {
           Constant *RightShiftAmtC = ConstantInt::get(VTy, ShiftAmt);
-          Constant *NewC = ConstantFoldBinaryOpOperands(Instruction::LShr, C,
-                                                        RightShiftAmtC, DL);
-          if (ConstantFoldBinaryOpOperands(Instruction::Shl, NewC,
+          
+          if (Constant *NewC = ConstantFoldBinaryOpOperands(Instruction::LShr, C,
+                                                        RightShiftAmtC, DL); ConstantFoldBinaryOpOperands(Instruction::Shl, NewC,
                                            RightShiftAmtC, DL) == C) {
             Instruction *Shl = BinaryOperator::CreateShl(NewC, X);
             return InsertNewInstWith(Shl, I->getIterator());
@@ -870,8 +870,8 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
 
     // If we only want bits that already match the signbit then we don't need
     // to shift.
-    unsigned NumHiDemandedBits = BitWidth - DemandedMask.countr_zero();
-    if (SignBits >= NumHiDemandedBits)
+    
+    if (unsigned NumHiDemandedBits = BitWidth - DemandedMask.countr_zero(); SignBits >= NumHiDemandedBits)
       return I->getOperand(0);
 
     // If this is an arithmetic shift right and only the low-bit is set, we can
@@ -1065,9 +1065,9 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
             uint64_t MaskedLowBitsGEPIndex =
                 GEPIndex & PointerAlignBits & PtrMaskImmediate;
 
-            uint64_t MaskedGEPIndex = HighBitsGEPIndex | MaskedLowBitsGEPIndex;
+            
 
-            if (MaskedGEPIndex != GEPIndex) {
+            if (uint64_t MaskedGEPIndex = HighBitsGEPIndex | MaskedLowBitsGEPIndex; MaskedGEPIndex != GEPIndex) {
               auto *GEP = cast<GEPOperator>(II->getArgOperand(0));
               Builder.SetInsertPoint(I);
               Type *GEPIndexType =
@@ -1138,8 +1138,8 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
         // The lowest non-zero bit of DemandMask is higher than the highest
         // non-zero bit of C.
         const APInt *C;
-        unsigned CTZ = DemandedMask.countr_zero();
-        if (match(II->getArgOperand(1), m_APInt(C)) &&
+        
+        if (unsigned CTZ = DemandedMask.countr_zero(); match(II->getArgOperand(1), m_APInt(C)) &&
             CTZ >= C->getActiveBits())
           return II->getArgOperand(0);
         break;
@@ -1150,8 +1150,8 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Instruction *I,
         // non-one bit of C.
         // This comes from using DeMorgans on the above umax example.
         const APInt *C;
-        unsigned CTZ = DemandedMask.countr_zero();
-        if (match(II->getArgOperand(1), m_APInt(C)) &&
+        
+        if (unsigned CTZ = DemandedMask.countr_zero(); match(II->getArgOperand(1), m_APInt(C)) &&
             CTZ >= C->getBitWidth() - C->countl_one())
           return II->getArgOperand(0);
         break;
@@ -1336,8 +1336,8 @@ Value *InstCombinerImpl::SimplifyMultipleUseDemandedBits(
     const APInt *ShiftRC;
     const APInt *ShiftLC;
     Value *X;
-    unsigned BitWidth = DemandedMask.getBitWidth();
-    if (match(I,
+    
+    if (unsigned BitWidth = DemandedMask.getBitWidth(); match(I,
               m_AShr(m_Shl(m_Value(X), m_APInt(ShiftLC)), m_APInt(ShiftRC))) &&
         ShiftLC == ShiftRC && ShiftLC->ult(BitWidth) &&
         DemandedMask.isSubsetOf(APInt::getLowBitsSet(
@@ -1538,8 +1538,8 @@ Value *InstCombinerImpl::SimplifyDemandedVectorElts(Value *V,
   auto simplifyAndSetOp = [&](Instruction *Inst, unsigned OpNum,
                               APInt Demanded, APInt &Undef) {
     auto *II = dyn_cast<IntrinsicInst>(Inst);
-    Value *Op = II ? II->getArgOperand(OpNum) : Inst->getOperand(OpNum);
-    if (Value *V = SimplifyDemandedVectorElts(Op, Demanded, Undef, Depth + 1)) {
+    
+    if (Value *Op = II ? II->getArgOperand(OpNum) : Inst->getOperand(OpNum); Value *V = SimplifyDemandedVectorElts(Op, Demanded, Undef, Depth + 1)) {
       replaceOperand(*Inst, OpNum, V);
       MadeChange = true;
     }
@@ -1660,8 +1660,8 @@ Value *InstCombinerImpl::SimplifyDemandedVectorElts(Value *V,
     APInt LeftDemanded(OpWidth, 0), RightDemanded(OpWidth, 0);
     for (unsigned i = 0; i < VWidth; i++) {
       if (DemandedElts[i]) {
-        unsigned MaskVal = Shuffle->getMaskValue(i);
-        if (MaskVal != -1u) {
+        
+        if (unsigned MaskVal = Shuffle->getMaskValue(i); MaskVal != -1u) {
           assert(MaskVal < OpWidth * 2 &&
                  "shufflevector mask index out of range!");
           if (MaskVal < OpWidth)
@@ -1692,8 +1692,8 @@ Value *InstCombinerImpl::SimplifyDemandedVectorElts(Value *V,
     if (VWidth == OpWidth) {
       bool IsIdentityShuffle = true;
       for (unsigned i = 0; i < VWidth; i++) {
-        unsigned MaskVal = Shuffle->getMaskValue(i);
-        if (DemandedElts[i] && i != MaskVal) {
+        
+        if (unsigned MaskVal = Shuffle->getMaskValue(i); DemandedElts[i] && i != MaskVal) {
           IsIdentityShuffle = false;
           break;
         }
@@ -1708,8 +1708,8 @@ Value *InstCombinerImpl::SimplifyDemandedVectorElts(Value *V,
     bool LHSUniform = true;
     bool RHSUniform = true;
     for (unsigned i = 0; i < VWidth; i++) {
-      unsigned MaskVal = Shuffle->getMaskValue(i);
-      if (MaskVal == -1u) {
+      
+      if (unsigned MaskVal = Shuffle->getMaskValue(i); MaskVal == -1u) {
         PoisonElts.setBit(i);
       } else if (!DemandedElts[i]) {
         NewPoisonElts = true;
@@ -1800,10 +1800,10 @@ Value *InstCombinerImpl::SimplifyDemandedVectorElts(Value *V,
     APInt DemandedLHS(DemandedElts), DemandedRHS(DemandedElts);
     if (auto *CV = dyn_cast<ConstantVector>(Sel->getCondition())) {
       for (unsigned i = 0; i < VWidth; i++) {
-        Constant *CElt = CV->getAggregateElement(i);
+        
 
         // isNullValue() always returns false when called on a ConstantExpr.
-        if (CElt->isNullValue())
+        if (Constant *CElt = CV->getAggregateElement(i); CElt->isNullValue())
           DemandedLHS.clearBit(i);
         else if (CElt->isOneValue())
           DemandedRHS.clearBit(i);
@@ -1933,7 +1933,7 @@ Value *InstCombinerImpl::SimplifyDemandedVectorElts(Value *V,
   BinaryOperator *BO;
   if (match(I, m_BinOp(BO)) && !BO->isIntDivRem() && !BO->isShift()) {
     Value *X = BO->getOperand(0);
-    Value *Y = BO->getOperand(1);
+    
 
     // Look for an equivalent binop except that one operand has been shuffled.
     // If the demand for this binop only includes elements that are the same as
@@ -1951,7 +1951,7 @@ Value *InstCombinerImpl::SimplifyDemandedVectorElts(Value *V,
     //       element instead of just element 0.
     // TODO: Unlike general demanded elements transforms, this should be safe
     //       for any (div/rem/shift) opcode too.
-    if (DemandedElts == 1 && !X->hasOneUse() && !Y->hasOneUse() &&
+    if (Value *Y = BO->getOperand(1); DemandedElts == 1 && !X->hasOneUse() && !Y->hasOneUse() &&
         BO->hasOneUse() ) {
 
       auto findShufBO = [&](bool MatchShufAsOp0) -> User * {
@@ -2071,8 +2071,8 @@ Value *InstCombinerImpl::SimplifyDemandedUseFPClass(Value *V,
     break;
   }
   case Instruction::Call: {
-    CallInst *CI = cast<CallInst>(I);
-    switch (CI->getIntrinsicID()) {
+    
+    switch (CallInst *CI = cast<CallInst>(I); CI->getIntrinsicID()) {
     case Intrinsic::fabs:
       if (SimplifyDemandedFPClass(I, 0, llvm::inverse_fabs(DemandedMask), Known,
                                   Depth + 1))

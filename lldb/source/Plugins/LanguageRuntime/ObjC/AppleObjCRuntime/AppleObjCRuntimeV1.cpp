@@ -286,20 +286,20 @@ lldb::addr_t AppleObjCRuntimeV1::GetISAHashTablePointer() {
 
     static ConstString g_objc_debug_class_hash("_objc_debug_class_hash");
 
-    const Symbol *symbol = objc_module_sp->FindFirstSymbolWithNameAndType(
-        g_objc_debug_class_hash, lldb::eSymbolTypeData);
-    if (symbol && symbol->ValueIsAddress()) {
-      Process *process = GetProcess();
-      if (process) {
+    
+    if (const Symbol *symbol = objc_module_sp->FindFirstSymbolWithNameAndType(
+        g_objc_debug_class_hash, lldb::eSymbolTypeData); symbol && symbol->ValueIsAddress()) {
+      
+      if (Process *process = GetProcess(); process) {
 
-        lldb::addr_t objc_debug_class_hash_addr =
-            symbol->GetAddressRef().GetLoadAddress(&process->GetTarget());
+        
 
-        if (objc_debug_class_hash_addr != LLDB_INVALID_ADDRESS) {
+        if (lldb::addr_t objc_debug_class_hash_addr =
+            symbol->GetAddressRef().GetLoadAddress(&process->GetTarget()); objc_debug_class_hash_addr != LLDB_INVALID_ADDRESS) {
           Status error;
-          lldb::addr_t objc_debug_class_hash_ptr =
-              process->ReadPointerFromMemory(objc_debug_class_hash_addr, error);
-          if (objc_debug_class_hash_ptr != 0 &&
+          
+          if (lldb::addr_t objc_debug_class_hash_ptr =
+              process->ReadPointerFromMemory(objc_debug_class_hash_addr, error); objc_debug_class_hash_ptr != 0 &&
               objc_debug_class_hash_ptr != LLDB_INVALID_ADDRESS) {
             m_isa_hash_table_ptr = objc_debug_class_hash_ptr;
           }
@@ -312,9 +312,9 @@ lldb::addr_t AppleObjCRuntimeV1::GetISAHashTablePointer() {
 
 void AppleObjCRuntimeV1::UpdateISAToDescriptorMapIfNeeded() {
   // TODO: implement HashTableSignature...
-  Process *process = GetProcess();
+  
 
-  if (process) {
+  if (Process *process = GetProcess(); process) {
     // Update the process stop ID that indicates the last time we updated the
     // map, whether it was successful or not.
     m_isa_to_descriptor_stop_id = process->GetStopID();
@@ -328,8 +328,8 @@ void AppleObjCRuntimeV1::UpdateISAToDescriptorMapIfNeeded() {
     if (!objc_module_sp)
       return;
 
-    lldb::addr_t hash_table_ptr = GetISAHashTablePointer();
-    if (hash_table_ptr != LLDB_INVALID_ADDRESS) {
+    
+    if (lldb::addr_t hash_table_ptr = GetISAHashTablePointer(); hash_table_ptr != LLDB_INVALID_ADDRESS) {
       // Read the NXHashTable struct:
       //
       // typedef struct {
@@ -351,8 +351,8 @@ void AppleObjCRuntimeV1::UpdateISAToDescriptorMapIfNeeded() {
         lldb::offset_t offset = addr_size; // Skip prototype
         const uint32_t count = data.GetU32(&offset);
         const uint32_t num_buckets = data.GetU32(&offset);
-        const addr_t buckets_ptr = data.GetAddress(&offset);
-        if (m_hash_signature.NeedsUpdate(count, num_buckets, buckets_ptr)) {
+        
+        if (const addr_t buckets_ptr = data.GetAddress(&offset); m_hash_signature.NeedsUpdate(count, num_buckets, buckets_ptr)) {
           m_hash_signature.UpdateSignature(count, num_buckets, buckets_ptr);
 
           const uint32_t data_size = num_buckets * 2 * sizeof(uint32_t);

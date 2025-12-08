@@ -248,8 +248,8 @@ static void cloneUsedGlobalVariables(const Module &SrcM, Module &DestM,
   collectUsedGlobalVariables(SrcM, Used, CompilerUsed);
   // Next build a set of the equivalent values defined in DestM.
   for (auto *V : Used) {
-    auto *GV = DestM.getNamedValue(V->getName());
-    if (GV && !GV->isDeclaration())
+    
+    if (auto *GV = DestM.getNamedValue(V->getName()); GV && !GV->isDeclaration())
       NewUsed.push_back(GV);
   }
   // Finally, add them to a llvm[.compiler].used variable in DestM.
@@ -340,13 +340,13 @@ void splitAndWriteThinLTOBitcode(
       if (const auto *C = GV.getComdat())
         MergedMComdats.insert(C);
       forEachVirtualFunction(GV.getInitializer(), [&](Function *F) {
-        auto *RT = dyn_cast<IntegerType>(F->getReturnType());
-        if (!RT || RT->getBitWidth() > 64 || F->arg_empty() ||
+        
+        if (auto *RT = dyn_cast<IntegerType>(F->getReturnType()); !RT || RT->getBitWidth() > 64 || F->arg_empty() ||
             !F->arg_begin()->use_empty())
           return;
         for (auto &Arg : drop_begin(F->args())) {
-          auto *ArgT = dyn_cast<IntegerType>(Arg.getType());
-          if (!ArgT || ArgT->getBitWidth() > 64)
+          
+          if (auto *ArgT = dyn_cast<IntegerType>(Arg.getType()); !ArgT || ArgT->getBitWidth() > 64)
             return;
         }
         if (!F->isDeclaration() &&
@@ -464,8 +464,8 @@ void splitAndWriteThinLTOBitcode(
 
   SmallVector<MDNode *, 8> Symvers;
   ModuleSymbolTable::CollectAsmSymvers(M, [&](StringRef Name, StringRef Alias) {
-    Function *F = M.getFunction(Name);
-    if (!F || F->use_empty())
+    
+    if (Function *F = M.getFunction(Name); !F || F->use_empty())
       return;
 
     Symvers.push_back(MDTuple::get(

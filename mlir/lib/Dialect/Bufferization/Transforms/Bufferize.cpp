@@ -247,8 +247,8 @@ protected:
       return;
 
     // Skip ops that are not allowed to be bufferized.
-    auto const &options = analysisState.getOptions();
-    if (!options.isOpAllowed(op))
+    
+    if (auto const &options = analysisState.getOptions(); !options.isOpAllowed(op))
       return;
 
     // Add op to worklist.

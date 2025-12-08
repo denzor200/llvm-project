@@ -268,11 +268,11 @@ private:
 
       // Process adjacent edges
       for (uint64_t EdgeIdx = 0; EdgeIdx < Edges[Src].size(); EdgeIdx++) {
-        auto &Edge = Edges[Src][EdgeIdx];
-        if (Edge.Flow < Edge.Capacity) {
+        
+        if (auto &Edge = Edges[Src][EdgeIdx]; Edge.Flow < Edge.Capacity) {
           uint64_t Dst = Edge.Dst;
-          int64_t NewDistance = Nodes[Src].Distance + Edge.Cost;
-          if (Nodes[Dst].Distance > NewDistance) {
+          
+          if (int64_t NewDistance = Nodes[Src].Distance + Edge.Cost; Nodes[Dst].Distance > NewDistance) {
             // Update the distance and the parent node/edge
             Nodes[Dst].Distance = NewDistance;
             Nodes[Dst].ParentNode = Src;
@@ -340,10 +340,10 @@ private:
     Nodes[Source].Discovery = ++Time;
     while (!Stack.empty()) {
       auto NodeIdx = Stack.top().first;
-      auto EdgeIdx = Stack.top().second;
+      
 
       // If we haven't scanned all edges out of NodeIdx, continue scanning
-      if (EdgeIdx < Edges[NodeIdx].size()) {
+      if (auto EdgeIdx = Stack.top().second; EdgeIdx < Edges[NodeIdx].size()) {
         auto &Edge = Edges[NodeIdx][EdgeIdx];
         auto &Dst = Nodes[Edge.Dst];
         Stack.top().second++;
@@ -385,8 +385,8 @@ private:
     for (size_t Src : AugmentingOrder) {
       AugmentingEdges[Src].clear();
       for (auto &Edge : Edges[Src]) {
-        uint64_t Dst = Edge.Dst;
-        if (Edge.OnShortestPath && Nodes[Src].Taken && Nodes[Dst].Taken &&
+        
+        if (uint64_t Dst = Edge.Dst; Edge.OnShortestPath && Nodes[Src].Taken && Nodes[Dst].Taken &&
             Nodes[Dst].Finish < Nodes[Src].Finish) {
           AugmentingEdges[Src].push_back(&Edge);
         }
@@ -623,8 +623,8 @@ private:
 
     // Iterate over all non-reachable blocks and adjust their weights
     for (uint64_t I = 0; I < NumBlocks(); I++) {
-      auto &Block = Func.Blocks[I];
-      if (Block.Flow > 0 && !Visited[I]) {
+      
+      if (auto &Block = Func.Blocks[I]; Block.Flow > 0 && !Visited[I]) {
         // Find a path from the entry to an exit passing through the block I
         auto Path = findShortestPath(I);
         // Increase the flow along the path
@@ -705,8 +705,8 @@ private:
 
       for (auto *Jump : Func.Blocks[Src].SuccJumps) {
         uint64_t Dst = Jump->Target;
-        int64_t JumpDist = jumpDistance(Jump);
-        if (Distance[Dst] > Distance[Src] + JumpDist) {
+        
+        if (int64_t JumpDist = jumpDistance(Jump); Distance[Dst] > Distance[Src] + JumpDist) {
           Queue.erase(std::make_pair(Distance[Dst], Dst));
 
           Distance[Dst] = Distance[Src] + JumpDist;
@@ -1193,8 +1193,8 @@ void extractWeights(const ProfiParams &Params, MinCostMaxFlow &Network,
     uint64_t DstIn = 2 * Jump.Target;
 
     int64_t Flow = 0;
-    int64_t AuxFlow = Network.getFlow(SrcOut, DstIn);
-    if (Jump.Source != Jump.Target)
+    
+    if (int64_t AuxFlow = Network.getFlow(SrcOut, DstIn); Jump.Source != Jump.Target)
       Flow = int64_t(Jump.Weight) + AuxFlow;
     else
       Flow = int64_t(Jump.Weight) + (AuxFlow > 0 ? AuxFlow : 0);

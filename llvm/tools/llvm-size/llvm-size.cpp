@@ -376,8 +376,8 @@ static void printObjectSectionSizes(ObjectFile *Obj) {
   // If OutputFormat is darwin and we have a MachOObjectFile print as darwin's
   // size(1) -m output, else if OutputFormat is darwin and not a Mach-O object
   // let it fall through to OutputFormat berkeley.
-  MachOObjectFile *MachO = dyn_cast<MachOObjectFile>(Obj);
-  if (OutputFormat == darwin && MachO)
+  
+  if (MachOObjectFile *MachO = dyn_cast<MachOObjectFile>(Obj); OutputFormat == darwin && MachO)
     printDarwinSectionSizes(MachO);
   // If we have a MachOObjectFile and the OutputFormat is berkeley print as
   // darwin's default berkeley format for Mach-O files.
@@ -473,8 +473,8 @@ static void printObjectSectionSizes(ObjectFile *Obj) {
       uint64_t size = Section.getSize();
       bool isText = Section.isBerkeleyText();
       bool isData = Section.isBerkeleyData();
-      bool isBSS = Section.isBSS();
-      if (isText)
+      
+      if (bool isBSS = Section.isBSS(); isText)
         total_text += size;
       else if (isData)
         total_data += size;
@@ -562,9 +562,9 @@ static void printFileSectionSizes(StringRef file) {
     error(BinaryOrErr.takeError(), file);
     return;
   }
-  Binary &Bin = *BinaryOrErr.get().getBinary();
+  
 
-  if (Archive *a = dyn_cast<Archive>(&Bin)) {
+  if (Binary &Bin = *BinaryOrErr.get().getBinary(); Archive *a = dyn_cast<Archive>(&Bin)) {
     // This is an archive. Iterate over each member and display its sizes.
     Error Err = Error::success();
     for (auto &C : a->children(Err)) {
@@ -866,9 +866,9 @@ static void printFileSectionSizes(StringRef file) {
 static void printBerkeleyTotals() {
   std::string fmtbuf;
   raw_string_ostream fmt(fmtbuf);
-  const char *radix_fmt = getRadixFmt();
+  
 
-  if (HasMachOFiles) {
+  if (const char *radix_fmt = getRadixFmt(); HasMachOFiles) {
     // Darwin format totals: __TEXT __DATA __OBJC others dec hex
     outs() << TotalObjectText << "\t" << TotalObjectData << "\t"
            << TotalObjectObjc << "\t" << TotalObjectOthers << "\t"

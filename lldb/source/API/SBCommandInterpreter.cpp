@@ -255,8 +255,8 @@ int SBCommandInterpreter::HandleCompletionWithDescriptions(
   if (cursor < current_line || last_char < current_line)
     return 0;
 
-  size_t current_line_size = strlen(current_line);
-  if (cursor - current_line > static_cast<ptrdiff_t>(current_line_size) ||
+  
+  if (size_t current_line_size = strlen(current_line); cursor - current_line > static_cast<ptrdiff_t>(current_line_size) ||
       last_char - current_line > static_cast<ptrdiff_t>(current_line_size))
     return 0;
 
@@ -560,9 +560,9 @@ bool SBCommandInterpreter::SetCommandOverrideCallback(
 
   if (command_name && command_name[0] && IsValid()) {
     llvm::StringRef command_name_str = command_name;
-    CommandObject *cmd_obj =
-        m_opaque_ptr->GetCommandObjectForCommand(command_name_str);
-    if (cmd_obj) {
+    
+    if (CommandObject *cmd_obj =
+        m_opaque_ptr->GetCommandObjectForCommand(command_name_str); cmd_obj) {
       assert(command_name_str.empty());
       cmd_obj->SetOverrideCallback(callback, baton);
       return true;

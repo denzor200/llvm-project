@@ -247,8 +247,8 @@ WebAssemblyFrameLowering::eliminateCallFramePseudoInstr(
   assert(!I->getOperand(0).getImm() && (hasFP(MF) || hasBP(MF)) &&
          "Call frame pseudos should only be used for dynamic stack adjustment");
   auto &ST = MF.getSubtarget<WebAssemblySubtarget>();
-  const auto *TII = ST.getInstrInfo();
-  if (I->getOpcode() == TII->getCallFrameDestroyOpcode() &&
+  
+  if (const auto *TII = ST.getInstrInfo(); I->getOpcode() == TII->getCallFrameDestroyOpcode() &&
       needsSPWriteback(MF)) {
     DebugLoc DL = I->getDebugLoc();
     writeSPToGlobal(getSPReg(MF), MF, MBB, I, DL);
@@ -381,8 +381,8 @@ TargetFrameLowering::DwarfFrameBase
 WebAssemblyFrameLowering::getDwarfFrameBase(const MachineFunction &MF) const {
   DwarfFrameBase Loc;
   Loc.Kind = DwarfFrameBase::WasmFrameBase;
-  const WebAssemblyFunctionInfo &MFI = *MF.getInfo<WebAssemblyFunctionInfo>();
-  if (needsSP(MF) && MFI.isFrameBaseVirtual()) {
+  
+  if (const WebAssemblyFunctionInfo &MFI = *MF.getInfo<WebAssemblyFunctionInfo>(); needsSP(MF) && MFI.isFrameBaseVirtual()) {
     unsigned LocalNum = MFI.getFrameBaseLocal();
     Loc.Location.WasmLoc = {WebAssembly::TI_LOCAL, LocalNum};
   } else {

@@ -184,9 +184,9 @@ bool ThreadPlanStepOverRange::ShouldStop(Event *event_ptr) {
         break;
       }
 
-      const SymbolContext &older_context =
-          older_frame_sp->GetSymbolContext(eSymbolContextEverything);
-      if (IsEquivalentContext(older_context)) {
+      
+      if (const SymbolContext &older_context =
+          older_frame_sp->GetSymbolContext(eSymbolContextEverything); IsEquivalentContext(older_context)) {
         // If we have the  next-branch-breakpoint in the range, we can just
         // rely on that breakpoint to trigger once we return to the range.
         if (m_next_branch_bp_sp)
@@ -241,8 +241,8 @@ bool ThreadPlanStepOverRange::ShouldStop(Event *event_ptr) {
               sc.comp_unit == m_addr_context.comp_unit &&
               sc.function == m_addr_context.function) {
             // Okay, find the next occurrence of this file in the line table:
-            LineTable *line_table = m_addr_context.comp_unit->GetLineTable();
-            if (line_table) {
+            
+            if (LineTable *line_table = m_addr_context.comp_unit->GetLineTable(); line_table) {
               Address cur_address = frame_sp->GetFrameCodeAddress();
               uint32_t entry_idx;
               LineEntry line_entry;
@@ -268,9 +268,9 @@ bool ThreadPlanStepOverRange::ShouldStop(Event *event_ptr) {
                         prev_line_entry.range.GetBaseAddress();
                     prev_address.CalculateSymbolContext(&prev_sc);
                     if (prev_sc.block) {
-                      Block *inlined_block =
-                          prev_sc.block->GetContainingInlinedBlock();
-                      if (inlined_block) {
+                      
+                      if (Block *inlined_block =
+                          prev_sc.block->GetContainingInlinedBlock(); inlined_block) {
                         AddressRange inline_range;
                         inlined_block->GetRangeContainingAddress(prev_address,
                                                                  inline_range);
@@ -291,9 +291,9 @@ bool ThreadPlanStepOverRange::ShouldStop(Event *event_ptr) {
                     // started from...
                     Address next_line_address =
                         next_line_entry.range.GetBaseAddress();
-                    Function *next_line_function =
-                        next_line_address.CalculateSymbolContextFunction();
-                    if (next_line_function != m_addr_context.function)
+                    
+                    if (Function *next_line_function =
+                        next_line_address.CalculateSymbolContextFunction(); next_line_function != m_addr_context.function)
                       break;
 
                     if (next_line_entry.original_file_sp->Equal(
@@ -398,8 +398,8 @@ bool ThreadPlanStepOverRange::DoWillResume(lldb::StateType resume_state,
       // See if we are about to step over an inlined call in the middle of the
       // inlined stack, if so figure out its extents and reset our range to
       // step over that.
-      bool in_inlined_stack = thread.DecrementCurrentInlinedDepth();
-      if (in_inlined_stack) {
+      
+      if (bool in_inlined_stack = thread.DecrementCurrentInlinedDepth(); in_inlined_stack) {
         Log *log = GetLog(LLDBLog::Step);
         LLDB_LOGF(log,
                   "ThreadPlanStepOverRange::DoWillResume: adjusting range to "

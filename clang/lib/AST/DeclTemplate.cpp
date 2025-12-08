@@ -63,8 +63,8 @@ TemplateParameterList::TemplateParameterList(const ASTContext &C,
     NamedDecl *P = Params[Idx];
     begin()[Idx] = P;
 
-    bool IsPack = P->isTemplateParameterPack();
-    if (const auto *NTTP = dyn_cast<NonTypeTemplateParmDecl>(P)) {
+    
+    if (bool IsPack = P->isTemplateParameterPack(); const auto *NTTP = dyn_cast<NonTypeTemplateParmDecl>(P)) {
       if (!IsPack && (NTTP->getType()->containsUnexpandedParameterPack() ||
                       DefaultTemplateArgumentContainsUnexpandedPack(*NTTP)))
         ContainsUnexpandedParameterPack = true;
@@ -112,8 +112,8 @@ bool TemplateParameterList::containsUnexpandedParameterPack() const {
       break;
 
     if (const auto *TTP = dyn_cast<TemplateTypeParmDecl>(Param)) {
-      const auto *TC = TTP->getTypeConstraint();
-      if (TC && TC->getImmediatelyDeclaredConstraint()
+      
+      if (const auto *TC = TTP->getTypeConstraint(); TC && TC->getImmediatelyDeclaredConstraint()
                     ->containsUnexpandedParameterPack())
         return true;
     }
@@ -199,8 +199,8 @@ unsigned TemplateParameterList::getDepth() const {
   if (size() == 0)
     return 0;
 
-  const NamedDecl *FirstParm = getParam(0);
-  if (const auto *TTP = dyn_cast<TemplateTypeParmDecl>(FirstParm))
+  
+  if (const NamedDecl *FirstParm = getParam(0); const auto *TTP = dyn_cast<TemplateTypeParmDecl>(FirstParm))
     return TTP->getDepth();
   else if (const auto *NTTP = dyn_cast<NonTypeTemplateParmDecl>(FirstParm))
     return NTTP->getDepth();
@@ -261,8 +261,8 @@ bool TemplateParameterList::shouldIncludeTypeForArgument(
     unsigned Idx) {
   if (!TPL || Idx >= TPL->size() || Policy.AlwaysIncludeTypeForTemplateArgument)
     return true;
-  const NamedDecl *TemplParam = TPL->getParam(Idx);
-  if (const auto *ParamValueDecl =
+  
+  if (const NamedDecl *TemplParam = TPL->getParam(Idx); const auto *ParamValueDecl =
           dyn_cast<NonTypeTemplateParmDecl>(TemplParam))
     if (ParamValueDecl->getType()->getContainedDeducedType())
       return true;
@@ -1016,8 +1016,8 @@ void ClassTemplateSpecializationDecl::getNameForDiagnostic(
     raw_ostream &OS, const PrintingPolicy &Policy, bool Qualified) const {
   NamedDecl::getNameForDiagnostic(OS, Policy, Qualified);
 
-  const auto *PS = dyn_cast<ClassTemplatePartialSpecializationDecl>(this);
-  if (const ASTTemplateArgumentListInfo *ArgsAsWritten =
+  
+  if (const auto *PS = dyn_cast<ClassTemplatePartialSpecializationDecl>(this); const ASTTemplateArgumentListInfo *ArgsAsWritten =
           PS ? PS->getTemplateArgsAsWritten() : nullptr) {
     printTemplateArgumentList(
         OS, ArgsAsWritten->arguments(), Policy,
@@ -1443,8 +1443,8 @@ void VarTemplateSpecializationDecl::getNameForDiagnostic(
     raw_ostream &OS, const PrintingPolicy &Policy, bool Qualified) const {
   NamedDecl::getNameForDiagnostic(OS, Policy, Qualified);
 
-  const auto *PS = dyn_cast<VarTemplatePartialSpecializationDecl>(this);
-  if (const ASTTemplateArgumentListInfo *ArgsAsWritten =
+  
+  if (const auto *PS = dyn_cast<VarTemplatePartialSpecializationDecl>(this); const ASTTemplateArgumentListInfo *ArgsAsWritten =
           PS ? PS->getTemplateArgsAsWritten() : nullptr) {
     printTemplateArgumentList(
         OS, ArgsAsWritten->arguments(), Policy,

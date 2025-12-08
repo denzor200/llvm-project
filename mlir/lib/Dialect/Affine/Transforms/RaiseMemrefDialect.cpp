@@ -48,8 +48,8 @@ static std::optional<size_t>
 findInListOrAdd(Value value, llvm::SmallVectorImpl<Value> &dims,
                 function_ref<bool(Value)> isValidElement) {
 
-  Value *loopIV = llvm::find(dims, value);
-  if (loopIV != dims.end()) {
+  
+  if (Value *loopIV = llvm::find(dims, value); loopIV != dims.end()) {
     // We found an IV that already has an index, return that index.
     return {std::distance(dims.begin(), loopIV)};
   }

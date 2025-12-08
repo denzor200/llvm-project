@@ -240,8 +240,8 @@ bool DivergenceLoweringHelper::lowerTemporalDivergenceI1() {
 
     auto [LRCCacheIter, RegNotCached] = LRCCache.try_emplace(Reg);
     auto &CycleMergedMask = LRCCacheIter->getSecond();
-    const MachineCycle *&CachedLRC = CycleMergedMask.first;
-    if (RegNotCached || LRC->contains(CachedLRC)) {
+    
+    if (const MachineCycle *&CachedLRC = CycleMergedMask.first; RegNotCached || LRC->contains(CachedLRC)) {
       CachedLRC = LRC;
     }
   }

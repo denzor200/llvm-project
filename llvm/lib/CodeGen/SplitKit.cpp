@@ -437,8 +437,8 @@ void SplitEditor::addDeadDef(LiveInterval &LI, VNInfo *VNI, bool Original) {
     // a def at this location.
     for (LiveInterval::SubRange &S : LI.subranges()) {
       auto &PS = getSubRangeForMask(S.LaneMask, Edit->getParent());
-      VNInfo *PV = PS.getVNInfoAt(Def);
-      if (PV != nullptr && PV->def == Def)
+      
+      if (VNInfo *PV = PS.getVNInfoAt(Def); PV != nullptr && PV->def == Def)
         S.createDeadDef(Def, LIS.getVNInfoAllocator());
     }
   } else {
@@ -531,8 +531,8 @@ SlotIndex SplitEditor::buildSingleSubRegCopy(
               | getInternalReadRegState(!FirstCopy), SubIdx)
       .addReg(FromReg, 0, SubIdx);
 
-  SlotIndexes &Indexes = *LIS.getSlotIndexes();
-  if (FirstCopy) {
+  
+  if (SlotIndexes &Indexes = *LIS.getSlotIndexes(); FirstCopy) {
     Def = Indexes.insertMachineInstrInMaps(*CopyMI, Late).getRegSlot();
   } else {
     CopyMI->bundleWithPred();
@@ -1021,8 +1021,8 @@ void SplitEditor::computeRedundantBackCopies(
           continue;
 
         MachineBasicBlock *MBB1 = LIS.getMBBFromIndex((*It1)->def);
-        MachineBasicBlock *MBB2 = LIS.getMBBFromIndex((*It2)->def);
-        if (MBB1 == MBB2) {
+        
+        if (MachineBasicBlock *MBB2 = LIS.getMBBFromIndex((*It2)->def); MBB1 == MBB2) {
           DominatedVNIs.insert((*It1)->def < (*It2)->def ? (*It2) : (*It1));
         } else if (MDT.dominates(MBB1, MBB2)) {
           DominatedVNIs.insert(*It2);
@@ -1149,8 +1149,8 @@ void SplitEditor::hoistCopies() {
     if (VNI->isUnused())
       continue;
     VNInfo *ParentVNI = Edit->getParent().getVNInfoAt(VNI->def);
-    const DomPair &Dom = NearestDom[ParentVNI->id];
-    if (!Dom.first || Dom.second == VNI->def ||
+    
+    if (const DomPair &Dom = NearestDom[ParentVNI->id]; !Dom.first || Dom.second == VNI->def ||
         NotToHoistSet.count(ParentVNI->id))
       continue;
     BackCopies.push_back(VNI);
@@ -1297,9 +1297,9 @@ void SplitEditor::extendPHIRange(MachineBasicBlock &B, LiveIntervalCalc &LIC,
     const LiveInterval &PLI = Edit->getParent();
     // Need the cast because the inputs to ?: would otherwise be deemed
     // "incompatible": SubRange vs LiveInterval.
-    const LiveRange &PSR = !LM.all() ? getSubRangeForMaskExact(LM, PLI)
-                                     : static_cast<const LiveRange &>(PLI);
-    if (PSR.liveAt(LastUse))
+    
+    if (const LiveRange &PSR = !LM.all() ? getSubRangeForMaskExact(LM, PLI)
+                                     : static_cast<const LiveRange &>(PLI); PSR.liveAt(LastUse))
       LIC.extend(LR, End, /*PhysReg=*/0, Undefs);
   }
 }
@@ -1319,8 +1319,8 @@ void SplitEditor::extendPHIKillRanges() {
     unsigned RegIdx = RegAssign.lookup(V->def);
     LiveInterval &LI = LIS.getInterval(Edit->get(RegIdx));
     LiveIntervalCalc &LIC = getLICalc(RegIdx);
-    MachineBasicBlock &B = *LIS.getMBBFromIndex(V->def);
-    if (!removeDeadSegment(V->def, LI))
+    
+    if (MachineBasicBlock &B = *LIS.getMBBFromIndex(V->def); !removeDeadSegment(V->def, LI))
       extendPHIRange(B, LIC, LI, LaneBitmask::getAll(), /*Undefs=*/{});
   }
 
@@ -1631,8 +1631,8 @@ bool SplitAnalysis::shouldSplitSingleBlock(const BlockInfo &BI,
     return true;
   // No point in isolating a copy. It has no register class constraints.
   MachineInstr *MI = LIS.getInstructionFromIndex(BI.FirstInstr);
-  bool copyLike = TII.isCopyInstr(*MI) || MI->isSubregToReg();
-  if (copyLike)
+  
+  if (bool copyLike = TII.isCopyInstr(*MI) || MI->isSubregToReg(); copyLike)
     return false;
   // Finally, don't isolate an end point that was created by earlier splits.
   return isOriginalEndpoint(BI.FirstInstr);

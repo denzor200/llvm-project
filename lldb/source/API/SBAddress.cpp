@@ -140,8 +140,8 @@ bool SBAddress::OffsetAddress(addr_t offset) {
   LLDB_INSTRUMENT_VA(this, offset);
 
   if (m_opaque_up->IsValid()) {
-    addr_t addr_offset = m_opaque_up->GetOffset();
-    if (addr_offset != LLDB_INVALID_ADDRESS) {
+    
+    if (addr_t addr_offset = m_opaque_up->GetOffset(); addr_offset != LLDB_INVALID_ADDRESS) {
       m_opaque_up->SetOffset(addr_offset + offset);
       return true;
     }
@@ -190,8 +190,8 @@ bool SBAddress::GetDescription(SBStream &description) {
 
   // Call "ref()" on the stream to make sure it creates a backing stream in
   // case there isn't one already...
-  Stream &strm = description.ref();
-  if (m_opaque_up->IsValid()) {
+  
+  if (Stream &strm = description.ref(); m_opaque_up->IsValid()) {
     m_opaque_up->Dump(&strm, nullptr, Address::DumpStyleResolvedDescription,
                       Address::DumpStyleModuleWithFileAddress, 4);
   } else

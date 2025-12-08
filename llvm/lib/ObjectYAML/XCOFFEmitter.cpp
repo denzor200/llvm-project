@@ -146,8 +146,8 @@ bool XCOFFWriter::initSectionHeaders(uint64_t &CurrentOffset) {
   for (uint16_t I = 0, E = InitSections.size(); I < E; ++I) {
     // Assign indices for sections.
     if (InitSections[I].SectionName.size()) {
-      int16_t &SectionIndex = SectionIndexMap[InitSections[I].SectionName];
-      if (!SectionIndex) {
+      
+      if (int16_t &SectionIndex = SectionIndexMap[InitSections[I].SectionName]; !SectionIndex) {
         // The section index starts from 1.
         SectionIndex = I + 1;
         if ((I + 1) > MaxSectionIndex) {
@@ -293,8 +293,8 @@ bool XCOFFWriter::initStringTable() {
 
   StrTblBuilder.finalize();
 
-  size_t StrTblSize = StrTblBuilder.getSize();
-  if (Obj.StrTbl.ContentSize && *Obj.StrTbl.ContentSize < StrTblSize) {
+  
+  if (size_t StrTblSize = StrTblBuilder.getSize(); Obj.StrTbl.ContentSize && *Obj.StrTbl.ContentSize < StrTblSize) {
     ErrHandler("specified ContentSize (" + Twine(*Obj.StrTbl.ContentSize) +
                ") is less than the size of the data that would otherwise be "
                "written (" +
@@ -619,11 +619,11 @@ bool XCOFFWriter::writeAuxSymbol(const XCOFFYAML::CsectAuxEnt &AuxSym) {
       SymAlignAndType = SymbolType;
     }
     if (AuxSym.SymbolAlignment) {
-      const uint8_t ShiftedSymbolAlignmentMask =
-          XCOFFCsectAuxRef::SymbolAlignmentMask >>
-          XCOFFCsectAuxRef::SymbolAlignmentBitOffset;
+      
 
-      if (*AuxSym.SymbolAlignment & ~ShiftedSymbolAlignmentMask) {
+      if (const uint8_t ShiftedSymbolAlignmentMask =
+          XCOFFCsectAuxRef::SymbolAlignmentMask >>
+          XCOFFCsectAuxRef::SymbolAlignmentBitOffset; *AuxSym.SymbolAlignment & ~ShiftedSymbolAlignmentMask) {
         ErrHandler("symbol alignment must be less than " +
                    Twine(1 + ShiftedSymbolAlignmentMask));
         return false;

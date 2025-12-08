@@ -91,10 +91,10 @@ CheckerRegistry::CheckerRegistry(
 
     using RegisterPluginCheckerFn = void (*)(CheckerRegistry &);
     // Register its checkers.
-    RegisterPluginCheckerFn RegisterPluginCheckers =
+    
+    if (RegisterPluginCheckerFn RegisterPluginCheckers =
         reinterpret_cast<RegisterPluginCheckerFn>(
-            Lib.getAddressOfSymbol("clang_registerCheckers"));
-    if (RegisterPluginCheckers)
+            Lib.getAddressOfSymbol("clang_registerCheckers")); RegisterPluginCheckers)
       RegisterPluginCheckers(*this);
   }
 
@@ -371,8 +371,8 @@ static void insertAndValidate(StringRef FullName, const CmdLineOption &Option,
 
   if (Option.OptionType == "int") {
     int Tmp;
-    bool HasFailed = SuppliedValue.getAsInteger(0, Tmp);
-    if (HasFailed) {
+    
+    if (bool HasFailed = SuppliedValue.getAsInteger(0, Tmp); HasFailed) {
       if (AnOpts.ShouldEmitErrorsOnInvalidConfigValue) {
         Diags.Report(diag::err_analyzer_checker_option_invalid_input)
             << FullOption << "an integer value";
@@ -511,9 +511,9 @@ void CheckerRegistry::validateCheckerOptions() const {
       continue;
     }
 
-    const auto *PackageIt =
-        llvm::find(Data.Packages, PackageInfo(SuppliedCheckerOrPackage));
-    if (PackageIt != Data.Packages.end()) {
+    
+    if (const auto *PackageIt =
+        llvm::find(Data.Packages, PackageInfo(SuppliedCheckerOrPackage)); PackageIt != Data.Packages.end()) {
       isOptionContainedIn(PackageIt->CmdLineOptions, SuppliedCheckerOrPackage,
                           SuppliedOption, AnOpts, Diags);
       continue;

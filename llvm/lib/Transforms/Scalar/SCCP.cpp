@@ -130,8 +130,8 @@ PreservedAnalyses SCCPPass::run(Function &F, FunctionAnalysisManager &AM) {
   const DataLayout &DL = F.getDataLayout();
   auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  auto &AC = AM.getResult<AssumptionAnalysis>(F);
-  if (!runSCCP(F, DL, &TLI, DT, AC))
+  
+  if (auto &AC = AM.getResult<AssumptionAnalysis>(F); !runSCCP(F, DL, &TLI, DT, AC))
     return PreservedAnalyses::all();
 
   auto PA = PreservedAnalyses();

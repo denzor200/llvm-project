@@ -133,8 +133,8 @@ bool ArmUnwindInfo::GetUnwindPlan(Target &target, const Address &addr,
       register_offsets; // register -> (offset from vsp_reg)
 
   while (byte_offset < byte_count) {
-    uint8_t byte1 = GetByteAtOffset(data, byte_offset++);
-    if ((byte1 & 0xc0) == 0x00) {
+    
+    if (uint8_t byte1 = GetByteAtOffset(data, byte_offset++); (byte1 & 0xc0) == 0x00) {
       // 00xxxxxx
       // vsp = vsp + (xxxxxx << 2) + 4. Covers range 0x04-0x100 inclusive
       vsp += ((byte1 & 0x3f) << 2) + 4;
@@ -146,8 +146,8 @@ bool ArmUnwindInfo::GetUnwindPlan(Target &target, const Address &addr,
       if (byte_offset >= byte_count)
         return false;
 
-      uint8_t byte2 = GetByteAtOffset(data, byte_offset++);
-      if (byte1 == 0x80 && byte2 == 0) {
+      
+      if (uint8_t byte2 = GetByteAtOffset(data, byte_offset++); byte1 == 0x80 && byte2 == 0) {
         // 10000000 00000000
         // Refuse to unwind (for example, out of a cleanup) (see remark a)
         return false;
@@ -202,8 +202,8 @@ bool ArmUnwindInfo::GetUnwindPlan(Target &target, const Address &addr,
       if (byte_offset >= byte_count)
         return false;
 
-      uint8_t byte2 = GetByteAtOffset(data, byte_offset++);
-      if ((byte2 & 0xff) == 0x00) {
+      
+      if (uint8_t byte2 = GetByteAtOffset(data, byte_offset++); (byte2 & 0xff) == 0x00) {
         // 10110001 00000000
         // Spare (see remark f)
         return false;

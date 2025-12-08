@@ -137,9 +137,9 @@ bool HexagonFixupHwLoops::fixupLoopInstrs(MachineFunction &MF) {
         assert(MII->getOperand(0).isMBB() &&
                "Expect a basic block as loop operand");
         MachineBasicBlock *TargetBB = MII->getOperand(0).getMBB();
-        unsigned Diff = AbsoluteDifference(InstOffset,
-                                           BlockToInstOffset[TargetBB]);
-        if (Diff > MaxLoopRange) {
+        
+        if (unsigned Diff = AbsoluteDifference(InstOffset,
+                                           BlockToInstOffset[TargetBB]); Diff > MaxLoopRange) {
           useExtLoopInstr(MF, MII);
           MII = MBB.erase(MII);
           Changed = true;

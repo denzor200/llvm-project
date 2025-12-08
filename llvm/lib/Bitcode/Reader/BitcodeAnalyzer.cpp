@@ -947,8 +947,8 @@ Error BitcodeAnalyzer::parseBlock(unsigned BlockID, unsigned IndentLevel,
 
       if (Abbv) {
         for (unsigned i = 1, e = Abbv->getNumOperandInfos(); i != e; ++i) {
-          const BitCodeAbbrevOp &Op = Abbv->getOperandInfo(i);
-          if (!Op.isEncoding() || Op.getEncoding() != BitCodeAbbrevOp::Array)
+          
+          if (const BitCodeAbbrevOp &Op = Abbv->getOperandInfo(i); !Op.isEncoding() || Op.getEncoding() != BitCodeAbbrevOp::Array)
             continue;
           assert(i + 2 == e && "Array op not second to last");
           std::string Str;

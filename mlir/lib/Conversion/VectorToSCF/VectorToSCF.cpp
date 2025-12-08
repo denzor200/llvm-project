@@ -118,8 +118,8 @@ static void getXferIndices(OpBuilder &b, OpTy xferOp, Value iv,
   indices.append(prevIndices.begin(), prevIndices.end());
 
   Location loc = xferOp.getLoc();
-  bool isBroadcast = !dim.has_value();
-  if (!isBroadcast) {
+  
+  if (bool isBroadcast = !dim.has_value(); !isBroadcast) {
     AffineExpr d0, d1;
     bindDims(xferOp.getContext(), d0, d1);
     Value offset = adaptor.getIndices()[*dim];
@@ -1273,8 +1273,8 @@ struct UnrollTransferReadConversion
   /// vector::InsertOp, return that operation.
   vector::InsertOp getInsertOp(TransferReadOp xferOp) const {
     if (xferOp->hasOneUse()) {
-      Operation *xferOpUser = *xferOp->getUsers().begin();
-      if (auto insertOp = dyn_cast<vector::InsertOp>(xferOpUser))
+      
+      if (Operation *xferOpUser = *xferOp->getUsers().begin(); auto insertOp = dyn_cast<vector::InsertOp>(xferOpUser))
         return insertOp;
     }
 

@@ -418,8 +418,8 @@ Status NativeFile::GetFileSpec(FileSpec &file_spec) const {
   if (::snprintf(proc, sizeof(proc), "/proc/self/fd/%d", GetDescriptor()) < 0)
     error = Status::FromErrorString("cannot resolve file descriptor");
   else {
-    ssize_t len;
-    if ((len = ::readlink(proc, path, sizeof(path) - 1)) == -1)
+    
+    if (ssize_t len; (len = ::readlink(proc, path, sizeof(path) - 1)) == -1)
       error = Status::FromErrno();
     else {
       path[len] = '\0';
@@ -746,9 +746,9 @@ Status NativeFile::Read(void *buf, size_t &num_bytes, off_t &offset) {
 #ifndef _WIN32
   int fd = GetDescriptor();
   if (fd != kInvalidDescriptor) {
-    ssize_t bytes_read =
-        llvm::sys::RetryAfterSignal(-1, ::pread, fd, buf, num_bytes, offset);
-    if (bytes_read < 0) {
+    
+    if (ssize_t bytes_read =
+        llvm::sys::RetryAfterSignal(-1, ::pread, fd, buf, num_bytes, offset); bytes_read < 0) {
       num_bytes = 0;
       error = Status::FromErrno();
     } else {

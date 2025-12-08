@@ -63,8 +63,8 @@ static const AvailabilityAttr *getAttrForPlatform(ASTContext &Context,
       StringRef ActualPlatform = Avail->getPlatform()->getName();
       StringRef RealizedPlatform = ActualPlatform;
       if (Context.getLangOpts().AppExt) {
-        size_t suffix = RealizedPlatform.rfind("_app_extension");
-        if (suffix != StringRef::npos)
+        
+        if (size_t suffix = RealizedPlatform.rfind("_app_extension"); suffix != StringRef::npos)
           RealizedPlatform = RealizedPlatform.slice(0, suffix);
       }
 
@@ -137,8 +137,8 @@ done:
 
   if (const auto *ECD = dyn_cast<EnumConstantDecl>(D))
     if (Result == AR_Available) {
-      const DeclContext *DC = ECD->getDeclContext();
-      if (const auto *TheEnumDecl = dyn_cast<EnumDecl>(DC)) {
+      
+      if (const DeclContext *DC = ECD->getDeclContext(); const auto *TheEnumDecl = dyn_cast<EnumDecl>(DC)) {
         Result = TheEnumDecl->getAvailability(Message);
         D = TheEnumDecl;
       }
@@ -147,9 +147,9 @@ done:
   // For +new, infer availability from -init.
   if (const auto *MD = dyn_cast<ObjCMethodDecl>(D)) {
     if (ObjC().NSAPIObj && ClassReceiver) {
-      ObjCMethodDecl *Init = ClassReceiver->lookupInstanceMethod(
-          ObjC().NSAPIObj->getInitSelector());
-      if (Init && Result == AR_Available && MD->isClassMethod() &&
+      
+      if (ObjCMethodDecl *Init = ClassReceiver->lookupInstanceMethod(
+          ObjC().NSAPIObj->getInitSelector()); Init && Result == AR_Available && MD->isClassMethod() &&
           MD->getSelector() == ObjC().NSAPIObj->getNewSelector() &&
           MD->definedInNSObject(getASTContext())) {
         Result = Init->getAvailability(Message);
@@ -444,9 +444,9 @@ static void DoEmitAvailabilityWarning(Sema &S, AvailabilityResult K,
   if (AA && AA->isInherited()) {
     for (const Decl *Redecl = OffendingDecl->getMostRecentDecl(); Redecl;
          Redecl = Redecl->getPreviousDecl()) {
-      const AvailabilityAttr *AForRedecl =
-          getAttrForPlatform(S.Context, Redecl);
-      if (AForRedecl && !AForRedecl->isInherited()) {
+      
+      if (const AvailabilityAttr *AForRedecl =
+          getAttrForPlatform(S.Context, Redecl); AForRedecl && !AForRedecl->isInherited()) {
         // If D is a declaration with inherited attributes, the note should
         // point to the declaration with actual attributes.
         NoteLocation = Redecl->getLocation();

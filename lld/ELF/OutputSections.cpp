@@ -42,10 +42,10 @@ using namespace lld::elf;
 
 uint32_t OutputSection::getPhdrFlags() const {
   uint32_t ret = 0;
-  bool purecode =
+  
+  if (bool purecode =
       (ctx.arg.emachine == EM_ARM && (flags & SHF_ARM_PURECODE)) ||
-      (ctx.arg.emachine == EM_AARCH64 && (flags & SHF_AARCH64_PURECODE));
-  if (!purecode)
+      (ctx.arg.emachine == EM_AARCH64 && (flags & SHF_AARCH64_PURECODE)); !purecode)
     ret |= PF_R;
   if (flags & SHF_WRITE)
     ret |= PF_W;
@@ -598,8 +598,8 @@ void OutputSection::writeTo(Ctx &ctx, uint8_t *buf, parallel::TaskGroup &tg) {
   const size_t taskSizeLimit = 4 << 20;
   for (size_t begin = 0, i = 0, taskSize = 0;;) {
     taskSize += sections[i]->getSize();
-    bool done = ++i == numSections;
-    if (done || taskSize >= taskSizeLimit) {
+    
+    if (bool done = ++i == numSections; done || taskSize >= taskSizeLimit) {
       tg.spawn([=] { fn(begin, i); });
       if (done)
         break;
@@ -642,8 +642,8 @@ encodeOneCrel(Ctx &ctx, raw_svector_ostream &os,
   out.r_offset = offset;
   int64_t symidx = ctx.in.symTab->getSymbolIndex(sym);
   if (sym.type == STT_SECTION) {
-    auto *d = dyn_cast<Defined>(&sym);
-    if (d) {
+    
+    if (auto *d = dyn_cast<Defined>(&sym); d) {
       SectionBase *section = d->section;
       assert(section->isLive());
       addend = sym.getVA(ctx, addend) - section->getOutputSection()->addr;
@@ -814,8 +814,8 @@ static bool isCrt(StringRef s, StringRef beginEnd) {
 // support that with this rather ad-hoc semantics.
 static bool compCtors(const InputSection *a, const InputSection *b) {
   bool beginA = isCrt(a->file->getName(), "crtbegin");
-  bool beginB = isCrt(b->file->getName(), "crtbegin");
-  if (beginA != beginB)
+  
+  if (bool beginB = isCrt(b->file->getName(), "crtbegin"); beginA != beginB)
     return beginA;
   bool endA = isCrt(a->file->getName(), "crtend");
   bool endB = isCrt(b->file->getName(), "crtend");
@@ -934,11 +934,11 @@ void OutputSection::checkDynRelAddends(Ctx &ctx) {
       const uint8_t *relocTarget = ctx.bufferStart + relOsec->offset +
                                    rel.inputSec->getOffset(rel.offsetInSec);
       // For SHT_NOBITS the written addend is always zero.
-      int64_t writtenAddend =
+      
+      if (int64_t writtenAddend =
           relOsec->type == SHT_NOBITS
               ? 0
-              : ctx.target->getImplicitAddend(relocTarget, rel.type);
-      if (addend != writtenAddend)
+              : ctx.target->getImplicitAddend(relocTarget, rel.type); addend != writtenAddend)
         InternalErr(ctx, relocTarget)
             << "wrote incorrect addend value 0x" << utohexstr(writtenAddend)
             << " instead of 0x" << utohexstr(addend)

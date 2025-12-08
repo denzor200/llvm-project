@@ -204,8 +204,8 @@ bool BPFAbstractMemberAccess::run(Function &F) {
   // and remember (anon record -> typedef) relations where the
   // anon record is defined as
   //   typedef [const/volatile/restrict]* [anon record]
-  DISubprogram *SP = F.getSubprogram();
-  if (SP && SP->isDefinition()) {
+  
+  if (DISubprogram *SP = F.getSubprogram(); SP && SP->isDefinition()) {
     for (DIType *Ty: SP->getType()->getTypeArray())
       CheckAnonRecordType(nullptr, Ty);
     for (const DINode *DN : SP->getRetainedNodes()) {
@@ -682,8 +682,8 @@ uint32_t BPFAbstractMemberAccess::GetFieldInfo(uint32_t InfoKind,
       PatchImm += AccessIndex * calcArraySize(CTy, 1) *
                   (EltTy->getSizeInBits() >> 3);
     } else if (Tag == dwarf::DW_TAG_structure_type) {
-      auto *MemberTy = cast<DIDerivedType>(CTy->getElements()[AccessIndex]);
-      if (!MemberTy->isBitField()) {
+      
+      if (auto *MemberTy = cast<DIDerivedType>(CTy->getElements()[AccessIndex]); !MemberTy->isBitField()) {
         PatchImm += MemberTy->getOffsetInBits() >> 3;
       } else {
         unsigned SBitOffset, NextSBitOffset;
@@ -1019,8 +1019,8 @@ MDNode *BPFAbstractMemberAccess::computeAccessKey(CallInst *Call,
     assert(CTy->getTag() == dwarf::DW_TAG_enumeration_type);
     int EnumIndex = 0;
     for (const auto Element : CTy->getElements()) {
-      const auto *Enum = cast<DIEnumerator>(Element);
-      if (Enum->getName() == EnumeratorStr) {
+      
+      if (const auto *Enum = cast<DIEnumerator>(Element); Enum->getName() == EnumeratorStr) {
         AccessStr = std::to_string(EnumIndex);
         break;
       }

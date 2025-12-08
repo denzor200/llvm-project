@@ -329,9 +329,9 @@ Status ABISysV_ppc64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
     }
     lldb::offset_t offset = 0;
     if (num_bytes <= 8) {
-      uint64_t raw_value = data.GetMaxU64(&offset, num_bytes);
+      
 
-      if (reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
+      if (uint64_t raw_value = data.GetMaxU64(&offset, num_bytes); reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
         set_it_simple = true;
     } else {
       error = Status::FromErrorString(
@@ -594,9 +594,9 @@ private:
     ValueSP value_sp(NewScalarValue(m_type));
 
     uint32_t type_flags = m_type.GetTypeInfo();
-    bool is_signed = (type_flags & eTypeIsSigned) != 0;
+    
 
-    switch (m_byte_size) {
+    switch (bool is_signed = (type_flags & eTypeIsSigned) != 0; m_byte_size) {
     case sizeof(uint64_t):
       if (is_signed)
         value_sp->GetScalar() = (int64_t)(raw_value);
@@ -759,9 +759,9 @@ private:
         return {};
 
       Status error;
-      size_t rc = m_process_sp->ReadMemory(addr, m_data_up->GetBytes(),
-                                           m_byte_size, error);
-      if (rc != m_byte_size) {
+      
+      if (size_t rc = m_process_sp->ReadMemory(addr, m_data_up->GetBytes(),
+                                           m_byte_size, error); rc != m_byte_size) {
         LLDB_LOG(m_log, LOG_PREFIX "Failed to read memory pointed by r3");
         return ValueObjectSP();
       }
@@ -802,10 +802,10 @@ private:
 
         // copy to buffer
         Status error;
-        size_t rc = val_sp->GetScalar().GetAsMemoryData(
+        
+        if (size_t rc = val_sp->GetScalar().GetAsMemoryData(
             m_data_up->GetBytes() + m_dst_offs, *elem_size, m_byte_order,
-            error);
-        if (rc != *elem_size) {
+            error); rc != *elem_size) {
           LLDB_LOG(m_log, LOG_PREFIX "Failed to get float data");
           return {};
         }
@@ -819,9 +819,9 @@ private:
     // first, check if this is a packed struct or not
     auto ast = m_type.GetTypeSystem().dyn_cast_or_null<TypeSystemClang>();
     if (ast) {
-      clang::RecordDecl *record_decl = TypeSystemClang::GetAsRecordDecl(m_type);
+      
 
-      if (record_decl) {
+      if (clang::RecordDecl *record_decl = TypeSystemClang::GetAsRecordDecl(m_type); record_decl) {
         auto attrs = record_decl->attrs();
         for (const auto &attr : attrs) {
           if (attr->getKind() == clang::attr::Packed) {

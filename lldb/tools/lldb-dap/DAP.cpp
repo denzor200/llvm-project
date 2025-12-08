@@ -1366,8 +1366,8 @@ llvm::Error DAP::InitializeDebugger() {
   // extension used by the test suite to prevent sourcing `.lldbinit` and
   // changing its behavior. The CLI flag --no-lldbinit takes precedence over
   // the DAP parameter.
-  bool should_source_init_files = !no_lldbinit && sourceInitFile;
-  if (should_source_init_files) {
+  
+  if (bool should_source_init_files = !no_lldbinit && sourceInitFile; should_source_init_files) {
     debugger.SkipLLDBInitFiles(false);
     debugger.SkipAppInitFiles(false);
     lldb::SBCommandReturnObject init;
@@ -1410,8 +1410,8 @@ void DAP::ProgressEventThread() {
   bool done = false;
   while (!done) {
     if (listener.WaitForEvent(UINT32_MAX, event)) {
-      const auto event_mask = event.GetType();
-      if (event.BroadcasterMatchesRef(broadcaster)) {
+      
+      if (const auto event_mask = event.GetType(); event.BroadcasterMatchesRef(broadcaster)) {
         if (event_mask & eBroadcastBitStopProgressThread) {
           done = true;
         }

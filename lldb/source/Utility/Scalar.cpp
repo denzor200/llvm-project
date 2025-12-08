@@ -760,9 +760,9 @@ Status Scalar::SetValueFromData(const DataExtractor &data,
 }
 
 bool Scalar::SignExtend(uint32_t sign_bit_pos) {
-  const uint32_t max_bit_pos = GetByteSize() * 8;
+  
 
-  if (sign_bit_pos < max_bit_pos) {
+  if (const uint32_t max_bit_pos = GetByteSize() * 8; sign_bit_pos < max_bit_pos) {
     switch (m_type) {
     case Scalar::e_void:
     case Scalar::e_float:

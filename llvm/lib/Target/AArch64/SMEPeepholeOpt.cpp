@@ -317,8 +317,8 @@ bool SMEPeepholeOpt::runOnMachineFunction(MachineFunction &MF) {
     }
   }
 
-  AArch64FunctionInfo *AFI = MF.getInfo<AArch64FunctionInfo>();
-  if (FunctionHasAllSMChangesRemoved)
+  
+  if (AArch64FunctionInfo *AFI = MF.getInfo<AArch64FunctionInfo>(); FunctionHasAllSMChangesRemoved)
     AFI->setHasStreamingModeChanges(false);
 
   return Changed;

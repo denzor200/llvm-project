@@ -231,9 +231,9 @@ void IRNormalizer::nameAsInitialInstruction(Instruction *I) const {
 
   // In case of CallInst, consider callee in the instruction name.
   if (const auto *CI = dyn_cast<CallInst>(I)) {
-    Function *F = CI->getCalledFunction();
+    
 
-    if (F != nullptr)
+    if (Function *F = CI->getCalledFunction(); F != nullptr)
       Name.append(F->getName());
   }
 

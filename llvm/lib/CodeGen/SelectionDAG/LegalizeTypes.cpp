@@ -537,8 +537,8 @@ SDNode *DAGTypeLegalizer::AnalyzeNewNode(SDNode *N) {
 
   // Some operands changed - update the node.
   if (!NewOps.empty()) {
-    SDNode *M = DAG.UpdateNodeOperands(N, NewOps);
-    if (M != N) {
+    
+    if (SDNode *M = DAG.UpdateNodeOperands(N, NewOps); M != N) {
       // The node morphed into a different node.  Normally for this to happen
       // the original node would have to be marked NewNode.  However this can
       // in theory momentarily not be the case while ReplaceValueWith is doing
@@ -660,9 +660,9 @@ void DAGTypeLegalizer::ReplaceValueWith(SDValue From, SDValue To) {
     // The old node may be present in a map like ExpandedIntegers or
     // PromotedIntegers. Inform maps about the replacement.
     auto FromId = getTableId(From);
-    auto ToId = getTableId(To);
+    
 
-    if (FromId != ToId)
+    if (auto ToId = getTableId(To); FromId != ToId)
       ReplacedValues[FromId] = ToId;
     DAG.ReplaceAllUsesOfValueWith(From, To);
 
@@ -966,8 +966,8 @@ bool DAGTypeLegalizer::CustomWidenLowerNode(SDNode *N, EVT VT) {
          "Custom lowering returned the wrong number of results!");
   for (unsigned i = 0, e = Results.size(); i != e; ++i) {
     // If this is a chain output or already widened just replace it.
-    bool WasWidened = SDValue(N, i).getValueType() != Results[i].getValueType();
-    if (WasWidened)
+    
+    if (bool WasWidened = SDValue(N, i).getValueType() != Results[i].getValueType(); WasWidened)
       SetWidenedVector(SDValue(N, i), Results[i]);
     else
       ReplaceValueWith(SDValue(N, i), Results[i]);

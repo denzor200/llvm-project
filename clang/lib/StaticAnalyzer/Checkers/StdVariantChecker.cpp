@@ -46,9 +46,9 @@ bool isCopyConstructorCall(const CallEvent &Call) {
 }
 
 bool isCopyAssignmentCall(const CallEvent &Call) {
-  const Decl *CopyAssignmentDecl = Call.getDecl();
+  
 
-  if (const auto *AsMethodDecl =
+  if (const Decl *CopyAssignmentDecl = Call.getDecl(); const auto *AsMethodDecl =
           dyn_cast_or_null<CXXMethodDecl>(CopyAssignmentDecl))
     return AsMethodDecl->isCopyAssignmentOperator();
   return false;
@@ -165,11 +165,11 @@ public:
     // constructor call, check if it is an std::variant constructor call.
     bool IsVariantConstructor =
         isa<CXXConstructorCall>(Call) && VariantConstructor.matches(Call);
-    bool IsVariantAssignmentOperatorCall =
-        isa<CXXMemberOperatorCall>(Call) &&
-        VariantAssignmentOperator.matches(Call);
+    
 
-    if (IsVariantConstructor || IsVariantAssignmentOperatorCall) {
+    if (bool IsVariantAssignmentOperatorCall =
+        isa<CXXMemberOperatorCall>(Call) &&
+        VariantAssignmentOperator.matches(Call); IsVariantConstructor || IsVariantAssignmentOperatorCall) {
       if (Call.getNumArgs() == 0 && IsVariantConstructor) {
         handleDefaultConstructor(cast<CXXConstructorCall>(&Call), C);
         return true;

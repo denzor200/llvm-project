@@ -109,8 +109,8 @@ bool llvm::objcarc::CanUse(const Instruction *Inst, const Value *Ptr,
 
   // Check each operand for a match.
   for (const Use &U : Inst->operands()) {
-    const Value *Op = U;
-    if (IsPotentialRetainableObjPtr(Op, *PA.getAA()) && PA.related(Ptr, Op))
+    
+    if (const Value *Op = U; IsPotentialRetainableObjPtr(Op, *PA.getAA()) && PA.related(Ptr, Op))
       return true;
   }
   return false;
@@ -230,8 +230,8 @@ static bool findDependencies(DependenceKind Flavor, const Value *Arg,
         break;
       }
 
-      Instruction *Inst = &*--LocalStartPos;
-      if (Depends(Flavor, Inst, Arg, PA)) {
+      
+      if (Instruction *Inst = &*--LocalStartPos; Depends(Flavor, Inst, Arg, PA)) {
         DependingInsts.insert(Inst);
         break;
       }

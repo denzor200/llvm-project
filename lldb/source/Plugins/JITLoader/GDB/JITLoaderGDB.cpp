@@ -126,9 +126,9 @@ static bool ReadJITEntry(const addr_t from_addr, Process *process,
 
   Status error;
   DataBufferHeap data(data_byte_size, 0);
-  size_t bytes_read = process->ReadMemory(from_addr, data.GetBytes(),
-                                          data.GetByteSize(), error);
-  if (bytes_read != data_byte_size || !error.Success())
+  
+  if (size_t bytes_read = process->ReadMemory(from_addr, data.GetBytes(),
+                                          data.GetByteSize(), error); bytes_read != data_byte_size || !error.Success())
     return false;
 
   DataExtractor extractor(data.GetBytes(), data.GetByteSize(),
@@ -288,9 +288,9 @@ bool JITLoaderGDB::ReadJITDescriptorImpl(bool all_entries) {
   jit_descriptor<ptr_t> jit_desc;
   const size_t jit_desc_size = sizeof(jit_desc);
   Status error;
-  size_t bytes_read = m_process->ReadMemory(m_jit_descriptor_addr, &jit_desc,
-                                            jit_desc_size, error);
-  if (bytes_read != jit_desc_size || !error.Success()) {
+  
+  if (size_t bytes_read = m_process->ReadMemory(m_jit_descriptor_addr, &jit_desc,
+                                            jit_desc_size, error); bytes_read != jit_desc_size || !error.Success()) {
     LLDB_LOGF(log, "JITLoaderGDB::%s failed to read JIT descriptor",
               __FUNCTION__);
     return false;
@@ -337,8 +337,8 @@ bool JITLoaderGDB::ReadJITDescriptorImpl(bool all_entries) {
         m_jit_objects.insert(std::make_pair(symbolfile_addr, module_sp));
         if (auto image_object_file =
                 llvm::dyn_cast<ObjectFileMachO>(module_sp->GetObjectFile())) {
-          const SectionList *section_list = image_object_file->GetSectionList();
-          if (section_list) {
+          
+          if (const SectionList *section_list = image_object_file->GetSectionList(); section_list) {
             uint64_t vmaddrheuristic = 0;
             uint64_t lower = (uint64_t)-1;
             uint64_t upper = 0;
@@ -369,10 +369,10 @@ bool JITLoaderGDB::ReadJITDescriptorImpl(bool all_entries) {
       JITObjectMap::iterator it = m_jit_objects.find(symbolfile_addr);
       if (it != m_jit_objects.end()) {
         module_sp = it->second;
-        ObjectFile *image_object_file = module_sp->GetObjectFile();
-        if (image_object_file) {
-          const SectionList *section_list = image_object_file->GetSectionList();
-          if (section_list) {
+        
+        if (ObjectFile *image_object_file = module_sp->GetObjectFile(); image_object_file) {
+          
+          if (const SectionList *section_list = image_object_file->GetSectionList(); section_list) {
             const uint32_t num_sections = section_list->GetSize();
             for (uint32_t i = 0; i < num_sections; ++i) {
               SectionSP section_sp(section_list->GetSectionAtIndex(i));

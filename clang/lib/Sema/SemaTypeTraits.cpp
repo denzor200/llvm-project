@@ -577,8 +577,8 @@ static bool HasNoThrowOperator(CXXRecordDecl *RD, OverloadedOperatorKind Op,
       if (isa<FunctionTemplateDecl>(*Op))
         continue;
 
-      CXXMethodDecl *Operator = cast<CXXMethodDecl>(*Op);
-      if ((Operator->*IsDesiredOp)()) {
+      
+      if (CXXMethodDecl *Operator = cast<CXXMethodDecl>(*Op); (Operator->*IsDesiredOp)()) {
         FoundOperator = true;
         auto *CPT = Operator->getType()->castAs<FunctionProtoType>();
         CPT = Self.ResolveExceptionSpec(KeyLoc, CPT);
@@ -707,8 +707,8 @@ static bool EvaluateUnaryTypeTrait(Sema &Self, TypeTrait UTT,
   QualType T = TInfo->getType();
   assert(!T->isDependentType() && "Cannot evaluate traits of dependent type");
 
-  ASTContext &C = Self.Context;
-  switch (UTT) {
+  
+  switch (ASTContext &C = Self.Context; UTT) {
   default:
     llvm_unreachable("not a UTT");
     // Type trait expressions corresponding to the primary type category
@@ -1050,8 +1050,8 @@ static bool EvaluateUnaryTypeTrait(Sema &Self, TypeTrait UTT,
         // UsingDecl itself is not a constructor
         if (isa<UsingDecl>(ND))
           continue;
-        auto *Constructor = cast<CXXConstructorDecl>(ND->getUnderlyingDecl());
-        if (Constructor->isCopyConstructor(FoundTQs)) {
+        
+        if (auto *Constructor = cast<CXXConstructorDecl>(ND->getUnderlyingDecl()); Constructor->isCopyConstructor(FoundTQs)) {
           FoundConstructor = true;
           auto *CPT = Constructor->getType()->castAs<FunctionProtoType>();
           CPT = Self.ResolveExceptionSpec(KeyLoc, CPT);
@@ -1087,8 +1087,8 @@ static bool EvaluateUnaryTypeTrait(Sema &Self, TypeTrait UTT,
         // UsingDecl itself is not a constructor
         if (isa<UsingDecl>(ND))
           continue;
-        auto *Constructor = cast<CXXConstructorDecl>(ND->getUnderlyingDecl());
-        if (Constructor->isDefaultConstructor()) {
+        
+        if (auto *Constructor = cast<CXXConstructorDecl>(ND->getUnderlyingDecl()); Constructor->isDefaultConstructor()) {
           FoundConstructor = true;
           auto *CPT = Constructor->getType()->castAs<FunctionProtoType>();
           CPT = Self.ResolveExceptionSpec(KeyLoc, CPT);
@@ -1368,8 +1368,8 @@ static bool EvaluateBooleanTypeTrait(Sema &S, TypeTrait Kind,
       return false;
 
     // Make sure the first argument is not an abstract type.
-    CXXRecordDecl *RD = T->getAsCXXRecordDecl();
-    if (RD && RD->isAbstract())
+    
+    if (CXXRecordDecl *RD = T->getAsCXXRecordDecl(); RD && RD->isAbstract())
       return false;
 
     // LWG3819: For reference_meows_from_temporary traits, && is not added to
@@ -1779,8 +1779,8 @@ static bool EvaluateBinaryTypeTrait(Sema &Self, TypeTrait BTT,
       // Objective-C lifetime, this is a non-trivial assignment.
       if (LhsT.getNonReferenceType().hasNonTrivialObjCLifetime())
         return false;
-      const ASTContext &Context = Self.getASTContext();
-      if (Context.containsAddressDiscriminatedPointerAuth(LhsT) ||
+      
+      if (const ASTContext &Context = Self.getASTContext(); Context.containsAddressDiscriminatedPointerAuth(LhsT) ||
           Context.containsAddressDiscriminatedPointerAuth(RhsT))
         return false;
       return !Result.get()->hasNonTrivialCall(Self.Context);
@@ -2119,17 +2119,17 @@ static void DiagnoseNonDefaultMovable(Sema &SemaRef, SourceLocation Loc,
   }
 
   if (!D->hasSimpleMoveConstructor() && !D->hasSimpleCopyConstructor()) {
-    const auto *Decl = cast_or_null<CXXConstructorDecl>(
-        LookupSpecialMemberFromXValue(SemaRef, D, /*Assign=*/false));
-    if (Decl && Decl->isUserProvided())
+    
+    if (const auto *Decl = cast_or_null<CXXConstructorDecl>(
+        LookupSpecialMemberFromXValue(SemaRef, D, /*Assign=*/false)); Decl && Decl->isUserProvided())
       SemaRef.Diag(Loc, diag::note_unsatisfied_trait_reason)
           << diag::TraitNotSatisfiedReason::UserProvidedCtr
           << Decl->isMoveConstructor() << Decl->getSourceRange();
   }
   if (!D->hasSimpleMoveAssignment() && !D->hasSimpleCopyAssignment()) {
-    CXXMethodDecl *Decl =
-        LookupSpecialMemberFromXValue(SemaRef, D, /*Assign=*/true);
-    if (Decl && Decl->isUserProvided())
+    
+    if (CXXMethodDecl *Decl =
+        LookupSpecialMemberFromXValue(SemaRef, D, /*Assign=*/true); Decl && Decl->isUserProvided())
       SemaRef.Diag(Loc, diag::note_unsatisfied_trait_reason)
           << diag::TraitNotSatisfiedReason::UserProvidedAssign
           << Decl->isMoveAssignmentOperator() << Decl->getSourceRange();
@@ -2223,17 +2223,17 @@ static void DiagnoseNonReplaceableReason(Sema &SemaRef, SourceLocation Loc,
         << D->getDestructor()->getSourceRange();
 
   if (!D->hasSimpleMoveConstructor() && !D->hasSimpleCopyConstructor()) {
-    const auto *Decl = cast<CXXConstructorDecl>(
-        LookupSpecialMemberFromXValue(SemaRef, D, /*Assign=*/false));
-    if (Decl && Decl->isDeleted())
+    
+    if (const auto *Decl = cast<CXXConstructorDecl>(
+        LookupSpecialMemberFromXValue(SemaRef, D, /*Assign=*/false)); Decl && Decl->isDeleted())
       SemaRef.Diag(Loc, diag::note_unsatisfied_trait_reason)
           << diag::TraitNotSatisfiedReason::DeletedCtr
           << Decl->isMoveConstructor() << Decl->getSourceRange();
   }
   if (!D->hasSimpleMoveAssignment() && !D->hasSimpleCopyAssignment()) {
-    CXXMethodDecl *Decl =
-        LookupSpecialMemberFromXValue(SemaRef, D, /*Assign=*/true);
-    if (Decl && Decl->isDeleted())
+    
+    if (CXXMethodDecl *Decl =
+        LookupSpecialMemberFromXValue(SemaRef, D, /*Assign=*/true); Decl && Decl->isDeleted())
       SemaRef.Diag(Loc, diag::note_unsatisfied_trait_reason)
           << diag::TraitNotSatisfiedReason::DeletedAssign
           << Decl->isMoveAssignmentOperator() << Decl->getSourceRange();
@@ -2309,8 +2309,8 @@ static void DiagnoseNonTriviallyCopyableReason(Sema &SemaRef,
           << diag::TraitNotSatisfiedReason::NTCField << Field
           << Field->getType() << Field->getSourceRange();
   }
-  CXXDestructorDecl *Dtr = D->getDestructor();
-  if (D->hasDeletedDestructor() || (Dtr && !Dtr->isTrivial()))
+  
+  if (CXXDestructorDecl *Dtr = D->getDestructor(); D->hasDeletedDestructor() || (Dtr && !Dtr->isTrivial()))
     SemaRef.Diag(Loc, diag::note_unsatisfied_trait_reason)
         << diag::TraitNotSatisfiedReason::DeletedDtr
         << !D->hasDeletedDestructor() << D->getDestructor()->getSourceRange();
@@ -2852,8 +2852,8 @@ static void DiagnoseNonAbstractReason(Sema &SemaRef, SourceLocation Loc,
     return;
   }
 
-  const CXXRecordDecl *D = T->getAsCXXRecordDecl();
-  if (D->hasDefinition())
+  
+  if (const CXXRecordDecl *D = T->getAsCXXRecordDecl(); D->hasDefinition())
     DiagnoseNonAbstractReason(SemaRef, Loc, D);
 }
 
@@ -2866,8 +2866,8 @@ void Sema::DiagnoseTypeTraitDetails(const Expr *E) {
   if (!TraitInfo)
     return;
 
-  const auto &[Trait, Args] = TraitInfo.value();
-  switch (Trait) {
+  
+  switch (const auto &[Trait, Args] = TraitInfo.value(); Trait) {
   case UTT_IsCppTriviallyRelocatable:
     DiagnoseNonTriviallyRelocatableReason(*this, E->getBeginLoc(), Args[0]);
     break;
@@ -2896,8 +2896,8 @@ void Sema::DiagnoseTypeTraitDetails(const Expr *E) {
     QualType QT = Args[0];
     if (QT->isDependentType())
       break;
-    const auto *RD = QT->getAsCXXRecordDecl();
-    if (!RD || !RD->isEffectivelyFinal())
+    
+    if (const auto *RD = QT->getAsCXXRecordDecl(); !RD || !RD->isEffectivelyFinal())
       DiagnoseIsFinalReason(*this, E->getBeginLoc(), QT); // unsatisfied
     break;
   }

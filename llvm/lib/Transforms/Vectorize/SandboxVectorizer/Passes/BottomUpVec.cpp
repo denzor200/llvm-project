@@ -292,8 +292,8 @@ Action *BottomUpVec::vectorizeRec(ArrayRef<Value *> Bndl,
   SmallVector<Action *> Operands;
   switch (LegalityRes.getSubclassID()) {
   case LegalityResultID::Widen: {
-    auto *I = cast<Instruction>(Bndl[0]);
-    switch (I->getOpcode()) {
+    
+    switch (auto *I = cast<Instruction>(Bndl[0]); I->getOpcode()) {
     case Instruction::Opcode::Load:
       break;
     case Instruction::Opcode::Store: {
@@ -399,9 +399,9 @@ Value *BottomUpVec::emitVectors() {
       // TODO: Try to get WhereIt without creating a vector.
       SmallVector<Value *, 4> DescrInstrs;
       for (const auto &ElmDescr : Descr.getDescrs()) {
-        auto *V = ElmDescr.needsExtract() ? ElmDescr.getValue()->Vec
-                                          : ElmDescr.getScalar();
-        if (auto *I = dyn_cast<Instruction>(V))
+        
+        if (auto *V = ElmDescr.needsExtract() ? ElmDescr.getValue()->Vec
+                                          : ElmDescr.getScalar(); auto *I = dyn_cast<Instruction>(V))
           DescrInstrs.push_back(I);
       }
       BasicBlock::iterator WhereIt =

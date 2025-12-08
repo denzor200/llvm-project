@@ -97,8 +97,8 @@ void AMDGPUPrintfRuntimeBindingImpl::getConversionSpecifiers(
     bool ArgDump = false;
     StringRef CurFmt = Fmt.substr(PrevFmtSpecifierIdx,
                                   CurFmtSpecifierIdx - PrevFmtSpecifierIdx);
-    size_t pTag = CurFmt.find_last_of('%');
-    if (pTag != StringRef::npos) {
+    
+    if (size_t pTag = CurFmt.find_last_of('%'); pTag != StringRef::npos) {
       ArgDump = true;
       while (pTag && CurFmt[--pTag] == '%') {
         ArgDump = !ArgDump;
@@ -206,12 +206,12 @@ bool AMDGPUPrintfRuntimeBindingImpl::lowerPrintfForGpu(Module &M) {
         CI->setOperand(ArgCount, Arg);
       }
       if (OpConvSpecifiers[ArgCount - 1] == 'f') {
-        ConstantFP *FpCons = dyn_cast<ConstantFP>(Arg);
-        if (FpCons)
+        
+        if (ConstantFP *FpCons = dyn_cast<ConstantFP>(Arg); FpCons)
           ArgSize = 4;
         else {
-          FPExtInst *FpExt = dyn_cast<FPExtInst>(Arg);
-          if (FpExt && FpExt->getType()->isDoubleTy() &&
+          
+          if (FPExtInst *FpExt = dyn_cast<FPExtInst>(Arg); FpExt && FpExt->getType()->isDoubleTy() &&
               FpExt->getOperand(0)->getType()->isFloatTy())
             ArgSize = 4;
         }

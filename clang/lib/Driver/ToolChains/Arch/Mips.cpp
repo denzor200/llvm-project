@@ -394,9 +394,9 @@ void mips::getMIPSTargetFeatures(const Driver &D, const llvm::Triple &Triple,
     if (Val == "hazard") {
       Arg *B =
           Args.getLastArg(options::OPT_mmicromips, options::OPT_mno_micromips);
-      Arg *C = Args.getLastArg(options::OPT_mips16, options::OPT_mno_mips16);
+      
 
-      if (B && B->getOption().matches(options::OPT_mmicromips))
+      if (Arg *C = Args.getLastArg(options::OPT_mips16, options::OPT_mno_mips16); B && B->getOption().matches(options::OPT_mmicromips))
         D.Diag(diag::err_drv_unsupported_indirect_jump_opt)
             << "hazard" << "micromips";
       else if (C && C->getOption().matches(options::OPT_mips16))

@@ -1154,8 +1154,8 @@ void DisassemblerTables::setTableFields(
         inheritsFrom((InstructionContext)index, IC_64BIT))
       continue;
 
-    bool adSize64 = addressSize == 64;
-    if (inheritsFrom((InstructionContext)index,
+    
+    if (bool adSize64 = addressSize == 64; inheritsFrom((InstructionContext)index,
                      InstructionSpecifiers[uid].insnContext, noPrefix,
                      ignoresVEX_L, ignoresW, adSize64))
       setTableFields(decision.opcodeDecisions[index].modRMDecisions[opcode],

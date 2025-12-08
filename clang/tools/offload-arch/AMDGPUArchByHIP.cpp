@@ -238,8 +238,8 @@ int printGPUsByHIP() {
 
   auto LoadSymbol = [&](const char *Name, auto &FuncPtr,
                         const char *Desc = "") {
-    void *Sym = DynlibHandle->getAddressOfSymbol(Name);
-    if (Sym) {
+    
+    if (void *Sym = DynlibHandle->getAddressOfSymbol(Name); Sym) {
       FuncPtr = reinterpret_cast<decltype(FuncPtr)>(Sym);
       if (Verbose)
         outs() << "Found symbol: " << Name << (Desc[0] ? " " : "") << Desc
@@ -256,8 +256,8 @@ int printGPUsByHIP() {
     if (hipRuntimeGetVersion(&RuntimeVersion) == hipSuccess) {
       int Major = RuntimeVersion / 10000000;
       int Minor = (RuntimeVersion / 100000) % 100;
-      int Patch = RuntimeVersion % 100000;
-      if (Verbose)
+      
+      if (int Patch = RuntimeVersion % 100000; Verbose)
         outs() << "HIP Runtime Version: " << Major << "." << Minor << "."
                << Patch << '\n';
     }
@@ -343,8 +343,8 @@ int printGPUsByHIP() {
       return !ArchName.empty();
     };
 
-    [[maybe_unused]] bool OK;
-    switch (HipApi) {
+    
+    switch ([[maybe_unused]] bool OK; HipApi) {
     case HipApiVersion::Auto:
       OK = TryR0600(I) || TryR0000(I) || TryUnversioned(I);
       break;

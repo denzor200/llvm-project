@@ -231,9 +231,9 @@ clang::QualType AppleObjCTypeEncodingParser::BuildObjCObjectPointerType(
   }
 
   if (for_expression && !name.empty()) {
-    size_t less_than_pos = name.find('<');
+    
 
-    if (less_than_pos != std::string::npos) {
+    if (size_t less_than_pos = name.find('<'); less_than_pos != std::string::npos) {
       if (less_than_pos == 0)
         return ast_ctx.getObjCIdType();
       else
@@ -329,8 +329,8 @@ AppleObjCTypeEncodingParser::BuildType(TypeSystemClang &clang_ast_ctx,
   case _C_SEL:
     return ast_ctx.getObjCSelType();
   case _C_BFLD: {
-    uint32_t size = ReadNumber(type);
-    if (bitfield_bit_size) {
+    
+    if (uint32_t size = ReadNumber(type); bitfield_bit_size) {
       *bitfield_bit_size = size;
       return ast_ctx.UnsignedIntTy; // FIXME: the spec is fairly vague here.
     } else

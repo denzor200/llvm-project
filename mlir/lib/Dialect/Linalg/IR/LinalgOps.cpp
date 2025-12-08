@@ -843,9 +843,9 @@ struct FoldInsertPadIntoFill : public OpRewritePattern<tensor::InsertSliceOp> {
         int64_t prevEnd = prevStart + (prevOp.getStaticSize(i) - 1) *
                                           prevOp.getStaticStride(i);
         int64_t nextStart = insertOp.getStaticOffset(i);
-        int64_t nextEnd = nextStart + (insertOp.getStaticSize(i) - 1) *
-                                          insertOp.getStaticStride(i);
-        if (prevEnd < nextStart || nextEnd < prevStart) {
+        
+        if (int64_t nextEnd = nextStart + (insertOp.getStaticSize(i) - 1) *
+                                          insertOp.getStaticStride(i); prevEnd < nextStart || nextEnd < prevStart) {
           disjoint = true;
           break;
         }
@@ -1564,8 +1564,8 @@ ParseResult MapOp::parse(OpAsmParser &parser, OperationState &result) {
                                  /*allowType=*/true, /*allowAttrs=*/true)) {
       return failure();
     }
-    Region *body = result.addRegion();
-    if (parser.parseRegion(*body, regionArgs))
+    
+    if (Region *body = result.addRegion(); parser.parseRegion(*body, regionArgs))
       return failure();
   }
   return success();
@@ -1833,8 +1833,8 @@ ParseResult ReduceOp::parse(OpAsmParser &parser, OperationState &result) {
       return failure();
     }
 
-    Region *body = result.addRegion();
-    if (parser.parseRegion(*body, regionArgs))
+    
+    if (Region *body = result.addRegion(); parser.parseRegion(*body, regionArgs))
       return failure();
   }
 
@@ -2795,8 +2795,8 @@ LogicalResult SoftmaxOp::verify() {
     return emitOpError("incompatible output shape");
 
   int64_t inputRank = getInputOperandRank();
-  int64_t dimension = getDimension();
-  if ((dimension < 0) || (dimension >= inputRank))
+  
+  if (int64_t dimension = getDimension(); (dimension < 0) || (dimension >= inputRank))
     return emitOpError("incorrect dimension specified");
 
   return success();
@@ -3852,10 +3852,10 @@ void MatmulOp::regionBuilder(ImplicitLocOpBuilder &b, Block &block,
   SmallVector<Value> yields;
 
   TypeFn castVal = TypeFn::cast_signed;
-  const auto *castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
+  
+  if (const auto *castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
     return attr.getName() == "cast";
-  });
-  if (castIter != attrs.end()) {
+  }); castIter != attrs.end()) {
     if (auto attr = llvm::dyn_cast<TypeFnAttr>(castIter->getValue()))
       castVal = attr.getValue();
   }
@@ -4384,10 +4384,10 @@ void ContractOp::regionBuilder(ImplicitLocOpBuilder &b, Block &block,
   RegionBuilderHelper helper(b, block);
 
   TypeFn castSignedness = TypeFn::cast_signed;
-  auto castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
+  
+  if (auto castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
     return attr.getName() == "cast";
-  });
-  if (castIter != attrs.end()) {
+  }); castIter != attrs.end()) {
     if (auto attr = llvm::dyn_cast<TypeFnAttr>(castIter->getValue()))
       castSignedness = attr.getValue();
   }
@@ -4625,10 +4625,10 @@ void BatchMatmulOp::regionBuilder(
   SmallVector<Value> yields;
 
   TypeFn castVal = TypeFn::cast_signed;
-  auto castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
+  
+  if (auto castIter = llvm::find_if(attrs, [&](const NamedAttribute &attr) {
     return attr.getName() == "cast";
-  });
-  if (castIter != attrs.end()) {
+  }); castIter != attrs.end()) {
     if (auto attr = llvm::dyn_cast<TypeFnAttr>(castIter->getValue()))
       castVal = attr.getValue();
   }
@@ -6023,9 +6023,9 @@ bool UnPackOp::canFoldSliceOp(tensor::ExtractSliceOp sliceOp) {
       return false;
     if (ShapedType::isDynamic(tileSize))
       return false;
-    int64_t paddingSize = outerShapeWithoutTranspose[pos] * tileSize -
-                          unpackedTypeAfterFold.getDimSize(pos);
-    if (paddingSize >= tileSize)
+    
+    if (int64_t paddingSize = outerShapeWithoutTranspose[pos] * tileSize -
+                          unpackedTypeAfterFold.getDimSize(pos); paddingSize >= tileSize)
       return false;
   }
   return true;

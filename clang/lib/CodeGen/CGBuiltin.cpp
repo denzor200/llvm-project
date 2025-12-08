@@ -278,8 +278,8 @@ Address CheckAtomicAlignment(CodeGenFunction &CGF, const CallExpr *E) {
   unsigned Bytes = Ptr.getElementType()->isPointerTy()
                        ? Ctx.getTypeSizeInChars(Ctx.VoidPtrTy).getQuantity()
                        : DL.getTypeStoreSize(Ptr.getElementType());
-  unsigned Align = Ptr.getAlignment().getQuantity();
-  if (Align % Bytes != 0) {
+  
+  if (unsigned Align = Ptr.getAlignment().getQuantity(); Align % Bytes != 0) {
     DiagnosticsEngine &Diags = CGF.CGM.getDiags();
     Diags.Report(E->getBeginLoc(), diag::warn_sync_op_misaligned);
     // Force address to be at least naturally-aligned.
@@ -400,10 +400,10 @@ Value *MakeAtomicCmpXchgValue(CodeGenFunction &CGF, const CallExpr *E,
   Cmp = EmitToInt(CGF, Cmp, T, IntType);
   Value *New = EmitToInt(CGF, CGF.EmitScalarExpr(E->getArg(2)), T, IntType);
 
-  Value *Pair = CGF.Builder.CreateAtomicCmpXchg(
+  
+  if (Value *Pair = CGF.Builder.CreateAtomicCmpXchg(
       DestAddr, Cmp, New, llvm::AtomicOrdering::SequentiallyConsistent,
-      llvm::AtomicOrdering::SequentiallyConsistent);
-  if (ReturnBool)
+      llvm::AtomicOrdering::SequentiallyConsistent); ReturnBool)
     // Extract boolean success flag and zext it to int.
     return CGF.Builder.CreateZExt(CGF.Builder.CreateExtractValue(Pair, 1),
                                   CGF.ConvertType(E->getType()));
@@ -813,11 +813,11 @@ static RValue emitLibraryCall(CodeGenFunction &CGF, const FunctionDecl *FD,
   if (unsigned BuiltinID = FD->getBuiltinID()) {
     // Check whether a FP math builtin function, such as BI__builtin_expf
     ASTContext &Context = CGF.getContext();
-    bool ConstWithoutErrnoAndExceptions =
-        Context.BuiltinInfo.isConstWithoutErrnoAndExceptions(BuiltinID);
+    
     // Restrict to target with errno, for example, MacOS doesn't set errno.
     // TODO: Support builtin function with complex type returned, eg: cacosh
-    if (ConstWithoutErrnoAndExceptions && CGF.CGM.getLangOpts().MathErrno &&
+    if (bool ConstWithoutErrnoAndExceptions =
+        Context.BuiltinInfo.isConstWithoutErrnoAndExceptions(BuiltinID); ConstWithoutErrnoAndExceptions && CGF.CGM.getLangOpts().MathErrno &&
         !CGF.Builder.getIsFPConstrained() && Call.isScalar() &&
         HasNoIndirectArgumentsOrResults(*FnInfo)) {
       // Emit "int" TBAA metadata on FP math libcalls.
@@ -888,8 +888,8 @@ EncompassingIntegerType(ArrayRef<struct WidthAndSignedness> Types) {
   // given.
   unsigned Width = 0;
   for (const auto &Type : Types) {
-    unsigned MinWidth = Type.Width + (Signed && !Type.Signed);
-    if (Width < MinWidth) {
+    
+    if (unsigned MinWidth = Type.Width + (Signed && !Type.Signed); Width < MinWidth) {
       Width = MinWidth;
     }
   }
@@ -1509,8 +1509,8 @@ CodeGenFunction::emitBuiltinObjectSize(const Expr *E, unsigned Type,
   // pass_object_size attribute.
   if (auto *D = dyn_cast<DeclRefExpr>(E->IgnoreParenImpCasts())) {
     auto *Param = dyn_cast<ParmVarDecl>(D->getDecl());
-    auto *PS = D->getDecl()->getAttr<PassObjectSizeAttr>();
-    if (Param != nullptr && PS != nullptr &&
+    
+    if (auto *PS = D->getDecl()->getAttr<PassObjectSizeAttr>(); Param != nullptr && PS != nullptr &&
         areBOSTypesCompatible(PS->getType(), Type)) {
       auto Iter = SizeArguments.find(Param);
       assert(Iter != SizeArguments.end());
@@ -2642,12 +2642,12 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
 
   bool IsOptimizationEnabled = CGM.getCodeGenOpts().OptimizationLevel != 0;
 
-  bool GenerateFPMathIntrinsics =
+  
+
+  if (bool GenerateFPMathIntrinsics =
       getContext().BuiltinInfo.shouldGenerateFPMathIntrinsic(
           BuiltinID, CGM.getTriple(), ErrnoOverriden, getLangOpts().MathErrno,
-          OptNone, IsOptimizationEnabled);
-
-  if (GenerateFPMathIntrinsics) {
+          OptNone, IsOptimizationEnabled); GenerateFPMathIntrinsics) {
     switch (BuiltinIDIfNoAsmLabel) {
     case Builtin::BIacos:
     case Builtin::BIacosf:
@@ -2880,8 +2880,8 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
     case Builtin::BI__builtin_elementwise_fmod: {
       CodeGenFunction::CGFPOptionsRAII FPOptsRAII(*this, E);
       Value *Arg1 = EmitScalarExpr(E->getArg(0));
-      Value *Arg2 = EmitScalarExpr(E->getArg(1));
-      if (Builder.getIsFPConstrained()) {
+      
+      if (Value *Arg2 = EmitScalarExpr(E->getArg(1)); Builder.getIsFPConstrained()) {
         Function *F = CGM.getIntrinsic(Intrinsic::experimental_constrained_frem,
                                        Arg1->getType());
         return RValue::get(Builder.CreateConstrainedFPCall(F, {Arg1, Arg2}));
@@ -3693,8 +3693,8 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
       if (auto *CATy =
               ME->getMemberDecl()->getType()->getAs<CountAttributedType>();
           CATy && CATy->getKind() == CountAttributedType::CountedBy) {
-        const auto *FAMDecl = cast<FieldDecl>(ME->getMemberDecl());
-        if (const FieldDecl *CountFD = FAMDecl->findCountedByField())
+        
+        if (const auto *FAMDecl = cast<FieldDecl>(ME->getMemberDecl()); const FieldDecl *CountFD = FAMDecl->findCountedByField())
           Result = GetCountedByFieldExprGEP(Arg, FAMDecl, CountFD);
         else
           llvm::report_fatal_error("Cannot find the counted_by 'count' field");
@@ -3807,9 +3807,9 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
     // floating point values.
     CodeGenFunction::CGFPOptionsRAII FPOptsRAII(*this, E);
     Value *LHS = EmitScalarExpr(E->getArg(0));
-    Value *RHS = EmitScalarExpr(E->getArg(1));
+    
 
-    switch (BuiltinID) {
+    switch (Value *RHS = EmitScalarExpr(E->getArg(1)); BuiltinID) {
     default: llvm_unreachable("Unknown ordered comparison");
     case Builtin::BI__builtin_isgreater:
       LHS = Builder.CreateFCmpOGT(LHS, RHS, "cmp");
@@ -4734,8 +4734,8 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
     return RValue::get(llvm::ConstantInt::get(Ty, Column, true));
   }
   case Builtin::BI__builtin_init_dwarf_reg_size_table: {
-    Value *Address = EmitScalarExpr(E->getArg(0));
-    if (getTargetHooks().initDwarfEHRegSizeTable(*this, Address))
+    
+    if (Value *Address = EmitScalarExpr(E->getArg(0)); getTargetHooks().initDwarfEHRegSizeTable(*this, Address))
       CGM.ErrorUnsupported(E, "__builtin_init_dwarf_reg_size_table");
     return RValue::get(llvm::UndefValue::get(ConvertType(E->getType())));
   }
@@ -5042,8 +5042,8 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
       SSID = llvm::SyncScope::System;
     Value *Order = EmitScalarExpr(E->getArg(0));
     if (isa<llvm::ConstantInt>(Order)) {
-      int ord = cast<llvm::ConstantInt>(Order)->getZExtValue();
-      switch (ord) {
+      
+      switch (int ord = cast<llvm::ConstantInt>(Order)->getZExtValue(); ord) {
       case 0:  // memory_order_relaxed
       default: // invalid order
         break;
@@ -5786,10 +5786,10 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
     // Type of the generic packet parameter.
     unsigned GenericAS =
         getContext().getTargetAddressSpace(LangAS::opencl_generic);
-    llvm::Type *I8PTy = llvm::PointerType::get(getLLVMContext(), GenericAS);
+    
 
     // Testing which overloaded version we should generate the call for.
-    if (2U == E->getNumArgs()) {
+    if (llvm::Type *I8PTy = llvm::PointerType::get(getLLVMContext(), GenericAS); 2U == E->getNumArgs()) {
       const char *Name = (BuiltinID == Builtin::BIread_pipe) ? "__read_pipe_2"
                                                              : "__write_pipe_2";
       // Creating a generic function type to be able to call with any builtin or
@@ -6263,8 +6263,8 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
     auto Arg0 = E->getArg(0);
     auto Arg0Val = EmitScalarExpr(Arg0);
     auto Arg0Ty = Arg0->getType();
-    auto PTy0 = FTy->getParamType(0);
-    if (PTy0 != Arg0Val->getType()) {
+    
+    if (auto PTy0 = FTy->getParamType(0); PTy0 != Arg0Val->getType()) {
       if (Arg0Ty->isArrayType())
         Arg0Val = EmitArrayToPointerDecay(Arg0).emitRawPointer(*this);
       else
@@ -6295,8 +6295,8 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
     Function *F = CGM.getIntrinsic(Intrinsic::xray_typedevent);
     auto FTy = F->getFunctionType();
     auto Arg0 = EmitScalarExpr(E->getArg(0));
-    auto PTy0 = FTy->getParamType(0);
-    if (PTy0 != Arg0->getType())
+    
+    if (auto PTy0 = FTy->getParamType(0); PTy0 != Arg0->getType())
       Arg0 = Builder.CreateTruncOrBitCast(Arg0, PTy0);
     auto Arg1 = E->getArg(1);
     auto Arg1Val = EmitScalarExpr(Arg1);
@@ -6404,8 +6404,8 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
       Value *ArgValue = EmitScalarOrConstFoldImmArg(ICEArguments, i, E);
       // If the intrinsic arg type is different from the builtin arg type
       // we need to do a bit cast.
-      llvm::Type *PTy = FTy->getParamType(i);
-      if (PTy != ArgValue->getType()) {
+      
+      if (llvm::Type *PTy = FTy->getParamType(i); PTy != ArgValue->getType()) {
         // XXX - vector of pointers?
         if (auto *PtrTy = dyn_cast<llvm::PointerType>(PTy)) {
           if (PtrTy->getAddressSpace() !=

@@ -111,8 +111,8 @@ void yamlize(IO &IO, ClangTidyOptions::OptionMap &Val, bool,
   } else {
     // We need custom logic here to support the old method of specifying check
     // options using a list of maps containing key and value keys.
-    auto &I = reinterpret_cast<Input &>(IO);
-    if (isa<SequenceNode>(I.getCurrentNode())) {
+    
+    if (auto &I = reinterpret_cast<Input &>(IO); isa<SequenceNode>(I.getCurrentNode())) {
       MappingNormalization<NOptionMap, ClangTidyOptions::OptionMap> NOpts(IO,
                                                                           Val);
       EmptyContext Ctx;
@@ -187,8 +187,8 @@ template <> void yamlize(IO &IO, ChecksVariant &Val, bool, EmptyContext &Ctx) {
   if (!IO.outputting()) {
     // Special case for reading from YAML
     // Must support reading from both a string or a list
-    auto &I = reinterpret_cast<Input &>(IO);
-    if (isa<ScalarNode, BlockScalarNode>(I.getCurrentNode())) {
+    
+    if (auto &I = reinterpret_cast<Input &>(IO); isa<ScalarNode, BlockScalarNode>(I.getCurrentNode())) {
       Val.AsString = std::string();
       yamlize(IO, *Val.AsString, true, Ctx);
     } else if (isa<SequenceNode>(I.getCurrentNode())) {

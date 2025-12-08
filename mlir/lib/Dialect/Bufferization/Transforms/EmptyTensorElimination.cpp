@@ -35,8 +35,8 @@ neededValuesDominateInsertionPoint(const DominanceInfo &domInfo,
                                    const SmallVector<Value> &neededValues) {
   for (Value val : neededValues) {
     if (auto bbArg = dyn_cast<BlockArgument>(val)) {
-      Block *owner = bbArg.getOwner();
-      if (!owner->findAncestorOpInBlock(*insertionPoint))
+      
+      if (Block *owner = bbArg.getOwner(); !owner->findAncestorOpInBlock(*insertionPoint))
         return false;
     } else {
       auto opResult = cast<OpResult>(val);

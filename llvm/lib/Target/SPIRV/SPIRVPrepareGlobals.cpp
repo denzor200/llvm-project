@@ -56,9 +56,9 @@ bool tryExtendLLVMBitcodeMarker(GlobalVariable &Bitcode) {
 bool tryExtendDynamicLDSGlobal(GlobalVariable &GV) {
   constexpr unsigned WorkgroupAS =
       storageClassToAddressSpace(SPIRV::StorageClass::Workgroup);
-  const bool IsWorkgroupExternal =
-      GV.hasExternalLinkage() && GV.getAddressSpace() == WorkgroupAS;
-  if (!IsWorkgroupExternal)
+  
+  if (const bool IsWorkgroupExternal =
+      GV.hasExternalLinkage() && GV.getAddressSpace() == WorkgroupAS; !IsWorkgroupExternal)
     return false;
 
   const ArrayType *AT = dyn_cast<ArrayType>(GV.getValueType());
@@ -78,8 +78,8 @@ bool tryExtendDynamicLDSGlobal(GlobalVariable &GV) {
 }
 
 bool SPIRVPrepareGlobals::runOnModule(Module &M) {
-  const bool IsAMD = M.getTargetTriple().getVendor() == Triple::AMD;
-  if (!IsAMD)
+  
+  if (const bool IsAMD = M.getTargetTriple().getVendor() == Triple::AMD; !IsAMD)
     return false;
 
   bool Changed = false;

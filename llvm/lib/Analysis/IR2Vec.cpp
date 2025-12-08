@@ -385,9 +385,9 @@ unsigned Vocabulary::getPredicateLocalIndex(CmpInst::Predicate P) {
 }
 
 CmpInst::Predicate Vocabulary::getPredicateFromLocalIndex(unsigned LocalIndex) {
-  unsigned fcmpRange =
-      CmpInst::LAST_FCMP_PREDICATE - CmpInst::FIRST_FCMP_PREDICATE + 1;
-  if (LocalIndex < fcmpRange)
+  
+  if (unsigned fcmpRange =
+      CmpInst::LAST_FCMP_PREDICATE - CmpInst::FIRST_FCMP_PREDICATE + 1; LocalIndex < fcmpRange)
     return static_cast<CmpInst::Predicate>(CmpInst::FIRST_FCMP_PREDICATE +
                                            LocalIndex);
   else

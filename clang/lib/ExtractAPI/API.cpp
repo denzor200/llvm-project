@@ -150,8 +150,8 @@ void APISet::removeRecord(StringRef USR) {
       if (auto *RecordAsCtx = llvm::dyn_cast<RecordContext>(Record))
         ParentCtx->stealRecordChain(*RecordAsCtx);
     } else {
-      auto *It = llvm::find(TopLevelRecords, Record);
-      if (It != TopLevelRecords.end())
+      
+      if (auto *It = llvm::find(TopLevelRecords, Record); It != TopLevelRecords.end())
         TopLevelRecords.erase(It);
       if (auto *RecordAsCtx = llvm::dyn_cast<RecordContext>(Record)) {
         for (const auto *Child = RecordAsCtx->First; Child != nullptr;

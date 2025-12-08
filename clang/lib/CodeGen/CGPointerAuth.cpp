@@ -139,8 +139,8 @@ CodeGenFunction::EmitPointerAuthInfo(PointerAuthQualifier Qual,
   if (Qual.isAddressDiscriminated()) {
     assert(StorageAddress.isValid() &&
            "address discrimination without address");
-    llvm::Value *StoragePtr = StorageAddress.emitRawPointer(*this);
-    if (Discriminator)
+    
+    if (llvm::Value *StoragePtr = StorageAddress.emitRawPointer(*this); Discriminator)
       Discriminator =
           EmitPointerAuthBlendDiscriminator(StoragePtr, Discriminator);
     else

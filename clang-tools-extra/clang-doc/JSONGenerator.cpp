@@ -273,8 +273,8 @@ serializeCommonAttributes(const Info &I, json::Object &Obj,
 
   // Namespaces aren't SymbolInfos, so they dont have a DefLoc
   if (I.IT != InfoType::IT_namespace) {
-    const auto *Symbol = static_cast<const SymbolInfo *>(&I);
-    if (Symbol->DefLoc)
+    
+    if (const auto *Symbol = static_cast<const SymbolInfo *>(&I); Symbol->DefLoc)
       Obj["Location"] =
           serializeLocation(Symbol->DefLoc.value(), RepositoryUrl);
   }

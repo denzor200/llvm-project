@@ -680,8 +680,8 @@ bool AnyFunctionCall::argumentsMayEscape() const {
 }
 
 const FunctionDecl *SimpleFunctionCall::getDecl() const {
-  const FunctionDecl *D = getOriginExpr()->getDirectCallee();
-  if (D)
+  
+  if (const FunctionDecl *D = getOriginExpr()->getDirectCallee(); D)
     return D;
 
   return getSVal(getOriginExpr()->getCallee()).getAsFunctionDecl();
@@ -1086,10 +1086,10 @@ ObjCMessageKind ObjCMethodCall::getMessageKind() const {
   if (!Data) {
     // Find the parent, ignoring implicit casts.
     const ParentMap &PM = getLocationContext()->getParentMap();
-    const Stmt *S = PM.getParentIgnoreParenCasts(getOriginExpr());
+    
 
     // Check if parent is a PseudoObjectExpr.
-    if (const auto *POE = dyn_cast_or_null<PseudoObjectExpr>(S)) {
+    if (const Stmt *S = PM.getParentIgnoreParenCasts(getOriginExpr()); const auto *POE = dyn_cast_or_null<PseudoObjectExpr>(S)) {
       const Expr *Syntactic = getSyntacticFromForPseudoObjectExpr(POE);
 
       ObjCMessageKind K;
@@ -1133,9 +1133,9 @@ const ObjCPropertyDecl *ObjCMethodCall::getAccessedProperty() const {
     assert(POE && "Property access without PseudoObjectExpr?");
 
     const Expr *Syntactic = getSyntacticFromForPseudoObjectExpr(POE);
-    auto *RefExpr = cast<ObjCPropertyRefExpr>(Syntactic);
+    
 
-    if (RefExpr->isExplicitProperty())
+    if (auto *RefExpr = cast<ObjCPropertyRefExpr>(Syntactic); RefExpr->isExplicitProperty())
       return RefExpr->getExplicitProperty();
   }
 
@@ -1317,10 +1317,10 @@ RuntimeDefinition ObjCMethodCall::getRuntimeDefinition() const {
       QualType DynType = DTI.getType();
       CanBeSubClassed = DTI.canBeASubClass();
 
-      const auto *ReceiverDynT =
-          dyn_cast<ObjCObjectPointerType>(DynType.getCanonicalType());
+      
 
-      if (ReceiverDynT) {
+      if (const auto *ReceiverDynT =
+          dyn_cast<ObjCObjectPointerType>(DynType.getCanonicalType()); ReceiverDynT) {
         ReceiverT = ReceiverDynT->getObjectType();
 
         // It can be actually class methods called with Class object as a
@@ -1430,8 +1430,8 @@ CallEventManager::getSimpleCall(const CallExpr *CE, ProgramStateRef State,
     return create<CXXMemberCall>(MCE, State, LCtx, ElemRef);
 
   if (const auto *OpCE = dyn_cast<CXXOperatorCallExpr>(CE)) {
-    const FunctionDecl *DirectCallee = OpCE->getDirectCallee();
-    if (const auto *MD = dyn_cast<CXXMethodDecl>(DirectCallee)) {
+    
+    if (const FunctionDecl *DirectCallee = OpCE->getDirectCallee(); const auto *MD = dyn_cast<CXXMethodDecl>(DirectCallee)) {
       if (MD->isImplicitObjectMemberFunction())
         return create<CXXMemberOperatorCall>(OpCE, State, LCtx, ElemRef);
       if (MD->isStatic())
@@ -1456,9 +1456,9 @@ CallEventManager::getCaller(const StackFrameContext *CalleeCtx,
                                           CalleeCtx->getIndex()};
   assert(CallerCtx && "This should not be used for top-level stack frames");
 
-  const Stmt *CallSite = CalleeCtx->getCallSite();
+  
 
-  if (CallSite) {
+  if (const Stmt *CallSite = CalleeCtx->getCallSite(); CallSite) {
     if (CallEventRef<> Out = getCall(CallSite, State, CallerCtx, ElemRef))
       return Out;
 

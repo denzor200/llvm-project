@@ -256,9 +256,9 @@ template <> struct DenseMapInfo<MemoryLocOrCall> {
 static bool areLoadsReorderable(const LoadInst *Use,
                                 const LoadInst *MayClobber) {
   bool VolatileUse = Use->isVolatile();
-  bool VolatileClobber = MayClobber->isVolatile();
+  
   // Volatile operations may never be reordered with other volatile operations.
-  if (VolatileUse && VolatileClobber)
+  if (bool VolatileClobber = MayClobber->isVolatile(); VolatileUse && VolatileClobber)
     return false;
   // Otherwise, volatile doesn't matter here. From the language reference:
   // 'optimizers may change the order of volatile operations relative to
@@ -531,8 +531,8 @@ class ClobberWalker {
     MemoryAccess *Result = MSSA.getLiveOnEntryDef();
     DomTreeNode *Node = DT.getNode(BB);
     while ((Node = Node->getIDom())) {
-      auto *Defs = MSSA.getBlockDefs(Node->getBlock());
-      if (Defs)
+      
+      if (auto *Defs = MSSA.getBlockDefs(Node->getBlock()); Defs)
         return &*Defs->rbegin();
     }
     return Result;
@@ -785,8 +785,8 @@ class ClobberWalker {
       for (auto I = std::next(Dom), E = Paths.end(); I != E; ++I)
         if (!MSSA.dominates(I->Clobber, Dom->Clobber))
           Dom = I;
-      auto Last = Paths.end() - 1;
-      if (Last != Dom)
+      
+      if (auto Last = Paths.end() - 1; Last != Dom)
         std::iter_swap(Last, Dom);
     };
 
@@ -1101,8 +1101,8 @@ void MemorySSA::renameSuccessorPhis(BasicBlock *BB, MemoryAccess *IncomingVal,
     if (It == PerBlockAccesses.end() || !isa<MemoryPhi>(It->second->front()))
       continue;
     AccessList *Accesses = It->second.get();
-    auto *Phi = cast<MemoryPhi>(&Accesses->front());
-    if (RenameAllUses) {
+    
+    if (auto *Phi = cast<MemoryPhi>(&Accesses->front()); RenameAllUses) {
       bool ReplacementDone = false;
       for (unsigned I = 0, E = Phi->getNumIncomingValues(); I != E; ++I)
         if (Phi->getIncomingBlock(I) == BB) {
@@ -1465,8 +1465,8 @@ void MemorySSA::OptimizeUses::optimizeUsesInBlock(
         break;
       }
 
-      MemoryDef *MD = cast<MemoryDef>(VersionStack[UpperBound]);
-      if (instructionClobbersQuery(MD, MU, UseMLOC, *AA)) {
+      
+      if (MemoryDef *MD = cast<MemoryDef>(VersionStack[UpperBound]); instructionClobbersQuery(MD, MU, UseMLOC, *AA)) {
         FoundClobberResult = true;
         break;
       }
@@ -1618,8 +1618,8 @@ MemorySSAWalker *MemorySSA::getSkipSelfWalker() {
 void MemorySSA::insertIntoListsForBlock(MemoryAccess *NewAccess,
                                         const BasicBlock *BB,
                                         InsertionPlace Point) {
-  auto *Accesses = getOrCreateAccessList(BB);
-  if (Point == Beginning) {
+  
+  if (auto *Accesses = getOrCreateAccessList(BB); Point == Beginning) {
     // If it's a phi node, it goes first, otherwise, it goes after any phi
     // nodes.
     if (isa<MemoryPhi>(NewAccess)) {
@@ -1653,12 +1653,12 @@ void MemorySSA::insertIntoListsBefore(MemoryAccess *What, const BasicBlock *BB,
   bool WasEnd = InsertPt == Accesses->end();
   Accesses->insert(AccessList::iterator(InsertPt), What);
   if (!isa<MemoryUse>(What)) {
-    auto *Defs = getOrCreateDefsList(BB);
+    
     // If we got asked to insert at the end, we have an easy job, just shove it
     // at the end. If we got asked to insert before an existing def, we also get
     // an iterator. If we got asked to insert before a use, we have to hunt for
     // the next def.
-    if (WasEnd) {
+    if (auto *Defs = getOrCreateDefsList(BB); WasEnd) {
       Defs->push_back(*What);
     } else if (isa<MemoryDef>(InsertPt)) {
       Defs->insert(InsertPt->getDefsIterator(), *What);
@@ -2186,9 +2186,9 @@ bool MemorySSA::dominates(const MemoryAccess *Dominator,
 bool MemorySSA::dominates(const MemoryAccess *Dominator,
                           const Use &Dominatee) const {
   if (MemoryPhi *MP = dyn_cast<MemoryPhi>(Dominatee.getUser())) {
-    BasicBlock *UseBB = MP->getIncomingBlock(Dominatee);
+    
     // The def must dominate the incoming block of the phi.
-    if (UseBB != Dominator->getBlock())
+    if (BasicBlock *UseBB = MP->getIncomingBlock(Dominatee); UseBB != Dominator->getBlock())
       return DT->dominates(Dominator->getBlock(), UseBB);
     // If the UseBB and the DefBB are the same, compare locally.
     return locallyDominates(Dominator, cast<MemoryAccess>(Dominatee));

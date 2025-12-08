@@ -104,8 +104,8 @@ void DwarfFile::emitStrings(MCSection *StrSection, MCSection *OffsetSection,
 
 void DwarfFile::addScopeVariable(LexicalScope *LS, DbgVariable *Var) {
   auto &ScopeVars = ScopeVariables[LS];
-  const DILocalVariable *DV = Var->getVariable();
-  if (unsigned ArgNum = DV->getArg()) {
+  
+  if (const DILocalVariable *DV = Var->getVariable(); unsigned ArgNum = DV->getArg()) {
     auto Ret = ScopeVars.Args.insert({ArgNum, Var});
     assert(Ret.second);
     (void)Ret;

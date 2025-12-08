@@ -270,9 +270,9 @@ bool ConvertUTF8toWide(const char *Source, std::wstring &Result) {
 bool convertWideToUTF8(const std::wstring &Source, std::string &Result) {
   if (sizeof(wchar_t) == 1) {
     const UTF8 *Start = reinterpret_cast<const UTF8 *>(Source.data());
-    const UTF8 *End =
-        reinterpret_cast<const UTF8 *>(Source.data() + Source.size());
-    if (!isLegalUTF8String(&Start, End))
+    
+    if (const UTF8 *End =
+        reinterpret_cast<const UTF8 *>(Source.data() + Source.size()); !isLegalUTF8String(&Start, End))
       return false;
     Result.resize(Source.size());
     memcpy(&Result[0], Source.data(), Source.size());
@@ -288,8 +288,8 @@ bool convertWideToUTF8(const std::wstring &Source, std::string &Result) {
         reinterpret_cast<const UTF32 *>(Source.data() + Source.size());
     Result.resize(UNI_MAX_UTF8_BYTES_PER_CODE_POINT * Source.size());
     UTF8 *ResultPtr = reinterpret_cast<UTF8 *>(&Result[0]);
-    UTF8 *ResultEnd = reinterpret_cast<UTF8 *>(&Result[0] + Result.size());
-    if (ConvertUTF32toUTF8(&Start, End, &ResultPtr, ResultEnd,
+    
+    if (UTF8 *ResultEnd = reinterpret_cast<UTF8 *>(&Result[0] + Result.size()); ConvertUTF32toUTF8(&Start, End, &ResultPtr, ResultEnd,
                            strictConversion) == conversionOK) {
       Result.resize(reinterpret_cast<char *>(ResultPtr) - &Result[0]);
       return true;

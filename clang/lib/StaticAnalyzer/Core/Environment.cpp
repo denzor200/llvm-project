@@ -76,8 +76,8 @@ EnvironmentEntry::EnvironmentEntry(const Stmt *S, const LocationContext *L)
                                              : nullptr) {}
 
 SVal Environment::lookupExpr(const EnvironmentEntry &E) const {
-  const SVal* X = ExprBindings.lookup(E);
-  if (X) {
+  
+  if (const SVal* X = ExprBindings.lookup(E); X) {
     SVal V = *X;
     return V;
   }
@@ -93,9 +93,9 @@ SVal Environment::getSVal(const EnvironmentEntry &Entry,
          "Environment can only argue about Exprs, since only they express "
          "a value! Any non-expression statement stored in Environment is a "
          "result of a hack!");
-  const LocationContext *LCtx = Entry.getLocationContext();
+  
 
-  switch (S->getStmtClass()) {
+  switch (const LocationContext *LCtx = Entry.getLocationContext(); S->getStmtClass()) {
   case Stmt::CXXBindTemporaryExprClass:
   case Stmt::ExprWithCleanupsClass:
   case Stmt::GenericSelectionExprClass:
@@ -121,8 +121,8 @@ SVal Environment::getSVal(const EnvironmentEntry &Entry,
     return *svalBuilder.getConstantVal(cast<Expr>(S));
 
   case Stmt::ReturnStmtClass: {
-    const auto *RS = cast<ReturnStmt>(S);
-    if (const Expr *RE = RS->getRetValue())
+    
+    if (const auto *RS = cast<ReturnStmt>(S); const Expr *RE = RS->getRetValue())
       return getSVal(EnvironmentEntry(RE, LCtx), svalBuilder);
     return UndefinedVal();
   }
@@ -227,8 +227,8 @@ void Environment::printJson(raw_ostream &Out, const ASTContext &Ctx,
     // Find the freshest location context.
     llvm::SmallPtrSet<const LocationContext *, 16> FoundContexts;
     for (const auto &I : *this) {
-      const LocationContext *LC = I.first.getLocationContext();
-      if (FoundContexts.count(LC) == 0) {
+      
+      if (const LocationContext *LC = I.first.getLocationContext(); FoundContexts.count(LC) == 0) {
         // This context is fresher than all other contexts so far.
         LCtx = LC;
         for (const LocationContext *LCI = LC; LCI; LCI = LCI->getParent())

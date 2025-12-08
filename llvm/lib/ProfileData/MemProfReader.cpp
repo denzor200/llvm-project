@@ -358,8 +358,8 @@ void RawMemProfReader::printYAML(raw_ostream &OS) {
   uint64_t NumAllocFunctions = 0, NumMibInfo = 0;
   for (const auto &KV : MemProfData.Records) {
     MemProfSumBuilder.addRecord(KV.second);
-    const size_t NumAllocSites = KV.second.AllocSites.size();
-    if (NumAllocSites > 0) {
+    
+    if (const size_t NumAllocSites = KV.second.AllocSites.size(); NumAllocSites > 0) {
       NumAllocFunctions++;
       NumMibInfo += NumAllocSites;
     }

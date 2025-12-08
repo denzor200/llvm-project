@@ -358,8 +358,8 @@ bool ConvergingVLIWScheduler::VLIWSchedBoundary::checkHazard(SUnit *SU) {
   if (HazardRec->isEnabled())
     return HazardRec->getHazardType(SU) != ScheduleHazardRecognizer::NoHazard;
 
-  unsigned uops = SchedModel->getNumMicroOps(SU->getInstr());
-  if (IssueCount + uops > SchedModel->getIssueWidth())
+  
+  if (unsigned uops = SchedModel->getNumMicroOps(SU->getInstr()); IssueCount + uops > SchedModel->getIssueWidth())
     return true;
 
   return false;
@@ -386,9 +386,9 @@ void ConvergingVLIWScheduler::VLIWSchedBoundary::bumpCycle() {
 
   assert(MinReadyCycle < std::numeric_limits<unsigned>::max() &&
          "MinReadyCycle uninitialized");
-  unsigned NextCycle = std::max(CurrCycle + 1, MinReadyCycle);
+  
 
-  if (!HazardRec->isEnabled()) {
+  if (unsigned NextCycle = std::max(CurrCycle + 1, MinReadyCycle); !HazardRec->isEnabled()) {
     // Bypass HazardRec virtual calls.
     CurrCycle = NextCycle;
   } else {

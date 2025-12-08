@@ -117,8 +117,8 @@ Var DimLvlMapParser::bindVar(llvm::SMLoc loc, VarInfo::ID id) {
   const auto var = env.bindVar(id);
   const auto &info = std::as_const(env).access(id);
   const auto name = info.getName();
-  const auto num = *info.getNum();
-  switch (info.getKind()) {
+  
+  switch (const auto num = *info.getNum(); info.getKind()) {
   case VarKind::Symbol: {
     const auto affine = getAffineSymbolExpr(num, context);
     dimsAndSymbols.emplace_back(name, affine);

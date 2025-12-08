@@ -103,9 +103,9 @@ bool SBSymbol::operator!=(const SBSymbol &rhs) const {
 bool SBSymbol::GetDescription(SBStream &description) {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_ptr) {
+  if (Stream &strm = description.ref(); m_opaque_ptr) {
     m_opaque_ptr->GetDescription(&strm, lldb::eDescriptionLevelFull, nullptr);
   } else
     strm.PutCString("No value");
@@ -163,8 +163,8 @@ SBAddress SBSymbol::GetEndAddress() {
 
   SBAddress addr;
   if (m_opaque_ptr && m_opaque_ptr->ValueIsAddress()) {
-    lldb::addr_t range_size = m_opaque_ptr->GetByteSize();
-    if (range_size > 0) {
+    
+    if (lldb::addr_t range_size = m_opaque_ptr->GetByteSize(); range_size > 0) {
       addr.SetAddress(m_opaque_ptr->GetAddressRef());
       addr->Slide(m_opaque_ptr->GetByteSize());
     }

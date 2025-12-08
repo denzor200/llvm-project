@@ -2095,13 +2095,13 @@ PragmaClangAttributeSupport::PragmaClangAttributeSupport(
     Rules.emplace_back(MetaSubject, Constraint);
     for (const Record *Subject :
          SubjectContainer->getValueAsListOfDefs("Subjects")) {
-      bool Inserted =
+      
+      if (bool Inserted =
           SubjectsToRules
               .try_emplace(Subject, RuleOrAggregateRuleSet::getRule(
                                         AttributeSubjectMatchRule(MetaSubject,
                                                                   Constraint)))
-              .second;
-      if (!Inserted) {
+              .second; !Inserted) {
         PrintFatalError("Attribute subject match rules should not represent"
                         "same attribute subjects.");
       }
@@ -2135,12 +2135,12 @@ PragmaClangAttributeSupport::PragmaClangAttributeSupport(
       }
     }
 
-    bool Inserted =
+    
+    if (bool Inserted =
         SubjectsToRules
             .try_emplace(SubjectDecl,
                          RuleOrAggregateRuleSet::getAggregateRuleSet(Rules))
-            .second;
-    if (!Inserted) {
+            .second; !Inserted) {
       PrintFatalError("Attribute subject match rules should not represent"
                       "same attribute subjects.");
     }
@@ -2177,9 +2177,9 @@ bool PragmaClangAttributeSupport::isAttributedSupported(
   // If the attribute explicitly specified whether to support #pragma clang
   // attribute, use that setting.
   bool Unset;
-  bool SpecifiedResult =
-    Attribute.getValueAsBitOrUnset("PragmaAttributeSupport", Unset);
-  if (!Unset)
+  
+  if (bool SpecifiedResult =
+    Attribute.getValueAsBitOrUnset("PragmaAttributeSupport", Unset); !Unset)
     return SpecifiedResult;
 
   // Opt-out rules:
@@ -2935,8 +2935,8 @@ static void emitAttributes(const RecordKeeper &Records, raw_ostream &OS,
         for (auto I = Spellings.begin(), E = Spellings.end(); I != E;
              ++I, ++Idx) {
           const FlattenedSpelling &S = *I;
-          const auto &Name = SemanticToSyntacticMap[Idx];
-          if (Uniques.insert(Name).second) {
+          
+          if (const auto &Name = SemanticToSyntacticMap[Idx]; Uniques.insert(Name).second) {
             OS << "    case " << Name << ":\n";
             OS << "      return AttributeCommonInfo::Form";
             emitFormInitializer(OS, S, Name);
@@ -3703,10 +3703,10 @@ static void GenerateHasAttrSpellingStringSwitch(
       // Verify that explicitly specified CXX11 and C23 spellings (i.e.
       // not inferred from Clang/GCC spellings) have a version that's
       // different from the default (1).
-      bool RequiresValidVersion =
+      
+      if (bool RequiresValidVersion =
           (Variety == "CXX11" || Variety == "C23") &&
-          Spelling.getSpellingRecord().getValueAsString("Variety") == Variety;
-      if (RequiresValidVersion && Scope.empty() && Version == 1)
+          Spelling.getSpellingRecord().getValueAsString("Variety") == Variety; RequiresValidVersion && Scope.empty() && Version == 1)
         PrintError(Spelling.getSpellingRecord().getLoc(),
                    "Standard attributes must have "
                    "valid version information.");
@@ -4950,8 +4950,8 @@ void EmitClangAttrParsedAttrKinds(const RecordKeeper &Records,
     const Record &Attr = *A;
 
     bool SemaHandler = Attr.getValueAsBit("SemaHandler");
-    bool Ignored = Attr.getValueAsBit("Ignored");
-    if (SemaHandler || Ignored) {
+    
+    if (bool Ignored = Attr.getValueAsBit("Ignored"); SemaHandler || Ignored) {
       // Attribute spellings can be shared between target-specific attributes,
       // and can be shared between syntaxes for the same attribute. For
       // instance, an attribute can be spelled GNU<"interrupt"> for an ARM-

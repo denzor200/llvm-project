@@ -28,8 +28,8 @@ std::string LLVMHeaderGuardCheck::getHeaderGuard(StringRef Filename,
   // style in include/llvm and include/clang which we want to preserve.
 
   // We don't want _INCLUDE_ in our guards.
-  const size_t PosInclude = Guard.rfind("include/");
-  if (PosInclude != StringRef::npos)
+  
+  if (const size_t PosInclude = Guard.rfind("include/"); PosInclude != StringRef::npos)
     Guard = Guard.substr(PosInclude + std::strlen("include/"));
 
   // For clang we drop the _TOOLS_.

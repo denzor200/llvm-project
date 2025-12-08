@@ -61,11 +61,11 @@ PdbIndex::create(llvm::pdb::PDBFile *file) {
 
 lldb::addr_t PdbIndex::MakeVirtualAddress(uint16_t segment,
                                           uint32_t offset) const {
-  uint32_t max_section = dbi().getSectionHeaders().size();
+  
   // Segment indices are 1-based.
   // If this is an absolute symbol, it's indicated by the magic section index
   // |max_section+1|.  In this case, the offset is meaningless, so just return.
-  if (segment == 0 || segment > max_section)
+  if (uint32_t max_section = dbi().getSectionHeaders().size(); segment == 0 || segment > max_section)
     return LLDB_INVALID_ADDRESS;
 
   const llvm::object::coff_section &cs = dbi().getSectionHeaders()[segment - 1];

@@ -179,8 +179,8 @@ MDNode *MDBuilder::createPCSections(ArrayRef<PCSection> Sections) {
     Ops.push_back(createString(Sec));
 
     // If auxiliary data for this section exists, append it.
-    const SmallVector<Constant *> &AuxConsts = Entry.second;
-    if (!AuxConsts.empty()) {
+    
+    if (const SmallVector<Constant *> &AuxConsts = Entry.second; !AuxConsts.empty()) {
       SmallVector<Metadata *, 1> AuxMDs;
       AuxMDs.reserve(AuxConsts.size());
       for (Constant *C : AuxConsts)

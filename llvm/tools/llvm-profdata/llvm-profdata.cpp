@@ -849,8 +849,8 @@ loadInput(const WeightedFile &Input, SymbolRemapper *Remapper,
   }
 
   if (Reader->hasTemporalProfile()) {
-    auto &Traces = Reader->getTemporalProfTraces(Input.Weight);
-    if (!Traces.empty())
+    
+    if (auto &Traces = Reader->getTemporalProfTraces(Input.Weight); !Traces.empty())
       WC->Writer.addTemporalProfileTraces(
           Traces, Reader->getTemporalProfTraceStreamSize());
   }
@@ -886,8 +886,8 @@ static void mergeWriterContexts(WriterContext *Dst, WriterContext *Src) {
   Dst->Writer.mergeRecordsFromWriter(std::move(Src->Writer), [&](Error E) {
     auto [ErrorCode, Msg] = InstrProfError::take(std::move(E));
     std::unique_lock<std::mutex> ErrGuard{Dst->ErrLock};
-    bool firstTime = Dst->WriterErrorCodes.insert(ErrorCode).second;
-    if (firstTime)
+    
+    if (bool firstTime = Dst->WriterErrorCodes.insert(ErrorCode).second; firstTime)
       warn(toString(make_error<InstrProfError>(ErrorCode, Msg)));
   });
 }
@@ -1202,8 +1202,8 @@ adjustInstrProfile(std::unique_ptr<WriterContext> &WC,
 
   auto checkSampleProfileHasFUnique = [&Reader]() {
     for (const auto &PD : Reader->getProfiles()) {
-      auto &FContext = PD.second.getContext();
-      if (FContext.toString().find(FunctionSamples::UniqSuffix) !=
+      
+      if (auto &FContext = PD.second.getContext(); FContext.toString().find(FunctionSamples::UniqSuffix) !=
           std::string::npos) {
         return true;
       }
@@ -1238,11 +1238,11 @@ adjustInstrProfile(std::unique_ptr<WriterContext> &WC,
 
     // This name should have a static linkage.
     size_t PostfixPos = NewName.find(FunctionSamples::UniqSuffix);
-    bool ProfileHasFUnique = (PostfixPos != StringRef::npos);
+    
 
     // If sample profile and instrumented profile do not agree on symbol
     // uniqification.
-    if (SampleProfileHasFUnique != ProfileHasFUnique) {
+    if (bool ProfileHasFUnique = (PostfixPos != StringRef::npos); SampleProfileHasFUnique != ProfileHasFUnique) {
       // If instrumented profile uses -funique-internal-linkage-symbols,
       // we need to trim the name.
       if (ProfileHasFUnique) {
@@ -2882,16 +2882,16 @@ static int showInstrProfile(ShowFormat SFormat, raw_fd_ostream &OS) {
 
   for (const auto &Func : *Reader) {
     if (Reader->isIRLevelProfile()) {
-      bool FuncIsCS = NamedInstrProfRecord::hasCSFlagInHash(Func.Hash);
-      if (FuncIsCS != ShowCS)
+      
+      if (bool FuncIsCS = NamedInstrProfRecord::hasCSFlagInHash(Func.Hash); FuncIsCS != ShowCS)
         continue;
     }
     bool Show = ShowAllFunctions ||
                 (!FuncNameFilter.empty() && Func.Name.contains(FuncNameFilter));
 
-    bool doTextFormatDump = (Show && TextFormat);
+    
 
-    if (doTextFormatDump) {
+    if (bool doTextFormatDump = (Show && TextFormat); doTextFormatDump) {
       InstrProfSymtab &Symtab = Reader->getSymtab();
       InstrProfWriter::writeRecordInText(Func.Name, Func.Hash, Func, Symtab,
                                          OS);

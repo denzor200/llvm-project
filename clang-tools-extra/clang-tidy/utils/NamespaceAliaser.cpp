@@ -58,11 +58,11 @@ NamespaceAliaser::createAlias(ASTContext &Context, const Stmt &Statement,
     const DeclarationMatcher ConflictMatcher = namedDecl(hasName(Abbreviation));
     const auto HasConflictingChildren =
         !match(findAll(ConflictMatcher), *Function, Context).empty();
-    const auto HasConflictingAncestors =
+    
+    if (const auto HasConflictingAncestors =
         !match(functionDecl(hasAncestor(decl(has(ConflictMatcher)))), *Function,
                Context)
-             .empty();
-    if (HasConflictingAncestors || HasConflictingChildren)
+             .empty(); HasConflictingAncestors || HasConflictingChildren)
       continue;
 
     const std::string Declaration =

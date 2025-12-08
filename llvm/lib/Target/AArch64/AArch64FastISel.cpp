@@ -390,9 +390,9 @@ Register AArch64FastISel::materializeFP(const ConstantFP *CFP, MVT VT) {
   bool Is64Bit = (VT == MVT::f64);
   // This checks to see if we can use FMOV instructions to materialize
   // a constant, otherwise we have to materialize via the constant pool.
-  int Imm =
-      Is64Bit ? AArch64_AM::getFP64Imm(Val) : AArch64_AM::getFP32Imm(Val);
-  if (Imm != -1) {
+  
+  if (int Imm =
+      Is64Bit ? AArch64_AM::getFP64Imm(Val) : AArch64_AM::getFP32Imm(Val); Imm != -1) {
     unsigned Opc = Is64Bit ? AArch64::FMOVDi : AArch64::FMOVSi;
     return fastEmitInst_i(Opc, TLI.getRegClassFor(VT), Imm);
   }
@@ -632,8 +632,8 @@ bool AArch64FastISel::computeAddress(const Value *Obj, Address &Addr, Type *Ty)
     // we can.
     for (gep_type_iterator GTI = gep_type_begin(U), E = gep_type_end(U);
          GTI != E; ++GTI) {
-      const Value *Op = GTI.getOperand();
-      if (StructType *STy = GTI.getStructTypeOrNull()) {
+      
+      if (const Value *Op = GTI.getOperand(); StructType *STy = GTI.getStructTypeOrNull()) {
         const StructLayout *SL = DL.getStructLayout(STy);
         unsigned Idx = cast<ConstantInt>(Op)->getZExtValue();
         TmpOffset += SL->getElementOffset(Idx);
@@ -705,9 +705,9 @@ bool AArch64FastISel::computeAddress(const Value *Obj, Address &Addr, Type *Ty)
   case Instruction::Sub: {
     // Subs of constants are common and easy enough.
     const Value *LHS = U->getOperand(0);
-    const Value *RHS = U->getOperand(1);
+    
 
-    if (const ConstantInt *CI = dyn_cast<ConstantInt>(RHS)) {
+    if (const Value *RHS = U->getOperand(1); const ConstantInt *CI = dyn_cast<ConstantInt>(RHS)) {
       Addr.setOffset(Addr.getOffset() - CI->getSExtValue());
       return computeAddress(LHS, Addr, Ty);
     }
@@ -1119,9 +1119,9 @@ void AArch64FastISel::addLoadStoreOperands(Address &Addr,
                                            MachineMemOperand::Flags Flags,
                                            unsigned ScaleFactor,
                                            MachineMemOperand *MMO) {
-  int64_t Offset = Addr.getOffset() / ScaleFactor;
+  
   // Frame base works a bit differently. Handle it separately.
-  if (Addr.isFIBase()) {
+  if (int64_t Offset = Addr.getOffset() / ScaleFactor; Addr.isFIBase()) {
     int FI = Addr.getFI();
     // FIXME: We shouldn't be using getObjectSize/getObjectAlignment.  The size
     // and alignment should be based on the VT.
@@ -1207,8 +1207,8 @@ Register AArch64FastISel::emitAddSub(bool UseAdd, MVT RetVT, const Value *LHS,
 
   Register ResultReg;
   if (const auto *C = dyn_cast<ConstantInt>(RHS)) {
-    uint64_t Imm = IsZExt ? C->getZExtValue() : C->getSExtValue();
-    if (C->isNegative())
+    
+    if (uint64_t Imm = IsZExt ? C->getZExtValue() : C->getSExtValue(); C->isNegative())
       ResultReg = emitAddSub_ri(!UseAdd, RetVT, LHSReg, -Imm, SetFlags,
                                 WantResult);
     else
@@ -1264,8 +1264,8 @@ Register AArch64FastISel::emitAddSub(bool UseAdd, MVT RetVT, const Value *LHS,
         case Instruction::LShr: ShiftType = AArch64_AM::LSR; break;
         case Instruction::AShr: ShiftType = AArch64_AM::ASR; break;
         }
-        uint64_t ShiftVal = C->getZExtValue();
-        if (ShiftType != AArch64_AM::InvalidShiftExtend) {
+        
+        if (uint64_t ShiftVal = C->getZExtValue(); ShiftType != AArch64_AM::InvalidShiftExtend) {
           Register RHSReg = getRegForValue(SI->getOperand(0));
           if (!RHSReg)
             return Register();
@@ -1818,8 +1818,8 @@ Register AArch64FastISel::emitLoad(MVT VT, MVT RetVT, Address Addr,
       Addr.getExtendType() == AArch64_AM::SXTW)
     Idx++;
 
-  bool IsRet64Bit = RetVT == MVT::i64;
-  switch (VT.SimpleTy) {
+  
+  switch (bool IsRet64Bit = RetVT == MVT::i64; VT.SimpleTy) {
   default:
     llvm_unreachable("Unexpected value type.");
   case MVT::i1: // Intentional fall-through.
@@ -1943,8 +1943,8 @@ bool AArch64FastISel::selectLoad(const Instruction *I) {
       cast<LoadInst>(I)->isAtomic())
     return false;
 
-  const Value *SV = I->getOperand(0);
-  if (TLI.supportSwiftError()) {
+  
+  if (const Value *SV = I->getOperand(0); TLI.supportSwiftError()) {
     // Swifterror values can come from either a function parameter with
     // swifterror attribute or an alloca with swifterror attribute.
     if (const Argument *Arg = dyn_cast<Argument>(SV)) {
@@ -3427,8 +3427,8 @@ bool AArch64FastISel::foldXALUIntrinsic(AArch64CC::CondCode &CC,
       return false;
 
     // Check that the extractvalue operand comes from the intrinsic.
-    const auto *EVI = cast<ExtractValueInst>(Itr);
-    if (EVI->getAggregateOperand() != II)
+    
+    if (const auto *EVI = cast<ExtractValueInst>(Itr); EVI->getAggregateOperand() != II)
       return false;
   }
 
@@ -3553,8 +3553,8 @@ bool AArch64FastISel::fastLowerIntrinsicCall(const IntrinsicInst *II) {
         {RTLIB::TAN_F32, RTLIB::TAN_F64},
         {RTLIB::POW_F32, RTLIB::POW_F64}};
     RTLIB::Libcall LC;
-    bool Is64Bit = RetVT == MVT::f64;
-    switch (II->getIntrinsicID()) {
+    
+    switch (bool Is64Bit = RetVT == MVT::f64; II->getIntrinsicID()) {
     default:
       llvm_unreachable("Unexpected intrinsic.");
     case Intrinsic::sin:
@@ -4983,11 +4983,11 @@ bool AArch64FastISel::selectGetElementPtr(const Instruction *I) {
   MVT VT = TLI.getPointerTy(DL);
   for (gep_type_iterator GTI = gep_type_begin(I), E = gep_type_end(I);
        GTI != E; ++GTI) {
-    const Value *Idx = GTI.getOperand();
-    if (auto *StTy = GTI.getStructTypeOrNull()) {
-      unsigned Field = cast<ConstantInt>(Idx)->getZExtValue();
+    
+    if (const Value *Idx = GTI.getOperand(); auto *StTy = GTI.getStructTypeOrNull()) {
+      
       // N = N + Offset
-      if (Field)
+      if (unsigned Field = cast<ConstantInt>(Idx)->getZExtValue(); Field)
         TotalOffs += DL.getStructLayout(StTy)->getElementOffset(Field);
     } else {
       // If this is a constant subscript, handle it quickly.

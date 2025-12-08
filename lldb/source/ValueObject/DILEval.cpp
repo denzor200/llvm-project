@@ -69,10 +69,10 @@ Interpreter::UnaryConversion(lldb::ValueObjectSP valobj, uint32_t location) {
     // converted to `int`. Otherwise, if `unsigned int` can represent it, it
     // is converted to `unsigned int`. Otherwise, it is treated as its
     // underlying type.
-    uint32_t bitfield_size = valobj->GetBitfieldBitSize();
+    
     // Some bitfields have undefined size (e.g. result of ternary operation).
     // The AST's `bitfield_size` of those is 0, and no promotion takes place.
-    if (bitfield_size > 0 && in_type.IsInteger()) {
+    if (uint32_t bitfield_size = valobj->GetBitfieldBitSize(); bitfield_size > 0 && in_type.IsInteger()) {
       CompilerType int_type = GetBasicType(*type_system, lldb::eBasicTypeInt);
       CompilerType uint_type =
           GetBasicType(*type_system, lldb::eBasicTypeUnsignedInt);
@@ -91,8 +91,8 @@ Interpreter::UnaryConversion(lldb::ValueObjectSP valobj, uint32_t location) {
         return valobj->CastToBasicType(uint_type);
       // Re-create as a const value with the same underlying type
       Scalar scalar;
-      bool resolved = valobj->ResolveValue(scalar);
-      if (!resolved)
+      
+      if (bool resolved = valobj->ResolveValue(scalar); !resolved)
         return llvm::createStringError("invalid scalar value");
       return ValueObject::CreateValueObjectFromScalar(m_target, scalar, in_type,
                                                       "result");
@@ -328,8 +328,8 @@ Interpreter::Visit(const UnaryOpNode *node) {
                                                   node->GetLocation());
     }
     Scalar scalar;
-    bool resolved = operand->ResolveValue(scalar);
-    if (!resolved)
+    
+    if (bool resolved = operand->ResolveValue(scalar); !resolved)
       break;
 
     bool negated = scalar.UnaryNegate();
@@ -379,9 +379,9 @@ Interpreter::Visit(const MemberOfNode *node) {
     if (!m_fragile_ivar) {
       // Make sure we aren't trying to deref an objective
       // C ivar if this is not allowed
-      const uint32_t pointer_type_flags =
-          base->GetCompilerType().GetTypeInfo(nullptr);
-      if ((pointer_type_flags & lldb::eTypeIsObjC) &&
+      
+      if (const uint32_t pointer_type_flags =
+          base->GetCompilerType().GetTypeInfo(nullptr); (pointer_type_flags & lldb::eTypeIsObjC) &&
           (pointer_type_flags & lldb::eTypeIsPointer)) {
         // This was an objective C object pointer and it was requested we
         // skip any fragile ivars so return nothing here
@@ -416,9 +416,9 @@ Interpreter::Visit(const MemberOfNode *node) {
   }
 
   if (m_check_ptr_vs_member) {
-    bool base_is_ptr = base->IsPointerType();
+    
 
-    if (expr_is_ptr != base_is_ptr) {
+    if (bool base_is_ptr = base->IsPointerType(); expr_is_ptr != base_is_ptr) {
       if (base_is_ptr) {
         std::string errMsg =
             llvm::formatv("member reference type {0} is a pointer; "

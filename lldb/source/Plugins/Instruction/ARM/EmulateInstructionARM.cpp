@@ -924,8 +924,8 @@ bool EmulateInstructionARM::EmulatePUSH(const uint32_t opcode,
     if (!success)
       return false;
     uint32_t registers = 0;
-    uint32_t Rt; // the source register
-    switch (encoding) {
+    // the source register
+    switch (uint32_t Rt; encoding) {
     case eEncodingT1:
       registers = Bits32(opcode, 7, 0);
       // The M bit represents LR.
@@ -1040,8 +1040,8 @@ bool EmulateInstructionARM::EmulatePOP(const uint32_t opcode,
     if (!success)
       return false;
     uint32_t registers = 0;
-    uint32_t Rt; // the destination register
-    switch (encoding) {
+    // the destination register
+    switch (uint32_t Rt; encoding) {
     case eEncodingT1:
       registers = Bits32(opcode, 7, 0);
       // The P bit represents PC.
@@ -2025,8 +2025,8 @@ bool EmulateInstructionARM::EmulateBLXImmediate(const uint32_t opcode,
       return false;
     addr_t lr;     // next instruction address
     addr_t target; // target address
-    int32_t imm32; // PC-relative offset
-    switch (encoding) {
+    // PC-relative offset
+    switch (int32_t imm32; encoding) {
     case eEncodingT1: {
       lr = pc | 1u; // return address
       uint32_t S = Bit32(opcode, 26);
@@ -2815,8 +2815,8 @@ bool EmulateInstructionARM::EmulateB(const uint32_t opcode,
     if (!success)
       return false;
     addr_t target; // target address
-    int32_t imm32; // PC-relative offset
-    switch (encoding) {
+    // PC-relative offset
+    switch (int32_t imm32; encoding) {
     case eEncodingT1:
       // The 'cond' field is handled in EmulateInstructionARM::CurrentCond().
       imm32 = llvm::SignExtend32<9>(Bits32(opcode, 7, 0) << 1);
@@ -4138,8 +4138,8 @@ bool EmulateInstructionARM::EmulateLDMDA(const uint32_t opcode,
       offset = (addr_byte_size * BitCount(registers)) * -1;
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t addr = Rn + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t addr = Rn + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  addr))
         return false;
     }
@@ -4274,8 +4274,8 @@ bool EmulateInstructionARM::EmulateLDMDB(const uint32_t opcode,
       offset = (addr_byte_size * BitCount(registers)) * -1;
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t addr = Rn + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t addr = Rn + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  addr))
         return false;
     }
@@ -4386,8 +4386,8 @@ bool EmulateInstructionARM::EmulateLDMIB(const uint32_t opcode,
       offset = addr_byte_size * BitCount(registers);
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t addr = Rn + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t addr = Rn + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  addr))
         return false;
     }
@@ -4704,8 +4704,8 @@ bool EmulateInstructionARM::EmulateSTM(const uint32_t opcode,
       offset = addr_byte_size * BitCount(registers);
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t data = address + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t data = address + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  data))
         return false;
     }
@@ -4826,8 +4826,8 @@ bool EmulateInstructionARM::EmulateSTMDA(const uint32_t opcode,
       offset = (addr_byte_size * BitCount(registers)) * -1;
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t data = Rn + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t data = Rn + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  data))
         return false;
     }
@@ -4975,8 +4975,8 @@ bool EmulateInstructionARM::EmulateSTMDB(const uint32_t opcode,
       offset = (addr_byte_size * BitCount(registers)) * -1;
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t data = Rn + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t data = Rn + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  data))
         return false;
     }
@@ -5098,8 +5098,8 @@ bool EmulateInstructionARM::EmulateSTMIB(const uint32_t opcode,
       offset = addr_byte_size * BitCount(registers);
       context.type = EmulateInstruction::eContextAdjustBaseRegister;
       context.SetImmediateSigned(offset);
-      addr_t data = Rn + offset;
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
+      
+      if (addr_t data = Rn + offset; !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + n,
                                  data))
         return false;
     }
@@ -8121,8 +8121,8 @@ bool EmulateInstructionARM::EmulateLDRSHLiteral(const uint32_t opcode,
     // if UnalignedSupport() || address<0> = '0' then
     if (UnalignedSupport() || BitIsClear(address, 0)) {
       // R[t] = SignExtend(data, 32);
-      int64_t signed_data = llvm::SignExtend64<16>(data);
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + t,
+      
+      if (int64_t signed_data = llvm::SignExtend64<16>(data); !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + t,
                                  (uint64_t)signed_data))
         return false;
     } else // Can only apply before ARMv7
@@ -8301,8 +8301,8 @@ bool EmulateInstructionARM::EmulateLDRSHRegister(const uint32_t opcode,
       context.type = eContextRegisterLoad;
       context.SetRegisterPlusIndirectOffset(*base_reg, *offset_reg);
 
-      int64_t signed_data = llvm::SignExtend64<16>(data);
-      if (!WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + t,
+      
+      if (int64_t signed_data = llvm::SignExtend64<16>(data); !WriteRegisterUnsigned(context, eRegisterKindDWARF, dwarf_r0 + t,
                                  (uint64_t)signed_data))
         return false;
     } else // Can only apply before ARMv7
@@ -13793,19 +13793,19 @@ bool EmulateInstructionARM::ReadInstruction() {
   m_opcode_cpsr = ReadRegisterUnsigned(eRegisterKindGeneric,
                                        LLDB_REGNUM_GENERIC_FLAGS, 0, &success);
   if (success) {
-    addr_t pc =
+    
+    if (addr_t pc =
         ReadRegisterUnsigned(eRegisterKindGeneric, LLDB_REGNUM_GENERIC_PC,
-                             LLDB_INVALID_ADDRESS, &success);
-    if (success) {
+                             LLDB_INVALID_ADDRESS, &success); success) {
       Context read_inst_context;
       read_inst_context.type = eContextReadOpcode;
       read_inst_context.SetNoArgs();
 
       if ((m_opcode_cpsr & MASK_CPSR_T) || m_arch.IsAlwaysThumbInstructions()) {
         m_opcode_mode = eModeThumb;
-        uint32_t thumb_opcode = MemARead(read_inst_context, pc, 2, 0, &success);
+        
 
-        if (success) {
+        if (uint32_t thumb_opcode = MemARead(read_inst_context, pc, 2, 0, &success); success) {
           if ((thumb_opcode & 0xe000) != 0xe000 ||
               ((thumb_opcode & 0x1800u) == 0)) {
             m_opcode.SetOpcode16(thumb_opcode, GetByteOrder());
@@ -13825,9 +13825,9 @@ bool EmulateInstructionARM::ReadInstruction() {
       if (!m_ignore_conditions) {
         // If we are not ignoreing the conditions then init the it session from
         // the current value of cpsr.
-        uint32_t it = (Bits32(m_opcode_cpsr, 15, 10) << 2) |
-                      Bits32(m_opcode_cpsr, 26, 25);
-        if (it != 0)
+        
+        if (uint32_t it = (Bits32(m_opcode_cpsr, 15, 10) << 2) |
+                      Bits32(m_opcode_cpsr, 26, 25); it != 0)
           m_it_session.InitIT(it);
       }
     }
@@ -13926,8 +13926,8 @@ uint32_t EmulateInstructionARM::CurrentCond(const uint32_t opcode) {
     // For T1 and T3 encodings of the Branch instruction, it returns the 4-bit
     // 'cond' field of the encoding.
     {
-      const uint32_t byte_size = m_opcode.GetByteSize();
-      if (byte_size == 2) {
+      
+      if (const uint32_t byte_size = m_opcode.GetByteSize(); byte_size == 2) {
         if (Bits32(opcode, 15, 12) == 0x0d && Bits32(opcode, 11, 8) != 0x0f)
           return Bits32(opcode, 11, 8);
       } else if (byte_size == 4) {

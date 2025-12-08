@@ -164,8 +164,8 @@ void ThreadPlanStepOut::SetupReturnAddress(
 
     // Perform some additional validation on the return address.
     uint32_t permissions = 0;
-    Log *log = GetLog(LLDBLog::Step);
-    if (!m_process.GetLoadAddressPermissions(m_return_addr, permissions)) {
+    
+    if (Log *log = GetLog(LLDBLog::Step); !m_process.GetLoadAddressPermissions(m_return_addr, permissions)) {
       LLDB_LOGF(log, "ThreadPlanStepOut(%p): Return address (0x%" PRIx64
                 ") permissions not found.", static_cast<void *>(this),
                 m_return_addr);
@@ -190,9 +190,9 @@ void ThreadPlanStepOut::SetupReturnAddress(
     }
 
     if (immediate_return_from_sp) {
-      const SymbolContext &sc =
-          immediate_return_from_sp->GetSymbolContext(eSymbolContextFunction);
-      if (sc.function) {
+      
+      if (const SymbolContext &sc =
+          immediate_return_from_sp->GetSymbolContext(eSymbolContextFunction); sc.function) {
         m_immediate_step_from_function = sc.function;
       }
     }
@@ -220,8 +220,8 @@ void ThreadPlanStepOut::SetupAvoidNoDebug(
 }
 
 void ThreadPlanStepOut::DidPush() {
-  Thread &thread = GetThread();
-  if (m_step_out_to_inline_plan_sp)
+  
+  if (Thread &thread = GetThread(); m_step_out_to_inline_plan_sp)
     thread.QueueThreadPlan(m_step_out_to_inline_plan_sp, false);
   else if (m_step_through_inline_plan_sp)
     thread.QueueThreadPlan(m_step_through_inline_plan_sp, false);
@@ -442,8 +442,8 @@ bool ThreadPlanStepOut::DoWillResume(StateType resume_state,
     return false;
 
   if (current_plan) {
-    Breakpoint *return_bp = GetTarget().GetBreakpointByID(m_return_bp_id).get();
-    if (return_bp != nullptr)
+    
+    if (Breakpoint *return_bp = GetTarget().GetBreakpointByID(m_return_bp_id).get(); return_bp != nullptr)
       return_bp->SetEnabled(true);
   }
   return true;
@@ -451,8 +451,8 @@ bool ThreadPlanStepOut::DoWillResume(StateType resume_state,
 
 bool ThreadPlanStepOut::WillStop() {
   if (m_return_bp_id != LLDB_INVALID_BREAK_ID) {
-    Breakpoint *return_bp = GetTarget().GetBreakpointByID(m_return_bp_id).get();
-    if (return_bp != nullptr)
+    
+    if (Breakpoint *return_bp = GetTarget().GetBreakpointByID(m_return_bp_id).get(); return_bp != nullptr)
       return_bp->SetEnabled(false);
   }
 
@@ -468,8 +468,8 @@ bool ThreadPlanStepOut::MischiefManaged() {
     // reason and we're now stopping for some other reason altogether, then
     // we're done with this step out operation.
 
-    Log *log = GetLog(LLDBLog::Step);
-    if (log)
+    
+    if (Log *log = GetLog(LLDBLog::Step); log)
       LLDB_LOGF(log, "Completed step out plan.");
     if (m_return_bp_id != LLDB_INVALID_BREAK_ID) {
       GetTarget().RemoveBreakpointByID(m_return_bp_id);
@@ -492,8 +492,8 @@ bool ThreadPlanStepOut::QueueInlinedStepPlan(bool queue_now) {
   if (!immediate_return_from_sp)
     return false;
 
-  Log *log = GetLog(LLDBLog::Step);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Step); log) {
     StreamString s;
     immediate_return_from_sp->Dump(&s, true, false);
     LLDB_LOGF(log, "Queuing inlined frame to step past: %s.", s.GetData());
@@ -501,8 +501,8 @@ bool ThreadPlanStepOut::QueueInlinedStepPlan(bool queue_now) {
 
   Block *from_block = immediate_return_from_sp->GetFrameBlock();
   if (from_block) {
-    Block *inlined_block = from_block->GetContainingInlinedBlock();
-    if (inlined_block) {
+    
+    if (Block *inlined_block = from_block->GetContainingInlinedBlock(); inlined_block) {
       size_t num_ranges = inlined_block->GetNumRanges();
       AddressRange inline_range;
       if (inlined_block->GetRangeAtIndex(0, inline_range)) {

@@ -162,12 +162,12 @@ Error UdtRecordCompleter::visitKnownMember(
 
   lldb::AccessType access =
       TranslateMemberAccess(static_data_member.getAccess());
-  auto decl = TypeSystemClang::AddVariableToRecordType(
-      m_derived_ct, static_data_member.Name, member_ct, access);
+  
 
   // Static constant members may be a const[expr] declaration.
   // Query the symbol's value as the variable initializer if valid.
-  if (member_ct.IsConst() && member_ct.IsCompleteType()) {
+  if (auto decl = TypeSystemClang::AddVariableToRecordType(
+      m_derived_ct, static_data_member.Name, member_ct, access); member_ct.IsConst() && member_ct.IsCompleteType()) {
     std::string qual_name = decl->getQualifiedNameAsString();
 
     auto results =
@@ -318,9 +318,9 @@ void UdtRecordCompleter::complete() {
   // declarations. If we don't do this, clang will crash with an
   // assertion in the call to clang_type.TransferBaseClasses()
   for (const auto &base_class : bases) {
-    clang::TypeSourceInfo *type_source_info =
-        base_class->getTypeSourceInfo();
-    if (type_source_info) {
+    
+    if (clang::TypeSourceInfo *type_source_info =
+        base_class->getTypeSourceInfo(); type_source_info) {
       TypeSystemClang::RequireCompleteType(
           clang.GetType(type_source_info->getType()));
     }

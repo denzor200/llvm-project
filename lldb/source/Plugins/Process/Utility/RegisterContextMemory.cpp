@@ -74,8 +74,8 @@ uint32_t RegisterContextMemory::ConvertRegisterKindToRegisterNumber(
 
 bool RegisterContextMemory::ReadRegister(const RegisterInfo *reg_info,
                                          RegisterValue &reg_value) {
-  const uint32_t reg_num = reg_info->kinds[eRegisterKindLLDB];
-  if (!m_reg_valid[reg_num]) {
+  
+  if (const uint32_t reg_num = reg_info->kinds[eRegisterKindLLDB]; !m_reg_valid[reg_num]) {
     if (!ReadAllRegisterValues(m_data))
       return false;
   }

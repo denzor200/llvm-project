@@ -69,8 +69,8 @@ CompilerType RegisterTypeBuilderClang::GetRegisterType(
       CompilerType field_type = field_uint_type;
 
       if (const FieldEnum *enum_type = field.GetEnum()) {
-        const FieldEnum::Enumerators &enumerators = enum_type->GetEnumerators();
-        if (!enumerators.empty()) {
+        
+        if (const FieldEnum::Enumerators &enumerators = enum_type->GetEnumerators(); !enumerators.empty()) {
           // Enums can be used by many registers and the size of each register
           // may be different. The register size is used as the underlying size
           // of the enumerators, so we must make one enum type per register size

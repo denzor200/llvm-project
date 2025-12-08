@@ -176,8 +176,8 @@ static bool isLanguageDefinedBuiltin(const SourceManager &SourceMgr,
 }
 
 static bool isReservedCXXAttributeName(Preprocessor &PP, IdentifierInfo *II) {
-  const LangOptions &Lang = PP.getLangOpts();
-  if (Lang.CPlusPlus &&
+  
+  if (const LangOptions &Lang = PP.getLangOpts(); Lang.CPlusPlus &&
       hasAttribute(AttributeCommonInfo::AS_CXX11, /* Scope*/ nullptr, II,
                    PP.getTargetInfo(), Lang, /*CheckPlugins*/ false) > 0) {
     AttributeCommonInfo::AttrArgsInfo AttrArgsInfo =
@@ -206,9 +206,9 @@ static MacroDiag shouldWarnOnMacroDef(Preprocessor &PP, IdentifierInfo *II) {
 }
 
 static MacroDiag shouldWarnOnMacroUndef(Preprocessor &PP, IdentifierInfo *II) {
-  const LangOptions &Lang = PP.getLangOpts();
+  
   // Do not warn on keyword undef.  It is generally harmless and widely used.
-  if (isReservedInAllContexts(II->isReserved(Lang)))
+  if (const LangOptions &Lang = PP.getLangOpts(); isReservedInAllContexts(II->isReserved(Lang)))
     return MD_ReservedMacro;
   if (isReservedCXXAttributeName(PP, II))
     return MD_ReservedAttributeIdentifier;
@@ -228,8 +228,8 @@ static bool warnByDefaultOnWrongCase(StringRef Include) {
 
   // "condition_variable" is the longest standard header name at 18 characters.
   // If the include file name is longer than that, it can't be a standard header.
-  static const size_t MaxStdHeaderNameLen = 18u;
-  if (Include.size() > MaxStdHeaderNameLen)
+  
+  if (static const size_t MaxStdHeaderNameLen = 18u; Include.size() > MaxStdHeaderNameLen)
     return false;
 
   // Lowercase and normalize the search string.
@@ -661,8 +661,8 @@ void Preprocessor::SkipExcludedConditionalBlock(SourceLocation HashTokenLoc,
     // other common directives.
     StringRef RI = Tok.getRawIdentifier();
 
-    char FirstChar = RI[0];
-    if (FirstChar >= 'a' && FirstChar <= 'z' &&
+    
+    if (char FirstChar = RI[0]; FirstChar >= 'a' && FirstChar <= 'z' &&
         FirstChar != 'i' && FirstChar != 'e') {
       CurPPLexer->ParsingPreprocessorDirective = false;
       // Restore comment saving mode.
@@ -1227,8 +1227,8 @@ void Preprocessor::HandleSkippedDirectiveWhileUsingPCH(Token &Result,
     }
     if (SkippingUntilPragmaHdrStop && II->getPPKeywordID() == tok::pp_pragma) {
       Lex(Result);
-      auto *II = Result.getIdentifierInfo();
-      if (II && II->getName() == "hdrstop")
+      
+      if (auto *II = Result.getIdentifierInfo(); II && II->getName() == "hdrstop")
         return HandlePragmaHdrstop(Result);
     }
   }
@@ -1822,10 +1822,10 @@ void Preprocessor::HandleMacroPublicDirective(Token &Tok) {
 
   IdentifierInfo *II = MacroNameTok.getIdentifierInfo();
   // Okay, we finally have a valid identifier to undef.
-  MacroDirective *MD = getLocalMacroDirective(II);
+  
 
   // If the macro is not defined, this is an error.
-  if (!MD) {
+  if (MacroDirective *MD = getLocalMacroDirective(II); !MD) {
     Diag(MacroNameTok, diag::err_pp_visibility_non_macro) << II;
     return;
   }
@@ -1849,10 +1849,10 @@ void Preprocessor::HandleMacroPrivateDirective() {
 
   IdentifierInfo *II = MacroNameTok.getIdentifierInfo();
   // Okay, we finally have a valid identifier to undef.
-  MacroDirective *MD = getLocalMacroDirective(II);
+  
 
   // If the macro is not defined, this is an error.
-  if (!MD) {
+  if (MacroDirective *MD = getLocalMacroDirective(II); !MD) {
     Diag(MacroNameTok, diag::err_pp_visibility_non_macro) << II;
     return;
   }
@@ -3240,8 +3240,8 @@ void Preprocessor::HandleDefineDirective(
 
   // When skipping just warn about macros that do not match.
   if (SkippingUntilPCHThroughHeader) {
-    const MacroInfo *OtherMI = getMacroInfo(MacroNameTok.getIdentifierInfo());
-    if (!OtherMI || !MI->isIdenticalTo(*OtherMI, *this,
+    
+    if (const MacroInfo *OtherMI = getMacroInfo(MacroNameTok.getIdentifierInfo()); !OtherMI || !MI->isIdenticalTo(*OtherMI, *this,
                              /*Syntactic=*/LangOpts.MicrosoftExt))
       Diag(MI->getDefinitionLoc(), diag::warn_pp_macro_def_mismatch_with_pch)
           << MacroNameTok.getIdentifierInfo();
@@ -3558,10 +3558,10 @@ void Preprocessor::HandleElseDirective(Token &Result, const Token &HashToken) {
   if (Callbacks)
     Callbacks->Else(Result.getLocation(), CI.IfLoc);
 
-  bool RetainExcludedCB = PPOpts.RetainExcludedConditionalBlocks &&
-    getSourceManager().isInMainFile(Result.getLocation());
+  
 
-  if ((PPOpts.SingleFileParseMode && !CI.FoundNonSkip) || RetainExcludedCB) {
+  if (bool RetainExcludedCB = PPOpts.RetainExcludedConditionalBlocks &&
+    getSourceManager().isInMainFile(Result.getLocation()); (PPOpts.SingleFileParseMode && !CI.FoundNonSkip) || RetainExcludedCB) {
     // In 'single-file-parse mode' undefined identifiers trigger parsing of all
     // the directive blocks.
     CurPPLexer->pushConditionalLevel(CI.IfLoc, /*wasskip*/false,
@@ -3638,10 +3638,10 @@ void Preprocessor::HandleElifFamilyDirective(Token &ElifToken,
     }
   }
 
-  bool RetainExcludedCB = PPOpts.RetainExcludedConditionalBlocks &&
-    getSourceManager().isInMainFile(ElifToken.getLocation());
+  
 
-  if ((PPOpts.SingleFileParseMode && !CI.FoundNonSkip) || RetainExcludedCB) {
+  if (bool RetainExcludedCB = PPOpts.RetainExcludedConditionalBlocks &&
+    getSourceManager().isInMainFile(ElifToken.getLocation()); (PPOpts.SingleFileParseMode && !CI.FoundNonSkip) || RetainExcludedCB) {
     // In 'single-file-parse mode' undefined identifiers trigger parsing of all
     // the directive blocks.
     CurPPLexer->pushConditionalLevel(ElifToken.getLocation(), /*wasskip*/false,

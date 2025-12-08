@@ -223,8 +223,8 @@ void AsmParserState::initialize(Operation *topLevelOp) {
   startOperationDefinition(topLevelOp->getName());
 
   // If the top-level operation is a symbol table, push a new symbol scope.
-  Impl::PartialOpDef &partialOpDef = impl->partialOperations.back();
-  if (partialOpDef.isSymbolTable())
+  
+  if (Impl::PartialOpDef &partialOpDef = impl->partialOperations.back(); partialOpDef.isSymbolTable())
     impl->symbolUseScopes.push_back(partialOpDef.symbolTable.get());
 }
 
@@ -274,8 +274,8 @@ void AsmParserState::startRegionDefinition() {
 
   // If the parent operation of this region is a symbol table, we also push a
   // new symbol scope.
-  Impl::PartialOpDef &partialOpDef = impl->partialOperations.back();
-  if (partialOpDef.isSymbolTable())
+  
+  if (Impl::PartialOpDef &partialOpDef = impl->partialOperations.back(); partialOpDef.isSymbolTable())
     impl->symbolUseScopes.push_back(partialOpDef.symbolTable.get());
 }
 
@@ -285,8 +285,8 @@ void AsmParserState::finalizeRegionDefinition() {
 
   // If the parent operation of this region is a symbol table, pop the symbol
   // scope for this region.
-  Impl::PartialOpDef &partialOpDef = impl->partialOperations.back();
-  if (partialOpDef.isSymbolTable())
+  
+  if (Impl::PartialOpDef &partialOpDef = impl->partialOperations.back(); partialOpDef.isSymbolTable())
     impl->symbolUseScopes.pop_back();
 }
 

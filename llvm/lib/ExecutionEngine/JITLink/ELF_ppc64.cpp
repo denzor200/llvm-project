@@ -41,8 +41,8 @@ public:
   static StringRef getSectionName() { return ELFTLSInfoSectionName; }
 
   bool visitEdge(LinkGraph &G, Block *B, Edge &E) {
-    Edge::Kind K = E.getKind();
-    switch (K) {
+    
+    switch (Edge::Kind K = E.getKind(); K) {
     case ppc64::RequestTLSDescInGOTAndTransformToTOCDelta16HA:
       E.setKind(ppc64::TOCDelta16HA);
       E.setTarget(this->getEntryForTarget(G, E.getTarget()));

@@ -60,9 +60,9 @@ using EndianWriter = support::endian::Writer;
 // output register in operand 0. If so, we need to swap operands 0 and 1 so the
 // type comes first in the output, despide coming second in the MCInst.
 static bool hasType(const MCInst &MI, const MCInstrInfo &MII) {
-  const MCInstrDesc &MCDesc = MII.get(MI.getOpcode());
+  
   // If we define an output, and have at least one other argument.
-  if (MCDesc.getNumDefs() == 1 && MCDesc.getNumOperands() >= 2) {
+  if (const MCInstrDesc &MCDesc = MII.get(MI.getOpcode()); MCDesc.getNumDefs() == 1 && MCDesc.getNumOperands() >= 2) {
     // Check if we define an ID, and take a type as operand 1.
     return MCDesc.operands()[0].RegClass >= 0 &&
            MCDesc.operands()[1].RegClass >= 0 &&

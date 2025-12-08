@@ -52,8 +52,8 @@ void ModuleMap::resolveLinkAsDependencies(Module *Mod) {
   auto PendingLinkAs = PendingLinkAsModule.find(Mod->Name);
   if (PendingLinkAs != PendingLinkAsModule.end()) {
     for (auto &Name : PendingLinkAs->second) {
-      auto *M = findModule(Name.getKey());
-      if (M)
+      
+      if (auto *M = findModule(Name.getKey()); M)
         M->UseExportAsModuleLinkName = true;
     }
   }
@@ -1048,8 +1048,8 @@ Module *ModuleMap::inferFrameworkModule(DirectoryEntryRef FrameworkDir,
         if (inferred == InferredDirectories.end()) {
           // We haven't looked here before. Load a module map, if there is
           // one.
-          bool IsFrameworkDir = Parent.ends_with(".framework");
-          if (OptionalFileEntryRef ModMapFile =
+          
+          if (bool IsFrameworkDir = Parent.ends_with(".framework"); OptionalFileEntryRef ModMapFile =
                   HeaderInfo.lookupModuleMapFile(*ParentDir, IsFrameworkDir)) {
             // TODO: Parsing a module map should populate `InferredDirectories`
             //       so we don't need to do a full load here.
@@ -1507,8 +1507,8 @@ bool ModuleMap::resolveUses(Module *Mod, bool Complain) {
   auto Unresolved = std::move(Top->UnresolvedDirectUses);
   Top->UnresolvedDirectUses.clear();
   for (auto &UDU : Unresolved) {
-    Module *DirectUse = resolveModuleId(UDU, Top, Complain);
-    if (DirectUse)
+    
+    if (Module *DirectUse = resolveModuleId(UDU, Top, Complain); DirectUse)
       Top->DirectUses.push_back(DirectUse);
     else
       Top->UnresolvedDirectUses.push_back(UDU);
@@ -1742,8 +1742,8 @@ void ModuleMapLoader::handleModuleDecl(const modulemap::ModuleDecl &MD) {
             SourceMgr.getDecomposedLoc(Existing->DefinitionLoc).first;
     // TODO: Remove this check when we can avoid loading module maps multiple
     //       times.
-    bool SameModuleDecl = ModuleNameLoc == Existing->DefinitionLoc;
-    if (LoadedFromASTFile || Inferred || PartOfFramework || ParsedAsMainInput ||
+    
+    if (bool SameModuleDecl = ModuleNameLoc == Existing->DefinitionLoc; LoadedFromASTFile || Inferred || PartOfFramework || ParsedAsMainInput ||
         SameModuleDecl) {
       ActiveModule = PreviousActiveModule;
       // Skip the module definition.

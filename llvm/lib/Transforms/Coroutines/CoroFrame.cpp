@@ -430,8 +430,8 @@ void FrameTypeBuilder::addFieldForAllocas(const Function &F,
         return LargestAlloca->getAlign().value() % Alloca->getAlign().value() ==
                0;
       }();
-      bool CouldMerge = NoInterference && Alignable;
-      if (!CouldMerge)
+      
+      if (bool CouldMerge = NoInterference && Alignable; !CouldMerge)
         continue;
       AllocaSet.push_back(Alloca);
       Merged = true;
@@ -487,8 +487,8 @@ StructType *FrameTypeBuilder::finish(StringRef Name) {
   // assigned offset isn't a multiple of its natural type alignment.
   bool Packed = [&] {
     for (auto &LayoutField : LayoutFields) {
-      auto &F = getField(LayoutField);
-      if (!isAligned(F.TyAlignment, LayoutField.Offset))
+      
+      if (auto &F = getField(LayoutField); !isAligned(F.TyAlignment, LayoutField.Offset))
         return true;
     }
     return false;
@@ -547,10 +547,10 @@ static void cacheDIVar(FrameDataInfo &FrameData,
       continue;
 
     auto CacheIt = [&DIVarCache, V](const auto &Container) {
-      auto *I = llvm::find_if(Container, [](auto *DDI) {
+      
+      if (auto *I = llvm::find_if(Container, [](auto *DDI) {
         return DDI->getExpression()->getNumElements() == 0;
-      });
-      if (I != Container.end())
+      }); I != Container.end())
         DIVarCache.insert({V, (*I)->getVariable()});
     };
     CacheIt(findDVRDeclares(V));
@@ -654,10 +654,10 @@ static DIType *solveDIType(DIBuilder &Builder, Type *Ty,
   } else {
     LLVM_DEBUG(dbgs() << "Unresolved Type: " << *Ty << "\n");
     TypeSize Size = Layout.getTypeSizeInBits(Ty);
-    auto *CharSizeType = Builder.createBasicType(
-        Name, 8, dwarf::DW_ATE_unsigned_char, llvm::DINode::FlagArtificial);
+    
 
-    if (Size <= 8)
+    if (auto *CharSizeType = Builder.createBasicType(
+        Name, 8, dwarf::DW_ATE_unsigned_char, llvm::DINode::FlagArtificial); Size <= 8)
       RetType = CharSizeType;
     else {
       if (Size % 8 != 0)
@@ -1021,8 +1021,8 @@ static void insertSpills(const FrameDataInfo &FrameData, coro::Shape &Shape) {
 
     if (auto *AI = dyn_cast<AllocaInst>(Orig)) {
       if (auto *CI = dyn_cast<ConstantInt>(AI->getArraySize())) {
-        auto Count = CI->getValue().getZExtValue();
-        if (Count > 1) {
+        
+        if (auto Count = CI->getValue().getZExtValue(); Count > 1) {
           Indices.push_back(ConstantInt::get(Type::getInt32Ty(C), 0));
         }
       } else {
@@ -1224,8 +1224,8 @@ static void insertSpills(const FrameDataInfo &FrameData, coro::Shape &Shape) {
 
       // Remove any lifetime intrinsics, now that these are no longer allocas.
       for (User *U : make_early_inc_range(Alloca->users())) {
-        auto *I = cast<Instruction>(U);
-        if (I->isLifetimeStartOrEnd())
+        
+        if (auto *I = cast<Instruction>(U); I->isLifetimeStartOrEnd())
           I->eraseFromParent();
       }
 
@@ -1250,11 +1250,11 @@ static void insertSpills(const FrameDataInfo &FrameData, coro::Shape &Shape) {
     AllocaInst *Alloca = A.Alloca;
     UsersToUpdate.clear();
     for (User *U : make_early_inc_range(Alloca->users())) {
-      auto *I = cast<Instruction>(U);
+      
       // It is meaningless to retain the lifetime intrinsics refer for the
       // member of coroutine frames and the meaningless lifetime intrinsics
       // are possible to block further optimizations.
-      if (I->isLifetimeStartOrEnd())
+      if (auto *I = cast<Instruction>(U); I->isLifetimeStartOrEnd())
         I->eraseFromParent();
       else if (DT.dominates(Shape.CoroBegin, I))
         UsersToUpdate.push_back(I);
@@ -1307,7 +1307,8 @@ static void insertSpills(const FrameDataInfo &FrameData, coro::Shape &Shape) {
   if (Shape.ABI == coro::ABI::Switch && Shape.SwitchLowering.PromiseAlloca) {
     AllocaInst *PA = Shape.SwitchLowering.PromiseAlloca;
     // If there is memory accessing to promise alloca before CoroBegin;
-    bool HasAccessingPromiseBeforeCB = llvm::any_of(PA->uses(), [&](Use &U) {
+    
+    if (bool HasAccessingPromiseBeforeCB = llvm::any_of(PA->uses(), [&](Use &U) {
       auto *Inst = dyn_cast<Instruction>(U.getUser());
       if (!Inst || DT.dominates(Shape.CoroBegin, Inst))
         return false;
@@ -1332,8 +1333,7 @@ static void insertSpills(const FrameDataInfo &FrameData, coro::Shape &Shape) {
              // opaque pointers are enabled by default. This should be
              // fine.
              isa<BitCastInst>(Inst);
-    });
-    if (HasAccessingPromiseBeforeCB) {
+    }); HasAccessingPromiseBeforeCB) {
       Builder.SetInsertPoint(&*Shape.getInsertPtAfterFramePtr());
       auto *G = GetFramePointer(PA);
       auto *Value = Builder.CreateLoad(PA->getAllocatedType(), PA);
@@ -1626,8 +1626,8 @@ static void lowerLocalAllocas(ArrayRef<CoroAllocaAllocInst*> LocalAllocas,
       // alloca.alloc is required to obey a stack discipline, although we
       // don't enforce that structurally.
       } else {
-        auto FI = cast<CoroAllocaFreeInst>(U);
-        if (StackSave) {
+        
+        if (auto FI = cast<CoroAllocaFreeInst>(U); StackSave) {
           Builder.SetInsertPoint(FI);
           Builder.CreateStackRestore(StackSave);
         }
@@ -1849,12 +1849,12 @@ static void sinkLifetimeStartMarkers(Function &F, coro::Shape &Shape,
       };
 
       for (User *U : AI->users()) {
-        Instruction *UI = cast<Instruction>(U);
+        
         // For all users except lifetime.start markers, if they are all
         // dominated by one of the basic blocks and do not cross
         // suspend points as well, then there is no need to spill the
         // instruction.
-        if (!DT.dominates(DomBB, UI->getParent()) ||
+        if (Instruction *UI = cast<Instruction>(U); !DT.dominates(DomBB, UI->getParent()) ||
             Checker.isDefinitionAcrossSuspend(DomBB, UI)) {
           // Skip lifetime.start, GEP and bitcast used by lifetime.start
           // markers.
@@ -2004,10 +2004,10 @@ void coro::salvageDebugInfo(
       // dbg.declare instead, so that subsequent passes don't have to deal with
       // a dbg.declare_value.
       if (DVR.getType() == DbgVariableRecord::LocationType::DeclareValue) {
-        auto *MD = DVR.getRawLocation();
-        if (auto *VAM = dyn_cast<ValueAsMetadata>(MD)) {
-          Type *Ty = VAM->getValue()->getType();
-          if (Ty->isPointerTy())
+        
+        if (auto *MD = DVR.getRawLocation(); auto *VAM = dyn_cast<ValueAsMetadata>(MD)) {
+          
+          if (Type *Ty = VAM->getValue()->getType(); Ty->isPointerTy())
             DVR.Type = DbgVariableRecord::LocationType::Declare;
           else
             DVR.Type = DbgVariableRecord::LocationType::Value;

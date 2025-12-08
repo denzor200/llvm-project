@@ -67,9 +67,9 @@ bool looksLikeDocComment(llvm::StringRef CommentText) {
 // to replace the last placeholder with $0.
 bool shouldPatchPlaceholder0(CodeCompletionResult::ResultKind ResultKind,
                              CXCursorKind CursorKind) {
-  bool CompletingPattern = ResultKind == CodeCompletionResult::RK_Pattern;
+  
 
-  if (!CompletingPattern)
+  if (bool CompletingPattern = ResultKind == CodeCompletionResult::RK_Pattern; !CompletingPattern)
     return false;
 
   // If the result kind of CodeCompletionResult(CCR) is `RK_Pattern`, it doesn't
@@ -328,8 +328,8 @@ std::string formatDocumentation(const CodeCompletionString &CCS,
   // Things like __attribute__((nonnull(1,3))) and [[noreturn]]. Present this
   // information in the documentation field.
   std::string Result;
-  const unsigned AnnotationCount = CCS.getAnnotationCount();
-  if (AnnotationCount > 0) {
+  
+  if (const unsigned AnnotationCount = CCS.getAnnotationCount(); AnnotationCount > 0) {
     Result += "Annotation";
     if (AnnotationCount == 1) {
       Result += ": ";

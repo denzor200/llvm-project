@@ -787,14 +787,14 @@ void WebAssemblyLowerEmscriptenEHSjLj::rebuildSSA(Function &F) {
         // If the alloca has any lifetime marker that is no longer dominated
         // by the alloca, remove all lifetime markers. Lifetime markers must
         // always work directly on the alloca, and this is no longer possible.
-        bool HasNonDominatedLifetimeMarker = any_of(I.users(), [&](User *U) {
+        
+        if (bool HasNonDominatedLifetimeMarker = any_of(I.users(), [&](User *U) {
           auto *UserI = cast<Instruction>(U);
           return UserI->isLifetimeStartOrEnd() && !DT.dominates(&I, UserI);
-        });
-        if (HasNonDominatedLifetimeMarker) {
+        }); HasNonDominatedLifetimeMarker) {
           for (User *U : make_early_inc_range(I.users())) {
-            auto *UserI = cast<Instruction>(U);
-            if (UserI->isLifetimeStartOrEnd())
+            
+            if (auto *UserI = cast<Instruction>(U); UserI->isLifetimeStartOrEnd())
               UserI->eraseFromParent();
           }
         }
@@ -840,8 +840,8 @@ void WebAssemblyLowerEmscriptenEHSjLj::replaceLongjmpWith(Function *LongjmpF,
   // For calls to longjmp, replace it with emscripten_longjmp/__wasm_longjmp and
   // cast its first argument (jmp_buf*) appropriately
   for (User *U : LongjmpF->users()) {
-    auto *CI = dyn_cast<CallInst>(U);
-    if (CI && CI->getCalledFunction() == LongjmpF) {
+    
+    if (auto *CI = dyn_cast<CallInst>(U); CI && CI->getCalledFunction() == LongjmpF) {
       IRB.SetInsertPoint(CI);
       Value *Env = nullptr;
       if (NewF == EmLongjmpF)
@@ -886,8 +886,8 @@ static void nullifySetjmp(Function *F) {
 
   for (User *U : make_early_inc_range(SetjmpF->users())) {
     auto *CB = cast<CallBase>(U);
-    BasicBlock *BB = CB->getParent();
-    if (BB->getParent() != F) // in other function
+    
+    if (BasicBlock *BB = CB->getParent(); BB->getParent() != F) // in other function
       continue;
     CallInst *CI = nullptr;
     // setjmp cannot throw. So if it is an invoke, lower it to a call
@@ -979,11 +979,11 @@ bool WebAssemblyLowerEmscriptenEHSjLj::runOnModule(Module &M) {
     // Precompute setjmp users
     for (User *U : SetjmpF->users()) {
       if (auto *CB = dyn_cast<CallBase>(U)) {
-        auto *UserF = CB->getFunction();
+        
         // If a function that calls setjmp does not contain any other calls that
         // can longjmp, we don't need to do any transformation on that function,
         // so can ignore it
-        if (containsLongjmpableCalls(UserF))
+        if (auto *UserF = CB->getFunction(); containsLongjmpableCalls(UserF))
           SetjmpUsers.insert(UserF);
         else
           SetjmpUsersToNullify.insert(UserF);
@@ -1231,10 +1231,10 @@ bool WebAssemblyLowerEmscriptenEHSjLj::runEHOnFunction(Function &F) {
     IRB.SetInsertPoint(LPI);
     SmallVector<Value *, 16> FMCArgs;
     for (unsigned I = 0, E = LPI->getNumClauses(); I < E; ++I) {
-      Constant *Clause = LPI->getClause(I);
+      
       // TODO Handle filters (= exception specifications).
       // https://github.com/llvm/llvm-project/issues/49740
-      if (LPI->isCatch(I))
+      if (Constant *Clause = LPI->getClause(I); LPI->isCatch(I))
         FMCArgs.push_back(Clause);
     }
 
@@ -1270,8 +1270,8 @@ static DebugLoc getOrCreateDebugLoc(const Instruction *InsertBefore,
   assert(InsertBefore);
   if (InsertBefore->getDebugLoc())
     return InsertBefore->getDebugLoc();
-  const Instruction *Prev = InsertBefore->getPrevNode();
-  if (Prev && Prev->getDebugLoc())
+  
+  if (const Instruction *Prev = InsertBefore->getPrevNode(); Prev && Prev->getDebugLoc())
     return Prev->getDebugLoc();
   if (SP)
     return DILocation::get(SP->getContext(), SP->getLine(), 1, SP);
@@ -1819,8 +1819,8 @@ void WebAssemblyLowerEmscriptenEHSjLj::handleLongjmpableCallsForWasmSjLj(
       for (unsigned Idx = 0, E = PN.getNumIncomingValues(); Idx != E; ++Idx) {
         if (NewPreds.contains(PN.getIncomingBlock(Idx)))
           continue;
-        Value *V = PN.getIncomingValue(Idx);
-        if (auto *II = dyn_cast<InvokeInst>(V))
+        
+        if (Value *V = PN.getIncomingValue(Idx); auto *II = dyn_cast<InvokeInst>(V))
           SSA.AddAvailableValue(II->getNormalDest(), II);
         else if (auto *I = dyn_cast<Instruction>(V))
           SSA.AddAvailableValue(I->getParent(), I);

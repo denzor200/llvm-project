@@ -75,8 +75,8 @@ struct ReassociationIndexRange {
     // Handle the chunk right of the overlapping range. Symmetrically, we should
     // skip the edge of the overlap AND include the rightmost index.
     int64_t rightStart = std::min(rightIdx, rhs.rightIdx) + 1;
-    int64_t rightEnd = std::max(rightIdx, rhs.rightIdx);
-    if (rightStart < rightEnd)
+    
+    if (int64_t rightEnd = std::max(rightIdx, rhs.rightIdx); rightStart < rightEnd)
       llvm::append_range(result, llvm::seq_inclusive(rightStart, rightEnd));
     return result;
   }
@@ -109,8 +109,8 @@ findReassociationRangeForDynamicDim(ArrayRef<int64_t> sourceShape,
   ReassociationIndexRange iterationRange{sourceStartIdx, sourceStartIdx};
   for (; iterationRange.isInRange(sourceShapeAsRange);
        iterationRange.rightIdx++) {
-    int64_t sourceSize = sourceShape[iterationRange.rightIdx];
-    if (sourceSize == ShapedType::kDynamic) {
+    
+    if (int64_t sourceSize = sourceShape[iterationRange.rightIdx]; sourceSize == ShapedType::kDynamic) {
       resultRange = iterationRange;
       break;
     }
@@ -304,8 +304,8 @@ mlir::getReassociationIndicesForCollapse(ArrayRef<int64_t> sourceShape,
   if (numTargetDims == 0) {
     for (unsigned sourceDimIdx = 0; sourceDimIdx < numSourceDims;
          ++sourceDimIdx) {
-      int64_t sourceSize = sourceShape[sourceDimIdx];
-      if (sourceSize != 1 && sourceSize != ShapedType::kDynamic)
+      
+      if (int64_t sourceSize = sourceShape[sourceDimIdx]; sourceSize != 1 && sourceSize != ShapedType::kDynamic)
         return std::nullopt;
     }
     return SmallVector<ReassociationIndices>{};
@@ -374,12 +374,12 @@ mlir::composeReassociationIndices(
   if (consumerReassociations.empty())
     return composedIndices;
 
-  size_t consumerDims =
+  
+  if (size_t consumerDims =
       llvm::accumulate(consumerReassociations, size_t(0),
                        [](size_t all, ReassociationIndicesRef indices) {
                          return all + indices.size();
-                       });
-  if (producerReassociations.size() != consumerDims)
+                       }); producerReassociations.size() != consumerDims)
     return std::nullopt;
 
   for (ReassociationIndicesRef consumerIndices : consumerReassociations) {

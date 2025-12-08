@@ -168,8 +168,8 @@ linalg::isaBroadcastOpInterface(GenericOp op) {
     auto expr = llvm::dyn_cast<AffineDimExpr>(srcMap.getResults()[i]);
     if (!expr)
       return std::nullopt;
-    int64_t pos = expr.getPosition();
-    if (i > 0 && pos <= position[i - 1])
+    
+    if (int64_t pos = expr.getPosition(); i > 0 && pos <= position[i - 1])
       return std::nullopt;
     position.push_back(expr.getPosition());
   }
@@ -1071,8 +1071,8 @@ static MatchFillResult isFillInterfaceImpl(Operation *op) {
   if (linalgOp.getNumDpsInputs() != 1 || linalgOp.getNumDpsInits() != 1)
     return MatchFillResult::WrongNumOperands;
 
-  OpOperand *value = linalgOp.getDpsInputOperand(0);
-  if (!linalgOp.isScalar(value))
+  
+  if (OpOperand *value = linalgOp.getDpsInputOperand(0); !linalgOp.isScalar(value))
     return MatchFillResult::NotScalarInput;
 
   return MatchFillResult::Success;

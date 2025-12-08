@@ -926,10 +926,10 @@ computeMemberData(raw_ostream &StringTable, raw_ostream &SymNames,
     // In the big archive file format, we need to calculate and include the next
     // member offset and previous member offset in the file member header.
     if (isAIXBigArchive(Kind)) {
-      uint64_t OffsetToMemData = Pos + sizeof(object::BigArMemHdrType) +
-                                 alignTo(M->MemberName.size(), 2);
+      
 
-      if (M == NewMembers.begin())
+      if (uint64_t OffsetToMemData = Pos + sizeof(object::BigArMemHdrType) +
+                                 alignTo(M->MemberName.size(), 2); M == NewMembers.begin())
         NextMemHeadPadSize =
             alignToPowerOf2(OffsetToMemData,
                             getMemberAlignment(CurSymFile.get())) -
@@ -1111,8 +1111,8 @@ Error writeArchiveToStream(raw_ostream &Out,
     // cutoff happens before 32-bits and instead happens at some much smaller
     // value.
     uint64_t Sym64Threshold = 1ULL << 32;
-    const char *Sym64Env = std::getenv("SYM64_THRESHOLD");
-    if (Sym64Env)
+    
+    if (const char *Sym64Env = std::getenv("SYM64_THRESHOLD"); Sym64Env)
       StringRef(Sym64Env).getAsInteger(10, Sym64Threshold);
 
     // If LastMemberHeaderOffset isn't going to fit in a 32-bit varible we need

@@ -1404,8 +1404,8 @@ FunctionPass *TargetPassConfig::createRegAllocPass(bool Optimized) {
   llvm::call_once(InitializeDefaultRegisterAllocatorFlag,
                   initializeDefaultRegisterAllocatorOnce);
 
-  RegisterRegAlloc::FunctionPassCtor Ctor = RegisterRegAlloc::getDefault();
-  if (Ctor != useDefaultRegisterAllocator)
+  
+  if (RegisterRegAlloc::FunctionPassCtor Ctor = RegisterRegAlloc::getDefault(); Ctor != useDefaultRegisterAllocator)
     return Ctor();
 
   // With no -regalloc= override, ask the target for a regalloc pass.

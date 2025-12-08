@@ -62,9 +62,9 @@ Status OptionValueFileSpecList::SetValueFromString(llvm::StringRef value,
   std::lock_guard<std::recursive_mutex> lock(m_mutex);
   Status error;
   Args args(value.str());
-  const size_t argc = args.GetArgumentCount();
+  
 
-  switch (op) {
+  switch (const size_t argc = args.GetArgumentCount(); op) {
   case eVarSetOperationClear:
     Clear();
     NotifyValueChanged();
@@ -73,8 +73,8 @@ Status OptionValueFileSpecList::SetValueFromString(llvm::StringRef value,
   case eVarSetOperationReplace:
     if (argc > 1) {
       uint32_t idx;
-      const uint32_t count = m_current_value.GetSize();
-      if (!llvm::to_integer(args.GetArgumentAtIndex(0), idx) || idx > count) {
+      
+      if (const uint32_t count = m_current_value.GetSize(); !llvm::to_integer(args.GetArgumentAtIndex(0), idx) || idx > count) {
         error = Status::FromErrorStringWithFormat(
             "invalid file list index %s, index must be 0 through %u",
             args.GetArgumentAtIndex(0), count);
@@ -117,8 +117,8 @@ Status OptionValueFileSpecList::SetValueFromString(llvm::StringRef value,
   case eVarSetOperationInsertAfter:
     if (argc > 1) {
       uint32_t idx;
-      const uint32_t count = m_current_value.GetSize();
-      if (!llvm::to_integer(args.GetArgumentAtIndex(0), idx) || idx > count) {
+      
+      if (const uint32_t count = m_current_value.GetSize(); !llvm::to_integer(args.GetArgumentAtIndex(0), idx) || idx > count) {
         error = Status::FromErrorStringWithFormat(
             "invalid insert file list index %s, index must be 0 through %u",
             args.GetArgumentAtIndex(0), count);
@@ -152,8 +152,8 @@ Status OptionValueFileSpecList::SetValueFromString(llvm::StringRef value,
       }
 
       if (all_indexes_valid) {
-        size_t num_remove_indexes = remove_indexes.size();
-        if (num_remove_indexes) {
+        
+        if (size_t num_remove_indexes = remove_indexes.size(); num_remove_indexes) {
           // Sort and then erase in reverse so indexes are always valid
           llvm::sort(remove_indexes);
           for (size_t j = num_remove_indexes - 1; j < num_remove_indexes; ++j) {

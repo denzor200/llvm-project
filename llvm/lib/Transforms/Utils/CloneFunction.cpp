@@ -352,9 +352,9 @@ void llvm::CloneFunctionInto(Function *NewFunc, const Function *OldFunc,
   DebugInfoFinder DIFinder;
   collectDebugInfoFromInstructions(*OldFunc, DIFinder);
   for (DICompileUnit *Unit : DIFinder.compile_units()) {
-    MDNode *MappedUnit =
-        MapMetadata(Unit, VMap, RF_None, TypeMapper, Materializer);
-    if (Visited.insert(MappedUnit).second)
+    
+    if (MDNode *MappedUnit =
+        MapMetadata(Unit, VMap, RF_None, TypeMapper, Materializer); Visited.insert(MappedUnit).second)
       NMD->addOperand(MappedUnit);
   }
 }
@@ -437,8 +437,8 @@ PruningFunctionCloner::cloneInstruction(BasicBlock::const_iterator II) {
   const Instruction &OldInst = *II;
   Instruction *NewInst = nullptr;
   if (HostFuncIsStrictFP) {
-    Intrinsic::ID CIID = getConstrainedIntrinsicID(OldInst);
-    if (CIID != Intrinsic::not_intrinsic) {
+    
+    if (Intrinsic::ID CIID = getConstrainedIntrinsicID(OldInst); CIID != Intrinsic::not_intrinsic) {
       // Instead of cloning the instruction, a call to constrained intrinsic
       // should be created.
       // Assume the first arguments of constrained intrinsics are the same as
@@ -786,8 +786,8 @@ void llvm::CloneAndPruneIntoFromInst(Function *NewFunc, const Function *OldFunc,
       OPN = PHIToResolve[phino];
       PHINode *PN = cast<PHINode>(VMap[OPN]);
       for (unsigned pred = 0, e = NumPreds; pred != e; ++pred) {
-        Value *V = VMap.lookup(PN->getIncomingBlock(pred));
-        if (BasicBlock *MappedBlock = cast_or_null<BasicBlock>(V)) {
+        
+        if (Value *V = VMap.lookup(PN->getIncomingBlock(pred)); BasicBlock *MappedBlock = cast_or_null<BasicBlock>(V)) {
           Value *InVal =
               MapValue(PN->getIncomingValue(pred), VMap,
                        ModuleLevelChanges ? RF_None : RF_NoModuleLevelChanges);
@@ -913,8 +913,8 @@ void llvm::CloneAndPruneIntoFromInst(Function *NewFunc, const Function *OldFunc,
     SmallVector<BasicBlock *, 16> Worklist;
     Worklist.push_back(&*Begin);
     while (!Worklist.empty()) {
-      BasicBlock *BB = Worklist.pop_back_val();
-      if (ReachableBlocks.insert(BB).second)
+      
+      if (BasicBlock *BB = Worklist.pop_back_val(); ReachableBlocks.insert(BB).second)
         append_range(Worklist, successors(BB));
     }
 
@@ -1038,8 +1038,8 @@ Loop *llvm::cloneLoopWithPreheader(BasicBlock *Before, BasicBlock *LoopDomBB,
   DT->addNewBlock(NewPH, LoopDomBB);
 
   for (Loop *CurLoop : OrigLoop->getLoopsInPreorder()) {
-    Loop *&NewLoop = LMap[CurLoop];
-    if (!NewLoop) {
+    
+    if (Loop *&NewLoop = LMap[CurLoop]; !NewLoop) {
       NewLoop = LI->AllocateLoop();
 
       // Establish the parent/child relationship.

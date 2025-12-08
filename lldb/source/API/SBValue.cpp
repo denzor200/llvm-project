@@ -686,8 +686,8 @@ SBValue SBValue::GetChildAtIndex(uint32_t idx,
 
   lldb::ValueObjectSP child_sp;
   if (value_sp) {
-    const bool can_create = true;
-    if (treat_as_array &&
+    
+    if (const bool can_create = true; treat_as_array &&
         (value_sp->IsPointerType() || value_sp->IsArrayType()))
       child_sp = value_sp->GetSyntheticArrayMember(idx, can_create);
     else
@@ -1398,9 +1398,9 @@ bool SBValue::SetData(lldb::SBData &data, SBError &error) {
   bool ret = true;
 
   if (value_sp) {
-    DataExtractor *data_extractor = data.get();
+    
 
-    if (!data_extractor) {
+    if (DataExtractor *data_extractor = data.get(); !data_extractor) {
       error = Status::FromErrorString("No data to set");
       ret = false;
     } else {

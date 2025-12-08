@@ -276,8 +276,8 @@ void ObjectFileCOFF::ParseSymtab(lldb_private::Symtab &symtab) {
     Symbol symbol;
     symbol.GetMangled().SetValue(ConstString(*NameOrErr));
 
-    int16_t SecIdx = static_cast<int16_t>(COFFSymRef.getSectionNumber());
-    if (SecIdx == COFF::IMAGE_SYM_ABSOLUTE) {
+    
+    if (int16_t SecIdx = static_cast<int16_t>(COFFSymRef.getSectionNumber()); SecIdx == COFF::IMAGE_SYM_ABSOLUTE) {
       symbol.GetAddressRef() = Address{COFFSymRef.getValue()};
       symbol.SetType(eSymbolTypeAbsolute);
     } else if (SecIdx >= 1) {

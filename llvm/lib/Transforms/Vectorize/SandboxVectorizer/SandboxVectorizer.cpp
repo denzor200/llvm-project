@@ -73,8 +73,8 @@ PreservedAnalyses SandboxVectorizerPass::run(Function &F,
   AA = &AM.getResult<AAManager>(F);
   SE = &AM.getResult<ScalarEvolutionAnalysis>(F);
 
-  bool Changed = runImpl(F);
-  if (!Changed)
+  
+  if (bool Changed = runImpl(F); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;
@@ -111,8 +111,8 @@ bool SandboxVectorizerPass::runImpl(Function &LLVMF) {
 
   // This is used for debugging.
   if (LLVM_UNLIKELY(AllowFiles != ".*")) {
-    const auto &SrcFilePath = LLVMF.getParent()->getSourceFileName();
-    if (!allowFile(SrcFilePath))
+    
+    if (const auto &SrcFilePath = LLVMF.getParent()->getSourceFileName(); !allowFile(SrcFilePath))
       return false;
   }
 

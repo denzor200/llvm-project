@@ -164,14 +164,14 @@ public:
   ~CommandObjectTypeSummaryAdd() override = default;
 
   void IOHandlerActivated(IOHandler &io_handler, bool interactive) override {
-    static const char *g_summary_addreader_instructions =
+    
+
+    if (static const char *g_summary_addreader_instructions =
         "Enter your Python command(s). Type 'DONE' to end.\n"
         "def function (valobj,internal_dict):\n"
         "     \"\"\"valobj: an SBValue which you want to provide a summary "
         "for\n"
-        "        internal_dict: an LLDB support object not to be used\"\"\"\n";
-
-    if (interactive) {
+        "        internal_dict: an LLDB support object not to be used\"\"\"\n"; interactive) {
       if (LockableStreamFileSP output_sp = io_handler.GetOutputStreamFileSP()) {
         LockedStreamFile locked_stream = output_sp->Lock();
         locked_stream.PutCString(g_summary_addreader_instructions);
@@ -652,9 +652,9 @@ pointers to floats.  Nor will it change the default display for Afloat and Bfloa
 
 protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    const size_t argc = command.GetArgumentCount();
+    
 
-    if (argc < 1) {
+    if (const size_t argc = command.GetArgumentCount(); argc < 1) {
       result.AppendErrorWithFormat("%s takes one or more args.\n",
                                    m_cmd_name.c_str());
       return;
@@ -731,9 +731,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'a':
         m_delete_all = true;
         break;
@@ -822,9 +822,9 @@ protected:
   virtual bool FormatterSpecificDeletion(ConstString typeCS) { return false; }
 
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    const size_t argc = command.GetArgumentCount();
+    
 
-    if (argc != 1) {
+    if (const size_t argc = command.GetArgumentCount(); argc != 1) {
       result.AppendErrorWithFormat("%s takes 1 arg.\n", m_cmd_name.c_str());
       return;
     }
@@ -888,9 +888,9 @@ private:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'a':
         m_delete_all = true;
         break;
@@ -998,8 +998,8 @@ class CommandObjectTypeFormatterList : public CommandObjectParsed {
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
-      switch (short_option) {
+      
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'w':
         m_category_regex.SetCurrentValue(option_arg);
         m_category_regex.SetOptionWasSet();
@@ -1367,9 +1367,9 @@ bool CommandObjectTypeSummaryAdd::Execute_ScriptSummary(
 
 bool CommandObjectTypeSummaryAdd::Execute_StringSummary(
     Args &command, CommandReturnObject &result) {
-  const size_t argc = command.GetArgumentCount();
+  
 
-  if (argc < 1 && !m_options.m_name) {
+  if (const size_t argc = command.GetArgumentCount(); argc < 1 && !m_options.m_name) {
     result.AppendErrorWithFormat("%s takes one or more args.\n",
                                  m_cmd_name.c_str());
     return false;
@@ -1605,8 +1605,8 @@ bool CommandObjectTypeSummaryAdd::AddSummary(ConstString type_name,
 
   if (match_type == eFormatterMatchCallback) {
     const char *function_name = type_name.AsCString();
-    ScriptInterpreter *interpreter = GetDebugger().GetScriptInterpreter();
-    if (interpreter && !interpreter->CheckObjectExists(function_name)) {
+    
+    if (ScriptInterpreter *interpreter = GetDebugger().GetScriptInterpreter(); interpreter && !interpreter->CheckObjectExists(function_name)) {
       *error = Status::FromErrorStringWithFormat(
           "The provided recognizer function \"%s\" does not exist - "
           "please define it before attempting to use this summary.\n",
@@ -1692,9 +1692,9 @@ class CommandObjectTypeCategoryDefine : public CommandObjectParsed {
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'e':
         m_define_enabled.SetValueFromString(llvm::StringRef("true"));
         break;
@@ -1739,9 +1739,9 @@ public:
 
 protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    const size_t argc = command.GetArgumentCount();
+    
 
-    if (argc < 1) {
+    if (const size_t argc = command.GetArgumentCount(); argc < 1) {
       result.AppendErrorWithFormat("%s takes 1 or more args.\n",
                                    m_cmd_name.c_str());
       return;
@@ -1777,9 +1777,9 @@ class CommandObjectTypeCategoryEnable : public CommandObjectParsed {
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'l':
         if (!option_arg.empty()) {
           m_language = Language::GetLanguageTypeFromString(option_arg);
@@ -1919,9 +1919,9 @@ class CommandObjectTypeCategoryDisable : public CommandObjectParsed {
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'l':
         if (!option_arg.empty()) {
           m_language = Language::GetLanguageTypeFromString(option_arg);
@@ -2153,9 +2153,9 @@ bool CommandObjectTypeSynthAdd::Execute_HandwritePython(
 
 bool CommandObjectTypeSynthAdd::Execute_PythonClass(
     Args &command, CommandReturnObject &result) {
-  const size_t argc = command.GetArgumentCount();
+  
 
-  if (argc < 1) {
+  if (const size_t argc = command.GetArgumentCount(); argc < 1) {
     result.AppendErrorWithFormat("%s takes one or more args.\n",
                                  m_cmd_name.c_str());
     return false;
@@ -2266,8 +2266,8 @@ bool CommandObjectTypeSynthAdd::AddSynth(ConstString type_name,
 
   if (match_type == eFormatterMatchCallback) {
     const char *function_name = type_name.AsCString();
-    ScriptInterpreter *interpreter = GetDebugger().GetScriptInterpreter();
-    if (interpreter && !interpreter->CheckObjectExists(function_name)) {
+    
+    if (ScriptInterpreter *interpreter = GetDebugger().GetScriptInterpreter(); interpreter && !interpreter->CheckObjectExists(function_name)) {
       *error = Status::FromErrorStringWithFormat(
           "The provided recognizer function \"%s\" does not exist - "
           "please define it before attempting to use this summary.\n",
@@ -2459,9 +2459,9 @@ all children of my_foo as if no filter was defined:"
 
 protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    const size_t argc = command.GetArgumentCount();
+    
 
-    if (argc < 1) {
+    if (const size_t argc = command.GetArgumentCount(); argc < 1) {
       result.AppendErrorWithFormat("%s takes one or more args.\n",
                                    m_cmd_name.c_str());
       return;
@@ -2534,8 +2534,8 @@ protected:
     if (lang_type != lldb::eLanguageTypeUnknown)
       return lang_type;
 
-    Symbol *s = frame->GetSymbolContext(eSymbolContextSymbol).symbol;
-    if (s)
+    
+    if (Symbol *s = frame->GetSymbolContext(eSymbolContextSymbol).symbol; s)
       lang_type = s->GetMangled().GuessLanguage();
 
     return lang_type;
@@ -2555,9 +2555,9 @@ protected:
                           ExecutionContext *execution_context) override {
       Status error;
 
-      const int short_option = g_type_lookup_options[option_idx].short_option;
+      
 
-      switch (short_option) {
+      switch (const int short_option = g_type_lookup_options[option_idx].short_option; short_option) {
       case 'h':
         m_show_help = true;
         break;

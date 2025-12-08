@@ -111,13 +111,13 @@ static bool isPTruePromoted(IntrinsicInst *PTrue) {
   const auto *PTrueVTy = cast<ScalableVectorType>(PTrue->getType());
   for (IntrinsicInst *ConvertToUse : ConvertToUses) {
     for (User *User : ConvertToUse->users()) {
-      auto *IntrUser = dyn_cast<IntrinsicInst>(User);
-      if (IntrUser && IntrUser->getIntrinsicID() ==
+      
+      if (auto *IntrUser = dyn_cast<IntrinsicInst>(User); IntrUser && IntrUser->getIntrinsicID() ==
                           Intrinsic::aarch64_sve_convert_from_svbool) {
-        const auto *IntrUserVTy = cast<ScalableVectorType>(IntrUser->getType());
+        
 
         // Would some lanes become zeroed by the conversion?
-        if (IntrUserVTy->getElementCount().getKnownMinValue() >
+        if (const auto *IntrUserVTy = cast<ScalableVectorType>(IntrUser->getType()); IntrUserVTy->getElementCount().getKnownMinValue() >
             PTrueVTy->getElementCount().getKnownMinValue())
           // This is a promoted ptrue.
           return true;
@@ -166,11 +166,11 @@ bool SVEIntrinsicOpts::coalescePTrueIntrinsicCalls(
 
   bool ConvertFromCreated = false;
   for (auto *PTrue : PTrues) {
-    auto *PTrueVTy = cast<VectorType>(PTrue->getType());
+    
 
     // Only create the converts if the types are not already the same, otherwise
     // just use the most encompassing ptrue.
-    if (MostEncompassingPTrueVTy != PTrueVTy) {
+    if (auto *PTrueVTy = cast<VectorType>(PTrue->getType()); MostEncompassingPTrueVTy != PTrueVTy) {
       ConvertFromCreated = true;
 
       Builder.SetInsertPoint(&BB, ++ConvertToSVBool->getIterator());

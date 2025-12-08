@@ -181,7 +181,8 @@ Error BasicBlockSectionsProfileReader::ReadV1Profile() {
       DIFilename = sys::path::remove_leading_dotslash(Values[0]);
       continue;
     case 'f': { // Function names specifier.
-      bool FunctionFound = any_of(Values, [&](StringRef Alias) {
+      
+      if (bool FunctionFound = any_of(Values, [&](StringRef Alias) {
         auto It = FunctionNameToDIFilename.find(Alias);
         // No match if this function name is not found in this module.
         if (It == FunctionNameToDIFilename.end())
@@ -189,8 +190,7 @@ Error BasicBlockSectionsProfileReader::ReadV1Profile() {
         // Return a match if debug-info-filename is not specified. Otherwise,
         // check for equality.
         return DIFilename.empty() || It->second == DIFilename;
-      });
-      if (!FunctionFound) {
+      }); !FunctionFound) {
         // Skip the following profile by setting the profile iterator (FI) to
         // the past-the-end element.
         FI = ProgramPathAndClusterInfo.end();
@@ -379,7 +379,8 @@ Error BasicBlockSectionsProfileReader::ReadV0Profile() {
       // this one.
       SmallVector<StringRef, 4> Aliases;
       AliasesStr.split(Aliases, '/');
-      bool FunctionFound = any_of(Aliases, [&](StringRef Alias) {
+      
+      if (bool FunctionFound = any_of(Aliases, [&](StringRef Alias) {
         auto It = FunctionNameToDIFilename.find(Alias);
         // No match if this function name is not found in this module.
         if (It == FunctionNameToDIFilename.end())
@@ -387,8 +388,7 @@ Error BasicBlockSectionsProfileReader::ReadV0Profile() {
         // Return a match if debug-info-filename is not specified. Otherwise,
         // check for equality.
         return DIFilename.empty() || It->second == DIFilename;
-      });
-      if (!FunctionFound) {
+      }); !FunctionFound) {
         // Skip the following profile by setting the profile iterator (FI) to
         // the past-the-end element.
         FI = ProgramPathAndClusterInfo.end();
@@ -467,10 +467,10 @@ bool BasicBlockSectionsProfileReaderWrapperPass::doInitialization(Module &M) {
     SmallString<128> DIFilename;
     if (F.isDeclaration())
       continue;
-    DISubprogram *Subprogram = F.getSubprogram();
-    if (Subprogram) {
-      llvm::DICompileUnit *CU = Subprogram->getUnit();
-      if (CU)
+    
+    if (DISubprogram *Subprogram = F.getSubprogram(); Subprogram) {
+      
+      if (llvm::DICompileUnit *CU = Subprogram->getUnit(); CU)
         DIFilename = sys::path::remove_leading_dotslash(CU->getFilename());
     }
     [[maybe_unused]] bool inserted =

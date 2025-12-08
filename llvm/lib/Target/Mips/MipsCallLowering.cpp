@@ -418,9 +418,9 @@ bool MipsCallLowering::lowerCall(MachineIRBuilder &MIRBuilder,
   if (IsCalleeGlobalPIC) {
     Register CalleeReg =
         MF.getRegInfo().createGenericVirtualRegister(LLT::pointer(0, 32));
-    MachineInstr *CalleeGlobalValue =
-        MIRBuilder.buildGlobalValue(CalleeReg, Info.Callee.getGlobal());
-    if (!Info.Callee.getGlobal()->hasLocalLinkage())
+    
+    if (MachineInstr *CalleeGlobalValue =
+        MIRBuilder.buildGlobalValue(CalleeReg, Info.Callee.getGlobal()); !Info.Callee.getGlobal()->hasLocalLinkage())
       CalleeGlobalValue->getOperand(1).setTargetFlags(MipsII::MO_GOT_CALL);
     MIB.addUse(CalleeReg);
   } else

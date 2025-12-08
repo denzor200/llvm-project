@@ -109,8 +109,8 @@ ClangFunctionCaller::CompileFunction(lldb::ThreadSP thread_to_use_sp,
   if (m_function_ptr) {
     function_clang_type = m_function_ptr->GetCompilerType();
     if (function_clang_type) {
-      int num_func_args = function_clang_type.GetFunctionArgumentCount();
-      if (num_func_args >= 0) {
+      
+      if (int num_func_args = function_clang_type.GetFunctionArgumentCount(); num_func_args >= 0) {
         trust_function = true;
         num_args = num_func_args;
       }

@@ -632,8 +632,8 @@ void CodeGenSchedModels::collectSchedRW() {
       Records.getAllDerivedDefinitions("SchedAlias");
   for (const Record *ADef : AliasDefs) {
     const Record *MatchDef = ADef->getValueAsDef("MatchRW");
-    const Record *AliasDef = ADef->getValueAsDef("AliasRW");
-    if (MatchDef->isSubClassOf("SchedWrite")) {
+    
+    if (const Record *AliasDef = ADef->getValueAsDef("AliasRW"); MatchDef->isSubClassOf("SchedWrite")) {
       if (!AliasDef->isSubClassOf("SchedWrite"))
         PrintFatalError(ADef->getLoc(), "SchedWrite Alias must be SchedWrite");
       scanSchedRW(AliasDef, SWDefs, RWSet);
@@ -772,8 +772,8 @@ void CodeGenSchedModels::expandRWSeqForProc(
   for (const Record *Rec : SchedWrite.Aliases) {
     const CodeGenSchedRW &AliasRW = getSchedRW(Rec->getValueAsDef("AliasRW"));
     if (Rec->getValueInit("SchedModel")->isComplete()) {
-      const Record *ModelDef = Rec->getValueAsDef("SchedModel");
-      if (&getProcModel(ModelDef) != &ProcModel)
+      
+      if (const Record *ModelDef = Rec->getValueAsDef("SchedModel"); &getProcModel(ModelDef) != &ProcModel)
         continue;
     }
     if (AliasDef)
@@ -1023,14 +1023,14 @@ void CodeGenSchedModels::createInstRWClass(const Record *InstRWDef) {
     // If the all instrs in the current class are accounted for, then leave
     // them mapped to their old class.
     if (OldSCIdx) {
-      const ConstRecVec &RWDefs = SchedClasses[OldSCIdx].InstRWs;
-      if (!RWDefs.empty()) {
+      
+      if (const ConstRecVec &RWDefs = SchedClasses[OldSCIdx].InstRWs; !RWDefs.empty()) {
         const ConstRecVec *OrigInstDefs = Sets.expand(RWDefs[0]);
-        unsigned OrigNumInstrs =
+        
+        if (unsigned OrigNumInstrs =
             count_if(*OrigInstDefs, [&](const Record *OIDef) {
               return InstrClassMap[OIDef] == OldSCIdx;
-            });
-        if (OrigNumInstrs == InstDefs.size()) {
+            }); OrigNumInstrs == InstDefs.size()) {
           assert(SchedClasses[OldSCIdx].ProcIndices[0] == 0 &&
                  "expected a generic SchedClass");
           const Record *RWModelDef = InstRWDef->getValueAsDef("SchedModel");
@@ -1437,8 +1437,8 @@ void PredTransitions::getIntersectingVariants(
     // Don't expand variants if the processor models don't intersect.
     // A zero processor index means any processor.
     if (Variant.VarOrSeqDef->isSubClassOf("SchedVar")) {
-      const Record *PredDef = Variant.VarOrSeqDef->getValueAsDef("Predicate");
-      if (mutuallyExclusive(PredDef, AllPreds, TransVec[TransIdx].PredTerm))
+      
+      if (const Record *PredDef = Variant.VarOrSeqDef->getValueAsDef("Predicate"); mutuallyExclusive(PredDef, AllPreds, TransVec[TransIdx].PredTerm))
         continue;
     }
 
@@ -1482,9 +1482,9 @@ void PredTransitions::pushVariant(const TransVariant &VInfo, bool IsRead) {
 
   const CodeGenSchedRW &SchedRW = SchedModels.getSchedRW(VInfo.RWIdx, IsRead);
 
-  SmallVectorImpl<SmallVector<unsigned, 4>> &RWSequences =
-      IsRead ? Trans.ReadSequences : Trans.WriteSequences;
-  if (SchedRW.IsVariadic) {
+  
+  if (SmallVectorImpl<SmallVector<unsigned, 4>> &RWSequences =
+      IsRead ? Trans.ReadSequences : Trans.WriteSequences; SchedRW.IsVariadic) {
     unsigned OperIdx = RWSequences.size() - 1;
     // Make N-1 copies of this transition's last sequence.
     RWSequences.reserve(RWSequences.size() + SelectedRWs.size() - 1);
@@ -1868,8 +1868,8 @@ void CodeGenSchedModels::collectProcResources() {
   for (const Record *PRG : Records.getAllDerivedDefinitions("ProcResGroup")) {
     if (!PRG->getValueInit("SchedModel")->isComplete())
       continue;
-    CodeGenProcModel &PM = getProcModel(PRG->getValueAsDef("SchedModel"));
-    if (!is_contained(PM.ProcResourceDefs, PRG))
+    
+    if (CodeGenProcModel &PM = getProcModel(PRG->getValueAsDef("SchedModel")); !is_contained(PM.ProcResourceDefs, PRG))
       PM.ProcResourceDefs.push_back(PRG);
   }
   // Add ProcResourceUnits unconditionally.
@@ -1877,8 +1877,8 @@ void CodeGenSchedModels::collectProcResources() {
        Records.getAllDerivedDefinitions("ProcResourceUnits")) {
     if (!PRU->getValueInit("SchedModel")->isComplete())
       continue;
-    CodeGenProcModel &PM = getProcModel(PRU->getValueAsDef("SchedModel"));
-    if (!is_contained(PM.ProcResourceDefs, PRU))
+    
+    if (CodeGenProcModel &PM = getProcModel(PRU->getValueAsDef("SchedModel")); !is_contained(PM.ProcResourceDefs, PRU))
       PM.ProcResourceDefs.push_back(PRU);
   }
   // Finalize each ProcModel by sorting the record arrays.

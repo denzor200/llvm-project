@@ -28,10 +28,10 @@ LIBC_INLINE static constexpr float coshf(float x) {
   xbits.set_sign(Sign::POS);
   x = xbits.get_val();
 
-  uint32_t x_u = xbits.uintval();
+  
 
   // When |x| >= 90, or x is inf or nan
-  if (LIBC_UNLIKELY(x_u >= 0x42b4'0000U || x_u <= 0x3280'0000U)) {
+  if (uint32_t x_u = xbits.uintval(); LIBC_UNLIKELY(x_u >= 0x42b4'0000U || x_u <= 0x3280'0000U)) {
     // |x| <= 2^-26
     if (x_u <= 0x3280'0000U) {
       return 1.0f + x;
@@ -40,8 +40,8 @@ LIBC_INLINE static constexpr float coshf(float x) {
     if (xbits.is_inf_or_nan())
       return x + FPBits::inf().get_val();
 
-    int rounding = fputil::quick_get_round();
-    if (LIBC_UNLIKELY(rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO))
+    
+    if (int rounding = fputil::quick_get_round(); LIBC_UNLIKELY(rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO))
       return FPBits::max_normal().get_val();
 
     fputil::set_errno_if_required(ERANGE);

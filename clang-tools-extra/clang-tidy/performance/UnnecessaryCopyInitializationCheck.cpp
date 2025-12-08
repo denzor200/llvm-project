@@ -327,8 +327,8 @@ void UnnecessaryCopyInitializationCheck::check(
 
 void UnnecessaryCopyInitializationCheck::handleCopyFromMethodReturn(
     const CheckContext &Ctx, const VarDecl *ObjectArg) {
-  const bool IsConstQualified = Ctx.Var.getType().isConstQualified();
-  if (!IsConstQualified && !Ctx.IsVarOnlyUsedAsConst)
+  
+  if (const bool IsConstQualified = Ctx.Var.getType().isConstQualified(); !IsConstQualified && !Ctx.IsVarOnlyUsedAsConst)
     return;
   if (ObjectArg != nullptr &&
       !isInitializingVariableImmutable(*ObjectArg, Ctx.BlockStmt, Ctx.ASTCtx,

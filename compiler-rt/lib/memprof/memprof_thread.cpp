@@ -46,10 +46,10 @@ static ThreadContextBase *GetMemprofThreadContext(u32 tid) {
 }
 
 ThreadRegistry &memprofThreadRegistry() {
-  static bool initialized;
+  
   // Don't worry about thread_safety - this should be called when there is
   // a single thread.
-  if (!initialized) {
+  if (static bool initialized; !initialized) {
     // Never reuse MemProf threads: we store pointer to MemprofThreadContext
     // in TSD and can't reliably tell when no more TSD destructors will
     // be called. It would be wrong to reuse MemprofThreadContext for another
@@ -204,9 +204,9 @@ u32 GetCurrentTidOrInvalid() {
 }
 
 void EnsureMainThreadIDIsCorrect() {
-  MemprofThreadContext *context =
-      reinterpret_cast<MemprofThreadContext *>(TSDGet());
-  if (context && (context->tid == kMainTid))
+  
+  if (MemprofThreadContext *context =
+      reinterpret_cast<MemprofThreadContext *>(TSDGet()); context && (context->tid == kMainTid))
     context->os_id = GetTid();
 }
 } // namespace __memprof

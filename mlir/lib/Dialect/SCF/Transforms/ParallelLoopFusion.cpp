@@ -72,8 +72,8 @@ static bool haveNoReadsAfterWriteExceptSameIndex(
     Value loadMem = load.getMemRef();
     // Stop if the memref is defined in secondPloop body. Careful alias analysis
     // is needed.
-    auto *memrefDef = loadMem.getDefiningOp();
-    if (memrefDef && memrefDef->getBlock() == load->getBlock())
+    
+    if (auto *memrefDef = loadMem.getDefiningOp(); memrefDef && memrefDef->getBlock() == load->getBlock())
       return WalkResult::interrupt();
 
     for (Value store : bufferStoresVec)
@@ -105,8 +105,8 @@ static bool haveNoReadsAfterWriteExceptSameIndex(
       if (firstToSecondPloopIndices.lookupOrDefault(storeIndices[i]) !=
           loadIndices[i]) {
         auto *storeIndexDefOp = storeIndices[i].getDefiningOp();
-        auto *loadIndexDefOp = loadIndices[i].getDefiningOp();
-        if (storeIndexDefOp && loadIndexDefOp) {
+        
+        if (auto *loadIndexDefOp = loadIndices[i].getDefiningOp(); storeIndexDefOp && loadIndexDefOp) {
           if (!isMemoryEffectFree(storeIndexDefOp))
             return WalkResult::interrupt();
           if (!isMemoryEffectFree(loadIndexDefOp))

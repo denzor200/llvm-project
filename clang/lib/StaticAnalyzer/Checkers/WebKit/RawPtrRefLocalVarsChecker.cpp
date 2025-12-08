@@ -69,8 +69,8 @@ struct GuardianVisitor : DynamicRecursiveASTVisitor {
   bool VisitCXXConstructExpr(CXXConstructExpr *CE) override {
     if (auto *Ctor = CE->getConstructor()) {
       if (Ctor->isMoveConstructor() && CE->getNumArgs() == 1) {
-        auto *Arg = CE->getArg(0)->IgnoreParenCasts();
-        if (auto *VarRef = dyn_cast<DeclRefExpr>(Arg)) {
+        
+        if (auto *Arg = CE->getArg(0)->IgnoreParenCasts(); auto *VarRef = dyn_cast<DeclRefExpr>(Arg)) {
           if (VarRef->getDecl() == Guardian)
             return false;
         }
@@ -83,8 +83,8 @@ struct GuardianVisitor : DynamicRecursiveASTVisitor {
     auto MethodName = safeGetName(MCE->getMethodDecl());
     if (MethodName == "swap" || MethodName == "leakRef" ||
         MethodName == "releaseNonNull" || MethodName == "clear") {
-      auto *ThisArg = MCE->getImplicitObjectArgument()->IgnoreParenCasts();
-      if (auto *VarRef = dyn_cast<DeclRefExpr>(ThisArg)) {
+      
+      if (auto *ThisArg = MCE->getImplicitObjectArgument()->IgnoreParenCasts(); auto *VarRef = dyn_cast<DeclRefExpr>(ThisArg)) {
         if (VarRef->getDecl() == Guardian)
           return false;
       }
@@ -95,8 +95,8 @@ struct GuardianVisitor : DynamicRecursiveASTVisitor {
   bool VisitCXXOperatorCallExpr(CXXOperatorCallExpr *OCE) override {
     if (OCE->isAssignmentOp()) {
       assert(OCE->getNumArgs() == 2);
-      auto *ThisArg = OCE->getArg(0)->IgnoreParenCasts();
-      if (auto *VarRef = dyn_cast<DeclRefExpr>(ThisArg)) {
+      
+      if (auto *ThisArg = OCE->getArg(0)->IgnoreParenCasts(); auto *VarRef = dyn_cast<DeclRefExpr>(ThisArg)) {
         if (VarRef->getDecl() == Guardian)
           return false;
       }
@@ -217,8 +217,8 @@ public:
       }
 
       bool VisitVarDecl(VarDecl *V) override {
-        auto *Init = V->getInit();
-        if (Init && V->isLocalVarDecl())
+        
+        if (auto *Init = V->getInit(); Init && V->isLocalVarDecl())
           Checker->visitVarDecl(V, Init, DeclWithIssue);
         return true;
       }
@@ -315,12 +315,12 @@ public:
                 if (auto *Ref = llvm::dyn_cast<DeclRefExpr>(InitArgOrigin)) {
                   if (auto *MaybeGuardian =
                           dyn_cast_or_null<VarDecl>(Ref->getFoundDecl())) {
-                    const auto *MaybeGuardianArgType =
-                        MaybeGuardian->getType().getTypePtr();
-                    if (MaybeGuardianArgType) {
-                      const CXXRecordDecl *const MaybeGuardianArgCXXRecord =
-                          MaybeGuardianArgType->getAsCXXRecordDecl();
-                      if (MaybeGuardianArgCXXRecord) {
+                    
+                    if (const auto *MaybeGuardianArgType =
+                        MaybeGuardian->getType().getTypePtr(); MaybeGuardianArgType) {
+                      
+                      if (const CXXRecordDecl *const MaybeGuardianArgCXXRecord =
+                          MaybeGuardianArgType->getAsCXXRecordDecl(); MaybeGuardianArgCXXRecord) {
                         if (MaybeGuardian->isLocalVarDecl() &&
                             (isSafePtr(MaybeGuardianArgCXXRecord) ||
                              isRefcountedStringsHack(MaybeGuardian)) &&

@@ -84,8 +84,8 @@ bool matchCFGSubgraph(BinaryBasicBlock &BB, BinaryBasicBlock *&ConditionalSucc,
   BinaryBasicBlock *TakenSucc = BB.getConditionalSuccessor(true);
   BinaryBasicBlock *FallthroughSucc = BB.getConditionalSuccessor(false);
   bool IsIfThenTaken = isIfThenSubgraph(*FallthroughSucc, *TakenSucc);
-  bool IsIfThenFallthrough = isIfThenSubgraph(*TakenSucc, *FallthroughSucc);
-  if (!IsIfThenFallthrough && !IsIfThenTaken)
+  
+  if (bool IsIfThenFallthrough = isIfThenSubgraph(*TakenSucc, *FallthroughSucc); !IsIfThenFallthrough && !IsIfThenTaken)
     return false;
   assert((!IsIfThenFallthrough || !IsIfThenTaken) && "Invalid subgraph");
 

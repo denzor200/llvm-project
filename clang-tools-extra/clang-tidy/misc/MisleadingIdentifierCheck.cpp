@@ -144,8 +144,8 @@ MisleadingIdentifierCheck::~MisleadingIdentifierCheck() = default;
 void MisleadingIdentifierCheck::check(
     const ast_matchers::MatchFinder::MatchResult &Result) {
   if (const auto *ND = Result.Nodes.getNodeAs<NamedDecl>("nameddecl")) {
-    const IdentifierInfo *II = ND->getIdentifier();
-    if (II) {
+    
+    if (const IdentifierInfo *II = ND->getIdentifier(); II) {
       const StringRef NDName = II->getName();
       if (hasRTLCharacters(NDName))
         diag(ND->getBeginLoc(), "identifier has right-to-left codepoints");

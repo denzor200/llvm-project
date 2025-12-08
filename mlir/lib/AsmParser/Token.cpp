@@ -97,8 +97,8 @@ std::string Token::getStringValue() const {
   std::string result;
   result.reserve(bytes.size());
   for (unsigned i = 0, e = bytes.size(); i != e;) {
-    auto c = bytes[i++];
-    if (c != '\\') {
+    
+    if (auto c = bytes[i++]; c != '\\') {
       result.push_back(c);
       continue;
     }

@@ -67,8 +67,8 @@ std::string DDGDotGraphTraits::getNodeLabel(const DDGNode *Node,
 std::string DDGDotGraphTraits::getEdgeAttributes(
     const DDGNode *Node, GraphTraits<const DDGNode *>::ChildIteratorType I,
     const DataDependenceGraph *G) {
-  const DDGEdge *E = static_cast<const DDGEdge *>(*I.getCurrent());
-  if (isSimple())
+  
+  if (const DDGEdge *E = static_cast<const DDGEdge *>(*I.getCurrent()); isSimple())
     return getSimpleEdgeAttributes(Node, E, G);
   else
     return getVerboseEdgeAttributes(Node, E, G);

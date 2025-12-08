@@ -153,8 +153,8 @@ uint64_t SBSection::GetFileOffset() {
   if (section_sp) {
     ModuleSP module_sp(section_sp->GetModule());
     if (module_sp) {
-      ObjectFile *objfile = module_sp->GetObjectFile();
-      if (objfile)
+      
+      if (ObjectFile *objfile = module_sp->GetObjectFile(); objfile)
         return objfile->GetFileOffset() + section_sp->GetFileOffset();
     }
   }

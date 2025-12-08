@@ -339,8 +339,8 @@ SBError SBDebugger::SetInputString(const char *data) {
     return sb_error;
   }
 
-  size_t size = strlen(data);
-  if (size == 0) {
+  
+  if (size_t size = strlen(data); size == 0) {
     sb_error = Status::FromErrorString("String data is empty");
     return sb_error;
   }
@@ -626,8 +626,8 @@ void SBDebugger::HandleProcessEvent(const SBProcess &process,
     if (event_state == eStateInvalid)
       return;
 
-    bool is_stopped = StateIsStoppedState(event_state);
-    if (!is_stopped)
+    
+    if (bool is_stopped = StateIsStoppedState(event_state); !is_stopped)
       process.ReportEventState(event, out_sp);
   }
 }
@@ -646,8 +646,8 @@ bool SBDebugger::GetDefaultArchitecture(char *arch_name, size_t arch_name_len) {
     ArchSpec default_arch = Target::GetDefaultArchitecture();
 
     if (default_arch.IsValid()) {
-      const std::string &triple_str = default_arch.GetTriple().str();
-      if (!triple_str.empty())
+      
+      if (const std::string &triple_str = default_arch.GetTriple().str(); !triple_str.empty())
         ::snprintf(arch_name, arch_name_len, "%s", triple_str.c_str());
       else
         ::snprintf(arch_name, arch_name_len, "%s",
@@ -688,9 +688,9 @@ SBDebugger::GetScriptInterpreterInfo(lldb::ScriptLanguage language) {
   LLDB_INSTRUMENT_VA(this, language);
   SBStructuredData data;
   if (m_opaque_sp) {
-    lldb_private::ScriptInterpreter *interp =
-        m_opaque_sp->GetScriptInterpreter(language);
-    if (interp) {
+    
+    if (lldb_private::ScriptInterpreter *interp =
+        m_opaque_sp->GetScriptInterpreter(language); interp) {
       data.m_impl_up->SetObjectSP(interp->GetInterpreterInfo());
     }
   }
@@ -1496,9 +1496,9 @@ bool SBDebugger::GetUseSourceCache() const {
 bool SBDebugger::GetDescription(SBStream &description) {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_sp) {
+  if (Stream &strm = description.ref(); m_opaque_sp) {
     const char *name = m_opaque_sp->GetInstanceName().c_str();
     user_id_t id = m_opaque_sp->GetID();
     strm.Printf("Debugger (instance: \"%s\", id: %" PRIu64 ")", name, id);
@@ -1520,8 +1520,8 @@ SBError SBDebugger::SetCurrentPlatform(const char *platform_name_cstr) {
   SBError sb_error;
   if (m_opaque_sp) {
     if (platform_name_cstr && platform_name_cstr[0]) {
-      PlatformList &platforms = m_opaque_sp->GetPlatformList();
-      if (PlatformSP platform_sp = platforms.GetOrCreate(platform_name_cstr))
+      
+      if (PlatformList &platforms = m_opaque_sp->GetPlatformList(); PlatformSP platform_sp = platforms.GetOrCreate(platform_name_cstr))
         platforms.SetSelectedPlatform(platform_sp);
       else
         sb_error.ref() = Status::FromErrorString("platform not found");

@@ -15,8 +15,8 @@
 using namespace llvm;
 
 void RecordStreamer::markDefined(const MCSymbol &Symbol) {
-  State &S = Symbols[Symbol.getName()];
-  switch (S) {
+  
+  switch (State &S = Symbols[Symbol.getName()]; S) {
   case DefinedGlobal:
   case Global:
     S = DefinedGlobal;
@@ -35,8 +35,8 @@ void RecordStreamer::markDefined(const MCSymbol &Symbol) {
 
 void RecordStreamer::markGlobal(const MCSymbol &Symbol,
                                 MCSymbolAttr Attribute) {
-  State &S = Symbols[Symbol.getName()];
-  switch (S) {
+  
+  switch (State &S = Symbols[Symbol.getName()]; S) {
   case DefinedGlobal:
   case Defined:
     S = (Attribute == MCSA_Weak) ? DefinedWeak : DefinedGlobal;
@@ -54,8 +54,8 @@ void RecordStreamer::markGlobal(const MCSymbol &Symbol,
 }
 
 void RecordStreamer::markUsed(const MCSymbol &Symbol) {
-  State &S = Symbols[Symbol.getName()];
-  switch (S) {
+  
+  switch (State &S = Symbols[Symbol.getName()]; S) {
   case DefinedGlobal:
   case Defined:
   case Global:

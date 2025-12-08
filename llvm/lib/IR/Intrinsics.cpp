@@ -550,14 +550,14 @@ static Type *DecodeFixedType(ArrayRef<Intrinsic::IITDescriptor> &Infos,
         cast<VectorType>(Tys[D.getRefArgNumber()]), D.getVectorDivisor());
   case IITDescriptor::SameVecWidthArgument: {
     Type *EltTy = DecodeFixedType(Infos, Tys, Context);
-    Type *Ty = Tys[D.getArgumentNumber()];
-    if (auto *VTy = dyn_cast<VectorType>(Ty))
+    
+    if (Type *Ty = Tys[D.getArgumentNumber()]; auto *VTy = dyn_cast<VectorType>(Ty))
       return VectorType::get(EltTy, VTy->getElementCount());
     return EltTy;
   }
   case IITDescriptor::VecElementArgument: {
-    Type *Ty = Tys[D.getArgumentNumber()];
-    if (VectorType *VTy = dyn_cast<VectorType>(Ty))
+    
+    if (Type *Ty = Tys[D.getArgumentNumber()]; VectorType *VTy = dyn_cast<VectorType>(Ty))
       return VTy->getElementType();
     llvm_unreachable("Expected an argument of Vector Type");
   }
@@ -1003,8 +1003,8 @@ matchIntrinsicType(Type *Ty, ArrayRef<Intrinsic::IITDescriptor> &Infos,
     if (D.getArgumentNumber() >= ArgTys.size())
       return IsDeferredCheck || DeferCheck(Ty);
 
-    Type *NewTy = ArgTys[D.getArgumentNumber()];
-    if (auto *VTy = dyn_cast<VectorType>(NewTy)) {
+    
+    if (Type *NewTy = ArgTys[D.getArgumentNumber()]; auto *VTy = dyn_cast<VectorType>(NewTy)) {
       int SubDivs = D.Kind == IITDescriptor::Subdivide2Argument ? 1 : 2;
       NewTy = VectorType::getSubdividedVectorType(VTy, SubDivs);
       return Ty != NewTy;
@@ -1040,8 +1040,8 @@ Intrinsic::matchIntrinsicSignature(FunctionType *FTy,
       return MatchIntrinsicTypes_NoMatchArg;
 
   for (unsigned I = 0, E = DeferredChecks.size(); I != E; ++I) {
-    DeferredIntrinsicMatchPair &Check = DeferredChecks[I];
-    if (matchIntrinsicType(Check.first, Check.second, ArgTys, DeferredChecks,
+    
+    if (DeferredIntrinsicMatchPair &Check = DeferredChecks[I]; matchIntrinsicType(Check.first, Check.second, ArgTys, DeferredChecks,
                            true))
       return I < NumDeferredReturnChecks ? MatchIntrinsicTypes_NoMatchRet
                                          : MatchIntrinsicTypes_NoMatchArg;

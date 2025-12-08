@@ -350,8 +350,8 @@ Error WindowsResourceParser::parse(WindowsResource *WR,
   while (!End) {
 
     TreeNode *Node;
-    bool IsNewNode = Root.addEntry(Entry, Origin, Data, StringTable, Node);
-    if (!IsNewNode) {
+    
+    if (bool IsNewNode = Root.addEntry(Entry, Origin, Data, StringTable, Node); !IsNewNode) {
       if (!shouldIgnoreDuplicate(Entry))
         Duplicates.push_back(makeDuplicateResourceError(
             Entry, InputFilenames[Node->Origin], WR->getFileName()));
@@ -428,10 +428,10 @@ Error WindowsResourceParser::addChildren(TreeNode &Node,
       UNWRAP_REF_OR_RETURN(DataEntry, RSR.getEntryData(Entry));
       TreeNode *Child;
       Context.push_back(StringOrID(Entry.Identifier.ID));
-      bool Added = Node.addDataChild(Entry.Identifier.ID, Table.MajorVersion,
+      
+      if (bool Added = Node.addDataChild(Entry.Identifier.ID, Table.MajorVersion,
                                      Table.MinorVersion, Table.Characteristics,
-                                     Origin, Data.size(), Child);
-      if (Added) {
+                                     Origin, Data.size(), Child); Added) {
         UNWRAP_OR_RETURN(Contents, RSR.getContents(DataEntry));
         Data.push_back(ArrayRef<uint8_t>(
             reinterpret_cast<const uint8_t *>(Contents.data()),

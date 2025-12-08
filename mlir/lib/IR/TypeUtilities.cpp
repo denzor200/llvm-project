@@ -61,8 +61,8 @@ LogicalResult mlir::verifyCompatibleShape(ArrayRef<int64_t> shape1,
     return failure();
   for (auto dims : llvm::zip(shape1, shape2)) {
     int64_t dim1 = std::get<0>(dims);
-    int64_t dim2 = std::get<1>(dims);
-    if (ShapedType::isStatic(dim1) && ShapedType::isStatic(dim2) &&
+    
+    if (int64_t dim2 = std::get<1>(dims); ShapedType::isStatic(dim1) && ShapedType::isStatic(dim2) &&
         dim1 != dim2)
       return failure();
   }

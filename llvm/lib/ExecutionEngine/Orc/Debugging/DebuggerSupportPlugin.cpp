@@ -65,9 +65,9 @@ public:
       });
       SmallPtrSet<Block *, 8> PreservedBlocks;
       for (auto *Sym : Sec.symbols()) {
-        bool NewPreservedBlock =
-            PreservedBlocks.insert(&Sym->getBlock()).second;
-        if (NewPreservedBlock)
+        
+        if (bool NewPreservedBlock =
+            PreservedBlocks.insert(&Sym->getBlock()).second; NewPreservedBlock)
           Sym->setLive(true);
       }
       for (auto *B : Sec.blocks())

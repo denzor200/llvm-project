@@ -58,8 +58,8 @@ void AMDGPUPALMetadata::readFromIR(Module &M) {
     // This is the new msgpack format for metadata. It is a NamedMD containing
     // an MDTuple containing an MDString containing the msgpack data.
     BlobType = ELF::NT_AMDGPU_METADATA;
-    auto *MDN = dyn_cast<MDTuple>(NamedMD->getOperand(0));
-    if (MDN && MDN->getNumOperands()) {
+    
+    if (auto *MDN = dyn_cast<MDTuple>(NamedMD->getOperand(0)); MDN && MDN->getNumOperands()) {
       if (auto *MDS = dyn_cast<MDString>(MDN->getOperand(0)))
         setFromMsgPackBlob(MDS->getString());
     }
@@ -1081,8 +1081,8 @@ VersionTuple AMDGPUPALMetadata::getPALVersion() {
 void AMDGPUPALMetadata::updateHwStageMaximum(unsigned CC, StringRef field,
                                              unsigned Val) {
   msgpack::MapDocNode HwStageFieldMapNode = getHwStage(CC);
-  auto &Node = HwStageFieldMapNode[field];
-  if (Node.isEmpty())
+  
+  if (auto &Node = HwStageFieldMapNode[field]; Node.isEmpty())
     Node = Val;
   else
     Node = std::max<unsigned>(Node.getUInt(), Val);

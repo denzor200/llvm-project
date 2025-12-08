@@ -591,8 +591,8 @@ makePattern(const DenseSet<Operation *> &parallelLoops, int vectorRank,
   using affine::matcher::For;
   int64_t d0 = fastestVaryingPattern.empty() ? -1 : fastestVaryingPattern[0];
   int64_t d1 = fastestVaryingPattern.size() < 2 ? -1 : fastestVaryingPattern[1];
-  int64_t d2 = fastestVaryingPattern.size() < 3 ? -1 : fastestVaryingPattern[2];
-  switch (vectorRank) {
+  
+  switch (int64_t d2 = fastestVaryingPattern.size() < 3 ? -1 : fastestVaryingPattern[2]; vectorRank) {
   case 1:
     return For(isVectorizableLoopPtrFactory(parallelLoops, d0));
   case 2:
@@ -922,9 +922,9 @@ isVectorizableLoopPtrFactory(const DenseSet<Operation *> &parallelLoops,
     if (!parallelLoops.contains(loop))
       return false;
     int memRefDim = -1;
-    auto vectorizableBody =
-        isVectorizableLoopBody(loop, &memRefDim, vectorTransferPattern());
-    if (!vectorizableBody)
+    
+    if (auto vectorizableBody =
+        isVectorizableLoopBody(loop, &memRefDim, vectorTransferPattern()); !vectorizableBody)
       return false;
     return memRefDim == -1 || fastestVaryingMemRefDimension == -1 ||
            memRefDim == fastestVaryingMemRefDimension;
@@ -1035,9 +1035,9 @@ static Value createMask(AffineForOp vecForOp, VectorizationState &state) {
   // If the loop has constant bounds and the original number of iterations is
   // divisable by the vector size then we don't need a mask.
   if (vecForOp.hasConstantBounds()) {
-    int64_t originalTripCount =
-        vecForOp.getConstantUpperBound() - vecForOp.getConstantLowerBound();
-    if (originalTripCount % vecForOp.getStepAsInt() == 0)
+    
+    if (int64_t originalTripCount =
+        vecForOp.getConstantUpperBound() - vecForOp.getConstantLowerBound(); originalTripCount % vecForOp.getStepAsInt() == 0)
       return nullptr;
   }
 
@@ -1622,8 +1622,8 @@ vectorizeLoopNest(std::vector<SmallVector<AffineForOp, 2>> &loops,
 
   auto opVecResult = rootLoop.walk<WalkOrder::PreOrder>([&](Operation *op) {
     LLVM_DEBUG(dbgs() << "[early-vect]+++++ Vectorizing: " << *op);
-    Operation *vectorOp = vectorizeOneOperation(op, state);
-    if (!vectorOp) {
+    
+    if (Operation *vectorOp = vectorizeOneOperation(op, state); !vectorOp) {
       LLVM_DEBUG(
           dbgs() << "[early-vect]+++++ failed vectorizing the operation: "
                  << *op << "\n");

@@ -55,8 +55,8 @@ INITIALIZE_PASS(NVPTXPrologEpilogPass, DEBUG_TYPE,
 static bool replaceFrameIndexDebugInstr(MachineFunction &MF, MachineInstr &MI,
                                         unsigned OpIdx) {
   const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering();
-  const TargetRegisterInfo &TRI = *MF.getSubtarget().getRegisterInfo();
-  if (MI.isDebugValue()) {
+  
+  if (const TargetRegisterInfo &TRI = *MF.getSubtarget().getRegisterInfo(); MI.isDebugValue()) {
 
     MachineOperand &Op = MI.getOperand(OpIdx);
     assert(MI.isDebugOperand(&Op) &&

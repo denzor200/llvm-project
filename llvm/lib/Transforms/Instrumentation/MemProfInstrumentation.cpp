@@ -319,8 +319,8 @@ MemProfiler::isInterestingMemoryAccess(Instruction *I) const {
     Access.AccessTy = XCHG->getCompareOperand()->getType();
     Access.Addr = XCHG->getPointerOperand();
   } else if (auto *CI = dyn_cast<CallInst>(I)) {
-    auto *F = CI->getCalledFunction();
-    if (F && (F->getIntrinsicID() == Intrinsic::masked_load ||
+    
+    if (auto *F = CI->getCalledFunction(); F && (F->getIntrinsicID() == Intrinsic::masked_load ||
               F->getIntrinsicID() == Intrinsic::masked_store)) {
       unsigned OpOffset = 0;
       if (F->getIntrinsicID() == Intrinsic::masked_store) {
@@ -348,8 +348,8 @@ MemProfiler::isInterestingMemoryAccess(Instruction *I) const {
 
   // Do not instrument accesses from different address spaces; we cannot deal
   // with them.
-  Type *PtrTy = cast<PointerType>(Access.Addr->getType()->getScalarType());
-  if (PtrTy->getPointerAddressSpace() != 0)
+  
+  if (Type *PtrTy = cast<PointerType>(Access.Addr->getType()->getScalarType()); PtrTy->getPointerAddressSpace() != 0)
     return std::nullopt;
 
   // Ignore swifterror addresses.
@@ -498,8 +498,8 @@ void createMemprofHistogramFlagVar(Module &M) {
   auto MemprofHistogramFlag = new GlobalVariable(
       M, IntTy1, true, GlobalValue::WeakAnyLinkage,
       Constant::getIntegerValue(IntTy1, APInt(1, ClHistogram)), VarName);
-  const Triple &TT = M.getTargetTriple();
-  if (TT.supportsCOMDAT()) {
+  
+  if (const Triple &TT = M.getTargetTriple(); TT.supportsCOMDAT()) {
     MemprofHistogramFlag->setLinkage(GlobalValue::ExternalLinkage);
     MemprofHistogramFlag->setComdat(M.getOrInsertComdat(VarName));
   }
@@ -513,8 +513,8 @@ void createMemprofDefaultOptionsVar(Module &M) {
       new GlobalVariable(M, OptionsConst->getType(), /*isConstant=*/true,
                          GlobalValue::WeakAnyLinkage, OptionsConst,
                          memprof::getMemprofOptionsSymbolName());
-  const Triple &TT = M.getTargetTriple();
-  if (TT.supportsCOMDAT()) {
+  
+  if (const Triple &TT = M.getTargetTriple(); TT.supportsCOMDAT()) {
     OptionsVar->setLinkage(GlobalValue::ExternalLinkage);
     OptionsVar->setComdat(M.getOrInsertComdat(OptionsVar->getName()));
   }

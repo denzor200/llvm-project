@@ -157,10 +157,10 @@ PreservedAnalyses CoroAnnotationElidePass::run(LazyCallGraph::SCC &C,
 
         auto BlockFreq = BFI.getBlockFreq(CB->getParent()).getFrequency();
         auto EntryFreq = BFI.getEntryFreq().getFrequency();
-        uint64_t MinFreq =
-            static_cast<uint64_t>(EntryFreq * CoroElideBranchRatio);
+        
 
-        if (BlockFreq < MinFreq) {
+        if (uint64_t MinFreq =
+            static_cast<uint64_t>(EntryFreq * CoroElideBranchRatio); BlockFreq < MinFreq) {
           ORE.emit([&]() {
             return OptimizationRemarkMissed(
                        DEBUG_TYPE, "CoroAnnotationElideUnlikely", Caller)

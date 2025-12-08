@@ -38,8 +38,8 @@ void UnrollLoopsCheck::check(const MatchFinder::MatchResult &Result) {
   const auto *Loop = Result.Nodes.getNodeAs<Stmt>("loop");
   const auto *CXXLoopBound =
       Result.Nodes.getNodeAs<IntegerLiteral>("cxx_loop_bound");
-  const ASTContext *Context = Result.Context;
-  switch (unrollType(Loop, Result.Context)) {
+  
+  switch (const ASTContext *Context = Result.Context; unrollType(Loop, Result.Context)) {
   case NotUnrolled:
     diag(Loop->getBeginLoc(),
          "kernel performance could be improved by unrolling this loop with a "
@@ -127,8 +127,8 @@ bool UnrollLoopsCheck::hasKnownBounds(const Stmt *Statement,
   if (const auto *InitDeclStatement = dyn_cast<DeclStmt>(Initializer)) {
     if (const auto *VariableDecl =
             dyn_cast<VarDecl>(InitDeclStatement->getSingleDecl())) {
-      const APValue *Evaluation = VariableDecl->evaluateValue();
-      if (!Evaluation || !Evaluation->hasValue())
+      
+      if (const APValue *Evaluation = VariableDecl->evaluateValue(); !Evaluation || !Evaluation->hasValue())
         return false;
     }
   }

@@ -180,9 +180,9 @@ isSignificantBitCheckWellFormed(const RecurrenceInfo &ConditionalRecurrence,
       m_Specific(ConditionalRecurrence.Phi),
       m_c_Xor(m_ZExtOrTruncOrSelf(m_Specific(ConditionalRecurrence.Phi)),
               m_ZExtOrTruncOrSelf(m_Specific(SimpleRecurrence.Phi))));
-  bool LWellFormed = ByteOrderSwapped ? match(L, MatchPred)
-                                      : match(L, m_c_And(MatchPred, m_One()));
-  if (!LWellFormed)
+  
+  if (bool LWellFormed = ByteOrderSwapped ? match(L, MatchPred)
+                                      : match(L, m_c_And(MatchPred, m_One())); !LWellFormed)
     return false;
 
   KnownBits KnownR = KnownBits::makeConstant(*R);
@@ -298,8 +298,8 @@ bool RecurrenceInfo::matchConditionalRecurrence(
     // For a conditional recurrence, both the true and false values of the
     // select must ultimately end up in the same recurrent BinOp.
     BinaryOperator *FoundBO = digRecurrence(TV, BOWithConstOpToMatch);
-    BinaryOperator *AltBO = digRecurrence(FV, BOWithConstOpToMatch);
-    if (!FoundBO || FoundBO != AltBO)
+    
+    if (BinaryOperator *AltBO = digRecurrence(FV, BOWithConstOpToMatch); !FoundBO || FoundBO != AltBO)
       return false;
 
     if (BOWithConstOpToMatch != Instruction::BinaryOpsEnd && !ExtraConst) {

@@ -940,8 +940,8 @@ static void generateUnrolledLoop(
     // the `lastYielded` value remains unchanged. Else, update the `lastYielded`
     // value with the clone corresponding to the yielded value.
     for (unsigned i = 0, e = lastYielded.size(); i < e; i++) {
-      Operation *defOp = yieldedValues[i].getDefiningOp();
-      if (defOp && defOp->getBlock() == loopBodyBlock)
+      
+      if (Operation *defOp = yieldedValues[i].getDefiningOp(); defOp && defOp->getBlock() == loopBodyBlock)
         lastYielded[i] = operandMap.lookup(yieldedValues[i]);
     }
   }
@@ -2054,8 +2054,8 @@ static LogicalResult generateCopy(
     // Set copy start location for this dimension in the lower memory space
     // memref.
     if (lbs[d].isSingleConstant()) {
-      auto indexVal = lbs[d].getSingleConstantResult();
-      if (indexVal == 0) {
+      
+      if (auto indexVal = lbs[d].getSingleConstantResult(); indexVal == 0) {
         memIndices.push_back(zeroIndex);
       } else {
         memIndices.push_back(
@@ -2793,10 +2793,10 @@ LogicalResult affine::coalescePerfectlyNestedAffineLoops(AffineForOp op) {
   for (unsigned end = loops.size(); end > 0; --end) {
     unsigned start = 0;
     for (; start < end - 1; ++start) {
-      auto maxPos =
+      
+      if (auto maxPos =
           *std::max_element(std::next(operandsDefinedAbove.begin(), start),
-                            std::next(operandsDefinedAbove.begin(), end));
-      if (maxPos > start)
+                            std::next(operandsDefinedAbove.begin(), end)); maxPos > start)
         continue;
       assert(maxPos == start &&
              "expected loop bounds to be known at the start of the band");

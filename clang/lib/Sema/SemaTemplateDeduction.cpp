@@ -1025,9 +1025,9 @@ public:
 
   // Return the size of the saved packs if all of them has the same size.
   UnsignedOrNone getSavedPackSizeIfAllEqual() const {
-    unsigned PackSize = Packs[0].Saved.pack_size();
+    
 
-    if (std::all_of(Packs.begin() + 1, Packs.end(), [&PackSize](const auto &P) {
+    if (unsigned PackSize = Packs[0].Saved.pack_size(); std::all_of(Packs.begin() + 1, Packs.end(), [&PackSize](const auto &P) {
           return P.Saved.pack_size() == PackSize;
         }))
       return PackSize;
@@ -1063,8 +1063,8 @@ public:
     // for that pack, then clear out the deduced argument.
     if (!FinishingDeduction) {
       for (auto &Pack : Packs) {
-        DeducedTemplateArgument &DeducedArg = Deduced[Pack.Index];
-        if (!Pack.New.empty() || !DeducedArg.isNull()) {
+        
+        if (DeducedTemplateArgument &DeducedArg = Deduced[Pack.Index]; !Pack.New.empty() || !DeducedArg.isNull()) {
           while (Pack.New.size() < PackElements)
             Pack.New.push_back(DeducedTemplateArgument());
           if (Pack.New.size() == PackElements)
@@ -1406,11 +1406,11 @@ static bool hasInconsistentOrSupersetQualifiersOf(QualType ParamType,
 }
 
 bool Sema::isSameOrCompatibleFunctionType(QualType P, QualType A) {
-  const FunctionType *PF = P->getAs<FunctionType>(),
-                     *AF = A->getAs<FunctionType>();
+  
 
   // Just compare if not functions.
-  if (!PF || !AF)
+  if (const FunctionType *PF = P->getAs<FunctionType>(),
+                     *AF = A->getAs<FunctionType>(); !PF || !AF)
     return Context.hasSameType(P, A);
 
   // Noreturn and noexcept adjustment.
@@ -2416,8 +2416,8 @@ static TemplateDeductionResult DeduceTemplateArgumentsByTypeMatch(
                 return TemplateDeductionResult::NonDeducedMismatch;
               }
 
-              Expr *ArgExpr = (ADM->*GetArgDimensionExpr)();
-              if (std::optional<llvm::APSInt> ArgConst =
+              
+              if (Expr *ArgExpr = (ADM->*GetArgDimensionExpr)(); std::optional<llvm::APSInt> ArgConst =
                       ArgExpr->getIntegerConstantExpr(S.Context))
                 if (*ArgConst == *ParamConst)
                   return TemplateDeductionResult::Success;
@@ -2554,8 +2554,8 @@ static TemplateDeductionResult DeduceTemplateArgumentsByTypeMatch(
       return TemplateDeductionResult::Success;
 
     case Type::PackIndexing: {
-      const PackIndexingType *PIT = P->getAs<PackIndexingType>();
-      if (PIT->hasSelectedType()) {
+      
+      if (const PackIndexingType *PIT = P->getAs<PackIndexingType>(); PIT->hasSelectedType()) {
         return DeduceTemplateArgumentsByTypeMatch(
             S, TemplateParams, PIT->getSelectedType(), A, Info, Deduced, TDF,
             degradeCallPartialOrderingKind(POK),
@@ -3616,8 +3616,8 @@ TemplateDeductionResult Sema::SubstituteExplicitTemplateArguments(
   // for this template parameter pack.
   unsigned PartiallySubstitutedPackIndex = -1u;
   if (!CTAI.SugaredConverted.empty()) {
-    const TemplateArgument &Arg = CTAI.SugaredConverted.back();
-    if (Arg.getKind() == TemplateArgument::Pack) {
+    
+    if (const TemplateArgument &Arg = CTAI.SugaredConverted.back(); Arg.getKind() == TemplateArgument::Pack) {
       auto *Param = TemplateParams->getParam(CTAI.SugaredConverted.size() - 1);
       // If this is a fully-saturated fixed-size pack, it should be
       // fully-substituted, not partially-substituted.
@@ -3718,8 +3718,8 @@ TemplateDeductionResult Sema::SubstituteExplicitTemplateArguments(
   // mechanism handles the partially-substituted argument pack directly.
   Deduced.reserve(TemplateParams->size());
   for (unsigned I = 0, N = SugaredExplicitArgumentList->size(); I != N; ++I) {
-    const TemplateArgument &Arg = SugaredExplicitArgumentList->get(I);
-    if (I == PartiallySubstitutedPackIndex)
+    
+    if (const TemplateArgument &Arg = SugaredExplicitArgumentList->get(I); I == PartiallySubstitutedPackIndex)
       Deduced.push_back(DeducedTemplateArgument());
     else
       Deduced.push_back(Arg);
@@ -4523,8 +4523,8 @@ TemplateDeductionResult Sema::DeduceTemplateArguments(
     return TemplateDeductionResult::TooFewArguments;
   else if (TooManyArguments(NumParams, Args.size() + ExplicitObjectOffset,
                             PartialOverloading)) {
-    const auto *Proto = Function->getType()->castAs<FunctionProtoType>();
-    if (Proto->isTemplateVariadic())
+    
+    if (const auto *Proto = Function->getType()->castAs<FunctionProtoType>(); Proto->isTemplateVariadic())
       /* Do nothing */;
     else if (!Proto->isVariadic())
       return TemplateDeductionResult::TooManyArguments;
@@ -4751,8 +4751,8 @@ QualType Sema::adjustCCAndNoReturn(QualType ArgFunctionType,
     Rebuild = true;
   }
 
-  bool NoReturn = FunctionTypeP->getNoReturnAttr();
-  if (EPI.ExtInfo.getNoReturn() != NoReturn) {
+  
+  if (bool NoReturn = FunctionTypeP->getNoReturnAttr(); EPI.ExtInfo.getNoReturn() != NoReturn) {
     EPI.ExtInfo = EPI.ExtInfo.withNoReturn(NoReturn);
     Rebuild = true;
   }
@@ -5229,8 +5229,8 @@ Sema::DeduceAutoType(TypeLoc Type, Expr *Init, QualType &Result,
   }
 
   // Make sure that we treat 'char[]' equaly as 'char*' in C23 mode.
-  auto *String = dyn_cast<StringLiteral>(Init);
-  if (getLangOpts().C23 && String && Type.getType()->isArrayType()) {
+  
+  if (auto *String = dyn_cast<StringLiteral>(Init); getLangOpts().C23 && String && Type.getType()->isArrayType()) {
     Diag(Type.getBeginLoc(), diag::ext_c23_auto_non_plain_identifier);
     TypeLoc TL = TypeLoc(Init->getType(), Type.getOpaqueData());
     Result = SubstituteDeducedTypeTransform(*this, DependentResult).Apply(TL);
@@ -6111,9 +6111,9 @@ UnresolvedSetIterator Sema::getMostSpecialized(
   // of the others.
   bool Ambiguous = false;
   for (UnresolvedSetIterator I = SpecBegin; I != SpecEnd; ++I) {
-    FunctionTemplateDecl *Challenger
-      = cast<FunctionDecl>(*I)->getPrimaryTemplate();
-    if (I != Best &&
+    
+    if (FunctionTemplateDecl *Challenger
+      = cast<FunctionDecl>(*I)->getPrimaryTemplate(); I != Best &&
         !declaresSameEntity(getMoreSpecializedTemplate(BestTemplate, Challenger,
                                                        Loc, TPOC_Other, 0),
                             BestTemplate)) {
@@ -6926,8 +6926,8 @@ MarkUsedTemplateParameters(ASTContext &Ctx, QualType T,
   }
 
   case Type::TemplateTypeParm: {
-    const TemplateTypeParmType *TTP = cast<TemplateTypeParmType>(T);
-    if (TTP->getDepth() == Depth)
+    
+    if (const TemplateTypeParmType *TTP = cast<TemplateTypeParmType>(T); TTP->getDepth() == Depth)
       Used[TTP->getIndex()] = true;
     break;
   }

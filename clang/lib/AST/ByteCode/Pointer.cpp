@@ -282,10 +282,10 @@ APValue Pointer::toAPValue(const ASTContext &ASTCtx) const {
         Path.push_back(APValue::LValuePathEntry::ArrayIndex(Index));
       Ptr = Ptr.getArray();
     } else {
-      const Descriptor *Desc = Ptr.getFieldDesc();
+      
 
       // Create a path entry for the field.
-      if (const auto *BaseOrMember = Desc->asDecl()) {
+      if (const Descriptor *Desc = Ptr.getFieldDesc(); const auto *BaseOrMember = Desc->asDecl()) {
         bool IsVirtual = false;
         if (const auto *FD = dyn_cast<FieldDecl>(BaseOrMember)) {
           Ptr = Ptr.getBase();
@@ -295,9 +295,9 @@ APValue Pointer::toAPValue(const ASTContext &ASTCtx) const {
           Ptr = Ptr.getBase();
           const Record *BaseRecord = Ptr.getRecord();
 
-          const ASTRecordLayout &Layout = ASTCtx.getASTRecordLayout(
-              cast<CXXRecordDecl>(BaseRecord->getDecl()));
-          if (IsVirtual)
+          
+          if (const ASTRecordLayout &Layout = ASTCtx.getASTRecordLayout(
+              cast<CXXRecordDecl>(BaseRecord->getDecl())); IsVirtual)
             Offset += Layout.getVBaseClassOffset(RD);
           else
             Offset += Layout.getBaseClassOffset(RD);
@@ -547,8 +547,8 @@ void Pointer::initializeAllElements() const {
   assert(getFieldDesc()->isPrimitiveArray());
   assert(isArrayRoot());
 
-  InitMapPtr &IM = getInitMap();
-  if (!IM) {
+  
+  if (InitMapPtr &IM = getInitMap(); !IM) {
     IM = std::make_pair(true, nullptr);
   } else {
     IM->first = true;
@@ -780,9 +780,9 @@ std::optional<APValue> Pointer::toRValue(const Context &Ctx,
           const Record::Field *FD = Record->getField(I);
           QualType FieldTy = FD->Decl->getType();
           const Pointer &FP = Ptr.atField(FD->Offset);
-          APValue &Value = R.getStructField(I);
+          
 
-          if (OptPrimType T = Ctx.classify(FieldTy)) {
+          if (APValue &Value = R.getStructField(I); OptPrimType T = Ctx.classify(FieldTy)) {
             TYPE_SWITCH(*T, Value = FP.deref<T>().toAPValue(ASTCtx));
           } else {
             Ok &= Composite(FieldTy, FP, Value);
@@ -820,8 +820,8 @@ std::optional<APValue> Pointer::toRValue(const Context &Ctx,
       bool Ok = true;
       OptPrimType ElemT = Ctx.classify(ElemTy);
       for (unsigned I = 0; I != NumElems; ++I) {
-        APValue &Slot = R.getArrayInitializedElt(I);
-        if (ElemT) {
+        
+        if (APValue &Slot = R.getArrayInitializedElt(I); ElemT) {
           TYPE_SWITCH(*ElemT, Slot = Ptr.elem<T>(I).toAPValue(ASTCtx));
         } else {
           Ok &= Composite(ElemTy, Ptr.atIndex(I).narrow(), Slot);

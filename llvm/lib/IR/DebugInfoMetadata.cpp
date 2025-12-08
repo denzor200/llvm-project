@@ -1995,8 +1995,8 @@ std::optional<uint64_t> DIExpression::getActiveBits(DIVariable *Var) {
       // variable.
       std::optional<DIBasicType::Signedness> VarSign = Var->getSignedness();
       bool VarSigned = (VarSign == DIBasicType::Signedness::Signed);
-      bool OpSigned = (Op.getOp() == dwarf::DW_OP_LLVM_extract_bits_sext);
-      if (!VarSign || VarSigned != OpSigned) {
+      
+      if (bool OpSigned = (Op.getOp() == dwarf::DW_OP_LLVM_extract_bits_sext); !VarSign || VarSigned != OpSigned) {
         ActiveBits = InitialActiveBits;
         break;
       }
@@ -2072,8 +2072,8 @@ bool DIExpression::extractLeadingOffset(
   auto ExprOpEnd = expr_op_iterator(SingleLocEltsOpt->end());
   auto ExprOpIt = expr_op_iterator(SingleLocEltsOpt->begin());
   while (ExprOpIt != ExprOpEnd) {
-    uint64_t Op = ExprOpIt->getOp();
-    if (Op == dwarf::DW_OP_deref || Op == dwarf::DW_OP_deref_size ||
+    
+    if (uint64_t Op = ExprOpIt->getOp(); Op == dwarf::DW_OP_deref || Op == dwarf::DW_OP_deref_size ||
         Op == dwarf::DW_OP_deref_type || Op == dwarf::DW_OP_LLVM_fragment ||
         Op == dwarf::DW_OP_LLVM_extract_bits_zext ||
         Op == dwarf::DW_OP_LLVM_extract_bits_sext) {
@@ -2119,8 +2119,8 @@ const DIExpression *DIExpression::extractAddressClass(const DIExpression *Expr,
     return nullptr;
   auto SingleLocElts = *SingleLocEltsOpt;
 
-  const unsigned PatternSize = 4;
-  if (SingleLocElts.size() >= PatternSize &&
+  
+  if (const unsigned PatternSize = 4; SingleLocElts.size() >= PatternSize &&
       SingleLocElts[PatternSize - 4] == dwarf::DW_OP_constu &&
       SingleLocElts[PatternSize - 2] == dwarf::DW_OP_swap &&
       SingleLocElts[PatternSize - 1] == dwarf::DW_OP_xderef) {
@@ -2362,8 +2362,8 @@ std::optional<DIExpression *> DIExpression::createFragmentExpression(
         // creating then we don't have a fragment after all, and just need to
         // adjust the offset that we're extracting from.
         uint64_t ExtractOffsetInBits = Op.getArg(0);
-        uint64_t ExtractSizeInBits = Op.getArg(1);
-        if (ExtractOffsetInBits >= OffsetInBits &&
+        
+        if (uint64_t ExtractSizeInBits = Op.getArg(1); ExtractOffsetInBits >= OffsetInBits &&
             ExtractOffsetInBits + ExtractSizeInBits <=
                 OffsetInBits + SizeInBits) {
           Ops.push_back(Op.getOp());
@@ -2425,8 +2425,8 @@ bool DIExpression::calculateFragmentIntersect(
   OffsetFromLocationInBits = -MemStartRelToDbgStartInBits;
 
   // Check if the variable fragment sits outside (before) this memory slice.
-  int64_t MemEndRelToDbgStart = MemStartRelToDbgStartInBits + SliceSizeInBits;
-  if (MemEndRelToDbgStart < 0) {
+  
+  if (int64_t MemEndRelToDbgStart = MemStartRelToDbgStartInBits + SliceSizeInBits; MemEndRelToDbgStart < 0) {
     Result = {0, 0}; // Out-param.
     return true;
   }
@@ -2639,8 +2639,8 @@ void DIArgList::handleChangedOperand(void *Ref, Metadata *New) {
   // already contain a DIArgList with our new set of args; if it does, then we
   // must RAUW this with the existing DIArgList, otherwise we simply insert this
   // back into the set storage.
-  DIArgList *ExistingArgList = getUniqued(getContext().pImpl->DIArgLists, this);
-  if (ExistingArgList) {
+  
+  if (DIArgList *ExistingArgList = getUniqued(getContext().pImpl->DIArgLists, this); ExistingArgList) {
     replaceAllUsesWith(ExistingArgList);
     // Clear this here so we don't try to untrack in the destructor.
     Args.clear();

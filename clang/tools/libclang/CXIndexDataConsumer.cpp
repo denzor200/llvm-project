@@ -992,8 +992,8 @@ bool CXIndexDataConsumer::handleCXXRecordDecl(const CXXRecordDecl *RD,
     if (shouldSuppressRefs()) {
       // Go through bases and mark them as referenced.
       for (unsigned i = 0, e = BaseList.getNumBases(); i != e; ++i) {
-        const CXIdxBaseClassInfo *baseInfo = BaseList.getBases()[i];
-        if (baseInfo->base) {
+        
+        if (const CXIdxBaseClassInfo *baseInfo = BaseList.getBases()[i]; baseInfo->base) {
           const NamedDecl *BaseD = BaseList.BaseEntities[i].Dcl;
           SourceLocation
             Loc = SourceLocation::getFromRawEncoding(baseInfo->loc.int_data);
@@ -1167,8 +1167,8 @@ void CXIndexDataConsumer::getEntityInfo(const NamedDecl *D,
 
   {
     SmallString<512> StrBuf;
-    bool Ignore = getDeclCursorUSR(D, StrBuf);
-    if (Ignore) {
+    
+    if (bool Ignore = getDeclCursorUSR(D, StrBuf); Ignore) {
       EntityInfo.USR = nullptr;
     } else {
       EntityInfo.USR = SA.copyCStr(StrBuf.str());

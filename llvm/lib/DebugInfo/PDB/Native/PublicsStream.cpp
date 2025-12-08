@@ -74,8 +74,8 @@ Error PublicsStream::reload() {
     return E;
 
   // Something called "address map" follows.
-  uint32_t NumAddressMapEntries = Header->AddrMap / sizeof(uint32_t);
-  if (auto EC = Reader.readArray(AddressMap, NumAddressMapEntries))
+  
+  if (uint32_t NumAddressMapEntries = Header->AddrMap / sizeof(uint32_t); auto EC = Reader.readArray(AddressMap, NumAddressMapEntries))
     return joinErrors(std::move(EC),
                       make_error<RawError>(raw_error_code::corrupt_file,
                                            "Could not read an address map."));

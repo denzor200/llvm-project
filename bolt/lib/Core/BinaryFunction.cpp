@@ -363,8 +363,8 @@ BinaryFunction::eraseInvalidBBs(const MCCodeEmitter *Emitter) {
 
   BasicBlockListType NewBasicBlocks;
   for (auto I = BasicBlocks.begin(), E = BasicBlocks.end(); I != E; ++I) {
-    BinaryBasicBlock *BB = *I;
-    if (InvalidBBs.contains(BB)) {
+    
+    if (BinaryBasicBlock *BB = *I; InvalidBBs.contains(BB)) {
       // Make sure the block is removed from the list of predecessors.
       BB->removeAllSuccessors();
       DeletedBasicBlocks.push_back(BB);
@@ -389,8 +389,8 @@ bool BinaryFunction::isForwardCall(const MCSymbol *CalleeSymbol) const {
   // If the function indices are not valid, we fall back to the original
   // addresses.  This should be ok because the functions without valid indices
   // should have been ordered with a stable sort.
-  const BinaryFunction *CalleeBF = BC.getFunctionForSymbol(CalleeSymbol);
-  if (CalleeBF) {
+  
+  if (const BinaryFunction *CalleeBF = BC.getFunctionForSymbol(CalleeSymbol); CalleeBF) {
     if (CalleeBF->isInjected())
       return true;
     return compareBinaryFunctionByIndex(this, CalleeBF);
@@ -568,8 +568,8 @@ void BinaryFunction::print(raw_ostream &OS, std::string Annotation) {
       if (BB->isLandingPad())
         OS << "  Landing Pad\n";
 
-      uint64_t BBExecCount = BB->getExecutionCount();
-      if (hasValidProfile()) {
+      
+      if (uint64_t BBExecCount = BB->getExecutionCount(); hasValidProfile()) {
         OS << "  Exec Count : ";
         if (BB->getExecutionCount() != BinaryBasicBlock::COUNT_NO_PROFILE)
           OS << BBExecCount << '\n';
@@ -645,8 +645,8 @@ void BinaryFunction::print(raw_ostream &OS, std::string Annotation) {
 
       // In CFG_Finalized state we can miscalculate CFI state at exit.
       if (CurrentState == State::CFG && hasCFI()) {
-        const int32_t CFIStateAtExit = BB->getCFIStateAtExit();
-        if (CFIStateAtExit >= 0)
+        
+        if (const int32_t CFIStateAtExit = BB->getCFIStateAtExit(); CFIStateAtExit >= 0)
           OS << "  CFI State: " << CFIStateAtExit << '\n';
       }
 
@@ -1270,8 +1270,8 @@ BinaryFunction::disassembleInstructionAtOffset(uint64_t Offset) const {
   assert(FunctionData && "Cannot get function as data");
   MCInst Instr;
   uint64_t InstrSize = 0;
-  const uint64_t InstrAddress = getAddress() + Offset;
-  if (BC.DisAsm->getInstruction(Instr, InstrSize, FunctionData->slice(Offset),
+  
+  if (const uint64_t InstrAddress = getAddress() + Offset; BC.DisAsm->getInstruction(Instr, InstrSize, FunctionData->slice(Offset),
                                 InstrAddress, nulls()))
     return Instr;
   return std::nullopt;
@@ -1709,12 +1709,12 @@ bool BinaryFunction::scanExternalRefs() {
                                   Emitter.LocalCtx.get());
     } else {
       analyzeInstructionForFuncReference(Instruction);
-      const bool NeedsPatch = llvm::any_of(
+      
+      if (const bool NeedsPatch = llvm::any_of(
           MCPlus::primeOperands(Instruction), [&](const MCOperand &Op) {
             return Op.isExpr() &&
                    !ignoreReference(BC.MIB->getTargetSymbol(Op.getExpr()));
-          });
-      if (!NeedsPatch)
+          }); !NeedsPatch)
         continue;
     }
 
@@ -1792,8 +1792,8 @@ bool BinaryFunction::scanExternalRefs() {
         // Adjust the operand for ADRP from the patch.
         MCInst &ADRPInst = InstructionPatches.back().second;
         const MCSymbol *ADRPSymbol = BC.MIB->getTargetSymbol(ADRPInst);
-        const MCSymbol *ADDSymbol = BC.MIB->getTargetSymbol(Instruction);
-        if (ADRPSymbol != ADDSymbol) {
+        
+        if (const MCSymbol *ADDSymbol = BC.MIB->getTargetSymbol(Instruction); ADRPSymbol != ADDSymbol) {
           const int64_t Addend = BC.MIB->getTargetAddend(Instruction);
           BC.MIB->setOperandToSymbolRef(ADRPInst, /*OpNum*/ 1, ADDSymbol,
                                         Addend, BC.Ctx.get(),
@@ -1907,8 +1907,8 @@ void BinaryFunction::postProcessEntryPoints() {
     return;
 
   for (auto &KV : Labels) {
-    MCSymbol *Label = KV.second;
-    if (!getSecondaryEntryPointSymbol(Label))
+    
+    if (MCSymbol *Label = KV.second; !getSecondaryEntryPointSymbol(Label))
       continue;
 
     // In non-relocation mode there's potentially an external undetectable
@@ -1971,11 +1971,11 @@ void BinaryFunction::postProcessJumpTables() {
     for (uint64_t EntryAddress : JT.EntriesAsAddress) {
       // builtin_unreachable does not belong to any function
       // Need to handle separately
-      bool IsBuiltinUnreachable =
+      
+      if (bool IsBuiltinUnreachable =
           llvm::any_of(JT.Parents, [&](const BinaryFunction *Parent) {
             return EntryAddress == Parent->getAddress() + Parent->getSize();
-          });
-      if (IsBuiltinUnreachable) {
+          }); IsBuiltinUnreachable) {
         BinaryFunction *TargetBF = BC.getBinaryFunctionAtAddress(EntryAddress);
         MCSymbol *Label = TargetBF ? TargetBF->getSymbol()
                                    : getOrCreateLocalLabel(EntryAddress);
@@ -2146,8 +2146,8 @@ bool BinaryFunction::postProcessIndirectBranches(
           LastJTIndexReg = BC.MIB->getJumpTableIndexReg(Instr);
           BC.MIB->unsetJumpTable(Instr);
 
-          JumpTable *JT = BC.getJumpTableContainingAddress(LastJT);
-          if (JT->Type == JumpTable::JTT_NORMAL) {
+          
+          if (JumpTable *JT = BC.getJumpTableContainingAddress(LastJT); JT->Type == JumpTable::JTT_NORMAL) {
             // Invalidating the jump table may also invalidate other jump table
             // boundaries. Until we have/need a support for this, mark the
             // function as non-simple.
@@ -2962,8 +2962,8 @@ bool BinaryFunction::replayCFIInstrs(int32_t FromState, int32_t ToState,
 
   std::vector<uint32_t> NewCFIs;
   for (int32_t CurState = FromState; CurState < ToState; ++CurState) {
-    MCCFIInstruction *Instr = &FrameInstructions[CurState];
-    if (Instr->getOperation() == MCCFIInstruction::OpRestoreState) {
+    
+    if (MCCFIInstruction *Instr = &FrameInstructions[CurState]; Instr->getOperation() == MCCFIInstruction::OpRestoreState) {
       auto Iter = FrameRestoreEquivalents.find(CurState);
       assert(Iter != FrameRestoreEquivalents.end());
       NewCFIs.insert(NewCFIs.end(), Iter->second.begin(), Iter->second.end());
@@ -3097,8 +3097,8 @@ BinaryFunction::unwindCFIState(int32_t FromState, int32_t ToState,
 
   // Undo all modifications from ToState to FromState
   for (int32_t I = ToState, E = FromState; I != E; ++I) {
-    const MCCFIInstruction &Instr = FrameInstructions[I];
-    if (Instr.getOperation() != MCCFIInstruction::OpRestoreState) {
+    
+    if (const MCCFIInstruction &Instr = FrameInstructions[I]; Instr.getOperation() != MCCFIInstruction::OpRestoreState) {
       undoState(Instr);
       continue;
     }
@@ -3179,8 +3179,8 @@ bool BinaryFunction::finalizeCFIState() {
 
   for (BinaryBasicBlock &BB : blocks()) {
     for (auto II = BB.begin(); II != BB.end();) {
-      const MCCFIInstruction *CFI = getCFIFor(*II);
-      if (CFI && (CFI->getOperation() == MCCFIInstruction::OpRememberState ||
+      
+      if (const MCCFIInstruction *CFI = getCFIFor(*II); CFI && (CFI->getOperation() == MCCFIInstruction::OpRememberState ||
                   CFI->getOperation() == MCCFIInstruction::OpRestoreState)) {
         II = BB.eraseInstruction(II);
       } else {
@@ -3344,8 +3344,8 @@ static std::string constructFilename(std::string Filename,
 static std::string formatEscapes(const std::string &Str) {
   std::string Result;
   for (unsigned I = 0; I < Str.size(); ++I) {
-    char C = Str[I];
-    switch (C) {
+    
+    switch (char C = Str[I]; C) {
     case '\n':
       Result += "&#13;";
       break;
@@ -3373,8 +3373,8 @@ void BinaryFunction::dumpGraph(raw_ostream &OS) const {
       Attrs.push_back("penwidth=2");
     if (BLI && BLI->getLoopFor(BB)) {
       // Distinguish innermost loops
-      const BinaryLoop *Loop = BLI->getLoopFor(BB);
-      if (Loop->isInnermost())
+      
+      if (const BinaryLoop *Loop = BLI->getLoopFor(BB); Loop->isInnermost())
         Attrs.push_back("fillcolor=6");
       else // some outer loop
         Attrs.push_back("fillcolor=4");
@@ -3595,10 +3595,10 @@ void BinaryFunction::fixBranches() {
       BB->eraseInstruction(BB->findInstruction(UncondBranch));
 
     // Basic block that follows the current one in the final layout.
-    const BinaryBasicBlock *const NextBB =
-        Layout.getBasicBlockAfter(BBI, /*IgnoreSplits*/ false);
+    
 
-    if (BB->succ_size() == 1) {
+    if (const BinaryBasicBlock *const NextBB =
+        Layout.getBasicBlockAfter(BBI, /*IgnoreSplits*/ false); BB->succ_size() == 1) {
       // __builtin_unreachable() could create a conditional branch that
       // falls-through into the next function - hence the block will have only
       // one valid successor. Since behaviour is undefined - we replace
@@ -3698,10 +3698,10 @@ void BinaryFunction::propagateGnuArgsSizeInfo(
   uint64_t CurrentGnuArgsSize = 0;
   for (BinaryBasicBlock *BB : BasicBlocks) {
     for (auto II = BB->begin(); II != BB->end();) {
-      MCInst &Instr = *II;
-      if (BC.MIB->isCFI(Instr)) {
-        const MCCFIInstruction *CFI = getCFIFor(Instr);
-        if (CFI->getOperation() == MCCFIInstruction::OpGnuArgsSize) {
+      
+      if (MCInst &Instr = *II; BC.MIB->isCFI(Instr)) {
+        
+        if (const MCCFIInstruction *CFI = getCFIFor(Instr); CFI->getOperation() == MCCFIInstruction::OpGnuArgsSize) {
           CurrentGnuArgsSize = CFI->getOffset();
           // Delete DW_CFA_GNU_args_size instructions and only regenerate
           // during the final code emission. The information is embedded
@@ -3815,8 +3815,8 @@ MCSymbol *BinaryFunction::getSymbolForEntryID(uint64_t EntryID) {
   if (!isMultiEntry())
     return nullptr;
 
-  uint64_t NumEntries = 1;
-  if (hasCFG()) {
+  
+  if (uint64_t NumEntries = 1; hasCFG()) {
     for (BinaryBasicBlock *BB : BasicBlocks) {
       MCSymbol *EntrySymbol = getSecondaryEntryPointSymbol(*BB);
       if (!EntrySymbol)
@@ -4698,8 +4698,8 @@ MCInst *BinaryFunction::getInstructionAtOffset(uint64_t Offset) {
       return nullptr;
 
     for (MCInst &Inst : *BB) {
-      constexpr uint32_t InvalidOffset = std::numeric_limits<uint32_t>::max();
-      if (Offset == BC.MIB->getOffsetWithDefault(Inst, InvalidOffset))
+      
+      if (constexpr uint32_t InvalidOffset = std::numeric_limits<uint32_t>::max(); Offset == BC.MIB->getOffsetWithDefault(Inst, InvalidOffset))
         return &Inst;
     }
 
@@ -4805,9 +4805,9 @@ void BinaryFunction::addRelocation(uint64_t Address, MCSymbol *Symbol,
                     << formatv("{0}@{1:x} against {2}\n", *this, Offset,
                                (Symbol ? Symbol->getName() : "<undef>")));
   bool IsCI = BC.isAArch64() && isInConstantIsland(Address);
-  std::map<uint64_t, Relocation> &Rels =
-      IsCI ? Islands->Relocations : Relocations;
-  if (BC.MIB->shouldRecordCodeRelocation(RelType))
+  
+  if (std::map<uint64_t, Relocation> &Rels =
+      IsCI ? Islands->Relocations : Relocations; BC.MIB->shouldRecordCodeRelocation(RelType))
     Rels[Offset] = Relocation{Offset, Symbol, RelType, Addend, Value};
 }
 

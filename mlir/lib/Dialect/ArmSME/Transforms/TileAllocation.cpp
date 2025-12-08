@@ -449,8 +449,8 @@ coalesceTileLiveRanges(DenseMap<Value, LiveRange> &initialLiveRanges) {
   // live range (which will contain multiple values).
   auto mergeValuesIfNonOverlapping = [&](Value a, Value b) {
     LiveRange *aLiveRange = liveRanges.at(a);
-    LiveRange *bLiveRange = liveRanges.at(b);
-    if (aLiveRange != bLiveRange && !aLiveRange->overlaps(*bLiveRange)) {
+    
+    if (LiveRange *bLiveRange = liveRanges.at(b); aLiveRange != bLiveRange && !aLiveRange->overlaps(*bLiveRange)) {
       aLiveRange->unionWith(*bLiveRange);
       for (Value value : bLiveRange->values)
         liveRanges[value] = aLiveRange;

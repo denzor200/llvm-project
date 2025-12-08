@@ -67,9 +67,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'e':
         error = m_stop_on_error.SetValueFromString(option_arg);
         break;
@@ -411,8 +411,8 @@ protected:
 
     // Strip the new alias name off 'raw_command_string'  (leave it on args,
     // which gets passed to 'Execute', which does the stripping itself.
-    size_t pos = raw_command_string.find(alias_command);
-    if (pos == 0) {
+    
+    if (size_t pos = raw_command_string.find(alias_command); pos == 0) {
       raw_command_string = raw_command_string.substr(alias_command.size());
       pos = raw_command_string.find_first_not_of(' ');
       if ((pos != std::string::npos) && (pos > 0))
@@ -500,9 +500,9 @@ protected:
   }
 
   bool HandleAliasingNormalCommand(Args &args, CommandReturnObject &result) {
-    size_t argc = args.GetArgumentCount();
+    
 
-    if (argc < 2) {
+    if (size_t argc = args.GetArgumentCount(); argc < 2) {
       result.AppendError("'command alias' requires at least two arguments");
       return false;
     }
@@ -994,9 +994,9 @@ private:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'h':
         m_help.assign(std::string(option_arg));
         break;
@@ -1313,9 +1313,9 @@ private:
       
       usage_mask = 0;
       
-      StructuredData::UnsignedInteger *uint_val = 
-          obj_sp->GetAsUnsignedInteger();
-      if (uint_val) {
+      
+      if (StructuredData::UnsignedInteger *uint_val = 
+          obj_sp->GetAsUnsignedInteger(); uint_val) {
         // If this is an integer, then this specifies a single group:
         uint32_t value = uint_val->GetValue();
         if (value == 0) {
@@ -1661,8 +1661,8 @@ private:
         bool option_has_arg = opt_defs[cur_defs_index].option_has_arg;
         llvm::StringRef cur_arg_value;
         if (option_has_arg) {
-          int cur_arg_pos = option_elem.opt_arg_pos;
-          if (cur_arg_pos != OptionArgElement::eUnrecognizedArg &&
+          
+          if (int cur_arg_pos = option_elem.opt_arg_pos; cur_arg_pos != OptionArgElement::eUnrecognizedArg &&
               cur_arg_pos != OptionArgElement::eBareDash &&
               cur_arg_pos != OptionArgElement::eBareDoubleDash) {
             cur_arg_value =
@@ -1873,10 +1873,10 @@ public:
       // The options come as a dictionary of dictionaries.  The key of the
       // outer dict is the long option name (since that's required).  The
       // value holds all the other option specification bits.
-      StructuredData::Dictionary *options_dict 
-          = options_object_sp->GetAsDictionary();
+      
       // but if it exists, it has to be an array.
-      if (options_dict) {
+      if (StructuredData::Dictionary *options_dict 
+          = options_object_sp->GetAsDictionary(); options_dict) {
         m_options_error = m_options.SetOptionsFromArray(*(options_dict));
         // If we got an error don't bother with the arguments...
         if (m_options_error.Fail())
@@ -2012,10 +2012,10 @@ private:
     // an array of the args, the arg index and the cursor position in the arg.
     // We want the script side to have a chance to clear its state, so tell
     // it argument parsing has started:
-    Options *options = GetOptions();
+    
     // If there are not options, this will be nullptr, and in that case we
     // can just skip setting the options on the scripted side:
-    if (options)
+    if (Options *options = GetOptions(); options)
       m_options.PrepareOptionsForCompletion(request, option_vec, &m_exe_ctx);
   }
 
@@ -2187,9 +2187,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'r':
         // NO-OP
         break;
@@ -2304,9 +2304,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'f':
         if (!option_arg.empty())
           m_funct_name = std::string(option_arg);
@@ -2393,8 +2393,8 @@ protected:
                               std::string &data) override {
     LockableStreamFileSP error_sp = io_handler.GetErrorStreamFileSP();
 
-    ScriptInterpreter *interpreter = GetDebugger().GetScriptInterpreter();
-    if (interpreter) {
+    
+    if (ScriptInterpreter *interpreter = GetDebugger().GetScriptInterpreter(); interpreter) {
       StringList lines;
       lines.SplitIntoLines(data);
       if (lines.GetSize() > 0) {
@@ -2767,9 +2767,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'h':
         if (!option_arg.empty())
           m_short_help = std::string(option_arg);
@@ -2915,8 +2915,8 @@ protected:
         return;
       }
 
-      bool did_remove = GetCommandInterpreter().RemoveUserMultiword(cmd_name);
-      if (!did_remove) {
+      
+      if (bool did_remove = GetCommandInterpreter().RemoveUserMultiword(cmd_name); !did_remove) {
         result.AppendErrorWithFormat("error removing command %s.", cmd_name);
         return;
       }

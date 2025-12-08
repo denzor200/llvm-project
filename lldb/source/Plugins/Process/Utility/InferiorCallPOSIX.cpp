@@ -97,8 +97,8 @@ bool lldb_private::InferiorCallMmap(Process *process, addr_t &allocated_addr,
         if (call_plan_sp) {
           DiagnosticManager diagnostics;
 
-          StackFrame *frame = thread->GetStackFrameAtIndex(0).get();
-          if (frame) {
+          
+          if (StackFrame *frame = thread->GetStackFrameAtIndex(0).get(); frame) {
             ExecutionContext exe_ctx;
             frame->CalculateExecutionContext(exe_ctx);
             ExpressionResults result = process->RunThreadPlan(
@@ -161,8 +161,8 @@ bool lldb_private::InferiorCallMunmap(Process *process, addr_t addr,
         if (call_plan_sp) {
           DiagnosticManager diagnostics;
 
-          StackFrame *frame = thread->GetStackFrameAtIndex(0).get();
-          if (frame) {
+          
+          if (StackFrame *frame = thread->GetStackFrameAtIndex(0).get(); frame) {
             ExecutionContext exe_ctx;
             frame->CalculateExecutionContext(exe_ctx);
             ExpressionResults result = process->RunThreadPlan(

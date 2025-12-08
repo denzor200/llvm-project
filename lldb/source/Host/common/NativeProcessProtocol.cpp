@@ -389,9 +389,9 @@ Status NativeProcessProtocol::RemoveSoftwareBreakpoint(lldb::addr_t addr) {
         "addr=0x%" PRIx64 ": tried to read %zu bytes but only read %zu", addr,
         curr_break_op.size(), bytes_read);
   }
-  const auto &saved = bkpt.saved_opcodes;
+  
   // Make sure the breakpoint opcode exists at this address
-  if (llvm::ArrayRef(curr_break_op) != bkpt.breakpoint_opcodes) {
+  if (const auto &saved = bkpt.saved_opcodes; llvm::ArrayRef(curr_break_op) != bkpt.breakpoint_opcodes) {
     if (curr_break_op != bkpt.saved_opcodes)
       return Status::FromErrorString(
           "Original breakpoint trap is no longer in memory.");
@@ -706,8 +706,8 @@ NativeProcessProtocol::ReadCStringFromMemory(lldb::addr_t addr, char *buffer,
     if (bytes_read == 0)
       break;
 
-    void *str_end = std::memchr(curr_buffer, '\0', bytes_read);
-    if (str_end != nullptr) {
+    
+    if (void *str_end = std::memchr(curr_buffer, '\0', bytes_read); str_end != nullptr) {
       total_bytes_read =
           static_cast<size_t>((static_cast<char *>(str_end) - buffer + 1));
       status.Clear();

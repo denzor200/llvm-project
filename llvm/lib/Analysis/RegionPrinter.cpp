@@ -33,9 +33,9 @@ std::string
 llvm::DOTGraphTraits<RegionNode *>::getNodeLabel(RegionNode *Node,
                                                  RegionNode *Graph) {
   if (!Node->isSubRegion()) {
-    BasicBlock *BB = Node->getNodeAs<BasicBlock>();
+    
 
-    if (isSimple())
+    if (BasicBlock *BB = Node->getNodeAs<BasicBlock>(); isSimple())
       return DOTGraphTraits<DOTFuncInfo *>::getSimpleNodeLabel(BB, nullptr);
     else
       return DOTGraphTraits<DOTFuncInfo *>::getCompleteNodeLabel(BB, nullptr);

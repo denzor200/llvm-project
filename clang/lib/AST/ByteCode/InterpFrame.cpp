@@ -157,9 +157,9 @@ void InterpFrame::describe(llvm::raw_ostream &OS) const {
 
   const Expr *CallExpr = Caller->getExpr(getRetPC());
   const FunctionDecl *F = getCallee();
-  bool IsMemberCall = isa<CXXMethodDecl>(F) && !isa<CXXConstructorDecl>(F) &&
-                      cast<CXXMethodDecl>(F)->isImplicitObjectMemberFunction();
-  if (Func->hasThisPointer() && IsMemberCall) {
+  
+  if (bool IsMemberCall = isa<CXXMethodDecl>(F) && !isa<CXXConstructorDecl>(F) &&
+                      cast<CXXMethodDecl>(F)->isImplicitObjectMemberFunction(); Func->hasThisPointer() && IsMemberCall) {
     if (const auto *MCE = dyn_cast_if_present<CXXMemberCallExpr>(CallExpr)) {
       const Expr *Object = MCE->getImplicitObjectArgument();
       Object->printPretty(OS, /*Helper=*/nullptr,

@@ -347,8 +347,8 @@ static void findStmtsInUnspecifiedPointerContext(
       BO && (BO->getOpcode() == BO_EQ || BO->getOpcode() == BO_NE ||
              BO->getOpcode() == BO_LT || BO->getOpcode() == BO_LE ||
              BO->getOpcode() == BO_GT || BO->getOpcode() == BO_GE)) {
-    auto *LHS = BO->getLHS();
-    if (hasPointerType(*LHS))
+    
+    if (auto *LHS = BO->getLHS(); hasPointerType(*LHS))
       InnerMatcher(LHS);
 
     auto *RHS = BO->getRHS();
@@ -628,9 +628,9 @@ static bool isSafeSpanTwoParamConstruct(const CXXConstructExpr &Node,
           if (!NumElemIdx.isValid())
             return areEqualIntegers(Arg1, EleSizeExpr, Ctx);
 
-          const Expr *NumElesExpr = Call->getArg(NumElemIdx.getASTIndex());
+          
 
-          if (auto BO = dyn_cast<BinaryOperator>(Arg1))
+          if (const Expr *NumElesExpr = Call->getArg(NumElemIdx.getASTIndex()); auto BO = dyn_cast<BinaryOperator>(Arg1))
             return areEqualIntegralBinaryOperators(BO, NumElesExpr, BO_Mul,
                                                    EleSizeExpr, Ctx);
         }
@@ -640,9 +640,9 @@ static bool isSafeSpanTwoParamConstruct(const CXXConstructExpr &Node,
   auto IsMethodCallToSizedObject = [](const Stmt *Node, StringRef MethodName) {
     if (const auto *MC = dyn_cast<CXXMemberCallExpr>(Node)) {
       const auto *MD = MC->getMethodDecl();
-      const auto *RD = MC->getRecordDecl();
+      
 
-      if (RD && MD)
+      if (const auto *RD = MC->getRecordDecl(); RD && MD)
         if (auto *II = RD->getDeclName().getAsIdentifierInfo();
             II && RD->isInStdNamespace())
           return llvm::is_contained({SIZED_CONTAINER_OR_VIEW_LIST},
@@ -806,9 +806,9 @@ static bool isNullTermPointer(const Expr *Ptr, ASTContext &Ctx) {
     return true;
   if (auto *MCE = dyn_cast<CXXMemberCallExpr>(Ptr->IgnoreParenImpCasts())) {
     const CXXMethodDecl *MD = MCE->getMethodDecl();
-    const CXXRecordDecl *RD = MCE->getRecordDecl()->getCanonicalDecl();
+    
 
-    if (MD && RD && RD->isInStdNamespace() && MD->getIdentifier())
+    if (const CXXRecordDecl *RD = MCE->getRecordDecl()->getCanonicalDecl(); MD && RD && RD->isInStdNamespace() && MD->getIdentifier())
       if (MD->getName() == "c_str" && RD->getName() == "basic_string")
         return true;
   }
@@ -914,9 +914,9 @@ static bool hasUnsafeFormatOrSArg(const CallExpr *Call, const Expr *&UnsafeArg,
     }
   };
 
-  const Expr *Fmt = Call->getArg(FmtArgIdx);
+  
 
-  if (auto *SL = dyn_cast<clang::StringLiteral>(Fmt->IgnoreParenImpCasts())) {
+  if (const Expr *Fmt = Call->getArg(FmtArgIdx); auto *SL = dyn_cast<clang::StringLiteral>(Fmt->IgnoreParenImpCasts())) {
     if (SL->getCharByteWidth() == 1) {
       StringRef FmtStr = SL->getString();
       StringFormatStringHandler Handler(Call, FmtArgIdx, UnsafeArg, Ctx);
@@ -2033,8 +2033,8 @@ private:
     auto *callee = call->getDirectCallee();
     if (!callee || !isa<CXXMethodDecl>(callee))
       return false;
-    auto *method = cast<CXXMethodDecl>(callee);
-    if (method->getNameAsString() == "data" &&
+    
+    if (auto *method = cast<CXXMethodDecl>(callee); method->getNameAsString() == "data" &&
         method->getParent()->isInStdNamespace() &&
         llvm::is_contained({SIZED_CONTAINER_OR_VIEW_LIST},
                            method->getParent()->getName()))
@@ -2867,8 +2867,8 @@ bool clang::internal::anyConflict(const SmallVectorImpl<FixItHint> &FixIts,
 std::optional<FixItList>
 PtrToPtrAssignmentGadget::getFixits(const FixitStrategy &S) const {
   const auto *LeftVD = cast<VarDecl>(PtrLHS->getDecl());
-  const auto *RightVD = cast<VarDecl>(PtrRHS->getDecl());
-  switch (S.lookup(LeftVD)) {
+  
+  switch (const auto *RightVD = cast<VarDecl>(PtrRHS->getDecl()); S.lookup(LeftVD)) {
   case FixitStrategy::Kind::Span:
     if (S.lookup(RightVD) == FixitStrategy::Kind::Span)
       return FixItList{};
@@ -2891,7 +2891,7 @@ static inline std::optional<FixItList> createDataFixit(const ASTContext &Ctx,
 std::optional<FixItList>
 CArrayToPtrAssignmentGadget::getFixits(const FixitStrategy &S) const {
   const auto *LeftVD = cast<VarDecl>(PtrLHS->getDecl());
-  const auto *RightVD = cast<VarDecl>(PtrRHS->getDecl());
+  
   // TLDR: Implementing fixits for non-Wontfix strategy on both LHS and RHS is
   // non-trivial.
   //
@@ -2908,7 +2908,7 @@ CArrayToPtrAssignmentGadget::getFixits(const FixitStrategy &S) const {
   //
   // The only exception is Wontfix strategy for a given variable as that is
   // valid for any fixit produced for the given input source code.
-  if (S.lookup(LeftVD) == FixitStrategy::Kind::Span) {
+  if (const auto *RightVD = cast<VarDecl>(PtrRHS->getDecl()); S.lookup(LeftVD) == FixitStrategy::Kind::Span) {
     if (S.lookup(RightVD) == FixitStrategy::Kind::Wontfix) {
       return FixItList{};
     }
@@ -2923,8 +2923,8 @@ CArrayToPtrAssignmentGadget::getFixits(const FixitStrategy &S) const {
 std::optional<FixItList>
 PointerInitGadget::getFixits(const FixitStrategy &S) const {
   const auto *LeftVD = PtrInitLHS;
-  const auto *RightVD = cast<VarDecl>(PtrInitRHS->getDecl());
-  switch (S.lookup(LeftVD)) {
+  
+  switch (const auto *RightVD = cast<VarDecl>(PtrInitRHS->getDecl()); S.lookup(LeftVD)) {
   case FixitStrategy::Kind::Span:
     if (S.lookup(RightVD) == FixitStrategy::Kind::Span)
       return FixItList{};
@@ -2960,9 +2960,9 @@ ULCArraySubscriptGadget::getFixits(const FixitStrategy &S) const {
 
         // If the index has a negative constant value, we give up as no valid
         // fix-it can be generated:
-        const ASTContext &Ctx = // FIXME: we need ASTContext to be passed in!
-            VD->getASTContext();
-        if (!isNonNegativeIntegerExpr(Node->getIdx(), VD, Ctx))
+        
+        if (const ASTContext &Ctx = // FIXME: we need ASTContext to be passed in!
+            VD->getASTContext(); !isNonNegativeIntegerExpr(Node->getIdx(), VD, Ctx))
           return std::nullopt;
         // no-op is a good fix-it, otherwise
         return FixItList{};
@@ -2984,9 +2984,9 @@ fixUPCAddressofArraySubscriptWithSpan(const UnaryOperator *Node);
 std::optional<FixItList>
 UPCAddressofArraySubscriptGadget::getFixits(const FixitStrategy &S) const {
   auto DREs = getClaimedVarUseSites();
-  const auto *VD = cast<VarDecl>(DREs.front()->getDecl());
+  
 
-  switch (S.lookup(VD)) {
+  switch (const auto *VD = cast<VarDecl>(DREs.front()->getDecl()); S.lookup(VD)) {
   case FixitStrategy::Kind::Span:
     return fixUPCAddressofArraySubscriptWithSpan(Node);
   case FixitStrategy::Kind::Wontfix:
@@ -3099,9 +3099,9 @@ getSpanTypeText(StringRef EltTyText,
 
 std::optional<FixItList>
 DerefSimplePtrArithFixableGadget::getFixits(const FixitStrategy &s) const {
-  const VarDecl *VD = dyn_cast<VarDecl>(BaseDeclRefExpr->getDecl());
+  
 
-  if (VD && s.lookup(VD) == FixitStrategy::Kind::Span) {
+  if (const VarDecl *VD = dyn_cast<VarDecl>(BaseDeclRefExpr->getDecl()); VD && s.lookup(VD) == FixitStrategy::Kind::Span) {
     ASTContext &Ctx = VD->getASTContext();
     // std::span can't represent elements before its begin()
     if (auto ConstVal = Offset->getIntegerConstantExpr(Ctx))
@@ -3162,8 +3162,8 @@ DerefSimplePtrArithFixableGadget::getFixits(const FixitStrategy &s) const {
 
 std::optional<FixItList>
 PointerDereferenceGadget::getFixits(const FixitStrategy &S) const {
-  const VarDecl *VD = cast<VarDecl>(BaseDeclRefExpr->getDecl());
-  switch (S.lookup(VD)) {
+  
+  switch (const VarDecl *VD = cast<VarDecl>(BaseDeclRefExpr->getDecl()); S.lookup(VD)) {
   case FixitStrategy::Kind::Span: {
     ASTContext &Ctx = VD->getASTContext();
     SourceManager &SM = Ctx.getSourceManager();
@@ -3208,8 +3208,8 @@ static inline std::optional<FixItList> createDataFixit(const ASTContext &Ctx,
 // `DRE.data()`
 std::optional<FixItList>
 UPCStandalonePointerGadget::getFixits(const FixitStrategy &S) const {
-  const auto VD = cast<VarDecl>(Node->getDecl());
-  switch (S.lookup(VD)) {
+  
+  switch (const auto VD = cast<VarDecl>(Node->getDecl()); S.lookup(VD)) {
   case FixitStrategy::Kind::Array:
   case FixitStrategy::Kind::Span: {
     return createDataFixit(VD->getASTContext(), Node);

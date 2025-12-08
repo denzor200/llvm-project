@@ -183,10 +183,10 @@ static void packFunctionArguments(Module *module) {
     }
 
     // Call the implementation function with the extracted arguments.
-    llvm::Value *result = builder.CreateCall(&func, args);
+    
 
     // Assuming the result is one value, potentially of type `void`.
-    if (!result->getType()->isVoidTy()) {
+    if (llvm::Value *result = builder.CreateCall(&func, args); !result->getType()->isVoidTy()) {
       llvm::Value *retIndex = llvm::Constant::getIntegerValue(
           builder.getInt64Ty(), APInt(64, llvm::size(func.args())));
       llvm::Value *retPtrPtr =
@@ -331,8 +331,8 @@ ExecutionEngine::create(Operation *m, const ExecutionEngineOptions &options,
     // COFF format binaries (Windows) need special handling to deal with
     // exported symbol visibility.
     // cf llvm/lib/ExecutionEngine/Orc/LLJIT.cpp LLJIT::createObjectLinkingLayer
-    const llvm::Triple &targetTriple = llvmModule->getTargetTriple();
-    if (targetTriple.isOSBinFormatCOFF()) {
+    
+    if (const llvm::Triple &targetTriple = llvmModule->getTargetTriple(); targetTriple.isOSBinFormatCOFF()) {
       objectLayer->setOverrideObjectFlagsWithResponsibilityFlags(true);
       objectLayer->setAutoClaimResponsibilityForObjectSymbols(true);
     }

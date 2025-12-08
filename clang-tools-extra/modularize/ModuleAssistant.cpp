@@ -181,10 +181,10 @@ static bool addModuleDescription(Module *RootModule,
     FilePath = std::string(NativePath.substr(NativePrefix.size() + 1));
   else
     FilePath = std::string(HeaderFilePath);
-  int Count = FileDependents.size();
+  
   // Headers that go into modules must not depend on other files being
   // included first.  If there are any dependents, warn user and omit.
-  if (Count != 0) {
+  if (int Count = FileDependents.size(); Count != 0) {
     llvm::errs() << "warning: " << FilePath
                  << " depends on other headers being included first,"
                     " meaning the module.modulemap won't compile."

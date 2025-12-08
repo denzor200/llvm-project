@@ -138,8 +138,8 @@ public:
 };
 
 bool AMDGPURegBankLegalizeCombiner::isLaneMask(Register Reg) {
-  const RegisterBank *RB = MRI.getRegBankOrNull(Reg);
-  if (RB && RB->getID() == AMDGPU::VCCRegBankID)
+  
+  if (const RegisterBank *RB = MRI.getRegBankOrNull(Reg); RB && RB->getID() == AMDGPU::VCCRegBankID)
     return true;
 
   const TargetRegisterClass *RC = MRI.getRegClassOrNull(Reg);
@@ -202,8 +202,8 @@ Register AMDGPURegBankLegalizeCombiner::getReadAnyLaneSrc(Register Src) {
 
     // Check if all elements are from same unmerge and there is no shuffling.
     for (unsigned i = 1; i < NumElts; ++i) {
-      auto [UnmergeI, IdxI] = tryMatchRALFromUnmerge(Merge->getSourceReg(i));
-      if (UnmergeI != Unmerge || (unsigned)IdxI != i)
+      
+      if (auto [UnmergeI, IdxI] = tryMatchRALFromUnmerge(Merge->getSourceReg(i)); UnmergeI != Unmerge || (unsigned)IdxI != i)
         return {};
     }
     return Unmerge->getSourceReg();
@@ -378,8 +378,8 @@ void AMDGPURegBankLegalizeCombiner::tryCombineS1AnyExt(MachineInstr &MI) {
     if (MRI.def_empty(Reg) || MRI.getType(Reg) != S1)
       continue;
 
-    const RegisterBank *RB = MRI.getRegBankOrNull(Reg);
-    if (RB && RB->getID() == AMDGPU::SGPRRegBankID) {
+    
+    if (const RegisterBank *RB = MRI.getRegBankOrNull(Reg); RB && RB->getID() == AMDGPU::SGPRRegBankID) {
       LLVM_DEBUG(dbgs() << "Warning: detected sgpr S1 register in: ";
                  MRI.getVRegDef(Reg)->dump(););
       return Reg;

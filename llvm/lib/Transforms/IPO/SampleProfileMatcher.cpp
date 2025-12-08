@@ -445,8 +445,8 @@ void SampleProfileMatcher::recordCallsiteMatchStates(
     const auto &It = ProfileAnchors.find(ProfileLoc);
     if (It == ProfileAnchors.end())
       continue;
-    const auto &ProfCalleeId = It->second;
-    if (IRCalleeId == ProfCalleeId) {
+    
+    if (const auto &ProfCalleeId = It->second; IRCalleeId == ProfCalleeId) {
       auto It = CallsiteMatchStates.find(ProfileLoc);
       if (It == CallsiteMatchStates.end())
         CallsiteMatchStates.emplace(ProfileLoc, MatchState::InitialMatch);
@@ -707,8 +707,8 @@ void SampleProfileMatcher::findFunctionsWithoutProfile() {
       continue;
 
     StringRef CanonFName = FunctionSamples::getCanonicalFnName(F.getName());
-    const auto *FS = getFlattenedSamplesFor(F);
-    if (FS)
+    
+    if (const auto *FS = getFlattenedSamplesFor(F); FS)
       continue;
 
     // For extended binary, functions fully inlined may not be loaded in the
@@ -792,8 +792,8 @@ bool SampleProfileMatcher::functionMatchesProfileHelper(
   // For probe-based function, we first trust the checksum info. If the checksum
   // doesn't match, we continue checking for similarity.
   if (FunctionSamples::ProfileIsProbeBased) {
-    const auto *FuncDesc = ProbeManager->getDesc(IRFunc);
-    if (FuncDesc &&
+    
+    if (const auto *FuncDesc = ProbeManager->getDesc(IRFunc); FuncDesc &&
         !ProbeManager->profileIsHashMismatched(*FuncDesc, *FSForMatching)) {
       LLVM_DEBUG(dbgs() << "The checksums for " << IRFunc.getName()
                         << "(IR) and " << ProfFunc << "(Profile) match.\n");

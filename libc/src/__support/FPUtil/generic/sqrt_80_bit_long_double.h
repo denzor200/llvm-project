@@ -90,8 +90,8 @@ LIBC_INLINE long double sqrt(long double x) {
 
     for (StorageType current_bit = ONE >> 1; current_bit; current_bit >>= 1) {
       r <<= 1;
-      StorageType tmp = (y << 1) + current_bit; // 2*y(n - 1) + 2^(-n-1)
-      if (r >= tmp) {
+      // 2*y(n - 1) + 2^(-n-1)
+      if (StorageType tmp = (y << 1) + current_bit; r >= tmp) {
         r -= tmp;
         y += current_bit;
       }
@@ -101,8 +101,8 @@ LIBC_INLINE long double sqrt(long double x) {
     bool lsb = static_cast<bool>(y & 1); // Least significant bit
     bool rb = false;                     // Round bit
     r <<= 2;
-    StorageType tmp = (y << 2) + 1;
-    if (r >= tmp) {
+    
+    if (StorageType tmp = (y << 2) + 1; r >= tmp) {
       r -= tmp;
       rb = true;
     }

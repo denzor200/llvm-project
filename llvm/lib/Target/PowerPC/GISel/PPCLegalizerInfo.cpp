@@ -21,9 +21,9 @@ using namespace LegalityPredicates;
 static LegalityPredicate isRegisterType(unsigned TypeIdx) {
   return [=](const LegalityQuery &Query) {
     const LLT QueryTy = Query.Types[TypeIdx];
-    unsigned TypeSize = QueryTy.getSizeInBits();
+    
 
-    if (TypeSize % 32 == 1 || TypeSize > 128)
+    if (unsigned TypeSize = QueryTy.getSizeInBits(); TypeSize % 32 == 1 || TypeSize > 128)
       return false;
 
     // Check if this is a legal PowerPC vector type.

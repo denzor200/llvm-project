@@ -50,8 +50,8 @@ static SmallVector<IntType> extractVector(ArrayAttr arrayAttr) {
 // Helper to find an index in an affine map.
 static std::optional<int64_t> getResultIndex(AffineMap map, int64_t index) {
   for (int64_t i = 0, e = map.getNumResults(); i < e; ++i) {
-    int64_t idx = map.getDimPosition(i);
-    if (idx == index)
+    
+    if (int64_t idx = map.getDimPosition(i); idx == index)
       return i;
   }
   return std::nullopt;
@@ -1541,8 +1541,8 @@ getTransferFoldableInnerUnitDims(MemRefType srcType, VectorType vectorType) {
   for (int64_t i = 0, e = vectorType.getRank(); i < e; ++i) {
     // Check that the inner dim size is 1 for both memref type and vector slice.
     // It can be folded only if they are 1 and the stride is 1.
-    int dim = vectorType.getRank() - i - 1;
-    if (srcStrides[dim + rankDiff] != 1 ||
+    
+    if (int dim = vectorType.getRank() - i - 1; srcStrides[dim + rankDiff] != 1 ||
         srcType.getDimSize(dim + rankDiff) != 1 || !isUnitDim(vectorType, dim))
       break;
     result++;

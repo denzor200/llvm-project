@@ -437,8 +437,8 @@ void MappingTraits<COFFYAML::Relocation>::mapping(IO &IO,
   IO.mapOptional("SymbolName", Rel.SymbolName, StringRef());
   IO.mapOptional("SymbolTableIndex", Rel.SymbolTableIndex);
 
-  COFF::header &H = *static_cast<COFF::header *>(IO.getContext());
-  if (H.Machine == COFF::IMAGE_FILE_MACHINE_I386) {
+  
+  if (COFF::header &H = *static_cast<COFF::header *>(IO.getContext()); H.Machine == COFF::IMAGE_FILE_MACHINE_I386) {
     MappingNormalization<NType<COFF::RelocationTypeI386>, uint16_t> NT(
         IO, Rel.Type);
     IO.mapRequired("Type", NT->Type);
@@ -580,9 +580,9 @@ void MappingTraits<object::coff_load_config_code_integrity>::mapping(
 template <typename T, typename M>
 void mapLoadConfigMember(IO &IO, T &LoadConfig, const char *Name, M &Member) {
   // Map only members that match a specified size.
-  ptrdiff_t dist =
-      reinterpret_cast<char *>(&Member) - reinterpret_cast<char *>(&LoadConfig);
-  if (dist < (ptrdiff_t)LoadConfig.Size)
+  
+  if (ptrdiff_t dist =
+      reinterpret_cast<char *>(&Member) - reinterpret_cast<char *>(&LoadConfig); dist < (ptrdiff_t)LoadConfig.Size)
     IO.mapOptional(Name, Member);
 }
 
@@ -659,8 +659,8 @@ void MappingTraits<COFFYAML::SectionDataEntry>::mapping(
   IO.mapOptional("UInt32", E.UInt32);
   IO.mapOptional("Binary", E.Binary);
 
-  COFF::header &H = *static_cast<COFF::header *>(IO.getContext());
-  if (COFF::is64Bit(H.Machine))
+  
+  if (COFF::header &H = *static_cast<COFF::header *>(IO.getContext()); COFF::is64Bit(H.Machine))
     IO.mapOptional("LoadConfig", E.LoadConfig64);
   else
     IO.mapOptional("LoadConfig", E.LoadConfig32);

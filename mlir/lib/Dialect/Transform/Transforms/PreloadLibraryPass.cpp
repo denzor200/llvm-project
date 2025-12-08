@@ -31,9 +31,9 @@ public:
             &getContext(), transformLibraryPaths, mergedParsedLibraries)))
       return signalPassFailure();
     // TODO: investigate using a resource blob if some ownership mode allows it.
-    auto *dialect =
-        getContext().getOrLoadDialect<transform::TransformDialect>();
-    if (failed(
+    
+    if (auto *dialect =
+        getContext().getOrLoadDialect<transform::TransformDialect>(); failed(
             dialect->loadIntoLibraryModule(std::move(mergedParsedLibraries))))
       signalPassFailure();
   }

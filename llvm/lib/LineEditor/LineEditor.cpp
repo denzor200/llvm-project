@@ -305,8 +305,8 @@ std::optional<std::string> LineEditor::readLine() const {
   std::string Line;
   do {
     char Buf[64];
-    char *Res = ::fgets(Buf, sizeof(Buf), Data->In);
-    if (!Res) {
+    
+    if (char *Res = ::fgets(Buf, sizeof(Buf), Data->In); !Res) {
       if (Line.empty())
         return std::nullopt;
       else

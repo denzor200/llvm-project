@@ -902,8 +902,8 @@ bool GuardWideningImpl::combineRangeChecks(
     const ConstantInt *MinOffset = CurrentChecks.front().getOffset();
     const ConstantInt *MaxOffset = CurrentChecks.back().getOffset();
 
-    unsigned BitWidth = MaxOffset->getValue().getBitWidth();
-    if ((MaxOffset->getValue() - MinOffset->getValue())
+    
+    if (unsigned BitWidth = MaxOffset->getValue().getBitWidth(); (MaxOffset->getValue() - MinOffset->getValue())
             .ugt(APInt::getSignedMinValue(BitWidth)))
       return false;
 
@@ -984,8 +984,8 @@ PreservedAnalyses GuardWideningPass::run(Function &F,
   bool HasIntrinsicGuards = GuardDecl && !GuardDecl->use_empty();
   auto *WCDecl = Intrinsic::getDeclarationIfExists(
       F.getParent(), Intrinsic::experimental_widenable_condition);
-  bool HasWidenableConditions = WCDecl && !WCDecl->use_empty();
-  if (!HasIntrinsicGuards && !HasWidenableConditions)
+  
+  if (bool HasWidenableConditions = WCDecl && !WCDecl->use_empty(); !HasIntrinsicGuards && !HasWidenableConditions)
     return PreservedAnalyses::all();
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
   auto &LI = AM.getResult<LoopAnalysis>(F);

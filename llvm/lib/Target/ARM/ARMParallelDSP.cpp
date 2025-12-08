@@ -450,9 +450,9 @@ bool ARMParallelDSP::Search(Value *V, BasicBlock *BB, Reduction &R) {
     Value *LHS = I->getOperand(0);
     Value *RHS = I->getOperand(1);
     bool ValidLHS = Search(LHS, BB, R);
-    bool ValidRHS = Search(RHS, BB, R);
+    
 
-    if (ValidLHS && ValidRHS)
+    if (bool ValidRHS = Search(RHS, BB, R); ValidLHS && ValidRHS)
       return true;
 
     // Ensure we don't add the root as the incoming accumulator.
@@ -518,8 +518,8 @@ bool ARMParallelDSP::MatchSMLAD(Function &F) {
       if (AllAdds.count(&I))
         continue;
 
-      const auto *Ty = I.getType();
-      if (!Ty->isIntegerTy(32) && !Ty->isIntegerTy(64))
+      
+      if (const auto *Ty = I.getType(); !Ty->isIntegerTy(32) && !Ty->isIntegerTy(64))
         continue;
 
       Reduction R(&I);

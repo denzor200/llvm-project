@@ -887,9 +887,9 @@ void Debugger::Destroy(DebuggerSP &debugger_sp) {
     return;
 
   debugger_sp->HandleDestroyCallback();
-  CommandInterpreter &cmd_interpreter = debugger_sp->GetCommandInterpreter();
+  
 
-  if (cmd_interpreter.GetSaveSessionOnQuit()) {
+  if (CommandInterpreter &cmd_interpreter = debugger_sp->GetCommandInterpreter(); cmd_interpreter.GetSaveSessionOnQuit()) {
     CommandReturnObject result(debugger_sp->GetUseColor());
     cmd_interpreter.SaveTranscript(result);
     if (result.Succeeded())
@@ -1204,8 +1204,8 @@ void Debugger::SaveInputTerminalState() {
     if (m_statusline)
       m_statusline->Disable();
   }
-  int fd = GetInputFile().GetDescriptor();
-  if (fd != File::kInvalidDescriptor)
+  
+  if (int fd = GetInputFile().GetDescriptor(); fd != File::kInvalidDescriptor)
     m_terminal_state.Save(fd, true);
 }
 
@@ -1332,8 +1332,8 @@ bool Debugger::CheckTopIOHandlerTypes(IOHandler::Type top_type,
 }
 
 void Debugger::PrintAsync(const char *s, size_t len, bool is_stdout) {
-  bool printed = m_io_handler_stack.PrintAsync(s, len, is_stdout);
-  if (!printed) {
+  
+  if (bool printed = m_io_handler_stack.PrintAsync(s, len, is_stdout); !printed) {
     LockableStreamFileSP stream_sp =
         is_stdout ? m_output_stream_sp : m_error_stream_sp;
     LockedStreamFile locked_stream = stream_sp->Lock();
@@ -1893,9 +1893,7 @@ SourceManager &Debugger::GetSourceManager() {
 // This function handles events that were broadcast by the process.
 void Debugger::HandleBreakpointEvent(const EventSP &event_sp) {
   using namespace lldb;
-  const uint32_t event_type =
-      Breakpoint::BreakpointEventData::GetBreakpointEventTypeFromEvent(
-          event_sp);
+  
 
   //    if (event_type & eBreakpointEventTypeAdded
   //        || event_type & eBreakpointEventTypeRemoved
@@ -1910,11 +1908,13 @@ void Debugger::HandleBreakpointEvent(const EventSP &event_sp) {
   //        commands already echo these actions.
   //    }
   //
-  if (event_type & eBreakpointEventTypeLocationsAdded) {
-    uint32_t num_new_locations =
+  if (const uint32_t event_type =
+      Breakpoint::BreakpointEventData::GetBreakpointEventTypeFromEvent(
+          event_sp); event_type & eBreakpointEventTypeLocationsAdded) {
+    
+    if (uint32_t num_new_locations =
         Breakpoint::BreakpointEventData::GetNumBreakpointLocationsFromEvent(
-            event_sp);
-    if (num_new_locations > 0) {
+            event_sp); num_new_locations > 0) {
       BreakpointSP breakpoint =
           Breakpoint::BreakpointEventData::GetBreakpointFromEvent(event_sp);
       if (StreamUP output_up = GetAsyncOutputStream()) {
@@ -1966,9 +1966,9 @@ ProcessSP Debugger::HandleProcessEvent(const EventSP &event_sp) {
 
   StreamUP output_stream_up = GetAsyncOutputStream();
   StreamUP error_stream_up = GetAsyncErrorStream();
-  const bool gui_enabled = IsForwardingEvents();
+  
 
-  if (!gui_enabled) {
+  if (const bool gui_enabled = IsForwardingEvents(); !gui_enabled) {
     bool pop_process_io_handler = false;
     assert(process_sp);
 
@@ -2146,8 +2146,8 @@ lldb::thread_result_t Debugger::DefaultEventHandler() {
     if (listener_sp->GetEvent(event_sp, std::nullopt)) {
       std::optional<ExecutionContextRef> exe_ctx_ref = std::nullopt;
       if (event_sp) {
-        Broadcaster *broadcaster = event_sp->GetBroadcaster();
-        if (broadcaster) {
+        
+        if (Broadcaster *broadcaster = event_sp->GetBroadcaster(); broadcaster) {
           uint32_t event_type = event_sp->GetType();
           ConstString broadcaster_class(broadcaster->GetBroadcasterClass());
           if (broadcaster_class == broadcaster_class_process) {
@@ -2171,18 +2171,18 @@ lldb::thread_result_t Debugger::DefaultEventHandler() {
               done = true;
             } else if (event_type &
                        CommandInterpreter::eBroadcastBitAsynchronousErrorData) {
-              const char *data = static_cast<const char *>(
-                  EventDataBytes::GetBytesFromEvent(event_sp.get()));
-              if (data && data[0]) {
+              
+              if (const char *data = static_cast<const char *>(
+                  EventDataBytes::GetBytesFromEvent(event_sp.get())); data && data[0]) {
                 StreamUP error_up = GetAsyncErrorStream();
                 error_up->PutCString(data);
                 error_up->Flush();
               }
             } else if (event_type & CommandInterpreter::
                                         eBroadcastBitAsynchronousOutputData) {
-              const char *data = static_cast<const char *>(
-                  EventDataBytes::GetBytesFromEvent(event_sp.get()));
-              if (data && data[0]) {
+              
+              if (const char *data = static_cast<const char *>(
+                  EventDataBytes::GetBytesFromEvent(event_sp.get())); data && data[0]) {
                 StreamUP output_up = GetAsyncOutputStream();
                 output_up->PutCString(data);
                 output_up->Flush();
@@ -2283,12 +2283,12 @@ void Debugger::HandleProgressEvent(const lldb::EventSP &event_sp) {
 
     // Do some bookkeeping regardless of whether we're going to display
     // progress reports.
-    auto it = llvm::find_if(m_progress_reports, [&](const auto &report) {
+    
+    if (auto it = llvm::find_if(m_progress_reports, [&](const auto &report) {
       return report.id == progress_report.id;
-    });
-    if (it != m_progress_reports.end()) {
-      const bool complete = data->GetCompleted() == data->GetTotal();
-      if (complete)
+    }); it != m_progress_reports.end()) {
+      
+      if (const bool complete = data->GetCompleted() == data->GetTotal(); complete)
         m_progress_reports.erase(it);
       else
         *it = progress_report;

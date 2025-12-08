@@ -263,8 +263,8 @@ unsigned HexagonExpandCondsets::getMaskForSub(unsigned Sub) {
 }
 
 bool HexagonExpandCondsets::isCondset(const MachineInstr &MI) {
-  unsigned Opc = MI.getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI.getOpcode(); Opc) {
     case Hexagon::C2_mux:
     case Hexagon::C2_muxii:
     case Hexagon::C2_muxir:
@@ -293,8 +293,8 @@ bool HexagonExpandCondsets::isRefInMap(RegisterRef RR, ReferenceMap &Map,
   ReferenceMap::iterator F = Map.find(RR.Reg);
   if (F == Map.end())
     return false;
-  unsigned Mask = getMaskForSub(RR.Sub) | Exec;
-  if (Mask & F->second)
+  
+  if (unsigned Mask = getMaskForSub(RR.Sub) | Exec; Mask & F->second)
     return true;
   return false;
 }
@@ -324,10 +324,10 @@ void HexagonExpandCondsets::updateKillFlags(Register Reg) {
       continue;
     // Do not mark the end of the segment as <kill>, if the next segment
     // starts with a predicated instruction.
-    auto NextI = std::next(I);
-    if (NextI != E && NextI->start.isRegister()) {
-      MachineInstr *DefI = LIS->getInstructionFromIndex(NextI->start);
-      if (HII->isPredicated(*DefI))
+    
+    if (auto NextI = std::next(I); NextI != E && NextI->start.isRegister()) {
+      
+      if (MachineInstr *DefI = LIS->getInstructionFromIndex(NextI->start); HII->isPredicated(*DefI))
         continue;
     }
     bool WholeReg = true;
@@ -510,8 +510,8 @@ void HexagonExpandCondsets::updateDeadsInRange(Register Reg, LaneBitmask LM,
 }
 
 void HexagonExpandCondsets::updateDeadFlags(Register Reg) {
-  LiveInterval &LI = LIS->getInterval(Reg);
-  if (LI.hasSubRanges()) {
+  
+  if (LiveInterval &LI = LIS->getInterval(Reg); LI.hasSubRanges()) {
     for (LiveInterval::SubRange &S : LI.subranges()) {
       updateDeadsInRange(Reg, S.LaneMask, S);
       LIS->shrinkToUses(S, Reg);
@@ -595,8 +595,8 @@ unsigned HexagonExpandCondsets::getCondTfrOpcode(const MachineOperand &SO,
       PhysR = RS.Reg;
     }
     MCRegister PhysS = (RS.Sub == 0) ? PhysR : TRI->getSubReg(PhysR, RS.Sub);
-    const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(PhysS);
-    switch (TRI->getRegSizeInBits(*RC)) {
+    
+    switch (const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(PhysS); TRI->getRegSizeInBits(*RC)) {
       case 32:
         return IfTrue ? Hexagon::A2_tfrt : Hexagon::A2_tfrf;
       case 64:
@@ -881,8 +881,8 @@ void HexagonExpandCondsets::predicateAt(const MachineOperand &DefOp,
   unsigned Ox = 0, NP = MI.getNumOperands();
   // Skip all defs from MI first.
   while (Ox < NP) {
-    MachineOperand &MO = MI.getOperand(Ox);
-    if (!MO.isReg() || !MO.isDef())
+    
+    if (MachineOperand &MO = MI.getOperand(Ox); !MO.isReg() || !MO.isDef())
       break;
     Ox++;
   }
@@ -892,8 +892,8 @@ void HexagonExpandCondsets::predicateAt(const MachineOperand &DefOp,
   MB.addReg(PredOp.getReg(), PredOp.isUndef() ? RegState::Undef : 0,
             PredOp.getSubReg());
   while (Ox < NP) {
-    MachineOperand &MO = MI.getOperand(Ox);
-    if (!MO.isReg() || !MO.isImplicit())
+    
+    if (MachineOperand &MO = MI.getOperand(Ox); !MO.isReg() || !MO.isImplicit())
       MB.add(MO);
     Ox++;
   }
@@ -1078,8 +1078,8 @@ bool HexagonExpandCondsets::predicateInBlock(MachineBasicBlock &B,
                                              std::set<Register> &UpdRegs) {
   bool Changed = false;
   for (MachineInstr &MI : llvm::make_early_inc_range(B)) {
-    unsigned Opc = MI.getOpcode();
-    if (Opc == Hexagon::A2_tfrt || Opc == Hexagon::A2_tfrf) {
+    
+    if (unsigned Opc = MI.getOpcode(); Opc == Hexagon::A2_tfrt || Opc == Hexagon::A2_tfrf) {
       bool Done = predicate(MI, (Opc == Hexagon::A2_tfrt), UpdRegs);
       if (!Done) {
         // If we didn't predicate I, we may need to remove it in case it is
@@ -1197,8 +1197,8 @@ bool HexagonExpandCondsets::coalesceSegments(
     std::set<Register> &UpdRegs) {
   SmallVector<MachineInstr*,16> TwoRegs;
   for (MachineInstr *MI : Condsets) {
-    MachineOperand &S1 = MI->getOperand(2), &S2 = MI->getOperand(3);
-    if (!S1.isReg() && !S2.isReg())
+    
+    if (MachineOperand &S1 = MI->getOperand(2), &S2 = MI->getOperand(3); !S1.isReg() && !S2.isReg())
       continue;
     TwoRegs.push_back(MI);
   }
@@ -1229,8 +1229,8 @@ bool HexagonExpandCondsets::coalesceSegments(
     // a source register that is defined by a predicable instruction.
     if (S1.isReg()) {
       RegisterRef RS = S1;
-      MachineInstr *RDef = getReachingDefForPred(RS, CI, RP.Reg, true);
-      if (!RDef || !HII->isPredicable(*RDef)) {
+      
+      if (MachineInstr *RDef = getReachingDefForPred(RS, CI, RP.Reg, true); !RDef || !HII->isPredicable(*RDef)) {
         Done = coalesceRegisters(RD, RegisterRef(S1));
         if (Done) {
           UpdRegs.insert(RD.Reg);
@@ -1240,8 +1240,8 @@ bool HexagonExpandCondsets::coalesceSegments(
     }
     if (!Done && S2.isReg()) {
       RegisterRef RS = S2;
-      MachineInstr *RDef = getReachingDefForPred(RS, CI, RP.Reg, false);
-      if (!RDef || !HII->isPredicable(*RDef)) {
+      
+      if (MachineInstr *RDef = getReachingDefForPred(RS, CI, RP.Reg, false); !RDef || !HII->isPredicable(*RDef)) {
         Done = coalesceRegisters(RD, RegisterRef(S2));
         if (Done) {
           UpdRegs.insert(RD.Reg);

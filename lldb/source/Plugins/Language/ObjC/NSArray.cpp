@@ -511,8 +511,8 @@ lldb_private::formatters::GenericNSArrayMSyntheticFrontEnd<D32, D64>::Update() {
   if (!process_sp)
     return lldb::ChildCacheState::eRefetch;
   m_ptr_size = process_sp->GetAddressByteSize();
-  uint64_t data_location = valobj_sp->GetValueAsUnsigned(0) + m_ptr_size;
-  if (m_ptr_size == 4) {
+  
+  if (uint64_t data_location = valobj_sp->GetValueAsUnsigned(0) + m_ptr_size; m_ptr_size == 4) {
     m_data_32 = new D32();
     process_sp->ReadMemory(data_location, m_data_32, sizeof(D32),
                            error);
@@ -657,8 +657,8 @@ lldb_private::formatters::GenericNSArrayISyntheticFrontEnd<D32, D64,
   if (!process_sp)
     return lldb::ChildCacheState::eRefetch;
   m_ptr_size = process_sp->GetAddressByteSize();
-  uint64_t data_location = valobj_sp->GetValueAsUnsigned(0) + m_ptr_size;
-  if (m_ptr_size == 4) {
+  
+  if (uint64_t data_location = valobj_sp->GetValueAsUnsigned(0) + m_ptr_size; m_ptr_size == 4) {
     m_data_32 = new D32();
     process_sp->ReadMemory(data_location, m_data_32, sizeof(D32),
                            error);

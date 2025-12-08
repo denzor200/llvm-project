@@ -476,8 +476,8 @@ void llvm::scavengeFrameVirtualRegs(MachineFunction &MF, RegScavenger &RS) {
     if (MBB.empty())
       continue;
 
-    bool Again = scavengeFrameVirtualRegsInBlock(MRI, RS, MBB);
-    if (Again) {
+    
+    if (bool Again = scavengeFrameVirtualRegsInBlock(MRI, RS, MBB); Again) {
       LLVM_DEBUG(dbgs() << "Warning: Required two scavenging passes for block "
                         << MBB.getName() << '\n');
       Again = scavengeFrameVirtualRegsInBlock(MRI, RS, MBB);

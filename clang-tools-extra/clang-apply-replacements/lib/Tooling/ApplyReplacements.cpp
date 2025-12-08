@@ -216,10 +216,10 @@ bool mergeAndDeduplicate(const TUReplacements &TUs, const TUDiagnostics &TUDs,
           tooling::Replacements &Replacements = FileChange.getReplacements();
           unsigned NewOffset =
               Replacements.getShiftedCodePosition(R.getOffset());
-          unsigned NewLength = Replacements.getShiftedCodePosition(
+          
+          if (unsigned NewLength = Replacements.getShiftedCodePosition(
                                    R.getOffset() + R.getLength()) -
-                               NewOffset;
-          if (NewLength == R.getLength()) {
+                               NewOffset; NewLength == R.getLength()) {
             tooling::Replacement RR = tooling::Replacement(
                 R.getFilePath(), NewOffset, NewLength, R.getReplacementText());
             Replacements = Replacements.merge(tooling::Replacements(RR));

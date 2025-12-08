@@ -172,9 +172,9 @@ void SystemZAsmPrinter::emitCallInformation(CallType CT) {
 uint32_t SystemZAsmPrinter::AssociatedDataAreaTable::insert(const MCSymbol *Sym,
                                                             unsigned SlotKind) {
   auto Key = std::make_pair(Sym, SlotKind);
-  auto It = Displacements.find(Key);
+  
 
-  if (It != Displacements.end())
+  if (auto It = Displacements.find(Key); It != Displacements.end())
     return (*It).second;
 
   // Determine length of descriptor.
@@ -848,11 +848,11 @@ void SystemZAsmPrinter::LowerPATCHPOINT(const MachineInstr &MI,
   PatchPointOpers Opers(&MI);
 
   unsigned EncodedBytes = 0;
-  const MachineOperand &CalleeMO = Opers.getCallTarget();
+  
 
-  if (CalleeMO.isImm()) {
-    uint64_t CallTarget = CalleeMO.getImm();
-    if (CallTarget) {
+  if (const MachineOperand &CalleeMO = Opers.getCallTarget(); CalleeMO.isImm()) {
+    
+    if (uint64_t CallTarget = CalleeMO.getImm(); CallTarget) {
       unsigned ScratchIdx = -1;
       unsigned ScratchReg = 0;
       do {
@@ -1013,8 +1013,8 @@ void SystemZAsmPrinter::emitMachineConstantPoolValue(
 
 static void printFormattedRegName(const MCAsmInfo *MAI, unsigned RegNo,
                                   raw_ostream &OS) {
-  const char *RegName;
-  if (MAI->getAssemblerDialect() == AD_HLASM) {
+  
+  if (const char *RegName; MAI->getAssemblerDialect() == AD_HLASM) {
     RegName = SystemZHLASMInstPrinter::getRegisterName(RegNo);
     // Skip register prefix so that only register number is left
     assert(isalpha(RegName[0]) && isdigit(RegName[1]));
@@ -1422,20 +1422,20 @@ void SystemZAsmPrinter::emitPPA1(MCSymbol *FnEndSym) {
 
   for (auto &CS : CSI) {
     unsigned Reg = CS.getReg();
-    unsigned I = TRI->getEncodingValue(Reg);
+    
 
-    if (SystemZ::FP64BitRegClass.contains(Reg)) {
+    if (unsigned I = TRI->getEncodingValue(Reg); SystemZ::FP64BitRegClass.contains(Reg)) {
       assert(I < 16 && "FPR index out of range");
       SavedFPRMask |= 1 << (15 - I);
-      int64_t Temp = MFFrame.getObjectOffset(CS.getFrameIdx());
-      if (Temp < OffsetFPR)
+      
+      if (int64_t Temp = MFFrame.getObjectOffset(CS.getFrameIdx()); Temp < OffsetFPR)
         OffsetFPR = Temp;
     } else if (SystemZ::VR128BitRegClass.contains(Reg)) {
       assert(I >= 16 && I <= 23 && "VPR index out of range");
       unsigned BitNum = I - 16;
       SavedVRMask |= 1 << (7 - BitNum);
-      int64_t Temp = MFFrame.getObjectOffset(CS.getFrameIdx());
-      if (Temp < OffsetVR)
+      
+      if (int64_t Temp = MFFrame.getObjectOffset(CS.getFrameIdx()); Temp < OffsetVR)
         OffsetVR = Temp;
     }
   }
@@ -1705,9 +1705,9 @@ void SystemZAsmPrinter::emitPPA2(Module &M) {
 }
 
 void SystemZAsmPrinter::emitFunctionEntryLabel() {
-  const SystemZSubtarget &Subtarget = MF->getSubtarget<SystemZSubtarget>();
+  
 
-  if (Subtarget.getTargetTriple().isOSzOS()) {
+  if (const SystemZSubtarget &Subtarget = MF->getSubtarget<SystemZSubtarget>(); Subtarget.getTargetTriple().isOSzOS()) {
     MCContext &OutContext = OutStreamer->getContext();
 
     // Save information for later use.

@@ -42,10 +42,10 @@ CharSourceRange clang::tooling::maybeExtendRange(CharSourceRange Range,
   if (R.isInvalid())
     return Range;
   Token Tok;
-  bool Err =
+  
+  if (bool Err =
       Lexer::getRawToken(R.getEnd(), Tok, Context.getSourceManager(),
-                         Context.getLangOpts(), /*IgnoreWhiteSpace=*/true);
-  if (Err || !Tok.is(Next))
+                         Context.getLangOpts(), /*IgnoreWhiteSpace=*/true); Err || !Tok.is(Next))
     return Range;
   return CharSourceRange::getTokenRange(Range.getBegin(), Tok.getLocation());
 }
@@ -93,8 +93,8 @@ static SourceLocation getMacroArgumentSpellingLoc(SourceLocation Loc,
                                                   const SourceManager &SM) {
   assert(Loc.isMacroID() && "Location must be in a macro");
   while (Loc.isMacroID()) {
-    const auto &Expansion = SM.getSLocEntry(SM.getFileID(Loc)).getExpansion();
-    if (Expansion.isMacroArgExpansion()) {
+    
+    if (const auto &Expansion = SM.getSLocEntry(SM.getFileID(Loc)).getExpansion(); Expansion.isMacroArgExpansion()) {
       // Check the spelling location of the macro arg, in case the arg itself is
       // in a macro expansion.
       Loc = Expansion.getSpellingLoc();
@@ -196,8 +196,8 @@ std::optional<CharSourceRange> clang::tooling::getFileRangeForEdit(
     const LangOptions &LangOpts, bool IncludeMacroExpansion) {
   CharSourceRange Range =
       getRange(EditRange, SM, LangOpts, IncludeMacroExpansion);
-  bool IsInvalid = llvm::errorToBool(validateEditRange(Range, SM));
-  if (IsInvalid)
+  
+  if (bool IsInvalid = llvm::errorToBool(validateEditRange(Range, SM)); IsInvalid)
     return std::nullopt;
   return Range;
 }
@@ -207,9 +207,9 @@ std::optional<CharSourceRange> clang::tooling::getFileRange(
     const LangOptions &LangOpts, bool IncludeMacroExpansion) {
   CharSourceRange Range =
       getRange(EditRange, SM, LangOpts, IncludeMacroExpansion);
-  bool IsInvalid =
-      llvm::errorToBool(validateRange(Range, SM, /*AllowSystemHeaders=*/true));
-  if (IsInvalid)
+  
+  if (bool IsInvalid =
+      llvm::errorToBool(validateRange(Range, SM, /*AllowSystemHeaders=*/true)); IsInvalid)
     return std::nullopt;
   return Range;
 }
@@ -412,9 +412,9 @@ static bool atOrBeforeSeparation(const SourceManager &SM, SourceLocation Loc,
   // We didn't find an empty line, so lex the next token, skipping past any
   // whitespace we just scanned.
   Token Tok;
-  bool Failed = Lexer::getRawToken(Loc, Tok, SM, LangOpts,
-                                   /*IgnoreWhiteSpace=*/true);
-  if (Failed)
+  
+  if (bool Failed = Lexer::getRawToken(Loc, Tok, SM, LangOpts,
+                                   /*IgnoreWhiteSpace=*/true); Failed)
     // Any text that confuses the lexer seems fair to consider a separation.
     return true;
 

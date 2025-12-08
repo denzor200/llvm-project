@@ -84,8 +84,8 @@ raw_ostream &llvm::objcarc::operator<<(raw_ostream &OS,
 
 ARCInstKind llvm::objcarc::GetFunctionClass(const Function *F) {
 
-  Intrinsic::ID ID = F->getIntrinsicID();
-  switch (ID) {
+  
+  switch (Intrinsic::ID ID = F->getIntrinsicID(); ID) {
   default:
     return ARCInstKind::CallOrUser;
   case Intrinsic::objc_autorelease:

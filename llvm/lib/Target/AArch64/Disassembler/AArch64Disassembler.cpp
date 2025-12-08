@@ -229,9 +229,9 @@ static DecodeStatus DecodePCRelLabel16(MCInst &Inst, unsigned Imm,
 static DecodeStatus DecodePCRelLabel19(MCInst &Inst, unsigned Imm,
                                        uint64_t Addr,
                                        const MCDisassembler *Decoder) {
-  int64_t ImmVal = SignExtend64<19>(Imm);
+  
 
-  if (!Decoder->tryAddingSymbolicOperand(
+  if (int64_t ImmVal = SignExtend64<19>(Imm); !Decoder->tryAddingSymbolicOperand(
           Inst, ImmVal * 4, Addr, Inst.getOpcode() != AArch64::LDRXl, 0, 0, 4))
     Inst.addOperand(MCOperand::createImm(ImmVal));
   return Success;
@@ -239,9 +239,9 @@ static DecodeStatus DecodePCRelLabel19(MCInst &Inst, unsigned Imm,
 
 static DecodeStatus DecodePCRelLabel9(MCInst &Inst, unsigned Imm, uint64_t Addr,
                                       const MCDisassembler *Decoder) {
-  int64_t ImmVal = SignExtend64<9>(Imm);
+  
 
-  if (!Decoder->tryAddingSymbolicOperand(Inst, (ImmVal * 4), Addr,
+  if (int64_t ImmVal = SignExtend64<9>(Imm); !Decoder->tryAddingSymbolicOperand(Inst, (ImmVal * 4), Addr,
                                          /*IsBranch=*/true, 0, 0, 4))
     Inst.addOperand(MCOperand::createImm(ImmVal));
   return Success;
@@ -280,9 +280,9 @@ static DecodeStatus DecodeFMOVLaneInstruction(MCInst &Inst, unsigned Insn,
   // be 1 in assembly but has no other real manifestation.
   unsigned Rd = fieldFromInstruction(Insn, 0, 5);
   unsigned Rn = fieldFromInstruction(Insn, 5, 5);
-  unsigned IsToVec = fieldFromInstruction(Insn, 16, 1);
+  
 
-  if (IsToVec) {
+  if (unsigned IsToVec = fieldFromInstruction(Insn, 16, 1); IsToVec) {
     DecodeSimpleRegisterClass<AArch64::FPR128RegClassID, 0, 32>(
         Inst, Rd, Address, Decoder);
     DecodeSimpleRegisterClass<AArch64::GPR64RegClassID, 0, 32>(
@@ -744,10 +744,10 @@ static DecodeStatus DecodeSignedLdStInstruction(MCInst &Inst, uint32_t insn,
 
   bool IsLoad = fieldFromInstruction(insn, 22, 1);
   bool IsIndexed = fieldFromInstruction(insn, 10, 2) != 0;
-  bool IsFP = fieldFromInstruction(insn, 26, 1);
+  
 
   // Cannot write back to a transfer register (but xzr != sp).
-  if (IsLoad && IsIndexed && !IsFP && Rn != 31 && Rt == Rn)
+  if (bool IsFP = fieldFromInstruction(insn, 26, 1); IsLoad && IsIndexed && !IsFP && Rn != 31 && Rt == Rn)
     return SoftFail;
 
   return Success;
@@ -1055,8 +1055,8 @@ static DecodeStatus DecodeAddSubERegInstruction(MCInst &Inst, uint32_t insn,
   unsigned Rm = fieldFromInstruction(insn, 16, 5);
   unsigned extend = fieldFromInstruction(insn, 10, 6);
 
-  unsigned shift = extend & 0x7;
-  if (shift > 4)
+  
+  if (unsigned shift = extend & 0x7; shift > 4)
     return Fail;
 
   switch (Inst.getOpcode()) {
@@ -1279,9 +1279,9 @@ static DecodeStatus DecodeAddSubImmShift(MCInst &Inst, uint32_t insn,
 static DecodeStatus DecodeUnconditionalBranch(MCInst &Inst, uint32_t insn,
                                               uint64_t Addr,
                                               const MCDisassembler *Decoder) {
-  int64_t imm = SignExtend64<26>(fieldFromInstruction(insn, 0, 26));
+  
 
-  if (!Decoder->tryAddingSymbolicOperand(Inst, imm * 4, Addr, true, 0, 0, 4))
+  if (int64_t imm = SignExtend64<26>(fieldFromInstruction(insn, 0, 26)); !Decoder->tryAddingSymbolicOperand(Inst, imm * 4, Addr, true, 0, 0, 4))
     Inst.addOperand(MCOperand::createImm(imm));
 
   return Success;

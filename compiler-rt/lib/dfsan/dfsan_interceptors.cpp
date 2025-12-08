@@ -178,8 +178,8 @@ INTERCEPTOR(void *, __tls_get_addr, void *arg) {
   void *res = REAL(__tls_get_addr)(arg);
   uptr tls_begin, tls_end;
   COMMON_INTERCEPTOR_GET_TLS_RANGE(&tls_begin, &tls_end);
-  DTLS::DTV *dtv = DTLS_on_tls_get_addr(arg, res, tls_begin, tls_end);
-  if (dtv) {
+  
+  if (DTLS::DTV *dtv = DTLS_on_tls_get_addr(arg, res, tls_begin, tls_end); dtv) {
     // New DTLS block has been allocated.
     COMMON_INTERCEPTOR_INITIALIZE_RANGE((void *)dtv->beg, dtv->size);
   }

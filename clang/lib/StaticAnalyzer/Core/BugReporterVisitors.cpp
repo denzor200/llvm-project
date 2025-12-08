@@ -614,8 +614,8 @@ NoStoreFuncVisitor::maybeEmitNoteForObjCSelf(PathSensitiveBugReport &R,
                                              const ObjCMethodCall &Call,
                                              const ExplodedNode *N) {
   if (const auto *IvarR = dyn_cast<ObjCIvarRegion>(RegionOfInterest)) {
-    const MemRegion *SelfRegion = Call.getReceiverSVal().getAsRegion();
-    if (RegionOfInterest->isSubRegionOf(SelfRegion) &&
+    
+    if (const MemRegion *SelfRegion = Call.getReceiverSVal().getAsRegion(); RegionOfInterest->isSubRegionOf(SelfRegion) &&
         potentiallyWritesIntoIvar(Call.getRuntimeDefinition().getDecl(),
                                   IvarR->getDecl()))
       return maybeEmitNote(R, Call, N, {}, SelfRegion, "self",
@@ -628,8 +628,8 @@ PathDiagnosticPieceRef
 NoStoreFuncVisitor::maybeEmitNoteForCXXThis(PathSensitiveBugReport &R,
                                             const CXXConstructorCall &Call,
                                             const ExplodedNode *N) {
-  const MemRegion *ThisR = Call.getCXXThisVal().getAsRegion();
-  if (RegionOfInterest->isSubRegionOf(ThisR) && !Call.getDecl()->isImplicit())
+  
+  if (const MemRegion *ThisR = Call.getCXXThisVal().getAsRegion(); RegionOfInterest->isSubRegionOf(ThisR) && !Call.getDecl()->isImplicit())
     return maybeEmitNote(R, Call, N, {}, ThisR, "this",
                          /*FirstIsReferenceType=*/false, 1);
 
@@ -826,8 +826,8 @@ public:
     if (!BugPoint)
       return nullptr;
 
-    const SourceManager &SMgr = BRC.getSourceManager();
-    if (auto Loc = matchAssignment(N)) {
+    
+    if (const SourceManager &SMgr = BRC.getSourceManager(); auto Loc = matchAssignment(N)) {
       if (isFunctionMacroExpansion(*Loc, SMgr)) {
         std::string MacroName = std::string(getMacroName(*Loc, BRC));
         SourceLocation BugLoc = BugPoint->getStmt()->getBeginLoc();
@@ -846,8 +846,8 @@ public:
         const ExplodedNode *N, const MemRegion *R,
         bool EnableNullFPSuppression, PathSensitiveBugReport &BR,
         const SVal V) {
-    AnalyzerOptions &Options = N->getState()->getAnalysisManager().options;
-    if (EnableNullFPSuppression && Options.ShouldSuppressNullReturnPaths &&
+    
+    if (AnalyzerOptions &Options = N->getState()->getAnalysisManager().options; EnableNullFPSuppression && Options.ShouldSuppressNullReturnPaths &&
         isa<Loc>(V))
       BR.addVisitor<MacroNullReturnSuppressionVisitor>(R->getAs<SubRegion>(),
                                                        V);
@@ -880,8 +880,8 @@ private:
             return RHS->getBeginLoc();
     } else if (const auto *BO = dyn_cast<BinaryOperator>(S)) {
       const MemRegion *R = N->getSVal(BO->getLHS()).getAsRegion();
-      const Expr *RHS = BO->getRHS();
-      if (BO->isAssignmentOp() && RegionOfInterest->isSubRegionOf(R)) {
+      
+      if (const Expr *RHS = BO->getRHS(); BO->isAssignmentOp() && RegionOfInterest->isSubRegionOf(R)) {
         return RHS->getBeginLoc();
       }
     }
@@ -1279,14 +1279,14 @@ static void showBRDiagnostics(llvm::raw_svector_ostream &OS, StoreInfo SI) {
     // We don't need to check here, all these conditions were
     // checked by StoreSiteFinder, when it figured out that it is
     // initialization.
-    const auto *DS =
-        cast<DeclStmt>(SI.StoreSite->getLocationAs<PostStmt>()->getStmt());
+    
 
-    if (SI.Value.isUndef()) {
+    if (const auto *DS =
+        cast<DeclStmt>(SI.StoreSite->getLocationAs<PostStmt>()->getStmt()); SI.Value.isUndef()) {
       if (isa<VarRegion>(SI.Dest)) {
-        const auto *VD = cast<VarDecl>(DS->getSingleDecl());
+        
 
-        if (VD->getInit()) {
+        if (const auto *VD = cast<VarDecl>(DS->getSingleDecl()); VD->getInit()) {
           OS << (HasPrefix ? "initialized" : "Initializing")
              << " to a garbage value";
         } else {
@@ -1445,9 +1445,9 @@ static const Expr *tryExtractInitializerFromList(const InitListExpr *ILE,
       return nullptr;
 
     ILE = cast<InitListExpr>(Init);
-    auto NumInits = ILE->getNumInits();
+    
 
-    if (const auto *FR = dyn_cast<FieldRegion>(TVR)) {
+    if (auto NumInits = ILE->getNumInits(); const auto *FR = dyn_cast<FieldRegion>(TVR)) {
       const auto *FD = FR->getDecl();
 
       if (FD->getFieldIndex() >= NumInits)
@@ -1496,8 +1496,8 @@ PathDiagnosticPieceRef StoreSiteFinder::VisitNode(const ExplodedNode *Succ,
   // should track the initializer expression.
   if (std::optional<PostInitializer> PIP =
           Pred->getLocationAs<PostInitializer>()) {
-    const MemRegion *FieldReg = (const MemRegion *)PIP->getLocationValue();
-    if (FieldReg == R) {
+    
+    if (const MemRegion *FieldReg = (const MemRegion *)PIP->getLocationValue(); FieldReg == R) {
       StoreSite = Pred;
       InitE = PIP->getInitializer()->getInit();
     }
@@ -1532,7 +1532,7 @@ PathDiagnosticPieceRef StoreSiteFinder::VisitNode(const ExplodedNode *Succ,
       else if (const auto *DS = P->getStmtAs<DeclStmt>()) {
         const auto *Decl = DS->getSingleDecl();
         if (isa<VarDecl>(Decl)) {
-          const auto *VD = cast<VarDecl>(Decl);
+          
 
           // FIXME: Here we only track the inner most region, so we lose
           // information, but it's still better than a crash or no information
@@ -1540,7 +1540,7 @@ PathDiagnosticPieceRef StoreSiteFinder::VisitNode(const ExplodedNode *Succ,
           //
           // E.g.: The region we have is 's.s2.s3.s4.y' and we only track 'y',
           // and throw away the rest.
-          if (const auto *ILE = dyn_cast<InitListExpr>(VD->getInit()))
+          if (const auto *VD = cast<VarDecl>(Decl); const auto *ILE = dyn_cast<InitListExpr>(VD->getInit()))
             InitE = tryExtractInitializerFromList(ILE, R);
         }
       } else if (const auto *CE = P->getStmtAs<CXXConstructExpr>()) {
@@ -1733,9 +1733,9 @@ PathDiagnosticPieceRef StoreSiteFinder::VisitNode(const ExplodedNode *Succ,
   if (std::optional<PostStmt> PS = StoreSite->getLocationAs<PostStmt>()) {
     const Stmt *S = PS->getStmt();
     const auto *DS = dyn_cast<DeclStmt>(S);
-    const auto *VR = dyn_cast<VarRegion>(R);
+    
 
-    if (DS) {
+    if (const auto *VR = dyn_cast<VarRegion>(R); DS) {
       SI.StoreKind = StoreInfo::Initialization;
     } else if (isa<BlockExpr>(S)) {
       SI.StoreKind = StoreInfo::BlockCapture;
@@ -1843,8 +1843,8 @@ SuppressInlineDefensiveChecksVisitor::
 SuppressInlineDefensiveChecksVisitor(DefinedSVal Value, const ExplodedNode *N)
     : V(Value) {
   // Check if the visitor is disabled.
-  AnalyzerOptions &Options = N->getState()->getAnalysisManager().options;
-  if (!Options.ShouldSuppressInlinedDefensiveChecks)
+  
+  if (AnalyzerOptions &Options = N->getState()->getAnalysisManager().options; !Options.ShouldSuppressInlinedDefensiveChecks)
     IsSatisfied = true;
 }
 
@@ -1882,8 +1882,8 @@ SuppressInlineDefensiveChecksVisitor::VisitNode(const ExplodedNode *Succ,
 
     // Check if this is inlined defensive checks.
     const LocationContext *CurLC = Succ->getLocationContext();
-    const LocationContext *ReportLC = BR.getErrorNode()->getLocationContext();
-    if (CurLC != ReportLC && !CurLC->isParentOf(ReportLC)) {
+    
+    if (const LocationContext *ReportLC = BR.getErrorNode()->getLocationContext(); CurLC != ReportLC && !CurLC->isParentOf(ReportLC)) {
       BR.markInvalid("Suppress IDC", CurLC);
       return nullptr;
     }
@@ -2099,8 +2099,8 @@ static const Expr *peelOffOuterExpr(const Expr *Ex, const ExplodedNode *N) {
   if (const auto *OVE = dyn_cast<OpaqueValueExpr>(Ex))
     return peelOffOuterExpr(OVE->getSourceExpr(), N);
   if (const auto *POE = dyn_cast<PseudoObjectExpr>(Ex)) {
-    const auto *PropRef = dyn_cast<ObjCPropertyRefExpr>(POE->getSyntacticForm());
-    if (PropRef && PropRef->isMessagingGetter()) {
+    
+    if (const auto *PropRef = dyn_cast<ObjCPropertyRefExpr>(POE->getSyntacticForm()); PropRef && PropRef->isMessagingGetter()) {
       const Expr *GetterMessageSend =
           POE->getSemanticExpr(POE->getNumSemanticExprs() - 1);
       assert(isa<ObjCMessageExpr>(GetterMessageSend->IgnoreParenCasts()));
@@ -2116,11 +2116,11 @@ static const Expr *peelOffOuterExpr(const Expr *Ex, const ExplodedNode *N) {
     do {
       ProgramPoint ProgPoint = NI->getLocation();
       if (std::optional<BlockEdge> BE = ProgPoint.getAs<BlockEdge>()) {
-        const CFGBlock *srcBlk = BE->getSrc();
-        if (const Stmt *term = srcBlk->getTerminatorStmt()) {
+        
+        if (const CFGBlock *srcBlk = BE->getSrc(); const Stmt *term = srcBlk->getTerminatorStmt()) {
           if (term == CO) {
-            bool TookTrueBranch = (*(srcBlk->succ_begin()) == BE->getDst());
-            if (TookTrueBranch)
+            
+            if (bool TookTrueBranch = (*(srcBlk->succ_begin()) == BE->getDst()); TookTrueBranch)
               return peelOffOuterExpr(CO->getTrueExpr(), N);
             else
               return peelOffOuterExpr(CO->getFalseExpr(), N);
@@ -2228,7 +2228,7 @@ public:
   Tracker::Result handle(const Expr *Inner, const ExplodedNode *InputNode,
                          const ExplodedNode *LVNode,
                          TrackingOptions Opts) override {
-    PathSensitiveBugReport &Report = getParentTracker().getReport();
+    
 
     // We only track expressions if we believe that they are important. Chances
     // are good that control dependencies to the tracking point are also
@@ -2236,7 +2236,7 @@ public:
     // this point.
     // TODO: Shouldn't we track control dependencies of every bug location,
     // rather than only tracked expressions?
-    if (LVNode->getState()
+    if (PathSensitiveBugReport &Report = getParentTracker().getReport(); LVNode->getState()
             ->getAnalysisManager()
             .getAnalyzerOptions()
             .ShouldTrackConditions) {
@@ -2741,15 +2741,15 @@ ConditionBRVisitor::VisitNodeImpl(const ExplodedNode *N,
   // If an assumption was made on a branch, it should be caught
   // here by looking at the state transition.
   if (std::optional<BlockEdge> BE = ProgPoint.getAs<BlockEdge>()) {
-    const CFGBlock *SrcBlock = BE->getSrc();
-    if (const Stmt *Term = SrcBlock->getTerminatorStmt()) {
+    
+    if (const CFGBlock *SrcBlock = BE->getSrc(); const Stmt *Term = SrcBlock->getTerminatorStmt()) {
       // If the tag of the previous node is 'Eagerly Assume...' the current
       // 'BlockEdge' has the same constraint information. We do not want to
       // report the value as it is just an assumption on the predecessor node
       // which will be caught in the next VisitNode() iteration as a 'PostStmt'.
-      const ProgramPointTag *PreviousNodeTag =
-          N->getFirstPred()->getLocation().getTag();
-      if (PreviousNodeTag == Tags.first || PreviousNodeTag == Tags.second)
+      
+      if (const ProgramPointTag *PreviousNodeTag =
+          N->getFirstPred()->getLocation().getTag(); PreviousNodeTag == Tags.first || PreviousNodeTag == Tags.second)
         return nullptr;
 
       return VisitTerminator(Term, N, SrcBlock, BE->getDst(), BR, BRC);
@@ -2884,8 +2884,8 @@ ConditionBRVisitor::VisitTrueTest(const Expr *Cond, BugReporterContext &BRC,
           return P;
         break;
       case Stmt::UnaryOperatorClass: {
-        const auto *UO = cast<UnaryOperator>(CondTmp);
-        if (UO->getOpcode() == UO_LNot) {
+        
+        if (const auto *UO = cast<UnaryOperator>(CondTmp); UO->getOpcode() == UO_LNot) {
           TookTrueTmp = !TookTrueTmp;
           CondTmp = UO->getSubExpr();
           continue;
@@ -2928,8 +2928,8 @@ bool ConditionBRVisitor::patternMatch(const Expr *Ex, const Expr *ParentEx,
     SourceLocation EndLoc = OriginalExpr->getEndLoc();
     if (BeginLoc.isMacroID() && EndLoc.isMacroID()) {
       const SourceManager &SM = BRC.getSourceManager();
-      const LangOptions &LO = BRC.getASTContext().getLangOpts();
-      if (Lexer::isAtStartOfMacroExpansion(BeginLoc, SM, LO) &&
+      
+      if (const LangOptions &LO = BRC.getASTContext().getLangOpts(); Lexer::isAtStartOfMacroExpansion(BeginLoc, SM, LO) &&
           Lexer::isAtEndOfMacroExpansion(EndLoc, SM, LO)) {
         CharSourceRange R = Lexer::getAsCharRange({BeginLoc, EndLoc}, SM, LO);
         Out << Lexer::getSourceText(R, SM, LO);
@@ -3270,9 +3270,9 @@ void LikelyFalsePositiveSuppressionBRVisitor::finalizeVisitor(
   // Here we suppress false positives coming from system headers. This list is
   // based on known issues.
   const AnalyzerOptions &Options = BRC.getAnalyzerOptions();
-  const Decl *D = N->getLocationContext()->getDecl();
+  
 
-  if (AnalysisDeclContext::isInStdNamespace(D)) {
+  if (const Decl *D = N->getLocationContext()->getDecl(); AnalysisDeclContext::isInStdNamespace(D)) {
     // Skip reports within the 'std' namespace. Although these can sometimes be
     // the user's fault, we currently don't report them very well, and
     // Note that this will not help for any other data structure libraries, like
@@ -3288,8 +3288,8 @@ void LikelyFalsePositiveSuppressionBRVisitor::finalizeVisitor(
       // or std::list::pop_back are called multiple times because we cannot
       // reason about the internal invariants of the data structure.
       if (const auto *MD = dyn_cast<CXXMethodDecl>(D)) {
-        const CXXRecordDecl *CD = MD->getParent();
-        if (CD->getName() == "list") {
+        
+        if (const CXXRecordDecl *CD = MD->getParent(); CD->getName() == "list") {
           BR.markInvalid(getTag(), nullptr);
           return;
         }
@@ -3298,8 +3298,8 @@ void LikelyFalsePositiveSuppressionBRVisitor::finalizeVisitor(
       // The analyzer issues a false positive when the constructor of
       // std::__independent_bits_engine from algorithms is used.
       if (const auto *MD = dyn_cast<CXXConstructorDecl>(D)) {
-        const CXXRecordDecl *CD = MD->getParent();
-        if (CD->getName() == "__independent_bits_engine") {
+        
+        if (const CXXRecordDecl *CD = MD->getParent(); CD->getName() == "__independent_bits_engine") {
           BR.markInvalid(getTag(), nullptr);
           return;
         }

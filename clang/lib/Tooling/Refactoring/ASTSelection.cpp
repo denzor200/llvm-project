@@ -440,8 +440,8 @@ bool CodeRangeASTSelection::isInFunctionLikeBodyOfCode() const {
 
 const Decl *CodeRangeASTSelection::getFunctionLikeNearestParent() const {
   for (const auto &Parent : llvm::reverse(Parents)) {
-    const DynTypedNode &Node = Parent.get().Node;
-    if (const auto *D = Node.get<Decl>()) {
+    
+    if (const DynTypedNode &Node = Parent.get().Node; const auto *D = Node.get<Decl>()) {
       if (isFunctionLikeDeclaration(D))
         return D;
     }

@@ -170,8 +170,8 @@ FullCommentParts::FullCommentParts(const FullComment *C,
 
     case CommentKind::VerbatimLineComment: {
       const VerbatimLineComment *VLC = cast<VerbatimLineComment>(Child);
-      const CommandInfo *Info = Traits.getCommandInfo(VLC->getCommandID());
-      if (!Info->IsDeclarationCommand)
+      
+      if (const CommandInfo *Info = Traits.getCommandInfo(VLC->getCommandID()); !Info->IsDeclarationCommand)
         MiscBlocks.push_back(VLC);
       break;
     }
@@ -497,8 +497,8 @@ void CommentASTToHTMLConverter::visitNonStandaloneParagraphComment(
 
 void CommentASTToHTMLConverter::appendToResultWithHTMLEscaping(StringRef S) {
   for (StringRef::iterator I = S.begin(), E = S.end(); I != E; ++I) {
-    const char C = *I;
-    switch (C) {
+    
+    switch (const char C = *I; C) {
     case '&':
       Result << "&amp;";
       break;
@@ -712,8 +712,8 @@ void CommentASTToXMLConverter::visitBlockCommandComment(
   StringRef ExceptionType;
 
   const unsigned CommandID = C->getCommandID();
-  const CommandInfo *Info = Traits.getCommandInfo(CommandID);
-  if (Info->IsThrowsCommand && C->getNumArgs() > 0) {
+  
+  if (const CommandInfo *Info = Traits.getCommandInfo(CommandID); Info->IsThrowsCommand && C->getNumArgs() > 0) {
     ExceptionType = C->getArgText(0);
   }
 
@@ -900,9 +900,9 @@ void CommentASTToXMLConverter::visitFullComment(const FullComment *C) {
       SourceLocation Loc = DI->CurrentDecl->getLocation();
       FileIDAndOffset LocInfo = SM.getDecomposedLoc(Loc);
       FileID FID = LocInfo.first;
-      unsigned FileOffset = LocInfo.second;
+      
 
-      if (FID.isValid()) {
+      if (unsigned FileOffset = LocInfo.second; FID.isValid()) {
         if (OptionalFileEntryRef FE = SM.getFileEntryRefForID(FID)) {
           Result << " file=\"";
           appendToResultWithXMLEscaping(FE->getName());
@@ -1094,8 +1094,8 @@ void CommentASTToXMLConverter::visitFullComment(const FullComment *C) {
 
 void CommentASTToXMLConverter::appendToResultWithXMLEscaping(StringRef S) {
   for (StringRef::iterator I = S.begin(), E = S.end(); I != E; ++I) {
-    const char C = *I;
-    switch (C) {
+    
+    switch (const char C = *I; C) {
     case '&':
       Result << "&amp;";
       break;

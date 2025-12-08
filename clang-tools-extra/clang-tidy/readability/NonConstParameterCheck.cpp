@@ -71,8 +71,8 @@ void NonConstParameterCheck::check(const MatchFinder::MatchResult &Result) {
             break;
           const Expr *Arg = CE->getArg(ArgNr++);
           // Is this a non constant reference parameter?
-          const Type *ParType = Par->getType().getTypePtr();
-          if (!ParType->isReferenceType() || Par->getType().isConstQualified())
+          
+          if (const Type *ParType = Par->getType().getTypePtr(); !ParType->isReferenceType() || Par->getType().isConstQualified())
             continue;
           markCanNotBeConst(Arg->IgnoreParenCasts(), false);
         }
@@ -82,15 +82,15 @@ void NonConstParameterCheck::check(const MatchFinder::MatchResult &Result) {
         markCanNotBeConst(Arg->IgnoreParenCasts(), true);
       }
       // Data passed by nonconst reference should not be made const.
-      unsigned ArgNr = 0U;
-      if (const auto *CD = CE->getConstructor()) {
+      
+      if (unsigned ArgNr = 0U; const auto *CD = CE->getConstructor()) {
         for (const auto *Par : CD->parameters()) {
           if (ArgNr >= CE->getNumArgs())
             break;
           const Expr *Arg = CE->getArg(ArgNr++);
           // Is this a non constant reference parameter?
-          const Type *ParType = Par->getType().getTypePtr();
-          if (!ParType->isReferenceType() || Par->getType().isConstQualified())
+          
+          if (const Type *ParType = Par->getType().getTypePtr(); !ParType->isReferenceType() || Par->getType().isConstQualified())
             continue;
           markCanNotBeConst(Arg->IgnoreParenCasts(), false);
         }

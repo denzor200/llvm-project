@@ -114,9 +114,9 @@ void RedundantInlineSpecifierCheck::handleMatchedDecl(
 
 void RedundantInlineSpecifierCheck::check(
     const MatchFinder::MatchResult &Result) {
-  const SourceManager &Sources = *Result.SourceManager;
+  
 
-  if (const auto *MatchedDecl =
+  if (const SourceManager &Sources = *Result.SourceManager; const auto *MatchedDecl =
           Result.Nodes.getNodeAs<FunctionDecl>("fun_decl")) {
     handleMatchedDecl(
         MatchedDecl, Sources, Result,

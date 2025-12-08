@@ -404,8 +404,8 @@ ImplicitNullChecks::isSuitableMemoryOp(const MachineInstr &MI,
     MachineInstr *ModifyingMI = nullptr;
     for (auto It = std::next(MachineBasicBlock::const_reverse_iterator(&MI));
          It != MI.getParent()->rend(); It++) {
-      const MachineInstr *CurrMI = &*It;
-      if (CurrMI->modifiesRegister(RegUsedInAddr, TRI)) {
+      
+      if (const MachineInstr *CurrMI = &*It; CurrMI->modifiesRegister(RegUsedInAddr, TRI)) {
         ModifyingMI = const_cast<MachineInstr *>(CurrMI);
         break;
       }

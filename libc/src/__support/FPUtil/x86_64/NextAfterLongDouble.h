@@ -44,9 +44,9 @@ LIBC_INLINE long double nextafter(long double from, long double to) {
 
   using StorageType = FPBits::StorageType;
 
-  constexpr StorageType FRACTION_MASK = FPBits::FRACTION_MASK;
+  
   // StorageType int_val = from_bits.uintval();
-  if (from == 0.0l) { // +0.0 / -0.0
+  if (constexpr StorageType FRACTION_MASK = FPBits::FRACTION_MASK; from == 0.0l) { // +0.0 / -0.0
     from_bits = FPBits::min_subnormal(from > to ? Sign::NEG : Sign::POS);
   } else if (from < 0.0l) {
     if (to < from) { // toward -inf

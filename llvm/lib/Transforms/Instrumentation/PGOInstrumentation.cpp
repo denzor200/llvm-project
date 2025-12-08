@@ -768,8 +768,8 @@ static bool canRenameComdat(
   Comdat *C = F.getComdat();
   for (auto &&CM : make_range(ComdatMembers.equal_range(C))) {
     assert(!isa<GlobalAlias>(CM.second));
-    Function *FM = dyn_cast<Function>(CM.second);
-    if (FM != &F)
+    
+    if (Function *FM = dyn_cast<Function>(CM.second); FM != &F)
       return false;
   }
   return true;
@@ -1307,11 +1307,11 @@ bool PGOUseFunc::setInstrumentedCounts(
 
   setupBBInfoEdges(FuncInfo);
 
-  unsigned NumCounters =
-      InstrumentBBs.size() + FuncInfo.SIVisitor.getNumOfSelectInsts();
+  
   // The number of counters here should match the number of counters
   // in profile. Return if they mismatch.
-  if (NumCounters != CountFromProfile.size()) {
+  if (unsigned NumCounters =
+      InstrumentBBs.size() + FuncInfo.SIVisitor.getNumOfSelectInsts(); NumCounters != CountFromProfile.size()) {
     return false;
   }
   auto *FuncEntry = &*F.begin();
@@ -1345,18 +1345,18 @@ bool PGOUseFunc::setInstrumentedCounts(
     if (E->Removed || E->InMST)
       continue;
     const BasicBlock *SrcBB = E->SrcBB;
-    PGOUseBBInfo &SrcInfo = getBBInfo(SrcBB);
+    
 
     // If only one out-edge, the edge profile count should be the same as BB
     // profile count.
-    if (SrcInfo.Count && SrcInfo.OutEdges.size() == 1)
+    if (PGOUseBBInfo &SrcInfo = getBBInfo(SrcBB); SrcInfo.Count && SrcInfo.OutEdges.size() == 1)
       setEdgeCount(E.get(), *SrcInfo.Count);
     else {
       const BasicBlock *DestBB = E->DestBB;
-      PGOUseBBInfo &DestInfo = getBBInfo(DestBB);
+      
       // If only one in-edge, the edge profile count should be the same as BB
       // profile count.
-      if (DestInfo.Count && DestInfo.InEdges.size() == 1)
+      if (PGOUseBBInfo &DestInfo = getBBInfo(DestBB); DestInfo.Count && DestInfo.InEdges.size() == 1)
         setEdgeCount(E.get(), *DestInfo.Count);
     }
     if (E->Count)
@@ -1388,8 +1388,8 @@ static void annotateFunctionWithHashMismatch(Function &F, LLVMContext &ctx) {
   const char MetadataName[] = "instr_prof_hash_mismatch";
   SmallVector<Metadata *, 2> Names;
   // If this metadata already exists, ignore.
-  auto *Existing = F.getMetadata(LLVMContext::MD_annotation);
-  if (Existing) {
+  
+  if (auto *Existing = F.getMetadata(LLVMContext::MD_annotation); Existing) {
     MDTuple *Tuple = cast<MDTuple>(Existing);
     for (const auto &N : Tuple->operands()) {
       if (N.equalsStr(MetadataName))
@@ -1629,19 +1629,19 @@ void PGOUseFunc::populateCounters() {
       if (UseBBInfo->Count) {
         if (UseBBInfo->UnknownCountOutEdge == 1) {
           uint64_t Total = 0;
-          uint64_t OutSum = sumEdgeCount(UseBBInfo->OutEdges);
+          
           // If the one of the successor block can early terminate (no-return),
           // we can end up with situation where out edge sum count is larger as
           // the source BB's count is collected by a post-dominated block.
-          if (*UseBBInfo->Count > OutSum)
+          if (uint64_t OutSum = sumEdgeCount(UseBBInfo->OutEdges); *UseBBInfo->Count > OutSum)
             Total = *UseBBInfo->Count - OutSum;
           setEdgeCount(UseBBInfo->OutEdges, Total);
           Changes = true;
         }
         if (UseBBInfo->UnknownCountInEdge == 1) {
           uint64_t Total = 0;
-          uint64_t InSum = sumEdgeCount(UseBBInfo->InEdges);
-          if (*UseBBInfo->Count > InSum)
+          
+          if (uint64_t InSum = sumEdgeCount(UseBBInfo->InEdges); *UseBBInfo->Count > InSum)
             Total = *UseBBInfo->Count - InSum;
           setEdgeCount(UseBBInfo->InEdges, Total);
           Changes = true;
@@ -1787,8 +1787,8 @@ void SelectInstVisitor::annotateOneSelectInst(SelectInst &SI) {
   SCounts[0] = CountFromProfile[*CurCtrIdx]; // True count
   ++(*CurCtrIdx);
   uint64_t TotalCount = 0;
-  auto BI = UseFunc->findBBInfo(SI.getParent());
-  if (BI != nullptr) {
+  
+  if (auto BI = UseFunc->findBBInfo(SI.getParent()); BI != nullptr) {
     TotalCount = *BI->Count;
 
     // Fix the block count if it is impossible.
@@ -1963,8 +1963,8 @@ static bool InstrumentAllFunctions(
     createIRLevelProfileFlagVar(M, InstrumentationType);
 
   Triple TT(M.getTargetTriple());
-  LLVMContext &Ctx = M.getContext();
-  if (!TT.isOSBinFormatELF() && EnableVTableValueProfiling)
+  
+  if (LLVMContext &Ctx = M.getContext(); !TT.isOSBinFormatELF() && EnableVTableValueProfiling)
     Ctx.diagnose(DiagnosticInfoPGOProfile(
         M.getName().data(),
         Twine("VTable value profiling is presently not "
@@ -2119,10 +2119,10 @@ static void verifyFuncBFI(PGOUseFunc &Func, LoopInfo &LI,
       if ((CountValue < PGOVerifyBFICutoff) &&
           (BFICountValue < PGOVerifyBFICutoff))
         continue;
-      uint64_t Diff = (BFICountValue >= CountValue)
+      
+      if (uint64_t Diff = (BFICountValue >= CountValue)
                           ? BFICountValue - CountValue
-                          : CountValue - BFICountValue;
-      if (Diff <= CountValue / 100 * PGOVerifyBFIRatio)
+                          : CountValue - BFICountValue; Diff <= CountValue / 100 * PGOVerifyBFIRatio)
         continue;
     }
     BBMisMatchNum++;
@@ -2386,8 +2386,8 @@ PreservedAnalyses PGOInstrumentationUse::run(Module &M,
     return &FAM.getResult<LoopAnalysis>(F);
   };
 
-  auto *PSI = &MAM.getResult<ProfileSummaryAnalysis>(M);
-  if (!annotateAllFunctions(M, ProfileFileName, ProfileRemappingFileName, *FS,
+  
+  if (auto *PSI = &MAM.getResult<ProfileSummaryAnalysis>(M); !annotateAllFunctions(M, ProfileFileName, ProfileRemappingFileName, *FS,
                             LookupTLI, LookupBPI, LookupBFI, LookupLI, PSI,
                             IsCS))
     return PreservedAnalyses::all();
@@ -2505,8 +2505,8 @@ template <> struct DOTGraphTraits<PGOUseFunc *> : DefaultDOTGraphTraits {
       // Display scaled counts for SELECT instruction:
       OS << "SELECT : { T = ";
       uint64_t TC, FC;
-      bool HasProf = extractBranchWeights(I, TC, FC);
-      if (!HasProf)
+      
+      if (bool HasProf = extractBranchWeights(I, TC, FC); !HasProf)
         OS << "Unknown, F = Unknown }\\l";
       else
         OS << TC << ", F = " << FC << " }\\l";

@@ -674,9 +674,9 @@ static void walkScheduleTreeForStatistics(isl::schedule Schedule, int Version) {
       Root.get(),
       [](__isl_keep isl_schedule_node *nodeptr, void *user) -> isl_bool {
         isl::schedule_node Node = isl::manage_copy(nodeptr);
-        int Version = *static_cast<int *>(user);
+        
 
-        switch (isl_schedule_node_get_type(Node.get())) {
+        switch (int Version = *static_cast<int *>(user); isl_schedule_node_get_type(Node.get())) {
         case isl_schedule_node_band: {
           NumBands[Version]++;
           if (isl_schedule_node_band_get_permutable(Node.get()) ==

@@ -270,9 +270,9 @@ int LLVMSetDisasmOptions(LLVMDisasmContextRef DCR, uint64_t Options){
       const MCRegisterInfo *MRI = DC->getRegisterInfo();
       int AsmPrinterVariant = MAI->getAssemblerDialect();
       AsmPrinterVariant = AsmPrinterVariant == 0 ? 1 : 0;
-      MCInstPrinter *IP = DC->getTarget()->createMCInstPrinter(
-          Triple(DC->getTripleName()), AsmPrinterVariant, *MAI, *MII, *MRI);
-      if (IP) {
+      
+      if (MCInstPrinter *IP = DC->getTarget()->createMCInstPrinter(
+          Triple(DC->getTripleName()), AsmPrinterVariant, *MAI, *MII, *MRI); IP) {
         DC->setIP(IP);
         DC->addOptions(LLVMDisassembler_Option_AsmPrinterVariant);
         Options &= ~LLVMDisassembler_Option_AsmPrinterVariant;

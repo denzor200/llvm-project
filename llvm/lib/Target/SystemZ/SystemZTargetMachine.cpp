@@ -148,8 +148,8 @@ SystemZTargetMachine::getSubtargetImpl(const Function &F) const {
   // FIXME: This is related to the code below to reset the target options,
   // we need to know whether the soft float and backchain flags are set on the
   // function, so we can enable them as subtarget features.
-  bool SoftFloat = F.getFnAttribute("use-soft-float").getValueAsBool();
-  if (SoftFloat)
+  
+  if (bool SoftFloat = F.getFnAttribute("use-soft-float").getValueAsBool(); SoftFloat)
     FS += FS.empty() ? "+soft-float" : ",+soft-float";
   bool BackChain = F.hasFnAttribute("backchain");
   if (BackChain)

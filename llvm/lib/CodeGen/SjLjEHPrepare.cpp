@@ -330,8 +330,8 @@ void SjLjEHPrepareImpl::lowerAcrossUnwindEdges(Function &F,
       // it includes any of the unwind locations.
       bool NeedsSpill = false;
       for (InvokeInst *Invoke : Invokes) {
-        BasicBlock *UnwindBlock = Invoke->getUnwindDest();
-        if (UnwindBlock != &BB && LiveBBs.count(UnwindBlock)) {
+        
+        if (BasicBlock *UnwindBlock = Invoke->getUnwindDest(); UnwindBlock != &BB && LiveBBs.count(UnwindBlock)) {
           LLVM_DEBUG(dbgs() << "SJLJ Spill: " << Inst << " around "
                             << UnwindBlock->getName() << "\n");
           NeedsSpill = true;

@@ -279,11 +279,11 @@ void AIXTargetCodeGenInfo::setTargetAttributes(
   auto GVId = GV->getName();
 
   // Is this a global variable specified by the user as toc-data?
-  bool UserSpecifiedTOC =
-      llvm::binary_search(M.getCodeGenOpts().TocDataVarsUserSpecified, GVId);
+  
   // Assumes the same variable cannot be in both TocVarsUserSpecified and
   // NoTocVars.
-  if (UserSpecifiedTOC ||
+  if (bool UserSpecifiedTOC =
+      llvm::binary_search(M.getCodeGenOpts().TocDataVarsUserSpecified, GVId); UserSpecifiedTOC ||
       ((M.getCodeGenOpts().AllTocData) &&
        !llvm::binary_search(M.getCodeGenOpts().NoTocDataVars, GVId))) {
     const unsigned long PointerSize =
@@ -385,8 +385,8 @@ CharUnits PPC32_SVR4_ABIInfo::getParamTypeAlignment(QualType Ty) const {
   // to have the same alignment requirements as its single element.
   const Type *AlignTy = nullptr;
   if (const Type *EltType = isSingleElementStruct(Ty, getContext())) {
-    const BuiltinType *BT = EltType->getAs<BuiltinType>();
-    if ((EltType->isVectorType() && getContext().getTypeSize(EltType) == 128) ||
+    
+    if (const BuiltinType *BT = EltType->getAs<BuiltinType>(); (EltType->isVectorType() && getContext().getTypeSize(EltType) == 128) ||
         (BT && BT->isFloatingPoint()))
       AlignTy = EltType;
   }
@@ -397,10 +397,10 @@ CharUnits PPC32_SVR4_ABIInfo::getParamTypeAlignment(QualType Ty) const {
 }
 
 ABIArgInfo PPC32_SVR4_ABIInfo::classifyReturnType(QualType RetTy) const {
-  uint64_t Size;
+  
 
   // -msvr4-struct-return puts small aggregates in GPR3 and GPR4.
-  if (isAggregateTypeForABI(RetTy) && IsRetSmallStructInRegABI &&
+  if (uint64_t Size; isAggregateTypeForABI(RetTy) && IsRetSmallStructInRegABI &&
       (Size = getContext().getTypeSize(RetTy)) <= 64) {
     // System V ABI (1995), page 3-22, specified:
     // > A structure or union whose size is less than or equal to 8 bytes
@@ -644,10 +644,10 @@ public:
       // We rely on the default argument classification for the most part.
       // One exception:  An aggregate containing a single floating-point
       // or vector item must be passed in a register if one is available.
-      const Type *T = isSingleElementStruct(I.type, getContext());
-      if (T) {
-        const BuiltinType *BT = T->getAs<BuiltinType>();
-        if ((T->isVectorType() && getContext().getTypeSize(T) == 128) ||
+      
+      if (const Type *T = isSingleElementStruct(I.type, getContext()); T) {
+        
+        if (const BuiltinType *BT = T->getAs<BuiltinType>(); (T->isVectorType() && getContext().getTypeSize(T) == 128) ||
             (BT && BT->isFloatingPoint())) {
           QualType QT(T, 0);
           I.info = ABIArgInfo::getDirectInReg(CGT.ConvertType(QT));
@@ -756,10 +756,10 @@ CharUnits PPC64_SVR4_ABIInfo::getParamTypeAlignment(QualType Ty) const {
   // For single-element float/vector structs, we consider the whole type
   // to have the same alignment requirements as its single element.
   const Type *AlignAsType = nullptr;
-  const Type *EltType = isSingleElementStruct(Ty, getContext());
-  if (EltType) {
-    const BuiltinType *BT = EltType->getAs<BuiltinType>();
-    if ((EltType->isVectorType() && getContext().getTypeSize(EltType) == 128) ||
+  
+  if (const Type *EltType = isSingleElementStruct(Ty, getContext()); EltType) {
+    
+    if (const BuiltinType *BT = EltType->getAs<BuiltinType>(); (EltType->isVectorType() && getContext().getTypeSize(EltType) == 128) ||
         (BT && BT->isFloatingPoint()))
       AlignAsType = EltType;
   }
@@ -833,8 +833,8 @@ PPC64_SVR4_ABIInfo::classifyArgumentType(QualType Ty) const {
   // Non-Altivec vector types are passed in GPRs (smaller than 16 bytes)
   // or via reference (larger than 16 bytes).
   if (Ty->isVectorType()) {
-    uint64_t Size = getContext().getTypeSize(Ty);
-    if (Size > 128)
+    
+    if (uint64_t Size = getContext().getTypeSize(Ty); Size > 128)
       return getNaturalAlignIndirect(Ty, getDataLayout().getAllocaAddrSpace(),
                                      /*ByVal=*/false);
     else if (Size < 128) {
@@ -870,8 +870,8 @@ PPC64_SVR4_ABIInfo::classifyArgumentType(QualType Ty) const {
     // use the ByVal method, but pass the aggregate as array.
     // This is usually beneficial since we avoid forcing the
     // back-end to store the argument to memory.
-    uint64_t Bits = getContext().getTypeSize(Ty);
-    if (Bits > 0 && Bits <= 8 * GPRBits) {
+    
+    if (uint64_t Bits = getContext().getTypeSize(Ty); Bits > 0 && Bits <= 8 * GPRBits) {
       llvm::Type *CoerceTy;
 
       // Types up to 8 bytes are passed as integer type (which will be
@@ -914,8 +914,8 @@ PPC64_SVR4_ABIInfo::classifyReturnType(QualType RetTy) const {
   // Non-Altivec vector types are returned in GPRs (smaller than 16 bytes)
   // or via reference (larger than 16 bytes).
   if (RetTy->isVectorType()) {
-    uint64_t Size = getContext().getTypeSize(RetTy);
-    if (Size > 128)
+    
+    if (uint64_t Size = getContext().getTypeSize(RetTy); Size > 128)
       return getNaturalAlignIndirect(RetTy,
                                      getDataLayout().getAllocaAddrSpace());
     else if (Size < 128) {
@@ -941,8 +941,8 @@ PPC64_SVR4_ABIInfo::classifyReturnType(QualType RetTy) const {
     }
 
     // ELFv2 small aggregates are returned in up to two registers.
-    uint64_t Bits = getContext().getTypeSize(RetTy);
-    if (Kind == PPC64_SVR4_ABIKind::ELFv2 && Bits <= 2 * GPRBits) {
+    
+    if (uint64_t Bits = getContext().getTypeSize(RetTy); Kind == PPC64_SVR4_ABIKind::ELFv2 && Bits <= 2 * GPRBits) {
       if (Bits == 0)
         return ABIArgInfo::getIgnore();
 
@@ -1015,8 +1015,8 @@ void PPC64_SVR4_TargetCodeGenInfo::emitTargetMetadata(
     const llvm::MapVector<GlobalDecl, StringRef> &MangledDeclNames) const {
   if (CGM.getTypes().isLongDoubleReferenced()) {
     llvm::LLVMContext &Ctx = CGM.getLLVMContext();
-    const auto *flt = &CGM.getTarget().getLongDoubleFormat();
-    if (flt == &llvm::APFloat::PPCDoubleDouble())
+    
+    if (const auto *flt = &CGM.getTarget().getLongDoubleFormat(); flt == &llvm::APFloat::PPCDoubleDouble())
       CGM.getModule().addModuleFlag(llvm::Module::Error, "float-abi",
                                     llvm::MDString::get(Ctx, "doubledouble"));
     else if (flt == &llvm::APFloat::IEEEquad())

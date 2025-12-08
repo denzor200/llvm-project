@@ -264,10 +264,10 @@ static Value *simplifyAssociativeBinOp(Instruction::BinaryOps Opcode,
   if (Op0 && Op0->getOpcode() == Opcode) {
     Value *A = Op0->getOperand(0);
     Value *B = Op0->getOperand(1);
-    Value *C = RHS;
+    
 
     // Does "B op C" simplify?
-    if (Value *V = simplifyBinOp(Opcode, B, C, Q, MaxRecurse)) {
+    if (Value *C = RHS; Value *V = simplifyBinOp(Opcode, B, C, Q, MaxRecurse)) {
       // It does!  Return "A op V" if it simplifies or is already available.
       // If V equals B then "A op V" is just the LHS.
       if (V == B)
@@ -284,10 +284,10 @@ static Value *simplifyAssociativeBinOp(Instruction::BinaryOps Opcode,
   if (Op1 && Op1->getOpcode() == Opcode) {
     Value *A = LHS;
     Value *B = Op1->getOperand(0);
-    Value *C = Op1->getOperand(1);
+    
 
     // Does "A op B" simplify?
-    if (Value *V = simplifyBinOp(Opcode, A, B, Q, MaxRecurse)) {
+    if (Value *C = Op1->getOperand(1); Value *V = simplifyBinOp(Opcode, A, B, Q, MaxRecurse)) {
       // It does!  Return "V op C" if it simplifies or is already available.
       // If V equals B then "V op C" is just the RHS.
       if (V == B)
@@ -308,10 +308,10 @@ static Value *simplifyAssociativeBinOp(Instruction::BinaryOps Opcode,
   if (Op0 && Op0->getOpcode() == Opcode) {
     Value *A = Op0->getOperand(0);
     Value *B = Op0->getOperand(1);
-    Value *C = RHS;
+    
 
     // Does "C op A" simplify?
-    if (Value *V = simplifyBinOp(Opcode, C, A, Q, MaxRecurse)) {
+    if (Value *C = RHS; Value *V = simplifyBinOp(Opcode, C, A, Q, MaxRecurse)) {
       // It does!  Return "V op B" if it simplifies or is already available.
       // If V equals A then "V op B" is just the LHS.
       if (V == A)
@@ -328,10 +328,10 @@ static Value *simplifyAssociativeBinOp(Instruction::BinaryOps Opcode,
   if (Op1 && Op1->getOpcode() == Opcode) {
     Value *A = LHS;
     Value *B = Op1->getOperand(0);
-    Value *C = Op1->getOperand(1);
+    
 
     // Does "C op A" simplify?
-    if (Value *V = simplifyBinOp(Opcode, C, A, Q, MaxRecurse)) {
+    if (Value *C = Op1->getOperand(1); Value *V = simplifyBinOp(Opcode, C, A, Q, MaxRecurse)) {
       // It does!  Return "B op V" if it simplifies or is already available.
       // If V equals C then "B op V" is just the RHS.
       if (V == C)
@@ -399,8 +399,8 @@ static Value *threadBinOpOverSelect(Instruction::BinaryOps Opcode, Value *LHS,
   if ((FV && !TV) || (TV && !FV)) {
     // Check that the simplified value has the form "X op Y" where "op" is the
     // same as the original operation.
-    Instruction *Simplified = dyn_cast<Instruction>(FV ? FV : TV);
-    if (Simplified && Simplified->getOpcode() == unsigned(Opcode) &&
+    
+    if (Instruction *Simplified = dyn_cast<Instruction>(FV ? FV : TV); Simplified && Simplified->getOpcode() == unsigned(Opcode) &&
         !Simplified->hasPoisonGeneratingFlags()) {
       // The value that didn't simplify is "UnsimplifiedLHS op UnsimplifiedRHS".
       // We already know that "op" is the same as for the simplified value.  See
@@ -621,8 +621,8 @@ static Value *simplifyAddInst(Value *Op0, Value *Op1, bool IsNSW, bool IsNUW,
     return Y;
 
   // X + ~X -> -1   since   ~X = -X-1
-  Type *Ty = Op0->getType();
-  if (match(Op0, m_Not(m_Specific(Op1))) || match(Op1, m_Not(m_Specific(Op0))))
+  
+  if (Type *Ty = Op0->getType(); match(Op0, m_Not(m_Specific(Op1))) || match(Op1, m_Not(m_Specific(Op0))))
     return Constant::getAllOnesValue(Ty);
 
   // add nsw/nuw (xor Y, signmask), signmask --> Y
@@ -718,8 +718,8 @@ static Value *simplifyByDomEq(unsigned Opcode, Value *Op0, Value *Op1,
   std::optional<bool> Imp =
       isImpliedByDomCondition(CmpInst::ICMP_EQ, Op0, Op1, Q.CxtI, Q.DL);
   if (Imp && *Imp) {
-    Type *Ty = Op0->getType();
-    switch (Opcode) {
+    
+    switch (Type *Ty = Op0->getType(); Opcode) {
     case Instruction::Sub:
     case Instruction::Xor:
     case Instruction::URem:
@@ -1003,8 +1003,8 @@ static bool isDivZero(Value *X, Value *Y, const SimplifyQuery &Q,
       // dividend magnitude?
       // |Y| > |C| --> Y < -abs(C) or Y > abs(C)
       Constant *PosDividendC = ConstantInt::get(Ty, C->abs());
-      Constant *NegDividendC = ConstantInt::get(Ty, -C->abs());
-      if (isICmpTrue(CmpInst::ICMP_SLT, Y, NegDividendC, Q, MaxRecurse) ||
+      
+      if (Constant *NegDividendC = ConstantInt::get(Ty, -C->abs()); isICmpTrue(CmpInst::ICMP_SLT, Y, NegDividendC, Q, MaxRecurse) ||
           isICmpTrue(CmpInst::ICMP_SGT, Y, PosDividendC, Q, MaxRecurse))
         return true;
     }
@@ -1019,8 +1019,8 @@ static bool isDivZero(Value *X, Value *Y, const SimplifyQuery &Q,
       // divisor magnitude?
       // |X| < |C| --> X > -abs(C) and X < abs(C)
       Constant *PosDivisorC = ConstantInt::get(Ty, C->abs());
-      Constant *NegDivisorC = ConstantInt::get(Ty, -C->abs());
-      if (isICmpTrue(CmpInst::ICMP_SGT, X, NegDivisorC, Q, MaxRecurse) &&
+      
+      if (Constant *NegDivisorC = ConstantInt::get(Ty, -C->abs()); isICmpTrue(CmpInst::ICMP_SGT, X, NegDivisorC, Q, MaxRecurse) &&
           isICmpTrue(CmpInst::ICMP_SLT, X, PosDivisorC, Q, MaxRecurse))
         return true;
     }
@@ -1104,10 +1104,10 @@ static Value *simplifyDivRem(Instruction::BinaryOps Opcode, Value *Op0,
   //   X * Y % Y -> 0
   Value *X;
   if (match(Op0, m_c_Mul(m_Value(X), m_Specific(Op1)))) {
-    auto *Mul = cast<OverflowingBinaryOperator>(Op0);
+    
     // The multiplication can't overflow if it is defined not to, or if
     // X == A / Y for some A.
-    if ((IsSigned && Q.IIQ.hasNoSignedWrap(Mul)) ||
+    if (auto *Mul = cast<OverflowingBinaryOperator>(Op0); (IsSigned && Q.IIQ.hasNoSignedWrap(Mul)) ||
         (!IsSigned && Q.IIQ.hasNoUnsignedWrap(Mul)) ||
         (IsSigned && match(X, m_SDiv(m_Value(), m_Specific(Op1)))) ||
         (!IsSigned && match(X, m_UDiv(m_Value(), m_Specific(Op1))))) {
@@ -1345,8 +1345,8 @@ static Value *simplifyShift(Instruction::BinaryOps Opcode, Value *Op0,
 
   // If all valid bits in the shift amount are known zero, the first operand is
   // unchanged.
-  unsigned NumValidShiftBits = Log2_32_Ceil(KnownAmt.getBitWidth());
-  if (KnownAmt.countMinTrailingZeros() >= NumValidShiftBits)
+  
+  if (unsigned NumValidShiftBits = Log2_32_Ceil(KnownAmt.getBitWidth()); KnownAmt.countMinTrailingZeros() >= NumValidShiftBits)
     return Op0;
 
   // Check for nsw shl leading to a poison value.
@@ -1461,8 +1461,8 @@ static Value *simplifyLShrInst(Value *Op0, Value *Op1, bool IsExact,
       match(Op0, m_c_Or(m_NUWShl(m_Value(X), m_APInt(ShLAmt)), m_Value(Y))) &&
       *ShRAmt == *ShLAmt) {
     const KnownBits YKnown = computeKnownBits(Y, Q);
-    const unsigned EffWidthY = YKnown.countMaxActiveBits();
-    if (ShRAmt->uge(EffWidthY))
+    
+    if (const unsigned EffWidthY = YKnown.countMaxActiveBits(); ShRAmt->uge(EffWidthY))
       return X;
   }
 
@@ -1495,8 +1495,8 @@ static Value *simplifyAShrInst(Value *Op0, Value *Op1, bool IsExact,
     return X;
 
   // Arithmetic shifting an all-sign-bit value is a no-op.
-  unsigned NumSignBits = ComputeNumSignBits(Op0, Q.DL, Q.AC, Q.CxtI, Q.DT);
-  if (NumSignBits == Op0->getType()->getScalarSizeInBits())
+  
+  if (unsigned NumSignBits = ComputeNumSignBits(Op0, Q.DL, Q.AC, Q.CxtI, Q.DT); NumSignBits == Op0->getType()->getScalarSizeInBits())
     return Op0;
 
   return nullptr;
@@ -1904,8 +1904,8 @@ static Value *simplifyAndOrOfCmps(const SimplifyQuery &Q, Value *Op0,
                                   Value *Op1, bool IsAnd) {
   // Look through casts of the 'and' operands to find compares.
   auto *Cast0 = dyn_cast<CastInst>(Op0);
-  auto *Cast1 = dyn_cast<CastInst>(Op1);
-  if (Cast0 && Cast1 && Cast0->getOpcode() == Cast1->getOpcode() &&
+  
+  if (auto *Cast1 = dyn_cast<CastInst>(Op1); Cast0 && Cast1 && Cast0->getOpcode() == Cast1->getOpcode() &&
       Cast0->getSrcTy() == Cast1->getSrcTy()) {
     Op0 = Cast0->getOperand(0);
     Op1 = Cast1->getOperand(0);
@@ -2192,8 +2192,8 @@ static Value *simplifyAndInst(Value *Op0, Value *Op1, const SimplifyQuery &Q,
     const unsigned Width = Op0->getType()->getScalarSizeInBits();
     const unsigned ShftCnt = ShAmt->getLimitedValue(Width);
     const KnownBits YKnown = computeKnownBits(Y, Q);
-    const unsigned EffWidthY = YKnown.countMaxActiveBits();
-    if (EffWidthY <= ShftCnt) {
+    
+    if (const unsigned EffWidthY = YKnown.countMaxActiveBits(); EffWidthY <= ShftCnt) {
       const KnownBits XKnown = computeKnownBits(X, Q);
       const unsigned EffWidthX = XKnown.countMaxActiveBits();
       const APInt EffBitsY = APInt::getLowBitsSet(Width, EffWidthY);
@@ -2842,8 +2842,8 @@ static Constant *computePointerICmp(CmpPredicate Pred, Value *LHS, Value *RHS,
             // pointer does not escape, its value cannot be guessed and stored
             // separately in a global variable.
             unsigned OtherIdx = 1 - U->getOperandNo();
-            auto *LI = dyn_cast<LoadInst>(ICmp->getOperand(OtherIdx));
-            if (LI && isa<GlobalVariable>(LI->getPointerOperand()))
+            
+            if (auto *LI = dyn_cast<LoadInst>(ICmp->getOperand(OtherIdx)); LI && isa<GlobalVariable>(LI->getPointerOperand()))
               return Continue;
           }
 
@@ -2867,8 +2867,8 @@ static Constant *computePointerICmp(CmpPredicate Pred, Value *LHS, Value *RHS,
 static Value *simplifyICmpOfBools(CmpPredicate Pred, Value *LHS, Value *RHS,
                                   const SimplifyQuery &Q) {
   Type *ITy = getCompareTy(LHS); // The return type.
-  Type *OpTy = LHS->getType();   // The operand type.
-  if (!OpTy->isIntOrIntVectorTy(1))
+    // The operand type.
+  if (Type *OpTy = LHS->getType(); !OpTy->isIntOrIntVectorTy(1))
     return nullptr;
 
   // A boolean compared to true/false can be reduced in 14 out of the 20
@@ -2972,8 +2972,8 @@ static Value *simplifyICmpWithZero(CmpPredicate Pred, Value *LHS, Value *RHS,
   if (!match(RHS, m_Zero()))
     return nullptr;
 
-  Type *ITy = getCompareTy(LHS); // The return type.
-  switch (Pred) {
+  // The return type.
+  switch (Type *ITy = getCompareTy(LHS); Pred) {
   default:
     llvm_unreachable("Unknown ICmp predicate!");
   case ICmpInst::ICMP_ULT:
@@ -3441,8 +3441,8 @@ static Value *simplifyICmpWithBinOp(CmpPredicate Pred, Value *LHS, Value *RHS,
       break;
     case Instruction::Shl: {
       bool NUW = Q.IIQ.hasNoUnsignedWrap(LBO) && Q.IIQ.hasNoUnsignedWrap(RBO);
-      bool NSW = Q.IIQ.hasNoSignedWrap(LBO) && Q.IIQ.hasNoSignedWrap(RBO);
-      if (!NUW || (ICmpInst::isSigned(Pred) && !NSW) ||
+      
+      if (bool NSW = Q.IIQ.hasNoSignedWrap(LBO) && Q.IIQ.hasNoSignedWrap(RBO); !NUW || (ICmpInst::isSigned(Pred) && !NSW) ||
           !isKnownNonZero(LBO->getOperand(0), Q))
         break;
       if (Value *V = simplifyICmpInst(Pred, LBO->getOperand(1),
@@ -3727,8 +3727,8 @@ static Value *simplifyICmpWithDominatingAssume(CmpPredicate Predicate,
       if (!AssumeVH)
         continue;
 
-      CallInst *Assume = cast<CallInst>(AssumeVH);
-      if (std::optional<bool> Imp = isImpliedCondition(
+      
+      if (CallInst *Assume = cast<CallInst>(AssumeVH); std::optional<bool> Imp = isImpliedCondition(
               Assume->getArgOperand(0), Predicate, LHS, RHS, Q.DL))
         if (isValidAssumeForContext(Assume, Q.CxtI, Q.DT))
           return ConstantInt::get(getCompareTy(LHS), *Imp);
@@ -4247,11 +4247,11 @@ static Value *simplifyFCmpInst(CmpPredicate Pred, Value *LHS, Value *RHS,
          *C2 < *C) ||
         (match(LHS, m_Intrinsic<Intrinsic::maxnum>(m_Value(), m_APFloat(C2))) &&
          *C2 > *C)) {
-      bool IsMaxNum =
-          cast<IntrinsicInst>(LHS)->getIntrinsicID() == Intrinsic::maxnum;
+      
       // The ordered relationship and minnum/maxnum guarantee that we do not
       // have NaN constants, so ordered/unordered preds are handled the same.
-      switch (Pred) {
+      switch (bool IsMaxNum =
+          cast<IntrinsicInst>(LHS)->getIntrinsicID() == Intrinsic::maxnum; Pred) {
       case FCmpInst::FCMP_OEQ:
       case FCmpInst::FCMP_UEQ:
         // minnum(X, LesserC)  == C --> false
@@ -4610,8 +4610,8 @@ static Value *simplifyCmpSelOfMaxMin(Value *CmpLHS, Value *CmpRHS,
   // based on the max/min/select relationship.
   Value *X = CmpLHS, *Y = CmpRHS;
   bool PeekedThroughSelectShuffle = false;
-  auto *Shuf = dyn_cast<ShuffleVectorInst>(FVal);
-  if (Shuf && Shuf->isSelect()) {
+  
+  if (auto *Shuf = dyn_cast<ShuffleVectorInst>(FVal); Shuf && Shuf->isSelect()) {
     if (Shuf->getOperand(0) == Y)
       FVal = Shuf->getOperand(1);
     else if (Shuf->getOperand(1) == Y)
@@ -4906,8 +4906,8 @@ bool isSelectWithIdenticalPHI(PHINode &PN, PHINode &IdenticalPN) {
   unsigned DiffVals = 0;
   BasicBlock *DiffValBB = nullptr;
   for (unsigned i = 0; i < 2; i++) {
-    BasicBlock *PredBB = PN.getIncomingBlock(i);
-    if (PN.getIncomingValue(i) !=
+    
+    if (BasicBlock *PredBB = PN.getIncomingBlock(i); PN.getIncomingValue(i) !=
         IdenticalPN.getIncomingValueForBlock(PredBB)) {
       DiffVals++;
       DiffValBB = PredBB;
@@ -5187,8 +5187,8 @@ static Value *simplifyGEPInst(Type *SrcTy, Value *Ptr,
       });
 
   if (Indices.size() == 1) {
-    Type *Ty = SrcTy;
-    if (!IsScalableVec && Ty->isSized()) {
+    
+    if (Type *Ty = SrcTy; !IsScalableVec && Ty->isSized()) {
       Value *P;
       uint64_t C;
       uint64_t TyAllocSize = Q.DL.getTypeAllocSize(Ty);
@@ -5233,9 +5233,9 @@ static Value *simplifyGEPInst(Type *SrcTy, Value *Ptr,
 
   if (!IsScalableVec && Q.DL.getTypeAllocSize(LastType) == 1 &&
       all_of(Indices.drop_back(1), match_fn(m_Zero()))) {
-    unsigned IdxWidth =
-        Q.DL.getIndexSizeInBits(Ptr->getType()->getPointerAddressSpace());
-    if (Q.DL.getTypeSizeInBits(Indices.back()->getType()) == IdxWidth) {
+    
+    if (unsigned IdxWidth =
+        Q.DL.getIndexSizeInBits(Ptr->getType()->getPointerAddressSpace()); Q.DL.getTypeSizeInBits(Indices.back()->getType()) == IdxWidth) {
       APInt BasePtrOffset(IdxWidth, 0);
       Value *StrippedBasePtr =
           Ptr->stripAndAccumulateInBoundsConstantOffsets(Q.DL, BasePtrOffset);
@@ -5324,8 +5324,8 @@ Value *llvm::simplifyInsertElementInst(Value *Vec, Value *Val, Value *Idx,
   // Try to constant fold.
   auto *VecC = dyn_cast<Constant>(Vec);
   auto *ValC = dyn_cast<Constant>(Val);
-  auto *IdxC = dyn_cast<Constant>(Idx);
-  if (VecC && ValC && IdxC)
+  
+  if (auto *IdxC = dyn_cast<Constant>(Idx); VecC && ValC && IdxC)
     return ConstantExpr::getInsertElement(VecC, ValC, IdxC);
 
   // For fixed-length vector, fold into poison if index is out of bounds.
@@ -5371,8 +5371,8 @@ static Value *simplifyExtractValueInst(Value *Agg, ArrayRef<unsigned> Idxs,
        IVI = dyn_cast<InsertValueInst>(IVI->getAggregateOperand())) {
     ArrayRef<unsigned> InsertValueIdxs = IVI->getIndices();
     unsigned NumInsertValueIdxs = InsertValueIdxs.size();
-    unsigned NumCommonIdxs = std::min(NumInsertValueIdxs, NumIdxs);
-    if (InsertValueIdxs.slice(0, NumCommonIdxs) ==
+    
+    if (unsigned NumCommonIdxs = std::min(NumInsertValueIdxs, NumIdxs); InsertValueIdxs.slice(0, NumCommonIdxs) ==
         Idxs.slice(0, NumCommonIdxs)) {
       if (NumIdxs == NumInsertValueIdxs)
         return IVI->getInsertedValueOperand();
@@ -5437,8 +5437,8 @@ static Value *simplifyExtractElementInst(Value *Vec, Value *Idx,
     // If the possibly-variable indices are trivially known to be equal
     // (because they are the same operand) then use the value that was
     // inserted directly.
-    auto *IE = dyn_cast<InsertElementInst>(Vec);
-    if (IE && IE->getOperand(2) == Idx)
+    
+    if (auto *IE = dyn_cast<InsertElementInst>(Vec); IE && IE->getOperand(2) == Idx)
       return IE->getOperand(1);
 
     // The index is not relevant if our vector is a splat.
@@ -5515,8 +5515,8 @@ static Value *simplifyCastInst(unsigned CastOpc, Value *Op, Type *Ty,
     auto *Src = CI->getOperand(0);
     Type *SrcTy = Src->getType();
     Type *MidTy = CI->getType();
-    Type *DstTy = Ty;
-    if (Src->getType() == Ty) {
+    
+    if (Type *DstTy = Ty; Src->getType() == Ty) {
       auto FirstOp = CI->getOpcode();
       auto SecondOp = static_cast<Instruction::CastOps>(CastOpc);
       if (CastInst::isEliminableCastPair(FirstOp, SecondOp, SrcTy, MidTy, DstTy,
@@ -5659,8 +5659,8 @@ static Value *simplifyShuffleVectorInst(Value *Op0, Value *Op1,
   if (!Scalable && match(Op0, m_InsertElt(m_Value(), m_Constant(C),
                                           m_ConstantInt(IndexC)))) {
     // Match a splat shuffle mask of the insert index allowing undef elements.
-    int InsertIndex = IndexC->getZExtValue();
-    if (all_of(Indices, [InsertIndex](int MaskElt) {
+    
+    if (int InsertIndex = IndexC->getZExtValue(); all_of(Indices, [InsertIndex](int MaskElt) {
           return MaskElt == InsertIndex || MaskElt == -1;
         })) {
       assert(isa<UndefValue>(Op1) && "Expected undef operand 1 for splat");
@@ -6440,8 +6440,8 @@ static Value *simplifyUnaryIntrinsic(Function *F, Value *Op0,
     // always return the same value, so the (2nd) rounding is eliminated. Ex:
     // floor (sitofp x) -> sitofp x
     // round (ceil x) -> ceil x
-    auto *II = dyn_cast<IntrinsicInst>(Op0);
-    if ((II && removesFPFraction(II->getIntrinsicID())) ||
+    
+    if (auto *II = dyn_cast<IntrinsicInst>(Op0); (II && removesFPFraction(II->getIntrinsicID())) ||
         match(Op0, m_SIToFP(m_Value())) || match(Op0, m_UIToFP(m_Value())))
       return Op0;
   }
@@ -6468,8 +6468,8 @@ static Value *simplifyUnaryIntrinsic(Function *F, Value *Op0,
       return ConstantInt::get(Op0->getType(), 1);
     // If everything but the lowest bit is zero, that bit is the pop-count. Ex:
     // ctpop(and X, 1) --> and X, 1
-    unsigned BitWidth = Op0->getType()->getScalarSizeInBits();
-    if (MaskedValueIsZero(Op0, APInt::getHighBitsSet(BitWidth, BitWidth - 1),
+    
+    if (unsigned BitWidth = Op0->getType()->getScalarSizeInBits(); MaskedValueIsZero(Op0, APInt::getHighBitsSet(BitWidth, BitWidth - 1),
                           Q))
       return Op0;
     break;
@@ -6681,10 +6681,10 @@ static Value *simplifySVEIntReduction(Intrinsic::ID IID, Type *ReturnType,
                                       Value *Op0, Value *Op1) {
   Constant *C0 = dyn_cast<Constant>(Op0);
   Constant *C1 = dyn_cast<Constant>(Op1);
-  unsigned Width = ReturnType->getPrimitiveSizeInBits();
+  
 
   // All false predicate or reduction of neutral values ==> neutral result.
-  switch (IID) {
+  switch (unsigned Width = ReturnType->getPrimitiveSizeInBits(); IID) {
   case Intrinsic::aarch64_sve_eorv:
   case Intrinsic::aarch64_sve_orv:
   case Intrinsic::aarch64_sve_saddv:
@@ -6737,8 +6737,8 @@ Value *llvm::simplifyBinaryIntrinsic(Intrinsic::ID IID, Type *ReturnType,
                                      Value *Op0, Value *Op1,
                                      const SimplifyQuery &Q,
                                      const CallBase *Call) {
-  unsigned BitWidth = ReturnType->getScalarSizeInBits();
-  switch (IID) {
+  
+  switch (unsigned BitWidth = ReturnType->getScalarSizeInBits(); IID) {
   case Intrinsic::get_active_lane_mask: {
     if (match(Op1, m_Zero()))
       return ConstantInt::getFalse(ReturnType);
@@ -6850,8 +6850,8 @@ Value *llvm::simplifyBinaryIntrinsic(Intrinsic::ID IID, Type *ReturnType,
 
       // Remove nested call if constant operands allow it. Example:
       // max (max X, 7), 5 -> max X, 7
-      auto *MinMax0 = dyn_cast<IntrinsicInst>(Op0);
-      if (MinMax0 && MinMax0->getIntrinsicID() == IID) {
+      
+      if (auto *MinMax0 = dyn_cast<IntrinsicInst>(Op0); MinMax0 && MinMax0->getIntrinsicID() == IID) {
         // TODO: loosen undef/splat restrictions for vector constants.
         Value *M00 = MinMax0->getOperand(0), *M01 = MinMax0->getOperand(1);
         const APInt *InnerC;
@@ -7152,9 +7152,9 @@ static Value *simplifyIntrinsic(CallBase *Call, Value *Callee,
   case Intrinsic::masked_load:
   case Intrinsic::masked_gather: {
     Value *MaskArg = Args[1];
-    Value *PassthruArg = Args[2];
+    
     // If the mask is all zeros or undef, the "passthru" argument is the result.
-    if (maskIsAllZeroOrUndef(MaskArg))
+    if (Value *PassthruArg = Args[2]; maskIsAllZeroOrUndef(MaskArg))
       return PassthruArg;
     return nullptr;
   }
@@ -7189,8 +7189,8 @@ static Value *simplifyIntrinsic(CallBase *Call, Value *Callee,
     return nullptr;
   }
   case Intrinsic::experimental_constrained_fma: {
-    auto *FPI = cast<ConstrainedFPIntrinsic>(Call);
-    if (Value *V = simplifyFPOp(Args, {}, Q, *FPI->getExceptionBehavior(),
+    
+    if (auto *FPI = cast<ConstrainedFPIntrinsic>(Call); Value *V = simplifyFPOp(Args, {}, Q, *FPI->getExceptionBehavior(),
                                 *FPI->getRoundingMode()))
       return V;
     return nullptr;
@@ -7365,8 +7365,8 @@ Value *llvm::simplifyCall(CallBase *Call, Value *Callee, ArrayRef<Value *> Args,
   if (Value *V = tryConstantFoldCall(Call, Callee, Args, Q))
     return V;
 
-  auto *F = dyn_cast<Function>(Callee);
-  if (F && F->isIntrinsic())
+  
+  if (auto *F = dyn_cast<Function>(Callee); F && F->isIntrinsic())
     if (Value *Ret = simplifyIntrinsic(Call, Callee, Args, Q))
       return Ret;
 

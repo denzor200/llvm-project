@@ -347,9 +347,9 @@ static Instruction *convertNvvmIntrinsicToLlvm(InstCombiner &IC,
     // FIXME: Broken for f64
     DenormalMode Mode = II->getFunction()->getDenormalMode(
         Action.IsHalfTy ? APFloat::IEEEhalf() : APFloat::IEEEsingle());
-    bool FtzEnabled = Mode.Output == DenormalMode::PreserveSign;
+    
 
-    if (FtzEnabled != (Action.FtzRequirement == FTZ_MustBeOn))
+    if (bool FtzEnabled = Mode.Output == DenormalMode::PreserveSign; FtzEnabled != (Action.FtzRequirement == FTZ_MustBeOn))
       return nullptr;
   }
 
@@ -508,9 +508,9 @@ InstructionCost NVPTXTTIImpl::getArithmeticInstrCost(
   // Legalize the type.
   std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(Ty);
 
-  int ISD = TLI->InstructionOpcodeToISD(Opcode);
+  
 
-  switch (ISD) {
+  switch (int ISD = TLI->InstructionOpcodeToISD(Opcode); ISD) {
   default:
     return BaseT::getArithmeticInstrCost(Opcode, Ty, CostKind, Op1Info,
                                          Op2Info);
@@ -567,22 +567,22 @@ bool NVPTXTTIImpl::collectFlatAddressOperands(SmallVectorImpl<int> &OpIndexes,
 Value *NVPTXTTIImpl::rewriteIntrinsicWithAddressSpace(IntrinsicInst *II,
                                                       Value *OldV,
                                                       Value *NewV) const {
-  const Intrinsic::ID IID = II->getIntrinsicID();
-  switch (IID) {
+  
+  switch (const Intrinsic::ID IID = II->getIntrinsicID(); IID) {
   case Intrinsic::nvvm_isspacep_const:
   case Intrinsic::nvvm_isspacep_global:
   case Intrinsic::nvvm_isspacep_local:
   case Intrinsic::nvvm_isspacep_shared:
   case Intrinsic::nvvm_isspacep_shared_cluster: {
-    const unsigned NewAS = NewV->getType()->getPointerAddressSpace();
-    if (const auto R = evaluateIsSpace(IID, NewAS))
+    
+    if (const unsigned NewAS = NewV->getType()->getPointerAddressSpace(); const auto R = evaluateIsSpace(IID, NewAS))
       return ConstantInt::get(II->getType(), *R);
     return nullptr;
   }
   case Intrinsic::nvvm_prefetch_tensormap: {
     IRBuilder<> Builder(II);
-    const unsigned NewAS = NewV->getType()->getPointerAddressSpace();
-    if (NewAS == NVPTXAS::ADDRESS_SPACE_CONST ||
+    
+    if (const unsigned NewAS = NewV->getType()->getPointerAddressSpace(); NewAS == NVPTXAS::ADDRESS_SPACE_CONST ||
         NewAS == NVPTXAS::ADDRESS_SPACE_PARAM)
       return Builder.CreateUnaryIntrinsic(Intrinsic::nvvm_prefetch_tensormap,
                                           NewV);
@@ -644,9 +644,9 @@ unsigned NVPTXTTIImpl::getAssumedAddrSpace(const Value *V) const {
 
   if (const Argument *Arg = dyn_cast<Argument>(V)) {
     if (isKernelFunction(*Arg->getParent())) {
-      const NVPTXTargetMachine &TM =
-          static_cast<const NVPTXTargetMachine &>(getTLI()->getTargetMachine());
-      if (TM.getDrvInterface() == NVPTX::CUDA && !Arg->hasByValAttr())
+      
+      if (const NVPTXTargetMachine &TM =
+          static_cast<const NVPTXTargetMachine &>(getTLI()->getTargetMachine()); TM.getDrvInterface() == NVPTX::CUDA && !Arg->hasByValAttr())
         return ADDRESS_SPACE_GLOBAL;
     } else {
       // We assume that all device parameters that are passed byval will be

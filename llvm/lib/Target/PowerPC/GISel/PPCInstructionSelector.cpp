@@ -136,13 +136,13 @@ static bool selectCopy(MachineInstr &I, const TargetInstrInfo &TII,
     return true;
 
   const RegisterBank *DstRegBank = RBI.getRegBank(DstReg, MRI, TRI);
-  const TargetRegisterClass *DstRC =
-      getRegClass(MRI.getType(DstReg), DstRegBank);
+  
 
   // No need to constrain SrcReg. It will get constrained when we hit another of
   // its use or its defs.
   // Copies do not have constraints.
-  if (!RBI.constrainGenericRegister(DstReg, *DstRC, MRI)) {
+  if (const TargetRegisterClass *DstRC =
+      getRegClass(MRI.getType(DstReg), DstRegBank); !RBI.constrainGenericRegister(DstReg, *DstRC, MRI)) {
     LLVM_DEBUG(dbgs() << "Failed to constrain " << TII.getName(I.getOpcode())
                       << " operand\n");
     return false;
@@ -153,8 +153,8 @@ static bool selectCopy(MachineInstr &I, const TargetInstrInfo &TII,
 
 static unsigned selectLoadStoreOp(unsigned GenericOpc, unsigned RegBankID,
                                   unsigned OpSize) {
-  const bool IsStore = GenericOpc == TargetOpcode::G_STORE;
-  switch (RegBankID) {
+  
+  switch (const bool IsStore = GenericOpc == TargetOpcode::G_STORE; RegBankID) {
   case PPC::GPRRegBankID:
     switch (OpSize) {
     case 32:
@@ -276,8 +276,8 @@ bool PPCInstructionSelector::selectZExt(MachineInstr &I, MachineBasicBlock &MBB,
 // zeros and return the number of bits by the left of these consecutive zeros.
 static uint32_t findContiguousZerosAtLeast(uint64_t Imm, unsigned Num) {
   uint32_t HiTZ = llvm::countr_zero<uint32_t>(Hi_32(Imm));
-  uint32_t LoLZ = llvm::countl_zero<uint32_t>(Lo_32(Imm));
-  if ((HiTZ + LoLZ) >= Num)
+  
+  if (uint32_t LoLZ = llvm::countl_zero<uint32_t>(Lo_32(Imm)); (HiTZ + LoLZ) >= Num)
     return (32 + HiTZ);
   return 0;
 }
@@ -720,9 +720,9 @@ bool PPCInstructionSelector::select(MachineInstr &I) {
   if (selectImpl(I, *CoverageInfo))
     return true;
 
-  unsigned Opcode = I.getOpcode();
+  
 
-  switch (Opcode) {
+  switch (unsigned Opcode = I.getOpcode(); Opcode) {
   default:
     return false;
   case TargetOpcode::G_LOAD:

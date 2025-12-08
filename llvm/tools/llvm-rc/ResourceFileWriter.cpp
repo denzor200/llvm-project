@@ -664,8 +664,8 @@ Error ResourceFileWriter::writeSingleAccelerator(
       return createAccError(
           "VIRTKEY accelerator events can't be preceded by '^'");
 
-    char Ch = Str[1];
-    if (Ch >= 'a' && Ch <= 'z')
+    
+    if (char Ch = Str[1]; Ch >= 'a' && Ch <= 'z')
       Entry.ANSICode = ulittle16_t(Ch - 'a' + 1);
     else if (Ch >= 'A' && Ch <= 'Z')
       Entry.ANSICode = ulittle16_t(Ch - 'A' + 1);
@@ -907,8 +907,8 @@ Error ResourceFileWriter::visitIconOrCursorResource(const RCResource *Base) {
   RETURN_IF_ERROR(Reader.readObject(Header));
   if (Header->Reserved != 0)
     return createError("Incorrect icon/cursor Reserved field; should be 0.");
-  uint16_t NeededType = Type == IconCursorGroupType::Icon ? 1 : 2;
-  if (Header->ResType != NeededType)
+  
+  if (uint16_t NeededType = Type == IconCursorGroupType::Icon ? 1 : 2; Header->ResType != NeededType)
     return createError("Incorrect icon/cursor ResType field; should be " +
                        Twine(NeededType) + ".");
 
@@ -998,10 +998,10 @@ Error ResourceFileWriter::writeSingleDialogControl(const Control &Ctl,
   auto TypeInfo = Control::SupportedCtls.lookup(Ctl.Type);
   IntWithNotMask CtlStyle(TypeInfo.Style);
   CtlStyle |= Ctl.Style.value_or(RCInt(0));
-  uint32_t CtlExtStyle = Ctl.ExtStyle.value_or(0);
+  
 
   // DIALOG(EX) item header prefix.
-  if (!IsExtended) {
+  if (uint32_t CtlExtStyle = Ctl.ExtStyle.value_or(0); !IsExtended) {
     struct {
       ulittle32_t Style;
       ulittle32_t ExtStyle;
@@ -1244,8 +1244,8 @@ Error ResourceFileWriter::writeMenuDefinitionList(
   for (auto &Def : List.Definitions) {
     uint16_t Flags = Def->getResFlags();
     // Last element receives an additional 0x80 flag.
-    const uint16_t LastElementFlag = 0x0080;
-    if (&Def == &List.Definitions.back())
+    
+    if (const uint16_t LastElementFlag = 0x0080; &Def == &List.Definitions.back())
       Flags |= LastElementFlag;
 
     RETURN_IF_ERROR(writeMenuDefinition(Def, Flags));
@@ -1258,8 +1258,8 @@ Error ResourceFileWriter::writeMenuExDefinitionList(
   for (auto &Def : List.Definitions) {
     uint16_t Flags = Def->getResFlags();
     // Last element receives an additional 0x80 flag.
-    const uint16_t LastElementFlag = 0x0080;
-    if (&Def == &List.Definitions.back())
+    
+    if (const uint16_t LastElementFlag = 0x0080; &Def == &List.Definitions.back())
       Flags |= LastElementFlag;
 
     RETURN_IF_ERROR(writeMenuExDefinition(Def, Flags));

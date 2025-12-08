@@ -98,8 +98,8 @@ static Error executeObjcopyOnIHex(ConfigManager &ConfigMgr, MemoryBuffer &In,
 /// of the output specified by the command line options.
 static Error executeObjcopyOnRawBinary(ConfigManager &ConfigMgr,
                                        MemoryBuffer &In, raw_ostream &Out) {
-  const CommonConfig &Config = ConfigMgr.getCommonConfig();
-  switch (Config.OutputFormat) {
+  
+  switch (const CommonConfig &Config = ConfigMgr.getCommonConfig(); Config.OutputFormat) {
   case FileFormat::ELF:
   // FIXME: Currently, we call elf::executeObjcopyOnRawBinary even if the
   // output format is binary/ihex or it's not given. This behavior differs from

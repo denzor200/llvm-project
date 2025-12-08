@@ -349,9 +349,9 @@ std::string LVOperation::getOperandsCodeViewInfo() {
   raw_string_ostream Stream(String);
 
   // Get original CodeView operation code.
-  uint16_t OperationCode = getCodeViewOperationCode(Opcode);
+  
 
-  switch (OperationCode) {
+  switch (uint16_t OperationCode = getCodeViewOperationCode(Opcode); OperationCode) {
   // Operands: [Offset].
   case codeview::SymbolKind::S_DEFRANGE_FRAMEPOINTER_REL:
     Stream << "frame_pointer_rel " << int(Operands[0]);

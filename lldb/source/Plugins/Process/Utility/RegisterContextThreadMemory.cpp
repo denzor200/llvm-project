@@ -32,8 +32,8 @@ void RegisterContextThreadMemory::UpdateRegisterContext() {
     ProcessSP process_sp(thread_sp->GetProcess());
 
     if (process_sp) {
-      const uint32_t stop_id = process_sp->GetModID().GetStopID();
-      if (m_stop_id != stop_id) {
+      
+      if (const uint32_t stop_id = process_sp->GetModID().GetStopID(); m_stop_id != stop_id) {
         m_stop_id = stop_id;
         m_reg_ctx_sp.reset();
       }
@@ -42,8 +42,8 @@ void RegisterContextThreadMemory::UpdateRegisterContext() {
         if (backing_thread_sp) {
           m_reg_ctx_sp = backing_thread_sp->GetRegisterContext();
         } else {
-          OperatingSystem *os = process_sp->GetOperatingSystem();
-          if (os->IsOperatingSystemPluginThread(thread_sp))
+          
+          if (OperatingSystem *os = process_sp->GetOperatingSystem(); os->IsOperatingSystemPluginThread(thread_sp))
             m_reg_ctx_sp = os->CreateRegisterContextForThread(
                 thread_sp.get(), m_register_data_addr);
         }

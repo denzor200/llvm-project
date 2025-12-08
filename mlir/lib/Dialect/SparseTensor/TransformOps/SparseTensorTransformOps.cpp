@@ -20,8 +20,8 @@ using namespace mlir::sparse_tensor;
 DiagnosedSilenceableFailure transform::MatchSparseInOut::matchOperation(
     mlir::Operation *current, mlir::transform::TransformResults &results,
     mlir::transform::TransformState &state) {
-  bool hasSparseInOut = hasAnySparseOperandOrResult(current);
-  if (!hasSparseInOut) {
+  
+  if (bool hasSparseInOut = hasAnySparseOperandOrResult(current); !hasSparseInOut) {
     return emitSilenceableFailure(current->getLoc(),
                                   "operation has no sparse input or output");
   }

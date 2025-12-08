@@ -36,9 +36,9 @@ void aix::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
   ArgStringList CmdArgs;
 
   const bool IsArch32Bit = getToolChain().getTriple().isArch32Bit();
-  const bool IsArch64Bit = getToolChain().getTriple().isArch64Bit();
+  
   // Only support 32 and 64 bit.
-  if (!IsArch32Bit && !IsArch64Bit)
+  if (const bool IsArch64Bit = getToolChain().getTriple().isArch64Bit(); !IsArch32Bit && !IsArch64Bit)
     llvm_unreachable("Unsupported bit width value.");
 
   if (Arg *A = C.getArgs().getLastArg(options::OPT_G)) {
@@ -116,9 +116,9 @@ void aix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   ArgStringList CmdArgs;
 
   const bool IsArch32Bit = ToolChain.getTriple().isArch32Bit();
-  const bool IsArch64Bit = ToolChain.getTriple().isArch64Bit();
+  
   // Only support 32 and 64 bit.
-  if (!(IsArch32Bit || IsArch64Bit))
+  if (const bool IsArch64Bit = ToolChain.getTriple().isArch64Bit(); !(IsArch32Bit || IsArch64Bit))
     llvm_unreachable("Unsupported bit width value.");
 
   if (Arg *A = C.getArgs().getLastArg(options::OPT_G)) {
@@ -407,9 +407,9 @@ void AIX::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
     return;
 
   llvm::StringRef Sysroot = GetHeaderSysroot(DriverArgs);
-  const Driver &D = getDriver();
+  
 
-  if (!DriverArgs.hasArg(options::OPT_nobuiltininc)) {
+  if (const Driver &D = getDriver(); !DriverArgs.hasArg(options::OPT_nobuiltininc)) {
     SmallString<128> P(D.ResourceDir);
     // Add the PowerPC intrinsic headers (<resource>/include/ppc_wrappers)
     path::append(P, "include", "ppc_wrappers");
@@ -545,9 +545,9 @@ static void addTocDataOptions(const llvm::opt::ArgList &Args,
       TOCDataGloballyinEffect ? "-mtocdata" : "-mno-tocdata";
   CC1Args.push_back(TocDataGlobalOption);
 
-  const char *TocDataListOption =
-      TOCDataGloballyinEffect ? "-mno-tocdata=" : "-mtocdata=";
-  if (!ExplicitlySpecifiedGlobals.empty())
+  
+  if (const char *TocDataListOption =
+      TOCDataGloballyinEffect ? "-mno-tocdata=" : "-mtocdata="; !ExplicitlySpecifiedGlobals.empty())
     CC1Args.push_back(Args.MakeArgString(llvm::Twine(
         buildExceptionList(ExplicitlySpecifiedGlobals, TocDataListOption))));
 }

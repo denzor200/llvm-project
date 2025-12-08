@@ -1718,8 +1718,8 @@ public:
     auto vector1 = adaptor.getVector1();
     auto vector2 = adaptor.getVector2();
     int vector1Size = cast<VectorType>(vector1.getType()).getNumElements();
-    int vector2Size = cast<VectorType>(vector2.getType()).getNumElements();
-    if (vector1Size == vector2Size) {
+    
+    if (int vector2Size = cast<VectorType>(vector2.getType()).getNumElements(); vector1Size == vector2Size) {
       rewriter.replaceOpWithNewOp<LLVM::ShuffleVectorOp>(
           op, vector1, vector2,
           LLVM::convertArrayToIndices<int32_t>(components));

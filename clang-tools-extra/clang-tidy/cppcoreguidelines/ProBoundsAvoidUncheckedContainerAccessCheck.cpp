@@ -64,9 +64,9 @@ findAlternativeAt(const CXXMethodDecl *MatchedOperator) {
         Method->getName() != "at")
       continue;
 
-    const bool SameReturnType =
-        Method->getReturnType() == MatchedOperator->getReturnType();
-    if (!SameReturnType)
+    
+    if (const bool SameReturnType =
+        Method->getReturnType() == MatchedOperator->getReturnType(); !SameReturnType)
       continue;
 
     const bool SameNumberOfArguments =
@@ -75,10 +75,10 @@ findAlternativeAt(const CXXMethodDecl *MatchedOperator) {
       continue;
 
     for (unsigned ArgInd = 0; ArgInd < Method->getNumParams(); ArgInd++) {
-      const bool SameArgType =
+      
+      if (const bool SameArgType =
           Method->parameters()[ArgInd]->getOriginalType() ==
-          MatchedOperator->parameters()[ArgInd]->getOriginalType();
-      if (!SameArgType)
+          MatchedOperator->parameters()[ArgInd]->getOriginalType(); !SameArgType)
         continue;
     }
 
@@ -149,10 +149,10 @@ void ProBoundsAvoidUncheckedContainerAccessCheck::check(
       //
       // Since C++23, the subscript operator may also be called without an
       // argument, which makes the following distinction necessary
-      const bool EmptySubscript =
-          MatchedExpr->getDirectCallee()->getNumParams() == 0;
+      
 
-      if (EmptySubscript) {
+      if (const bool EmptySubscript =
+          MatchedExpr->getDirectCallee()->getNumParams() == 0; EmptySubscript) {
         auto D = diag(MatchedExpr->getCallee()->getBeginLoc(),
                       "possibly unsafe 'operator[]'%select{, use safe "
                       "function '%1() instead|}0")

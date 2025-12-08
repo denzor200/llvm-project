@@ -435,8 +435,8 @@ void ReExportsMaterializationUnit::materialize(
     };
 
     auto OnComplete = [QueryInfo](Expected<SymbolMap> Result) {
-      auto &ES = QueryInfo->R->getTargetJITDylib().getExecutionSession();
-      if (Result) {
+      
+      if (auto &ES = QueryInfo->R->getTargetJITDylib().getExecutionSession(); Result) {
         SymbolMap ResolutionMap;
         for (auto &KV : QueryInfo->Aliases) {
           assert((KV.second.AliasFlags.hasMaterializationSideEffectsOnly() ||
@@ -1227,8 +1227,8 @@ JITDylib::RemoveTrackerResult JITDylib::IL_removeTracker(ResourceTracker &RT) {
       TrackedSymbols.insert_range(KV.second);
 
     for (auto &KV : Symbols) {
-      auto &Sym = KV.first;
-      if (!TrackedSymbols.count(Sym))
+      
+      if (auto &Sym = KV.first; !TrackedSymbols.count(Sym))
         SymbolsToRemove.push_back(Sym);
     }
 
@@ -1335,8 +1335,8 @@ void JITDylib::transferTracker(ResourceTracker &DstRT, ResourceTracker &SrcRT) {
       CurrentlyTrackedSymbols.insert_range(KV.second);
 
     for (auto &KV : Symbols) {
-      auto &Sym = KV.first;
-      if (!CurrentlyTrackedSymbols.count(Sym))
+      
+      if (auto &Sym = KV.first; !CurrentlyTrackedSymbols.count(Sym))
         SymbolsToTrack.push_back(Sym);
     }
 

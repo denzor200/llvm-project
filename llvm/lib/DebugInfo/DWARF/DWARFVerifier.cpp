@@ -299,8 +299,8 @@ unsigned DWARFVerifier::verifyUnitContents(DWARFUnit &Unit,
     NumUnitErrors++;
   }
 
-  uint8_t UnitType = Unit.getUnitType();
-  if (!DWARFUnit::isMatchingUnitTypeAndTag(UnitType, Die.getTag())) {
+  
+  if (uint8_t UnitType = Unit.getUnitType(); !DWARFUnit::isMatchingUnitTypeAndTag(UnitType, Die.getTag())) {
     ErrorCategory.Report("Mismatched unit type", [&]() {
       error() << "Compilation unit type (" << dwarf::UnitTypeString(UnitType)
               << ") and root DIE (" << dwarf::TagString(Die.getTag())
@@ -662,9 +662,9 @@ unsigned DWARFVerifier::verifyDieRanges(const DWARFDie &Die,
 bool DWARFVerifier::verifyExpressionOp(const DWARFExpression::Operation &Op,
                                        DWARFUnit *U) {
   for (unsigned Operand = 0; Operand < Op.Desc.Op.size(); ++Operand) {
-    unsigned Size = Op.Desc.Op[Operand];
+    
 
-    if (Size == DWARFExpression::Operation::BaseTypeRef) {
+    if (unsigned Size = Op.Desc.Op[Operand]; Size == DWARFExpression::Operation::BaseTypeRef) {
       // For DW_OP_convert the operand may be 0 to indicate that conversion to
       // the generic type should be done, so don't look up a base type in that
       // case. The same holds for DW_OP_reinterpret, which is currently not
@@ -752,11 +752,11 @@ unsigned DWARFVerifier::verifyDebugInfoAttribute(const DWARFDie &Die,
         DataExtractor Data(toStringRef(Entry.Expr), DCtx.isLittleEndian(), 0);
         DWARFExpression Expression(Data, U->getAddressByteSize(),
                                    U->getFormParams().Format);
-        bool Error =
+        
+        if (bool Error =
             any_of(Expression, [](const DWARFExpression::Operation &Op) {
               return Op.isError();
-            });
-        if (Error || !verifyExpression(Expression, U))
+            }); Error || !verifyExpression(Expression, U))
           ReportError("Invalid DWARF expressions",
                       "DIE contains invalid DWARF expression:");
       }
@@ -805,11 +805,11 @@ unsigned DWARFVerifier::verifyDebugInfoAttribute(const DWARFDie &Die,
     if (auto FileIdx = AttrValue.Value.getAsUnsignedConstant()) {
       if (U->isDWOUnit() && !U->isTypeUnit())
         break;
-      const auto *LT = U->getContext().getLineTableForUnit(U);
-      if (LT) {
+      
+      if (const auto *LT = U->getContext().getLineTableForUnit(U); LT) {
         if (!LT->hasFileAtIndex(*FileIdx)) {
-          bool IsZeroIndexed = LT->Prologue.getVersion() >= 5;
-          if (std::optional<uint64_t> LastFileIdx =
+          
+          if (bool IsZeroIndexed = LT->Prologue.getVersion() >= 5; std::optional<uint64_t> LastFileIdx =
                   LT->getLastValidFileIndex()) {
             ReportError("Invalid file index in DW_AT_decl_file",
                         "DIE has " + AttributeString(Attr) +
@@ -1054,8 +1054,8 @@ void DWARFVerifier::verifyDebugLineStmtOffsets() {
     if (!StmtSectionOffset)
       continue;
     const uint64_t LineTableOffset = *StmtSectionOffset;
-    auto LineTable = DCtx.getLineTableForUnit(CU.get());
-    if (LineTableOffset < DCtx.getDWARFObj().getLineSection().Data.size()) {
+    
+    if (auto LineTable = DCtx.getLineTableForUnit(CU.get()); LineTableOffset < DCtx.getDWARFObj().getLineSection().Data.size()) {
       if (!LineTable) {
         ++NumDebugLineErrors;
         ErrorCategory.Report("Unparsable .debug_line entry", [&]() {
@@ -1253,8 +1253,8 @@ void DWARFVerifier::verifyAppleAccelTable(const DWARFSection *AccelSection,
       });
     }
   }
-  uint32_t NumAtoms = AccelTable.getAtomsDesc().size();
-  if (NumAtoms == 0) {
+  
+  if (uint32_t NumAtoms = AccelTable.getAtomsDesc().size(); NumAtoms == 0) {
     ErrorCategory.Report("No atoms", [&]() {
       error() << "No atoms: failed to read HashData.\n";
     });
@@ -1689,8 +1689,8 @@ void DWARFVerifier::verifyNameIndexEntries(
       continue;
     }
     const uint32_t NumLocalTUs = NI.getLocalTUCount();
-    const uint32_t NumForeignTUs = NI.getForeignTUCount();
-    if (TUIndex && *TUIndex >= (NumLocalTUs + NumForeignTUs)) {
+    
+    if (const uint32_t NumForeignTUs = NI.getForeignTUCount(); TUIndex && *TUIndex >= (NumLocalTUs + NumForeignTUs)) {
       ErrorCategory.Report("Name Index entry contains invalid TU index", [&]() {
         error() << formatv("Name Index @ {0:x}: Entry @ {1:x} contains an "
                            "invalid TU index ({2}).\n",
@@ -1907,13 +1907,13 @@ static bool isVariableIndexable(const DWARFDie &Die, DWARFContext &DCtx) {
                        U->getAddressByteSize());
     DWARFExpression Expression(Data, U->getAddressByteSize(),
                                U->getFormParams().Format);
-    bool IsInteresting =
+    
+    if (bool IsInteresting =
         any_of(Expression, [](const DWARFExpression::Operation &Op) {
           return !Op.isError() && (Op.getCode() == DW_OP_addr ||
                                    Op.getCode() == DW_OP_form_tls_address ||
                                    Op.getCode() == DW_OP_GNU_push_tls_address);
-        });
-    if (IsInteresting)
+        }); IsInteresting)
       return true;
   }
   return false;
@@ -2146,8 +2146,8 @@ void DWARFVerifier::verifyDebugNames(const DWARFSection &AccelSection,
     for (uint32_t i = 0, iEnd = NI.getCUCount(); i < iEnd; ++i) {
       const uint64_t CUOffset = NI.getCUOffset(i);
       DWARFUnit *U = DCtx.getUnitForOffset(CUOffset);
-      DWARFCompileUnit *CU = dyn_cast<DWARFCompileUnit>(U);
-      if (CU) {
+      
+      if (DWARFCompileUnit *CU = dyn_cast<DWARFCompileUnit>(U); CU) {
         if (CU->getDWOId()) {
           DWARFDie CUDie = CU->getUnitDIE(true);
           DWARFDie NonSkeletonUnitDie =

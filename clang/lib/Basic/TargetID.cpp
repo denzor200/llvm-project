@@ -155,8 +155,8 @@ getConflictTargetIDCombination(const std::set<llvm::StringRef> &TargetIDs) {
     llvm::StringRef Proc = *parseTargetIDWithFormatCheckingOnly(ID, &Features);
     auto [Loc, Inserted] = FeatureMap.try_emplace(Proc, ID, Features);
     if (!Inserted) {
-      auto &ExistingFeatures = Loc->second.Features;
-      if (llvm::any_of(Features, [&](auto &F) {
+      
+      if (auto &ExistingFeatures = Loc->second.Features; llvm::any_of(Features, [&](auto &F) {
             return ExistingFeatures.count(F.first()) == 0;
           }))
         return std::make_pair(Loc->second.TargetID, ID);

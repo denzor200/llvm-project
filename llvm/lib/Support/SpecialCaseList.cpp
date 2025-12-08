@@ -180,8 +180,8 @@ unsigned GlobMatcher::match(StringRef Query) const {
         for (int Idx : reverse(V)) {
           if (Best > Idx)
             break;
-          const GlobMatcher::Glob &G = Globs[Idx];
-          if (G.Pattern.match(Query)) {
+          
+          if (const GlobMatcher::Glob &G = Globs[Idx]; G.Pattern.match(Query)) {
             Best = Idx;
             // As soon as we find a match in the vector, we can break for this
             // vector, since the globs are already sorted by priority within the
@@ -202,8 +202,8 @@ unsigned GlobMatcher::match(StringRef Query) const {
         for (int Idx : reverse(V)) {
           if (Best > Idx)
             break;
-          const GlobMatcher::Glob &G = Globs[Idx];
-          if (G.Pattern.match(Query)) {
+          
+          if (const GlobMatcher::Glob &G = Globs[Idx]; G.Pattern.match(Query)) {
             Best = Idx;
             // As soon as we find a match in the vector, we can break for this
             // vector, since the globs are already sorted by priority within the

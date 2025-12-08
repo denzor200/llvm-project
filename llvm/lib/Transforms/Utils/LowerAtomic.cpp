@@ -52,8 +52,8 @@ std::pair<Value *, Value *> llvm::buildCmpXchgValue(IRBuilderBase &Builder,
 Value *llvm::buildAtomicRMWValue(AtomicRMWInst::BinOp Op,
                                  IRBuilderBase &Builder, Value *Loaded,
                                  Value *Val) {
-  Value *NewVal;
-  switch (Op) {
+  
+  switch (Value *NewVal; Op) {
   case AtomicRMWInst::Xchg:
     return Val;
   case AtomicRMWInst::Add:

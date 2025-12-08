@@ -19,8 +19,8 @@ static bool isCopyConstructible(const CXXRecordDecl &Node) {
       Node.needsImplicitCopyConstructor()) {
     // unresolved
     for (const CXXBaseSpecifier &BS : Node.bases()) {
-      const CXXRecordDecl *BRD = BS.getType()->getAsCXXRecordDecl();
-      if (BRD != nullptr && !isCopyConstructible(*BRD))
+      
+      if (const CXXRecordDecl *BRD = BS.getType()->getAsCXXRecordDecl(); BRD != nullptr && !isCopyConstructible(*BRD))
         return false;
     }
   }
@@ -37,8 +37,8 @@ static bool isMoveConstructible(const CXXRecordDecl &Node) {
       Node.needsImplicitMoveConstructor()) {
     // unresolved
     for (const CXXBaseSpecifier &BS : Node.bases()) {
-      const CXXRecordDecl *BRD = BS.getType()->getAsCXXRecordDecl();
-      if (BRD != nullptr && !isMoveConstructible(*BRD))
+      
+      if (const CXXRecordDecl *BRD = BS.getType()->getAsCXXRecordDecl(); BRD != nullptr && !isMoveConstructible(*BRD))
         return false;
     }
   }
@@ -55,8 +55,8 @@ static bool isCopyAssignable(const CXXRecordDecl &Node) {
       Node.needsImplicitCopyAssignment()) {
     // unresolved
     for (const CXXBaseSpecifier &BS : Node.bases()) {
-      const CXXRecordDecl *BRD = BS.getType()->getAsCXXRecordDecl();
-      if (BRD != nullptr && !isCopyAssignable(*BRD))
+      
+      if (const CXXRecordDecl *BRD = BS.getType()->getAsCXXRecordDecl(); BRD != nullptr && !isCopyAssignable(*BRD))
         return false;
     }
   }
@@ -73,8 +73,8 @@ static bool isMoveAssignable(const CXXRecordDecl &Node) {
       Node.needsImplicitMoveAssignment()) {
     // unresolved
     for (const CXXBaseSpecifier &BS : Node.bases()) {
-      const CXXRecordDecl *BRD = BS.getType()->getAsCXXRecordDecl();
-      if (BRD != nullptr && !isMoveAssignable(*BRD))
+      
+      if (const CXXRecordDecl *BRD = BS.getType()->getAsCXXRecordDecl(); BRD != nullptr && !isMoveAssignable(*BRD))
         return false;
     }
   }

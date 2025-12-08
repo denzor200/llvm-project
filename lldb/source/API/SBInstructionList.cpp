@@ -151,8 +151,8 @@ bool SBInstructionList::GetDescription(
     Stream &sref, lldb_private::ExecutionContext *exe_ctx) {
 
   if (m_opaque_sp) {
-    size_t num_instructions = GetSize();
-    if (num_instructions) {
+    
+    if (size_t num_instructions = GetSize(); num_instructions) {
       // Call the ref() to make sure a stream is created if one deesn't exist
       // already inside description...
       const uint32_t max_opcode_byte_size =

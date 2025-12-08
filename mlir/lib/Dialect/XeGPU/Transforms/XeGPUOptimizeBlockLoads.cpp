@@ -92,8 +92,8 @@ static bool canBeOptimizedForTranspose(ArrayRef<int64_t> laneLayout,
 /// and its layout can be optimized.
 static bool canBeOptimizedForTranspose(xegpu::TensorDescType tdescType) {
   // If the dtype is greater or equal to 32 bits, layout must be valid.
-  int elementTyBitwidth = tdescType.getElementType().getIntOrFloatBitWidth();
-  if (elementTyBitwidth >= 32)
+  
+  if (int elementTyBitwidth = tdescType.getElementType().getIntOrFloatBitWidth(); elementTyBitwidth >= 32)
     return false;
   auto maybeLaneLayout = getMaybeLaneLayout(tdescType);
   auto maybeLaneData = getMaybeLaneData(tdescType);

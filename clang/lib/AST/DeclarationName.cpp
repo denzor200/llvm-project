@@ -218,8 +218,8 @@ bool DeclarationName::isDependentName() const {
     return true;
 
   // A class-scope deduction guide in a dependent context has a dependent name.
-  auto *TD = getCXXDeductionGuideTemplate();
-  if (TD && TD->getDeclContext()->isDependentContext())
+  
+  if (auto *TD = getCXXDeductionGuideTemplate(); TD && TD->getDeclContext()->isDependentContext())
     return true;
 
   return false;

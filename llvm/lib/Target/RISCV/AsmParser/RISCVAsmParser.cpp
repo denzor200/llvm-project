@@ -1183,9 +1183,9 @@ public:
   static void addExpr(MCInst &Inst, const MCExpr *Expr, bool IsRV64Imm) {
     assert(Expr && "Expr shouldn't be null!");
     int64_t Imm = 0;
-    bool IsConstant = evaluateConstantExpr(Expr, Imm);
+    
 
-    if (IsConstant)
+    if (bool IsConstant = evaluateConstantExpr(Expr, Imm); IsConstant)
       Inst.addOperand(
           MCOperand::createImm(fixImmediateForRV32(Imm, IsRV64Imm)));
     else
@@ -1768,8 +1768,8 @@ ParseStatus RISCVAsmParser::parseRegister(OperandVector &Operands,
   // atomically.
   if (AllowParens && getLexer().is(AsmToken::LParen)) {
     AsmToken Buf[2];
-    size_t ReadCount = getLexer().peekTokens(Buf);
-    if (ReadCount == 2 && Buf[1].getKind() == AsmToken::RParen) {
+    
+    if (size_t ReadCount = getLexer().peekTokens(Buf); ReadCount == 2 && Buf[1].getKind() == AsmToken::RParen) {
       HadParens = true;
       LParen = getParser().getTok();
       getParser().Lex(); // Eat '('
@@ -1824,10 +1824,10 @@ ParseStatus RISCVAsmParser::parseInsnDirectiveOpcode(OperandVector &Operands) {
     if (getParser().parseExpression(Res, E))
       return ParseStatus::Failure;
 
-    auto *CE = dyn_cast<MCConstantExpr>(Res);
-    if (CE) {
-      int64_t Imm = CE->getValue();
-      if (isUInt<7>(Imm)) {
+    
+    if (auto *CE = dyn_cast<MCConstantExpr>(Res); CE) {
+      
+      if (int64_t Imm = CE->getValue(); isUInt<7>(Imm)) {
         Operands.push_back(RISCVOperand::createExpr(Res, S, E, isRV64()));
         return ParseStatus::Success;
       }
@@ -1840,8 +1840,8 @@ ParseStatus RISCVAsmParser::parseInsnDirectiveOpcode(OperandVector &Operands) {
     if (getParser().parseIdentifier(Identifier))
       return ParseStatus::Failure;
 
-    auto Opcode = RISCVInsnOpcode::lookupRISCVOpcodeByName(Identifier);
-    if (Opcode) {
+    
+    if (auto Opcode = RISCVInsnOpcode::lookupRISCVOpcodeByName(Identifier); Opcode) {
       assert(isUInt<7>(Opcode->Value) && (Opcode->Value & 0x3) == 3 &&
              "Unexpected opcode");
       Res = MCConstantExpr::create(Opcode->Value, getContext());
@@ -1879,10 +1879,10 @@ ParseStatus RISCVAsmParser::parseInsnCDirectiveOpcode(OperandVector &Operands) {
     if (getParser().parseExpression(Res, E))
       return ParseStatus::Failure;
 
-    auto *CE = dyn_cast<MCConstantExpr>(Res);
-    if (CE) {
-      int64_t Imm = CE->getValue();
-      if (Imm >= 0 && Imm <= 2) {
+    
+    if (auto *CE = dyn_cast<MCConstantExpr>(Res); CE) {
+      
+      if (int64_t Imm = CE->getValue(); Imm >= 0 && Imm <= 2) {
         Operands.push_back(RISCVOperand::createExpr(Res, S, E, isRV64()));
         return ParseStatus::Success;
       }
@@ -1927,8 +1927,8 @@ ParseStatus RISCVAsmParser::parseCSRSystemRegister(OperandVector &Operands) {
 
   auto SysRegFromConstantInt = [this](const MCExpr *E, SMLoc S) {
     if (auto *CE = dyn_cast<MCConstantExpr>(E)) {
-      int64_t Imm = CE->getValue();
-      if (isUInt<12>(Imm)) {
+      
+      if (int64_t Imm = CE->getValue(); isUInt<12>(Imm)) {
         auto Range = RISCVSysReg::lookupSysRegByEncoding(Imm);
         // Accept an immediate representing a named Sys Reg if it satisfies the
         // the required features.
@@ -1971,9 +1971,9 @@ ParseStatus RISCVAsmParser::parseCSRSystemRegister(OperandVector &Operands) {
     if (getParser().parseIdentifier(Identifier))
       return ParseStatus::Failure;
 
-    const auto *SysReg = RISCVSysReg::lookupSysRegByName(Identifier);
+    
 
-    if (SysReg) {
+    if (const auto *SysReg = RISCVSysReg::lookupSysRegByName(Identifier); SysReg) {
       if (SysReg->IsDeprecatedName) {
         // Lookup the undeprecated name.
         auto Range = RISCVSysReg::lookupSysRegByEncoding(SysReg->Encoding);
@@ -1986,8 +1986,8 @@ ParseStatus RISCVAsmParser::parseCSRSystemRegister(OperandVector &Operands) {
       }
 
       // Accept a named Sys Reg if the required features are present.
-      const auto &FeatureBits = getSTI().getFeatureBits();
-      if (!SysReg->haveRequiredFeatures(FeatureBits)) {
+      
+      if (const auto &FeatureBits = getSTI().getFeatureBits(); !SysReg->haveRequiredFeatures(FeatureBits)) {
         const auto *Feature = llvm::find_if(RISCVFeatureKV, [&](auto Feature) {
           return SysReg->FeaturesRequired[Feature.Value];
         });
@@ -2313,8 +2313,8 @@ bool RISCVAsmParser::parseVTypeToken(const AsmToken &Tok, VTypeState &State,
 
     if (Fractional) {
       unsigned ELEN = STI->hasFeature(RISCV::FeatureStdExtZve64x) ? 64 : 32;
-      unsigned MinLMUL = ELEN / 8;
-      if (Lmul > MinLMUL)
+      
+      if (unsigned MinLMUL = ELEN / 8; Lmul > MinLMUL)
         Warning(Tok.getLoc(),
                 "use of vtype encodings with LMUL < SEWMIN/ELEN == mf" +
                     Twine(MinLMUL) + " is reserved");
@@ -2382,9 +2382,9 @@ ParseStatus RISCVAsmParser::parseVTypeI(OperandVector &Operands) {
   RISCVVType::VLMUL VLMUL = RISCVVType::encodeLMUL(Lmul, Fractional);
   if (Fractional) {
     unsigned ELEN = STI->hasFeature(RISCV::FeatureStdExtZve64x) ? 64 : 32;
-    unsigned MaxSEW = ELEN / Lmul;
+    
     // If MaxSEW < 8, we should have printed warning about reserved LMUL.
-    if (MaxSEW >= 8 && Sew > MaxSEW)
+    if (unsigned MaxSEW = ELEN / Lmul; MaxSEW >= 8 && Sew > MaxSEW)
       Warning(S, "use of vtype encodings with SEW > " + Twine(MaxSEW) +
                      " and LMUL == mf" + Twine(Lmul) +
                      " may not be compatible with all RVV implementations");
@@ -3900,8 +3900,8 @@ bool RISCVAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
   case RISCV::PseudoLAImm:
   case RISCV::PseudoLI: {
     MCRegister Reg = Inst.getOperand(0).getReg();
-    const MCOperand &Op1 = Inst.getOperand(1);
-    if (Op1.isExpr()) {
+    
+    if (const MCOperand &Op1 = Inst.getOperand(1); Op1.isExpr()) {
       // We must have li reg, %lo(sym) or li reg, %pcrel_lo(sym) or similar.
       // Just convert to an addi. This allows compatibility with gas.
       emitToStreamer(Out, MCInstBuilder(RISCV::ADDI)
@@ -4052,12 +4052,12 @@ bool RISCVAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
   }
   case RISCV::PseudoVMSGEU_VI:
   case RISCV::PseudoVMSLTU_VI: {
-    int64_t Imm = Inst.getOperand(2).getImm();
+    
     // Unsigned comparisons are tricky because the immediate is signed. If the
     // immediate is 0 we can't just subtract one. vmsltu.vi v0, v1, 0 is always
     // false, but vmsle.vi v0, v1, -1 is always true. Instead we use
     // vmsne v0, v1, v1 which is always false.
-    if (Imm == 0) {
+    if (int64_t Imm = Inst.getOperand(2).getImm(); Imm == 0) {
       unsigned Opc = Inst.getOpcode() == RISCV::PseudoVMSGEU_VI
                          ? RISCV::VMSEQ_VV
                          : RISCV::VMSNE_VV;

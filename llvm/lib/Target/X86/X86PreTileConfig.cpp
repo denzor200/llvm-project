@@ -152,8 +152,8 @@ class X86PreTileConfig : public MachineFunctionPass {
   bool isLoopBackEdge(MachineBasicBlock *Header, MachineBasicBlock *Bottom) {
     if (!MLI->isLoopHeader(Header))
       return false;
-    auto *ML = MLI->getLoopFor(Header);
-    if (ML->contains(Bottom) && ML->isLoopLatch(Bottom))
+    
+    if (auto *ML = MLI->getLoopFor(Header); ML->contains(Bottom) && ML->isLoopLatch(Bottom))
       return true;
 
     return false;
@@ -230,8 +230,8 @@ void X86PreTileConfig::collectShapeInfo(MachineInstr &MI) {
   auto RecordShape = [&](MachineInstr *MI, MachineBasicBlock *MBB) {
     MIRef MIR(MI, MBB);
     auto &Refs = ShapeBBs[MBB];
-    auto I = llvm::lower_bound(Refs, MIR);
-    if (I == Refs.end() || *I != MIR)
+    
+    if (auto I = llvm::lower_bound(Refs, MIR); I == Refs.end() || *I != MIR)
       Refs.insert(I, MIR);
   };
 
@@ -258,9 +258,9 @@ void X86PreTileConfig::collectShapeInfo(MachineInstr &MI) {
 }
 
 bool X86PreTileConfig::runOnMachineFunction(MachineFunction &MF) {
-  X86MachineFunctionInfo *X86FI = MF.getInfo<X86MachineFunctionInfo>();
+  
   // Early exit in the common case of non-AMX code.
-  if (X86FI->getAMXProgModel() != AMXProgModelEnum::ManagedRA)
+  if (X86MachineFunctionInfo *X86FI = MF.getInfo<X86MachineFunctionInfo>(); X86FI->getAMXProgModel() != AMXProgModelEnum::ManagedRA)
     return false;
 
   const X86Subtarget &ST = MF.getSubtarget<X86Subtarget>();
@@ -312,8 +312,8 @@ bool X86PreTileConfig::runOnMachineFunction(MachineFunction &MF) {
   while (!CfgLiveInBBs.empty()) {
     MachineBasicBlock *MBB = CfgLiveInBBs.pop_back_val();
     for (auto *Pred : MBB->predecessors()) {
-      auto &Info = BBVisitedInfo[Pred];
-      if (Info.LastCall) {
+      
+      if (auto &Info = BBVisitedInfo[Pred]; Info.LastCall) {
         CfgNeedInsert.insert(Info.LastCall);
       } else if (!Info.NeedTileCfgLiveIn) {
         Info.NeedTileCfgLiveIn = true;
@@ -351,8 +351,8 @@ bool X86PreTileConfig::runOnMachineFunction(MachineFunction &MF) {
   while (!WorkList.empty()) {
     MachineBasicBlock *MBB = WorkList.pop_back_val();
     for (auto *Pred : MBB->predecessors()) {
-      auto &Info = BBVisitedInfo[Pred];
-      if (!Info.TileCfgForbidden && !isLoopBackEdge(MBB, Pred)) {
+      
+      if (auto &Info = BBVisitedInfo[Pred]; !Info.TileCfgForbidden && !isLoopBackEdge(MBB, Pred)) {
         Info.TileCfgForbidden = true;
         WorkList.push_back(Pred);
       }

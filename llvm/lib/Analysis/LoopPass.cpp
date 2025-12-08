@@ -48,8 +48,8 @@ public:
   }
 
   bool runOnLoop(Loop *L, LPPassManager &) override {
-    auto BBI = llvm::find_if(L->blocks(), [](BasicBlock *BB) { return BB; });
-    if (BBI != L->blocks().end() &&
+    
+    if (auto BBI = llvm::find_if(L->blocks(), [](BasicBlock *BB) { return BB; }); BBI != L->blocks().end() &&
         isFunctionInPrintList((*BBI)->getParent()->getName())) {
       printLoop(*L, OS, Banner);
     }
@@ -205,10 +205,10 @@ bool LPPassManager::runOnFunction(Function &F) {
 
         Changed |= LocalChanged;
         if (EmitICRemark) {
-          unsigned NewSize = F.getInstructionCount();
+          
           // Update the size of the function, emit a remark, and update the
           // size of the module.
-          if (NewSize != FunctionSize) {
+          if (unsigned NewSize = F.getInstructionCount(); NewSize != FunctionSize) {
             int64_t Delta = static_cast<int64_t>(NewSize) -
                             static_cast<int64_t>(FunctionSize);
             emitInstrCountChangedRemark(P, M, Delta, InstrCount,

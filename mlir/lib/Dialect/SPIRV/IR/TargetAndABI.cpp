@@ -46,10 +46,10 @@ bool spirv::TargetEnv::allows(spirv::Capability capability) const {
 
 std::optional<spirv::Capability>
 spirv::TargetEnv::allows(ArrayRef<spirv::Capability> caps) const {
-  const auto *chosen = llvm::find_if(caps, [this](spirv::Capability cap) {
+  
+  if (const auto *chosen = llvm::find_if(caps, [this](spirv::Capability cap) {
     return givenCapabilities.count(cap);
-  });
-  if (chosen != caps.end())
+  }); chosen != caps.end())
     return *chosen;
   return std::nullopt;
 }
@@ -60,10 +60,10 @@ bool spirv::TargetEnv::allows(spirv::Extension extension) const {
 
 std::optional<spirv::Extension>
 spirv::TargetEnv::allows(ArrayRef<spirv::Extension> exts) const {
-  const auto *chosen = llvm::find_if(exts, [this](spirv::Extension ext) {
+  
+  if (const auto *chosen = llvm::find_if(exts, [this](spirv::Extension ext) {
     return givenExtensions.count(ext);
-  });
-  if (chosen != exts.end())
+  }); chosen != exts.end())
     return *chosen;
   return std::nullopt;
 }

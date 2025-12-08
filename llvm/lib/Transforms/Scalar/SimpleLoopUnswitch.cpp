@@ -228,9 +228,9 @@ collectHomogenousInstGraphLoopInvariants(const Loop &L, Instruction &Root,
       }
 
       // If not an instruction with the same opcode, nothing we can do.
-      Instruction *OpI = dyn_cast<Instruction>(skipTrivialSelect(OpV));
+      
 
-      if (OpI && ((IsRootAnd && match(OpI, m_LogicalAnd())) ||
+      if (Instruction *OpI = dyn_cast<Instruction>(skipTrivialSelect(OpV)); OpI && ((IsRootAnd && match(OpI, m_LogicalAnd())) ||
                   (IsRootOr  && match(OpI, m_LogicalOr())))) {
         // Visit this operand.
         if (Visited.insert(OpI).second)
@@ -249,10 +249,10 @@ static void replaceLoopInvariantUses(const Loop &L, Value *Invariant,
   // Replace uses of LIC in the loop with the given constant.
   // We use make_early_inc_range as set invalidates the iterator.
   for (Use &U : llvm::make_early_inc_range(Invariant->uses())) {
-    Instruction *UserI = dyn_cast<Instruction>(U.getUser());
+    
 
     // Replace this use within the loop body.
-    if (UserI && L.contains(UserI))
+    if (Instruction *UserI = dyn_cast<Instruction>(U.getUser()); UserI && L.contains(UserI))
       U.set(&Replacement);
   }
 }
@@ -384,10 +384,10 @@ static void buildPartialInvariantUnswitchConditionalBranch(
               ToDuplicate[0] == skipTrivialSelect(OriginalBranch.getCondition())
           ? OriginalBranch.getMetadata(LLVMContext::MD_prof)
           : nullptr;
-  auto *BR =
+  
+  if (auto *BR =
       IRB.CreateCondBr(Cond, Direction ? &UnswitchedSucc : &NormalSucc,
-                       Direction ? &NormalSucc : &UnswitchedSucc, ProfData);
-  if (!ProfData)
+                       Direction ? &NormalSucc : &UnswitchedSucc, ProfData); !ProfData)
     setExplicitlyUnknownBranchWeightsIfProfiled(*BR, DEBUG_TYPE);
 }
 
@@ -856,15 +856,15 @@ static bool unswitchTrivialSwitch(Loop &L, SwitchInst &SI, DominatorTree &DT,
 
   if (DefaultExitBB) {
     // Check the loop containing this exit.
-    Loop *ExitL = getTopMostExitingLoop(DefaultExitBB, LI);
-    if (!ExitL || ExitL->contains(OuterL))
+    
+    if (Loop *ExitL = getTopMostExitingLoop(DefaultExitBB, LI); !ExitL || ExitL->contains(OuterL))
       OuterL = ExitL;
   }
   for (unsigned Index : ExitCaseIndices) {
     auto CaseI = SI.case_begin() + Index;
     // Compute the outer loop from this exit.
-    Loop *ExitL = getTopMostExitingLoop(CaseI->getCaseSuccessor(), LI);
-    if (!ExitL || ExitL->contains(OuterL))
+    
+    if (Loop *ExitL = getTopMostExitingLoop(CaseI->getCaseSuccessor(), LI); !ExitL || ExitL->contains(OuterL))
       OuterL = ExitL;
   }
 
@@ -2890,8 +2890,8 @@ static int CalculateUnswitchCostMultiplier(
   // another path to the latch remaining that does not allow to eliminate the
   // loop copy on unswitch).
   const BasicBlock *Latch = L.getLoopLatch();
-  const BasicBlock *CondBlock = TI.getParent();
-  if (DT.dominates(CondBlock, Latch) &&
+  
+  if (const BasicBlock *CondBlock = TI.getParent(); DT.dominates(CondBlock, Latch) &&
       (isGuard(&TI) ||
        (TI.isTerminator() &&
         llvm::count_if(successors(&TI), [&L](const BasicBlock *SuccBB) {
@@ -3000,9 +3000,9 @@ static bool collectUnswitchCandidates(
   // Whether or not we should also collect guards in the loop.
   bool CollectGuards = false;
   if (UnswitchGuards) {
-    auto *GuardDecl = Intrinsic::getDeclarationIfExists(
-        L.getHeader()->getParent()->getParent(), Intrinsic::experimental_guard);
-    if (GuardDecl && !GuardDecl->use_empty())
+    
+    if (auto *GuardDecl = Intrinsic::getDeclarationIfExists(
+        L.getHeader()->getParent()->getParent(), Intrinsic::experimental_guard); GuardDecl && !GuardDecl->use_empty())
       CollectGuards = true;
   }
 
@@ -3012,9 +3012,9 @@ static bool collectUnswitchCandidates(
 
     for (auto &I : *BB) {
       if (auto *SI = dyn_cast<SelectInst>(&I)) {
-        auto *Cond = SI->getCondition();
+        
         // Do not unswitch vector selects and logical and/or selects
-        if (Cond->getType()->isIntegerTy(1) && !SI->getType()->isIntegerTy(1))
+        if (auto *Cond = SI->getCondition(); Cond->getType()->isIntegerTy(1) && !SI->getType()->isIntegerTy(1))
           AddUnswitchCandidatesForInst(SI, Cond);
       } else if (CollectGuards && isGuard(&I)) {
         auto *Cond =
@@ -3046,8 +3046,8 @@ static bool collectUnswitchCandidates(
       !any_of(UnswitchCandidates, [&L](auto &TerminatorAndInvariants) {
          return TerminatorAndInvariants.TI == L.getHeader()->getTerminator();
        })) {
-    MemorySSA *MSSA = MSSAU->getMemorySSA();
-    if (auto Info = hasPartialIVCondition(L, MSSAThreshold, *MSSA, AA)) {
+    
+    if (MemorySSA *MSSA = MSSAU->getMemorySSA(); auto Info = hasPartialIVCondition(L, MSSAThreshold, *MSSA, AA)) {
       LLVM_DEBUG(
           dbgs() << "simple-loop-unswitch: Found partially invariant condition "
                  << *Info->InstToDuplicate[0] << "\n");
@@ -3473,8 +3473,8 @@ static NonTrivialUnswitchCandidate findBestNonTrivialUnswitchCandidate(
       // its cost.
       if (!FullUnswitch) {
         auto &BI = cast<BranchInst>(TI);
-        Value *Cond = skipTrivialSelect(BI.getCondition());
-        if (match(Cond, m_LogicalAnd())) {
+        
+        if (Value *Cond = skipTrivialSelect(BI.getCondition()); match(Cond, m_LogicalAnd())) {
           if (SuccBB == BI.getSuccessor(1))
             continue;
         } else if (match(Cond, m_LogicalOr())) {
@@ -3702,9 +3702,9 @@ static bool unswitchLoop(Loop &L, DominatorTree &DT, LoopInfo &LI,
   // transform, we should allow unswitching for non-trivial uniform
   // branches even on targets that have divergence.
   // https://bugs.llvm.org/show_bug.cgi?id=48819
-  bool ContinueWithNonTrivial =
-      EnableNonTrivialUnswitch || (NonTrivial && !TTI.hasBranchDivergence(F));
-  if (!ContinueWithNonTrivial)
+  
+  if (bool ContinueWithNonTrivial =
+      EnableNonTrivialUnswitch || (NonTrivial && !TTI.hasBranchDivergence(F)); !ContinueWithNonTrivial)
     return false;
 
   // Skip non-trivial unswitching for optsize functions.

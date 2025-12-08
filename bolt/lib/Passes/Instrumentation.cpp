@@ -336,8 +336,8 @@ bool Instrumentation::instrumentOneTarget(
 
   InstructionListType CounterInstrs = createInstrumentationSnippet(BC, IsLeaf);
 
-  const MCInst &Inst = *Iter;
-  if (BC.MIB->isCall(Inst)) {
+  
+  if (const MCInst &Inst = *Iter; BC.MIB->isCall(Inst)) {
     // This code handles both
     // - (regular) inter-function calls (cross-function control transfer),
     // - (rare) intra-function calls (function-local control transfer)
@@ -491,9 +491,9 @@ void Instrumentation::instrumentFunction(BinaryFunction &Function,
           TargetBB ? &Function : BC.getFunctionForSymbol(Target);
       if (TargetFunc && BC.MIB->isCall(Inst)) {
         if (opts::InstrumentCalls) {
-          const BinaryBasicBlock *ForeignBB =
-              TargetFunc->getBasicBlockForLabel(Target);
-          if (ForeignBB)
+          
+          if (const BinaryBasicBlock *ForeignBB =
+              TargetFunc->getBasicBlockForLabel(Target); ForeignBB)
             ToOffset = ForeignBB->getInputOffset();
           instrumentOneTarget(SplitWorklist, SplitInstrs, I, Function, BB,
                               FromOffset, *TargetFunc, TargetBB, ToOffset,
@@ -581,8 +581,8 @@ void Instrumentation::instrumentFunction(BinaryFunction &Function,
   // Instrument spanning tree leaves
   if (!opts::ConservativeInstrumentation) {
     for (auto BBI = Function.begin(), BBE = Function.end(); BBI != BBE; ++BBI) {
-      BinaryBasicBlock &BB = *BBI;
-      if (STOutSet[&BB].size() == 0)
+      
+      if (BinaryBasicBlock &BB = *BBI; STOutSet[&BB].size() == 0)
         instrumentLeafNode(BB, BB.begin(), IsLeafFunction, *FuncDesc,
                            BBToID[&BB]);
     }

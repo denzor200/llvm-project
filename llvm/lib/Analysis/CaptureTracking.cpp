@@ -334,8 +334,8 @@ UseCaptureInfo llvm::DetermineUseCaptureKind(const Use &U, const Value *Base) {
     // As with a store, the location being accessed is not captured,
     // but the value being stored is.
     // Volatile stores make the address observable.
-    auto *ARMWI = cast<AtomicRMWInst>(I);
-    if (U.getOperandNo() == 1 || ARMWI->isVolatile())
+    
+    if (auto *ARMWI = cast<AtomicRMWInst>(I); U.getOperandNo() == 1 || ARMWI->isVolatile())
       return CaptureComponents::All;
     return CaptureComponents::None;
   }
@@ -345,8 +345,8 @@ UseCaptureInfo llvm::DetermineUseCaptureKind(const Use &U, const Value *Base) {
     // As with a store, the location being accessed is not captured,
     // but the value being stored is.
     // Volatile stores make the address observable.
-    auto *ACXI = cast<AtomicCmpXchgInst>(I);
-    if (U.getOperandNo() == 1 || U.getOperandNo() == 2 || ACXI->isVolatile())
+    
+    if (auto *ACXI = cast<AtomicCmpXchgInst>(I); U.getOperandNo() == 1 || U.getOperandNo() == 2 || ACXI->isVolatile())
       return CaptureComponents::All;
     return CaptureComponents::None;
   }
@@ -370,8 +370,8 @@ UseCaptureInfo llvm::DetermineUseCaptureKind(const Use &U, const Value *Base) {
     return CaptureComponents::Address;
   case Instruction::ICmp: {
     unsigned Idx = U.getOperandNo();
-    unsigned OtherIdx = 1 - Idx;
-    if (isa<ConstantPointerNull>(I->getOperand(OtherIdx)) &&
+    
+    if (unsigned OtherIdx = 1 - Idx; isa<ConstantPointerNull>(I->getOperand(OtherIdx)) &&
         cast<ICmpInst>(I)->isEquality()) {
       // TODO(captures): Remove these special cases once we make use of
       // captures(address_is_null).

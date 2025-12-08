@@ -87,8 +87,8 @@ void spirv::GraphARMOp::print(OpAsmPrinter &printer) {
                                                     getResAttrsAttrName()});
 
   // Print the body.
-  Region &body = this->getBody();
-  if (!body.empty()) {
+  
+  if (Region &body = this->getBody(); !body.empty()) {
     printer << ' ';
     printer.printRegion(body, /*printEntryBlockArgs=*/false,
                         /*printBlockTerminators=*/true);

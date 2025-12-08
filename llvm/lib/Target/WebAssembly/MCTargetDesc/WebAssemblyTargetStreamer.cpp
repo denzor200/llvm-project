@@ -78,8 +78,8 @@ void WebAssemblyTargetAsmStreamer::emitTableType(const MCSymbolWasm *Sym) {
   const wasm::WasmTableType &Type = Sym->getTableType();
   OS << "\t.tabletype\t" << Sym->getName() << ", "
      << WebAssembly::typeToString(static_cast<wasm::ValType>(Type.ElemType));
-  bool HasMaximum = Type.Limits.Flags & wasm::WASM_LIMITS_FLAG_HAS_MAX;
-  if (Type.Limits.Minimum != 0 || HasMaximum) {
+  
+  if (bool HasMaximum = Type.Limits.Flags & wasm::WASM_LIMITS_FLAG_HAS_MAX; Type.Limits.Minimum != 0 || HasMaximum) {
     OS << ", " << Type.Limits.Minimum;
     if (HasMaximum)
       OS << ", " << Type.Limits.Maximum;

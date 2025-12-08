@@ -404,8 +404,8 @@ bool MCPlusBuilder::removeAnnotation(MCInst &Inst, unsigned Index) const {
     return false;
 
   for (unsigned I = Inst.getNumOperands() - 1; I >= *FirstAnnotationOp; --I) {
-    const int64_t ImmValue = Inst.getOperand(I).getImm();
-    if (extractAnnotationIndex(ImmValue) == Index) {
+    
+    if (const int64_t ImmValue = Inst.getOperand(I).getImm(); extractAnnotationIndex(ImmValue) == Index) {
       Inst.erase(Inst.begin() + I);
       return true;
     }
@@ -432,8 +432,8 @@ void MCPlusBuilder::printAnnotations(const MCInst &Inst, raw_ostream &OS,
     const int64_t Imm = Inst.getOperand(I).getImm();
     const unsigned Index = extractAnnotationIndex(Imm);
     const int64_t Value = extractAnnotationValue(Imm);
-    const auto *Annotation = reinterpret_cast<const MCAnnotation *>(Value);
-    if (Index >= MCAnnotation::kGeneric) {
+    
+    if (const auto *Annotation = reinterpret_cast<const MCAnnotation *>(Value); Index >= MCAnnotation::kGeneric) {
       std::string AnnotationName =
           AnnotationNames[Index - MCAnnotation::kGeneric];
       if (!PrintMemData && AnnotationName == "MemoryAccessProfile")

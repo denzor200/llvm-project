@@ -440,8 +440,8 @@ LogicalResult HoistPaddingAnalysis::dropNonIndexDependencies() {
       }
       // Check the remaining operations do not have regions or memory effects.
       auto effectInterface = dyn_cast<MemoryEffectOpInterface>(op);
-      bool hasMemoryEffect = effectInterface && !effectInterface.hasNoEffect();
-      if (hasMemoryEffect || op->getNumRegions() != 0) {
+      
+      if (bool hasMemoryEffect = effectInterface && !effectInterface.hasNoEffect(); hasMemoryEffect || op->getNumRegions() != 0) {
         LLVM_DEBUG(DBGS() << "Unsupported op with region or memory effect: "
                           << op << " -> Skip\n");
         return failure();

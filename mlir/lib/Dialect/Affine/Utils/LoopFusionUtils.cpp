@@ -137,7 +137,7 @@ static Operation *getFusedLoopNestInsertionPoint(AffineForOp srcForOp,
   auto forOpB = isSrcForOpBeforeDstForOp ? dstForOp : srcForOp;
 
   Operation *firstDepOpA = getFirstDependentOpInRange(forOpA, forOpB);
-  Operation *lastDepOpB = getLastDependentOpInRange(forOpA, forOpB);
+  
   // Block:
   //      ...
   //  |-- opA
@@ -150,7 +150,7 @@ static Operation *getFusedLoopNestInsertionPoint(AffineForOp srcForOp,
   //
   // Valid insertion point range: (lastDepOpB, firstDepOpA)
   //
-  if (firstDepOpA) {
+  if (Operation *lastDepOpB = getLastDependentOpInRange(forOpA, forOpB); firstDepOpA) {
     if (lastDepOpB) {
       if (firstDepOpA->isBeforeInBlock(lastDepOpB) || firstDepOpA == lastDepOpB)
         // No valid insertion point exists which preserves dependences.
@@ -256,8 +256,8 @@ FusionResult mlir::affine::canFuseLoops(AffineForOp srcForOp,
     return FusionResult::FailPrecondition;
   }
   // Return 'failure' if 'srcForOp' and 'dstForOp' are not in the same block.
-  auto *block = srcForOp->getBlock();
-  if (block != dstForOp->getBlock()) {
+  
+  if (auto *block = srcForOp->getBlock(); block != dstForOp->getBlock()) {
     LDBG() << "Cannot fuse loop nests in different blocks";
     return FusionResult::FailPrecondition;
   }

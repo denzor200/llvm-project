@@ -94,11 +94,11 @@ QualType APValue::LValueBase::getType() const {
     SmallVector<const Expr *, 2> CommaLHSs;
     SmallVector<SubobjectAdjustment, 2> Adjustments;
     const Expr *Temp = MTE->getSubExpr();
-    const Expr *Inner = Temp->skipRValueSubobjectAdjustments(CommaLHSs,
-                                                             Adjustments);
+    
     // Keep any cv-qualifiers from the reference if we generated a temporary
     // for it directly. Otherwise use the type after adjustment.
-    if (!Adjustments.empty())
+    if (const Expr *Inner = Temp->skipRValueSubobjectAdjustments(CommaLHSs,
+                                                             Adjustments); !Adjustments.empty())
       return Inner->getType();
   }
 
@@ -841,8 +841,8 @@ void APValue::printPretty(raw_ostream &Out, const PrintingPolicy &Policy,
       if (ElemTy->isRecordType()) {
         // The lvalue refers to a class type, so the next path entry is a base
         // or member.
-        const Decl *BaseOrMember = Path[I].getAsBaseOrMember().getPointer();
-        if (const CXXRecordDecl *RD = dyn_cast<CXXRecordDecl>(BaseOrMember)) {
+        
+        if (const Decl *BaseOrMember = Path[I].getAsBaseOrMember().getPointer(); const CXXRecordDecl *RD = dyn_cast<CXXRecordDecl>(BaseOrMember)) {
           CastToBase = RD;
           // Leave ElemTy referring to the most-derived class. The actual type
           // doesn't matter except for array types.
@@ -883,8 +883,8 @@ void APValue::printPretty(raw_ostream &Out, const PrintingPolicy &Policy,
       return;
     QualType ElemTy = AT->getElementType();
     Out << '{';
-    unsigned I = 0;
-    switch (N) {
+    
+    switch (unsigned I = 0; N) {
     case 0:
       for (; I != N; ++I) {
         Out << ", ";

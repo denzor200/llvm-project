@@ -400,8 +400,8 @@ static void printIndexStats() {
 /// Print the lto symbol attributes.
 static void printLTOSymbolAttributes(lto_symbol_attributes Attrs) {
   outs() << "{ ";
-  unsigned Permission = Attrs & LTO_SYMBOL_PERMISSIONS_MASK;
-  switch (Permission) {
+  
+  switch (unsigned Permission = Attrs & LTO_SYMBOL_PERMISSIONS_MASK; Permission) {
   case LTO_SYMBOL_PERMISSIONS_CODE:
     outs() << "function ";
     break;
@@ -1033,8 +1033,8 @@ int main(int argc, char **argv) {
                             Filename + "': ");
       std::unique_ptr<MemoryBuffer> BufferOrErr =
           ExitOnErr(errorOrToExpected(MemoryBuffer::getFile(Filename)));
-      auto Buffer = std::move(BufferOrErr.get());
-      if (ExitOnErr(isBitcodeContainingObjCCategory(*Buffer)))
+      
+      if (auto Buffer = std::move(BufferOrErr.get()); ExitOnErr(isBitcodeContainingObjCCategory(*Buffer)))
         outs() << "Bitcode " << Filename << " contains ObjC\n";
       else
         outs() << "Bitcode " << Filename << " does not contain ObjC\n";
@@ -1097,8 +1097,8 @@ int main(int argc, char **argv) {
       if (!DSOSymbolsSet.count(Name))
         continue;
       lto_symbol_attributes Attrs = Module->getSymbolAttributes(I);
-      unsigned Scope = Attrs & LTO_SYMBOL_SCOPE_MASK;
-      if (Scope != LTO_SYMBOL_SCOPE_DEFAULT_CAN_BE_HIDDEN)
+      
+      if (unsigned Scope = Attrs & LTO_SYMBOL_SCOPE_MASK; Scope != LTO_SYMBOL_SCOPE_DEFAULT_CAN_BE_HIDDEN)
         KeptDSOSyms.push_back(std::string(Name));
     }
 

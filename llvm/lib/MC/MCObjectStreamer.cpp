@@ -447,8 +447,8 @@ void MCObjectStreamer::emitInstToData(const MCInst &Inst,
     MarkedLinkerRelaxable = true;
     // Set the fragment's order within the subsection for use by
     // MCAssembler::relaxAlign.
-    auto *Sec = F->getParent();
-    if (!Sec->isLinkerRelaxable())
+    
+    if (auto *Sec = F->getParent(); !Sec->isLinkerRelaxable())
       Sec->setFirstLinkerRelaxable(F->getLayoutOrder());
     // Do not add data after a linker-relaxable instruction. The difference
     // between a new label and a label at or before the linker-relaxable
@@ -477,8 +477,8 @@ void MCObjectStreamer::emitInstToFragment(const MCInst &Inst,
     if (!Fixup.isLinkerRelaxable() || MarkedLinkerRelaxable)
       continue;
     MarkedLinkerRelaxable = true;
-    auto *Sec = F->getParent();
-    if (!Sec->isLinkerRelaxable())
+    
+    if (auto *Sec = F->getParent(); !Sec->isLinkerRelaxable())
       Sec->setFirstLinkerRelaxable(F->getLayoutOrder());
     F->setLinkerRelaxable();
   }

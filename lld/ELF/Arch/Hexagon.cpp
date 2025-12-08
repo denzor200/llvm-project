@@ -90,8 +90,8 @@ static uint32_t applyMask(uint32_t mask, uint32_t data) {
 
   for (size_t bit = 0; bit != 32; ++bit) {
     uint32_t valBit = (data >> off) & 1;
-    uint32_t maskBit = (mask >> bit) & 1;
-    if (maskBit) {
+    
+    if (uint32_t maskBit = (mask >> bit) & 1; maskBit) {
       result |= (valBit << bit);
       ++off;
     }
@@ -266,8 +266,8 @@ static uint32_t findMaskR16(Ctx &ctx, uint32_t insn) {
 static void or32le(uint8_t *p, int32_t v) { write32le(p, read32le(p) | v); }
 
 bool Hexagon::inBranchRange(RelType type, uint64_t src, uint64_t dst) const {
-  int64_t offset = dst - src;
-  switch (type) {
+  
+  switch (int64_t offset = dst - src; type) {
   case llvm::ELF::R_HEX_B22_PCREL:
   case llvm::ELF::R_HEX_PLT_B22_PCREL:
   case llvm::ELF::R_HEX_GD_PLT_B22_PCREL:

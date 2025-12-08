@@ -274,10 +274,10 @@ X86TargetMachine::getSubtargetImpl(const Function &F) const {
   // function before we can generate a subtarget. We also need to use
   // it as a key for the subtarget since that can be the only difference
   // between two functions.
-  bool SoftFloat = F.getFnAttribute("use-soft-float").getValueAsBool();
+  
   // If the soft float attribute is set on the function turn on the soft float
   // subtarget feature.
-  if (SoftFloat)
+  if (bool SoftFloat = F.getFnAttribute("use-soft-float").getValueAsBool(); SoftFloat)
     Key += FS.empty() ? "+soft-float" : "+soft-float,";
 
   Key += FS;
@@ -437,8 +437,8 @@ void X86PassConfig::addIRPasses() {
   addPass(createIndirectBrExpandPass());
 
   // Add Control Flow Guard checks.
-  const Triple &TT = TM->getTargetTriple();
-  if (TT.isOSWindows()) {
+  
+  if (const Triple &TT = TM->getTargetTriple(); TT.isOSWindows()) {
     if (TT.isX86_64()) {
       addPass(createCFGuardDispatchPass());
     } else {
@@ -497,8 +497,8 @@ bool X86PassConfig::addILPOpts() {
 
 bool X86PassConfig::addPreISel() {
   // Only add this pass for 32-bit x86 Windows.
-  const Triple &TT = TM->getTargetTriple();
-  if (TT.isOSWindows() && TT.isX86_32())
+  
+  if (const Triple &TT = TM->getTargetTriple(); TT.isOSWindows() && TT.isX86_32())
     addPass(createX86WinEHStatePass());
   return true;
 }

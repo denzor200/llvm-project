@@ -43,9 +43,9 @@ namespace {
 using ::llvm::memprof::MemInfoBlock;
 
 void Print(const MemInfoBlock &M, const u64 id, bool print_terse) {
-  u64 p;
+  
 
-  if (print_terse) {
+  if (u64 p; print_terse) {
     p = M.TotalSize * 100 / M.AllocCount;
     Printf("MIB:%llu/%u/%llu.%02llu/%u/%u/", id, M.AllocCount, p / 100, p % 100,
            M.MinSize, M.MaxSize);
@@ -261,9 +261,9 @@ void ClearShadow(uptr addr, uptr size) {
   } else {
     uptr page_size = GetPageSizeCached();
     uptr page_beg = RoundUpTo(shadow_beg, page_size);
-    uptr page_end = RoundDownTo(shadow_end, page_size);
+    
 
-    if (page_beg >= page_end) {
+    if (uptr page_end = RoundDownTo(shadow_end, page_size); page_beg >= page_end) {
       REAL(memset)((void *)shadow_beg, 0, shadow_end - shadow_beg);
     } else {
       if (page_beg != shadow_beg) {

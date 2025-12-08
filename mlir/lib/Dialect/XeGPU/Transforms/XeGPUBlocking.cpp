@@ -155,11 +155,11 @@ XeGPUBlockingPass::getTileShape(const T &operandOrResult) const {
       // upstream vector remove leading unit dims patterns,
       // populateCastAwayVectorLeadingOneDimPatterns.
       Operation *definingOp = value.getDefiningOp();
-      bool skipLeadingUnitDimRemoval =
+      
+      if (bool skipLeadingUnitDimRemoval =
           definingOp &&
           (isa<xegpu::CreateNdDescOp, xegpu::LoadNdOp, xegpu::DpasOp,
-               xegpu::StoreNdOp, xegpu::PrefetchNdOp>(definingOp));
-      if (!skipLeadingUnitDimRemoval) {
+               xegpu::StoreNdOp, xegpu::PrefetchNdOp>(definingOp)); !skipLeadingUnitDimRemoval) {
         auto it = llvm::find_if(instData, [](auto val) { return val != 1; });
         instData.erase(instData.begin(), it);
       }
@@ -242,13 +242,13 @@ bool XeGPUBlockingPass::needsUnroll(Operation *op) const {
             xegpu::getDistributeLayoutAttr(opr);
         return layout && layout.isForWorkgroup();
       });
-  bool hasWgLayoutResults =
+  
+  if (bool hasWgLayoutResults =
       llvm::any_of(op->getOpResults(), [](OpResult result) {
         xegpu::DistributeLayoutAttr layout =
             xegpu::getDistributeLayoutAttr(result);
         return layout && layout.isForWorkgroup();
-      });
-  if (hasWgLayoutOperands || hasWgLayoutResults) {
+      }); hasWgLayoutOperands || hasWgLayoutResults) {
     LDBG() << "skip unrolling for op with workgroup level layout: " << *op;
     return false;
   }
@@ -368,9 +368,9 @@ void XeGPUBlockingPass::runOnOperation() {
       // If the encoding is a ScatterTensorDescAttr, we need to
       // potentially adjust the chunk size based on the inst_data.
       if (tdescTy.isScattered()) {
-        int64_t chunkSize = tdescTy.getChunkSizeAsInt();
+        
 
-        if (chunkSize > 1) {
+        if (int64_t chunkSize = tdescTy.getChunkSizeAsInt(); chunkSize > 1) {
           int64_t blockedChunkSize = chunkSize;
           auto instData = tdescTy.getLayoutAttr().getInstData();
           if (!instData.empty())

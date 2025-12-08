@@ -163,8 +163,8 @@ struct AssumeBuilderState {
       if (wouldInstructionBeTriviallyDead(Inst)) {
         if (RK.WasOn->use_empty())
           return false;
-        Use *SingleUse = RK.WasOn->getSingleUndroppableUse();
-        if (SingleUse && SingleUse->getUser() == InstBeingModified)
+        
+        if (Use *SingleUse = RK.WasOn->getSingleUndroppableUse(); SingleUse && SingleUse->getUser() == InstBeingModified)
           return false;
       }
     return true;
@@ -206,9 +206,9 @@ struct AssumeBuilderState {
     auto addAttrList = [&](AttributeList AttrList, unsigned NumArgs) {
       for (unsigned Idx = 0; Idx < NumArgs; Idx++)
         for (Attribute Attr : AttrList.getParamAttrs(Idx)) {
-          bool IsPoisonAttr = Attr.hasAttribute(Attribute::NonNull) ||
-                              Attr.hasAttribute(Attribute::Alignment);
-          if (!IsPoisonAttr || Call->isPassingUndefUB(Idx))
+          
+          if (bool IsPoisonAttr = Attr.hasAttribute(Attribute::NonNull) ||
+                              Attr.hasAttribute(Attribute::Alignment); !IsPoisonAttr || Call->isPassingUndefUB(Idx))
             addAttribute(Attr, Call->getArgOperand(Idx));
         }
       for (Attribute Attr : AttrList.getFnAttrs())
@@ -250,11 +250,11 @@ struct AssumeBuilderState {
 
   void addAccessedPtr(Instruction *MemInst, Value *Pointer, Type *AccType,
                       MaybeAlign MA) {
-    unsigned DerefSize = MemInst->getModule()
+    
+    if (unsigned DerefSize = MemInst->getModule()
                              ->getDataLayout()
                              .getTypeStoreSize(AccType)
-                             .getKnownMinValue();
-    if (DerefSize != 0) {
+                             .getKnownMinValue(); DerefSize != 0) {
       addKnowledge({Attribute::Dereferenceable, DerefSize, Pointer});
       if (!NullPointerIsDefined(MemInst->getFunction(),
                                 Pointer->getType()->getPointerAddressSpace()))
@@ -354,8 +354,8 @@ struct AssumeSimplify {
         continue;
       IntrinsicInst *Assume = cast<IntrinsicInst>(V);
       if (FilterBooleanArgument) {
-        auto *Arg = dyn_cast<ConstantInt>(Assume->getOperand(0));
-        if (!Arg || Arg->isZero())
+        
+        if (auto *Arg = dyn_cast<ConstantInt>(Assume->getOperand(0)); !Arg || Arg->isZero())
           continue;
       }
       BBToAssume[Assume->getParent()].push_back(Assume);
@@ -373,8 +373,8 @@ struct AssumeSimplify {
   /// ForceCleanup is set or the assume doesn't hold valuable knowledge.
   void RunCleanup(bool ForceCleanup) {
     for (IntrinsicInst *Assume : CleanupToDo) {
-      auto *Arg = dyn_cast<ConstantInt>(Assume->getOperand(0));
-      if (!Arg || Arg->isZero() ||
+      
+      if (auto *Arg = dyn_cast<ConstantInt>(Assume->getOperand(0)); !Arg || Arg->isZero() ||
           (!ForceCleanup &&
            !isAssumeWithEmptyBundle(cast<AssumeInst>(*Assume))))
         continue;

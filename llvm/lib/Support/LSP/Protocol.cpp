@@ -744,8 +744,8 @@ bool llvm::lsp::fromJSON(const llvm::json::Value &Value,
 CompletionItemKind llvm::lsp::adjustKindToCapability(
     CompletionItemKind Kind,
     CompletionItemKindBitset &SupportedCompletionItemKinds) {
-  size_t KindVal = static_cast<size_t>(Kind);
-  if (KindVal >= kCompletionItemKindMin &&
+  
+  if (size_t KindVal = static_cast<size_t>(Kind); KindVal >= kCompletionItemKindMin &&
       KindVal <= SupportedCompletionItemKinds.size() &&
       SupportedCompletionItemKinds[KindVal])
     return Kind;

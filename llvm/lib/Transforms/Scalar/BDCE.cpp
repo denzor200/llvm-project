@@ -54,8 +54,8 @@ static void clearAssumptionsOfUsers(Instruction *I, DemandedBits &DB) {
   SmallPtrSet<Instruction *, 16> Visited;
   SmallVector<Instruction *, 16> WorkList;
   for (User *JU : I->users()) {
-    auto *J = cast<Instruction>(JU);
-    if (J->getType()->isIntOrIntVectorTy()) {
+    
+    if (auto *J = cast<Instruction>(JU); J->getType()->isIntOrIntVectorTy()) {
       Visited.insert(J);
       WorkList.push_back(J);
     }
@@ -86,8 +86,8 @@ static void clearAssumptionsOfUsers(Instruction *I, DemandedBits &DB) {
       continue;
 
     for (User *KU : J->users()) {
-      auto *K = cast<Instruction>(KU);
-      if (Visited.insert(K).second && K->getType()->isIntOrIntVectorTy())
+      
+      if (auto *K = cast<Instruction>(KU); Visited.insert(K).second && K->getType()->isIntOrIntVectorTy())
         WorkList.push_back(K);
     }
   }
@@ -118,8 +118,8 @@ static bool bitTrackingDCE(Function &F, DemandedBits &DB) {
       APInt Demanded = DB.getDemandedBits(SE);
       const uint32_t SrcBitSize = SE->getSrcTy()->getScalarSizeInBits();
       auto *const DstTy = SE->getDestTy();
-      const uint32_t DestBitSize = DstTy->getScalarSizeInBits();
-      if (Demanded.countl_zero() >= (DestBitSize - SrcBitSize)) {
+      
+      if (const uint32_t DestBitSize = DstTy->getScalarSizeInBits(); Demanded.countl_zero() >= (DestBitSize - SrcBitSize)) {
         clearAssumptionsOfUsers(SE, DB);
         IRBuilder<> Builder(SE);
         I.replaceAllUsesWith(
@@ -200,8 +200,8 @@ static bool bitTrackingDCE(Function &F, DemandedBits &DB) {
 }
 
 PreservedAnalyses BDCEPass::run(Function &F, FunctionAnalysisManager &AM) {
-  auto &DB = AM.getResult<DemandedBitsAnalysis>(F);
-  if (!bitTrackingDCE(F, DB))
+  
+  if (auto &DB = AM.getResult<DemandedBitsAnalysis>(F); !bitTrackingDCE(F, DB))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

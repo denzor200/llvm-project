@@ -76,8 +76,8 @@ void FunctionPropertiesInfo::updateForBB(const BasicBlock &BB,
       (Direction * getNumBlocksFromCond(BB));
   for (const auto &I : BB) {
     if (auto *CS = dyn_cast<CallBase>(&I)) {
-      const auto *Callee = CS->getCalledFunction();
-      if (Callee && !Callee->isIntrinsic() && !Callee->isDeclaration())
+      
+      if (const auto *Callee = CS->getCalledFunction(); Callee && !Callee->isIntrinsic() && !Callee->isDeclaration())
         DirectCallsToDefinedFunctions += Direction;
     }
     if (I.getOpcode() == Instruction::Load) {

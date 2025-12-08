@@ -79,8 +79,8 @@ Error BinaryStreamReader::readCString(StringRef &Dest) {
     if (auto EC = readLongestContiguousChunk(Buffer))
       return EC;
     StringRef S(reinterpret_cast<const char *>(Buffer.begin()), Buffer.size());
-    size_t Pos = S.find_first_of('\0');
-    if (LLVM_LIKELY(Pos != StringRef::npos)) {
+    
+    if (size_t Pos = S.find_first_of('\0'); LLVM_LIKELY(Pos != StringRef::npos)) {
       FoundOffset = Pos + ThisOffset;
       break;
     }
@@ -88,9 +88,9 @@ Error BinaryStreamReader::readCString(StringRef &Dest) {
   assert(FoundOffset >= OriginalOffset);
 
   setOffset(OriginalOffset);
-  size_t Length = FoundOffset - OriginalOffset;
+  
 
-  if (auto EC = readFixedString(Dest, Length))
+  if (size_t Length = FoundOffset - OriginalOffset; auto EC = readFixedString(Dest, Length))
     return EC;
 
   // Now set the offset back to after the null terminator.

@@ -601,8 +601,8 @@ bool BreakpointOptions::BreakpointOptionsCallbackFunction(
 
   if (commands.GetSize() > 0) {
     ExecutionContext exe_ctx(context->exe_ctx_ref);
-    Target *target = exe_ctx.GetTargetPtr();
-    if (target) {
+    
+    if (Target *target = exe_ctx.GetTargetPtr(); target) {
       Debugger &debugger = target->GetDebugger();
       CommandReturnObject result(debugger.GetUseColor());
 

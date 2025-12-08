@@ -75,14 +75,14 @@ bool PrettyClassLayoutGraphicalDumper::start(const UDTLayoutBase &Layout) {
     }
 
     if (Item->getLayoutSize() > 0) {
-      uint32_t Prev = RelativeOffset + Item->getLayoutSize() - 1;
-      if (Prev < UseMap.size())
+      
+      if (uint32_t Prev = RelativeOffset + Item->getLayoutSize() - 1; Prev < UseMap.size())
         NextPaddingByte = UseMap.find_next_unset(Prev);
     }
   }
 
-  auto TailPadding = Layout.tailPadding();
-  if (TailPadding > 0) {
+  
+  if (auto TailPadding = Layout.tailPadding(); TailPadding > 0) {
     if (TailPadding != 1 || Layout.getSize() != 1) {
       Printer.NewLine();
       WithColor(Printer, PDB_ColorItem::Padding).get()
@@ -151,10 +151,10 @@ void PrettyClassLayoutGraphicalDumper::dump(const PDBSymbolData &Symbol) {
   VarDumper.start(Symbol, ClassOffsetZero);
 
   if (CurrentItem != nullptr) {
-    DataMemberLayoutItem &Layout =
-        static_cast<DataMemberLayoutItem &>(*CurrentItem);
+    
 
-    if (Layout.hasUDTLayout() && shouldRecurse()) {
+    if (DataMemberLayoutItem &Layout =
+        static_cast<DataMemberLayoutItem &>(*CurrentItem); Layout.hasUDTLayout() && shouldRecurse()) {
       uint32_t ChildOffsetZero = ClassOffsetZero + Layout.getOffsetInParent();
       Printer.Indent();
       PrettyClassLayoutGraphicalDumper TypeDumper(Printer, RecursionLevel + 1,

@@ -287,8 +287,8 @@ ModRefInfo AAResults::getModRefInfo(const CallBase *Call1,
       return ModRefInfo::NoModRef;
     ModRefInfo R = ModRefInfo::NoModRef;
     for (auto I = Call2->arg_begin(), E = Call2->arg_end(); I != E; ++I) {
-      const Value *Arg = *I;
-      if (!Arg->getType()->isPointerTy())
+      
+      if (const Value *Arg = *I; !Arg->getType()->isPointerTy())
         continue;
       unsigned Call2ArgIdx = std::distance(Call2->arg_begin(), I);
       auto Call2ArgLoc =
@@ -325,8 +325,8 @@ ModRefInfo AAResults::getModRefInfo(const CallBase *Call1,
       return ModRefInfo::NoModRef;
     ModRefInfo R = ModRefInfo::NoModRef;
     for (auto I = Call1->arg_begin(), E = Call1->arg_end(); I != E; ++I) {
-      const Value *Arg = *I;
-      if (!Arg->getType()->isPointerTy())
+      
+      if (const Value *Arg = *I; !Arg->getType()->isPointerTy())
         continue;
       unsigned Call1ArgIdx = std::distance(Call1->arg_begin(), I);
       auto Call1ArgLoc =

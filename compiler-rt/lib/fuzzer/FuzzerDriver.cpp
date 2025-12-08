@@ -118,8 +118,8 @@ static void PrintHelp() {
 }
 
 static const char *FlagValue(const char *Param, const char *Name) {
-  size_t Len = strlen(Name);
-  if (Param[0] == '-' && strstr(Param + 1, Name) == Param + 1 &&
+  
+  if (size_t Len = strlen(Name); Param[0] == '-' && strstr(Param + 1, Name) == Param + 1 &&
       Param[Len + 1] == '=')
       return &Param[Len + 2];
   return nullptr;
@@ -145,8 +145,8 @@ static long MyStol(const char *Str) {
 static bool ParseOneFlag(const char *Param) {
   if (Param[0] != '-') return false;
   if (Param[1] == '-') {
-    static bool PrintedWarning = false;
-    if (!PrintedWarning) {
+    
+    if (static bool PrintedWarning = false; !PrintedWarning) {
       PrintedWarning = true;
       Printf("INFO: libFuzzer ignores flags that start with '--'\n");
     }
@@ -157,8 +157,8 @@ static bool ParseOneFlag(const char *Param) {
   }
   for (size_t F = 0; F < kNumFlags; F++) {
     const char *Name = FlagDescriptions[F].Name;
-    const char *Str = FlagValue(Param, Name);
-    if (Str)  {
+    
+    if (const char *Str = FlagValue(Param, Name); Str)  {
       if (FlagDescriptions[F].IntFlag) {
         auto Val = MyStol(Str);
         *FlagDescriptions[F].IntFlag = static_cast<int>(Val);
@@ -314,8 +314,8 @@ void StartRssThread(Fuzzer *F, size_t RssLimitMb);
 static void RssThread(Fuzzer *F, size_t RssLimitMb) {
   while (true) {
     SleepSeconds(1);
-    size_t Peak = GetPeakRSSMb();
-    if (Peak > RssLimitMb)
+    
+    if (size_t Peak = GetPeakRSSMb(); Peak > RssLimitMb)
       F->RssLimitCallback();
   }
 }
@@ -889,8 +889,8 @@ int FuzzerDriver(int *argc, char ***argv, UserCallback Callback) {
     Merge(F, Options, Args, *Inputs, Flags.merge_control_file);
 
   if (Flags.merge_inner) {
-    const size_t kDefaultMaxMergeLen = 1 << 20;
-    if (Options.MaxLen == 0)
+    
+    if (const size_t kDefaultMaxMergeLen = 1 << 20; Options.MaxLen == 0)
       F->SetMaxInputLen(kDefaultMaxMergeLen);
     assert(Flags.merge_control_file);
     F->CrashResistantMergeInternalStep(Flags.merge_control_file,

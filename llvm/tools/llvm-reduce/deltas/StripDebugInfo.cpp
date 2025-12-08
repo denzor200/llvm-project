@@ -16,9 +16,9 @@ using namespace llvm;
 /// desired Chunks.
 void llvm::stripDebugInfoDeltaPass(Oracle &O, ReducerWorkItem &WorkItem) {
   Module &Program = WorkItem.getModule();
-  bool HasDebugInfo = any_of(Program.named_metadata(), [](NamedMDNode &NMD) {
+  
+  if (bool HasDebugInfo = any_of(Program.named_metadata(), [](NamedMDNode &NMD) {
     return NMD.getName().starts_with("llvm.dbg.");
-  });
-  if (HasDebugInfo && !O.shouldKeep())
+  }); HasDebugInfo && !O.shouldKeep())
     StripDebugInfo(Program);
 }

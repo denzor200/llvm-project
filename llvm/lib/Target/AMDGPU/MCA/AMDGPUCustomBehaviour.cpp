@@ -48,8 +48,8 @@ void AMDGPUInstrPostProcess::processWaitCnt(Instruction &Inst,
                                             const MCInst &MCI) {
   for (int Idx = 0, N = MCI.size(); Idx < N; Idx++) {
     MCAOperand Op;
-    const MCOperand &MCOp = MCI.getOperand(Idx);
-    if (MCOp.isReg()) {
+    
+    if (const MCOperand &MCOp = MCI.getOperand(Idx); MCOp.isReg()) {
       Op = MCAOperand::createReg(MCOp.getReg());
     } else if (MCOp.isImm()) {
       Op = MCAOperand::createImm(MCOp.getImm());
@@ -69,13 +69,13 @@ AMDGPUCustomBehaviour::AMDGPUCustomBehaviour(const MCSubtargetInfo &STI,
 unsigned AMDGPUCustomBehaviour::checkCustomHazard(ArrayRef<InstRef> IssuedInst,
                                                   const InstRef &IR) {
   const Instruction &Inst = *IR.getInstruction();
-  unsigned Opcode = Inst.getOpcode();
+  
 
   // llvm-mca is generally run on fully compiled assembly so we wouldn't see any
   // pseudo instructions here. However, there are plans for the future to make
   // it possible to use mca within backend passes. As such, I have left the
   // pseudo version of s_waitcnt within this switch statement.
-  switch (Opcode) {
+  switch (unsigned Opcode = Inst.getOpcode(); Opcode) {
   default:
     return 0;
   case AMDGPU::S_WAITCNT: // This instruction
@@ -179,9 +179,9 @@ void AMDGPUCustomBehaviour::computeWaitCnt(const InstRef &IR, unsigned &Vmcnt,
                                            unsigned &Vscnt) {
   AMDGPU::IsaVersion IV = AMDGPU::getIsaVersion(STI.getCPU());
   const Instruction &Inst = *IR.getInstruction();
-  unsigned Opcode = Inst.getOpcode();
+  
 
-  switch (Opcode) {
+  switch (unsigned Opcode = Inst.getOpcode(); Opcode) {
   case AMDGPU::S_WAITCNT_EXPCNT_gfx10:
   case AMDGPU::S_WAITCNT_LGKMCNT_gfx10:
   case AMDGPU::S_WAITCNT_VMCNT_gfx10:
@@ -247,8 +247,8 @@ void AMDGPUCustomBehaviour::generateWaitCntInfo() {
     const std::unique_ptr<Instruction> &Inst = EN.value();
     unsigned Index = EN.index();
     unsigned Opcode = Inst->getOpcode();
-    const MCInstrDesc &MCID = MCII.get(Opcode);
-    if ((MCID.TSFlags & SIInstrFlags::DS) &&
+    
+    if (const MCInstrDesc &MCID = MCII.get(Opcode); (MCID.TSFlags & SIInstrFlags::DS) &&
         (MCID.TSFlags & SIInstrFlags::LGKM_CNT)) {
       InstrWaitCntInfo[Index].LgkmCnt = true;
       if (isAlwaysGDS(Opcode) || hasModifiersSet(Inst, AMDGPU::OpName::gds))

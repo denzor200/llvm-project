@@ -46,8 +46,8 @@ using namespace llvm;
 static std::pair<std::string, std::optional<int>>
 parseDebugType(StringRef DbgType) {
   std::optional<int> Level;
-  size_t ColonPos = DbgType.find(':');
-  if (ColonPos != StringRef::npos) {
+  
+  if (size_t ColonPos = DbgType.find(':'); ColonPos != StringRef::npos) {
     StringRef LevelStr = DbgType.substr(ColonPos + 1);
     DbgType = DbgType.take_front(ColonPos);
     if (LevelStr.empty())

@@ -978,8 +978,8 @@ fuseWithReshapeByExpansion(LinalgOp linalgOp, Operation *reshapeOp,
   // reshape folded into its consumer.
   SmallVector<Value> resultVals;
   for (OpResult opResult : linalgOp->getOpResults()) {
-    int64_t resultNumber = opResult.getResultNumber();
-    if (resultTypes[resultNumber] != opResult.getType()) {
+    
+    if (int64_t resultNumber = opResult.getResultNumber(); resultTypes[resultNumber] != opResult.getType()) {
       SmallVector<ReassociationIndices> reassociation =
           getReassociationForExpansion(
               linalgOp.getMatchingIndexingMap(
@@ -1216,11 +1216,11 @@ bool mlir::linalg::isDimSequencePreserved(AffineMap indexingMap,
         return false;
       // 1a. Check if sequence is preserved.
       for (const auto &dimInSequence : enumerate(dimSequence)) {
-        unsigned dimInMap =
+        
+        if (unsigned dimInMap =
             cast<AffineDimExpr>(
                 indexingMap.getResult(expr.index() + dimInSequence.index()))
-                .getPosition();
-        if (dimInMap != dimInSequence.value())
+                .getPosition(); dimInMap != dimInSequence.value())
           return false;
       }
       // Found the sequence. Projected permutation
@@ -1727,8 +1727,8 @@ FailureOr<CollapseResult> mlir::linalg::collapseOpIterationDims(
         op, "illegal to collapse specified dimensions");
   }
 
-  bool hasPureBufferSemantics = op.hasPureBufferSemantics();
-  if (hasPureBufferSemantics &&
+  
+  if (bool hasPureBufferSemantics = op.hasPureBufferSemantics(); hasPureBufferSemantics &&
       !llvm::all_of(op->getOpOperands(), [&](OpOperand &opOperand) -> bool {
         MemRefType memRefToCollapse =
             dyn_cast<MemRefType>(opOperand.get().getType());

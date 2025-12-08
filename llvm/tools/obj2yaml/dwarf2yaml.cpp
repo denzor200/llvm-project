@@ -23,8 +23,8 @@
 using namespace llvm;
 
 Error dumpDebugAbbrev(DWARFContext &DCtx, DWARFYAML::Data &Y) {
-  auto AbbrevSetPtr = DCtx.getDebugAbbrev();
-  if (AbbrevSetPtr) {
+  
+  if (auto AbbrevSetPtr = DCtx.getDebugAbbrev(); AbbrevSetPtr) {
     uint64_t AbbrevTableID = 0;
     if (Error Err = AbbrevSetPtr->parse())
       return Err;
@@ -141,8 +141,8 @@ Error dumpDebugRanges(DWARFContext &DCtx, DWARFYAML::Data &Y) {
   // compile units.
   uint8_t AddrSize = 0;
   for (const auto &CU : DCtx.compile_units()) {
-    const uint8_t CUAddrSize = CU->getAddressByteSize();
-    if (AddrSize == 0)
+    
+    if (const uint8_t CUAddrSize = CU->getAddressByteSize(); AddrSize == 0)
       AddrSize = CUAddrSize;
     else if (CUAddrSize != AddrSize)
       return createStringError(std::errc::invalid_argument,
@@ -249,8 +249,8 @@ void dumpDebugInfo(DWARFContext &DCtx, DWARFYAML::Data &Y) {
 
       NewEntry.AbbrCode = EntryData.getULEB128(&offset);
 
-      auto AbbrevDecl = DIE.getAbbreviationDeclarationPtr();
-      if (AbbrevDecl) {
+      
+      if (auto AbbrevDecl = DIE.getAbbreviationDeclarationPtr(); AbbrevDecl) {
         for (const auto &AttrSpec : AbbrevDecl->attributes()) {
           DWARFYAML::FormValue NewValue;
           NewValue.Value = 0xDEADBEEFDEADBEEF;

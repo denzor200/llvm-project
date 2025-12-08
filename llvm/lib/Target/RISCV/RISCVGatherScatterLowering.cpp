@@ -120,8 +120,8 @@ static std::pair<Value *, Value *> matchStridedConstant(Constant *StartC) {
 static std::pair<Value *, Value *> matchStridedStart(Value *Start,
                                                      IRBuilderBase &Builder) {
   // Base case, start is a strided constant.
-  auto *StartC = dyn_cast<Constant>(Start);
-  if (StartC)
+  
+  if (auto *StartC = dyn_cast<Constant>(Start); StartC)
     return matchStridedConstant(StartC);
 
   // Base case, start is a stepvector

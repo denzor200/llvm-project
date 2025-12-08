@@ -172,8 +172,8 @@ ReshardingRquirementKind getReshardingRquirementKind(
       continue;
     }
     bool needsResharding = sharding != shardOp.getSharding();
-    bool isExplicitAnnotationForThisOp = shardOp.getAnnotateForUsers();
-    if (needsResharding) {
+    
+    if (bool isExplicitAnnotationForThisOp = shardOp.getAnnotateForUsers(); needsResharding) {
       if (isExplicitAnnotationForThisOp) {
         // This is the worst case. No need to continue.
         return ReshardingRquirementKind::RESHARDING_FOR_EXPLICIT_ANNOTATIONS;
@@ -190,8 +190,8 @@ ReshardingRquirementKind getReshardingRquirementKind(
         continue;
       }
       bool needsResharding = sharding != shardOp.getSharding();
-      bool isExplicitAnnotationForThisOp = !shardOp.getAnnotateForUsers();
-      if (needsResharding) {
+      
+      if (bool isExplicitAnnotationForThisOp = !shardOp.getAnnotateForUsers(); needsResharding) {
         if (isExplicitAnnotationForThisOp) {
           // This is the worst case. No need to continue.
           return ReshardingRquirementKind::RESHARDING_FOR_EXPLICIT_ANNOTATIONS;

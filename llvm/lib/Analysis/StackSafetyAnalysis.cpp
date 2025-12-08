@@ -807,8 +807,8 @@ void resolveAllCalls(UseInfo<GlobalValue> &Use,
   UseInfo<GlobalValue>::CallsTy TmpCalls;
   std::swap(TmpCalls, Use.Calls);
   for (const auto &C : TmpCalls) {
-    const Function *F = findCalleeInModule(C.first.Callee);
-    if (F) {
+    
+    if (const Function *F = findCalleeInModule(C.first.Callee); F) {
       Use.Calls.emplace(CallInfo<GlobalValue>(F, C.first.ParamNo), C.second);
       continue;
     }
@@ -1014,8 +1014,8 @@ void StackSafetyGlobalInfo::print(raw_ostream &O) const {
       O << "    safe accesses:"
         << "\n";
       for (const auto &I : instructions(F)) {
-        const CallInst *Call = dyn_cast<CallInst>(&I);
-        if ((isa<StoreInst>(I) || isa<LoadInst>(I) || isa<MemIntrinsic>(I) ||
+        
+        if (const CallInst *Call = dyn_cast<CallInst>(&I); (isa<StoreInst>(I) || isa<LoadInst>(I) || isa<MemIntrinsic>(I) ||
              isa<AtomicCmpXchgInst>(I) || isa<AtomicRMWInst>(I) ||
              (Call && Call->hasByValArgument())) &&
             stackAccessIsSafe(I)) {

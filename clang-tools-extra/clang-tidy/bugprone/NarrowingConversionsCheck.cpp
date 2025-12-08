@@ -322,8 +322,8 @@ bool NarrowingConversionsCheck::isWarningInhibitedByEquivalentSize(
   // in bits. eg. uint32 <-> int32.
   if (!WarnOnEquivalentBitWidth) {
     const uint64_t FromTypeSize = Context.getTypeSize(&FromType);
-    const uint64_t ToTypeSize = Context.getTypeSize(&ToType);
-    if (FromTypeSize == ToTypeSize) {
+    
+    if (const uint64_t ToTypeSize = Context.getTypeSize(&ToType); FromTypeSize == ToTypeSize) {
       return true;
     }
   }
@@ -407,8 +407,8 @@ void NarrowingConversionsCheck::handleIntegralCast(const ASTContext &Context,
     // in bits. eg. uint32 <-> int32.
     if (!WarnOnEquivalentBitWidth) {
       const uint64_t FromTypeSize = Context.getTypeSize(FromType);
-      const uint64_t ToTypeSize = Context.getTypeSize(ToType);
-      if (FromTypeSize == ToTypeSize)
+      
+      if (const uint64_t ToTypeSize = Context.getTypeSize(ToType); FromTypeSize == ToTypeSize)
         return;
     }
 
@@ -470,8 +470,8 @@ void NarrowingConversionsCheck::handleFloatingToIntegral(
   }
 
   const BuiltinType *FromType = getBuiltinType(Rhs);
-  const BuiltinType *ToType = getBuiltinType(Lhs);
-  if (isWarningInhibitedByEquivalentSize(Context, *FromType, *ToType))
+  
+  if (const BuiltinType *ToType = getBuiltinType(Lhs); isWarningInhibitedByEquivalentSize(Context, *FromType, *ToType))
     return;
   diagNarrowType(SourceLoc, Lhs, Rhs); // Assumed always lossy.
 }
@@ -512,8 +512,8 @@ void NarrowingConversionsCheck::handleFloatingCast(const ASTContext &Context,
         diagNarrowConstant(SourceLoc, Lhs, Rhs);
       return;
     }
-    const BuiltinType *FromType = getBuiltinType(Rhs);
-    if (!llvm::APFloatBase::isRepresentableBy(
+    
+    if (const BuiltinType *FromType = getBuiltinType(Rhs); !llvm::APFloatBase::isRepresentableBy(
             Context.getFloatTypeSemantics(FromType->desugar()),
             Context.getFloatTypeSemantics(ToType->desugar())))
       diagNarrowType(SourceLoc, Lhs, Rhs);

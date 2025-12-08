@@ -219,8 +219,8 @@ static bool AttrFilter(const ObjCMethodDecl *M) {
 // Register the checker that checks for direct accesses in all functions,
 // except for the initialization and copy routines.
 void ento::registerDirectIvarAssignment(CheckerManager &mgr) {
-  auto Chk = mgr.registerChecker<DirectIvarAssignment>();
-  if (mgr.getAnalyzerOptions().getCheckerBooleanOption(Chk,
+  
+  if (auto Chk = mgr.registerChecker<DirectIvarAssignment>(); mgr.getAnalyzerOptions().getCheckerBooleanOption(Chk,
                                                        "AnnotatedFunctions"))
     Chk->ShouldSkipMethod = &AttrFilter;
 }

@@ -138,10 +138,10 @@ void IRInstructionData::setCalleeName(bool MatchByName) {
     // instructions, but also, the Intrinsic ID, and the Name of the
     // intrinsic.
     Intrinsic::ID IntrinsicID = II->getIntrinsicID();
-    FunctionType *FT = II->getFunctionType();
+    
     // If there is an overloaded name, we have to use the complex version
     // of getName to get the entire string.
-    if (Intrinsic::isOverloaded(IntrinsicID))
+    if (FunctionType *FT = II->getFunctionType(); Intrinsic::isOverloaded(IntrinsicID))
       CalleeName =
           Intrinsic::getName(IntrinsicID, FT->params(), II->getModule(), FT);
     // If there is not an overloaded name, we only need to use this version.
@@ -754,11 +754,11 @@ bool IRSimilarityCandidate::checkRelativeLocations(RelativeLocMapping A,
   
   // Determine if the block is contained in the region.
   bool AContained = BasicBlockA.contains(ABB);
-  bool BContained = BasicBlockB.contains(BBB);
+  
 
   // Both blocks need to be contained in the region, or both need to be outside
   // the region.
-  if (AContained != BContained)
+  if (bool BContained = BasicBlockB.contains(BBB); AContained != BContained)
     return false;
   
   // If both are contained, then we need to make sure that the relative
@@ -976,8 +976,8 @@ static void createCandidatesFromSuffixTree(
     // Check that this subsequence does not contain an illegal instruction.
     bool ContainsIllegal = false;
     for (unsigned CurrIdx = StartIdx; CurrIdx <= EndIdx; CurrIdx++) {
-      unsigned Key = IntegerMapping[CurrIdx];
-      if (Key > Mapper.IllegalInstrNumber) {
+      
+      if (unsigned Key = IntegerMapping[CurrIdx]; Key > Mapper.IllegalInstrNumber) {
         ContainsIllegal = true;
         break;
       }

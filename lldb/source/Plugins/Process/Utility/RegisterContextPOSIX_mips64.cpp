@@ -31,8 +31,8 @@ bool RegisterContextPOSIX_mips64::IsGPR(unsigned reg) {
 }
 
 bool RegisterContextPOSIX_mips64::IsFPR(unsigned reg) {
-  int set = GetRegisterSetCount();
-  if (set > 1)
+  
+  if (int set = GetRegisterSetCount(); set > 1)
     return reg < (m_registers_count[fpr_registers_count]
                   + m_registers_count[gpr_registers_count]);
   return false;
@@ -128,9 +128,9 @@ uint32_t RegisterContextPOSIX_mips64::ConvertRegisterKindToRegisterNumber(
 
   assert(kind < kNumRegisterKinds);
   for (uint32_t reg_idx = 0; reg_idx < num_regs; ++reg_idx) {
-    const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg_idx);
+    
 
-    if (reg_info->kinds[kind] == num)
+    if (const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg_idx); reg_info->kinds[kind] == num)
       return reg_idx;
   }
 

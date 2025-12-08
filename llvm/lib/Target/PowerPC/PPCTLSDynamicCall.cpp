@@ -172,10 +172,10 @@ protected:
             // (either for the variable offset or for the module handle), and
             // then move the variable offset TOC load right before the node that
             // uses the OutReg of the .__tls_get_mod node.
-            unsigned LDTocOp =
+            
+            if (unsigned LDTocOp =
                 Is64Bit ? (IsLargeModel ? PPC::LDtocL : PPC::LDtoc)
-                        : (IsLargeModel ? PPC::LWZtocL : PPC::LWZtoc);
-            if (!RegInfo.use_empty(OutReg)) {
+                        : (IsLargeModel ? PPC::LWZtocL : PPC::LWZtoc); !RegInfo.use_empty(OutReg)) {
               std::set<MachineInstr *> Uses;
               // Collect all instructions that use the OutReg.
               for (MachineOperand &MO : RegInfo.use_operands(OutReg))

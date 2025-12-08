@@ -251,8 +251,8 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
     }
 
     if (const Expr *E = dyn_cast<Expr>(S)) {
-      const BinaryOperator *BinOp = dyn_cast<BinaryOperator>(E->IgnoreParens());
-      if (BinOp && BinOp->isLogicalOp()) {
+      
+      if (const BinaryOperator *BinOp = dyn_cast<BinaryOperator>(E->IgnoreParens()); BinOp && BinOp->isLogicalOp()) {
         /// Check for "split-nested" logical operators. This happens when a new
         /// boolean expression logical-op nest is encountered within an existing
         /// boolean expression, separated by a non-logical operator.  For
@@ -565,8 +565,8 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
       case Stmt::CXXThrowExprClass:
         return PGOHash::ThrowExpr;
       case Stmt::UnaryOperatorClass: {
-        const UnaryOperator *UO = cast<UnaryOperator>(S);
-        if (UO->getOpcode() == UO_LNot)
+        
+        if (const UnaryOperator *UO = cast<UnaryOperator>(S); UO->getOpcode() == UO_LNot)
           return PGOHash::UnaryOperatorLNot;
         break;
       }
@@ -871,8 +871,8 @@ struct ComputeRegionCounts : public ConstStmtVisitor<ComputeRegionCounts> {
     RecordStmtCount(S);
 
     if (S->isConsteval()) {
-      const Stmt *Stm = S->isNegatedConsteval() ? S->getThen() : S->getElse();
-      if (Stm)
+      
+      if (const Stmt *Stm = S->isNegatedConsteval() ? S->getThen() : S->getElse(); Stm)
         Visit(Stm);
       return;
     }
@@ -1388,8 +1388,8 @@ void CodeGenPGO::valueProfile(CGBuilderTy &Builder, uint32_t ValueKind,
   if (isa<llvm::Constant>(ValuePtr))
     return;
 
-  bool InstrumentValueSites = CGM.getCodeGenOpts().hasProfileClangInstr();
-  if (InstrumentValueSites && RegionCounterMap) {
+  
+  if (bool InstrumentValueSites = CGM.getCodeGenOpts().hasProfileClangInstr(); InstrumentValueSites && RegionCounterMap) {
     auto BuilderInsertPoint = Builder.saveIP();
     Builder.SetInsertPoint(ValueSite);
     llvm::Value *Args[5] = {

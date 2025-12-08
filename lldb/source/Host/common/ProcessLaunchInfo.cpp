@@ -44,22 +44,22 @@ ProcessLaunchInfo::ProcessLaunchInfo(const FileSpec &stdin_file_spec,
   if (stdin_file_spec) {
     FileAction file_action;
     const bool read = true;
-    const bool write = false;
-    if (file_action.Open(STDIN_FILENO, stdin_file_spec, read, write))
+    
+    if (const bool write = false; file_action.Open(STDIN_FILENO, stdin_file_spec, read, write))
       AppendFileAction(file_action);
   }
   if (stdout_file_spec) {
     FileAction file_action;
     const bool read = false;
-    const bool write = true;
-    if (file_action.Open(STDOUT_FILENO, stdout_file_spec, read, write))
+    
+    if (const bool write = true; file_action.Open(STDOUT_FILENO, stdout_file_spec, read, write))
       AppendFileAction(file_action);
   }
   if (stderr_file_spec) {
     FileAction file_action;
     const bool read = false;
-    const bool write = true;
-    if (file_action.Open(STDERR_FILENO, stderr_file_spec, read, write))
+    
+    if (const bool write = true; file_action.Open(STDERR_FILENO, stderr_file_spec, read, write))
       AppendFileAction(file_action);
   }
   if (working_directory)

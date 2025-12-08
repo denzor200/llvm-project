@@ -596,8 +596,8 @@ public:
   }
 
   bool VisitLambdaExpr(LambdaExpr *E) {
-    FunctionDecl *D = E->getCallOperator();
-    if (!E->hasExplicitResultType()) {
+    
+    if (FunctionDecl *D = E->getCallOperator(); !E->hasExplicitResultType()) {
       SourceLocation TypeHintLoc;
       if (!E->hasExplicitParameters())
         TypeHintLoc = E->getIntroducerRange().getEnd();
@@ -610,8 +610,8 @@ public:
   }
 
   void addReturnTypeHint(FunctionDecl *D, SourceRange Range) {
-    auto *AT = D->getReturnType()->getContainedAutoType();
-    if (!AT || AT->getDeducedType().isNull())
+    
+    if (auto *AT = D->getReturnType()->getContainedAutoType(); !AT || AT->getDeducedType().isNull())
       return;
     addTypeHint(Range, D->getReturnType(), /*Prefix=*/"-> ");
   }
@@ -981,9 +981,9 @@ private:
   static const ParmVarDecl *getParamDefinition(const ParmVarDecl *P) {
     if (auto *Callee = dyn_cast<FunctionDecl>(P->getDeclContext())) {
       if (auto *Def = Callee->getDefinition()) {
-        auto I = std::distance(Callee->param_begin(),
-                               llvm::find(Callee->parameters(), P));
-        if (I < (int)Callee->getNumParams()) {
+        
+        if (auto I = std::distance(Callee->param_begin(),
+                               llvm::find(Callee->parameters(), P)); I < (int)Callee->getNumParams()) {
           return Def->getParamDecl(I);
         }
       }
@@ -1092,8 +1092,8 @@ private:
       Label += ' ';
     Label += Name;
 
-    constexpr unsigned HintMaxLengthLimit = 60;
-    if (Label.length() > HintMaxLengthLimit)
+    
+    if (constexpr unsigned HintMaxLengthLimit = 60; Label.length() > HintMaxLengthLimit)
       return;
 
     addInlayHint(*HintRange, HintSide::Right, InlayHintKind::BlockEnd, " // ",
@@ -1132,10 +1132,10 @@ private:
       return std::nullopt;
 
     auto BlockBeginLine = SM.getLineNumber(BlockBeginFileId, BlockBeginOffset);
-    auto RBraceLine = SM.getLineNumber(RBraceFileId, RBraceOffset);
+    
 
     // Don't show hint on trivial blocks like `class X {};`
-    if (BlockBeginLine + HintOptions.HintMinLineLimit - 1 > RBraceLine)
+    if (auto RBraceLine = SM.getLineNumber(RBraceFileId, RBraceOffset); BlockBeginLine + HintOptions.HintMinLineLimit - 1 > RBraceLine)
       return std::nullopt;
 
     // This is what we attach the hint to, usually "}" or "};".

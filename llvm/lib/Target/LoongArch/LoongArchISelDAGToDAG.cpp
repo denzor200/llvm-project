@@ -191,8 +191,8 @@ bool LoongArchDAGToDAGISel::SelectInlineAsmMemoryOperand(
   // Reg+simm12 addressing.
   case InlineAsm::ConstraintCode::m:
     if (CurDAG->isBaseWithConstantOffset(Op)) {
-      ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Op.getOperand(1));
-      if (isIntN(12, CN->getSExtValue())) {
+      
+      if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Op.getOperand(1)); isIntN(12, CN->getSExtValue())) {
         Base = Op.getOperand(0);
         Offset = CurDAG->getTargetConstant(CN->getZExtValue(), SDLoc(Op),
                                            Op.getValueType());
@@ -205,8 +205,8 @@ bool LoongArchDAGToDAGISel::SelectInlineAsmMemoryOperand(
   // Reg+(simm14<<2) addressing.
   case InlineAsm::ConstraintCode::ZC:
     if (CurDAG->isBaseWithConstantOffset(Op)) {
-      ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Op.getOperand(1));
-      if (isIntN(16, CN->getSExtValue()) &&
+      
+      if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Op.getOperand(1)); isIntN(16, CN->getSExtValue()) &&
           isAligned(Align(4ULL), CN->getZExtValue())) {
         Base = Op.getOperand(0);
         Offset = CurDAG->getTargetConstant(CN->getZExtValue(), SDLoc(Op),
@@ -265,8 +265,8 @@ bool LoongArchDAGToDAGISel::SelectAddrRegImm12(SDValue Addr, SDValue &Base,
 
   // The address is the result of an ADD. Here we only consider reg+simm12.
   if (CurDAG->isBaseWithConstantOffset(Addr)) {
-    int64_t Imm = cast<ConstantSDNode>(Addr.getOperand(1))->getSExtValue();
-    if (isInt<12>(Imm)) {
+    
+    if (int64_t Imm = cast<ConstantSDNode>(Addr.getOperand(1))->getSExtValue(); isInt<12>(Imm)) {
       Base = Addr.getOperand(0);
       Offset = CurDAG->getSignedTargetConstant(SignExtend64<12>(Imm), DL, VT);
       return true;
@@ -311,17 +311,17 @@ bool LoongArchDAGToDAGISel::selectShiftMask(SDValue N, unsigned ShiftWidth,
     assert(isPowerOf2_32(ShiftWidth) && "Unexpected max shift amount!");
     assert(isa<ConstantSDNode>(N.getOperand(1)) && "Illegal msb operand!");
     assert(isa<ConstantSDNode>(N.getOperand(2)) && "Illegal lsb operand!");
-    uint64_t msb = N.getConstantOperandVal(1), lsb = N.getConstantOperandVal(2);
-    if (lsb == 0 && Log2_32(ShiftWidth) <= msb + 1) {
+    
+    if (uint64_t msb = N.getConstantOperandVal(1), lsb = N.getConstantOperandVal(2); lsb == 0 && Log2_32(ShiftWidth) <= msb + 1) {
       ShAmt = N.getOperand(0);
       return true;
     }
   } else if (N.getOpcode() == ISD::SUB &&
              isa<ConstantSDNode>(N.getOperand(0))) {
-    uint64_t Imm = N.getConstantOperandVal(0);
+    
     // If we are shifting by N-X where N == 0 mod Size, then just shift by -X to
     // generate a NEG instead of a SUB of a constant.
-    if (Imm != 0 && Imm % ShiftWidth == 0) {
+    if (uint64_t Imm = N.getConstantOperandVal(0); Imm != 0 && Imm % ShiftWidth == 0) {
       SDLoc DL(N);
       EVT VT = N.getValueType();
       SDValue Zero =
@@ -361,8 +361,8 @@ bool LoongArchDAGToDAGISel::selectSExti32(SDValue N, SDValue &Val) {
 
 bool LoongArchDAGToDAGISel::selectZExti32(SDValue N, SDValue &Val) {
   if (N.getOpcode() == ISD::AND) {
-    auto *C = dyn_cast<ConstantSDNode>(N.getOperand(1));
-    if (C && C->getZExtValue() == UINT64_C(0xFFFFFFFF)) {
+    
+    if (auto *C = dyn_cast<ConstantSDNode>(N.getOperand(1)); C && C->getZExtValue() == UINT64_C(0xFFFFFFFF)) {
       Val = N.getOperand(0);
       return true;
     }
@@ -435,9 +435,9 @@ bool LoongArchDAGToDAGISel::selectVSplatUimmInvPow2(SDValue N,
 
   if (selectVSplat(N.getNode(), ImmValue, EltTy.getSizeInBits()) &&
       ImmValue.getBitWidth() == EltTy.getSizeInBits()) {
-    int32_t Log2 = (~ImmValue).exactLogBase2();
+    
 
-    if (Log2 != -1) {
+    if (int32_t Log2 = (~ImmValue).exactLogBase2(); Log2 != -1) {
       SplatImm = CurDAG->getSignedTargetConstant(Log2, SDLoc(N), EltTy);
       return true;
     }
@@ -456,9 +456,9 @@ bool LoongArchDAGToDAGISel::selectVSplatUimmPow2(SDValue N,
 
   if (selectVSplat(N.getNode(), ImmValue, EltTy.getSizeInBits()) &&
       ImmValue.getBitWidth() == EltTy.getSizeInBits()) {
-    int32_t Log2 = ImmValue.exactLogBase2();
+    
 
-    if (Log2 != -1) {
+    if (int32_t Log2 = ImmValue.exactLogBase2(); Log2 != -1) {
       SplatImm = CurDAG->getSignedTargetConstant(Log2, SDLoc(N), EltTy);
       return true;
     }

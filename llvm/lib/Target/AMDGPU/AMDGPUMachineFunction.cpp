@@ -30,8 +30,8 @@ getKernelDynLDSGlobalFromFunction(const Function &F) {
 
 static bool hasLDSKernelArgument(const Function &F) {
   for (const Argument &Arg : F.args()) {
-    Type *ArgTy = Arg.getType();
-    if (auto *PtrTy = dyn_cast<PointerType>(ArgTy)) {
+    
+    if (Type *ArgTy = Arg.getType(); auto *PtrTy = dyn_cast<PointerType>(ArgTy)) {
       if (PtrTy->getAddressSpace() == AMDGPUAS::LOCAL_ADDRESS)
         return true;
     }
@@ -76,8 +76,8 @@ AMDGPUMachineFunction::AMDGPUMachineFunction(const Function &F,
   LDSSize = LDSSizeRange.first;
   StaticLDSSize = LDSSize;
 
-  CallingConv::ID CC = F.getCallingConv();
-  if (CC == CallingConv::AMDGPU_KERNEL || CC == CallingConv::SPIR_KERNEL)
+  
+  if (CallingConv::ID CC = F.getCallingConv(); CC == CallingConv::AMDGPU_KERNEL || CC == CallingConv::SPIR_KERNEL)
     ExplicitKernArgSize = ST.getExplicitKernArgSize(F, MaxKernArgAlign);
 
   // FIXME: Shouldn't be target specific
@@ -135,9 +135,9 @@ unsigned AMDGPUMachineFunction::allocateLDSGlobal(const DataLayout &DL,
         // section, and not within some other non-absolute-address object
         // allocated here, but the extra error detection is minimal and we would
         // have to pass the Function around or cache the attribute value.
-        uint32_t ObjectEnd =
-            ObjectStart + DL.getTypeAllocSize(GV.getValueType());
-        if (ObjectEnd > StaticLDSSize) {
+        
+        if (uint32_t ObjectEnd =
+            ObjectStart + DL.getTypeAllocSize(GV.getValueType()); ObjectEnd > StaticLDSSize) {
           report_fatal_error(
               "Absolute address LDS variable outside of static frame");
         }
@@ -174,8 +174,8 @@ unsigned AMDGPUMachineFunction::allocateLDSGlobal(const DataLayout &DL,
 std::optional<uint32_t>
 AMDGPUMachineFunction::getLDSKernelIdMetadata(const Function &F) {
   // TODO: Would be more consistent with the abs symbols to use a range
-  MDNode *MD = F.getMetadata("llvm.amdgcn.lds.kernel.id");
-  if (MD && MD->getNumOperands() == 1) {
+  
+  if (MDNode *MD = F.getMetadata("llvm.amdgcn.lds.kernel.id"); MD && MD->getNumOperands() == 1) {
     if (ConstantInt *KnownSize =
             mdconst::extract<ConstantInt>(MD->getOperand(0))) {
       uint64_t ZExt = KnownSize->getZExtValue();
@@ -224,8 +224,8 @@ void AMDGPUMachineFunction::setDynLDSAlign(const Function &F,
   // further dynamic LDS instance (allocated by calling setDynLDSAlign) must
   // map to the same address. This holds because no LDS is allocated after the
   // lowering pass if there are dynamic LDS variables present.
-  const GlobalVariable *Dyn = getKernelDynLDSGlobalFromFunction(F);
-  if (Dyn) {
+  
+  if (const GlobalVariable *Dyn = getKernelDynLDSGlobalFromFunction(F); Dyn) {
     unsigned Offset = LDSSize; // return this?
     std::optional<uint32_t> Expect = getLDSAbsoluteAddress(*Dyn);
     if (!Expect || (Offset != *Expect)) {

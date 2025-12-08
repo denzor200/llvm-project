@@ -270,8 +270,8 @@ std::vector<Cluster> randomClusters(const CallGraph &Cg) {
 
   size_t Idx = 0;
   while (Idx < Clusters.size()) {
-    size_t MergeIdx = pickMergeCluster(Idx);
-    if (MergeIdx == Clusters.size()) {
+    
+    if (size_t MergeIdx = pickMergeCluster(Idx); MergeIdx == Clusters.size()) {
       ++Idx;
     } else {
       Clusters[Idx].merge(Clusters[MergeIdx]);

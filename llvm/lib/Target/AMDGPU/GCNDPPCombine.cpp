@@ -184,8 +184,8 @@ MachineOperand *GCNDPPCombine::getOldOpndValue(MachineOperand &OldOpnd) const {
   case AMDGPU::V_MOV_B64_PSEUDO:
   case AMDGPU::V_MOV_B64_e32:
   case AMDGPU::V_MOV_B64_e64: {
-    auto &Op1 = Def->getOperand(1);
-    if (Op1.isImm())
+    
+    if (auto &Op1 = Def->getOperand(1); Op1.isImm())
       return &Op1;
     break;
   }
@@ -341,8 +341,8 @@ MachineInstr *GCNDPPCombine::createDPPInst(MachineInstr &OrigMI,
     }
 
     if (HasVOP3DPP) {
-      auto *ClampOpr = TII->getNamedOperand(OrigMI, AMDGPU::OpName::clamp);
-      if (ClampOpr && AMDGPU::hasNamedOperand(DPPOp, AMDGPU::OpName::clamp)) {
+      
+      if (auto *ClampOpr = TII->getNamedOperand(OrigMI, AMDGPU::OpName::clamp); ClampOpr && AMDGPU::hasNamedOperand(DPPOp, AMDGPU::OpName::clamp)) {
         DPPInst.addImm(ClampOpr->getImm());
       }
       auto *VdstInOpr = TII->getNamedOperand(OrigMI, AMDGPU::OpName::vdst_in);
@@ -823,8 +823,8 @@ PreservedAnalyses GCNDPPCombinePass::run(MachineFunction &MF,
   if (MF.getFunction().hasOptNone())
     return PreservedAnalyses::all();
 
-  bool Changed = GCNDPPCombine().run(MF);
-  if (!Changed)
+  
+  if (bool Changed = GCNDPPCombine().run(MF); !Changed)
     return PreservedAnalyses::all();
 
   auto PA = getMachineFunctionPassPreservedAnalyses();

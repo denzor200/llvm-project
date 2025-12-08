@@ -470,9 +470,9 @@ Context::getOverridingFunction(const CXXRecordDecl *DynamicDecl,
   const CXXRecordDecl *CurRecord = DynamicDecl;
   const CXXMethodDecl *FoundFunction = InitialFunction;
   for (;;) {
-    const CXXMethodDecl *Overrider =
-        FoundFunction->getCorrespondingMethodDeclaredInClass(CurRecord, false);
-    if (Overrider)
+    
+    if (const CXXMethodDecl *Overrider =
+        FoundFunction->getCorrespondingMethodDeclaredInClass(CurRecord, false); Overrider)
       return Overrider;
 
     // Common case of only one base class.
@@ -483,8 +483,8 @@ Context::getOverridingFunction(const CXXRecordDecl *DynamicDecl,
 
     // Otherwise, go to the base class that will lead to the StaticDecl.
     for (const CXXBaseSpecifier &Spec : CurRecord->bases()) {
-      const CXXRecordDecl *Base = Spec.getType()->getAsCXXRecordDecl();
-      if (Base == StaticDecl || Base->isDerivedFrom(StaticDecl)) {
+      
+      if (const CXXRecordDecl *Base = Spec.getType()->getAsCXXRecordDecl(); Base == StaticDecl || Base->isDerivedFrom(StaticDecl)) {
         CurRecord = Base;
         break;
       }
@@ -653,9 +653,9 @@ unsigned Context::collectBaseOffset(const RecordDecl *BaseDecl,
     assert(CurRecord->getNumBases() > 0);
     // One level up
     for (const Record::Base &B : CurRecord->bases()) {
-      const auto *BaseDecl = cast<CXXRecordDecl>(B.Decl);
+      
 
-      if (BaseDecl == FinalDecl || BaseDecl->isDerivedFrom(FinalDecl)) {
+      if (const auto *BaseDecl = cast<CXXRecordDecl>(B.Decl); BaseDecl == FinalDecl || BaseDecl->isDerivedFrom(FinalDecl)) {
         OffsetSum += B.Offset;
         CurRecord = B.R;
         CurDecl = BaseDecl;

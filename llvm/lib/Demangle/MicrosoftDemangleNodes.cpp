@@ -28,8 +28,8 @@ static void outputSpaceIfNecessary(OutputBuffer &OB) {
   if (OB.empty())
     return;
 
-  char C = OB.back();
-  if (std::isalnum(C) || C == '>')
+  
+  if (char C = OB.back(); std::isalnum(C) || C == '>')
     OB << " ";
 }
 
@@ -70,8 +70,8 @@ static void outputQualifiers(OutputBuffer &OB, Qualifiers Q, bool SpaceBefore,
   SpaceBefore = outputQualifierIfPresent(OB, Q, Q_Const, SpaceBefore);
   SpaceBefore = outputQualifierIfPresent(OB, Q, Q_Volatile, SpaceBefore);
   SpaceBefore = outputQualifierIfPresent(OB, Q, Q_Restrict, SpaceBefore);
-  size_t Pos2 = OB.getCurrentPosition();
-  if (SpaceAfter && Pos2 > Pos1)
+  
+  if (size_t Pos2 = OB.getCurrentPosition(); SpaceAfter && Pos2 > Pos1)
     OB << " ";
 }
 
@@ -558,8 +558,8 @@ void ArrayTypeNode::outputPre(OutputBuffer &OB, OutputFlags Flags) const {
 void ArrayTypeNode::outputOneDimension(OutputBuffer &OB, OutputFlags Flags,
                                        Node *N) const {
   assert(N->kind() == NodeKind::IntegerLiteral);
-  IntegerLiteralNode *ILN = static_cast<IntegerLiteralNode *>(N);
-  if (ILN->Value != 0)
+  
+  if (IntegerLiteralNode *ILN = static_cast<IntegerLiteralNode *>(N); ILN->Value != 0)
     ILN->output(OB, Flags);
 }
 

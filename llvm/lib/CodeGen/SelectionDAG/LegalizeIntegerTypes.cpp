@@ -2166,9 +2166,9 @@ void DAGTypeLegalizer::SExtOrZExtPromotedOperands(SDValue &LHS, SDValue &RHS) {
     // extended.
     unsigned OpLEffectiveBits =
         DAG.computeKnownBits(OpL).countMaxActiveBits();
-    unsigned OpREffectiveBits =
-        DAG.computeKnownBits(OpR).countMaxActiveBits();
-    if (OpLEffectiveBits <= LHS.getScalarValueSizeInBits() &&
+    
+    if (unsigned OpREffectiveBits =
+        DAG.computeKnownBits(OpR).countMaxActiveBits(); OpLEffectiveBits <= LHS.getScalarValueSizeInBits() &&
         OpREffectiveBits <= RHS.getScalarValueSizeInBits()) {
       LHS = OpL;
       RHS = OpR;
@@ -2187,8 +2187,8 @@ void DAGTypeLegalizer::SExtOrZExtPromotedOperands(SDValue &LHS, SDValue &RHS) {
   // than the width of LHS/RHS, we can avoid/ inserting a zext_inreg operation
   // that we might not be able to remove.
   unsigned OpLEffectiveBits = DAG.ComputeMaxSignificantBits(OpL);
-  unsigned OpREffectiveBits = DAG.ComputeMaxSignificantBits(OpR);
-  if (OpLEffectiveBits <= LHS.getScalarValueSizeInBits() &&
+  
+  if (unsigned OpREffectiveBits = DAG.ComputeMaxSignificantBits(OpR); OpLEffectiveBits <= LHS.getScalarValueSizeInBits() &&
       OpREffectiveBits <= RHS.getScalarValueSizeInBits()) {
     LHS = OpL;
     RHS = OpR;
@@ -2647,8 +2647,8 @@ SDValue DAGTypeLegalizer::PromoteIntOp_ZERO_EXTEND(SDNode *N) {
   // TODO: Should we have some way to set nneg on ISD::AND instead?
   if (N->getFlags().hasNonNeg() && Op.getValueType() == VT &&
       TLI.isSExtCheaperThanZExt(Src.getValueType(), VT)) {
-    unsigned OpEffectiveBits = DAG.ComputeMaxSignificantBits(Op);
-    if (OpEffectiveBits <= Src.getScalarValueSizeInBits())
+    
+    if (unsigned OpEffectiveBits = DAG.ComputeMaxSignificantBits(Op); OpEffectiveBits <= Src.getScalarValueSizeInBits())
       return Op;
   }
 
@@ -3625,10 +3625,10 @@ void DAGTypeLegalizer::ExpandIntRes_ADDSUB(SDNode *N,
   SDValue LoOps[2] = { LHSL, RHSL };
   SDValue HiOps[3] = { LHSH, RHSH };
 
-  bool HasOpCarry = TLI.isOperationLegalOrCustom(
+  
+  if (bool HasOpCarry = TLI.isOperationLegalOrCustom(
       N->getOpcode() == ISD::ADD ? ISD::UADDO_CARRY : ISD::USUBO_CARRY,
-      TLI.getTypeToExpandTo(*DAG.getContext(), NVT));
-  if (HasOpCarry) {
+      TLI.getTypeToExpandTo(*DAG.getContext(), NVT)); HasOpCarry) {
     SDVTList VTList = DAG.getVTList(NVT, getSetCCResultType(NVT));
     if (N->getOpcode() == ISD::ADD) {
       Lo = DAG.getNode(ISD::UADDO, dl, VTList, LoOps);
@@ -3827,10 +3827,10 @@ void DAGTypeLegalizer::ExpandIntRes_UADDSUBO(SDNode *N,
       llvm_unreachable("Node has unexpected Opcode");
   }
 
-  bool HasCarryOp = TLI.isOperationLegalOrCustom(
-      CarryOp, TLI.getTypeToExpandTo(*DAG.getContext(), LHS.getValueType()));
+  
 
-  if (HasCarryOp) {
+  if (bool HasCarryOp = TLI.isOperationLegalOrCustom(
+      CarryOp, TLI.getTypeToExpandTo(*DAG.getContext(), LHS.getValueType())); HasCarryOp) {
     // Expand the subcomponents.
     SDValue LHSL, LHSH, RHSL, RHSH;
     GetExpandedInteger(LHS, LHSL, LHSH);
@@ -3943,9 +3943,9 @@ void DAGTypeLegalizer::ExpandIntRes_AssertSext(SDNode *N,
   EVT NVT = Lo.getValueType();
   EVT EVT = cast<VTSDNode>(N->getOperand(1))->getVT();
   unsigned NVTBits = NVT.getSizeInBits();
-  unsigned EVTBits = EVT.getSizeInBits();
+  
 
-  if (NVTBits < EVTBits) {
+  if (unsigned EVTBits = EVT.getSizeInBits(); NVTBits < EVTBits) {
     Hi = DAG.getNode(ISD::AssertSext, dl, NVT, Hi,
                      DAG.getValueType(EVT::getIntegerVT(*DAG.getContext(),
                                                         EVTBits - NVTBits)));
@@ -3964,9 +3964,9 @@ void DAGTypeLegalizer::ExpandIntRes_AssertZext(SDNode *N,
   EVT NVT = Lo.getValueType();
   EVT EVT = cast<VTSDNode>(N->getOperand(1))->getVT();
   unsigned NVTBits = NVT.getSizeInBits();
-  unsigned EVTBits = EVT.getSizeInBits();
+  
 
-  if (NVTBits < EVTBits) {
+  if (unsigned EVTBits = EVT.getSizeInBits(); NVTBits < EVTBits) {
     Hi = DAG.getNode(ISD::AssertZext, dl, NVT, Hi,
                      DAG.getValueType(EVT::getIntegerVT(*DAG.getContext(),
                                                         EVTBits - NVTBits)));
@@ -4039,9 +4039,9 @@ void DAGTypeLegalizer::ExpandIntRes_ABS(SDNode *N, SDValue &Lo, SDValue &Hi) {
   // USUBO_CARRY is LegalOrCustom. Each of the pieces here can be further
   // expanded if needed. Shift expansion has a special case for filling with
   // sign bits so that we will only end up with one SRA.
-  bool HasSubCarry = TLI.isOperationLegalOrCustom(
-      ISD::USUBO_CARRY, TLI.getTypeToExpandTo(*DAG.getContext(), NVT));
-  if (HasSubCarry) {
+  
+  if (bool HasSubCarry = TLI.isOperationLegalOrCustom(
+      ISD::USUBO_CARRY, TLI.getTypeToExpandTo(*DAG.getContext(), NVT)); HasSubCarry) {
     SDValue Sign = DAG.getNode(
         ISD::SRA, dl, NVT, Hi,
         DAG.getShiftAmountConstant(NVT.getSizeInBits() - 1, NVT, dl));
@@ -4752,10 +4752,10 @@ void DAGTypeLegalizer::ExpandIntRes_SADDSUBO(SDNode *Node,
   bool IsAdd = Node->getOpcode() == ISD::SADDO;
   unsigned CarryOp = IsAdd ? ISD::SADDO_CARRY : ISD::SSUBO_CARRY;
 
-  bool HasCarryOp = TLI.isOperationLegalOrCustom(
-      CarryOp, TLI.getTypeToExpandTo(*DAG.getContext(), LHS.getValueType()));
+  
 
-  if (HasCarryOp) {
+  if (bool HasCarryOp = TLI.isOperationLegalOrCustom(
+      CarryOp, TLI.getTypeToExpandTo(*DAG.getContext(), LHS.getValueType())); HasCarryOp) {
     // Expand the subcomponents.
     SDValue LHSL, LHSH, RHSL, RHSH;
     GetExpandedInteger(LHS, LHSL, LHSH);
@@ -5682,11 +5682,11 @@ void DAGTypeLegalizer::IntegerExpandSetCCOperands(SDValue &NewLHS,
   ConstantSDNode *LoCmpC = dyn_cast<ConstantSDNode>(LoCmp.getNode());
   ConstantSDNode *HiCmpC = dyn_cast<ConstantSDNode>(HiCmp.getNode());
 
-  bool EqAllowed = ISD::isTrueWhenEqual(CCCode);
+  
 
   // FIXME: Is the HiCmpC->isOne() here correct for
   // ZeroOrNegativeOneBooleanContent.
-  if ((EqAllowed && (HiCmpC && HiCmpC->isZero())) ||
+  if (bool EqAllowed = ISD::isTrueWhenEqual(CCCode); (EqAllowed && (HiCmpC && HiCmpC->isZero())) ||
       (!EqAllowed &&
        ((HiCmpC && HiCmpC->isOne()) || (LoCmpC && LoCmpC->isZero())))) {
     // For LE / GE, if high part is known false, ignore the low part.

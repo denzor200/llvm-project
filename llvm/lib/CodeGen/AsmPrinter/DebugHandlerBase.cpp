@@ -119,8 +119,8 @@ void DebugHandlerBase::identifyScopeMarkers() {
   while (!WorkList.empty()) {
     LexicalScope *S = WorkList.pop_back_val();
 
-    const SmallVectorImpl<LexicalScope *> &Children = S->getChildren();
-    if (!Children.empty())
+    
+    if (const SmallVectorImpl<LexicalScope *> &Children = S->getChildren(); !Children.empty())
       WorkList.append(Children.begin(), Children.end());
 
     if (S->isAbstractScope())
@@ -151,9 +151,9 @@ MCSymbol *DebugHandlerBase::getLabelAfterInsn(const MachineInstr *MI) {
 uint64_t DebugHandlerBase::getBaseTypeSize(const DIType *Ty) {
   assert(Ty);
 
-  unsigned Tag = Ty->getTag();
+  
 
-  if (Tag != dwarf::DW_TAG_member && Tag != dwarf::DW_TAG_typedef &&
+  if (unsigned Tag = Ty->getTag(); Tag != dwarf::DW_TAG_member && Tag != dwarf::DW_TAG_typedef &&
       Tag != dwarf::DW_TAG_const_type && Tag != dwarf::DW_TAG_volatile_type &&
       Tag != dwarf::DW_TAG_restrict_type && Tag != dwarf::DW_TAG_atomic_type &&
       Tag != dwarf::DW_TAG_immutable_type &&
@@ -323,8 +323,8 @@ void DebugHandlerBase::beginFunction(const MachineFunction *MF) {
         for (const auto *I = Entries.begin(); I != Entries.end(); ++I) {
           if (!I->isDbgValue())
             continue;
-          const DIExpression *Fragment = I->getInstr()->getDebugExpression();
-          if (std::any_of(Entries.begin(), I,
+          
+          if (const DIExpression *Fragment = I->getInstr()->getDebugExpression(); std::any_of(Entries.begin(), I,
                           [&](DbgValueHistoryMap::Entry Pred) {
                             return Pred.isDbgValue() &&
                                    Fragment->fragmentsOverlap(

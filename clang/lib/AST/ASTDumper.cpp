@@ -222,9 +222,9 @@ LLVM_DUMP_METHOD void Decl::dump() const { dump(llvm::errs()); }
 LLVM_DUMP_METHOD void Decl::dump(raw_ostream &OS, bool Deserialize,
                                  ASTDumpOutputFormat Format) const {
   ASTContext &Ctx = getASTContext();
-  const SourceManager &SM = Ctx.getSourceManager();
+  
 
-  if (ADOF_JSON == Format) {
+  if (const SourceManager &SM = Ctx.getSourceManager(); ADOF_JSON == Format) {
     JSONDumper P(OS, SM, Ctx, Ctx.getPrintingPolicy(),
                  &Ctx.getCommentCommandTraits());
     (void)Deserialize; // FIXME?

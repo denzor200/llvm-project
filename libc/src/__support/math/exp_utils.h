@@ -57,9 +57,9 @@ ziv_test_denorm(int hi, double mid, double lo, double err) {
     double lo_l = lo_scaled - err_scaled;
 
     double upper = extra_factor + (mid_hi + lo_u);
-    double lower = extra_factor + (mid_hi + lo_l);
+    
 
-    if (LIBC_LIKELY(upper == lower)) {
+    if (double lower = extra_factor + (mid_hi + lo_l); LIBC_LIKELY(upper == lower)) {
       return cpp::bit_cast<double>(cpp::bit_cast<uint64_t>(upper) - scale_down);
     }
 

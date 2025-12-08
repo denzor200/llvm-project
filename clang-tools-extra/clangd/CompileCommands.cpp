@@ -565,9 +565,9 @@ const ArgStripper::Rule *ArgStripper::matchingRule(llvm::StringRef Arg,
       continue; // lower-priority than best candidate.
     if (!Arg.starts_with(R.Text))
       continue; // current arg doesn't match the prefix string
-    bool PrefixMatch = Arg.size() > R.Text.size();
+    
     // Can rule apply as an exact/prefix match?
-    if (unsigned Count = PrefixMatch ? R.PrefixArgs : R.ExactArgs) {
+    if (bool PrefixMatch = Arg.size() > R.Text.size(); unsigned Count = PrefixMatch ? R.PrefixArgs : R.ExactArgs) {
       BestRule = &R;
       ArgCount = Count;
     }

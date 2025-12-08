@@ -68,9 +68,9 @@ public:
       assert(NameRanges.size() == 1 &&
              "Multiple name pieces are not supported yet!");
       SourceLocation Loc = NameRanges[0].getBegin();
-      const SourceManager &SM = Context.getSourceManager();
+      
       // TODO: Deal with macro occurrences correctly.
-      if (Loc.isMacroID())
+      if (const SourceManager &SM = Context.getSourceManager(); Loc.isMacroID())
         Loc = SM.getSpellingLoc(Loc);
       checkAndAddLocation(Loc);
     }
@@ -91,11 +91,11 @@ private:
     StringRef TokenName =
         Lexer::getSourceText(CharSourceRange::getTokenRange(BeginLoc, EndLoc),
                              Context.getSourceManager(), Context.getLangOpts());
-    size_t Offset = TokenName.find(PrevName.getNamePieces()[0]);
+    
 
     // The token of the source location we find actually has the old
     // name.
-    if (Offset != StringRef::npos)
+    if (size_t Offset = TokenName.find(PrevName.getNamePieces()[0]); Offset != StringRef::npos)
       Occurrences.emplace_back(PrevName, SymbolOccurrence::MatchingSymbol,
                                BeginLoc.getLocWithOffset(Offset));
   }
@@ -562,8 +562,8 @@ createRenameAtomicChanges(llvm::ArrayRef<std::string> USRs,
     std::string ReplacedName = NewName.str();
     if (RenameInfo.IgnorePrefixQualifiers) {
       // Get the name without prefix qualifiers from NewName.
-      size_t LastColonPos = NewName.find_last_of(':');
-      if (LastColonPos != std::string::npos)
+      
+      if (size_t LastColonPos = NewName.find_last_of(':'); LastColonPos != std::string::npos)
         ReplacedName = std::string(NewName.substr(LastColonPos + 1));
     } else {
       if (RenameInfo.FromDecl && RenameInfo.Context) {

@@ -220,9 +220,9 @@ LIBC_INLINE T hypot(T x, T y) {
        current_bit >>= 1) {
     r = static_cast<StorageType>((r << 1)) +
         ((tail_bits & current_bit) ? 1 : 0);
-    StorageType tmp = static_cast<StorageType>((y_new << 1)) +
-                      current_bit; // 2*y_new(n - 1) + 2^(-n)
-    if (r >= tmp) {
+    // 2*y_new(n - 1) + 2^(-n)
+    if (StorageType tmp = static_cast<StorageType>((y_new << 1)) +
+                      current_bit; r >= tmp) {
       r -= tmp;
       y_new += current_bit;
     }

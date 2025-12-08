@@ -246,8 +246,8 @@ public:
 
 PreservedAnalyses GlobalMergePass::run(Module &M, ModuleAnalysisManager &) {
   GlobalMergeImpl P(TM, Options);
-  bool Changed = P.run(M);
-  if (!Changed)
+  
+  if (bool Changed = P.run(M); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;
@@ -635,8 +635,8 @@ void GlobalMergeImpl::setMustKeepGlobalVariables(Module &M) {
   for (Function &F : M) {
     for (BasicBlock &BB : F) {
       BasicBlock::iterator Pad = BB.getFirstNonPHIIt();
-      auto *II = dyn_cast<IntrinsicInst>(Pad);
-      if (!Pad->isEHPad() &&
+      
+      if (auto *II = dyn_cast<IntrinsicInst>(Pad); !Pad->isEHPad() &&
           !(II && II->getIntrinsicID() == Intrinsic::eh_typeid_for))
         continue;
 
@@ -731,8 +731,8 @@ bool GlobalMergeImpl::run(Module &M) {
 
     Type *Ty = GV.getValueType();
     TypeSize AllocSize = DL.getTypeAllocSize(Ty);
-    bool CanMerge = AllocSize < Opt.MaxOffset && AllocSize >= Opt.MinSize;
-    if (CanMerge) {
+    
+    if (bool CanMerge = AllocSize < Opt.MaxOffset && AllocSize >= Opt.MinSize; CanMerge) {
       if (TM &&
           TargetLoweringObjectFile::getKindForGlobal(&GV, *TM).isBSS())
         BSSGlobals[{AddressSpace, Section}].push_back(&GV);

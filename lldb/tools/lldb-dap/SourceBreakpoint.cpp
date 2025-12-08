@@ -218,8 +218,8 @@ lldb::SBError SourceBreakpoint::FormatLogText(llvm::StringRef text,
         }
 
         text = text.drop_front(i);
-        unsigned long octal_value = ::strtoul(oct_str, nullptr, 8);
-        if (octal_value <= UINT8_MAX) {
+        
+        if (unsigned long octal_value = ::strtoul(oct_str, nullptr, 8); octal_value <= UINT8_MAX) {
           formatted.push_back((char)octal_value);
         } else {
           error.SetErrorString("octal number is larger than a single byte");
@@ -247,8 +247,8 @@ lldb::SBError SourceBreakpoint::FormatLogText(llvm::StringRef text,
           text = text.drop_front();
         }
 
-        unsigned long hex_value = strtoul(hex_str, nullptr, 16);
-        if (hex_value <= UINT8_MAX) {
+        
+        if (unsigned long hex_value = strtoul(hex_str, nullptr, 16); hex_value <= UINT8_MAX) {
           formatted.push_back((char)hex_value);
         } else {
           error.SetErrorString("hex number is larger than a single byte");
@@ -332,8 +332,8 @@ void SourceBreakpoint::SetLogMessage() {
        matched_curly_braces_ranges) {
     // Raw text before open curly brace.
     assert(curly_braces_range.first >= last_raw_text_start);
-    size_t raw_text_len = curly_braces_range.first - last_raw_text_start;
-    if (raw_text_len > 0) {
+    
+    if (size_t raw_text_len = curly_braces_range.first - last_raw_text_start; raw_text_len > 0) {
       error = AppendLogMessagePart(
           llvm::StringRef(m_log_message.c_str() + last_raw_text_start,
                           raw_text_len),

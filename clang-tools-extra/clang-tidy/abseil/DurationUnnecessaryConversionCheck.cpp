@@ -82,9 +82,9 @@ void DurationUnnecessaryConversionCheck::check(
     const auto *Arg = Result.Nodes.getNodeAs<Expr>("arg");
     const auto *InnerCall = Result.Nodes.getNodeAs<Expr>("inner_call");
     const Expr *LHS = Binop->getLHS();
-    const Expr *RHS = Binop->getRHS();
+    
 
-    if (LHS->IgnoreParenImpCasts() == InnerCall) {
+    if (const Expr *RHS = Binop->getRHS(); LHS->IgnoreParenImpCasts() == InnerCall) {
       Hint = FixItHint::CreateReplacement(
           OuterCall->getSourceRange(),
           (llvm::Twine(tooling::fixit::getText(*Arg, *Result.Context)) + " * " +

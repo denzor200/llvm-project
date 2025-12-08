@@ -217,8 +217,8 @@ void ARMTargetWinCOFFStreamer::emitARMWinCFIPrologEnd(bool Fragment) {
 
 void ARMTargetWinCOFFStreamer::emitARMWinCFIEpilogStart(unsigned Condition) {
   auto &S = getStreamer();
-  WinEH::FrameInfo *CurFrame = S.EnsureValidWinFrameInfo(SMLoc());
-  if (!CurFrame)
+  
+  if (WinEH::FrameInfo *CurFrame = S.EnsureValidWinFrameInfo(SMLoc()); !CurFrame)
     return;
 
   S.emitWinCFIBeginEpilogue();
@@ -229,8 +229,8 @@ void ARMTargetWinCOFFStreamer::emitARMWinCFIEpilogStart(unsigned Condition) {
 
 void ARMTargetWinCOFFStreamer::emitARMWinCFIEpilogEnd() {
   auto &S = getStreamer();
-  WinEH::FrameInfo *CurFrame = S.EnsureValidWinFrameInfo(SMLoc());
-  if (!CurFrame)
+  
+  if (WinEH::FrameInfo *CurFrame = S.EnsureValidWinFrameInfo(SMLoc()); !CurFrame)
     return;
 
   if (S.isInEpilogCFI()) {

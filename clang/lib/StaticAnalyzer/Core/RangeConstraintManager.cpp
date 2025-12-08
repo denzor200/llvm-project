@@ -624,19 +624,19 @@ RangeSet RangeSet::Factory::negate(RangeSet What) {
   const_iterator End = What.end();
 
   const llvm::APSInt &From = It->From();
-  const llvm::APSInt &To = It->To();
+  
 
-  if (From == MIN) {
+  if (const llvm::APSInt &To = It->To(); From == MIN) {
     // If the range [From, To] is [MIN, MAX], then result is also [MIN, MAX].
     if (To == MAX) {
       return What;
     }
 
-    const_iterator Last = std::prev(End);
+    
 
     // Try to find and unite the following ranges:
     // [MIN, MIN] & [MIN + 1, N] => [MIN, N].
-    if (Last->To() == MAX) {
+    if (const_iterator Last = std::prev(End); Last->To() == MAX) {
       // It means that in the original range we have ranges
       //   [MIN, A], ... , [B, MAX]
       // And the result should be [MIN, -B], ..., [-A, MAX]
@@ -1488,10 +1488,10 @@ private:
 
   std::optional<RangeSet> getRangeCommutativeSymSym(const SymSymExpr *SSE) {
     auto Op = SSE->getOpcode();
-    bool IsCommutative = llvm::is_contained(
+    
+    if (bool IsCommutative = llvm::is_contained(
         // ==, !=, |, &, +, *, ^
-        {BO_EQ, BO_NE, BO_Or, BO_And, BO_Add, BO_Mul, BO_Xor}, Op);
-    if (!IsCommutative)
+        {BO_EQ, BO_NE, BO_Or, BO_And, BO_Add, BO_Mul, BO_Xor}, Op); !IsCommutative)
       return std::nullopt;
 
     SymbolRef Commuted = State->getSymbolManager().acquire<SymSymExpr>(
@@ -1749,10 +1749,10 @@ RangeSet SymbolicRangeInferrer::VisitBinaryOperator<BO_And>(Range LHS,
   bool IsRHSPositiveOrZero = RHS.From() >= Zero;
 
   bool IsLHSNegative = LHS.To() < Zero;
-  bool IsRHSNegative = RHS.To() < Zero;
+  
 
   // Check if both ranges have the same sign.
-  if ((IsLHSPositiveOrZero && IsRHSPositiveOrZero) ||
+  if (bool IsRHSNegative = RHS.To() < Zero; (IsLHSPositiveOrZero && IsRHSPositiveOrZero) ||
       (IsLHSNegative && IsRHSNegative)) {
     // The result is definitely less or equal than any of the operands.
     const llvm::APSInt &Max = std::min(LHS.To(), RHS.To());
@@ -1818,11 +1818,11 @@ RangeSet SymbolicRangeInferrer::VisitBinaryOperator<BO_Rem>(Range LHS,
   --Max;
 
   bool IsLHSPositiveOrZero = LHS.From() >= Zero;
-  bool IsRHSPositiveOrZero = RHS.From() >= Zero;
+  
 
   // Remainder operator results with negative operands is implementation
   // defined.  Positive cases are much easier to reason about though.
-  if (IsLHSPositiveOrZero && IsRHSPositiveOrZero) {
+  if (bool IsRHSPositiveOrZero = RHS.From() >= Zero; IsLHSPositiveOrZero && IsRHSPositiveOrZero) {
     // If maximal value of LHS is less than maximal value of RHS,
     // the result won't get greater than LHS.To().
     Max = std::min(LHS.To(), Max);
@@ -2380,14 +2380,14 @@ EquivalenceClass::mergeImpl(RangeSet::Factory &RangeFactory,
   // compress paths every time we do merges.  It also means that we lose
   // the main amortized complexity benefit from the original data structure.
   ConstraintRangeTy Constraints = State->get<ConstraintRange>();
-  ConstraintRangeTy::Factory &CRF = State->get_context<ConstraintRange>();
+  
 
   // 1. If the merged classes have any constraints associated with them, we
   //    need to transfer them to the class we have left.
   //
   // Intersection here makes perfect sense because both of these constraints
   // must hold for the whole new class.
-  if (std::optional<RangeSet> NewClassConstraint =
+  if (ConstraintRangeTy::Factory &CRF = State->get_context<ConstraintRange>(); std::optional<RangeSet> NewClassConstraint =
           intersect(RangeFactory, getConstraint(State, *this),
                     getConstraint(State, Other))) {
     // NOTE: Essentially, NewClassConstraint should NEVER be infeasible because
@@ -2681,9 +2681,9 @@ EquivalenceClass::simplify(SValBuilder &SVB, RangeSet::Factory &F,
     // still feasible.
     if (const auto CI = SimplifiedMemberVal.getAs<nonloc::ConcreteInt>()) {
       const llvm::APSInt &SV = CI->getValue();
-      const RangeSet *ClassConstraint = getConstraint(State, Class);
+      
       // We have found a contradiction.
-      if (ClassConstraint && !ClassConstraint->contains(SV))
+      if (const RangeSet *ClassConstraint = getConstraint(State, Class); ClassConstraint && !ClassConstraint->contains(SV))
         return nullptr;
     }
 
@@ -2791,11 +2791,11 @@ bool EquivalenceClass::isClassDataConsistent(ProgramStateRef State) {
     // Disequality is symmetrical, i.e. for every Class A and B that A != B,
     // B != A should also be true.
     for (EquivalenceClass DisequalClass : DisequalClasses) {
-      const ClassSet *DisequalToDisequalClasses =
-          Disequalities.lookup(DisequalClass);
+      
 
       // It should be a set of at least one element: Class
-      if (!DisequalToDisequalClasses ||
+      if (const ClassSet *DisequalToDisequalClasses =
+          Disequalities.lookup(DisequalClass); !DisequalToDisequalClasses ||
           !DisequalToDisequalClasses->contains(Class))
         return false;
     }
@@ -2973,9 +2973,9 @@ RangeConstraintManager::removeDeadBindings(ProgramStateRef State,
 
   // 2. We don't need to track classes for dead symbols.
   for (std::pair<SymbolRef, EquivalenceClass> SymbolClassPair : Map) {
-    SymbolRef Sym = SymbolClassPair.first;
+    
 
-    if (SymReaper.isDead(Sym)) {
+    if (SymbolRef Sym = SymbolClassPair.first; SymReaper.isDead(Sym)) {
       ClassMapChanged = true;
       NewMap = ClassFactory.remove(NewMap, Sym);
     }

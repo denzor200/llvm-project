@@ -257,9 +257,9 @@ void arith::IndexCastOp::inferResultRanges(
   Type sourceType = getOperand().getType();
   Type destType = getResult().getType();
   unsigned srcWidth = ConstantIntRanges::getStorageBitwidth(sourceType);
-  unsigned destWidth = ConstantIntRanges::getStorageBitwidth(destType);
+  
 
-  if (srcWidth < destWidth)
+  if (unsigned destWidth = ConstantIntRanges::getStorageBitwidth(destType); srcWidth < destWidth)
     setResultRange(getResult(), extSIRange(argRanges[0], destWidth));
   else if (srcWidth > destWidth)
     setResultRange(getResult(), truncRange(argRanges[0], destWidth));
@@ -276,9 +276,9 @@ void arith::IndexCastUIOp::inferResultRanges(
   Type sourceType = getOperand().getType();
   Type destType = getResult().getType();
   unsigned srcWidth = ConstantIntRanges::getStorageBitwidth(sourceType);
-  unsigned destWidth = ConstantIntRanges::getStorageBitwidth(destType);
+  
 
-  if (srcWidth < destWidth)
+  if (unsigned destWidth = ConstantIntRanges::getStorageBitwidth(destType); srcWidth < destWidth)
     setResultRange(getResult(), extUIRange(argRanges[0], destWidth));
   else if (srcWidth > destWidth)
     setResultRange(getResult(), truncRange(argRanges[0], destWidth));

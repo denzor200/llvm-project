@@ -109,14 +109,14 @@ int main(int argc, char **argv) {
       createBinary(opts::InputFilename);
   if (Error E = BinaryOrErr.takeError())
     report_error(opts::InputFilename, std::move(E));
-  Binary &Binary = *BinaryOrErr.get().getBinary();
+  
 
-  if (auto *e = dyn_cast<ELFObjectFileBase>(&Binary)) {
+  if (Binary &Binary = *BinaryOrErr.get().getBinary(); auto *e = dyn_cast<ELFObjectFileBase>(&Binary)) {
     auto RIOrErr = RewriteInstance::create(e, argc, argv, ToolPath);
     if (Error E = RIOrErr.takeError())
       report_error(opts::InputFilename, std::move(E));
-    RewriteInstance &RI = *RIOrErr.get();
-    if (Error E = RI.run())
+    
+    if (RewriteInstance &RI = *RIOrErr.get(); Error E = RI.run())
       report_error(opts::InputFilename, std::move(E));
   }
 

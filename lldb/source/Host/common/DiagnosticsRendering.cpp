@@ -204,9 +204,9 @@ void RenderDiagnosticDetails(Stream &stream,
       }
     }
 
-    uint16_t column = detail.source_location->column;
+    
     // Print the line connecting the ^ with the error message.
-    if (column >= x_pos)
+    if (uint16_t column = detail.source_location->column; column >= x_pos)
       stream << std::string(column - x_pos, ' ') << joint << hbar << spacer;
 
     // Print a colorized string based on the message's severity type.

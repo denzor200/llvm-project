@@ -1419,8 +1419,8 @@ bool TargetLibraryInfoImpl::isFunctionVectorizable(StringRef funcName) const {
 StringRef TargetLibraryInfoImpl::getVectorizedFunction(StringRef F,
                                                        const ElementCount &VF,
                                                        bool Masked) const {
-  const VecDesc *VD = getVectorMappingInfo(F, VF, Masked);
-  if (VD)
+  
+  if (const VecDesc *VD = getVectorMappingInfo(F, VF, Masked); VD)
     return VD->getVectorFnName();
   return StringRef();
 }
@@ -1505,9 +1505,9 @@ void TargetLibraryInfoImpl::getWidestVF(StringRef ScalarF,
   std::vector<VecDesc>::const_iterator I =
       llvm::lower_bound(VectorDescs, ScalarF, compareWithScalarFnName);
   while (I != VectorDescs.end() && StringRef(I->getScalarFnName()) == ScalarF) {
-    ElementCount *VF =
-        I->getVectorizationFactor().isScalable() ? &ScalableVF : &FixedVF;
-    if (ElementCount::isKnownGT(I->getVectorizationFactor(), *VF))
+    
+    if (ElementCount *VF =
+        I->getVectorizationFactor().isScalable() ? &ScalableVF : &FixedVF; ElementCount::isKnownGT(I->getVectorizationFactor(), *VF))
       *VF = I->getVectorizationFactor();
     ++I;
   }

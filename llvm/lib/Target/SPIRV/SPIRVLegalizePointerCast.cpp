@@ -262,10 +262,10 @@ class SPIRVLegalizePointerCast : public FunctionPass {
     FixedVectorType *DstType =
         cast<FixedVectorType>(GR->findDeducedElementType(Dst));
     auto dstNumElements = DstType->getNumElements();
-    auto srcNumElements = SrcType->getNumElements();
+    
 
     // if the element type differs, it is a bitcast.
-    if (DstType->getElementType() != SrcType->getElementType()) {
+    if (auto srcNumElements = SrcType->getNumElements(); DstType->getElementType() != SrcType->getElementType()) {
       // Support bitcast between vectors of different sizes only if
       // the total bitwidth is the same.
       [[maybe_unused]] auto dstBitWidth =

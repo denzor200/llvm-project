@@ -869,8 +869,8 @@ OpTrait::impl::foldCommutative(Operation *op, ArrayRef<Attribute> operands,
 
 OpFoldResult OpTrait::impl::foldIdempotent(Operation *op) {
   if (op->getNumOperands() == 1) {
-    auto *argumentOp = op->getOperand(0).getDefiningOp();
-    if (argumentOp && op->getName() == argumentOp->getName()) {
+    
+    if (auto *argumentOp = op->getOperand(0).getDefiningOp(); argumentOp && op->getName() == argumentOp->getName()) {
       // Replace the outer operation output with the inner operation.
       return op->getOperand(0);
     }
@@ -882,8 +882,8 @@ OpFoldResult OpTrait::impl::foldIdempotent(Operation *op) {
 }
 
 OpFoldResult OpTrait::impl::foldInvolution(Operation *op) {
-  auto *argumentOp = op->getOperand(0).getDefiningOp();
-  if (argumentOp && op->getName() == argumentOp->getName()) {
+  
+  if (auto *argumentOp = op->getOperand(0).getDefiningOp(); argumentOp && op->getName() == argumentOp->getName()) {
     // Replace the outer involutions output with inner's input.
     return argumentOp->getOperand(0);
   }
@@ -970,8 +970,8 @@ LogicalResult OpTrait::impl::verifyOperandsAreFloatLike(Operation *op) {
 
 LogicalResult OpTrait::impl::verifySameTypeOperands(Operation *op) {
   // Zero or one operand always have the "same" type.
-  unsigned nOperands = op->getNumOperands();
-  if (nOperands < 2)
+  
+  if (unsigned nOperands = op->getNumOperands(); nOperands < 2)
     return success();
 
   auto type = op->getOperand(0).getType();
@@ -1178,9 +1178,9 @@ LogicalResult OpTrait::impl::verifySameOperandsAndResultRank(Operation *op) {
 }
 
 LogicalResult OpTrait::impl::verifyIsTerminator(Operation *op) {
-  Block *block = op->getBlock();
+  
   // Verify that the operation is at the end of the respective parent block.
-  if (!block || &block->back() != op)
+  if (Block *block = op->getBlock(); !block || &block->back() != op)
     return op->emitOpError("must be the last operation in the parent block");
   return success();
 }
@@ -1232,8 +1232,8 @@ LogicalResult OpTrait::impl::verifyAtLeastNSuccessors(Operation *op,
 LogicalResult OpTrait::impl::verifyResultsAreBoolLike(Operation *op) {
   for (auto resultType : op->getResultTypes()) {
     auto elementType = getTensorOrVectorElementType(resultType);
-    bool isBoolType = elementType.isInteger(1);
-    if (!isBoolType)
+    
+    if (bool isBoolType = elementType.isInteger(1); !isBoolType)
       return op->emitOpError() << "requires a bool result type";
   }
 

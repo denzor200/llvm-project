@@ -556,9 +556,9 @@ static void computeKnownBitsMul(const Value *Op0, const Value *Op1, bool NSW,
   if (SelfMultiply) {
     unsigned SignBits = ComputeNumSignBits(Op0, DemandedElts, Q, Depth + 1);
     unsigned TyBits = Op0->getType()->getScalarSizeInBits();
-    unsigned OutValidBits = 2 * (TyBits - SignBits + 1);
+    
 
-    if (OutValidBits < TyBits) {
+    if (unsigned OutValidBits = 2 * (TyBits - SignBits + 1); OutValidBits < TyBits) {
       APInt KnownZeroMask =
           APInt::getHighBitsSet(TyBits, TyBits - OutValidBits + 1);
       Known.Zero |= KnownZeroMask;
@@ -1368,8 +1368,8 @@ static bool isSignedMinMaxIntrinsicClamp(const IntrinsicInst *II,
          "Must be smin/smax");
 
   Intrinsic::ID InverseID = getInverseMinMaxIntrinsic(II->getIntrinsicID());
-  auto *InnerII = dyn_cast<IntrinsicInst>(II->getArgOperand(0));
-  if (!InnerII || InnerII->getIntrinsicID() != InverseID ||
+  
+  if (auto *InnerII = dyn_cast<IntrinsicInst>(II->getArgOperand(0)); !InnerII || InnerII->getIntrinsicID() != InverseID ||
       !match(II->getArgOperand(1), m_APInt(CLow)) ||
       !match(InnerII->getArgOperand(1), m_APInt(CHigh)))
     return false;
@@ -1774,9 +1774,9 @@ static void computeKnownBitsFromOperator(const Operator *I,
       // Handle the case of a simple two-predecessor recurrence PHI.
       // There's a lot more that could theoretically be done here, but
       // this is sufficient to catch some interesting cases.
-      unsigned Opcode = BO->getOpcode();
+      
 
-      switch (Opcode) {
+      switch (unsigned Opcode = BO->getOpcode(); Opcode) {
       // If this is a shift recurrence, we know the bits being shifted in. We
       // can combine that with information about the start value of the
       // recurrence to conclude facts about the result. If this is a udiv
@@ -1856,8 +1856,8 @@ static void computeKnownBitsFromOperator(const Operator *I,
         Known.Zero.setLowBits(std::min(Known2.countMinTrailingZeros(),
                                        Known3.countMinTrailingZeros()));
 
-        auto *OverflowOp = dyn_cast<OverflowingBinaryOperator>(BO);
-        if (!OverflowOp || !Q.IIQ.hasNoSignedWrap(OverflowOp))
+        
+        if (auto *OverflowOp = dyn_cast<OverflowingBinaryOperator>(BO); !OverflowOp || !Q.IIQ.hasNoSignedWrap(OverflowOp))
           break;
 
         switch (Opcode) {
@@ -2232,8 +2232,8 @@ static void computeKnownBitsFromOperator(const Operator *I,
           if (auto *CI = dyn_cast<ConstantInt>(II->getArgOperand(0)))
             MaxVL = std::min(MaxVL, CI->getZExtValue());
 
-        unsigned KnownZeroFirstBit = Log2_32(MaxVL) + 1;
-        if (BitWidth > KnownZeroFirstBit)
+        
+        if (unsigned KnownZeroFirstBit = Log2_32(MaxVL) + 1; BitWidth > KnownZeroFirstBit)
           Known.Zero.setBitsFrom(KnownZeroFirstBit);
         break;
       }
@@ -2631,8 +2631,8 @@ bool llvm::isKnownToBeAPowerOfTwo(const Value *V, bool OrZero,
     for (auto &AssumeVH : Q.AC->assumptionsFor(V)) {
       if (!AssumeVH)
         continue;
-      CallInst *I = cast<CallInst>(AssumeVH);
-      if (isImpliedToBeAPowerOfTwoFromCond(V, OrZero, I->getArgOperand(0),
+      
+      if (CallInst *I = cast<CallInst>(AssumeVH); isImpliedToBeAPowerOfTwoFromCond(V, OrZero, I->getArgOperand(0),
                                            /*CondIsTrue=*/true) &&
           isValidAssumeForContext(I, Q.CxtI, Q.DT))
         return true;
@@ -2848,8 +2848,8 @@ static bool isGEPKnownNonNull(const GEPOperator *GEP, const SimplifyQuery &Q,
       ConstantInt *OpC = cast<ConstantInt>(GTI.getOperand());
       unsigned ElementIdx = OpC->getZExtValue();
       const StructLayout *SL = Q.DL.getStructLayout(STy);
-      uint64_t ElementOffset = SL->getElementOffset(ElementIdx);
-      if (ElementOffset > 0)
+      
+      if (uint64_t ElementOffset = SL->getElementOffset(ElementIdx); ElementOffset > 0)
         return true;
       continue;
     }
@@ -3213,8 +3213,8 @@ static bool isKnownNonZeroFromOperator(const Operator *I,
     //    non-zero in the combination of any two adjacent ones. Since i8 is a
     //    multiple of i16, each i16 is guranteed to have 2 full i8 elements.
     //    This all implies the 2 i16 elements are non-zero.
-    Type *FromTy = I->getOperand(0)->getType();
-    if ((FromTy->isIntOrIntVectorTy() || FromTy->isPtrOrPtrVectorTy()) &&
+    
+    if (Type *FromTy = I->getOperand(0)->getType(); (FromTy->isIntOrIntVectorTy() || FromTy->isPtrOrPtrVectorTy()) &&
         (BitWidth % getBitWidth(FromTy->getScalarType(), Q.DL)) == 0)
       return isKnownNonZero(I->getOperand(0), Q, Depth);
   } break;
@@ -3266,8 +3266,8 @@ static bool isKnownNonZeroFromOperator(const Operator *I,
 
   case Instruction::Shl: {
     // shl nsw/nuw can't remove any non-zero bits.
-    const OverflowingBinaryOperator *BO = cast<OverflowingBinaryOperator>(I);
-    if (Q.IIQ.hasNoUnsignedWrap(BO) || Q.IIQ.hasNoSignedWrap(BO))
+    
+    if (const OverflowingBinaryOperator *BO = cast<OverflowingBinaryOperator>(I); Q.IIQ.hasNoUnsignedWrap(BO) || Q.IIQ.hasNoSignedWrap(BO))
       return isKnownNonZero(I->getOperand(0), DemandedElts, Q, Depth);
 
     // shl X, Y != 0 if X is odd.  Note that the value of the shift is undefined
@@ -3282,8 +3282,8 @@ static bool isKnownNonZeroFromOperator(const Operator *I,
   case Instruction::LShr:
   case Instruction::AShr: {
     // shr exact can only shift out zero bits.
-    const PossiblyExactOperator *BO = cast<PossiblyExactOperator>(I);
-    if (BO->isExact())
+    
+    if (const PossiblyExactOperator *BO = cast<PossiblyExactOperator>(I); BO->isExact())
       return isKnownNonZero(I->getOperand(0), DemandedElts, Q, Depth);
 
     // shr X, Y != 0 if X is negative.  Note that the value of the shift is not
@@ -3429,8 +3429,8 @@ static bool isKnownNonZeroFromOperator(const Operator *I,
     if (const auto *EEI = dyn_cast<ExtractElementInst>(I)) {
       const Value *Vec = EEI->getVectorOperand();
       const Value *Idx = EEI->getIndexOperand();
-      auto *CIdx = dyn_cast<ConstantInt>(Idx);
-      if (auto *VecTy = dyn_cast<FixedVectorType>(Vec->getType())) {
+      
+      if (auto *CIdx = dyn_cast<ConstantInt>(Idx); auto *VecTy = dyn_cast<FixedVectorType>(Vec->getType())) {
         unsigned NumElts = VecTy->getNumElements();
         APInt DemandedVecElts = APInt::getAllOnes(NumElts);
         if (CIdx && CIdx->getValue().ult(NumElts))
@@ -3459,10 +3459,10 @@ static bool isKnownNonZeroFromOperator(const Operator *I,
            isGuaranteedNotToBePoison(I->getOperand(0), Q.AC, Q.CxtI, Q.DT,
                                      Depth);
   case Instruction::Load: {
-    auto *LI = cast<LoadInst>(I);
+    
     // A Load tagged with nonnull or dereferenceable with null pointer undefined
     // is never null.
-    if (auto *PtrT = dyn_cast<PointerType>(I->getType())) {
+    if (auto *LI = cast<LoadInst>(I); auto *PtrT = dyn_cast<PointerType>(I->getType())) {
       if (Q.IIQ.getMetadata(LI, LLVMContext::MD_nonnull) ||
           (Q.IIQ.getMetadata(LI, LLVMContext::MD_dereferenceable) &&
            !NullPointerIsDefined(LI->getFunction(), PtrT->getAddressSpace())))
@@ -3500,8 +3500,8 @@ static bool isKnownNonZeroFromOperator(const Operator *I,
   }
   case Instruction::Call:
   case Instruction::Invoke: {
-    const auto *Call = cast<CallBase>(I);
-    if (I->getType()->isPointerTy()) {
+    
+    if (const auto *Call = cast<CallBase>(I); I->getType()->isPointerTy()) {
       if (Call->isReturnNonNull())
         return true;
       if (const auto *RP = getArgumentAliasingToReturnedPointer(Call, true))
@@ -3788,8 +3788,8 @@ getInvertibleOperands(const Operator *Op1,
     // and N is the bitwdith.  The nsw case is non-obvious, but proven by
     // alive2: https://alive2.llvm.org/ce/z/Z6D5qK
     auto *OBO1 = cast<OverflowingBinaryOperator>(Op1);
-    auto *OBO2 = cast<OverflowingBinaryOperator>(Op2);
-    if ((!OBO1->hasNoUnsignedWrap() || !OBO2->hasNoUnsignedWrap()) &&
+    
+    if (auto *OBO2 = cast<OverflowingBinaryOperator>(Op2); (!OBO1->hasNoUnsignedWrap() || !OBO2->hasNoUnsignedWrap()) &&
         (!OBO1->hasNoSignedWrap() || !OBO2->hasNoSignedWrap()))
       break;
 
@@ -3804,8 +3804,8 @@ getInvertibleOperands(const Operator *Op1,
     // Same as multiplies, with the difference that we don't need to check
     // for a non-zero multiply. Shifts always multiply by non-zero.
     auto *OBO1 = cast<OverflowingBinaryOperator>(Op1);
-    auto *OBO2 = cast<OverflowingBinaryOperator>(Op2);
-    if ((!OBO1->hasNoUnsignedWrap() || !OBO2->hasNoUnsignedWrap()) &&
+    
+    if (auto *OBO2 = cast<OverflowingBinaryOperator>(Op2); (!OBO1->hasNoUnsignedWrap() || !OBO2->hasNoUnsignedWrap()) &&
         (!OBO1->hasNoSignedWrap() || !OBO2->hasNoSignedWrap()))
       break;
 
@@ -3816,8 +3816,8 @@ getInvertibleOperands(const Operator *Op1,
   case Instruction::AShr:
   case Instruction::LShr: {
     auto *PEO1 = cast<PossiblyExactOperator>(Op1);
-    auto *PEO2 = cast<PossiblyExactOperator>(Op2);
-    if (!PEO1->isExact() || !PEO2->isExact())
+    
+    if (auto *PEO2 = cast<PossiblyExactOperator>(Op2); !PEO1->isExact() || !PEO2->isExact())
       break;
 
     if (Op1->getOperand(1) == Op2->getOperand(1))
@@ -3963,8 +3963,8 @@ static bool isNonEqualSelect(const Value *V1, const Value *V2,
 
   if (const SelectInst *SI2 = dyn_cast<SelectInst>(V2)) {
     const Value *Cond1 = SI1->getCondition();
-    const Value *Cond2 = SI2->getCondition();
-    if (Cond1 == Cond2)
+    
+    if (const Value *Cond2 = SI2->getCondition(); Cond1 == Cond2)
       return isKnownNonEqual(SI1->getTrueValue(), SI2->getTrueValue(),
                              DemandedElts, Q, Depth + 1) &&
              isKnownNonEqual(SI1->getFalseValue(), SI2->getFalseValue(),
@@ -4100,17 +4100,17 @@ static bool isKnownNonEqual(const Value *V1, const Value *V2,
   // requires our operation be 1-to-1 and map every input value to exactly
   // one output value.  Such an operation is invertible.
   auto *O1 = dyn_cast<Operator>(V1);
-  auto *O2 = dyn_cast<Operator>(V2);
-  if (O1 && O2 && O1->getOpcode() == O2->getOpcode()) {
+  
+  if (auto *O2 = dyn_cast<Operator>(V2); O1 && O2 && O1->getOpcode() == O2->getOpcode()) {
     if (auto Values = getInvertibleOperands(O1, O2))
       return isKnownNonEqual(Values->first, Values->second, DemandedElts, Q,
                              Depth + 1);
 
     if (const PHINode *PN1 = dyn_cast<PHINode>(V1)) {
-      const PHINode *PN2 = cast<PHINode>(V2);
+      
       // FIXME: This is missing a generalization to handle the case where one is
       // a PHI and another one isn't.
-      if (isNonEqualPHIs(PN1, PN2, DemandedElts, Q, Depth))
+      if (const PHINode *PN2 = cast<PHINode>(V2); isNonEqualPHIs(PN1, PN2, DemandedElts, Q, Depth))
         return true;
     };
   }
@@ -4489,8 +4489,8 @@ static unsigned ComputeNumSignBitsImpl(const Value *V,
       // truncation, then we can make use of that. Otherwise we don't know
       // anything.
       Tmp = ComputeNumSignBits(U->getOperand(0), Q, Depth + 1);
-      unsigned OperandTyBits = U->getOperand(0)->getType()->getScalarSizeInBits();
-      if (Tmp > (OperandTyBits - TyBits))
+      
+      if (unsigned OperandTyBits = U->getOperand(0)->getType()->getScalarSizeInBits(); Tmp > (OperandTyBits - TyBits))
         return Tmp - (OperandTyBits - TyBits);
 
       return 1;
@@ -4934,8 +4934,8 @@ void computeKnownFPClass(const Value *V, const APInt &DemandedElts,
 
   // Try to handle fixed width vector constants
   auto *VFVTy = dyn_cast<FixedVectorType>(V->getType());
-  const Constant *CV = dyn_cast<Constant>(V);
-  if (VFVTy && CV) {
+  
+  if (const Constant *CV = dyn_cast<Constant>(V); VFVTy && CV) {
     Known.KnownFPClasses = fcNone;
     bool SignBitAllZero = true;
     bool SignBitAllOne = true;
@@ -5009,8 +5009,8 @@ void computeKnownFPClass(const Value *V, const APInt &DemandedElts,
   if (Depth == MaxAnalysisRecursionDepth)
     return;
 
-  const unsigned Opc = Op->getOpcode();
-  switch (Opc) {
+  
+  switch (const unsigned Opc = Op->getOpcode(); Opc) {
   case Instruction::FNeg: {
     computeKnownFPClass(Op->getOperand(0), DemandedElts, InterestedClasses,
                         Known, Q, Depth + 1);
@@ -5071,8 +5071,8 @@ void computeKnownFPClass(const Value *V, const APInt &DemandedElts,
   }
   case Instruction::Call: {
     const CallInst *II = cast<CallInst>(Op);
-    const Intrinsic::ID IID = II->getIntrinsicID();
-    switch (IID) {
+    
+    switch (const Intrinsic::ID IID = II->getIntrinsicID(); IID) {
     case Intrinsic::fabs: {
       if ((InterestedClasses & (fcNan | fcPositive)) != fcNone) {
         // If we only care about the sign bit we don't need to inspect the
@@ -5139,10 +5139,10 @@ void computeKnownFPClass(const Value *V, const APInt &DemandedElts,
       // If the input denormal mode could be PreserveSign, a negative
       // subnormal input could produce a negative zero output.
       const Function *F = II->getFunction();
-      const fltSemantics &FltSem =
-          II->getType()->getScalarType()->getFltSemantics();
+      
 
-      if (Q.IIQ.hasNoSignedZeros(II) ||
+      if (const fltSemantics &FltSem =
+          II->getType()->getScalarType()->getFltSemantics(); Q.IIQ.hasNoSignedZeros(II) ||
           (F &&
            KnownSrc.isKnownNeverLogicalNegZero(F->getDenormalMode(FltSem))))
         Known.knownNot(fcNegZero);
@@ -5494,8 +5494,8 @@ void computeKnownFPClass(const Value *V, const APInt &DemandedElts,
       ConstantRange ExpRange = computeConstantRange(
           ExpArg, true, Q.IIQ.UseInstrInfo, Q.AC, Q.CxtI, Q.DT, Depth + 1);
 
-      const int MantissaBits = Precision - 1;
-      if (ExpRange.getSignedMin().sge(static_cast<int64_t>(MantissaBits)))
+      
+      if (const int MantissaBits = Precision - 1; ExpRange.getSignedMin().sge(static_cast<int64_t>(MantissaBits)))
         Known.knownNot(fcSubnormal);
 
       const Function *F = II->getFunction();
@@ -5589,9 +5589,9 @@ void computeKnownFPClass(const Value *V, const APInt &DemandedElts,
         Known.knownNot(fcNan);
 
       // FIXME: Context function should always be passed in separately
-      const Function *F = cast<Instruction>(Op)->getFunction();
+      
 
-      if (Op->getOpcode() == Instruction::FAdd) {
+      if (const Function *F = cast<Instruction>(Op)->getFunction(); Op->getOpcode() == Instruction::FAdd) {
         if (KnownLHS.cannotBeOrderedLessThanZero() &&
             KnownRHS.cannotBeOrderedLessThanZero())
           Known.knownNot(KnownFPClass::OrderedLessThanZeroMask);
@@ -5769,11 +5769,11 @@ void computeKnownFPClass(const Value *V, const APInt &DemandedElts,
 
     const fltSemantics &DstTy =
         Op->getType()->getScalarType()->getFltSemantics();
-    const fltSemantics &SrcTy =
-        Op->getOperand(0)->getType()->getScalarType()->getFltSemantics();
+    
 
     // All subnormal inputs should be in the normal range in the result type.
-    if (APFloat::isRepresentableAsNormalIn(SrcTy, DstTy)) {
+    if (const fltSemantics &SrcTy =
+        Op->getOperand(0)->getType()->getScalarType()->getFltSemantics(); APFloat::isRepresentableAsNormalIn(SrcTy, DstTy)) {
       if (Known.KnownFPClasses & fcPosSubnormal)
         Known.KnownFPClasses |= fcPosNormal;
       if (Known.KnownFPClasses & fcNegSubnormal)
@@ -5830,8 +5830,8 @@ void computeKnownFPClass(const Value *V, const APInt &DemandedElts,
     if (auto *VecTy = dyn_cast<FixedVectorType>(Vec->getType())) {
       unsigned NumElts = VecTy->getNumElements();
       DemandedVecElts = APInt::getAllOnes(NumElts);
-      auto *CIdx = dyn_cast<ConstantInt>(Op->getOperand(1));
-      if (CIdx && CIdx->getValue().ult(NumElts))
+      
+      if (auto *CIdx = dyn_cast<ConstantInt>(Op->getOperand(1)); CIdx && CIdx->getValue().ult(NumElts))
         DemandedVecElts = APInt::getOneBitSet(NumElts, CIdx->getZExtValue());
     } else {
       DemandedVecElts = APInt(1, 1);
@@ -6338,8 +6338,8 @@ Value *llvm::isBytewiseValue(Value *V, const DataLayout &DL) {
   if (auto *CE = dyn_cast<ConstantExpr>(C)) {
     if (CE->getOpcode() == Instruction::IntToPtr) {
       if (auto *PtrTy = dyn_cast<PointerType>(CE->getType())) {
-        unsigned BitWidth = DL.getPointerSizeInBits(PtrTy->getAddressSpace());
-        if (Constant *Op = ConstantFoldIntegerCast(
+        
+        if (unsigned BitWidth = DL.getPointerSizeInBits(PtrTy->getAddressSpace()); Constant *Op = ConstantFoldIntegerCast(
                 CE->getOperand(0), Type::getIntNTy(Ctx, BitWidth), false, DL))
           return isBytewiseValue(Op, DL);
       }
@@ -6388,8 +6388,8 @@ static Value *BuildSubAggregate(Value *From, Value *To, Type *IndexedType,
                                 SmallVectorImpl<unsigned> &Idxs,
                                 unsigned IdxSkip,
                                 BasicBlock::iterator InsertBefore) {
-  StructType *STy = dyn_cast<StructType>(IndexedType);
-  if (STy) {
+  
+  if (StructType *STy = dyn_cast<StructType>(IndexedType); STy) {
     // Save the original To argument so we can modify it
     Value *OrigTo = To;
     // General case, the type indexed by Idxs is a struct
@@ -6605,8 +6605,8 @@ bool llvm::getConstantDataArrayInfo(const Value *V,
 
   auto *Init = const_cast<Constant *>(GV->getInitializer());
   if (auto *ArrayInit = dyn_cast<ConstantDataArray>(Init)) {
-    Type *InitElTy = ArrayInit->getElementType();
-    if (InitElTy->isIntegerTy(ElementSize)) {
+    
+    if (Type *InitElTy = ArrayInit->getElementType(); InitElTy->isIntegerTy(ElementSize)) {
       // If Init is an initializer for an array of the expected type
       // and size, use it as is.
       Array = ArrayInit;
@@ -7012,9 +7012,9 @@ bool llvm::getUnderlyingObjectsForCodeGen(const Value *V,
       if (!Visited.insert(V).second)
         continue;
       if (Operator::getOpcode(V) == Instruction::IntToPtr) {
-        const Value *O =
-          getUnderlyingObjectFromInt(cast<User>(V)->getOperand(0));
-        if (O->getType()->isPointerTy()) {
+        
+        if (const Value *O =
+          getUnderlyingObjectFromInt(cast<User>(V)->getOperand(0)); O->getType()->isPointerTy()) {
           Working.push_back(O);
           continue;
         }
@@ -7063,8 +7063,8 @@ AllocaInst *llvm::findAllocaForValue(Value *V, bool OffsetZero) {
         return nullptr;
       AddWork(GEP->getPointerOperand());
     } else if (CallBase *CB = dyn_cast<CallBase>(V)) {
-      Value *Returned = CB->getReturnedArgOperand();
-      if (Returned)
+      
+      if (Value *Returned = CB->getReturnedArgOperand(); Returned)
         AddWork(Returned);
       else
         return nullptr;
@@ -7382,9 +7382,9 @@ computeOverflowForSignedAdd(const WithCache<const Value *> &LHS,
   // call computeKnownBitsFromContext() directly.
   bool LHSOrRHSKnownNonNegative =
       (LHSRange.isAllNonNegative() || RHSRange.isAllNonNegative());
-  bool LHSOrRHSKnownNegative =
-      (LHSRange.isAllNegative() || RHSRange.isAllNegative());
-  if (LHSOrRHSKnownNonNegative || LHSOrRHSKnownNegative) {
+  
+  if (bool LHSOrRHSKnownNegative =
+      (LHSRange.isAllNegative() || RHSRange.isAllNegative()); LHSOrRHSKnownNonNegative || LHSOrRHSKnownNegative) {
     KnownBits AddKnown(LHSRange.getBitWidth());
     computeKnownBitsFromContext(Add, AddKnown, SQ);
     if ((AddKnown.isNonNegative() && LHSOrRHSKnownNonNegative) ||
@@ -7552,10 +7552,10 @@ static bool canCreateUndefOrPoison(const Operator *Op, UndefPoisonKind Kind,
       Op->hasPoisonGeneratingAnnotations())
     return true;
 
-  unsigned Opcode = Op->getOpcode();
+  
 
   // Check whether opcode is a poison/undef-generating operation
-  switch (Opcode) {
+  switch (unsigned Opcode = Op->getOpcode(); Opcode) {
   case Instruction::Shl:
   case Instruction::AShr:
   case Instruction::LShr:
@@ -7595,8 +7595,8 @@ static bool canCreateUndefOrPoison(const Operator *Op, UndefPoisonKind Kind,
     // If index exceeds the length of the vector, it returns poison
     auto *VTy = cast<VectorType>(Op->getOperand(0)->getType());
     unsigned IdxOp = Op->getOpcode() == Instruction::InsertElement ? 2 : 1;
-    auto *Idx = dyn_cast<ConstantInt>(Op->getOperand(IdxOp));
-    if (includesPoison(Kind))
+    
+    if (auto *Idx = dyn_cast<ConstantInt>(Op->getOperand(IdxOp)); includesPoison(Kind))
       return !Idx ||
              Idx->getValue().uge(VTy->getElementCount().getKnownMinValue());
     return false;
@@ -7620,8 +7620,8 @@ static bool canCreateUndefOrPoison(const Operator *Op, UndefPoisonKind Kind,
   case Instruction::AddrSpaceCast:
     return true;
   default: {
-    const auto *CE = dyn_cast<ConstantExpr>(Op);
-    if (isa<CastInst>(Op) || (CE && CE->isCast()))
+    
+    if (const auto *CE = dyn_cast<ConstantExpr>(Op); isa<CastInst>(Op) || (CE && CE->isCast()))
       return false;
     else if (Instruction::isBinaryOp(Opcode))
       return false;
@@ -7647,8 +7647,8 @@ static bool directlyImpliesPoison(const Value *ValAssumedPoison, const Value *V,
   if (ValAssumedPoison == V)
     return true;
 
-  const unsigned MaxDepth = 2;
-  if (Depth >= MaxDepth)
+  
+  if (const unsigned MaxDepth = 2; Depth >= MaxDepth)
     return false;
 
   if (const auto *I = dyn_cast<Instruction>(V)) {
@@ -7678,8 +7678,8 @@ static bool impliesPoison(const Value *ValAssumedPoison, const Value *V,
   if (directlyImpliesPoison(ValAssumedPoison, V, /* Depth */ 0))
     return true;
 
-  const unsigned MaxDepth = 2;
-  if (Depth >= MaxDepth)
+  
+  if (const unsigned MaxDepth = 2; Depth >= MaxDepth)
     return false;
 
   const auto *I = dyn_cast<Instruction>(ValAssumedPoison);
@@ -7778,8 +7778,8 @@ static bool isGuaranteedNotToBeUndefOrPoison(
         for (unsigned i = 0; i < Num; ++i) {
           if (PN == PN->getIncomingValue(i))
             continue;
-          auto *TI = PN->getIncomingBlock(i)->getTerminator();
-          if (!isGuaranteedNotToBeUndefOrPoison(PN->getIncomingValue(i), AC, TI,
+          
+          if (auto *TI = PN->getIncomingBlock(i)->getTerminator(); !isGuaranteedNotToBeUndefOrPoison(PN->getIncomingValue(i), AC, TI,
                                                 DT, Depth + 1, Kind)) {
             IsWellDefined = false;
             break;
@@ -7840,8 +7840,8 @@ static bool isGuaranteedNotToBeUndefOrPoison(
           return true;
         else if (!includesUndef(Kind) && isa<Operator>(Cond)) {
           // For poison, we can analyze further
-          auto *Opr = cast<Operator>(Cond);
-          if (any_of(Opr->operands(), [V](const Use &U) {
+          
+          if (auto *Opr = cast<Operator>(Cond); any_of(Opr->operands(), [V](const Use &U) {
                 return V == U && propagatesPoison(U);
               }))
             return true;
@@ -8164,8 +8164,8 @@ static bool handleGuaranteedWellDefinedOps(const Instruction *I,
         return true;
       break;
     case Instruction::Br: {
-      auto *BR = cast<BranchInst>(I);
-      if (BR->isConditional() && Handle(BR->getCondition()))
+      
+      if (auto *BR = cast<BranchInst>(I); BR->isConditional() && Handle(BR->getCondition()))
         return true;
       break;
     }
@@ -8749,9 +8749,9 @@ llvm::getFlippedStrictnessPredicateAndConstant(CmpPredicate Pred, Constant *C) {
   } else if (isa<VectorType>(C->getType())) {
     // Handle scalable splat
     Value *SplatC = C->getSplatValue();
-    auto *CI = dyn_cast_or_null<ConstantInt>(SplatC);
+    
     // Bail out if the constant can't be safely incremented/decremented.
-    if (!CI || !ConstantIsOk(CI))
+    if (auto *CI = dyn_cast_or_null<ConstantInt>(SplatC); !CI || !ConstantIsOk(CI))
       return std::nullopt;
   } else {
     // ConstantExpr?
@@ -8840,9 +8840,9 @@ static SelectPatternResult matchSelectPattern(CmpInst::Predicate Pred,
   // so here we discover exactly what NaN behavior is required/accepted.
   if (CmpInst::isFPPredicate(Pred)) {
     bool LHSSafe = isKnownNonNaN(CmpLHS, FMF);
-    bool RHSSafe = isKnownNonNaN(CmpRHS, FMF);
+    
 
-    if (LHSSafe && RHSSafe) {
+    if (bool RHSSafe = isKnownNonNaN(CmpRHS, FMF); LHSSafe && RHSSafe) {
       // Both operands are known non-NaN.
       NaNBehavior = SPNB_RETURNS_ANY;
       Ordered = CmpInst::isOrdered(Pred);
@@ -9021,9 +9021,9 @@ static Value *lookThroughCastConst(CmpInst *CmpI, Type *SrcTy, Constant *C,
     return nullptr;
 
   // Make sure the cast doesn't lose any information.
-  Constant *CastedBack =
-      ConstantFoldCastOperand(*CastOp, CastedTo, C->getType(), DL);
-  if (CastedBack && CastedBack != C)
+  
+  if (Constant *CastedBack =
+      ConstantFoldCastOperand(*CastOp, CastedTo, C->getType(), DL); CastedBack && CastedBack != C)
     return nullptr;
 
   return CastedTo;
@@ -10527,8 +10527,8 @@ bool llvm::collectPossibleValues(const Value *V,
   if (!Push(V))
     return false;
   while (!Worklist.empty()) {
-    const Instruction *CurInst = Worklist.pop_back_val();
-    switch (CurInst->getOpcode()) {
+    
+    switch (const Instruction *CurInst = Worklist.pop_back_val(); CurInst->getOpcode()) {
     case Instruction::Select:
       if (!Push(CurInst->getOperand(1)))
         return false;

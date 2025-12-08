@@ -108,8 +108,8 @@ bool MipsInstructionSelector::selectCopy(MachineInstr &I,
   if (DstReg.isPhysical())
     return true;
 
-  const TargetRegisterClass *RC = getRegClassForTypeOnBank(DstReg, MRI);
-  if (!RBI.constrainGenericRegister(DstReg, *RC, MRI)) {
+  
+  if (const TargetRegisterClass *RC = getRegClassForTypeOnBank(DstReg, MRI); !RBI.constrainGenericRegister(DstReg, *RC, MRI)) {
     LLVM_DEBUG(dbgs() << "Failed to constrain " << TII.getName(I.getOpcode())
                       << " operand\n");
     return false;
@@ -258,13 +258,13 @@ MipsInstructionSelector::selectLoadStoreOpCode(MachineInstr &I,
 bool MipsInstructionSelector::buildUnalignedStore(
     MachineInstr &I, unsigned Opc, MachineOperand &BaseAddr, unsigned Offset,
     MachineMemOperand *MMO) const {
-  MachineInstr *NewInst =
+  
+  if (MachineInstr *NewInst =
       BuildMI(*I.getParent(), I, I.getDebugLoc(), TII.get(Opc))
           .add(I.getOperand(0))
           .add(BaseAddr)
           .addImm(Offset)
-          .addMemOperand(MMO);
-  if (!constrainSelectedInstRegOperands(*NewInst, TII, TRI, RBI))
+          .addMemOperand(MMO); !constrainSelectedInstRegOperands(*NewInst, TII, TRI, RBI))
     return false;
   return true;
 }
@@ -272,14 +272,14 @@ bool MipsInstructionSelector::buildUnalignedStore(
 bool MipsInstructionSelector::buildUnalignedLoad(
     MachineInstr &I, unsigned Opc, Register Dest, MachineOperand &BaseAddr,
     unsigned Offset, Register TiedDest, MachineMemOperand *MMO) const {
-  MachineInstr *NewInst =
+  
+  if (MachineInstr *NewInst =
       BuildMI(*I.getParent(), I, I.getDebugLoc(), TII.get(Opc))
           .addDef(Dest)
           .add(BaseAddr)
           .addImm(Offset)
           .addUse(TiedDest)
-          .addMemOperand(*I.memoperands_begin());
-  if (!constrainSelectedInstRegOperands(*NewInst, TII, TRI, RBI))
+          .addMemOperand(*I.memoperands_begin()); !constrainSelectedInstRegOperands(*NewInst, TII, TRI, RBI))
     return false;
   return true;
 }
@@ -365,11 +365,11 @@ bool MipsInstructionSelector::select(MachineInstr &I) {
            "Non-power-of-two jump-table entry size not supported.");
 
     Register JTIndex = MRI.createVirtualRegister(&Mips::GPR32RegClass);
-    MachineInstr *SLL = BuildMI(MBB, I, I.getDebugLoc(), TII.get(Mips::SLL))
+    
+    if (MachineInstr *SLL = BuildMI(MBB, I, I.getDebugLoc(), TII.get(Mips::SLL))
                             .addDef(JTIndex)
                             .addUse(I.getOperand(2).getReg())
-                            .addImm(Log2_32(EntrySize));
-    if (!constrainSelectedInstRegOperands(*SLL, TII, TRI, RBI))
+                            .addImm(Log2_32(EntrySize)); !constrainSelectedInstRegOperands(*SLL, TII, TRI, RBI))
       return false;
 
     Register DestAddress = MRI.createVirtualRegister(&Mips::GPR32RegClass);
@@ -394,12 +394,12 @@ bool MipsInstructionSelector::select(MachineInstr &I) {
     if (MF.getTarget().isPositionIndependent()) {
       Register DestTmp = MRI.createVirtualRegister(&Mips::GPR32RegClass);
       LW->getOperand(0).setReg(DestTmp);
-      MachineInstr *ADDu = BuildMI(MBB, I, I.getDebugLoc(), TII.get(Mips::ADDu))
+      
+      if (MachineInstr *ADDu = BuildMI(MBB, I, I.getDebugLoc(), TII.get(Mips::ADDu))
                                .addDef(Dest)
                                .addUse(DestTmp)
                                .addUse(MF.getInfo<MipsFunctionInfo>()
-                                           ->getGlobalBaseRegForGlobalISel(MF));
-      if (!constrainSelectedInstRegOperands(*ADDu, TII, TRI, RBI))
+                                           ->getGlobalBaseRegForGlobalISel(MF)); !constrainSelectedInstRegOperands(*ADDu, TII, TRI, RBI))
         return false;
     }
 
@@ -443,10 +443,10 @@ bool MipsInstructionSelector::select(MachineInstr &I) {
     // into:
     // %LoadResult/%StoreSrc = NewOpc %BaseAddr(p0), 16_bit_signed_immediate
 
-    MachineInstr *Addr = MRI.getVRegDef(I.getOperand(1).getReg());
-    if (Addr->getOpcode() == G_PTR_ADD) {
-      MachineInstr *Offset = MRI.getVRegDef(Addr->getOperand(2).getReg());
-      if (Offset->getOpcode() == G_CONSTANT) {
+    
+    if (MachineInstr *Addr = MRI.getVRegDef(I.getOperand(1).getReg()); Addr->getOpcode() == G_PTR_ADD) {
+      
+      if (MachineInstr *Offset = MRI.getVRegDef(Addr->getOperand(2).getReg()); Offset->getOpcode() == G_CONSTANT) {
         APInt OffsetValue = Offset->getOperand(1).getCImm()->getValue();
         if (OffsetValue.isSignedIntN(16)) {
           BaseAddr = Addr->getOperand(1);
@@ -549,11 +549,11 @@ bool MipsInstructionSelector::select(MachineInstr &I) {
     unsigned Opcode =
         STI.isFP64bit() ? Mips::ExtractElementF64_64 : Mips::ExtractElementF64;
 
-    MachineInstr *ExtractLo = BuildMI(MBB, I, I.getDebugLoc(), TII.get(Opcode))
+    
+    if (MachineInstr *ExtractLo = BuildMI(MBB, I, I.getDebugLoc(), TII.get(Opcode))
                                   .addDef(Lo)
                                   .addUse(Src)
-                                  .addImm(0);
-    if (!constrainSelectedInstRegOperands(*ExtractLo, TII, TRI, RBI))
+                                  .addImm(0); !constrainSelectedInstRegOperands(*ExtractLo, TII, TRI, RBI))
       return false;
 
     MachineInstr *ExtractHi = BuildMI(MBB, I, I.getDebugLoc(), TII.get(Opcode))
@@ -659,8 +659,8 @@ bool MipsInstructionSelector::select(MachineInstr &I) {
     return true;
   }
   case G_GLOBAL_VALUE: {
-    const llvm::GlobalValue *GVal = I.getOperand(1).getGlobal();
-    if (MF.getTarget().isPositionIndependent()) {
+    
+    if (const llvm::GlobalValue *GVal = I.getOperand(1).getGlobal(); MF.getTarget().isPositionIndependent()) {
       MachineInstr *LWGOT = BuildMI(MBB, I, I.getDebugLoc(), TII.get(Mips::LW))
                                 .addDef(I.getOperand(0).getReg())
                                 .addReg(MF.getInfo<MipsFunctionInfo>()
@@ -873,11 +873,11 @@ bool MipsInstructionSelector::select(MachineInstr &I) {
     unsigned FCMPOpcode =
         Size == 32 ? Mips::FCMP_S32
                    : STI.isFP64bit() ? Mips::FCMP_D64 : Mips::FCMP_D32;
-    MachineInstr *FCMP = BuildMI(MBB, I, I.getDebugLoc(), TII.get(FCMPOpcode))
+    
+    if (MachineInstr *FCMP = BuildMI(MBB, I, I.getDebugLoc(), TII.get(FCMPOpcode))
                              .addUse(I.getOperand(2).getReg())
                              .addUse(I.getOperand(3).getReg())
-                             .addImm(MipsFCMPCondCode);
-    if (!constrainSelectedInstRegOperands(*FCMP, TII, TRI, RBI))
+                             .addImm(MipsFCMPCondCode); !constrainSelectedInstRegOperands(*FCMP, TII, TRI, RBI))
       return false;
 
     MachineInstr *Move = BuildMI(MBB, I, I.getDebugLoc(), TII.get(MoveOpcode))
@@ -900,12 +900,12 @@ bool MipsInstructionSelector::select(MachineInstr &I) {
     int FI = FuncInfo->getVarArgsFrameIndex();
 
     Register LeaReg = MRI.createVirtualRegister(&Mips::GPR32RegClass);
-    MachineInstr *LEA_ADDiu =
+    
+    if (MachineInstr *LEA_ADDiu =
         BuildMI(MBB, I, I.getDebugLoc(), TII.get(Mips::LEA_ADDiu))
             .addDef(LeaReg)
             .addFrameIndex(FI)
-            .addImm(0);
-    if (!constrainSelectedInstRegOperands(*LEA_ADDiu, TII, TRI, RBI))
+            .addImm(0); !constrainSelectedInstRegOperands(*LEA_ADDiu, TII, TRI, RBI))
       return false;
 
     MachineInstr *Store = BuildMI(MBB, I, I.getDebugLoc(), TII.get(Mips::SW))

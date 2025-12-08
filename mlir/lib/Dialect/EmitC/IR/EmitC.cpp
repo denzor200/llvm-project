@@ -333,10 +333,10 @@ LogicalResult emitc::CallOpaqueOp::verify() {
     for (Attribute arg : *argsAttr) {
       auto intAttr = llvm::dyn_cast<IntegerAttr>(arg);
       if (intAttr && llvm::isa<IndexType>(intAttr.getType())) {
-        int64_t index = intAttr.getInt();
+        
         // Args with elements of type index must be in range
         // [0..operands.size).
-        if ((index < 0) || (index >= static_cast<int64_t>(getNumOperands())))
+        if (int64_t index = intAttr.getInt(); (index < 0) || (index >= static_cast<int64_t>(getNumOperands())))
           return emitOpError("index argument is out of range");
 
         // Args with elements of type ArrayAttr must have a type.
@@ -745,8 +745,8 @@ void IfOp::build(OpBuilder &builder, OperationState &result, Value cond,
 
   // Add regions and blocks.
   OpBuilder::InsertionGuard guard(builder);
-  Region *thenRegion = result.addRegion();
-  if (addThenBlock)
+  
+  if (Region *thenRegion = result.addRegion(); addThenBlock)
     builder.createBlock(thenRegion);
   Region *elseRegion = result.addRegion();
   if (addElseBlock)
@@ -763,8 +763,8 @@ void IfOp::build(OpBuilder &builder, OperationState &result, Value cond,
   builder.createBlock(thenRegion);
 
   // Build else region.
-  Region *elseRegion = result.addRegion();
-  if (withElseRegion) {
+  
+  if (Region *elseRegion = result.addRegion(); withElseRegion) {
     builder.createBlock(elseRegion);
   }
 }
@@ -782,8 +782,8 @@ void IfOp::build(OpBuilder &builder, OperationState &result, Value cond,
   thenBuilder(builder, result.location);
 
   // Build else region.
-  Region *elseRegion = result.addRegion();
-  if (elseBuilder) {
+  
+  if (Region *elseRegion = result.addRegion(); elseBuilder) {
     builder.createBlock(elseRegion);
     elseBuilder(builder, result.location);
   }
@@ -829,8 +829,8 @@ void IfOp::print(OpAsmPrinter &p) {
                 /*printBlockTerminators=*/printBlockTerminators);
 
   // Print the 'else' regions if it exists and has a block.
-  Region &elseRegion = getElseRegion();
-  if (!elseRegion.empty()) {
+  
+  if (Region &elseRegion = getElseRegion(); !elseRegion.empty()) {
     p << " else ";
     p.printRegion(elseRegion,
                   /*printEntryBlockArgs=*/false,
@@ -857,8 +857,8 @@ void IfOp::getSuccessorRegions(RegionBranchPoint point,
   regions.push_back(RegionSuccessor(&getThenRegion()));
 
   // Don't consider the else region if it is empty.
-  Region *elseRegion = &this->getElseRegion();
-  if (elseRegion->empty())
+  
+  if (Region *elseRegion = &this->getElseRegion(); elseRegion->empty())
     regions.push_back(
         RegionSuccessor(getOperation(), getOperation()->getResults()));
   else
@@ -1067,11 +1067,11 @@ LogicalResult emitc::VerbatimOp::verify() {
   if (failed(fmt))
     return failure();
 
-  size_t numPlaceholders = llvm::count_if(*fmt, [](ReplacementItem &item) {
-    return std::holds_alternative<Placeholder>(item);
-  });
+  
 
-  if (numPlaceholders != getFmtArgs().size()) {
+  if (size_t numPlaceholders = llvm::count_if(*fmt, [](ReplacementItem &item) {
+    return std::holds_alternative<Placeholder>(item);
+  }); numPlaceholders != getFmtArgs().size()) {
     return emitOpError()
            << "requires operands for each placeholder in the format string";
   }
@@ -1625,9 +1625,9 @@ LogicalResult emitc::DoOp::verify() {
 
 ParseResult DoOp::parse(OpAsmParser &parser, OperationState &result) {
   Region *bodyRegion = result.addRegion();
-  Region *condRegion = result.addRegion();
+  
 
-  if (parser.parseRegion(*bodyRegion) || parser.parseKeyword("while") ||
+  if (Region *condRegion = result.addRegion(); parser.parseRegion(*bodyRegion) || parser.parseKeyword("while") ||
       parser.parseRegion(*condRegion))
     return failure();
 

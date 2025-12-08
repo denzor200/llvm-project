@@ -457,10 +457,10 @@ static bool writeReport(LocationInfoTy &LocationInfo) {
         }
       }
 
-      bool NothingHappened = !AllLI.Inlined.Transformed &&
+      
+      if (bool NothingHappened = !AllLI.Inlined.Transformed &&
                              !AllLI.Unrolled.Transformed &&
-                             !AllLI.Vectorized.Transformed;
-      if (UniqueLIs.size() > 1 && !NothingHappened) {
+                             !AllLI.Vectorized.Transformed; UniqueLIs.size() > 1 && !NothingHappened) {
         OS << " [[\n";
         for (const auto &FSLI : UniqueLIs)
           PrintLine(true, FSLI.second);

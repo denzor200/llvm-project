@@ -116,9 +116,9 @@ InstructionCost R600TTIImpl::getVectorInstrCost(unsigned Opcode, Type *ValTy,
   switch (Opcode) {
   case Instruction::ExtractElement:
   case Instruction::InsertElement: {
-    unsigned EltSize =
-        DL.getTypeSizeInBits(cast<VectorType>(ValTy)->getElementType());
-    if (EltSize < 32) {
+    
+    if (unsigned EltSize =
+        DL.getTypeSizeInBits(cast<VectorType>(ValTy)->getElementType()); EltSize < 32) {
       return BaseT::getVectorInstrCost(Opcode, ValTy, CostKind, Index, Op0,
                                        Op1);
     }

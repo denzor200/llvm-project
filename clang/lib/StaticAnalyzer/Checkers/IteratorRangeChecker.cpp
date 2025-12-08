@@ -126,8 +126,8 @@ void IteratorRangeChecker::checkPreCall(const CallEvent &Call,
       }
     }
   } else {
-    const AdvanceFn *Verifier = AdvanceFunctions.lookup(Call);
-    if (Verifier) {
+    
+    if (const AdvanceFn *Verifier = AdvanceFunctions.lookup(Call); Verifier) {
       if (Call.getNumArgs() > 1) {
         (this->**Verifier)(C, Call.getArgSVal(0), Call.getArgSVal(1));
       } else {
@@ -195,8 +195,8 @@ void IteratorRangeChecker::checkPreStmt(const MemberExpr *ME,
 void IteratorRangeChecker::verifyDereference(CheckerContext &C,
                                              SVal Val) const {
   auto State = C.getState();
-  const auto *Pos = getIteratorPosition(State, Val);
-  if (Pos && isPastTheEnd(State, *Pos)) {
+  
+  if (const auto *Pos = getIteratorPosition(State, Val); Pos && isPastTheEnd(State, *Pos)) {
     auto *N = C.generateErrorNode(State);
     if (!N)
       return;

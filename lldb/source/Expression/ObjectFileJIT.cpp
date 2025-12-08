@@ -127,8 +127,8 @@ void ObjectFileJIT::Dump(Stream *s) {
 
     s->EOL();
 
-    SectionList *sections = GetSectionList();
-    if (sections)
+    
+    if (SectionList *sections = GetSectionList(); sections)
       sections->Dump(s->AsRawOstream(), s->GetIndentLevel(), nullptr, true,
                      UINT32_MAX);
 
@@ -168,8 +168,8 @@ ArchSpec ObjectFileJIT::GetArchitecture() {
 bool ObjectFileJIT::SetLoadAddress(Target &target, lldb::addr_t value,
                                    bool value_is_offset) {
   size_t num_loaded_sections = 0;
-  SectionList *section_list = GetSectionList();
-  if (section_list) {
+  
+  if (SectionList *section_list = GetSectionList(); section_list) {
     const size_t num_sections = section_list->GetSize();
     // "value" is an offset to apply to each top level segment
     for (size_t sect_idx = 0; sect_idx < num_sections; ++sect_idx) {
@@ -190,8 +190,8 @@ bool ObjectFileJIT::SetLoadAddress(Target &target, lldb::addr_t value,
 size_t ObjectFileJIT::ReadSectionData(lldb_private::Section *section,
                                       lldb::offset_t section_offset, void *dst,
                                       size_t dst_len) {
-  lldb::offset_t file_size = section->GetFileSize();
-  if (section_offset < file_size) {
+  
+  if (lldb::offset_t file_size = section->GetFileSize(); section_offset < file_size) {
     size_t src_len = file_size - section_offset;
     if (src_len > dst_len)
       src_len = dst_len;

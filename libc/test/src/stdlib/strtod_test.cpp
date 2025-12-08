@@ -46,8 +46,8 @@ public:
     LIBC_NAMESPACE::fputil::FPBits<double> expected_fp =
         LIBC_NAMESPACE::fputil::FPBits<double>(expectedRawData);
 
-    double result = LIBC_NAMESPACE::strtod(inputString, &str_end);
-    if (expectedErrno == 0)
+    
+    if (double result = LIBC_NAMESPACE::strtod(inputString, &str_end); expectedErrno == 0)
       EXPECT_THAT(result, Succeeds<double>(expected_fp.get_val()));
     else
       EXPECT_THAT(result, Fails<double>(expectedErrno, expected_fp.get_val()));

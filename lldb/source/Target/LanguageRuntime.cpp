@@ -61,9 +61,9 @@ void ExceptionSearchFilter::UpdateModuleListIfNeeded() {
       m_language_runtime = process_sp->GetLanguageRuntime(m_language);
       refreash_filter = true;
     } else {
-      LanguageRuntime *language_runtime =
-          process_sp->GetLanguageRuntime(m_language);
-      if (m_language_runtime != language_runtime) {
+      
+      if (LanguageRuntime *language_runtime =
+          process_sp->GetLanguageRuntime(m_language); m_language_runtime != language_runtime) {
         m_language_runtime = language_runtime;
         refreash_filter = true;
       }
@@ -126,8 +126,8 @@ public:
   }
 
   void GetDescription(Stream *s) override {
-    Language *language_plugin = Language::FindPlugin(m_language);
-    if (language_plugin)
+    
+    if (Language *language_plugin = Language::FindPlugin(m_language); language_plugin)
       language_plugin->GetExceptionResolverDescription(m_catch_bp, m_throw_bp,
                                                        *s);
     else
@@ -169,9 +169,9 @@ protected:
           m_language_runtime = process_sp->GetLanguageRuntime(m_language);
           refreash_resolver = true;
         } else {
-          LanguageRuntime *language_runtime =
-              process_sp->GetLanguageRuntime(m_language);
-          if (m_language_runtime != language_runtime) {
+          
+          if (LanguageRuntime *language_runtime =
+              process_sp->GetLanguageRuntime(m_language); m_language_runtime != language_runtime) {
             m_language_runtime = language_runtime;
             refreash_resolver = true;
           }

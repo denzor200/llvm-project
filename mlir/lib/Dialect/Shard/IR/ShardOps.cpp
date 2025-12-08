@@ -407,9 +407,9 @@ void mlir::shard::maybeInsertSourceShardingAnnotation(Sharding sharding,
 //===----------------------------------------------------------------------===//
 
 LogicalResult GridOp::verify() {
-  int64_t rank = getRank();
+  
 
-  if (rank <= 0)
+  if (int64_t rank = getRank(); rank <= 0)
     return emitOpError("rank of grid is expected to be a positive integer");
 
   for (int64_t dimSize : getShape()) {

@@ -52,8 +52,8 @@ void CompilandDumper::start(const PDBSymbolCompiland &Symbol,
   WithColor(Printer, PDB_ColorItem::Path).get() << FullName;
 
   if (opts & Flags::Lines) {
-    const IPDBSession &Session = Symbol.getSession();
-    if (auto Files = Session.getSourceFilesForCompiland(Symbol)) {
+    
+    if (const IPDBSession &Session = Symbol.getSession(); auto Files = Session.getSourceFilesForCompiland(Symbol)) {
       Printer.Indent();
       while (auto File = Files->getNext()) {
         Printer.NewLine();
@@ -84,8 +84,8 @@ void CompilandDumper::start(const PDBSymbolCompiland &Symbol,
             WithColor(Printer, StatementColor).get() << " - " << LineEnd;
 
           uint32_t ColumnStart = Line->getColumnNumber();
-          uint32_t ColumnEnd = Line->getColumnNumberEnd();
-          if (ColumnStart != 0 || ColumnEnd != 0) {
+          
+          if (uint32_t ColumnEnd = Line->getColumnNumberEnd(); ColumnStart != 0 || ColumnEnd != 0) {
             Printer << ", Column: ";
             WithColor(Printer, StatementColor).get() << ColumnStart;
             if (ColumnEnd != ColumnStart)
@@ -189,8 +189,8 @@ void CompilandDumper::dump(const PDBSymbolThunk &Symbol) {
   Printer.NewLine();
   Printer << "thunk ";
   codeview::ThunkOrdinal Ordinal = Symbol.getThunkOrdinal();
-  uint64_t VA = Symbol.getVirtualAddress();
-  if (Ordinal == codeview::ThunkOrdinal::TrampIncremental) {
+  
+  if (uint64_t VA = Symbol.getVirtualAddress(); Ordinal == codeview::ThunkOrdinal::TrampIncremental) {
     uint64_t Target = Symbol.getTargetVirtualAddress();
     WithColor(Printer, PDB_ColorItem::Address).get() << format_hex(VA, 10);
     Printer << " -> ";

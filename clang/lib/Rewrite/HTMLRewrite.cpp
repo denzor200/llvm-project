@@ -200,8 +200,8 @@ std::string html::EscapeText(StringRef s, bool EscapeSpaces, bool ReplaceTabs) {
 
   for (unsigned i = 0 ; i < len; ++i) {
 
-    char c = s[i];
-    switch (c) {
+    
+    switch (char c = s[i]; c) {
     default:
       os << c; break;
 
@@ -495,8 +495,8 @@ static void SyntaxHighlightImpl(
     // Since we are lexing unexpanded tokens, all tokens are from the main
     // FileID.
     unsigned TokOffs = SM.getFileOffset(Tok.getLocation());
-    unsigned TokLen = Tok.getLength();
-    switch (Tok.getKind()) {
+    
+    switch (unsigned TokLen = Tok.getLength(); Tok.getKind()) {
     default: break;
     case tok::identifier:
       llvm_unreachable("tok::identifier in raw lexing mode!");
@@ -564,9 +564,9 @@ void html::SyntaxHighlight(Rewriter &R, FileID FID, const Preprocessor &PP,
   RewriteBuffer &RB = R.getEditBuffer(FID);
   const SourceManager &SM = PP.getSourceManager();
   llvm::MemoryBufferRef FromFile = SM.getBufferOrFake(FID);
-  const char *BufferStart = FromFile.getBuffer().data();
+  
 
-  if (Cache) {
+  if (const char *BufferStart = FromFile.getBuffer().data(); Cache) {
     auto CacheIt = Cache->SyntaxHighlights.find(FID);
     if (CacheIt != Cache->SyntaxHighlights.end()) {
       for (const RelexRewriteCache::RawHighlight &H : CacheIt->second) {

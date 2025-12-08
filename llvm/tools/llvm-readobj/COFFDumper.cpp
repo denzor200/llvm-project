@@ -263,9 +263,9 @@ std::error_code COFFDumper::resolveSymbol(const coff_section *Section,
   const auto &Relocations = RelocMap[Section];
   auto SymI = Obj->symbol_end();
   for (const auto &Relocation : Relocations) {
-    uint64_t RelocationOffset = Relocation.getOffset();
+    
 
-    if (RelocationOffset == Offset) {
+    if (uint64_t RelocationOffset = Relocation.getOffset(); RelocationOffset == Offset) {
       SymI = Relocation.getSymbol();
       break;
     }
@@ -309,8 +309,8 @@ void COFFDumper::printRelocatedField(StringRef Label, const coff_section *Sec,
                                      uint32_t RelocOffset, uint32_t Offset,
                                      StringRef *RelocSym) {
   StringRef SymStorage;
-  StringRef &Symbol = RelocSym ? *RelocSym : SymStorage;
-  if (!resolveSymbolName(Sec, RelocOffset, Symbol))
+  
+  if (StringRef &Symbol = RelocSym ? *RelocSym : SymStorage; !resolveSymbolName(Sec, RelocOffset, Symbol))
     W.printSymbolOffset(Label, Symbol, Offset);
   else
     W.printHex(Label, RelocOffset);
@@ -334,8 +334,8 @@ void COFFDumper::printBinaryBlockWithRelocs(StringRef Label,
   const coff_section *Section = Obj->getCOFFSection(Sec);
   const auto &Relocations = RelocMap[Section];
   for (const auto &Relocation : Relocations) {
-    uint64_t RelocationOffset = Relocation.getOffset();
-    if (OffsetStart <= RelocationOffset && RelocationOffset < OffsetEnd)
+    
+    if (uint64_t RelocationOffset = Relocation.getOffset(); OffsetStart <= RelocationOffset && RelocationOffset < OffsetEnd)
       printRelocation(Sec, Relocation, OffsetStart);
   }
 }
@@ -956,8 +956,8 @@ void COFFDumper::printCOFFLoadConfig() {
   }
 
   auto PrintGuardFlags = [](raw_ostream &OS, const uint8_t *Entry) {
-    uint8_t Flags = *reinterpret_cast<const uint8_t *>(Entry + 4);
-    if (Flags)
+    
+    if (uint8_t Flags = *reinterpret_cast<const uint8_t *>(Entry + 4); Flags)
       OS << " flags " << utohexstr(Flags);
   };
 
@@ -1178,8 +1178,8 @@ void COFFDumper::initializeFileAndStringTables(BinaryStreamReader &Reader) {
       break;
     }
 
-    uint32_t PaddedSize = alignTo(SubSectionSize, 4);
-    if (Error E = Reader.skip(PaddedSize - SubSectionSize))
+    
+    if (uint32_t PaddedSize = alignTo(SubSectionSize, 4); Error E = Reader.skip(PaddedSize - SubSectionSize))
       reportError(std::move(E), Obj->getFileName());
   }
 }

@@ -599,8 +599,8 @@ private:
     if (!LP->hasDedicatedExits())
       return false;
 
-    BasicBlock *PH = LP->getLoopPreheader();
-    if (!PH)
+    
+    if (BasicBlock *PH = LP->getLoopPreheader(); !PH)
       return false;
 
     return true;
@@ -1260,9 +1260,9 @@ void InstrLowerer::lowerMCDCTestVectorBitmapUpdate(
 
   // Load profile bitmap byte.
   //  %mcdc.bits = load i8, ptr %4, align 1
-  auto *Bitmap = Builder.CreateLoad(Int8Ty, BitmapByteAddr, "mcdc.bits");
+  
 
-  if (Options.Atomic || AtomicCounterUpdateAll) {
+  if (auto *Bitmap = Builder.CreateLoad(Int8Ty, BitmapByteAddr, "mcdc.bits"); Options.Atomic || AtomicCounterUpdateAll) {
     // If ((Bitmap & Val) != Val), then execute atomic (Bitmap |= Val).
     // Note, just-loaded Bitmap might not be up-to-date. Use it just for
     // early testing.
@@ -1297,8 +1297,8 @@ static std::string getVarName(InstrProfInstBase *Inc, StringRef Prefix,
   StringRef NamePrefix = getInstrProfNameVarPrefix();
   StringRef Name = Inc->getName()->getName().substr(NamePrefix.size());
   Function *F = Inc->getParent()->getParent();
-  Module *M = F->getParent();
-  if (!DoHashBasedCounterSplit || !isIRPGOFlagSet(M) ||
+  
+  if (Module *M = F->getParent(); !DoHashBasedCounterSplit || !isIRPGOFlagSet(M) ||
       !canRenameComdatFunc(*F)) {
     Renamed = false;
     return (Prefix + Name).str();
@@ -1380,9 +1380,9 @@ static inline bool shouldUsePublicSymbol(Function *Fn) {
 }
 
 static inline Constant *getFuncAddrForProfData(Function *Fn) {
-  auto *Int8PtrTy = PointerType::getUnqual(Fn->getContext());
+  
   // Store a nullptr in __llvm_profd, if we shouldn't use a real address
-  if (!shouldRecordFunctionAddr(Fn))
+  if (auto *Int8PtrTy = PointerType::getUnqual(Fn->getContext()); !shouldRecordFunctionAddr(Fn))
     return ConstantPointerNull::get(Int8PtrTy);
 
   // If we can't use an alias, we must use the public symbol, even though this
@@ -1432,9 +1432,9 @@ void InstrLowerer::maybeSetComdat(GlobalVariable *GV, GlobalObject *GO,
   // global variable (e.g. function counters) of the COMDAT function will be
   // emitted after linking.
   bool NeedComdat = needsComdatForCounter(*GO, M);
-  bool UseComdat = (NeedComdat || TT.isOSBinFormatELF());
+  
 
-  if (!UseComdat)
+  if (bool UseComdat = (NeedComdat || TT.isOSBinFormatELF()); !UseComdat)
     return;
 
   // Keep in mind that this pass may run before the inliner, so we need to
@@ -1684,8 +1684,8 @@ InstrLowerer::getOrCreateRegionCounters(InstrProfCntrInstBase *Inc) {
 
   if (ProfileCorrelate == InstrProfCorrelator::DEBUG_INFO) {
     LLVMContext &Ctx = M.getContext();
-    Function *Fn = Inc->getParent()->getParent();
-    if (auto *SP = Fn->getSubprogram()) {
+    
+    if (Function *Fn = Inc->getParent()->getParent(); auto *SP = Fn->getSubprogram()) {
       DIBuilder DB(M, true, SP->getUnit());
       Metadata *FunctionNameAnnotation[] = {
           MDString::get(Ctx, InstrProfCorrelator::FunctionNameAttributeName),

@@ -262,9 +262,9 @@ static Constant *getMemSetPattern16Value(MemSetPatternInst *Inst,
   Value *V = Inst->getValue();
   Type *VTy = V->getType();
   const DataLayout &DL = Inst->getDataLayout();
-  Module *M = Inst->getModule();
+  
 
-  if (!isLibFuncEmittable(M, &TLI, LibFunc_memset_pattern16))
+  if (Module *M = Inst->getModule(); !isLibFuncEmittable(M, &TLI, LibFunc_memset_pattern16))
     return nullptr;
 
   // If the value isn't a constant, we can't promote it to being in a constant
@@ -309,14 +309,14 @@ bool PreISelIntrinsicLowering::expandMemIntrinsicUses(
   bool Changed = false;
 
   for (User *U : llvm::make_early_inc_range(F.users())) {
-    Instruction *Inst = cast<Instruction>(U);
+    
 
-    switch (ID) {
+    switch (Instruction *Inst = cast<Instruction>(U); ID) {
     case Intrinsic::memcpy: {
       auto *Memcpy = cast<MemCpyInst>(Inst);
       Function *ParentFunc = Memcpy->getFunction();
-      const TargetTransformInfo &TTI = LookupTTI(*ParentFunc);
-      if (shouldExpandMemIntrinsicWithSize(Memcpy->getLength(), TTI)) {
+      
+      if (const TargetTransformInfo &TTI = LookupTTI(*ParentFunc); shouldExpandMemIntrinsicWithSize(Memcpy->getLength(), TTI)) {
         if (UseMemIntrinsicLibFunc && canEmitMemcpy(TM, ParentFunc))
           break;
 
@@ -346,8 +346,8 @@ bool PreISelIntrinsicLowering::expandMemIntrinsicUses(
     case Intrinsic::memmove: {
       auto *Memmove = cast<MemMoveInst>(Inst);
       Function *ParentFunc = Memmove->getFunction();
-      const TargetTransformInfo &TTI = LookupTTI(*ParentFunc);
-      if (shouldExpandMemIntrinsicWithSize(Memmove->getLength(), TTI)) {
+      
+      if (const TargetTransformInfo &TTI = LookupTTI(*ParentFunc); shouldExpandMemIntrinsicWithSize(Memmove->getLength(), TTI)) {
         if (UseMemIntrinsicLibFunc &&
             canEmitLibcall(TM, ParentFunc, RTLIB::MEMMOVE))
           break;
@@ -363,8 +363,8 @@ bool PreISelIntrinsicLowering::expandMemIntrinsicUses(
     case Intrinsic::memset: {
       auto *Memset = cast<MemSetInst>(Inst);
       Function *ParentFunc = Memset->getFunction();
-      const TargetTransformInfo &TTI = LookupTTI(*ParentFunc);
-      if (shouldExpandMemIntrinsicWithSize(Memset->getLength(), TTI)) {
+      
+      if (const TargetTransformInfo &TTI = LookupTTI(*ParentFunc); shouldExpandMemIntrinsicWithSize(Memset->getLength(), TTI)) {
         if (UseMemIntrinsicLibFunc &&
             canEmitLibcall(TM, ParentFunc, RTLIB::MEMSET))
           break;

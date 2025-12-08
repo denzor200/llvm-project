@@ -162,8 +162,8 @@ void SwiftAggLowering::addTypedData(const RecordDecl *record, CharUnits begin,
 
   // Add fields.
   for (auto *field : record->fields()) {
-    auto fieldOffsetInBits = layout.getFieldOffset(field->getFieldIndex());
-    if (field->isBitField()) {
+    
+    if (auto fieldOffsetInBits = layout.getFieldOffset(field->getFieldIndex()); field->isBitField()) {
       addBitFieldData(field, begin, fieldOffsetInBits);
     } else {
       addTypedData(field->getType(),
@@ -666,8 +666,8 @@ CharUnits swiftcall::getNaturalAlignment(CodeGenModule &CGM, llvm::Type *type) {
 
 bool swiftcall::isLegalIntegerType(CodeGenModule &CGM,
                                    llvm::IntegerType *intTy) {
-  auto size = intTy->getBitWidth();
-  switch (size) {
+  
+  switch (auto size = intTy->getBitWidth(); size) {
   case 1:
   case 8:
   case 16:

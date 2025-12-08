@@ -85,9 +85,9 @@ static bool isTileDef(MachineRegisterInfo *MRI, MachineInstr &MI) {
   if (MI.isDebugInstr() || MI.isCopy() || MI.getNumOperands() < 3 ||
       !MI.isPseudo())
     return false;
-  MachineOperand &MO = MI.getOperand(0);
+  
 
-  if (MO.isReg()) {
+  if (MachineOperand &MO = MI.getOperand(0); MO.isReg()) {
     Register Reg = MO.getReg();
     // FIXME: It may be used after Greedy RA and the physical
     // register is not rewritten yet.

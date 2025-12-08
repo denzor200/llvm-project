@@ -89,10 +89,10 @@ collectPrivatizingConstructs(llvm::SmallSet<Directive, 16> &Constructs,
 
   for (auto D : llvm::enum_seq_inclusive<Directive>(Directive::First_,
                                                     Directive::Last_)) {
-    bool AllowsPrivatizing = llvm::any_of(Privatizing, [&](Clause C) {
+    
+    if (bool AllowsPrivatizing = llvm::any_of(Privatizing, [&](Clause C) {
       return isAllowedClauseForDirective(D, C, Version);
-    });
-    if (AllowsPrivatizing)
+    }); AllowsPrivatizing)
       Constructs.insert(D);
   }
 }

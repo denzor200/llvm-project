@@ -134,8 +134,8 @@ static SmallVector<NoLintToken> getNoLints(StringRef Buffer) {
     // Get checks, if specified.
     std::optional<StringRef> Checks;
     if (Pos < Buffer.size() && Buffer[Pos] == '(') {
-      const size_t ClosingBracket = Buffer.find_first_of("\n)", ++Pos);
-      if (ClosingBracket != StringRef::npos && Buffer[ClosingBracket] == ')') {
+      
+      if (const size_t ClosingBracket = Buffer.find_first_of("\n)", ++Pos); ClosingBracket != StringRef::npos && Buffer[ClosingBracket] == ')') {
         Checks = Buffer.slice(Pos, ClosingBracket);
         Pos = ClosingBracket + 1;
       }

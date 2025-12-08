@@ -89,8 +89,8 @@ OptTable::OptTable(const StringTable &StrTable,
 
   // Find start of normal options.
   for (unsigned i = 0, e = getNumOptions(); i != e; ++i) {
-    unsigned Kind = getInfo(i + 1).Kind;
-    if (Kind == Option::InputClass) {
+    
+    if (unsigned Kind = getInfo(i + 1).Kind; Kind == Option::InputClass) {
       assert(!InputOptionID && "Cannot have multiple input options!");
       InputOptionID = getInfo(i + 1).ID;
     } else if (Kind == Option::UnknownClass) {
@@ -164,9 +164,9 @@ static unsigned matchOption(const StringTable &StrTable,
     StringRef Prefix = StrTable[PrefixOffset];
     if (Str.starts_with(Prefix)) {
       StringRef Rest = Str.substr(Prefix.size());
-      bool Matched = IgnoreCase ? Rest.starts_with_insensitive(Name)
-                                : Rest.starts_with(Name);
-      if (Matched)
+      
+      if (bool Matched = IgnoreCase ? Rest.starts_with_insensitive(Name)
+                                : Rest.starts_with(Name); Matched)
         return Prefix.size() + Name.size();
     }
   }
@@ -317,10 +317,10 @@ unsigned OptTable::internalFindNearest(
       // at all.
       size_t CandidateSize = CandidatePrefix.size() + CandidateName.size(),
              NormalizedSize = NormalizedName.size();
-      size_t AbsDiff = CandidateSize > NormalizedSize
+      
+      if (size_t AbsDiff = CandidateSize > NormalizedSize
                            ? CandidateSize - NormalizedSize
-                           : NormalizedSize - CandidateSize;
-      if (AbsDiff > BestDistance) {
+                           : NormalizedSize - CandidateSize; AbsDiff > BestDistance) {
         continue;
       }
       Candidate = CandidatePrefix;

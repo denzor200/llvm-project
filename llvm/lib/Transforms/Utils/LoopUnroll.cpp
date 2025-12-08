@@ -153,16 +153,16 @@ const Loop* llvm::addClonedBlockToLoopInfo(BasicBlock *OriginalBB,
   const Loop *OldLoop = LI->getLoopFor(OriginalBB);
   assert(OldLoop && "Should (at least) be in the loop being unrolled!");
 
-  Loop *&NewLoop = NewLoops[OldLoop];
-  if (!NewLoop) {
+  
+  if (Loop *&NewLoop = NewLoops[OldLoop]; !NewLoop) {
     // Found a new sub-loop.
     assert(OriginalBB == OldLoop->getHeader() &&
            "Header should be first in RPO");
 
     NewLoop = LI->AllocateLoop();
-    Loop *NewLoopParent = NewLoops.lookup(OldLoop->getParentLoop());
+    
 
-    if (NewLoopParent)
+    if (Loop *NewLoopParent = NewLoops.lookup(OldLoop->getParentLoop()); NewLoopParent)
       NewLoopParent->addChildLoop(NewLoop);
     else
       LI->addTopLevelLoop(NewLoop);
@@ -355,8 +355,8 @@ void llvm::simplifyLoopAfterUnroll(Loop *L, bool SimplifyIVs, LoopInfo *LI,
     // Aggressively clean up dead instructions that simplifyLoopIVs already
     // identified. Any remaining should be cleaned up below.
     while (!DeadInsts.empty()) {
-      Value *V = DeadInsts.pop_back_val();
-      if (Instruction *Inst = dyn_cast_or_null<Instruction>(V))
+      
+      if (Value *V = DeadInsts.pop_back_val(); Instruction *Inst = dyn_cast_or_null<Instruction>(V))
         RecursivelyDeleteTriviallyDeadInstructions(Inst);
     }
 
@@ -927,8 +927,8 @@ llvm::UnrollLoop(Loop *L, UnrollLoopOptions ULO, LoopInfo *LI,
       auto *BBDomNode = DT->getNode(BB);
       SmallVector<BasicBlock *, 16> ChildrenToUpdate;
       for (auto *ChildDomNode : BBDomNode->children()) {
-        auto *ChildBB = ChildDomNode->getBlock();
-        if (!L->contains(ChildBB))
+        
+        if (auto *ChildBB = ChildDomNode->getBlock(); !L->contains(ChildBB))
           ChildrenToUpdate.push_back(ChildBB);
       }
       // The new idom of the block will be the nearest common dominator
@@ -1275,8 +1275,8 @@ llvm::canParallelizeReductionWhenUnrolling(PHINode &Phi, Loop *L,
              IsaPred<Constant>))
     return std::nullopt;
 
-  BasicBlock *Latch = L->getLoopLatch();
-  if (!Latch ||
+  
+  if (BasicBlock *Latch = L->getLoopLatch(); !Latch ||
       !is_contained(
           cast<Instruction>(Phi.getIncomingValueForBlock(Latch))->operands(),
           &Phi))

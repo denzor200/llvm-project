@@ -1300,8 +1300,8 @@ bool Parser::HandlePragmaMSStrictGuardStackCheck(
 
   bool Value = false;
   if (Action & Sema::PSK_Push || Action & Sema::PSK_Set) {
-    const IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (II && II->isStr("off")) {
+    
+    if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II && II->isStr("off")) {
       PP.Lex(Tok);
       Value = false;
     } else if (II && II->isStr("on")) {
@@ -1419,13 +1419,13 @@ bool Parser::HandlePragmaLoopHint(LoopHint &Hint) {
 
   // Return a valid hint if pragma unroll or nounroll were specified
   // without an argument.
-  auto IsLoopHint =
+  
+
+  if (auto IsLoopHint =
       llvm::StringSwitch<bool>(PragmaNameInfo->getName())
           .Cases({"unroll", "nounroll", "unroll_and_jam", "nounroll_and_jam"},
                  true)
-          .Default(false);
-
-  if (Toks.empty() && IsLoopHint) {
+          .Default(false); Toks.empty() && IsLoopHint) {
     ConsumeAnnotationToken();
     Hint.Range = Info->PragmaName.getLocation();
     return true;
@@ -1474,14 +1474,14 @@ bool Parser::HandlePragmaLoopHint(LoopHint &Hint) {
     SourceLocation StateLoc = Toks[0].getLocation();
     IdentifierInfo *StateInfo = Toks[0].getIdentifierInfo();
 
-    bool Valid = StateInfo &&
+    
+    if (bool Valid = StateInfo &&
                  llvm::StringSwitch<bool>(StateInfo->getName())
                      .Case("disable", true)
                      .Case("enable", !OptionPipelineDisabled)
                      .Case("full", OptionUnroll || OptionUnrollAndJam)
                      .Case("assume_safety", AssumeSafetyArg)
-                     .Default(false);
-    if (!Valid) {
+                     .Default(false); !Valid) {
       if (OptionPipelineDisabled) {
         Diag(Toks[0].getLocation(), diag::err_pragma_pipeline_invalid_keyword);
       } else {
@@ -2150,8 +2150,8 @@ void PragmaPackHandler::HandlePragma(Preprocessor &PP,
       Alignment.setLength(1);
     };
 
-    const IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (II->isStr("show")) {
+    
+    if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II->isStr("show")) {
       Action = Sema::PSK_Show;
       PP.Lex(Tok);
     } else if (II->isStr("packed") && PP.getLangOpts().ZOSExt) {
@@ -2264,8 +2264,8 @@ void PragmaMSStructHandler::HandlePragma(Preprocessor &PP,
     return;
   }
   SourceLocation EndLoc = Tok.getLocation();
-  const IdentifierInfo *II = Tok.getIdentifierInfo();
-  if (II->isStr("on")) {
+  
+  if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II->isStr("on")) {
     Kind = PMSST_ON;
     PP.Lex(Tok);
   }
@@ -2309,8 +2309,8 @@ void PragmaClangSectionHandler::HandlePragma(Preprocessor &PP,
       return;
     }
 
-    const IdentifierInfo *SecType = Tok.getIdentifierInfo();
-    if (SecType->isStr("bss"))
+    
+    if (const IdentifierInfo *SecType = Tok.getIdentifierInfo(); SecType->isStr("bss"))
       SecKind = PragmaClangSectionKind::BSS;
     else if (SecType->isStr("data"))
       SecKind = PragmaClangSectionKind::Data;
@@ -2381,8 +2381,8 @@ static void ParseAlignPragma(Preprocessor &PP, Token &FirstTok,
   }
 
   PragmaOptionsAlignKind Kind = PragmaOptionsAlignKind::Natural;
-  const IdentifierInfo *II = Tok.getIdentifierInfo();
-  if (II->isStr("native"))
+  
+  if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II->isStr("native"))
     Kind = PragmaOptionsAlignKind::Native;
   else if (II->isStr("natural"))
     Kind = PragmaOptionsAlignKind::Natural;
@@ -2883,8 +2883,8 @@ void PragmaMSVtorDisp::HandlePragma(Preprocessor &PP,
   PP.Lex(Tok);
 
   Sema::PragmaMsStackAction Action = Sema::PSK_Set;
-  const IdentifierInfo *II = Tok.getIdentifierInfo();
-  if (II) {
+  
+  if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II) {
     if (II->isStr("push")) {
       // #pragma vtordisp(push, mode)
       PP.Lex(Tok);
@@ -2911,8 +2911,8 @@ void PragmaMSVtorDisp::HandlePragma(Preprocessor &PP,
 
   uint64_t Value = 0;
   if (Action & Sema::PSK_Push || Action & Sema::PSK_Set) {
-    const IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (II && II->isStr("off")) {
+    
+    if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II && II->isStr("off")) {
       PP.Lex(Tok);
       Value = 0;
     } else if (II && II->isStr("on")) {
@@ -3342,11 +3342,11 @@ void PragmaFPHandler::HandlePragma(Preprocessor &PP,
       return;
     }
     PP.Lex(Tok);
-    bool isEvalMethodDouble =
-        Tok.is(tok::kw_double) && FlagKind == PFK_EvalMethod;
+    
 
     // Don't diagnose if we have an eval_metod pragma with "double" kind.
-    if (Tok.isNot(tok::identifier) && !isEvalMethodDouble) {
+    if (bool isEvalMethodDouble =
+        Tok.is(tok::kw_double) && FlagKind == PFK_EvalMethod; Tok.isNot(tok::identifier) && !isEvalMethodDouble) {
       PP.Diag(Tok.getLocation(), diag::err_pragma_fp_invalid_argument)
           << PP.getSpelling(Tok) << OptionInfo->getName()
           << static_cast<int>(*FlagKind);
@@ -3629,7 +3629,8 @@ void PragmaLoopHintHandler::HandlePragma(Preprocessor &PP,
     Token Option = Tok;
     IdentifierInfo *OptionInfo = Tok.getIdentifierInfo();
 
-    bool OptionValid = llvm::StringSwitch<bool>(OptionInfo->getName())
+    
+    if (bool OptionValid = llvm::StringSwitch<bool>(OptionInfo->getName())
                            .Case("vectorize", true)
                            .Case("interleave", true)
                            .Case("unroll", true)
@@ -3640,8 +3641,7 @@ void PragmaLoopHintHandler::HandlePragma(Preprocessor &PP,
                            .Case("unroll_count", true)
                            .Case("pipeline", true)
                            .Case("pipeline_initiation_interval", true)
-                           .Default(false);
-    if (!OptionValid) {
+                           .Default(false); !OptionValid) {
       PP.Diag(Tok.getLocation(), diag::err_pragma_loop_invalid_option)
           << /*MissingOption=*/false << OptionInfo;
       return;
@@ -3995,8 +3995,8 @@ void PragmaAttributeHandler::HandlePragma(Preprocessor &PP,
     }
     Info->Action = PragmaAttributeInfo::Attribute;
   } else {
-    const IdentifierInfo *II = Tok.getIdentifierInfo();
-    if (II->isStr("push"))
+    
+    if (const IdentifierInfo *II = Tok.getIdentifierInfo(); II->isStr("push"))
       Info->Action = PragmaAttributeInfo::Push;
     else if (II->isStr("pop"))
       Info->Action = PragmaAttributeInfo::Pop;

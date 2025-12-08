@@ -56,8 +56,8 @@ public:
       return CalleeDecl;
 
     // Simple detection of a call through a block.
-    Expr *CEE = CE->getCallee()->IgnoreParenImpCasts();
-    if (BlockExpr *Block = dyn_cast<BlockExpr>(CEE)) {
+    
+    if (Expr *CEE = CE->getCallee()->IgnoreParenImpCasts(); BlockExpr *Block = dyn_cast<BlockExpr>(CEE)) {
       NumBlockCallEdges++;
       return Block->getBlockDecl();
     }
@@ -93,8 +93,8 @@ public:
   }
 
   void VisitCXXConstructExpr(CXXConstructExpr *E) {
-    CXXConstructorDecl *Ctor = E->getConstructor();
-    if (FunctionDecl *Def = Ctor->getDefinition())
+    
+    if (CXXConstructorDecl *Ctor = E->getConstructor(); FunctionDecl *Def = Ctor->getDefinition())
       addCalledDecl(Def, E);
     VisitChildren(E);
   }
@@ -169,8 +169,8 @@ bool CallGraph::includeCalleeInGraph(const Decl *D) {
     if (FD->isDependentContext())
       return false;
 
-    IdentifierInfo *II = FD->getIdentifier();
-    if (II && II->getName().starts_with("__inline"))
+    
+    if (IdentifierInfo *II = FD->getIdentifier(); II && II->getName().starts_with("__inline"))
       return false;
   }
 

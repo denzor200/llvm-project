@@ -852,10 +852,10 @@ static void addSanitizers(const Triple &TargetTriple,
   // SanitizeSkipHotCutoffs: doubles with range [0, 1]
   // Opts.cutoffs: unsigned ints with range [0, 1000000]
   auto ScaledCutoffs = CodeGenOpts.SanitizeSkipHotCutoffs.getAllScaled(1000000);
-  uint64_t AllowRuntimeCheckSkipHotCutoff =
-      CodeGenOpts.AllowRuntimeCheckSkipHotCutoff.value_or(0.0) * 1000000;
+  
   // TODO: remove IsRequested()
-  if (LowerAllowCheckPass::IsRequested() || ScaledCutoffs.has_value() ||
+  if (uint64_t AllowRuntimeCheckSkipHotCutoff =
+      CodeGenOpts.AllowRuntimeCheckSkipHotCutoff.value_or(0.0) * 1000000; LowerAllowCheckPass::IsRequested() || ScaledCutoffs.has_value() ||
       CodeGenOpts.AllowRuntimeCheckSkipHotCutoff.has_value()) {
     // We want to call it after inline, which is about OptimizerEarlyEPCallback.
     PB.registerOptimizerEarlyEPCallback(

@@ -219,9 +219,9 @@ void ConcatInputSection::writeTo(uint8_t *buf) {
     uint8_t *loc = buf + r.offset;
     uint64_t referentVA = 0;
 
-    const bool needsFixup = config->emitChainedFixups &&
-                            target->hasAttr(r.type, RelocAttrBits::UNSIGNED);
-    if (target->hasAttr(r.type, RelocAttrBits::SUBTRAHEND)) {
+    
+    if (const bool needsFixup = config->emitChainedFixups &&
+                            target->hasAttr(r.type, RelocAttrBits::UNSIGNED); target->hasAttr(r.type, RelocAttrBits::SUBTRAHEND)) {
       const Symbol *fromSym = cast<Symbol *>(r.referent);
       const Reloc &minuend = relocs[++i];
       uint64_t minuendVA;
@@ -352,8 +352,8 @@ uint64_t WordLiteralInputSection::getOffset(uint64_t off) const {
     fatal(toString(this) + ": offset is outside the section");
 
   auto *osec = cast<WordLiteralSection>(parent);
-  const uintptr_t buf = reinterpret_cast<uintptr_t>(data.data());
-  switch (sectionType(getFlags())) {
+  
+  switch (const uintptr_t buf = reinterpret_cast<uintptr_t>(data.data()); sectionType(getFlags())) {
   case S_4BYTE_LITERALS:
     return osec->getLiteral4Offset(buf + (off & ~3LLU)) | (off & 3);
   case S_8BYTE_LITERALS:

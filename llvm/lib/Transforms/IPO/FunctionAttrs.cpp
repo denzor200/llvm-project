@@ -673,8 +673,8 @@ ArgumentAccessInfo getArgumentAccessInfo(const Instruction *I,
   auto GetConstantIntRange =
       [](Value *Length,
          std::optional<int64_t> Offset) -> std::optional<ConstantRange> {
-    auto *ConstantLength = dyn_cast<ConstantInt>(Length);
-    if (ConstantLength && Offset) {
+    
+    if (auto *ConstantLength = dyn_cast<ConstantInt>(Length); ConstantLength && Offset) {
       int64_t Len = ConstantLength->getSExtValue();
 
       // Reject zero or negative lengths
@@ -739,8 +739,8 @@ ArgumentAccessInfo getArgumentAccessInfo(const Instruction *I,
     if (CB->isArgOperand(ArgUse.U) &&
         !CB->isByValArgument(CB->getArgOperandNo(ArgUse.U))) {
       unsigned ArgNo = CB->getArgOperandNo(ArgUse.U);
-      bool IsInitialize = CB->paramHasAttr(ArgNo, Attribute::Initializes);
-      if (IsInitialize && ArgUse.Offset) {
+      
+      if (bool IsInitialize = CB->paramHasAttr(ArgNo, Attribute::Initializes); IsInitialize && ArgUse.Offset) {
         // Argument is a Write when parameter is writeonly/readnone
         // and nocapture. Otherwise, it's a WriteWithSideEffect.
         auto Access = CB->onlyWritesMemory(ArgNo) && CB->doesNotCapture(ArgNo)
@@ -881,9 +881,9 @@ determinePointerAccessAttrs(Argument *A,
       return Attribute::None;
 
     Use *U = Worklist.pop_back_val();
-    Instruction *I = cast<Instruction>(U->getUser());
+    
 
-    switch (I->getOpcode()) {
+    switch (Instruction *I = cast<Instruction>(U->getUser()); I->getOpcode()) {
     case Instruction::BitCast:
     case Instruction::GetElementPtr:
     case Instruction::PHI:
@@ -1073,8 +1073,8 @@ static bool addArgumentAttrsFromCallsites(Function &F) {
           // If the non-null callsite argument operand is an argument to 'F'
           // (the caller) and the call is guaranteed to execute, then the value
           // must be non-null throughout 'F'.
-          auto *FArg = dyn_cast<Argument>(CB->getArgOperand(CSArg.getArgNo()));
-          if (FArg && !FArg->hasNonNullAttr()) {
+          
+          if (auto *FArg = dyn_cast<Argument>(CB->getArgOperand(CSArg.getArgNo())); FArg && !FArg->hasNonNullAttr()) {
             FArg->addAttr(Attribute::NonNull);
             Changed = true;
           }
@@ -1367,8 +1367,8 @@ static void addArgumentAttrs(const SCCNodeSet &SCCNodes,
     CaptureComponents CC = CaptureComponents::None;
     for (ArgumentGraphNode *N : ArgumentSCC) {
       for (ArgumentGraphNode *Use : N->Uses) {
-        Argument *A = Use->Definition;
-        if (ArgumentSCCNodes.count(A))
+        
+        if (Argument *A = Use->Definition; ArgumentSCCNodes.count(A))
           CC |= Use->CC;
         else
           CC |= CaptureComponents(A->getAttributes().getCaptureInfo());
@@ -1433,8 +1433,8 @@ static void addArgumentAttrs(const SCCNodeSet &SCCNodes,
 
     if (AccessAttr != Attribute::None) {
       for (ArgumentGraphNode *N : ArgumentSCC) {
-        Argument *A = N->Definition;
-        if (addAccessAttr(A, AccessAttr))
+        
+        if (Argument *A = N->Definition; addAccessAttr(A, AccessAttr))
           Changed.insert(A->getParent());
       }
     }
@@ -1703,8 +1703,8 @@ static void addNoUndefAttrs(const SCCNodeSet &SCCNodes,
     if (F->getReturnType()->isVoidTy())
       continue;
 
-    const DataLayout &DL = F->getDataLayout();
-    if (all_of(*F, [&](BasicBlock &BB) {
+    
+    if (const DataLayout &DL = F->getDataLayout(); all_of(*F, [&](BasicBlock &BB) {
           if (auto *Ret = dyn_cast<ReturnInst>(BB.getTerminator())) {
             // TODO: perform context-sensitive analysis?
             Value *RetVal = Ret->getReturnValue();
@@ -2436,9 +2436,9 @@ static bool deduceFunctionAttributeInRPO(Module &M, LazyCallGraph &CG) {
 
 PreservedAnalyses
 ReversePostOrderFunctionAttrsPass::run(Module &M, ModuleAnalysisManager &AM) {
-  auto &CG = AM.getResult<LazyCallGraphAnalysis>(M);
+  
 
-  if (!deduceFunctionAttributeInRPO(M, CG))
+  if (auto &CG = AM.getResult<LazyCallGraphAnalysis>(M); !deduceFunctionAttributeInRPO(M, CG))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

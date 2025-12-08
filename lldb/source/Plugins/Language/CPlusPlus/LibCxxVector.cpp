@@ -213,8 +213,8 @@ lldb_private::formatters::LibcxxVectorBoolSyntheticFrontEnd::GetChildAtIndex(
   uint8_t byte = 0;
   uint8_t mask = 0;
   Status err;
-  size_t bytes_read = process_sp->ReadMemory(byte_location, &byte, 1, err);
-  if (err.Fail() || bytes_read == 0)
+  
+  if (size_t bytes_read = process_sp->ReadMemory(byte_location, &byte, 1, err); err.Fail() || bytes_read == 0)
     return {};
   mask = 1 << bit_index;
   bool bit_set = ((byte & mask) != 0);

@@ -95,10 +95,10 @@ MachineRegisterInfo::constrainRegAttrs(Register Reg,
   if (RegTy.isValid() && ConstrainingRegTy.isValid() &&
       RegTy != ConstrainingRegTy)
     return false;
-  const auto &ConstrainingRegCB = getRegClassOrRegBank(ConstrainingReg);
-  if (!ConstrainingRegCB.isNull()) {
-    const auto &RegCB = getRegClassOrRegBank(Reg);
-    if (RegCB.isNull())
+  
+  if (const auto &ConstrainingRegCB = getRegClassOrRegBank(ConstrainingReg); !ConstrainingRegCB.isNull()) {
+    
+    if (const auto &RegCB = getRegClassOrRegBank(Reg); RegCB.isNull())
       setRegClassOrRegBank(Reg, ConstrainingRegCB);
     else if (isa<const TargetRegisterClass *>(RegCB) !=
              isa<const TargetRegisterClass *>(ConstrainingRegCB))
@@ -564,8 +564,8 @@ static const Function *getCalledFunction(const MachineInstr &MI) {
   for (const MachineOperand &MO : MI.operands()) {
     if (!MO.isGlobal())
       continue;
-    const Function *Func = dyn_cast<Function>(MO.getGlobal());
-    if (Func != nullptr)
+    
+    if (const Function *Func = dyn_cast<Function>(MO.getGlobal()); Func != nullptr)
       return Func;
   }
   return nullptr;

@@ -354,8 +354,8 @@ bool AMDGPULowerKernelAttributes::runOnModule(Module &M) {
 
   SmallPtrSet<Instruction *, 4> HandledUses;
   for (auto *U : BasePtr->users()) {
-    CallInst *CI = cast<CallInst>(U);
-    if (HandledUses.insert(CI).second) {
+    
+    if (CallInst *CI = cast<CallInst>(U); HandledUses.insert(CI).second) {
       if (processUse(CI, IsV5OrAbove))
         MadeChange = true;
     }

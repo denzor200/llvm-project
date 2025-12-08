@@ -156,10 +156,10 @@ bool GISelAddressing::aliasIsKnownForLoadStore(const MachineInstr &MI1,
     return false;
 
   if (Base0Def->getOpcode() == TargetOpcode::G_FRAME_INDEX) {
-    MachineFrameInfo &MFI = Base0Def->getMF()->getFrameInfo();
+    
     // If the bases have the same frame index but we couldn't find a
     // constant offset, (indices are different) be conservative.
-    if (Base0Def != Base1Def &&
+    if (MachineFrameInfo &MFI = Base0Def->getMF()->getFrameInfo(); Base0Def != Base1Def &&
         (!MFI.isFixedObjectIndex(Base0Def->getOperand(1).getIndex()) ||
          !MFI.isFixedObjectIndex(Base1Def->getOperand(1).getIndex()))) {
       IsAlias = false;
@@ -171,8 +171,8 @@ bool GISelAddressing::aliasIsKnownForLoadStore(const MachineInstr &MI1,
   // FIXME: what about constant pools?
   if (Base0Def->getOpcode() == TargetOpcode::G_GLOBAL_VALUE) {
     auto GV0 = Base0Def->getOperand(1).getGlobal();
-    auto GV1 = Base1Def->getOperand(1).getGlobal();
-    if (GV0 != GV1) {
+    
+    if (auto GV1 = Base1Def->getOperand(1).getGlobal(); GV0 != GV1) {
       IsAlias = false;
       return true;
     }
@@ -457,8 +457,8 @@ bool LoadStoreOpt::processMergeCandidate(StoreMergeCandidate &C) {
   auto DoesStoreAliasWithPotential = [&](unsigned Idx, GStore &CheckStore) {
     for (auto AliasInfo : reverse(C.PotentialAliases)) {
       MachineInstr *PotentialAliasOp = AliasInfo.first;
-      unsigned PreCheckedIdx = AliasInfo.second;
-      if (Idx < PreCheckedIdx) {
+      
+      if (unsigned PreCheckedIdx = AliasInfo.second; Idx < PreCheckedIdx) {
         // Once our store index is lower than the index associated with the
         // potential alias, we know that we've already checked for this alias
         // and all of the earlier potential aliases too.
@@ -828,9 +828,9 @@ bool LoadStoreOpt::mergeTruncStore(GStore &StoreMI,
   auto &C = LastStore.getMF()->getFunction().getContext();
   // Check that a store of the wide type is both allowed and fast on the target
   unsigned Fast = 0;
-  bool Allowed = TLI->allowsMemoryAccess(
-      C, DL, WideStoreTy, LowestIdxStore->getMMO(), &Fast);
-  if (!Allowed || !Fast)
+  
+  if (bool Allowed = TLI->allowsMemoryAccess(
+      C, DL, WideStoreTy, LowestIdxStore->getMMO(), &Fast); !Allowed || !Fast)
     return false;
 
   // Check if the pieces of the value are going to the expected places in memory

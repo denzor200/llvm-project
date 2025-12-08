@@ -191,9 +191,9 @@ lldb_private::formatters::MsvcStlVectorBoolSyntheticFrontEnd::GetChildAtIndex(
     return {};
   Status err;
   Scalar scalar;
-  size_t bytes_read = process_sp->ReadScalarIntegerFromMemory(
-      byte_location, m_element_bit_size / 8, false, scalar, err);
-  if (err.Fail() || bytes_read == 0 || !scalar.IsValid())
+  
+  if (size_t bytes_read = process_sp->ReadScalarIntegerFromMemory(
+      byte_location, m_element_bit_size / 8, false, scalar, err); err.Fail() || bytes_read == 0 || !scalar.IsValid())
     return {};
 
   size_t bit_index = idx % m_element_bit_size;

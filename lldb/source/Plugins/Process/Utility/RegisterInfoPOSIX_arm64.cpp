@@ -479,10 +479,10 @@ uint32_t RegisterInfoPOSIX_arm64::ConfigureVectorLengthSVE(uint32_t sve_vq) {
 
   if (sve_vq == eVectorQuadwordAArch64)
     return m_vector_reg_vq;
-  std::vector<lldb_private::RegisterInfo> &reg_info_ref =
-      m_per_vq_reg_infos[sve_vq];
+  
 
-  if (reg_info_ref.empty()) {
+  if (std::vector<lldb_private::RegisterInfo> &reg_info_ref =
+      m_per_vq_reg_infos[sve_vq]; reg_info_ref.empty()) {
     reg_info_ref = llvm::ArrayRef(m_register_info_p, m_register_info_count);
 
     uint32_t offset = SVE_REGS_DEFAULT_OFFSET_LINUX;

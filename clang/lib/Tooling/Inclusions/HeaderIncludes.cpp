@@ -356,10 +356,10 @@ void HeaderIncludes::addExistingInclude(Include IncludeToAdd,
                                         unsigned NextLineOffset) {
   auto &Incs = ExistingIncludes[trimInclude(IncludeToAdd.Name)];
   Incs.push_back(std::move(IncludeToAdd));
-  auto &CurInclude = Incs.back();
+  
   // The header name with quotes or angle brackets.
   // Only record the offset of current #include if we can insert after it.
-  if (CurInclude.R.getOffset() <= MaxInsertOffset) {
+  if (auto &CurInclude = Incs.back(); CurInclude.R.getOffset() <= MaxInsertOffset) {
     int Priority = Categories.getIncludePriority(
         CurInclude.Name, /*CheckMainHeader=*/!MainIncludeFound);
     if (Priority == 0)

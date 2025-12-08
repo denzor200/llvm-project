@@ -196,9 +196,9 @@ void ClangHighlighter::Highlight(const HighlightStyle &options,
     exit = lex.LexFromRawLexer(token);
 
     bool invalid = false;
-    unsigned current_line_number =
-        SM.getSpellingLineNumber(token.getLocation(), &invalid);
-    if (current_line_number != line_number)
+    
+    if (unsigned current_line_number =
+        SM.getSpellingLineNumber(token.getLocation(), &invalid); current_line_number != line_number)
       continue;
     found_user_line = true;
 

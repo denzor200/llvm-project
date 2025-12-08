@@ -363,8 +363,8 @@ DecodeStatus MSP430Disassembler::getInstruction(MCInst &MI, uint64_t &Size,
   }
 
   uint64_t Insn = support::endian::read16le(Bytes.data());
-  unsigned Opc = fieldFromInstruction(Insn, 13, 3);
-  switch (Opc) {
+  
+  switch (unsigned Opc = fieldFromInstruction(Insn, 13, 3); Opc) {
   case 0:
     return getInstructionII(MI, Size, Bytes, Address, CStream);
   case 1:

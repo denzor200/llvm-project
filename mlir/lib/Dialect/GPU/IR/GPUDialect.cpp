@@ -1556,11 +1556,11 @@ parseAttributions(OpAsmParser &parser, StringRef keyword,
   if (failed(result))
     return result;
 
-  bool hadAttrs = llvm::any_of(ArrayRef(args).drop_front(existingArgs),
+  
+  if (bool hadAttrs = llvm::any_of(ArrayRef(args).drop_front(existingArgs),
                                [](const OpAsmParser::Argument &arg) -> bool {
                                  return arg.attrs && !arg.attrs.empty();
-                               });
-  if (!hadAttrs) {
+                               }); !hadAttrs) {
     attributionAttrs = nullptr;
     return result;
   }
@@ -1815,8 +1815,8 @@ LogicalResult GPUFuncOp::verifyBody() {
     return emitOpError() << "expected body with at least one block";
   unsigned numFuncArguments = getNumArguments();
   unsigned numWorkgroupAttributions = getNumWorkgroupAttributions();
-  unsigned numBlockArguments = front().getNumArguments();
-  if (numBlockArguments < numFuncArguments + numWorkgroupAttributions)
+  
+  if (unsigned numBlockArguments = front().getNumArguments(); numBlockArguments < numFuncArguments + numWorkgroupAttributions)
     return emitOpError() << "expected at least "
                          << numFuncArguments + numWorkgroupAttributions
                          << " arguments to body region";
@@ -1982,10 +1982,10 @@ struct EraseTrivialCopyOp : public OpRewritePattern<MemcpyOp> {
   LogicalResult matchAndRewrite(MemcpyOp op,
                                 PatternRewriter &rewriter) const override {
     Value dest = op.getDst();
-    Operation *destDefOp = dest.getDefiningOp();
+    
     // `dest` must be defined by an op having Allocate memory effect in order to
     // perform the folding.
-    if (!destDefOp ||
+    if (Operation *destDefOp = dest.getDefiningOp(); !destDefOp ||
         !hasSingleEffect<MemoryEffects::Allocate>(destDefOp, dest))
       return failure();
     // We can erase `op` iff `dest` has no other use apart from its

@@ -200,8 +200,8 @@ void PlacementNewChecker::checkElementRegionAlign(
 
     unsigned Offset =
         TheOffsetRegion.getOffset() / C.getASTContext().getCharWidth();
-    unsigned AddressAlign = Offset % AllocatedTAlign;
-    if (AddressAlign != 0) {
+    
+    if (unsigned AddressAlign = Offset % AllocatedTAlign; AddressAlign != 0) {
       emitBadAlignReport(P, C, AllocatedTAlign, AddressAlign);
       return;
     }
@@ -230,8 +230,8 @@ void PlacementNewChecker::checkFieldRegionAlign(
 
       int64_t OffsetValue =
           Offset.getOffset() / C.getASTContext().getCharWidth();
-      unsigned AddressAlign = OffsetValue % AllocatedTAlign;
-      if (AddressAlign != 0)
+      
+      if (unsigned AddressAlign = OffsetValue % AllocatedTAlign; AddressAlign != 0)
         emitBadAlignReport(P, C, AllocatedTAlign, AddressAlign);
     }
   }
@@ -241,8 +241,8 @@ bool PlacementNewChecker::isVarRegionAlignedProperly(
     const VarRegion *R, CheckerContext &C, const Expr *P,
     unsigned AllocatedTAlign) const {
   const VarDecl *TheVarDecl = R->getDecl();
-  unsigned StorageTAlign = getStorageAlign(C, TheVarDecl);
-  if (AllocatedTAlign > StorageTAlign) {
+  
+  if (unsigned StorageTAlign = getStorageAlign(C, TheVarDecl); AllocatedTAlign > StorageTAlign) {
     emitBadAlignReport(P, C, AllocatedTAlign, StorageTAlign);
 
     return false;

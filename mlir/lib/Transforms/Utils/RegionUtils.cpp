@@ -306,7 +306,7 @@ private:
 
 static bool isUseSpeciallyKnownDead(OpOperand &use, LiveMap &liveMap) {
   Operation *owner = use.getOwner();
-  unsigned operandIndex = use.getOperandNumber();
+  
   // This pass generally treats all uses of an op as live if the op itself is
   // considered live. However, for successor operands to terminators we need a
   // finer-grained notion where we deduce liveness for operands individually.
@@ -318,7 +318,7 @@ static bool isUseSpeciallyKnownDead(OpOperand &use, LiveMap &liveMap) {
   // And similarly, because each successor operand is really an operand to a phi
   // node, rather than to the terminator op itself, a terminator op can't e.g.
   // "print" the value of a successor operand.
-  if (owner->hasTrait<OpTrait::IsTerminator>()) {
+  if (unsigned operandIndex = use.getOperandNumber(); owner->hasTrait<OpTrait::IsTerminator>()) {
     if (BranchOpInterface branchInterface = dyn_cast<BranchOpInterface>(owner))
       if (auto arg = branchInterface.getSuccessorBlockArgument(operandIndex))
         return !liveMap.wasProvenLive(*arg);
@@ -328,12 +328,12 @@ static bool isUseSpeciallyKnownDead(OpOperand &use, LiveMap &liveMap) {
 }
 
 static void processValue(Value value, LiveMap &liveMap) {
-  bool provedLive = llvm::any_of(value.getUses(), [&](OpOperand &use) {
+  
+  if (bool provedLive = llvm::any_of(value.getUses(), [&](OpOperand &use) {
     if (isUseSpeciallyKnownDead(use, liveMap))
       return false;
     return liveMap.wasProvenLive(use.getOwner());
-  });
-  if (provedLive)
+  }); provedLive)
     liveMap.setProvedLive(value);
 }
 
@@ -428,8 +428,8 @@ static void eraseTerminatorSuccessorOperands(Operation *terminator,
     for (unsigned argI = 0, argE = succOperands.size(); argI < argE; ++argI) {
       // Iterating args in reverse is needed for correctness, to avoid
       // shifting later args when earlier args are erased.
-      unsigned arg = argE - argI - 1;
-      if (!liveMap.wasProvenLive(successor->getArgument(arg)))
+      
+      if (unsigned arg = argE - argI - 1; !liveMap.wasProvenLive(successor->getArgument(arg)))
         succOperands.erase(arg);
     }
   }
@@ -642,8 +642,8 @@ LogicalResult BlockMergeCluster::addToCluster(BlockEquivalenceData &blockData) {
 
       // Check that these uses are both external, or both internal.
       bool lhsIsInBlock = lhsOperand.getParentBlock() == leaderBlock;
-      bool rhsIsInBlock = rhsOperand.getParentBlock() == mergeBlock;
-      if (lhsIsInBlock != rhsIsInBlock)
+      
+      if (bool rhsIsInBlock = rhsOperand.getParentBlock() == mergeBlock; lhsIsInBlock != rhsIsInBlock)
         return failure();
       // Let the operands differ if they are defined in a different block. These
       // will become new arguments if the blocks get merged.
@@ -896,11 +896,11 @@ static LogicalResult mergeIdenticalBlocks(RewriterBase &rewriter,
 
       // Don't allow merging if this block has any regions.
       // TODO: Add support for regions if necessary.
-      bool hasNonEmptyRegion = llvm::any_of(*block, [](Operation &op) {
+      
+      if (bool hasNonEmptyRegion = llvm::any_of(*block, [](Operation &op) {
         return llvm::any_of(op.getRegions(),
                             [](Region &region) { return !region.empty(); });
-      });
-      if (hasNonEmptyRegion)
+      }); hasNonEmptyRegion)
         continue;
 
       // Don't allow merging if this block's arguments are used outside of the

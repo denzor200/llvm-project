@@ -776,9 +776,9 @@ void VectorLegalizer::Promote(SDNode *Node, SmallVectorImpl<SDValue> &Results) {
 
   for (unsigned j = 0; j != Node->getNumOperands(); ++j) {
     // Do not promote the mask operand of a VP OP.
-    bool SkipPromote = ISD::isVPOpcode(Node->getOpcode()) &&
-                       ISD::getVPMaskIdx(Node->getOpcode()) == j;
-    if (Node->getOperand(j).getValueType().isVector() && !SkipPromote)
+    
+    if (bool SkipPromote = ISD::isVPOpcode(Node->getOpcode()) &&
+                       ISD::getVPMaskIdx(Node->getOpcode()) == j; Node->getOperand(j).getValueType().isVector() && !SkipPromote)
       if (Node->getOperand(j)
               .getValueType()
               .getVectorElementType()
@@ -1559,8 +1559,8 @@ SDValue VectorLegalizer::ExpandBITREVERSE(SDNode *Node) {
   // If the vector element width is a whole number of bytes, test if its legal
   // to BSWAP shuffle the bytes and then perform the BITREVERSE on the byte
   // vector. This greatly reduces the number of bit shifts necessary.
-  unsigned ScalarSizeInBits = VT.getScalarSizeInBits();
-  if (ScalarSizeInBits > 8 && (ScalarSizeInBits % 8) == 0) {
+  
+  if (unsigned ScalarSizeInBits = VT.getScalarSizeInBits(); ScalarSizeInBits > 8 && (ScalarSizeInBits % 8) == 0) {
     SmallVector<int, 16> BSWAPMask;
     createBSWAPShuffleMask(VT, BSWAPMask);
 
@@ -2110,11 +2110,11 @@ void VectorLegalizer::ExpandSETCC(SDNode *Node,
   }
 
   SDLoc dl(Node);
-  bool Legalized =
-      TLI.LegalizeSetCCCondCode(DAG, Node->getValueType(0), LHS, RHS, CC, Mask,
-                                EVL, NeedInvert, dl, Chain, IsSignaling);
+  
 
-  if (Legalized) {
+  if (bool Legalized =
+      TLI.LegalizeSetCCCondCode(DAG, Node->getValueType(0), LHS, RHS, CC, Mask,
+                                EVL, NeedInvert, dl, Chain, IsSignaling); Legalized) {
     // If we expanded the SETCC by swapping LHS and RHS, or by inverting the
     // condition code, create a new SETCC node.
     if (CC.getNode()) {
@@ -2184,8 +2184,8 @@ void VectorLegalizer::ExpandMULO(SDNode *Node,
 
 void VectorLegalizer::ExpandFixedPointDiv(SDNode *Node,
                                           SmallVectorImpl<SDValue> &Results) {
-  SDNode *N = Node;
-  if (SDValue Expanded = TLI.expandFixedPointDiv(N->getOpcode(), SDLoc(N),
+  
+  if (SDNode *N = Node; SDValue Expanded = TLI.expandFixedPointDiv(N->getOpcode(), SDLoc(N),
           N->getOperand(0), N->getOperand(1), N->getConstantOperandVal(2), DAG))
     Results.push_back(Expanded);
 }

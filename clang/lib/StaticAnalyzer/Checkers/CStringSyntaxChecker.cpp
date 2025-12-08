@@ -200,8 +200,8 @@ bool WalkAST::containsBadStrlcpyStrlcatPattern(const CallExpr *CE) {
               dyn_cast<ConstantArrayType>(DstArgDRE->getType())) {
         ASTContext &C = BR.getContext();
         uint64_t BufferLen = C.getTypeSize(Buffer) / 8;
-        auto RemainingBufferLen = BufferLen - DstOff;
-        if (RemainingBufferLen < ILRawVal)
+        
+        if (auto RemainingBufferLen = BufferLen - DstOff; RemainingBufferLen < ILRawVal)
           return true;
       }
     }

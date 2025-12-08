@@ -191,9 +191,9 @@ public:
                  CCValAssign::LocInfo LocInfo,
                  const CallLowering::ArgInfo &Info, ISD::ArgFlagsTy Flags,
                  CCState &State) override {
-    MachineFunction &MF = State.getMachineFunction();
+    
 
-    if (LocVT.isScalableVector())
+    if (MachineFunction &MF = State.getMachineFunction(); LocVT.isScalableVector())
       MF.getInfo<RISCVMachineFunctionInfo>()->setIsVectorCall();
 
     if (RISCVAssignFn(ValNo, ValVT, LocVT, LocInfo, Flags, State, IsRet,
@@ -401,9 +401,9 @@ bool RISCVCallLowering::lowerReturn(MachineIRBuilder &MIRBuilder,
   if (!FLI.CanLowerReturn) {
     insertSRetStores(MIRBuilder, Val->getType(), VRegs, FLI.DemoteRegister);
   } else if (!VRegs.empty()) {
-    const RISCVSubtarget &Subtarget =
-        MIRBuilder.getMF().getSubtarget<RISCVSubtarget>();
-    if (!isSupportedReturnType(Val->getType(), Subtarget,
+    
+    if (const RISCVSubtarget &Subtarget =
+        MIRBuilder.getMF().getSubtarget<RISCVSubtarget>(); !isSupportedReturnType(Val->getType(), Subtarget,
                                /*IsLowerRetVal=*/true))
       return false;
 

@@ -129,10 +129,10 @@ void handle_attach(GDBRemoteCommunicationServerLLGS &gdb_server,
   // First check if the attach_target is convertible to a long. If so, we'll use
   // it as a pid.
   char *end_p = nullptr;
-  const long int pid = strtol(attach_target.c_str(), &end_p, 10);
+  
 
   // We'll call it a match if the entire argument is consumed.
-  if (end_p &&
+  if (const long int pid = strtol(attach_target.c_str(), &end_p, 10); end_p &&
       static_cast<size_t>(end_p - attach_target.c_str()) ==
           attach_target.size())
     handle_attach_to_pid(gdb_server, static_cast<lldb::pid_t>(pid));
@@ -400,8 +400,8 @@ int main_gdbserver(int argc, char *argv[]) {
     // yet that application doesn't want llgs receiving the
     // signals sent to the session (i.e. dying when anyone hits ^C).
     {
-      const ::pid_t new_sid = setsid();
-      if (new_sid == -1) {
+      
+      if (const ::pid_t new_sid = setsid(); new_sid == -1) {
         WithColor::warning()
             << llvm::formatv("failed to set new session id for {0} ({1})\n",
                              LLGS_PROGRAM_NAME, llvm::sys::StrError());

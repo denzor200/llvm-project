@@ -227,9 +227,9 @@ FAddendCoef::~FAddendCoef() {
 }
 
 void FAddendCoef::set(const APFloat& C) {
-  APFloat *P = getFpValPtr();
+  
 
-  if (isInt()) {
+  if (APFloat *P = getFpValPtr(); isInt()) {
     // As the buffer is meanless byte stream, we cannot call
     // APFloat::operator=().
     new(P) APFloat(C);
@@ -243,8 +243,8 @@ void FAddendCoef::convertToFpType(const fltSemantics &Sem) {
   if (!isInt())
     return;
 
-  APFloat *P = getFpValPtr();
-  if (IntVal > 0)
+  
+  if (APFloat *P = getFpValPtr(); IntVal > 0)
     new(P) APFloat(Sem, IntVal);
   else {
     new(P) APFloat(Sem, 0 - IntVal);
@@ -552,8 +552,8 @@ Value *FAddCombine::simplifyFAdd(AddendVect& Addends, unsigned InstrQuota) {
     // be later on folded into "<b1+b2, y>".
     for (unsigned SameSymIdx = SymIdx + 1;
          SameSymIdx < AddendNum; SameSymIdx++) {
-      const FAddend *T = Addends[SameSymIdx];
-      if (T && T->getSymVal() == Val) {
+      
+      if (const FAddend *T = Addends[SameSymIdx]; T && T->getSymVal() == Val) {
         // Set null such that next iteration of the outer loop will not process
         // this addend again.
         Addends[SameSymIdx] = nullptr;
@@ -702,11 +702,11 @@ unsigned FAddCombine::calcInstrNumber(const AddendVect &Opnds) {
     if (isa<UndefValue>(Opnd->getSymVal()))
       continue;
 
-    const FAddendCoef &CE = Opnd->getCoef();
+    
     // Let the addend be "c * x". If "c == +/-1", the value of the addend
     // is immediately available; otherwise, it needs exactly one instruction
     // to evaluate the value.
-    if (!CE.isMinusOne() && !CE.isOne())
+    if (const FAddendCoef &CE = Opnd->getCoef(); !CE.isMinusOne() && !CE.isOne())
       InstrNeeded++;
   }
   return InstrNeeded;
@@ -901,8 +901,8 @@ Instruction *InstCombinerImpl::foldAddWithConstant(BinaryOperator &Add) {
 
   // (iN X s>> (N - 1)) + 1 --> zext (X > -1)
   const APInt *C;
-  unsigned BitWidth = Ty->getScalarSizeInBits();
-  if (match(Op0, m_OneUse(m_AShr(m_Value(X),
+  
+  if (unsigned BitWidth = Ty->getScalarSizeInBits(); match(Op0, m_OneUse(m_AShr(m_Value(X),
                                  m_SpecificIntAllowPoison(BitWidth - 1)))) &&
       match(Op1, m_One()))
     return new ZExtInst(Builder.CreateIsNotNeg(X, "isnotneg"), Ty);
@@ -1304,10 +1304,10 @@ static Instruction *foldAddToAshr(BinaryOperator &Add) {
     return nullptr;
 
   APInt SMin = APInt::getSignedMinValue(Add.getType()->getScalarSizeInBits());
-  bool IsMaskValid = Pred == ICmpInst::ICMP_UGT
+  
+  if (bool IsMaskValid = Pred == ICmpInst::ICMP_UGT
                          ? (*MaskC == (SMin | (*DivC - 1)))
-                         : (*DivC == 2 && *MaskC == SMin + 1);
-  if (!IsMaskValid)
+                         : (*DivC == 2 && *MaskC == SMin + 1); !IsMaskValid)
     return nullptr;
 
   // (X / DivC) + sext ((X & (SMin | (DivC - 1)) >u SMin) --> X >>s log2(DivC)
@@ -1808,8 +1808,8 @@ Instruction *InstCombinerImpl::visitAdd(BinaryOperator &I) {
         Mask->popcount() == *ShiftAmt) {
 
       // Check if X + Mask doesn't overflow
-      Constant *MaskC = ConstantInt::get(X->getType(), *Mask);
-      if (willNotOverflowUnsignedAdd(X, MaskC, I)) {
+      
+      if (Constant *MaskC = ConstantInt::get(X->getType(), *Mask); willNotOverflowUnsignedAdd(X, MaskC, I)) {
         // (X + Mask) >> ShiftAmt
         Value *Add = Builder.CreateNUWAdd(X, MaskC);
         return BinaryOperator::CreateLShr(
@@ -2386,8 +2386,8 @@ Instruction *InstCombinerImpl::visitSub(BinaryOperator &I) {
   Constant *C1, *C2;
   if (match(Op0, m_And(m_Value(X), m_ImmConstant(C1))) &&
       match(Op1, m_And(m_Specific(X), m_ImmConstant(C2)))) {
-    Value *AndC = ConstantFoldBinaryInstruction(Instruction::And, C1, C2);
-    if (C2->isElementWiseEqual(AndC))
+    
+    if (Value *AndC = ConstantFoldBinaryInstruction(Instruction::And, C1, C2); C2->isElementWiseEqual(AndC))
       return BinaryOperator::CreateAnd(
           X, ConstantFoldBinaryInstruction(Instruction::Xor, C1, C2));
   }

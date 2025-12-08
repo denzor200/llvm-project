@@ -379,9 +379,9 @@ static bool rewriteToArrayLiteral(const ObjCMessageExpr *Msg,
                                   const NSAPI &NS, Commit &commit,
                                   const ParentMap *PMap) {
   if (PMap) {
-    const ObjCMessageExpr *ParentMsg =
-        dyn_cast_or_null<ObjCMessageExpr>(PMap->getParentIgnoreParenCasts(Msg));
-    if (shouldNotRewriteImmediateMessageArgs(ParentMsg, NS))
+    
+    if (const ObjCMessageExpr *ParentMsg =
+        dyn_cast_or_null<ObjCMessageExpr>(PMap->getParentIgnoreParenCasts(Msg)); shouldNotRewriteImmediateMessageArgs(ParentMsg, NS))
       return false;
   }
 
@@ -409,8 +409,8 @@ static bool rewriteToArrayLiteral(const ObjCMessageExpr *Msg,
       Sel == NS.getNSArraySelector(NSAPI::NSArr_initWithObjects)) {
     if (Msg->getNumArgs() == 0)
       return false;
-    const Expr *SentinelExpr = Msg->getArg(Msg->getNumArgs() - 1);
-    if (!NS.getASTContext().isSentinelNullExpr(SentinelExpr))
+    
+    if (const Expr *SentinelExpr = Msg->getArg(Msg->getNumArgs() - 1); !NS.getASTContext().isSentinelNullExpr(SentinelExpr))
       return false;
 
     for (unsigned i = 0, e = Msg->getNumArgs() - 1; i != e; ++i)
@@ -469,8 +469,8 @@ static bool getNSArrayObjects(const Expr *E, const NSAPI &NS,
         Sel == NS.getNSArraySelector(NSAPI::NSArr_initWithObjects)) {
       if (Msg->getNumArgs() == 0)
         return false;
-      const Expr *SentinelExpr = Msg->getArg(Msg->getNumArgs() - 1);
-      if (!NS.getASTContext().isSentinelNullExpr(SentinelExpr))
+      
+      if (const Expr *SentinelExpr = Msg->getArg(Msg->getNumArgs() - 1); !NS.getASTContext().isSentinelNullExpr(SentinelExpr))
         return false;
 
       for (unsigned i = 0, e = Msg->getNumArgs() - 1; i != e; ++i)
@@ -526,8 +526,8 @@ static bool rewriteToDictionaryLiteral(const ObjCMessageExpr *Msg,
     if (Msg->getNumArgs() % 2 != 1)
       return false;
     unsigned SentinelIdx = Msg->getNumArgs() - 1;
-    const Expr *SentinelExpr = Msg->getArg(SentinelIdx);
-    if (!NS.getASTContext().isSentinelNullExpr(SentinelExpr))
+    
+    if (const Expr *SentinelExpr = Msg->getArg(SentinelIdx); !NS.getASTContext().isSentinelNullExpr(SentinelExpr))
       return false;
 
     if (Msg->getNumArgs() == 1) {
@@ -1180,8 +1180,8 @@ static bool rewriteToStringBoxedExpression(const ObjCMessageExpr *Msg,
     if (Msg->getNumArgs() != 2)
       return false;
 
-    const Expr *encodingArg = Msg->getArg(1);
-    if (NS.isNSUTF8StringEncodingConstant(encodingArg) ||
+    
+    if (const Expr *encodingArg = Msg->getArg(1); NS.isNSUTF8StringEncodingConstant(encodingArg) ||
         NS.isNSASCIIStringEncodingConstant(encodingArg))
       return doRewriteToUTF8StringBoxedExpressionHelper(Msg, NS, commit);
   }

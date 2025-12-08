@@ -70,8 +70,8 @@ void RestartRequestHandler::operator()(
     return;
   }
 
-  const llvm::json::Object *arguments = request.getObject("arguments");
-  if (arguments) {
+  
+  if (const llvm::json::Object *arguments = request.getObject("arguments"); arguments) {
     // The optional `arguments` field in RestartRequest can contain an updated
     // version of the launch arguments. If there's one, use it.
     if (const llvm::json::Value *restart_arguments =

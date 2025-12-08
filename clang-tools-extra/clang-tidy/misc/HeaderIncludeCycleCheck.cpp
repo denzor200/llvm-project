@@ -55,9 +55,9 @@ public:
       return;
 
     const FileEntry *NewFile = SM.getFileEntryForID(Id);
-    const FileEntry *PrevFile = SM.getFileEntryForID(PrevFID);
+    
 
-    if (Reason == ExitFile) {
+    if (const FileEntry *PrevFile = SM.getFileEntryForID(PrevFID); Reason == ExitFile) {
       if ((Files.size() > 1U) && (Files.back().File == PrevFile) &&
           (Files[Files.size() - 2U].File == NewFile))
         Files.pop_back();
@@ -112,11 +112,11 @@ public:
                     "'%0', please check the include path")
         << FileName;
 
-    const bool IsIncludePathValid =
+    
+    if (const bool IsIncludePathValid =
         std::all_of(Files.rbegin(), It + 1, [](const Include &Elem) {
           return !Elem.Name.empty() && Elem.Loc.isValid();
-        });
-    if (!IsIncludePathValid)
+        }); !IsIncludePathValid)
       return;
 
     for (const Include &I : llvm::make_range(Files.rbegin(), It + 1))

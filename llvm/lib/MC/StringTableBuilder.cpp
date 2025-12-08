@@ -105,8 +105,8 @@ tailcall:
   size_t I = 0;
   size_t J = Vec.size();
   for (size_t K = 1; K < J;) {
-    int C = charTailAt(Vec[K], Pos);
-    if (C > Pivot)
+    
+    if (int C = charTailAt(Vec[K], Pos); C > Pivot)
       std::swap(Vec[I++], Vec[K++]);
     else if (C < Pivot)
       std::swap(Vec[--J], Vec[K]);
@@ -154,8 +154,8 @@ void StringTableBuilder::finalizeStringTable(bool Optimize) {
                  });
       uint8_t RangePriority = StringPriorityMap.lookup(Strings[0]->first);
       for (size_t I = 1, E = Strings.size(); I != E && RangePriority; ++I) {
-        uint8_t Priority = StringPriorityMap.lookup(Strings[I]->first);
-        if (Priority != RangePriority) {
+        
+        if (uint8_t Priority = StringPriorityMap.lookup(Strings[I]->first); Priority != RangePriority) {
           multikeySort(StringsRef.slice(RangeBegin, I - RangeBegin), 0);
           RangePriority = Priority;
           RangeBegin = I;
@@ -169,8 +169,8 @@ void StringTableBuilder::finalizeStringTable(bool Optimize) {
     for (StringPair *P : Strings) {
       StringRef S = P->first.val();
       if (Previous.ends_with(S)) {
-        size_t Pos = Size - S.size() - (K != RAW);
-        if (isAligned(Alignment, Pos)) {
+        
+        if (size_t Pos = Size - S.size() - (K != RAW); isAligned(Alignment, Pos)) {
           P->second = Pos;
           continue;
         }

@@ -365,8 +365,8 @@ bool HexagonEarlyIfConversion::isValidCandidate(const MachineBasicBlock *B)
     if (MI.isConditionalBranch())
       return false;
     unsigned Opc = MI.getOpcode();
-    bool IsJMP = (Opc == Hexagon::J2_jump);
-    if (!isPredicableStore(&MI) && !IsJMP && !isSafeToSpeculate(&MI))
+    
+    if (bool IsJMP = (Opc == Hexagon::J2_jump); !isPredicableStore(&MI) && !IsJMP && !isSafeToSpeculate(&MI))
       return false;
     // Look for predicate registers defined by this instruction. It's ok
     // to speculate such an instruction, but the predicate register cannot
@@ -453,8 +453,8 @@ unsigned HexagonEarlyIfConversion::computePhiCost(const MachineBasicBlock *B,
     // Find the interesting PHI operands for further checks.
     SmallVector<unsigned,2> Inc;
     for (unsigned i = 1, e = MI.getNumOperands(); i != e; i += 2) {
-      const MachineBasicBlock *BB = MI.getOperand(i+1).getMBB();
-      if (BB == FP.SplitB || BB == FP.TrueB || BB == FP.FalseB)
+      
+      if (const MachineBasicBlock *BB = MI.getOperand(i+1).getMBB(); BB == FP.SplitB || BB == FP.TrueB || BB == FP.FalseB)
         Inc.push_back(i);
     }
     assert(Inc.size() <= 2);
@@ -470,8 +470,8 @@ unsigned HexagonEarlyIfConversion::computePhiCost(const MachineBasicBlock *B,
       continue;
     }
     const MachineInstr *Def1 = MRI->getVRegDef(RA.getReg());
-    const MachineInstr *Def3 = MRI->getVRegDef(RB.getReg());
-    if (!HII->isPredicable(*Def1) || !HII->isPredicable(*Def3))
+    
+    if (const MachineInstr *Def3 = MRI->getVRegDef(RB.getReg()); !HII->isPredicable(*Def1) || !HII->isPredicable(*Def3))
       Cost++;
   }
   return Cost;
@@ -519,8 +519,8 @@ bool HexagonEarlyIfConversion::isProfitable(const FlowPattern &FP) const {
     // If both sides are predicable, convert them if they join, and the
     // join block has no other predecessors.
     MachineBasicBlock *TSB = *FP.TrueB->succ_begin();
-    MachineBasicBlock *FSB = *FP.FalseB->succ_begin();
-    if (TSB != FSB)
+    
+    if (MachineBasicBlock *FSB = *FP.FalseB->succ_begin(); TSB != FSB)
       return false;
     if (TSB->pred_size() != 2)
       return false;
@@ -603,8 +603,8 @@ bool HexagonEarlyIfConversion::visitBlock(MachineBasicBlock *B,
   using DTNodeVectType = SmallVector<MachineDomTreeNode *, 4>;
   DTNodeVectType Cn(llvm::children<MachineDomTreeNode *>(N));
   for (auto &I : Cn) {
-    MachineBasicBlock *SB = I->getBlock();
-    if (!Deleted.count(SB))
+    
+    if (MachineBasicBlock *SB = I->getBlock(); !Deleted.count(SB))
       Changed |= visitBlock(SB, L);
   }
   // When walking down the dominator tree, we want to traverse through
@@ -652,8 +652,8 @@ bool HexagonEarlyIfConversion::isPredicableStore(const MachineInstr *MI)
   // HexagonInstrInfo::isPredicable will consider these stores are non-
   // -predicable if the offset would become constant-extended after
   // predication.
-  unsigned Opc = MI->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI->getOpcode(); Opc) {
     case Hexagon::S2_storerb_io:
     case Hexagon::S2_storerbnew_io:
     case Hexagon::S2_storerh_io:
@@ -807,8 +807,8 @@ void HexagonEarlyIfConversion::updatePhiNodes(MachineBasicBlock *WhereB,
     // Registers and subregisters corresponding to TrueB, FalseB and SplitB.
     unsigned TR = 0, TSR = 0, FR = 0, FSR = 0, SR = 0, SSR = 0;
     for (int i = PN->getNumOperands()-2; i > 0; i -= 2) {
-      const MachineOperand &RO = PN->getOperand(i), &BO = PN->getOperand(i+1);
-      if (BO.getMBB() == FP.SplitB)
+      
+      if (const MachineOperand &RO = PN->getOperand(i), &BO = PN->getOperand(i+1); BO.getMBB() == FP.SplitB)
         SR = RO.getReg(), SSR = RO.getSubReg();
       else if (BO.getMBB() == FP.TrueB)
         TR = RO.getReg(), TSR = RO.getSubReg();
@@ -868,7 +868,7 @@ void HexagonEarlyIfConversion::convert(const FlowPattern &FP) {
   MachineBasicBlock *SSB = nullptr;
   FP.SplitB->erase(OldTI, FP.SplitB->end());
   while (!FP.SplitB->succ_empty()) {
-    MachineBasicBlock *T = *FP.SplitB->succ_begin();
+    
     // It's possible that the split block had a successor that is not a pre-
     // dicated block. This could only happen if there was only one block to
     // be predicated. Example:
@@ -883,7 +883,7 @@ void HexagonEarlyIfConversion::convert(const FlowPattern &FP) {
     //     ...
     //
     // Find this successor (SSB) if it exists.
-    if (T != FP.TrueB && T != FP.FalseB) {
+    if (MachineBasicBlock *T = *FP.SplitB->succ_begin(); T != FP.TrueB && T != FP.FalseB) {
       assert(!SSB);
       SSB = T;
     }
@@ -946,8 +946,8 @@ void HexagonEarlyIfConversion::removeBlock(MachineBasicBlock *B) {
 
   // Transfer the immediate dominator information from B to its descendants.
   MachineDomTreeNode *N = MDT->getNode(B);
-  MachineDomTreeNode *IDN = N->getIDom();
-  if (IDN) {
+  
+  if (MachineDomTreeNode *IDN = N->getIDom(); IDN) {
     MachineBasicBlock *IDB = IDN->getBlock();
 
     using GTN = GraphTraits<MachineDomTreeNode *>;

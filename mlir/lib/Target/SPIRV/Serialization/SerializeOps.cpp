@@ -81,8 +81,8 @@ LogicalResult Serializer::processSpecConstantOp(spirv::SpecConstantOp op) {
                                             /*isSpec=*/true)) {
     // Emit the OpDecorate instruction for SpecId.
     if (auto specID = op->getAttrOfType<IntegerAttr>("spec_id")) {
-      auto val = static_cast<uint32_t>(specID.getInt());
-      if (failed(emitDecoration(resultID, spirv::Decoration::SpecId, {val})))
+      
+      if (auto val = static_cast<uint32_t>(specID.getInt()); failed(emitDecoration(resultID, spirv::Decoration::SpecId, {val})))
         return failure();
     }
 

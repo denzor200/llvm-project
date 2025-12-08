@@ -156,9 +156,9 @@ static bool isAsciiString(StringRef S) {
 // See `caseInsensitiveComparePchPchCchCch` in gsi.cpp
 static int gsiRecordCmp(StringRef S1, StringRef S2) {
   size_t LS = S1.size();
-  size_t RS = S2.size();
+  
   // Shorter strings always compare less than longer strings.
-  if (LS != RS)
+  if (size_t RS = S2.size(); LS != RS)
     return (LS > RS) - (LS < RS);
 
   // If either string contains non ascii characters, memcmp them.
@@ -244,8 +244,8 @@ void GSIHashStreamBuilder::finalizeBuckets(
       const BulkPublic &L = Records[uint32_t(LHash.Off)];
       const BulkPublic &R = Records[uint32_t(RHash.Off)];
       assert(L.BucketIdx == R.BucketIdx);
-      int Cmp = gsiRecordCmp(L.getName(), R.getName());
-      if (Cmp != 0)
+      
+      if (int Cmp = gsiRecordCmp(L.getName(), R.getName()); Cmp != 0)
         return Cmp < 0;
       // This comparison is necessary to make the sorting stable in the presence
       // of two static globals with the same name. The easiest way to observe

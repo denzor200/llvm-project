@@ -1726,8 +1726,8 @@ static bool isConstantOrUndef(int Op, int Val) {
 /// For the latter, the input operands are swapped (see PPCInstrAltivec.td).
 bool PPC::isVPKUHUMShuffleMask(ShuffleVectorSDNode *N, unsigned ShuffleKind,
                                SelectionDAG &DAG) {
-  bool IsLE = DAG.getDataLayout().isLittleEndian();
-  if (ShuffleKind == 0) {
+  
+  if (bool IsLE = DAG.getDataLayout().isLittleEndian(); ShuffleKind == 0) {
     if (IsLE)
       return false;
     for (unsigned i = 0; i != 16; ++i)
@@ -1757,8 +1757,8 @@ bool PPC::isVPKUHUMShuffleMask(ShuffleVectorSDNode *N, unsigned ShuffleKind,
 /// For the latter, the input operands are swapped (see PPCInstrAltivec.td).
 bool PPC::isVPKUWUMShuffleMask(ShuffleVectorSDNode *N, unsigned ShuffleKind,
                                SelectionDAG &DAG) {
-  bool IsLE = DAG.getDataLayout().isLittleEndian();
-  if (ShuffleKind == 0) {
+  
+  if (bool IsLE = DAG.getDataLayout().isLittleEndian(); ShuffleKind == 0) {
     if (IsLE)
       return false;
     for (unsigned i = 0; i != 16; i += 2)
@@ -1794,8 +1794,8 @@ bool PPC::isVPKUWUMShuffleMask(ShuffleVectorSDNode *N, unsigned ShuffleKind,
 /// For the latter, the input operands are swapped (see PPCInstrAltivec.td).
 bool PPC::isVPKUDUMShuffleMask(ShuffleVectorSDNode *N, unsigned ShuffleKind,
                                SelectionDAG &DAG) {
-  const PPCSubtarget &Subtarget = DAG.getSubtarget<PPCSubtarget>();
-  if (!Subtarget.hasP8Vector())
+  
+  if (const PPCSubtarget &Subtarget = DAG.getSubtarget<PPCSubtarget>(); !Subtarget.hasP8Vector())
     return false;
 
   bool IsLE = DAG.getDataLayout().isLittleEndian();
@@ -1977,8 +1977,8 @@ static bool isVMerge(ShuffleVectorSDNode *N, unsigned IndexOffset,
 bool PPC::isVMRGEOShuffleMask(ShuffleVectorSDNode *N, bool CheckEven,
                               unsigned ShuffleKind, SelectionDAG &DAG) {
   if (DAG.getDataLayout().isLittleEndian()) {
-    unsigned indexOffset = CheckEven ? 4 : 0;
-    if (ShuffleKind == 1) // Unary
+    
+    if (unsigned indexOffset = CheckEven ? 4 : 0; ShuffleKind == 1) // Unary
       return isVMerge(N, indexOffset, 0);
     else if (ShuffleKind == 2) // swapped
       return isVMerge(N, indexOffset, 16);
@@ -1986,8 +1986,8 @@ bool PPC::isVMRGEOShuffleMask(ShuffleVectorSDNode *N, bool CheckEven,
       return false;
   }
   else {
-    unsigned indexOffset = CheckEven ? 0 : 4;
-    if (ShuffleKind == 1) // Unary
+    
+    if (unsigned indexOffset = CheckEven ? 0 : 4; ShuffleKind == 1) // Unary
       return isVMerge(N, indexOffset, 0);
     else if (ShuffleKind == 0) // Normal
       return isVMerge(N, indexOffset, 16);
@@ -2417,15 +2417,15 @@ SDValue PPC::get_VSPLTI_elt(SDNode *N, unsigned ByteSize, SelectionDAG &DAG) {
     if (LeadingZero) {
       if (!UniquedVals[Multiple-1].getNode())
         return DAG.getTargetConstant(0, SDLoc(N), MVT::i32);  // 0,0,0,undef
-      int Val = UniquedVals[Multiple - 1]->getAsZExtVal();
-      if (Val < 16)                                   // 0,0,0,4 -> vspltisw(4)
+      
+      if (int Val = UniquedVals[Multiple - 1]->getAsZExtVal(); Val < 16)                                   // 0,0,0,4 -> vspltisw(4)
         return DAG.getTargetConstant(Val, SDLoc(N), MVT::i32);
     }
     if (LeadingOnes) {
       if (!UniquedVals[Multiple-1].getNode())
         return DAG.getTargetConstant(~0U, SDLoc(N), MVT::i32); // -1,-1,-1,undef
-      int Val =cast<ConstantSDNode>(UniquedVals[Multiple-1])->getSExtValue();
-      if (Val >= -16)                            // -1,-1,-1,-2 -> vspltisw(-2)
+      
+      if (int Val =cast<ConstantSDNode>(UniquedVals[Multiple-1])->getSExtValue(); Val >= -16)                            // -1,-1,-1,-2 -> vspltisw(-2)
         return DAG.getTargetConstant(Val, SDLoc(N), MVT::i32);
     }
 
@@ -2626,9 +2626,9 @@ static void fixupFuncForFI(SelectionDAG &DAG, int FrameIdx, EVT VT) {
     return;
 
   MachineFunction &MF = DAG.getMachineFunction();
-  MachineFrameInfo &MFI = MF.getFrameInfo();
+  
 
-  if (MFI.getObjectAlign(FrameIdx) >= Align(4))
+  if (MachineFrameInfo &MFI = MF.getFrameInfo(); MFI.getObjectAlign(FrameIdx) >= Align(4))
     return;
 
   PPCFunctionInfo *FuncInfo = MF.getInfo<PPCFunctionInfo>();
@@ -3302,8 +3302,8 @@ SDValue PPCTargetLowering::LowerGlobalTLSAddressAIX(SDValue Op,
       // not sized or are empty as being over the policy size limit.
       if ((HasAIXSmallLocalExecTLS || HasAIXSmallTLSGlobalAttr) &&
           IsTLSLocalExecModel) {
-        Type *GVType = GV->getValueType();
-        if (GVType->isSized() && !GVType->isEmptyTy() &&
+        
+        if (Type *GVType = GV->getValueType(); GVType->isSized() && !GVType->isEmptyTy() &&
             GV->getDataLayout().getTypeAllocSize(GVType) <=
                 AIXSmallTlsPolicySizeLimit)
           return DAG.getNode(PPCISD::Lo, dl, PtrVT, VariableOffsetTGA, TLSReg);
@@ -3365,8 +3365,8 @@ SDValue PPCTargetLowering::LowerGlobalTLSAddressAIX(SDValue Op,
     // variable has a size within the policy limit. We treat types that are
     // not sized or are empty as being over the policy size limit.
     if (HasAIXSmallLocalDynamicTLS) {
-      Type *GVType = GV->getValueType();
-      if (GVType->isSized() && !GVType->isEmptyTy() &&
+      
+      if (Type *GVType = GV->getValueType(); GVType->isSized() && !GVType->isEmptyTy() &&
           GV->getDataLayout().getTypeAllocSize(GVType) <=
               AIXSmallTlsPolicySizeLimit)
         return DAG.getNode(PPCISD::Lo, dl, PtrVT, VariableOffsetTGA,
@@ -4174,10 +4174,10 @@ SDValue PPCTargetLowering::LowerFormalArguments_32SVR4(
   CCInfo.AnalyzeFormalArguments(Ins, CC_PPC32_SVR4);
 
   for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
-    CCValAssign &VA = ArgLocs[i];
+    
 
     // Arguments stored in registers.
-    if (VA.isRegLoc()) {
+    if (CCValAssign &VA = ArgLocs[i]; VA.isRegLoc()) {
       const TargetRegisterClass *RC;
       EVT ValVT = VA.getValVT();
 
@@ -4803,10 +4803,10 @@ static bool callsShareTOCBase(const Function *Caller,
   // We may need a TOC restore in the situation where the caller requires a
   // valid TOC but the callee is PC Relative and does not.
   const Function *F = dyn_cast<Function>(CalleeGV);
-  const GlobalAlias *Alias = dyn_cast<GlobalAlias>(CalleeGV);
+  
 
   // If we have an Alias we can try to get the function from there.
-  if (Alias) {
+  if (const GlobalAlias *Alias = dyn_cast<GlobalAlias>(CalleeGV); Alias) {
     const GlobalObject *GlobalObj = Alias->getAliaseeObject();
     F = dyn_cast<Function>(GlobalObj);
   }
@@ -5440,8 +5440,8 @@ static SDValue transformCallee(const SDValue &Callee, SelectionDAG &DAG,
     if (Subtarget.isAIXABI()) {
       // If there exists a user-declared function whose name is the same as the
       // ExternalSymbol's, then we pick up the user-declared version.
-      const Module *Mod = DAG.getMachineFunction().getFunction().getParent();
-      if (const Function *F =
+      
+      if (const Module *Mod = DAG.getMachineFunction().getFunction().getParent(); const Function *F =
               dyn_cast_or_null<Function>(Mod->getNamedValue(SymName)))
         return getAIXFuncEntryPointSymbolSDNode(F);
 
@@ -6041,9 +6041,9 @@ SDValue PPCTargetLowering::LowerCall_32SVR4(
     } else {
       // Put argument in the parameter list area of the current stack frame.
       assert(VA.isMemLoc());
-      unsigned LocMemOffset = VA.getLocMemOffset();
+      
 
-      if (!IsTailCall) {
+      if (unsigned LocMemOffset = VA.getLocMemOffset(); !IsTailCall) {
         SDValue PtrOff = DAG.getIntPtrConstant(LocMemOffset, dl);
         PtrOff = DAG.getNode(ISD::ADD, dl, getPointerTy(MF.getDataLayout()),
                              StackPtr, PtrOff);
@@ -7698,8 +7698,8 @@ SDValue PPCTargetLowering::LowerCall_AIX(
       if (I != E) {
         // If only 1 GPR was available, there will only be one custom GPR and
         // the argument will also pass in memory.
-        CCValAssign &PeekArg = ArgLocs[I];
-        if (PeekArg.isRegLoc() && PeekArg.getValNo() == PeekArg.getValNo()) {
+        
+        if (CCValAssign &PeekArg = ArgLocs[I]; PeekArg.isRegLoc() && PeekArg.getValNo() == PeekArg.getValNo()) {
           assert(PeekArg.needsCustom() && "A second custom GPR is expected.");
           CCValAssign &GPR2 = ArgLocs[I++];
           RegsToPass.push_back(std::make_pair(
@@ -8485,9 +8485,9 @@ bool PPCTargetLowering::canReuseLoadAddress(SDValue Op, EVT MemVT,
     return false;
 
   SDLoc dl(Op);
-  bool ValidFPToUint = Op.getOpcode() == ISD::FP_TO_UINT &&
-                       (Subtarget.hasFPCVT() || Op.getValueType() == MVT::i32);
-  if (ET == ISD::NON_EXTLOAD &&
+  
+  if (bool ValidFPToUint = Op.getOpcode() == ISD::FP_TO_UINT &&
+                       (Subtarget.hasFPCVT() || Op.getValueType() == MVT::i32); ET == ISD::NON_EXTLOAD &&
       (ValidFPToUint || Op.getOpcode() == ISD::FP_TO_SINT) &&
       isOperationLegalOrCustom(Op.getOpcode(),
                                Op.getOperand(0).getValueType())) {
@@ -8551,8 +8551,8 @@ bool PPCTargetLowering::directMoveIsProfitable(const SDValue &Op) const {
     if (Use.getResNo() != 0)
       continue;
 
-    SDNode *User = Use.getUser();
-    if (User->getOpcode() != ISD::SINT_TO_FP &&
+    
+    if (SDNode *User = Use.getUser(); User->getOpcode() != ISD::SINT_TO_FP &&
         User->getOpcode() != ISD::UINT_TO_FP &&
         User->getOpcode() != ISD::STRICT_SINT_TO_FP &&
         User->getOpcode() != ISD::STRICT_UINT_TO_FP)
@@ -8656,8 +8656,8 @@ SDValue PPCTargetLowering::LowerINT_TO_FPVector(SDValue Op, SelectionDAG &DAG,
     ShuffV.push_back(i + WideNumElts);
 
   int Stride = FourEltRes ? WideNumElts / 4 : WideNumElts / 2;
-  int SaveElts = FourEltRes ? 4 : 2;
-  if (Subtarget.isLittleEndian())
+  
+  if (int SaveElts = FourEltRes ? 4 : 2; Subtarget.isLittleEndian())
     for (int i = 0; i < SaveElts; i++)
       ShuffV[i * Stride] = i;
   else
@@ -8789,8 +8789,8 @@ SDValue PPCTargetLowering::LowerINT_TO_FP(SDValue Op,
     ReuseLoadInfo RLI;
     SDValue Bits;
 
-    MachineFunction &MF = DAG.getMachineFunction();
-    if (canReuseLoadAddress(SINT, MVT::i64, RLI, DAG)) {
+    
+    if (MachineFunction &MF = DAG.getMachineFunction(); canReuseLoadAddress(SINT, MVT::i64, RLI, DAG)) {
       Bits = DAG.getLoad(MVT::f64, dl, RLI.Chain, RLI.Ptr, RLI.MPI,
                          RLI.Alignment, RLI.MMOFlags(), RLI.AAInfo, RLI.Ranges);
       if (RLI.ResChain)
@@ -9324,10 +9324,10 @@ static bool haveEfficientBuildVectorPattern(BuildVectorSDNode *V,
                                             bool HasDirectMove,
                                             bool HasP8Vector) {
   EVT VecVT = V->getValueType(0);
-  bool RightType = VecVT == MVT::v2f64 ||
+  
+  if (bool RightType = VecVT == MVT::v2f64 ||
     (HasP8Vector && VecVT == MVT::v4f32) ||
-    (HasDirectMove && (VecVT == MVT::v2i64 || VecVT == MVT::v4i32));
-  if (!RightType)
+    (HasDirectMove && (VecVT == MVT::v2i64 || VecVT == MVT::v4i32)); !RightType)
     return false;
 
   bool IsSplat = true;
@@ -10011,9 +10011,9 @@ SDValue PPCTargetLowering::lowerToVINSERTB(ShuffleVectorSDNode *N,
       // If CurrentElement is from V1 [0,15], then we the rest of the Mask to be
       // from V2 [16,31] and vice versa.  Unless the 2nd operand is undefined,
       // in which we always assume we're always picking from the 1st operand.
-      int MaskOffset =
-          (!V2.isUndef() && CurrentElement < BytesInVector) ? BytesInVector : 0;
-      if (Mask[j] != OriginalOrder[j] + MaskOffset) {
+      
+      if (int MaskOffset =
+          (!V2.isUndef() && CurrentElement < BytesInVector) ? BytesInVector : 0; Mask[j] != OriginalOrder[j] + MaskOffset) {
         OtherElementsInOrder = false;
         break;
       }
@@ -10109,12 +10109,12 @@ SDValue PPCTargetLowering::lowerToVINSERTH(ShuffleVectorSDNode *N,
     unsigned MaskShift = (NumHalfWords - 1 - i) * 4;
     uint32_t MaskOneElt = (Mask >> MaskShift) & 0xF;
     uint32_t MaskOtherElts = ~(0xF << MaskShift);
-    uint32_t TargetOrder = 0x0;
+    
 
     // If both vector operands for the shuffle are the same vector, the mask
     // will contain only elements from the first one and the second one will be
     // undef.
-    if (V2.isUndef()) {
+    if (uint32_t TargetOrder = 0x0; V2.isUndef()) {
       ShiftElts = 0;
       unsigned VINSERTHSrcElem = IsLE ? 4 : 3;
       TargetOrder = OriginalOrderLow;
@@ -10547,7 +10547,7 @@ SDValue PPCTargetLowering::LowerVECTOR_SHUFFLE(SDValue Op,
                               PFIndexes[2] * 9 + PFIndexes[3];
 
       unsigned PFEntry = PerfectShuffleTable[PFTableIndex];
-      unsigned Cost = (PFEntry >> 30);
+      
 
       // Determining when to avoid vperm is tricky.  Many things affect the cost
       // of vperm, particularly how many times the perm mask needs to be
@@ -10560,7 +10560,7 @@ SDValue PPCTargetLowering::LowerVECTOR_SHUFFLE(SDValue Op,
       // be generated in 3 or fewer operations.  When we have loop information
       // available, if this block is within a loop, we should avoid using vperm
       // for 3-operation perms and use a constant pool load instead.
-      if (Cost < 3)
+      if (unsigned Cost = (PFEntry >> 30); Cost < 3)
         return GeneratePerfectShuffle(PFEntry, V1, V2, DAG, dl);
     }
   }
@@ -11549,8 +11549,8 @@ SDValue PPCTargetLowering::LowerATOMIC_LOAD_STORE(SDValue Op,
   assert(MemVT.getSimpleVT() == MVT::i128 &&
          "Expect quadword atomic operations");
   SDLoc dl(N);
-  unsigned Opc = N->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = N->getOpcode(); Opc) {
   case ISD::ATOMIC_LOAD: {
     // Lower quadword atomic load to int_ppc_atomic_load_i128 which will be
     // lowered to ppc instructions by pattern matching instruction selector.
@@ -11811,10 +11811,10 @@ SDValue PPCTargetLowering::LowerSCALAR_TO_VECTOR(SDValue Op,
   MachineFunction &MF = DAG.getMachineFunction();
   SDValue Op0 = Op.getOperand(0);
   EVT ValVT = Op0.getValueType();
-  unsigned EltSize = Op.getValueType().getScalarSizeInBits();
-  if (isa<ConstantSDNode>(Op0) && EltSize <= 32) {
-    int64_t IntVal = Op.getConstantOperandVal(0);
-    if (IntVal >= -16 && IntVal <= 15)
+  
+  if (unsigned EltSize = Op.getValueType().getScalarSizeInBits(); isa<ConstantSDNode>(Op0) && EltSize <= 32) {
+    
+    if (int64_t IntVal = Op.getConstantOperandVal(0); IntVal >= -16 && IntVal <= 15)
       return getCanonicalConstSplat(IntVal, EltSize / 8, Op.getValueType(), DAG,
                                     dl);
   }
@@ -12338,8 +12338,8 @@ SDValue PPCTargetLowering::LowerMUL(SDValue Op, SelectionDAG &DAG) const {
 }
 
 SDValue PPCTargetLowering::LowerFP_ROUND(SDValue Op, SelectionDAG &DAG) const {
-  bool IsStrict = Op->isStrictFPOpcode();
-  if (Op.getOperand(IsStrict ? 1 : 0).getValueType() == MVT::f128 &&
+  
+  if (bool IsStrict = Op->isStrictFPOpcode(); Op.getOperand(IsStrict ? 1 : 0).getValueType() == MVT::f128 &&
       !Subtarget.hasP9Vector())
     return SDValue();
 
@@ -13105,10 +13105,10 @@ MachineBasicBlock *PPCTargetLowering::EmitPartwordAtomicBinary(
   MachineFunction *F = BB->getParent();
   MachineRegisterInfo &RegInfo = F->getRegInfo();
   Register incr = MI.getOperand(3).getReg();
-  bool IsSignExtended =
-      incr.isVirtual() && isSignExtended(*RegInfo.getVRegDef(incr), TII);
+  
 
-  if (CmpOpcode == PPC::CMPW && !IsSignExtended) {
+  if (bool IsSignExtended =
+      incr.isVirtual() && isSignExtended(*RegInfo.getVRegDef(incr), TII); CmpOpcode == PPC::CMPW && !IsSignExtended) {
     Register ValueReg = RegInfo.createVirtualRegister(&PPC::GPRCRegClass);
     BuildMI(*BB, MI, dl, TII->get(is8bit ? PPC::EXTSB : PPC::EXTSH), ValueReg)
         .addReg(MI.getOperand(3).getReg());
@@ -13814,9 +13814,9 @@ PPCTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
   MachineFunction::iterator It = ++BB->getIterator();
 
   MachineFunction *F = BB->getParent();
-  MachineRegisterInfo &MRI = F->getRegInfo();
+  
 
-  if (Subtarget.hasISEL() &&
+  if (MachineRegisterInfo &MRI = F->getRegInfo(); Subtarget.hasISEL() &&
       (MI.getOpcode() == PPC::SELECT_CC_I4 ||
        MI.getOpcode() == PPC::SELECT_CC_I8 ||
        MI.getOpcode() == PPC::SELECT_I4 || MI.getOpcode() == PPC::SELECT_I8)) {
@@ -14426,8 +14426,8 @@ PPCTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
         // Use stack to do the register copy.
         unsigned StoreOp = PPC::STD, LoadOp = PPC::LFD;
         MachineRegisterInfo &RegInfo = F->getRegInfo();
-        const TargetRegisterClass *RC = RegInfo.getRegClass(SrcReg);
-        if (RC == &PPC::F8RCRegClass) {
+        
+        if (const TargetRegisterClass *RC = RegInfo.getRegClass(SrcReg); RC == &PPC::F8RCRegClass) {
           // Copy register from F8RCRegClass to G8RCRegclass.
           assert((RegInfo.getRegClass(DestReg) == &PPC::G8RCRegClass) &&
                  "Unsupported RegClass.");
@@ -14718,8 +14718,8 @@ static bool isConsecutiveLSLoc(SDValue Loc, EVT VT, LSBaseSDNode *Base,
     int FI  = cast<FrameIndexSDNode>(Loc)->getIndex();
     int BFI = cast<FrameIndexSDNode>(BaseLoc)->getIndex();
     int FS  = MFI.getObjectSize(FI);
-    int BFS = MFI.getObjectSize(BFI);
-    if (FS != BFS || FS != (int)Bytes) return false;
+    
+    if (int BFS = MFI.getObjectSize(BFI); FS != BFS || FS != (int)Bytes) return false;
     return MFI.getObjectOffset(FI) == (MFI.getObjectOffset(BFI) + Dist*Bytes);
   }
 
@@ -14736,8 +14736,8 @@ static bool isConsecutiveLSLoc(SDValue Loc, EVT VT, LSBaseSDNode *Base,
   Offset1 = 0;
   Offset2 = 0;
   bool isGA1 = TLI.isGAPlusOffset(Loc.getNode(), GV1, Offset1);
-  bool isGA2 = TLI.isGAPlusOffset(BaseLoc.getNode(), GV2, Offset2);
-  if (isGA1 && isGA2 && GV1 == GV2)
+  
+  if (bool isGA2 = TLI.isGAPlusOffset(BaseLoc.getNode(), GV2, Offset2); isGA1 && isGA2 && GV1 == GV2)
     return Offset1 == (Offset2 + Dist*Bytes);
   return false;
 }
@@ -14940,9 +14940,9 @@ SDValue PPCTargetLowering::ConvertSETCCToSubtract(SDNode *N,
   ISD::CondCode CC = cast<CondCodeSDNode>(N->getOperand(2))->get();
   auto OpSize = N->getOperand(0).getValueSizeInBits();
 
-  unsigned Size = DAG.getDataLayout().getLargestLegalIntTypeSizeInBits();
+  
 
-  if (OpSize < Size) {
+  if (unsigned Size = DAG.getDataLayout().getLargestLegalIntTypeSizeInBits(); OpSize < Size) {
     switch (CC) {
     default: break;
     case ISD::SETULT:
@@ -14989,9 +14989,9 @@ SDValue PPCTargetLowering::DAGCombineTruncBoolExt(SDNode *N,
     ISD::CondCode CC =
       cast<CondCodeSDNode>(N->getOperand(
         N->getOpcode() == ISD::SETCC ? 2 : 4))->get();
-    unsigned OpBits = N->getOperand(0).getValueSizeInBits();
+    
 
-    if (ISD::isSignedIntSetCC(CC)) {
+    if (unsigned OpBits = N->getOperand(0).getValueSizeInBits(); ISD::isSignedIntSetCC(CC)) {
       if (DAG.ComputeNumSignBits(N->getOperand(0)) != OpBits ||
           DAG.ComputeNumSignBits(N->getOperand(1)) != OpBits)
         return SDValue();
@@ -15775,8 +15775,8 @@ combineElementTruncationToVectorTruncation(SDNode *N,
 
   // This combine happens after legalization so the fp_to_[su]i nodes are
   // already converted to PPCSISD nodes.
-  unsigned FirstConversion = FirstInput.getOperand(0).getOpcode();
-  if (FirstConversion == PPCISD::FCTIDZ ||
+  
+  if (unsigned FirstConversion = FirstInput.getOperand(0).getOpcode(); FirstConversion == PPCISD::FCTIDZ ||
       FirstConversion == PPCISD::FCTIDUZ ||
       FirstConversion == PPCISD::FCTIWZ ||
       FirstConversion == PPCISD::FCTIWUZ) {
@@ -15790,8 +15790,8 @@ combineElementTruncationToVectorTruncation(SDNode *N,
       SDValue NextOp = N->getOperand(i);
       if (NextOp.getOpcode() != PPCISD::MFVSR)
         return SDValue();
-      unsigned NextConversion = NextOp.getOperand(0).getOpcode();
-      if (NextConversion != FirstConversion)
+      
+      if (unsigned NextConversion = NextOp.getOperand(0).getOpcode(); NextConversion != FirstConversion)
         return SDValue();
       // If we are converting to 32-bit integers, we need to add an FP_ROUND.
       // This is not valid if the input was originally double precision. It is
@@ -16188,8 +16188,8 @@ static SDValue combineBVOfVecSExt(SDNode *N, SelectionDAG &DAG) {
   // vector_shuffle.
   int TgtElemArrayIdx;
   int InputSize = Input.getValueType().getScalarSizeInBits();
-  int OutputSize = N->getValueType(0).getScalarSizeInBits();
-  if (InputSize + OutputSize == 40)
+  
+  if (int OutputSize = N->getValueType(0).getScalarSizeInBits(); InputSize + OutputSize == 40)
     TgtElemArrayIdx = 0;
   else if (InputSize + OutputSize == 72)
     TgtElemArrayIdx = 1;
@@ -16236,11 +16236,11 @@ static SDValue combineBVZEXTLOAD(SDNode *N, SelectionDAG &DAG) {
 
   // This transformation is only valid if the we are loading either a byte,
   // halfword, word, or doubleword.
-  bool ValidLDType = MemoryType == MVT::i8 || MemoryType == MVT::i16 ||
-                     MemoryType == MVT::i32 || MemoryType == MVT::i64;
+  
 
   // Ensure that the load from the narrow width is being zero extended to i128.
-  if (!ValidLDType ||
+  if (bool ValidLDType = MemoryType == MVT::i8 || MemoryType == MVT::i16 ||
+                     MemoryType == MVT::i32 || MemoryType == MVT::i64; !ValidLDType ||
       (LD->getExtensionType() != ISD::ZEXTLOAD &&
        LD->getExtensionType() != ISD::EXTLOAD))
     return SDValue();
@@ -16369,10 +16369,10 @@ SDValue PPCTargetLowering::combineFPToIntToFP(SDNode *N,
     return SDValue();
 
   SDValue FirstOperand(Op.getOperand(0));
-  bool SubWordLoad = FirstOperand.getOpcode() == ISD::LOAD &&
+  
+  if (bool SubWordLoad = FirstOperand.getOpcode() == ISD::LOAD &&
     (FirstOperand.getValueType() == MVT::i8 ||
-     FirstOperand.getValueType() == MVT::i16);
-  if (Subtarget.hasP9Vector() && Subtarget.hasP9Altivec() && SubWordLoad) {
+     FirstOperand.getValueType() == MVT::i16); Subtarget.hasP9Vector() && Subtarget.hasP9Altivec() && SubWordLoad) {
     bool Signed = N->getOpcode() == ISD::SINT_TO_FP;
     bool DstDouble = Op.getValueType() == MVT::f64;
     unsigned ConvOp = Signed ?
@@ -16692,8 +16692,8 @@ static void fixupShuffleMaskForPermutedSToV(
   int RHSEltFixup =
       Subtarget.isLittleEndian() ? HalfVec : HalfVec - RHSNumValidElts;
   for (int I = 0, E = ShuffV.size(); I < E; ++I) {
-    int Idx = ShuffV[I];
-    if (Idx >= LHSFirstElt && Idx <= LHSLastElt)
+    
+    if (int Idx = ShuffV[I]; Idx >= LHSFirstElt && Idx <= LHSLastElt)
       ShuffV[I] += LHSEltFixup;
     else if (Idx >= RHSFirstElt && Idx <= RHSLastElt)
       ShuffV[I] += RHSEltFixup;
@@ -17033,8 +17033,8 @@ SDValue PPCTargetLowering::combineVReverseMemOP(ShuffleVectorSDNode *SVN,
 }
 
 static bool isStoreConditional(SDValue Intrin, unsigned &StoreWidth) {
-  unsigned IntrinsicID = Intrin.getConstantOperandVal(1);
-  if (IntrinsicID == Intrinsic::ppc_stdcx)
+  
+  if (unsigned IntrinsicID = Intrin.getConstantOperandVal(1); IntrinsicID == Intrinsic::ppc_stdcx)
     StoreWidth = 8;
   else if (IntrinsicID == Intrinsic::ppc_stwcx)
     StoreWidth = 4;
@@ -17484,9 +17484,9 @@ SDValue PPCTargetLowering::PerformDAGCombine(SDNode *N,
     case ISD::INTRINSIC_WO_CHAIN: {
       bool isLittleEndian = Subtarget.isLittleEndian();
       unsigned IID = N->getConstantOperandVal(0);
-      Intrinsic::ID Intr = (isLittleEndian ? Intrinsic::ppc_altivec_lvsr
-                                           : Intrinsic::ppc_altivec_lvsl);
-      if (IID == Intr && N->getOperand(1)->getOpcode() == ISD::ADD) {
+      
+      if (Intrinsic::ID Intr = (isLittleEndian ? Intrinsic::ppc_altivec_lvsr
+                                           : Intrinsic::ppc_altivec_lvsl); IID == Intr && N->getOperand(1)->getOpcode() == ISD::ADD) {
         SDValue Add = N->getOperand(1);
 
         int Bits = 4 /* 16 byte alignment */;
@@ -17578,11 +17578,11 @@ SDValue PPCTargetLowering::PerformDAGCombine(SDNode *N,
           APInt APSplatBits, APSplatUndef;
           unsigned SplatBitSize;
           bool HasAnyUndefs;
-          bool BVNIsConstantSplat = BVN->isConstantSplat(
-              APSplatBits, APSplatUndef, SplatBitSize, HasAnyUndefs, 0,
-              !Subtarget.isLittleEndian());
+          
           // If the constant splat vector is 0, the SAT bit will not be set.
-          if (BVNIsConstantSplat && APSplatBits == 0)
+          if (bool BVNIsConstantSplat = BVN->isConstantSplat(
+              APSplatBits, APSplatUndef, SplatBitSize, HasAnyUndefs, 0,
+              !Subtarget.isLittleEndian()); BVNIsConstantSplat && APSplatBits == 0)
             DAG.ReplaceAllUsesOfValueWith(SDValue(N, 1), N->getOperand(0));
         }
         return SDValue();
@@ -18220,8 +18220,8 @@ PPCTargetLowering::getRegForInlineAsmConstraint(const TargetRegisterInfo *TRI,
     R.second = &PPC::CRRCRegClass;
   }
   // FIXME: This warning should ideally be emitted in the front end.
-  const auto &TM = getTargetMachine();
-  if (Subtarget.isAIXABI() && !TM.getAIXExtendedAltivecABI()) {
+  
+  if (const auto &TM = getTargetMachine(); Subtarget.isAIXABI() && !TM.getAIXExtendedAltivecABI()) {
     if (((R.first >= PPC::V20 && R.first <= PPC::V31) ||
          (R.first >= PPC::VF20 && R.first <= PPC::VF31)) &&
         (R.second == &PPC::VSRCRegClass || R.second == &PPC::VSFRCRegClass))
@@ -18244,8 +18244,8 @@ void PPCTargetLowering::LowerAsmOperandForConstraint(SDValue Op,
   if (Constraint.size() > 1)
     return;
 
-  char Letter = Constraint[0];
-  switch (Letter) {
+  
+  switch (char Letter = Constraint[0]; Letter) {
   default: break;
   case 'I':
   case 'J':
@@ -18316,8 +18316,8 @@ void PPCTargetLowering::CollectTargetIntrinsicOperands(const CallInst &I,
     return;
   if (!isa<ConstantSDNode>(Ops[1].getNode()))
     return;
-  auto IntrinsicID = Ops[1].getNode()->getAsZExtVal();
-  if (IntrinsicID != Intrinsic::ppc_tdw && IntrinsicID != Intrinsic::ppc_tw &&
+  
+  if (auto IntrinsicID = Ops[1].getNode()->getAsZExtVal(); IntrinsicID != Intrinsic::ppc_tdw && IntrinsicID != Intrinsic::ppc_tw &&
       IntrinsicID != Intrinsic::ppc_trapd && IntrinsicID != Intrinsic::ppc_trap)
     return;
 
@@ -18659,11 +18659,11 @@ EVT PPCTargetLowering::getOptimalMemOpType(
     // addresses, unaligned VSX loads are only fast starting with the P8.
     if (Subtarget.hasAltivec() && Op.size() >= 16) {
       if (Op.isMemset() && Subtarget.hasVSX()) {
-        uint64_t TailSize = Op.size() % 16;
+        
         // For memset lowering, EXTRACT_VECTOR_ELT tries to return constant
         // element if vector element type matches tail store. For tail size
         // 3/4, the tail store is i32, v4i32 cannot be used, need a legal one.
-        if (TailSize > 2 && TailSize <= 4) {
+        if (uint64_t TailSize = Op.size() % 16; TailSize > 2 && TailSize <= 4) {
           return MVT::v8i16;
         }
         return MVT::v4i32;
@@ -18800,8 +18800,8 @@ bool PPCTargetLowering::decomposeMulByConstant(LLVMContext &Context, EVT VT,
     Imm >>= Shift;
     if (isInt<16>(Imm))
       return false;
-    uint64_t UImm = static_cast<uint64_t>(Imm);
-    if (isPowerOf2_64(UImm + 1) || isPowerOf2_64(UImm - 1) ||
+    
+    if (uint64_t UImm = static_cast<uint64_t>(Imm); isPowerOf2_64(UImm + 1) || isPowerOf2_64(UImm - 1) ||
         isPowerOf2_64(1 - UImm) || isPowerOf2_64(-1 - UImm))
       return true;
   }
@@ -18860,12 +18860,12 @@ bool PPCTargetLowering::isProfitableToHoist(Instruction *I) const {
     // to "store (load int32)" in later InstCombine pass. See function
     // combineLoadToOperationType. On PowerPC, loading a float point takes more
     // cycles than loading a 32 bit integer.
-    LoadInst *LI = cast<LoadInst>(I);
+    
     // For the loads that combineLoadToOperationType does nothing, like
     // ordered load, it should be profitable to hoist them.
     // For swifterror load, it can only be used for pointer to pointer type, so
     // later type check should get rid of this case.
-    if (!LI->isUnordered())
+    if (LoadInst *LI = cast<LoadInst>(I); !LI->isUnordered())
       return true;
 
     if (User->getOpcode() != Instruction::Store)
@@ -19116,10 +19116,10 @@ SDValue PPCTargetLowering::combineVectorShift(SDNode *N,
     bool HasAnyUndefs;
     APInt APSplatBits, APSplatUndef;
     BuildVectorSDNode *BVN = cast<BuildVectorSDNode>(N1);
-    bool BVNIsConstantSplat =
+    
+    if (bool BVNIsConstantSplat =
         BVN->isConstantSplat(APSplatBits, APSplatUndef, SplatBitSize,
-                             HasAnyUndefs, 0, !Subtarget.isLittleEndian());
-    if (!BVNIsConstantSplat || SplatBitSize != EltBits)
+                             HasAnyUndefs, 0, !Subtarget.isLittleEndian()); !BVNIsConstantSplat || SplatBitSize != EltBits)
       return SDValue();
     SplatBits = APSplatBits.getZExtValue();
   }
@@ -19244,10 +19244,10 @@ static SDValue combineADDToADDZE(SDNode *N, SelectionDAG &DAG,
   };
 
   bool LHSHasPattern = isZextOfCompareWithConstant(LHS);
-  bool RHSHasPattern = isZextOfCompareWithConstant(RHS);
+  
 
   // If there is a pattern, canonicalize a zext operand to the RHS.
-  if (LHSHasPattern && !RHSHasPattern)
+  if (bool RHSHasPattern = isZextOfCompareWithConstant(RHS); LHSHasPattern && !RHSHasPattern)
     std::swap(LHS, RHS);
   else if (!LHSHasPattern && !RHSHasPattern)
     return SDValue();
@@ -19258,9 +19258,9 @@ static SDValue combineADDToADDZE(SDNode *N, SelectionDAG &DAG,
   SDValue Cmp = RHS.getOperand(0);
   SDValue Z = Cmp.getOperand(0);
   auto *Constant = cast<ConstantSDNode>(Cmp.getOperand(1));
-  int64_t NegConstant = 0 - Constant->getSExtValue();
+  
 
-  switch(cast<CondCodeSDNode>(Cmp.getOperand(2))->get()) {
+  switch(int64_t NegConstant = 0 - Constant->getSExtValue(); cast<CondCodeSDNode>(Cmp.getOperand(2))->get()) {
   default: break;
   case ISD::SETNE: {
     //                                 when C == 0
@@ -19377,8 +19377,8 @@ static SDValue combineADDToSUB(SDNode *N, SelectionDAG &DAG,
   // Check if all the elements are 1
   unsigned NumOfEles = RHS.getNumOperands();
   for (unsigned i = 0; i < NumOfEles; ++i) {
-    auto *CN = dyn_cast<ConstantSDNode>(RHS.getOperand(i));
-    if (!CN || CN->getSExtValue() != 1)
+    
+    if (auto *CN = dyn_cast<ConstantSDNode>(RHS.getOperand(i)); !CN || CN->getSExtValue() != 1)
       return SDValue();
   }
   SDLoc DL(N);
@@ -19434,9 +19434,9 @@ SDValue PPCTargetLowering::combineTRUNCATE(SDNode *N,
 
   // SRL feeding TRUNCATE.
   if (Op0.getOpcode() == ISD::SRL) {
-    ConstantSDNode *ConstNode = dyn_cast<ConstantSDNode>(Op0.getOperand(1));
+    
     // The right shift has to be by 64 bits.
-    if (!ConstNode || ConstNode->getZExtValue() != 64)
+    if (ConstantSDNode *ConstNode = dyn_cast<ConstantSDNode>(Op0.getOperand(1)); !ConstNode || ConstNode->getZExtValue() != 64)
       return SDValue();
 
     // Switch the element number to extract.
@@ -19591,8 +19591,8 @@ bool PPCTargetLowering::mayBeEmittedAsTailCall(const CallInst *CI) const {
 
   // If sibling calls have been disabled and tail-calls aren't guaranteed
   // there is no reason to duplicate.
-  auto &TM = getTargetMachine();
-  if (!TM.Options.GuaranteedTailCallOpt && DisableSCO)
+  
+  if (auto &TM = getTargetMachine(); !TM.Options.GuaranteedTailCallOpt && DisableSCO)
     return false;
 
   // Can't tail call a function called indirectly, or if it has variadic args.
@@ -19612,9 +19612,9 @@ bool PPCTargetLowering::mayBeEmittedAsTailCall(const CallInst *CI) const {
 
 bool PPCTargetLowering::
 isMaskAndCmp0FoldingBeneficial(const Instruction &AndI) const {
-  const Value *Mask = AndI.getOperand(1);
+  
   // If the mask is suitable for andi. or andis. we should sink the and.
-  if (const ConstantInt *CI = dyn_cast<ConstantInt>(Mask)) {
+  if (const Value *Mask = AndI.getOperand(1); const ConstantInt *CI = dyn_cast<ConstantInt>(Mask)) {
     // Can't handle constants wider than 64-bits.
     if (CI->getBitWidth() > 64)
       return false;
@@ -19770,8 +19770,8 @@ unsigned PPCTargetLowering::computeMOFlags(const SDNode *Parent, SDValue N,
   unsigned ParentOp = Parent->getOpcode();
   if (Subtarget.isISA3_1() && ((ParentOp == ISD::INTRINSIC_W_CHAIN) ||
                                (ParentOp == ISD::INTRINSIC_VOID))) {
-    unsigned ID = Parent->getConstantOperandVal(1);
-    if ((ID == Intrinsic::ppc_vsx_lxvp) || (ID == Intrinsic::ppc_vsx_stxvp)) {
+    
+    if (unsigned ID = Parent->getConstantOperandVal(1); (ID == Intrinsic::ppc_vsx_lxvp) || (ID == Intrinsic::ppc_vsx_stxvp)) {
       SDValue IntrinOp = (ID == Intrinsic::ppc_vsx_lxvp)
                              ? Parent->getOperand(2)
                              : Parent->getOperand(3);
@@ -20075,8 +20075,8 @@ PPC::AddrMode PPCTargetLowering::SelectOptimalAddrMode(const SDNode *Parent,
     if (Flags & PPC::MOF_RPlusSImm16) {
       SDValue Op0 = N.getOperand(0);
       SDValue Op1 = N.getOperand(1);
-      int16_t Imm = Op1->getAsZExtVal();
-      if (!Align || isAligned(*Align, Imm)) {
+      
+      if (int16_t Imm = Op1->getAsZExtVal(); !Align || isAligned(*Align, Imm)) {
         Disp = DAG.getSignedTargetConstant(Imm, DL, N.getValueType());
         Base = Op0;
         if (FrameIndexSDNode *FI = dyn_cast<FrameIndexSDNode>(Op0)) {
@@ -20137,8 +20137,8 @@ PPC::AddrMode PPCTargetLowering::SelectOptimalAddrMode(const SDNode *Parent,
   }
   case PPC::AM_PrefixDForm: {
     int64_t Imm34 = 0;
-    unsigned Opcode = N.getOpcode();
-    if (((Opcode == ISD::ADD) || (Opcode == ISD::OR)) &&
+    
+    if (unsigned Opcode = N.getOpcode(); ((Opcode == ISD::ADD) || (Opcode == ISD::OR)) &&
         (isIntS34Immediate(N.getOperand(1), Imm34))) {
       // N is an Add/OR Node, and it's operand is a 34-bit signed immediate.
       Disp = DAG.getSignedTargetConstant(Imm34, DL, N.getValueType());
@@ -20191,8 +20191,8 @@ bool PPCTargetLowering::shouldInlineQuadwordAtomics() const {
 
 TargetLowering::AtomicExpansionKind
 PPCTargetLowering::shouldExpandAtomicRMWInIR(AtomicRMWInst *AI) const {
-  unsigned Size = AI->getType()->getPrimitiveSizeInBits();
-  if (shouldInlineQuadwordAtomics() && Size == 128)
+  
+  if (unsigned Size = AI->getType()->getPrimitiveSizeInBits(); shouldInlineQuadwordAtomics() && Size == 128)
     return AtomicExpansionKind::MaskedIntrinsic;
 
   switch (AI->getOperation()) {
@@ -20210,8 +20210,8 @@ PPCTargetLowering::shouldExpandAtomicRMWInIR(AtomicRMWInst *AI) const {
 
 TargetLowering::AtomicExpansionKind
 PPCTargetLowering::shouldExpandAtomicCmpXchgInIR(AtomicCmpXchgInst *AI) const {
-  unsigned Size = AI->getNewValOperand()->getType()->getPrimitiveSizeInBits();
-  if (shouldInlineQuadwordAtomics() && Size == 128)
+  
+  if (unsigned Size = AI->getNewValOperand()->getType()->getPrimitiveSizeInBits(); shouldInlineQuadwordAtomics() && Size == 128)
     return AtomicExpansionKind::MaskedIntrinsic;
   return AtomicExpansionKind::LLSC;
 }

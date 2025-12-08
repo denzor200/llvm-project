@@ -2592,10 +2592,10 @@ uint64_t CGObjCCommonMac::InlineLayoutInstruction(
         weak_word_count == 16)
       return 0;
 
-    unsigned count = (strong_word_count != 0) + (byref_word_count != 0) +
-                     (weak_word_count != 0);
+    
 
-    if (size == count) {
+    if (unsigned count = (strong_word_count != 0) + (byref_word_count != 0) +
+                     (weak_word_count != 0); size == count) {
       if (strong_word_count)
         Result = strong_word_count;
       Result <<= 4;
@@ -2610,8 +2610,8 @@ uint64_t CGObjCCommonMac::InlineLayoutInstruction(
 }
 
 llvm::Constant *CGObjCCommonMac::getBitmapBlockLayout(bool ComputeByrefLayout) {
-  llvm::Constant *nullPtr = llvm::Constant::getNullValue(CGM.Int8PtrTy);
-  if (RunSkipBlockVars.empty())
+  
+  if (llvm::Constant *nullPtr = llvm::Constant::getNullValue(CGM.Int8PtrTy); RunSkipBlockVars.empty())
     return nullPtr;
   unsigned WordSizeInBits = CGM.getTarget().getPointerWidth(LangAS::Default);
   unsigned ByteSizeInBits = CGM.getTarget().getCharWidth();
@@ -3131,8 +3131,8 @@ llvm::Constant *CGObjCCommonMac::EmitPropertyList(
   if (IsClassProperty) {
     // Make this entry NULL for OS X with deployment target < 10.11, for iOS
     // with deployment target < 9.0.
-    const llvm::Triple &Triple = CGM.getTarget().getTriple();
-    if ((Triple.isMacOSX() && Triple.isMacOSXVersionLT(10, 11)) ||
+    
+    if (const llvm::Triple &Triple = CGM.getTarget().getTriple(); (Triple.isMacOSX() && Triple.isMacOSXVersionLT(10, 11)) ||
         (Triple.isiOS() && Triple.isOSVersionLT(9)))
       return llvm::Constant::getNullValue(ObjCTypes.PropertyListPtrTy);
   }
@@ -5252,8 +5252,8 @@ void IvarLayoutBuilder::visitField(const FieldDecl *field,
     visitRecord(recType, fieldOffset);
 
     // If we have an array, replicate the first entry's layout information.
-    auto numEltEntries = IvarsInfo.size() - oldEnd;
-    if (numElts != 1 && numEltEntries != 0) {
+    
+    if (auto numEltEntries = IvarsInfo.size() - oldEnd; numElts != 1 && numEltEntries != 0) {
       CharUnits eltSize = CGM.getContext().getTypeSizeInChars(recType);
       for (uint64_t eltIndex = 1; eltIndex != numElts; ++eltIndex) {
         // Copy the last numEltEntries onto the end of the array, adjusting
@@ -5314,8 +5314,8 @@ IvarLayoutBuilder::buildBitmap(CGObjCCommonMac &CGObjC,
     // Try to merge into the previous byte.  Since scans happen second, we
     // can't do this if it includes a scan.
     if (!buffer.empty() && !(buffer.back() & ScanMask)) {
-      unsigned lastSkip = buffer.back() >> SkipShift;
-      if (lastSkip < MaxNibble) {
+      
+      if (unsigned lastSkip = buffer.back() >> SkipShift; lastSkip < MaxNibble) {
         unsigned claimed = std::min(MaxNibble - lastSkip, numWords);
         numWords -= claimed;
         lastSkip += claimed;
@@ -5339,8 +5339,8 @@ IvarLayoutBuilder::buildBitmap(CGObjCCommonMac &CGObjC,
     // Try to merge into the previous byte.  Since scans happen second, we can
     // do this even if it includes a skip.
     if (!buffer.empty()) {
-      unsigned lastScan = (buffer.back() & ScanMask) >> ScanShift;
-      if (lastScan < MaxNibble) {
+      
+      if (unsigned lastScan = (buffer.back() & ScanMask) >> ScanShift; lastScan < MaxNibble) {
         unsigned claimed = std::min(MaxNibble - lastScan, numWords);
         numWords -= claimed;
         lastScan += claimed;
@@ -5410,9 +5410,9 @@ IvarLayoutBuilder::buildBitmap(CGObjCCommonMac &CGObjC,
   // have precise information about the entire thing.  This isn't useful
   // or necessary for the ARC-style layout strings.
   if (CGM.getLangOpts().getGC() != LangOptions::NonGC) {
-    unsigned lastOffsetInWords =
-        (InstanceEnd - InstanceBegin + WordSize - CharUnits::One()) / WordSize;
-    if (lastOffsetInWords > endOfLastScanInWords) {
+    
+    if (unsigned lastOffsetInWords =
+        (InstanceEnd - InstanceBegin + WordSize - CharUnits::One()) / WordSize; lastOffsetInWords > endOfLastScanInWords) {
       skip(lastOffsetInWords - endOfLastScanInWords);
     }
   }
@@ -6374,8 +6374,8 @@ void CGObjCNonFragileABIMac::GenerateClass(const ObjCImplementationDecl *ID) {
           getStorage(CGM, "_objc_empty_cache"));
 
     // Only OS X with deployment version <10.9 use the empty vtable symbol
-    const llvm::Triple &Triple = CGM.getTarget().getTriple();
-    if (Triple.isMacOSX() && Triple.isMacOSXVersionLT(10, 9))
+    
+    if (const llvm::Triple &Triple = CGM.getTarget().getTriple(); Triple.isMacOSX() && Triple.isMacOSXVersionLT(10, 9))
       ObjCEmptyVtableVar = new llvm::GlobalVariable(
           CGM.getModule(), ObjCTypes.ImpnfABITy, false,
           llvm::GlobalValue::ExternalLinkage, nullptr, "_objc_empty_vtable");
@@ -6766,9 +6766,9 @@ CGObjCNonFragileABIMac::ObjCIvarOffsetVariable(const ObjCInterfaceDecl *ID,
           Ivar->getAccessControl() == ObjCIvarDecl::Private ||
           Ivar->getAccessControl() == ObjCIvarDecl::Package;
 
-      const ObjCInterfaceDecl *ContainingID = Ivar->getContainingInterface();
+      
 
-      if (ContainingID->hasAttr<DLLImportAttr>())
+      if (const ObjCInterfaceDecl *ContainingID = Ivar->getContainingInterface(); ContainingID->hasAttr<DLLImportAttr>())
         IvarOffsetGV->setDLLStorageClass(
             llvm::GlobalValue::DLLImportStorageClass);
       else if (ContainingID->hasAttr<DLLExportAttr>() && !IsPrivateOrPackage)

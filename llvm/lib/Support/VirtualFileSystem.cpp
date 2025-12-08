@@ -1223,9 +1223,9 @@ namespace {
 static llvm::sys::path::Style getExistingStyle(llvm::StringRef Path) {
   // Detect the path style in use by checking the first separator.
   llvm::sys::path::Style style = llvm::sys::path::Style::native;
-  const size_t n = Path.find_first_of("/\\");
+  
   // Can't distinguish between posix and windows_slash here.
-  if (n != static_cast<size_t>(-1))
+  if (const size_t n = Path.find_first_of("/\\"); n != static_cast<size_t>(-1))
     style = (Path[n] == '/') ? llvm::sys::path::Style::posix
                              : llvm::sys::path::Style::windows_backslash;
   return style;
@@ -1749,9 +1749,9 @@ public:
       auto *DE = dyn_cast<RedirectingFileSystem::DirectoryEntry>(ParentEntry);
       for (std::unique_ptr<RedirectingFileSystem::Entry> &Content :
            llvm::make_range(DE->contents_begin(), DE->contents_end())) {
-        auto *DirContent =
-            dyn_cast<RedirectingFileSystem::DirectoryEntry>(Content.get());
-        if (DirContent && Name == Content->getName())
+        
+        if (auto *DirContent =
+            dyn_cast<RedirectingFileSystem::DirectoryEntry>(Content.get()); DirContent && Name == Content->getName())
           return DirContent;
       }
     }

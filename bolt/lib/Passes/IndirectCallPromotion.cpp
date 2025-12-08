@@ -290,8 +290,8 @@ IndirectCallPromotion::getCallTargets(BinaryBasicBlock &BB,
     auto Result = First;
     while (++First != Last) {
       Callsite &A = *Result;
-      const Callsite &B = *First;
-      if (A.To.Sym && B.To.Sym && A.To.Sym == B.To.Sym)
+      
+      if (const Callsite &B = *First; A.To.Sym && B.To.Sym && A.To.Sym == B.To.Sym)
         A.JTIndices.insert(A.JTIndices.end(), B.JTIndices.begin(),
                            B.JTIndices.end());
       else
@@ -736,8 +736,8 @@ IndirectCallPromotion::MethodInfoType IndirectCallPromotion::maybeGetVtableSyms(
   if (VtableReg != MethodReg) {
     for (MCInst *CurInst = MethodFetchInsns.front(); CurInst < &Inst;
          ++CurInst) {
-      const MCInstrDesc &InstrInfo = BC.MII->get(CurInst->getOpcode());
-      if (InstrInfo.hasDefOfPhysReg(*CurInst, VtableReg, *BC.MRI))
+      
+      if (const MCInstrDesc &InstrInfo = BC.MII->get(CurInst->getOpcode()); InstrInfo.hasDefOfPhysReg(*CurInst, VtableReg, *BC.MRI))
         return MethodInfoType();
     }
   }
@@ -773,8 +773,8 @@ IndirectCallPromotion::rewriteCall(
   // Remember any pseudo instructions following a tail call.  These
   // must be preserved and moved to the original block.
   InstructionListType TailInsts;
-  const MCInst *TailInst = &CallInst;
-  if (IsTailCallOrJT)
+  
+  if (const MCInst *TailInst = &CallInst; IsTailCallOrJT)
     while (TailInst + 1 < &(*IndCallBlock.end()) &&
            MIB->isPseudo(*(TailInst + 1)))
       TailInsts.push_back(*++TailInst);
@@ -1079,8 +1079,8 @@ size_t IndirectCallPromotion::canPromoteCallsite(
   if (!IsJumpTable && opts::ICPPeelForInline) {
     for (size_t I = 0; I < N; ++I) {
       const MCSymbol *TargetSym = Targets[I].To.Sym;
-      const BinaryFunction *TargetBF = BC.getFunctionForSymbol(TargetSym);
-      if (!TargetBF || !BinaryFunctionPass::shouldOptimize(*TargetBF) ||
+      
+      if (const BinaryFunction *TargetBF = BC.getFunctionForSymbol(TargetSym); !TargetBF || !BinaryFunctionPass::shouldOptimize(*TargetBF) ||
           getInliningInfo(*TargetBF).Type == InliningType::INL_NONE) {
         N = I;
         break;
@@ -1185,10 +1185,10 @@ Error IndirectCallPromotion::runOnFunctions(BinaryContext &BC) {
           const bool IsJumpTable = Function.getJumpTable(Inst);
           const bool HasIndirectCallProfile =
               BC.MIB->hasAnnotation(Inst, "CallProfile");
-          const bool IsDirectCall =
-              (BC.MIB->isCall(Inst) && BC.MIB->getTargetSymbol(Inst, 0));
+          
 
-          if (!IsDirectCall &&
+          if (const bool IsDirectCall =
+              (BC.MIB->isCall(Inst) && BC.MIB->getTargetSymbol(Inst, 0)); !IsDirectCall &&
               ((HasIndirectCallProfile && !IsJumpTable && OptimizeCalls) ||
                (IsJumpTable && OptimizeJumpTables))) {
             uint64_t NumCalls = 0;
@@ -1341,8 +1341,8 @@ Error IndirectCallPromotion::runOnFunctions(BinaryContext &BC) {
         // If we can't resolve any of the target symbols, punt on this callsite.
         // TODO: can this ever happen?
         if (SymTargets.size() < N) {
-          const size_t LastTarget = SymTargets.size();
-          if (opts::Verbosity >= 1)
+          
+          if (const size_t LastTarget = SymTargets.size(); opts::Verbosity >= 1)
             BC.outs() << "BOLT-INFO: ICP failed in " << Function << " @ "
                       << InstIdx << " in " << BB->getName()
                       << ", calls = " << NumCalls

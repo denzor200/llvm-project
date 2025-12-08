@@ -141,8 +141,8 @@ void TargetFrameLowering::determineCalleeSaves(MachineFunction &MF,
   bool CallsUnwindInit = MF.callsUnwindInit();
   const MachineRegisterInfo &MRI = MF.getRegInfo();
   for (unsigned i = 0; CSRegs[i]; ++i) {
-    unsigned Reg = CSRegs[i];
-    if (CallsUnwindInit || MRI.isPhysRegModified(Reg))
+    
+    if (unsigned Reg = CSRegs[i]; CallsUnwindInit || MRI.isPhysRegModified(Reg))
       SavedRegs.set(Reg);
   }
 }

@@ -256,8 +256,8 @@ SymbolInfo index::getSymbolInfo(const Decl *D) {
     case Decl::CXXConstructor: {
       Info.Kind = SymbolKind::Constructor;
       Info.Lang = SymbolLanguage::CXX;
-      auto *CD = cast<CXXConstructorDecl>(D);
-      if (CD->isCopyConstructor())
+      
+      if (auto *CD = cast<CXXConstructorDecl>(D); CD->isCopyConstructor())
         Info.SubKind = SymbolSubKind::CXXCopyConstructor;
       else if (CD->isMoveConstructor())
         Info.SubKind = SymbolSubKind::CXXMoveConstructor;
@@ -272,8 +272,8 @@ SymbolInfo index::getSymbolInfo(const Decl *D) {
       Info.Lang = SymbolLanguage::CXX;
       break;
     case Decl::CXXMethod: {
-      const CXXMethodDecl *MD = cast<CXXMethodDecl>(D);
-      if (MD->isStatic())
+      
+      if (const CXXMethodDecl *MD = cast<CXXMethodDecl>(D); MD->isStatic())
         Info.Kind = SymbolKind::StaticMethod;
       else
         Info.Kind = SymbolKind::InstanceMethod;

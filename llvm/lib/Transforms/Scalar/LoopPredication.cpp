@@ -915,8 +915,8 @@ bool LoopPredication::isLoopProfitableToPredicate() {
       [&](const BasicBlock *ExitingBlock,
           const BasicBlock *ExitBlock) -> BranchProbability {
     auto *Term = ExitingBlock->getTerminator();
-    unsigned NumSucc = Term->getNumSuccessors();
-    if (MDNode *ProfileData = getValidBranchWeightMDNode(*Term)) {
+    
+    if (unsigned NumSucc = Term->getNumSuccessors(); MDNode *ProfileData = getValidBranchWeightMDNode(*Term)) {
       SmallVector<uint32_t> Weights;
       extractBranchWeights(ProfileData, Weights);
       uint64_t Numerator = 0, Denominator = 0;
@@ -1196,9 +1196,9 @@ bool LoopPredication::runOnLoop(Loop *Loop) {
   bool HasIntrinsicGuards = GuardDecl && !GuardDecl->use_empty();
   auto *WCDecl = Intrinsic::getDeclarationIfExists(
       M, Intrinsic::experimental_widenable_condition);
-  bool HasWidenableConditions =
-      PredicateWidenableBranchGuards && WCDecl && !WCDecl->use_empty();
-  if (!HasIntrinsicGuards && !HasWidenableConditions)
+  
+  if (bool HasWidenableConditions =
+      PredicateWidenableBranchGuards && WCDecl && !WCDecl->use_empty(); !HasIntrinsicGuards && !HasWidenableConditions)
     return false;
 
   DL = &M->getDataLayout();

@@ -62,9 +62,9 @@ public:
   Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_value,
                         ExecutionContext *execution_context) override {
     Status error;
-    const int short_option = g_memory_read_options[option_idx].short_option;
+    
 
-    switch (short_option) {
+    switch (const int short_option = g_memory_read_options[option_idx].short_option; short_option) {
     case 'l':
       error = m_num_per_line.SetValueFromString(option_value);
       if (m_num_per_line.GetCurrentValue() == 0)
@@ -114,9 +114,9 @@ public:
     OptionValueUInt64 &count_value = format_options.GetCountValue();
     const bool byte_size_option_set = byte_size_value.OptionWasSet();
     const bool num_per_line_option_set = m_num_per_line.OptionWasSet();
-    const bool count_option_set = format_options.GetCountValue().OptionWasSet();
+    
 
-    switch (format_options.GetFormat()) {
+    switch (const bool count_option_set = format_options.GetCountValue().OptionWasSet(); format_options.GetFormat()) {
     default:
       break;
 
@@ -667,8 +667,8 @@ protected:
       bytes_read = target->ReadMemory(address, data_sp->GetBytes(),
                                       data_sp->GetByteSize(), error, true);
       if (bytes_read == 0) {
-        const char *error_cstr = error.AsCString();
-        if (error_cstr && error_cstr[0]) {
+        
+        if (const char *error_cstr = error.AsCString(); error_cstr && error_cstr[0]) {
           result.AppendError(error_cstr);
         } else {
           result.AppendErrorWithFormat(
@@ -772,9 +772,9 @@ protected:
         auto outfile_stream_up =
             std::make_unique<StreamFile>(std::move(outfile.get()));
         if (m_memory_options.m_output_as_binary) {
-          const size_t bytes_written =
-              outfile_stream_up->Write(data_sp->GetBytes(), bytes_read);
-          if (bytes_written > 0) {
+          
+          if (const size_t bytes_written =
+              outfile_stream_up->Write(data_sp->GetBytes(), bytes_read); bytes_written > 0) {
             result.GetOutputStream().Printf(
                 "%zi bytes %s to '%s'\n", bytes_written,
                 append ? "appended" : "written", path.c_str());
@@ -958,9 +958,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_value,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = g_memory_find_options[option_idx].short_option;
+      
 
-      switch (short_option) {
+      switch (const int short_option = g_memory_find_options[option_idx].short_option; short_option) {
       case 'e':
         m_expr.SetValueFromString(option_value);
         break;
@@ -1043,9 +1043,9 @@ protected:
     // ensures it is valid
     Process *process = m_exe_ctx.GetProcessPtr();
 
-    const size_t argc = command.GetArgumentCount();
+    
 
-    if (argc != 2) {
+    if (const size_t argc = command.GetArgumentCount(); argc != 2) {
       result.AppendError("two addresses needed for memory find");
       return;
     }
@@ -1171,9 +1171,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_value,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = g_memory_write_options[option_idx].short_option;
+      
 
-      switch (short_option) {
+      switch (const int short_option = g_memory_write_options[option_idx].short_option; short_option) {
       case 'i':
         m_infile.SetFile(option_value, FileSpec::Style::native);
         FileSystem::Instance().Resolve(m_infile);
@@ -1266,9 +1266,9 @@ protected:
     // ensures it is valid
     Process *process = m_exe_ctx.GetProcessPtr();
 
-    const size_t argc = command.GetArgumentCount();
+    
 
-    if (m_memory_options.m_infile) {
+    if (const size_t argc = command.GetArgumentCount(); m_memory_options.m_infile) {
       if (argc < 1) {
         result.AppendErrorWithFormat(
             "%s takes a destination address when writing file contents.\n",
@@ -1317,10 +1317,10 @@ protected:
         length = data_sp->GetByteSize();
         if (length > 0) {
           Status error;
-          size_t bytes_written =
-              process->WriteMemory(addr, data_sp->GetBytes(), length, error);
+          
 
-          if (bytes_written == length) {
+          if (size_t bytes_written =
+              process->WriteMemory(addr, data_sp->GetBytes(), length, error); bytes_written == length) {
             // All bytes written
             result.GetOutputStream().Printf(
                 "%" PRIu64 " bytes were written to 0x%" PRIx64 "\n",
@@ -1514,10 +1514,10 @@ protected:
       Status error;
       const char *buffer_data = buffer.GetString().data();
       const size_t buffer_size = buffer.GetString().size();
-      const size_t write_size =
-          process->WriteMemory(addr, buffer_data, buffer_size, error);
+      
 
-      if (write_size != buffer_size) {
+      if (const size_t write_size =
+          process->WriteMemory(addr, buffer_data, buffer_size, error); write_size != buffer_size) {
         result.AppendErrorWithFormat("Memory write to 0x%" PRIx64
                                      " failed: %s.\n",
                                      addr, error.AsCString());
@@ -1567,9 +1567,9 @@ public:
 
 protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    const size_t argc = command.GetArgumentCount();
+    
 
-    if (argc == 0 || argc > 1) {
+    if (const size_t argc = command.GetArgumentCount(); argc == 0 || argc > 1) {
       result.AppendErrorWithFormat("%s takes an address expression",
                                    m_cmd_name.c_str());
       return;
@@ -1629,9 +1629,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_value,
                           ExecutionContext *execution_context) override {
       Status status;
-      const int short_option = g_memory_region_options[option_idx].short_option;
+      
 
-      switch (short_option) {
+      switch (const int short_option = g_memory_region_options[option_idx].short_option; short_option) {
       case 'a':
         m_all.SetCurrentValue(true);
         m_all.SetOptionWasSet();
@@ -1698,9 +1698,9 @@ protected:
     if (is_shadow_stack == MemoryRegionInfo::OptionalBool::eYes)
       result.AppendMessage("shadow stack: yes");
 
-    const std::optional<std::vector<addr_t>> &dirty_page_list =
-        range_info.GetDirtyPageList();
-    if (dirty_page_list) {
+    
+    if (const std::optional<std::vector<addr_t>> &dirty_page_list =
+        range_info.GetDirtyPageList(); dirty_page_list) {
       const size_t page_count = dirty_page_list->size();
       result.AppendMessageWithFormat(
           "Modified memory (dirty) page list provided, %zu entries.\n",

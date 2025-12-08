@@ -1506,10 +1506,10 @@ void AssignmentTrackingLowering::emitDbgValue(
   // NOTE: This block can mutate Kind.
   if (Kind == LocKind::Mem) {
     assert(Source->isDbgAssign());
-    const DbgVariableRecord *Assign = Source;
+    
     // Check the address hasn't been dropped (e.g. the debug uses may not have
     // been replaced before deleting a Value).
-    if (Assign->isKillAddress()) {
+    if (const DbgVariableRecord *Assign = Source; Assign->isKillAddress()) {
       // The address isn't valid so treat this as a non-memory def.
       Kind = LocKind::Val;
     } else {
@@ -2374,9 +2374,9 @@ bool AssignmentTrackingLowering::run(FunctionVarLocsBuilder *FnVarLocsBuilder) {
       // been split into different allocas. Skipping in this case means falling
       // back to using a list of defs (which could reduce coverage, but is no
       // less correct).
-      bool Simple =
-          VarLoc.Expr->getNumElements() == 1 && VarLoc.Expr->startsWithDeref();
-      if (!Simple) {
+      
+      if (bool Simple =
+          VarLoc.Expr->getNumElements() == 1 && VarLoc.Expr->startsWithDeref(); !Simple) {
         NotAlwaysStackHomed.insert(Aggr);
         continue;
       }
@@ -2489,9 +2489,9 @@ removeRedundantDbgLocsUsingBackwardScan(const BasicBlock *BB,
         uint64_t SizeInBytes = divideCeil(SizeInBits, 8);
 
         // Cutoff for large variables to prevent expensive bitvector operations.
-        const uint64_t MaxSizeBytes = 2048;
+        
 
-        if (SizeInBytes == 0 || SizeInBytes > MaxSizeBytes) {
+        if (const uint64_t MaxSizeBytes = 2048; SizeInBytes == 0 || SizeInBytes > MaxSizeBytes) {
           // If the size is unknown (0) then keep this location def to be safe.
           // Do the same for defs of large variables, which would be expensive
           // to represent with a BitVector.

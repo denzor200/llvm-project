@@ -401,8 +401,8 @@ Expected<Records> DylibReader::readFile(MemoryBufferRef Buffer,
       continue;
     }
 
-    auto &Obj = *ObjOrErr.get();
-    switch (Obj.getHeader().filetype) {
+    
+    switch (auto &Obj = *ObjOrErr.get(); Obj.getHeader().filetype) {
     default:
       break;
     case MachO::MH_BUNDLE:

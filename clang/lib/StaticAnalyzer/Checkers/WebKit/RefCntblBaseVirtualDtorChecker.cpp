@@ -64,15 +64,15 @@ public:
   }
 
   bool VisitCallExpr(const CallExpr *CE) {
-    const Decl *D = CE->getCalleeDecl();
-    if (D && D->hasBody())
+    
+    if (const Decl *D = CE->getCalleeDecl(); D && D->hasBody())
       return VisitBody(D->getBody());
     else {
       auto name = safeGetName(D);
       if (name == "ensureOnMainThread" || name == "ensureOnMainRunLoop") {
         for (unsigned i = 0; i < CE->getNumArgs(); ++i) {
-          auto *Arg = CE->getArg(i);
-          if (VisitLambdaArgument(Arg))
+          
+          if (auto *Arg = CE->getArg(i); VisitLambdaArgument(Arg))
             return true;
         }
       }
@@ -213,8 +213,8 @@ public:
               if (TemplT.isNull())
                 continue;
 
-              bool IsCRTP = TemplT->getAsCXXRecordDecl() == RD;
-              if (!IsCRTP)
+              
+              if (bool IsCRTP = TemplT->getAsCXXRecordDecl() == RD; !IsCRTP)
                 continue;
               CRTPs.insert(C);
             }

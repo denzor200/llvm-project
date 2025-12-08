@@ -1095,9 +1095,9 @@ void ModuleImportsManager::computeImportForModule(
   while (!Worklist.empty()) {
     auto GVInfo = Worklist.pop_back_val();
     auto *Summary = std::get<0>(GVInfo);
-    auto Threshold = std::get<1>(GVInfo);
+    
 
-    if (auto *FS = dyn_cast<FunctionSummary>(Summary))
+    if (auto Threshold = std::get<1>(GVInfo); auto *FS = dyn_cast<FunctionSummary>(Summary))
       computeImportForFunction(*FS, Threshold, DefinedGVSummaries, Worklist,
                                GVI, ImportList, ImportThresholds);
   }
@@ -1744,8 +1744,8 @@ void llvm::thinLTOFinalizeInModule(Module &TheModule,
     // Remove declarations from comdats, including available_externally
     // as this is a declaration for the linker, and will be dropped eventually.
     // It is illegal for comdats to contain declarations.
-    auto *GO = dyn_cast_or_null<GlobalObject>(&GV);
-    if (GO && GO->isDeclarationForLinker() && GO->hasComdat()) {
+    
+    if (auto *GO = dyn_cast_or_null<GlobalObject>(&GV); GO && GO->isDeclarationForLinker() && GO->hasComdat()) {
       if (GO->getComdat()->getName() == GO->getName())
         NonPrevailingComdats.insert(GO->getComdat());
       GO->setComdat(nullptr);
@@ -1990,8 +1990,8 @@ Expected<bool> FunctionImporter::importFunctions(
           if (Error Err = GA.materialize())
             return std::move(Err);
           // Import alias as a copy of its aliasee.
-          GlobalObject *GO = GA.getAliaseeObject();
-          if (Error Err = GO->materialize())
+          
+          if (GlobalObject *GO = GA.getAliaseeObject(); Error Err = GO->materialize())
             return std::move(Err);
           auto *Fn = replaceAliasWithAliasee(SrcModule.get(), &GA);
           LLVM_DEBUG(dbgs() << "Is importing aliasee fn " << GO->getGUID()

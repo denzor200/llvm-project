@@ -237,10 +237,10 @@ Parser::ParseConstraintLogicalAndExpression(bool IsTrailingRequiresClause) {
       NotPrimaryExpression = false;
     }
     bool PossibleNonPrimary;
-    bool IsConstraintExpr =
+    
+    if (bool IsConstraintExpr =
         Actions.CheckConstraintExpression(E.get(), Tok, &PossibleNonPrimary,
-                                          IsTrailingRequiresClause);
-    if (!IsConstraintExpr || PossibleNonPrimary) {
+                                          IsTrailingRequiresClause); !IsConstraintExpr || PossibleNonPrimary) {
       // Atomic constraint might be an unparenthesized non-primary expression
       // (such as a binary operator), in which case we might get here (e.g. in
       // 'requires 0 + 1 && true' we would now be at '+', and parse and ignore
@@ -415,13 +415,13 @@ Parser::ParseRHSOfBinaryExpression(ExprResult LHS, prec::Level MinPrec) {
         // suggest inserting the colon in between them, otherwise insert ": ".
         SourceLocation FILoc = Tok.getLocation();
         const char *FIText = ": ";
-        const SourceManager &SM = PP.getSourceManager();
-        if (FILoc.isFileID() || PP.isAtStartOfMacroExpansion(FILoc, &FILoc)) {
+        
+        if (const SourceManager &SM = PP.getSourceManager(); FILoc.isFileID() || PP.isAtStartOfMacroExpansion(FILoc, &FILoc)) {
           assert(FILoc.isFileID());
           bool IsInvalid = false;
-          const char *SourcePtr =
-            SM.getCharacterData(FILoc.getLocWithOffset(-1), &IsInvalid);
-          if (!IsInvalid && *SourcePtr == ' ') {
+          
+          if (const char *SourcePtr =
+            SM.getCharacterData(FILoc.getLocWithOffset(-1), &IsInvalid); !IsInvalid && *SourcePtr == ' ') {
             SourcePtr =
               SM.getCharacterData(FILoc.getLocWithOffset(-2), &IsInvalid);
             if (!IsInvalid && *SourcePtr == ' ') {
@@ -965,8 +965,8 @@ Parser::ParseCastExpression(CastParseKind ParseKind, bool isAddressOfOperand,
     if (getLangOpts().ObjC &&
         ((Tok.is(tok::identifier) && !InMessageExpression) ||
          Tok.is(tok::code_completion))) {
-      const Token& Next = NextToken();
-      if (Tok.is(tok::code_completion) ||
+      
+      if (const Token& Next = NextToken(); Tok.is(tok::code_completion) ||
           Next.is(tok::colon) || Next.is(tok::r_square))
         if (ParsedType Typ = Actions.getTypeName(II, ILoc, getCurScope()))
           if (Typ.get()->isObjCObjectOrInterfaceType()) {
@@ -1373,8 +1373,8 @@ Parser::ParseCastExpression(CastParseKind ParseKind, bool isAddressOfOperand,
 
     Token Next = NextToken();
     if (Next.is(tok::annot_template_id)) {
-      TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Next);
-      if (TemplateId->Kind == TNK_Type_template) {
+      
+      if (TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Next); TemplateId->Kind == TNK_Type_template) {
         // We have a qualified template-id that we know refers to a
         // type, translate it into a type and continue parsing as a
         // cast expression.
@@ -1395,8 +1395,8 @@ Parser::ParseCastExpression(CastParseKind ParseKind, bool isAddressOfOperand,
   }
 
   case tok::annot_template_id: { // [C++]          template-id
-    TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok);
-    if (TemplateId->Kind == TNK_Type_template) {
+    
+    if (TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok); TemplateId->Kind == TNK_Type_template) {
       // We have a template-id that we know refers to a type,
       // translate it into a type and continue parsing as a cast
       // expression.
@@ -1918,8 +1918,8 @@ Parser::ParsePostfixExpressionSuffix(ExprResult LHS) {
 
       if (getLangOpts().CPlusPlus && !LHS.isInvalid()) {
         Expr *Base = OrigLHS;
-        const Type* BaseType = Base->getType().getTypePtrOrNull();
-        if (BaseType && Tok.is(tok::l_paren) &&
+        
+        if (const Type* BaseType = Base->getType().getTypePtrOrNull(); BaseType && Tok.is(tok::l_paren) &&
             (BaseType->isFunctionType() ||
              BaseType->isSpecificPlaceholderType(BuiltinType::BoundMember))) {
           Diag(OpLoc, diag::err_function_is_not_record)
@@ -3376,8 +3376,8 @@ static bool CheckAvailabilitySpecList(Parser &P,
       continue;
     }
 
-    bool Inserted = Platforms.insert(Spec.getPlatform()).second;
-    if (!Inserted) {
+    
+    if (bool Inserted = Platforms.insert(Spec.getPlatform()).second; !Inserted) {
       // Rule out multiple version specs referring to the same platform.
       // For example, we emit an error for:
       // @available(macos 10.10, macos 10.11, *)

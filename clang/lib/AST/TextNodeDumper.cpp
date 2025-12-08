@@ -35,15 +35,15 @@ static void dumpPreviousDeclImpl(raw_ostream &OS, ...) {}
 
 template <typename T>
 static void dumpPreviousDeclImpl(raw_ostream &OS, const Mergeable<T> *D) {
-  const T *First = D->getFirstDecl();
-  if (First != D)
+  
+  if (const T *First = D->getFirstDecl(); First != D)
     OS << " first " << First;
 }
 
 template <typename T>
 static void dumpPreviousDeclImpl(raw_ostream &OS, const Redeclarable<T> *D) {
-  const T *Prev = D->getPreviousDecl();
-  if (Prev)
+  
+  if (const T *Prev = D->getPreviousDecl(); Prev)
     OS << " prev " << Prev;
 }
 
@@ -314,10 +314,10 @@ void TextNodeDumper::Visit(const Decl *D) {
   }
 
   if (!isa<FunctionDecl>(*D)) {
-    const auto *MD = dyn_cast<ObjCMethodDecl>(D);
-    if (!MD || !MD->isThisDeclarationADefinition()) {
-      const auto *DC = dyn_cast<DeclContext>(D);
-      if (DC && DC->hasExternalLexicalStorage()) {
+    
+    if (const auto *MD = dyn_cast<ObjCMethodDecl>(D); !MD || !MD->isThisDeclarationADefinition()) {
+      
+      if (const auto *DC = dyn_cast<DeclContext>(D); DC && DC->hasExternalLexicalStorage()) {
         ColorScope Color(OS, ShowColors, UndeserializedColor);
         OS << " <undeserialized declarations>";
       }
@@ -529,8 +529,8 @@ void TextNodeDumper::Visit(const OpenACCClause *C) {
 }
 
 void TextNodeDumper::Visit(const GenericSelectionExpr::ConstAssociation &A) {
-  const TypeSourceInfo *TSI = A.getTypeSourceInfo();
-  if (TSI) {
+  
+  if (const TypeSourceInfo *TSI = A.getTypeSourceInfo(); TSI) {
     OS << "case ";
     dumpType(TSI->getType());
   } else {
@@ -821,8 +821,8 @@ void TextNodeDumper::Visit(const APValue &Value, QualType Ty) {
     }
     // If the union value is considered to be simple, fold it into the
     // current line to save some vertical space.
-    const APValue &UnionValue = Value.getUnionValue();
-    if (isSimpleAPValue(UnionValue)) {
+    
+    if (const APValue &UnionValue = Value.getUnionValue(); isSimpleAPValue(UnionValue)) {
       OS << ' ';
       Visit(UnionValue, Ty);
     } else {
@@ -1108,9 +1108,9 @@ void TextNodeDumper::dumpTemplateArgument(const TemplateArgument &TA) {
 const char *TextNodeDumper::getCommandName(unsigned CommandID) {
   if (Traits)
     return Traits->getCommandInfo(CommandID)->Name;
-  const comments::CommandInfo *Info =
-      comments::CommandTraits::getBuiltinCommandInfo(CommandID);
-  if (Info)
+  
+  if (const comments::CommandInfo *Info =
+      comments::CommandTraits::getBuiltinCommandInfo(CommandID); Info)
     return Info->Name;
   return "<not a builtin command>";
 }
@@ -1421,8 +1421,8 @@ void TextNodeDumper::VisitLoopControlStmt(const LoopControlStmt *Node) {
 
   OS << " '" << Node->getLabelDecl()->getIdentifier()->getName() << "' (";
 
-  auto *Target = Node->getNamedLoopOrSwitch();
-  if (!Target) {
+  
+  if (auto *Target = Node->getNamedLoopOrSwitch(); !Target) {
     ColorScope Color(OS, ShowColors, NullColor);
     OS << "<<<NULL>>>";
   } else {
@@ -1512,8 +1512,8 @@ void TextNodeDumper::VisitCallExpr(const CallExpr *Node) {
 }
 
 void TextNodeDumper::VisitCXXOperatorCallExpr(const CXXOperatorCallExpr *Node) {
-  const char *OperatorSpelling = clang::getOperatorSpelling(Node->getOperator());
-  if (OperatorSpelling)
+  
+  if (const char *OperatorSpelling = clang::getOperatorSpelling(Node->getOperator()); OperatorSpelling)
     OS << " '" << OperatorSpelling << "'";
 
   VisitCallExpr(Node);
@@ -2477,12 +2477,12 @@ void TextNodeDumper::VisitVarDecl(const VarDecl *D) {
   }
 
   if (D->hasInit()) {
-    const Expr *E = D->getInit();
+    
     // Only dump the value of constexpr VarDecls for now.
-    if (E && !E->isValueDependent() && D->isConstexpr() &&
+    if (const Expr *E = D->getInit(); E && !E->isValueDependent() && D->isConstexpr() &&
         !D->getType()->isDependentType()) {
-      const APValue *Value = D->evaluateValue();
-      if (Value)
+      
+      if (const APValue *Value = D->evaluateValue(); Value)
         AddChild("value", [=] { Visit(*Value, E->getType()); });
     }
   }

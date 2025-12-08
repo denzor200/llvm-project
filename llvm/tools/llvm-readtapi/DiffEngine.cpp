@@ -219,11 +219,11 @@ void findAndAddDiff(const std::vector<InterfaceFileRef> &CollectedIRefVec,
   Result.Kind = AD_Str_Vec;
   for (const auto &IRef : CollectedIRefVec)
     for (auto Targ : IRef.targets()) {
-      auto FoundIRef = llvm::any_of(LookupIRefVec, [&](const auto LIRef) {
+      
+      if (auto FoundIRef = llvm::any_of(LookupIRefVec, [&](const auto LIRef) {
         return llvm::is_contained(LIRef.targets(), Targ) &&
                IRef.getInstallName() == LIRef.getInstallName();
-      });
-      if (!FoundIRef)
+      }); !FoundIRef)
         addDiffForTargSlice<DiffStrVec,
                             DiffScalarVal<StringRef, AD_Diff_Scalar_Str>>(
             IRef.getInstallName(), Targ, Result, Order);
@@ -250,13 +250,13 @@ void findAndAddDiff(InterfaceFile::const_symbol_range CollectedSyms,
   Result.Kind = AD_Sym_Vec;
   for (const auto *Sym : CollectedSyms)
     for (const auto Targ : Sym->targets()) {
-      auto FoundSym = llvm::any_of(LookupSyms, [&](const auto LSym) {
+      
+      if (auto FoundSym = llvm::any_of(LookupSyms, [&](const auto LSym) {
         return (Sym->getName() == LSym->getName() &&
                 Sym->getKind() == LSym->getKind() &&
                 Sym->getFlags() == LSym->getFlags() &&
                 llvm::is_contained(LSym->targets(), Targ));
-      });
-      if (!FoundSym)
+      }); !FoundSym)
         addDiffForTargSlice<DiffSymVec, SymScalar>(Sym, Targ, Result, Order);
     }
 }
@@ -406,11 +406,11 @@ DiffEngine::findDifferences(const InterfaceFile *IFLHS,
       DocsInserted.push_back(DocLHS->getInstallName());
     }
     for (auto DocRHS : IFRHS->documents()) {
-      auto WasGathered =
+      
+      if (auto WasGathered =
           llvm::any_of(DocsInserted, [&](const auto &GatheredDoc) {
             return (GatheredDoc == DocRHS->getInstallName());
-          });
-      if (!WasGathered)
+          }); !WasGathered)
         Docs.Values.push_back(std::make_unique<InlineDoc>(
             InlineDoc(DocRHS->getInstallName(), getSingleIF(DocRHS.get(), rhs),
                       /*IsMissingDoc=*/true)));

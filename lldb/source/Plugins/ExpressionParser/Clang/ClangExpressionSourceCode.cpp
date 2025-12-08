@@ -155,9 +155,9 @@ static void AddMacros(const DebugMacros *dm, CompileUnit *comp_unit,
 
   for (size_t i = 0; i < dm->GetNumMacroEntries(); i++) {
     const DebugMacroEntry &entry = dm->GetMacroEntryAtIndex(i);
-    uint32_t line;
+    
 
-    switch (entry.GetType()) {
+    switch (uint32_t line; entry.GetType()) {
     case DebugMacroEntry::DEFINE:
       if (state.IsValidEntry(entry.GetLineNumber()))
         stream.Printf("#define %s\n", entry.GetMacroString().AsCString());
@@ -332,9 +332,9 @@ void ClangExpressionSourceCode::AddLocalVariableDecls(StreamString &stream,
     if (!expr.empty() && !tokens.hasToken(var_name.GetStringRef()))
       continue;
 
-    const bool is_objc = m_wrap_kind == WrapKind::ObjCInstanceMethod ||
-                         m_wrap_kind == WrapKind::ObjCStaticMethod;
-    if ((var_name == "self" || var_name == "_cmd") && is_objc)
+    
+    if (const bool is_objc = m_wrap_kind == WrapKind::ObjCInstanceMethod ||
+                         m_wrap_kind == WrapKind::ObjCStaticMethod; (var_name == "self" || var_name == "_cmd") && is_objc)
       continue;
 
     stream.Printf("using $__lldb_local_vars::%s;\n", var_name.AsCString());
@@ -410,12 +410,12 @@ bool ClangExpressionSourceCode::GetText(
   StreamString debug_macros_stream;
   StreamString lldb_local_var_decls;
   if (StackFrame *frame = exe_ctx.GetFramePtr()) {
-    const SymbolContext &sc = frame->GetSymbolContext(
-        lldb::eSymbolContextCompUnit | lldb::eSymbolContextLineEntry);
+    
 
-    if (sc.comp_unit && sc.line_entry.IsValid()) {
-      DebugMacros *dm = sc.comp_unit->GetDebugMacros();
-      if (dm) {
+    if (const SymbolContext &sc = frame->GetSymbolContext(
+        lldb::eSymbolContextCompUnit | lldb::eSymbolContextLineEntry); sc.comp_unit && sc.line_entry.IsValid()) {
+      
+      if (DebugMacros *dm = sc.comp_unit->GetDebugMacros(); dm) {
         AddMacroState state(sc.line_entry.GetFile(), sc.line_entry.line);
         AddMacros(dm, sc.comp_unit, state, debug_macros_stream);
       }

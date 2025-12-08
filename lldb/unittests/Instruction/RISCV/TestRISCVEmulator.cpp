@@ -673,8 +673,8 @@ TEST_F(RISCVEmulatorTester, TestFCVT) {
     ASSERT_TRUE(f2i.has_value());
     ASSERT_TRUE(i2f.has_value());
     uint32_t f_reg = DecodeRS1((*f2i).inst);
-    uint32_t x_reg = DecodeRS1((*i2f).inst);
-    if (i.isDouble)
+    
+    if (uint32_t x_reg = DecodeRS1((*i2f).inst); i.isDouble)
       TestInverse<double>(this, f_reg, x_reg, *f2i, *i2f, i.data);
     else
       TestInverse<float>(this, f_reg, x_reg, *f2i, *i2f, i.data);

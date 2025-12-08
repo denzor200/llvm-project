@@ -222,8 +222,8 @@ void SUnit::setDepthDirty() {
     SUnit *SU = WorkList.pop_back_val();
     SU->isDepthCurrent = false;
     for (SDep &SuccDep : SU->Succs) {
-      SUnit *SuccSU = SuccDep.getSUnit();
-      if (SuccSU->isDepthCurrent)
+      
+      if (SUnit *SuccSU = SuccDep.getSUnit(); SuccSU->isDepthCurrent)
         WorkList.push_back(SuccSU);
     }
   } while (!WorkList.empty());
@@ -237,8 +237,8 @@ void SUnit::setHeightDirty() {
     SUnit *SU = WorkList.pop_back_val();
     SU->isHeightCurrent = false;
     for (SDep &PredDep : SU->Preds) {
-      SUnit *PredSU = PredDep.getSUnit();
-      if (PredSU->isHeightCurrent)
+      
+      if (SUnit *PredSU = PredDep.getSUnit(); PredSU->isHeightCurrent)
         WorkList.push_back(PredSU);
     }
   } while (!WorkList.empty());
@@ -270,8 +270,8 @@ void SUnit::ComputeDepth() {
     bool Done = true;
     unsigned MaxPredDepth = 0;
     for (const SDep &PredDep : Cur->Preds) {
-      SUnit *PredSU = PredDep.getSUnit();
-      if (PredSU->isDepthCurrent)
+      
+      if (SUnit *PredSU = PredDep.getSUnit(); PredSU->isDepthCurrent)
         MaxPredDepth = std::max(MaxPredDepth,
                                 PredSU->Depth + PredDep.getLatency());
       else {
@@ -301,8 +301,8 @@ void SUnit::ComputeHeight() {
     bool Done = true;
     unsigned MaxSuccHeight = 0;
     for (const SDep &SuccDep : Cur->Succs) {
-      SUnit *SuccSU = SuccDep.getSUnit();
-      if (SuccSU->isHeightCurrent)
+      
+      if (SUnit *SuccSU = SuccDep.getSUnit(); SuccSU->isHeightCurrent)
         MaxSuccHeight = std::max(MaxSuccHeight,
                                  SuccSU->Height + SuccDep.getLatency());
       else {

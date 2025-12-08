@@ -40,8 +40,8 @@ char RISCVExegesisPreprocessing::ID = 0;
 static bool processAVLOperand(MachineInstr &MI, MachineRegisterInfo &MRI,
                               const TargetInstrInfo &TII) {
   const MCInstrDesc &Desc = TII.get(MI.getOpcode());
-  uint64_t TSFlags = Desc.TSFlags;
-  if (!RISCVII::hasVLOp(TSFlags))
+  
+  if (uint64_t TSFlags = Desc.TSFlags; !RISCVII::hasVLOp(TSFlags))
     return false;
 
   const MachineOperand &VLOp = MI.getOperand(RISCVII::getVLOpNum(Desc));

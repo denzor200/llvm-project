@@ -66,8 +66,8 @@ VariablesRequestHandler::Run(const VariablesArguments &arguments) const {
       // "error" owns the error string so we must keep it alive as long as we
       // want to use the returns "const char *"
       lldb::SBError error = top_scope->GetError();
-      const char *var_err = error.GetCString();
-      if (var_err) {
+      
+      if (const char *var_err = error.GetCString(); var_err) {
         // Create a fake variable named "error" to explain why variables were
         // not available. This new error will help let users know when there was
         // a problem that kept variables from being available for display and

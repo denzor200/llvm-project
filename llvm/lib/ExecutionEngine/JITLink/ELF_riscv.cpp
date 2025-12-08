@@ -491,10 +491,10 @@ private:
       auto SetULEB128 = getRISCVSetULEB128(B, E);
       if (!SetULEB128)
         return SetULEB128.takeError();
-      uint64_t Value = SetULEB128->getTarget().getAddress() +
+      
+      if (uint64_t Value = SetULEB128->getTarget().getAddress() +
                        SetULEB128->getAddend() - E.getTarget().getAddress() -
-                       E.getAddend();
-      if (overwriteULEB128(reinterpret_cast<uint8_t *>(FixupPtr), Value) >=
+                       E.getAddend(); overwriteULEB128(reinterpret_cast<uint8_t *>(FixupPtr), Value) >=
           0x80)
         return make_error<StringError>("ULEB128 value exceeds available space",
                                        inconvertibleErrorCode());
@@ -631,9 +631,9 @@ static void relaxCall(const Block &B, BlockRelaxAux &Aux,
       support::endian::read32le(B.getContent().data() + E.getOffset() + 4);
   const auto RD = extractBits(JALR, 7, 5);
   const auto Dest = E.getTarget().getAddress() + E.getAddend();
-  const auto Displace = Dest - Loc;
+  
 
-  if (Config.HasRVC && isInt<12>(Displace) && RD == 0) {
+  if (const auto Displace = Dest - Loc; Config.HasRVC && isInt<12>(Displace) && RD == 0) {
     NewEdgeKind = R_RISCV_RVC_JUMP;
     Aux.Writes.push_back(0xa001); // c.j
     Remove = 6;
@@ -1008,8 +1008,8 @@ createLinkGraphFromELFObject_riscv(MemoryBufferRef ObjectBuffer,
 void link_ELF_riscv(std::unique_ptr<LinkGraph> G,
                     std::unique_ptr<JITLinkContext> Ctx) {
   PassConfiguration Config;
-  const Triple &TT = G->getTargetTriple();
-  if (Ctx->shouldAddDefaultTargetPasses(TT)) {
+  
+  if (const Triple &TT = G->getTargetTriple(); Ctx->shouldAddDefaultTargetPasses(TT)) {
 
     Config.PrePrunePasses.push_back(DWARFRecordSectionSplitter(".eh_frame"));
     Config.PrePrunePasses.push_back(EHFrameEdgeFixer(

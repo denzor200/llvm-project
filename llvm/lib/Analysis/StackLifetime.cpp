@@ -238,9 +238,9 @@ void StackLifetime::calculateLiveIntervals() {
     for (auto &It : BBMarkers[BB]) {
       unsigned InstNo = It.first;
       bool IsStart = It.second.IsStart;
-      unsigned AllocaNo = It.second.AllocaNo;
+      
 
-      if (IsStart) {
+      if (unsigned AllocaNo = It.second.AllocaNo; IsStart) {
         if (!Started.test(AllocaNo)) {
           Started.set(AllocaNo);
           Ended.reset(AllocaNo);

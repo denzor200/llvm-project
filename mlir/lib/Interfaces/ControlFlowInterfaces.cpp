@@ -457,15 +457,15 @@ bool RegionBranchOpInterface::hasLoop() {
       LDBG() << "Checking entry region #"
              << successor.getSuccessor()->getRegionNumber() << " for loops";
 
-      bool hasLoop =
+      
+
+      if (bool hasLoop =
           traverseRegionGraph(successor.getSuccessor(),
                               [](Region *nextRegion, ArrayRef<bool> visited) {
                                 // Interrupt traversal if the region was already
                                 // visited.
                                 return visited[nextRegion->getRegionNumber()];
-                              });
-
-      if (hasLoop) {
+                              }); hasLoop) {
         LDBG() << "Found loop in entry region #"
                << successor.getSuccessor()->getRegionNumber();
         return true;

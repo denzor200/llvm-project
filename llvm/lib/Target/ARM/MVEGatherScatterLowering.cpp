@@ -193,10 +193,10 @@ static bool checkOffsetSize(Value *Offsets, unsigned TargetElemCount) {
   // to fit into the gather type.
   // Thus we check that 0 < value < 2^TargetElemSize.
   unsigned TargetElemSize = 128 / TargetElemCount;
-  unsigned OffsetElemSize = cast<FixedVectorType>(Offsets->getType())
+  
+  if (unsigned OffsetElemSize = cast<FixedVectorType>(Offsets->getType())
                                 ->getElementType()
-                                ->getScalarSizeInBits();
-  if (OffsetElemSize != TargetElemSize || OffsetElemSize != 32) {
+                                ->getScalarSizeInBits(); OffsetElemSize != TargetElemSize || OffsetElemSize != 32) {
     Constant *ConstOff = dyn_cast<Constant>(Offsets);
     if (!ConstOff)
       return false;
@@ -239,8 +239,8 @@ Value *MVEGatherScatterLowering::decomposePtr(Value *Ptr, Value *&Offsets,
   // If we couldn't use the GEP (or it doesn't exist), attempt to use a
   // BasePtr of 0 with Ptr as the Offsets, so long as there are only 4
   // elements.
-  FixedVectorType *PtrTy = cast<FixedVectorType>(Ptr->getType());
-  if (PtrTy->getNumElements() != 4 || MemoryTy->getScalarSizeInBits() == 32)
+  
+  if (FixedVectorType *PtrTy = cast<FixedVectorType>(Ptr->getType()); PtrTy->getNumElements() != 4 || MemoryTy->getScalarSizeInBits() == 32)
     return nullptr;
   Value *Zero = ConstantInt::get(Builder.getInt32Ty(), 0);
   Value *BasePtr = Builder.CreateIntToPtr(Zero, Builder.getPtrTy());
@@ -310,8 +310,8 @@ void MVEGatherScatterLowering::lookThroughBitcast(Value *&Ptr) {
   // Look through bitcast instruction if #elements is the same
   if (auto *BitCast = dyn_cast<BitCastInst>(Ptr)) {
     auto *BCTy = cast<FixedVectorType>(BitCast->getType());
-    auto *BCSrcTy = cast<FixedVectorType>(BitCast->getOperand(0)->getType());
-    if (BCTy->getNumElements() == BCSrcTy->getNumElements()) {
+    
+    if (auto *BCSrcTy = cast<FixedVectorType>(BitCast->getOperand(0)->getType()); BCTy->getNumElements() == BCSrcTy->getNumElements()) {
       LLVM_DEBUG(dbgs() << "masked gathers/scatters: looking through "
                         << "bitcast\n");
       Ptr = BitCast->getOperand(0);
@@ -335,8 +335,8 @@ int MVEGatherScatterLowering::computeScale(unsigned GEPElemSize,
 }
 
 std::optional<int64_t> MVEGatherScatterLowering::getIfConst(const Value *V) {
-  const Constant *C = dyn_cast<Constant>(V);
-  if (C && C->getSplatValue())
+  
+  if (const Constant *C = dyn_cast<Constant>(V); C && C->getSplatValue())
     return std::optional<int64_t>{C->getUniqueInteger().getSExtValue()};
   if (!isa<Instruction>(V))
     return std::optional<int64_t>{};
@@ -458,8 +458,8 @@ Instruction *MVEGatherScatterLowering::tryCreateMaskedGatherBase(
   if (Ty->getNumElements() != 4 || Ty->getScalarSizeInBits() != 32)
     // Can't build an intrinsic for this
     return nullptr;
-  Value *Mask = I->getArgOperand(1);
-  if (match(Mask, m_One()))
+  
+  if (Value *Mask = I->getArgOperand(1); match(Mask, m_One()))
     return Builder.CreateIntrinsic(Intrinsic::arm_mve_vldr_gather_base,
                                    {Ty, Ptr->getType()},
                                    {Ptr, Builder.getInt32(Increment)});
@@ -479,8 +479,8 @@ Instruction *MVEGatherScatterLowering::tryCreateMaskedGatherBaseWB(
   if (Ty->getNumElements() != 4 || Ty->getScalarSizeInBits() != 32)
     // Can't build an intrinsic for this
     return nullptr;
-  Value *Mask = I->getArgOperand(1);
-  if (match(Mask, m_One()))
+  
+  if (Value *Mask = I->getArgOperand(1); match(Mask, m_One()))
     return Builder.CreateIntrinsic(Intrinsic::arm_mve_vldr_gather_base_wb,
                                    {Ty, Ptr->getType()},
                                    {Ptr, Builder.getInt32(Increment)});
@@ -585,9 +585,9 @@ Instruction *MVEGatherScatterLowering::lowerScatter(IntrinsicInst *I) {
   Value *Input = I->getArgOperand(0);
   Value *Ptr = I->getArgOperand(1);
   Align Alignment = I->getParamAlign(1).valueOrOne();
-  auto *Ty = cast<FixedVectorType>(Input->getType());
+  
 
-  if (!isLegalTypeAndAlignment(Ty->getNumElements(), Ty->getScalarSizeInBits(),
+  if (auto *Ty = cast<FixedVectorType>(Input->getType()); !isLegalTypeAndAlignment(Ty->getNumElements(), Ty->getScalarSizeInBits(),
                                Alignment))
     return nullptr;
 
@@ -616,9 +616,9 @@ Instruction *MVEGatherScatterLowering::tryCreateMaskedScatterBase(
     IntrinsicInst *I, Value *Ptr, IRBuilder<> &Builder, int64_t Increment) {
   using namespace PatternMatch;
   Value *Input = I->getArgOperand(0);
-  auto *Ty = cast<FixedVectorType>(Input->getType());
+  
   // Only QR variants allow truncating
-  if (!(Ty->getNumElements() == 4 && Ty->getScalarSizeInBits() == 32)) {
+  if (auto *Ty = cast<FixedVectorType>(Input->getType()); !(Ty->getNumElements() == 4 && Ty->getScalarSizeInBits() == 32)) {
     // Can't build an intrinsic for this
     return nullptr;
   }
@@ -646,8 +646,8 @@ Instruction *MVEGatherScatterLowering::tryCreateMaskedScatterBaseWB(
   if (Ty->getNumElements() != 4 || Ty->getScalarSizeInBits() != 32)
     // Can't build an intrinsic for this
     return nullptr;
-  Value *Mask = I->getArgOperand(2);
-  if (match(Mask, m_One()))
+  
+  if (Value *Mask = I->getArgOperand(2); match(Mask, m_One()))
     return Builder.CreateIntrinsic(Intrinsic::arm_mve_vstr_scatter_base_wb,
                                    {Ptr->getType(), Input->getType()},
                                    {Ptr, Builder.getInt32(Increment), Input});
@@ -672,8 +672,8 @@ Instruction *MVEGatherScatterLowering::tryCreateMaskedScatterOffset(
   // scatter instruction (we don't care about alignment here)
   if (TruncInst *Trunc = dyn_cast<TruncInst>(Input)) {
     Value *PreTrunc = Trunc->getOperand(0);
-    Type *PreTruncTy = PreTrunc->getType();
-    if (PreTruncTy->getPrimitiveSizeInBits() == 128) {
+    
+    if (Type *PreTruncTy = PreTrunc->getType(); PreTruncTy->getPrimitiveSizeInBits() == 128) {
       Input = PreTrunc;
       InputTy = PreTruncTy;
     }
@@ -955,8 +955,8 @@ static bool hasAllGatScatUsers(Instruction *I, const DataLayout &DL) {
         isGatherScatter(dyn_cast<IntrinsicInst>(U))) {
       return Gatscat;
     } else {
-      unsigned OpCode = cast<Instruction>(U)->getOpcode();
-      if ((OpCode == Instruction::Add || OpCode == Instruction::Mul ||
+      
+      if (unsigned OpCode = cast<Instruction>(U)->getOpcode(); (OpCode == Instruction::Add || OpCode == Instruction::Mul ||
            OpCode == Instruction::Shl ||
            isAddLikeOr(cast<Instruction>(U), DL)) &&
           hasAllGatScatUsers(cast<Instruction>(U), DL)) {
@@ -1114,12 +1114,12 @@ static Value *CheckAndCreateOffsetAdd(Value *X, unsigned ScaleX, Value *Y,
   // a constant (and its value isn't too big), we can even use this opportunity
   // to scale it to the size of the vector elements
   auto FixSummands = [&Builder](FixedVectorType *&VT, Value *&NonVectorVal) {
-    ConstantInt *Const;
-    if ((Const = dyn_cast<ConstantInt>(NonVectorVal)) &&
+    
+    if (ConstantInt *Const; (Const = dyn_cast<ConstantInt>(NonVectorVal)) &&
         VT->getElementType() != NonVectorVal->getType()) {
       unsigned TargetElemSize = VT->getElementType()->getPrimitiveSizeInBits();
-      uint64_t N = Const->getZExtValue();
-      if (N < (unsigned)(1 << (TargetElemSize - 1))) {
+      
+      if (uint64_t N = Const->getZExtValue(); N < (unsigned)(1 << (TargetElemSize - 1))) {
         NonVectorVal = Builder.CreateVectorSplat(
             VT->getNumElements(), Builder.getIntN(TargetElemSize, N));
         return;
@@ -1158,9 +1158,9 @@ static Value *CheckAndCreateOffsetAdd(Value *X, unsigned ScaleX, Value *Y,
     for (unsigned i = 0; i < XElType->getNumElements(); i++) {
       ConstantInt *ConstXEl =
           dyn_cast<ConstantInt>(ConstX->getAggregateElement(i));
-      ConstantInt *ConstYEl =
-          dyn_cast<ConstantInt>(ConstY->getAggregateElement(i));
-      if (!ConstXEl || !ConstYEl ||
+      
+      if (ConstantInt *ConstYEl =
+          dyn_cast<ConstantInt>(ConstY->getAggregateElement(i)); !ConstXEl || !ConstYEl ||
           ConstXEl->getZExtValue() * ScaleX +
                   ConstYEl->getZExtValue() * ScaleY >=
               (unsigned)(1 << (TargetElemSize - 1)))
@@ -1174,10 +1174,10 @@ static Value *CheckAndCreateOffsetAdd(Value *X, unsigned ScaleX, Value *Y,
   Value *YScale = Builder.CreateVectorSplat(
       YElType->getNumElements(),
       Builder.getIntN(YElType->getScalarSizeInBits(), ScaleY));
-  Value *Add = Builder.CreateAdd(Builder.CreateMul(X, XScale),
-                                 Builder.CreateMul(Y, YScale));
+  
 
-  if (checkOffsetSize(Add, XElType->getNumElements()))
+  if (Value *Add = Builder.CreateAdd(Builder.CreateMul(X, XScale),
+                                 Builder.CreateMul(Y, YScale)); checkOffsetSize(Add, XElType->getNumElements()))
     return Add;
   else
     return nullptr;
@@ -1221,12 +1221,12 @@ bool MVEGatherScatterLowering::optimiseAddress(Value *Address, BasicBlock *BB,
     Builder.SetCurrentDebugLocation(GEP->getDebugLoc());
     Value *Offsets;
     unsigned Scale;
-    Value *Base = foldGEP(GEP, Offsets, Scale, Builder);
+    
     // We only want to merge the geps if there is a real chance that they can be
     // used by an MVE gather; thus the offset has to have the correct size
     // (always i32 if it is not of vector type) and the base has to be a
     // pointer.
-    if (Offsets && Base && Base != GEP) {
+    if (Value *Base = foldGEP(GEP, Offsets, Scale, Builder); Offsets && Base && Base != GEP) {
       assert(Scale == 1 && "Expected to fold GEP to a scale of 1");
       Type *BaseTy = Builder.getPtrTy();
       if (auto *VecTy = dyn_cast<FixedVectorType>(Base->getType()))
@@ -1251,8 +1251,8 @@ bool MVEGatherScatterLowering::runOnFunction(Function &F) {
     return false;
   auto &TPC = getAnalysis<TargetPassConfig>();
   auto &TM = TPC.getTM<TargetMachine>();
-  auto *ST = &TM.getSubtarget<ARMSubtarget>(F);
-  if (!ST->hasMVEIntegerOps())
+  
+  if (auto *ST = &TM.getSubtarget<ARMSubtarget>(F); !ST->hasMVEIntegerOps())
     return false;
   LI = &getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
   DL = &F.getDataLayout();
@@ -1265,8 +1265,8 @@ bool MVEGatherScatterLowering::runOnFunction(Function &F) {
     Changed |= SimplifyInstructionsInBlock(&BB);
 
     for (Instruction &I : BB) {
-      IntrinsicInst *II = dyn_cast<IntrinsicInst>(&I);
-      if (II && II->getIntrinsicID() == Intrinsic::masked_gather &&
+      
+      if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(&I); II && II->getIntrinsicID() == Intrinsic::masked_gather &&
           isa<FixedVectorType>(II->getType())) {
         Gathers.push_back(II);
         Changed |= optimiseAddress(II->getArgOperand(0), II->getParent(), LI);

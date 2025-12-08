@@ -430,10 +430,10 @@ void CodeGenFunction::EmitStaticVarDecl(const VarDecl &D,
   // have any non-empty initializers. This is ensured by Sema.
   // Whatever initializer such variable may have when it gets here is
   // a no-op and should not be emitted.
-  bool isCudaSharedVar = getLangOpts().CUDA && getLangOpts().CUDAIsDevice &&
-                         D.hasAttr<CUDASharedAttr>();
+  
   // If this value has an initializer, emit it.
-  if (D.getInit() && !isCudaSharedVar) {
+  if (bool isCudaSharedVar = getLangOpts().CUDA && getLangOpts().CUDAIsDevice &&
+                         D.hasAttr<CUDASharedAttr>(); D.getInit() && !isCudaSharedVar) {
     ApplyAtomGroup Grp(getDebugInfo());
     var = AddInitializerToStaticVarDecl(D, var);
   }
@@ -831,10 +831,10 @@ void CodeGenFunction::EmitScalarInit(const Expr *init, const ValueDecl *D,
     }
 
     auto ty = cast<llvm::PointerType>(tempLV.getAddress().getElementType());
-    llvm::Value *zero = CGM.getNullPointer(ty, tempLV.getType());
+    
 
     // If __weak, we want to use a barrier under certain conditions.
-    if (lifetime == Qualifiers::OCL_Weak)
+    if (llvm::Value *zero = CGM.getNullPointer(ty, tempLV.getType()); lifetime == Qualifiers::OCL_Weak)
       EmitARCInitWeak(tempLV.getAddress(), zero);
 
     // Otherwise just do a simple store.
@@ -923,8 +923,8 @@ static bool canEmitInitWithFewStoresAfterBZero(llvm::Constant *Init,
   // See if we can emit each element.
   if (isa<llvm::ConstantArray>(Init) || isa<llvm::ConstantStruct>(Init)) {
     for (unsigned i = 0, e = Init->getNumOperands(); i != e; ++i) {
-      llvm::Constant *Elt = cast<llvm::Constant>(Init->getOperand(i));
-      if (!canEmitInitWithFewStoresAfterBZero(Elt, NumStores))
+      
+      if (llvm::Constant *Elt = cast<llvm::Constant>(Init->getOperand(i)); !canEmitInitWithFewStoresAfterBZero(Elt, NumStores))
         return false;
     }
     return true;
@@ -933,8 +933,8 @@ static bool canEmitInitWithFewStoresAfterBZero(llvm::Constant *Init,
   if (llvm::ConstantDataSequential *CDS =
         dyn_cast<llvm::ConstantDataSequential>(Init)) {
     for (unsigned i = 0, e = CDS->getNumElements(); i != e; ++i) {
-      llvm::Constant *Elt = CDS->getElementAsConstant(i);
-      if (!canEmitInitWithFewStoresAfterBZero(Elt, NumStores))
+      
+      if (llvm::Constant *Elt = CDS->getElementAsConstant(i); !canEmitInitWithFewStoresAfterBZero(Elt, NumStores))
         return false;
     }
     return true;
@@ -1017,8 +1017,8 @@ static bool shouldUseBZeroPlusStoresToInitialize(llvm::Constant *Init,
 static llvm::Value *shouldUseMemSetToInitialize(llvm::Constant *Init,
                                                 uint64_t GlobalSize,
                                                 const llvm::DataLayout &DL) {
-  uint64_t SizeLimit = 32;
-  if (GlobalSize <= SizeLimit)
+  
+  if (uint64_t SizeLimit = 32; GlobalSize <= SizeLimit)
     return nullptr;
   return llvm::isBytewiseValue(Init, DL);
 }
@@ -1080,8 +1080,8 @@ static llvm::Constant *constStructWithPadding(CodeGenModule &CGM,
     Values.push_back(NewOp);
     SizeSoFar = CurOff + DL.getTypeAllocSize(CurOp->getType());
   }
-  unsigned TotalSize = Layout->getSizeInBytes();
-  if (SizeSoFar < TotalSize) {
+  
+  if (unsigned TotalSize = Layout->getSizeInBytes(); SizeSoFar < TotalSize) {
     auto *PadTy = llvm::ArrayType::get(Int8Ty, TotalSize - SizeSoFar);
     Values.push_back(patternOrZeroFor(CGM, isPattern, PadTy));
   }
@@ -1218,9 +1218,9 @@ void CodeGenFunction::emitStoresForConstant(const VarDecl &D, Address Loc,
     if (IsAutoInit)
       I->addAnnotationMetadata("auto-init");
 
-    bool valueAlreadyCorrect =
-        constant->isNullValue() || isa<llvm::UndefValue>(constant);
-    if (!valueAlreadyCorrect) {
+    
+    if (bool valueAlreadyCorrect =
+        constant->isNullValue() || isa<llvm::UndefValue>(constant); !valueAlreadyCorrect) {
       Loc = Loc.withElementType(Ty);
       emitStoresForInitAfterBZero(constant, Loc, isVolatile, IsAutoInit);
     }
@@ -1535,9 +1535,9 @@ CodeGenFunction::EmitAutoVarAlloca(const VarDecl &D) {
       // emit it as a global instead.
       // Exception is if a variable is located in non-constant address space
       // in OpenCL.
-      bool NeedsDtor =
-          D.needsDestruction(getContext()) == QualType::DK_cxx_destructor;
-      if ((!getLangOpts().OpenCL ||
+      
+      if (bool NeedsDtor =
+          D.needsDestruction(getContext()) == QualType::DK_cxx_destructor; (!getLangOpts().OpenCL ||
            Ty.getAddressSpace() == LangAS::opencl_constant) &&
           (CGM.getCodeGenOpts().MergeAllConstants && !NRVO &&
            !isEscapingByRef &&
@@ -1645,8 +1645,8 @@ CodeGenFunction::EmitAutoVarAlloca(const VarDecl &D) {
     // deallocation call to __kmpc_free_shared() is emitted later.
     bool VarAllocated = false;
     if (getLangOpts().OpenMPIsTargetDevice) {
-      auto &RT = CGM.getOpenMPRuntime();
-      if (RT.isDelayedVariableLengthDecl(*this, &D)) {
+      
+      if (auto &RT = CGM.getOpenMPRuntime(); RT.isDelayedVariableLengthDecl(*this, &D)) {
         // Emit call to __kmpc_alloc_shared() instead of the alloca.
         std::pair<llvm::Value *, llvm::Value *> AddrSizePair =
             RT.getKmpcAllocShared(*this, &D);
@@ -1782,8 +1782,8 @@ static bool isCapturedBy(const VarDecl &Var, const Expr *E) {
           // special case declarations
           for (const auto *I : DS->decls()) {
               if (const auto *VD = dyn_cast<VarDecl>((I))) {
-                const Expr *Init = VD->getInit();
-                if (Init && isCapturedBy(Var, Init))
+                
+                if (const Expr *Init = VD->getInit(); Init && isCapturedBy(Var, Init))
                   return true;
               }
           }

@@ -56,8 +56,8 @@ StackFrameList::~StackFrameList() {
 }
 
 void StackFrameList::CalculateCurrentInlinedDepth() {
-  uint32_t cur_inlined_depth = GetCurrentInlinedDepth();
-  if (cur_inlined_depth == UINT32_MAX) {
+  
+  if (uint32_t cur_inlined_depth = GetCurrentInlinedDepth(); cur_inlined_depth == UINT32_MAX) {
     ResetCurrentInlinedDepth();
   }
 }
@@ -65,12 +65,12 @@ void StackFrameList::CalculateCurrentInlinedDepth() {
 uint32_t StackFrameList::GetCurrentInlinedDepth() {
   std::lock_guard<std::mutex> guard(m_inlined_depth_mutex);
   if (m_show_inlined_frames && m_current_inlined_pc != LLDB_INVALID_ADDRESS) {
-    lldb::addr_t cur_pc = m_thread.GetRegisterContext()->GetPC();
-    if (cur_pc != m_current_inlined_pc) {
+    
+    if (lldb::addr_t cur_pc = m_thread.GetRegisterContext()->GetPC(); cur_pc != m_current_inlined_pc) {
       m_current_inlined_pc = LLDB_INVALID_ADDRESS;
       m_current_inlined_depth = UINT32_MAX;
-      Log *log = GetLog(LLDBLog::Step);
-      if (log && log->GetVerbose())
+      
+      if (Log *log = GetLog(LLDBLog::Step); log && log->GetVerbose())
         LLDB_LOGF(
             log,
             "GetCurrentInlinedDepth: invalidating current inlined depth.\n");
@@ -92,8 +92,8 @@ void StackFrameList::ResetCurrentInlinedDepth() {
   bool inlined = true;
   auto inline_depth = stop_info_sp->GetSuggestedStackFrameIndex(inlined);
   // We're only adjusting the inlined stack here.
-  Log *log = GetLog(LLDBLog::Step);
-  if (inline_depth) {
+  
+  if (Log *log = GetLog(LLDBLog::Step); inline_depth) {
     std::lock_guard<std::mutex> guard(m_inlined_depth_mutex);
     m_current_inlined_depth = *inline_depth;
     m_current_inlined_pc = m_thread.GetRegisterContext()->GetPC();
@@ -116,8 +116,8 @@ void StackFrameList::ResetCurrentInlinedDepth() {
 
 bool StackFrameList::DecrementCurrentInlinedDepth() {
   if (m_show_inlined_frames) {
-    uint32_t current_inlined_depth = GetCurrentInlinedDepth();
-    if (current_inlined_depth != UINT32_MAX) {
+    
+    if (uint32_t current_inlined_depth = GetCurrentInlinedDepth(); current_inlined_depth != UINT32_MAX) {
       if (current_inlined_depth > 0) {
         std::lock_guard<std::mutex> guard(m_inlined_depth_mutex);
         m_current_inlined_depth--;
@@ -432,12 +432,12 @@ bool StackFrameList::FetchFramesUpTo(uint32_t end_idx,
         RegisterContextSP reg_ctx_sp(m_thread.GetRegisterContext());
 
         if (reg_ctx_sp) {
-          const bool success = unwinder.GetFrameInfoAtIndex(
-              idx, cfa, pc, behaves_like_zeroth_frame);
+          
           // There shouldn't be any way not to get the frame info for frame
           // 0. But if the unwinder can't make one, lets make one by hand
           // with the SP as the CFA and see if that gets any further.
-          if (!success) {
+          if (const bool success = unwinder.GetFrameInfoAtIndex(
+              idx, cfa, pc, behaves_like_zeroth_frame); !success) {
             cfa = reg_ctx_sp->GetSP();
             pc = reg_ctx_sp->GetPC();
           }
@@ -461,9 +461,9 @@ bool StackFrameList::FetchFramesUpTo(uint32_t end_idx,
         break;
       }
 
-      const bool success =
-          unwinder.GetFrameInfoAtIndex(idx, cfa, pc, behaves_like_zeroth_frame);
-      if (!success) {
+      
+      if (const bool success =
+          unwinder.GetFrameInfoAtIndex(idx, cfa, pc, behaves_like_zeroth_frame); !success) {
         // We've gotten to the end of the stack.
         SetAllFramesFetched();
         break;
@@ -617,8 +617,8 @@ StackFrameSP StackFrameList::GetFrameAtIndex(uint32_t idx) {
   { // Scope for shared lock:
     std::shared_lock<std::shared_mutex> guard(m_list_mutex);
 
-    uint32_t inlined_depth = GetCurrentInlinedDepth();
-    if (inlined_depth != UINT32_MAX)
+    
+    if (uint32_t inlined_depth = GetCurrentInlinedDepth(); inlined_depth != UINT32_MAX)
       idx += inlined_depth;
 
     if (idx < m_frames.size())
@@ -813,8 +813,8 @@ uint32_t StackFrameList::SetSelectedFrame(lldb_private::StackFrame *frame) {
   for (pos = begin; pos != end; ++pos) {
     if (pos->get() == frame) {
       m_selected_frame_idx = std::distance(begin, pos);
-      uint32_t inlined_depth = GetCurrentInlinedDepth();
-      if (inlined_depth != UINT32_MAX)
+      
+      if (uint32_t inlined_depth = GetCurrentInlinedDepth(); inlined_depth != UINT32_MAX)
         m_selected_frame_idx = *m_selected_frame_idx - inlined_depth;
       break;
     }

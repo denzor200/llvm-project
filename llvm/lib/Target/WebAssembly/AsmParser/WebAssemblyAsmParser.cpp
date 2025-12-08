@@ -477,8 +477,8 @@ public:
     auto IsLoadStore = InstName.contains(".load") ||
                        InstName.contains(".store") ||
                        InstName.contains("prefetch");
-    auto IsAtomic = InstName.contains("atomic.");
-    if (IsLoadStore || IsAtomic) {
+    
+    if (auto IsAtomic = InstName.contains("atomic."); IsLoadStore || IsAtomic) {
       // Parse load/store operands of the form: offset:p2align=align
       if (IsLoadStore && isNext(AsmToken::Colon)) {
         auto Id = expectIdent();
@@ -493,8 +493,8 @@ public:
         // v128.{load,store}{8,16,32,64}_lane has both a memarg and a lane
         // index. We need to avoid parsing an extra alignment operand for the
         // lane index.
-        auto IsLoadStoreLane = InstName.contains("_lane");
-        if (IsLoadStoreLane && Operands.size() == 4)
+        
+        if (auto IsLoadStoreLane = InstName.contains("_lane"); IsLoadStoreLane && Operands.size() == 4)
           return false;
         // Alignment not specified (or atomics, must use default alignment).
         // We can't just call WebAssembly::GetDefaultP2Align since we don't have
@@ -551,8 +551,8 @@ public:
       // the same assembly to be compiled with or without
       // call-indirect-overlong, we allow the operand to be omitted, in which
       // case we default to __indirect_function_table.
-      auto &Tok = Lexer.getTok();
-      if (Tok.is(AsmToken::Identifier)) {
+      
+      if (auto &Tok = Lexer.getTok(); Tok.is(AsmToken::Identifier)) {
         auto *Sym =
             getOrCreateFunctionTableSymbol(getContext(), Tok.getString(), Is64);
         const auto *Val = MCSymbolRefExpr::create(Sym, getContext());
@@ -729,13 +729,13 @@ public:
     }
 
     while (Lexer.isNot(AsmToken::EndOfStatement)) {
-      auto &Tok = Lexer.getTok();
-      switch (Tok.getKind()) {
+      
+      switch (auto &Tok = Lexer.getTok(); Tok.getKind()) {
       case AsmToken::Identifier: {
         if (!parseSpecialFloatMaybe(false, Operands))
           break;
-        auto &Id = Lexer.getTok();
-        if (ExpectBlockType) {
+        
+        if (auto &Id = Lexer.getTok(); ExpectBlockType) {
           // Assume this identifier is a block_type.
           auto BT = WebAssembly::parseBlockType(Id.getString());
           if (BT == WebAssembly::BlockType::Invalid)
@@ -899,9 +899,9 @@ public:
 
   bool checkDataSection() {
     if (CurrentState != DataSection) {
-      auto *WS = static_cast<const MCSectionWasm *>(
-          getStreamer().getCurrentSectionOnly());
-      if (WS && WS->isText())
+      
+      if (auto *WS = static_cast<const MCSectionWasm *>(
+          getStreamer().getCurrentSectionOnly()); WS && WS->isText())
         return error("data directive must occur in a data segment: ",
                      Lexer.getTok());
     }
@@ -1161,25 +1161,25 @@ public:
     MCInst Inst;
     Inst.setLoc(IDLoc);
     FeatureBitset MissingFeatures;
-    unsigned MatchResult = MatchInstructionImpl(
-        Operands, Inst, ErrorInfo, MissingFeatures, MatchingInlineAsm);
-    switch (MatchResult) {
+    
+    switch (unsigned MatchResult = MatchInstructionImpl(
+        Operands, Inst, ErrorInfo, MissingFeatures, MatchingInlineAsm); MatchResult) {
     case Match_Success: {
       ensureLocals(Out);
       // Fix unknown p2align operands.
-      auto Align = WebAssembly::GetDefaultP2AlignAny(Inst.getOpcode());
-      if (Align != -1U) {
-        auto &Op0 = Inst.getOperand(0);
-        if (Op0.getImm() == -1)
+      
+      if (auto Align = WebAssembly::GetDefaultP2AlignAny(Inst.getOpcode()); Align != -1U) {
+        
+        if (auto &Op0 = Inst.getOperand(0); Op0.getImm() == -1)
           Op0.setImm(Align);
       }
       if (Is64) {
         // Upgrade 32-bit loads/stores to 64-bit. These mostly differ by having
         // an offset64 arg instead of offset32, but to the assembler matcher
         // they're both immediates so don't get selected for.
-        auto Opc64 = WebAssembly::getWasm64Opcode(
-            static_cast<uint16_t>(Inst.getOpcode()));
-        if (Opc64 >= 0) {
+        
+        if (auto Opc64 = WebAssembly::getWasm64Opcode(
+            static_cast<uint16_t>(Inst.getOpcode())); Opc64 >= 0) {
           Inst.setOpcode(Opc64);
         }
       }

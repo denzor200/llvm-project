@@ -167,8 +167,8 @@ static void eraseGPOpnd(MachineInstr &MI) {
   unsigned Reg = Ty == MVT::i32 ? Mips::GP : Mips::GP_64;
 
   for (unsigned I = 0; I < MI.getNumOperands(); ++I) {
-    MachineOperand &MO = MI.getOperand(I);
-    if (MO.isReg() && MO.getReg() == Reg) {
+    
+    if (MachineOperand &MO = MI.getOperand(I); MO.isReg() && MO.getReg() == Reg) {
       MI.removeOperand(I);
       return;
     }
@@ -238,9 +238,9 @@ bool OptimizePICCall::visitNode(MBBInfo &MBBI) {
       continue;
 
     Changed = true;
-    unsigned N = getCount(Entry);
+    
 
-    if (N != 0) {
+    if (unsigned N = getCount(Entry); N != 0) {
       // If a function has been called more than twice, we do not have to emit a
       // load instruction to get the function address from the GOT, but can
       // instead reuse the address that has been loaded before.

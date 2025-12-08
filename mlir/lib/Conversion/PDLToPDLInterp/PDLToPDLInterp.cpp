@@ -269,8 +269,8 @@ Value PatternLowering::getValueAt(Block *&currentBlock, Position *pos) {
   Value value;
   switch (pos->getKind()) {
   case Predicates::OperationPos: {
-    auto *operationPos = cast<OperationPosition>(pos);
-    if (operationPos->isOperandDefiningOp())
+    
+    if (auto *operationPos = cast<OperationPosition>(pos); operationPos->isOperandDefiningOp())
       // Standard (downward) traversal which directly follows the defining op.
       value = pdl_interp::GetDefiningOpOp::create(
           builder, loc, builder.getType<pdl::OperationType>(), parentVal);
@@ -280,12 +280,12 @@ Value PatternLowering::getValueAt(Block *&currentBlock, Position *pos) {
     break;
   }
   case Predicates::UsersPos: {
-    auto *usersPos = cast<UsersPosition>(pos);
+    
 
     // The first operation retrieves the representative value of a range.
     // This applies only when the parent is a range of values and we were
     // requested to use a representative value (e.g., upward traversal).
-    if (isa<pdl::RangeType>(parentVal.getType()) &&
+    if (auto *usersPos = cast<UsersPosition>(pos); isa<pdl::RangeType>(parentVal.getType()) &&
         usersPos->useRepresentative())
       value = pdl_interp::ExtractOp::create(builder, loc, parentVal, 0);
     else
@@ -425,8 +425,8 @@ void PatternLowering::generate(BoolNode *boolNode, Block *&currentBlock,
     break;
   }
   case Predicates::TypeQuestion: {
-    auto *ans = cast<TypeAnswer>(answer);
-    if (isa<pdl::RangeType>(val.getType()))
+    
+    if (auto *ans = cast<TypeAnswer>(answer); isa<pdl::RangeType>(val.getType()))
       pdl_interp::CheckTypesOp::create(builder, loc, val,
                                        llvm::cast<ArrayAttr>(ans->getValue()),
                                        success, failure);
@@ -538,8 +538,8 @@ void PatternLowering::generate(SwitchNode *switchNode, Block *currentBlock,
       Block *childBlock = generateMatcher(*child.second, *region);
       Block *predicateBlock = builder.createBlock(childBlock);
       builder.setInsertionPointToEnd(predicateBlock);
-      unsigned ans = cast<UnsignedAnswer>(child.first)->getValue();
-      switch (kind) {
+      
+      switch (unsigned ans = cast<UnsignedAnswer>(child.first)->getValue(); kind) {
       case Predicates::OperandCountAtLeastQuestion:
         pdl_interp::CheckOperandCountOp::create(builder, loc, val, ans,
                                                 /*compareAtLeast=*/true,

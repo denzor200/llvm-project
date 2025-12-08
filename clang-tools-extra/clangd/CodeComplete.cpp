@@ -1293,8 +1293,8 @@ private:
     ScoredSignature Result;
     Result.Signature = std::move(Signature);
     Result.Quality = Signal;
-    const FunctionDecl *Func = Candidate.getFunction();
-    if (Func && Result.Signature.documentation.value.empty()) {
+    
+    if (const FunctionDecl *Func = Candidate.getFunction(); Func && Result.Signature.documentation.value.empty()) {
       // Computing USR caches linkage, which may change after code completion.
       if (!hasUnstableLinkage(Func))
         Result.IDForDoc = clangd::getSymbolID(Func);
@@ -2093,8 +2093,8 @@ private:
     Relevance.ContextWords = &ContextWords;
     Relevance.MainFileSignals = Opts.MainFileSignals;
 
-    auto &First = Bundle.front();
-    if (auto FuzzyScore = fuzzyScore(First))
+    
+    if (auto &First = Bundle.front(); auto FuzzyScore = fuzzyScore(First))
       Relevance.NameMatch = *FuzzyScore;
     else
       return;
@@ -2479,8 +2479,8 @@ bool isIncludeFile(llvm::StringRef Line) {
 bool allowImplicitCompletion(llvm::StringRef Content, unsigned Offset) {
   // Look at last line before completion point only.
   Content = Content.take_front(Offset);
-  auto Pos = Content.rfind('\n');
-  if (Pos != llvm::StringRef::npos)
+  
+  if (auto Pos = Content.rfind('\n'); Pos != llvm::StringRef::npos)
     Content = Content.substr(Pos + 1);
 
   // Complete after scope operators.

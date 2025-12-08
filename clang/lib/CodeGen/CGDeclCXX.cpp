@@ -39,11 +39,11 @@ static void EmitDeclInit(CodeGenFunction &CGF, const VarDecl &D,
   QualType type = D.getType();
   LValue lv = CGF.MakeAddrLValue(DeclPtr, type);
 
-  const Expr *Init = D.getInit();
-  switch (CGF.getEvaluationKind(type)) {
+  
+  switch (const Expr *Init = D.getInit(); CGF.getEvaluationKind(type)) {
   case TEK_Scalar: {
-    CodeGenModule &CGM = CGF.CGM;
-    if (lv.isObjCStrong())
+    
+    if (CodeGenModule &CGM = CGF.CGM; lv.isObjCStrong())
       CGM.getObjCRuntime().EmitObjCGlobalAssign(CGF, CGF.EmitScalarExpr(Init),
                                                 DeclPtr, D.getTLSKind());
     else if (lv.isObjCWeak())
@@ -114,8 +114,8 @@ static void EmitDeclDestroy(CodeGenFunction &CGF, const VarDecl &D,
   // If __cxa_atexit is disabled via a flag, a different helper function is
   // generated elsewhere which uses atexit instead, and it takes the destructor
   // directly.
-  bool UsingExternalHelper = !CGM.getCodeGenOpts().CXAAtExit;
-  if (Record && (CanRegisterDestructor || UsingExternalHelper)) {
+  
+  if (bool UsingExternalHelper = !CGM.getCodeGenOpts().CXAAtExit; Record && (CanRegisterDestructor || UsingExternalHelper)) {
     assert(!Record->hasTrivialDestructor());
     CXXDestructorDecl *Dtor = Record->getDestructor();
 
@@ -256,10 +256,10 @@ llvm::Constant *CodeGenFunction::createAtExitStub(const VarDecl &VD,
   // Emit an artificial location for this function.
   auto AL = ApplyDebugLocation::CreateArtificial(CGF);
 
-  llvm::CallInst *call = CGF.Builder.CreateCall(dtor, addr);
+  
 
   // Make sure the call and the callee agree on calling convention.
-  if (auto *dtorFn = dyn_cast<llvm::Function>(
+  if (llvm::CallInst *call = CGF.Builder.CreateCall(dtor, addr); auto *dtorFn = dyn_cast<llvm::Function>(
           dtor.getCallee()->stripPointerCastsAndAliases()))
     call->setCallingConv(dtorFn->getCallingConv());
 
@@ -309,10 +309,10 @@ llvm::Function *CodeGenFunction::createTLSAtExitStub(
   // Emit an artificial location for this function.
   auto AL = ApplyDebugLocation::CreateArtificial(CGF);
 
-  llvm::CallInst *call = CGF.Builder.CreateCall(Dtor, Addr);
+  
 
   // Make sure the call and the callee agree on calling convention.
-  if (auto *DtorFn = dyn_cast<llvm::Function>(
+  if (llvm::CallInst *call = CGF.Builder.CreateCall(Dtor, Addr); auto *DtorFn = dyn_cast<llvm::Function>(
           Dtor.getCallee()->stripPointerCastsAndAliases()))
     call->setCallingConv(DtorFn->getCallingConv());
 
@@ -563,10 +563,10 @@ CodeGenModule::EmitCXXGlobalVarDeclInitFunc(const VarDecl *D,
   CodeGenFunction(*this).GenerateCXXGlobalVarDeclInitFunc(Fn, D, Addr,
                                                           PerformInit);
 
-  llvm::GlobalVariable *COMDATKey =
-      supportsCOMDAT() && D->isExternallyVisible() ? Addr : nullptr;
+  
 
-  if (D->getTLSKind()) {
+  if (llvm::GlobalVariable *COMDATKey =
+      supportsCOMDAT() && D->isExternallyVisible() ? Addr : nullptr; D->getTLSKind()) {
     // FIXME: Should we support init_priority for thread_local?
     // FIXME: We only need to register one __cxa_thread_atexit function for the
     // entire TU.
@@ -647,8 +647,8 @@ CodeGenModule::EmitCXXGlobalVarDeclInitFunc(const VarDecl *D,
     // If we used a COMDAT key for the global ctor, the init function can be
     // discarded if the global ctor entry is discarded.
     // FIXME: Do we need to restrict this to ELF and Wasm?
-    llvm::Comdat *C = Addr->getComdat();
-    if (COMDATKey && C &&
+    
+    if (llvm::Comdat *C = Addr->getComdat(); COMDATKey && C &&
         (getTarget().getTriple().isOSBinFormatELF() ||
          getTarget().getTriple().isOSBinFormatWasm())) {
       Fn->setComdat(C);
@@ -1168,9 +1168,9 @@ void CodeGenFunction::GenerateCXXGlobalCleanUpFunc(
         assert(Arg->getType()->isPointerTy());
         assert(CalleeTy->getParamType(0)->isPointerTy());
         unsigned ActualAddrSpace = Arg->getType()->getPointerAddressSpace();
-        unsigned ExpectedAddrSpace =
-            CalleeTy->getParamType(0)->getPointerAddressSpace();
-        if (ActualAddrSpace != ExpectedAddrSpace) {
+        
+        if (unsigned ExpectedAddrSpace =
+            CalleeTy->getParamType(0)->getPointerAddressSpace(); ActualAddrSpace != ExpectedAddrSpace) {
           llvm::PointerType *PTy =
               llvm::PointerType::get(getLLVMContext(), ExpectedAddrSpace);
           Arg = llvm::ConstantExpr::getAddrSpaceCast(Arg, PTy);

@@ -334,8 +334,8 @@ std::string StackHintGeneratorForSymbol::getMessage(const ExplodedNode *N){
     SVal SV = N->getSVal(ArgExpr);
 
     // Check if the variable corresponding to the symbol is passed by value.
-    SymbolRef AS = SV.getAsLocSymbol();
-    if (AS == Sym) {
+    
+    if (SymbolRef AS = SV.getAsLocSymbol(); AS == Sym) {
       return getMessageForArg(ArgExpr, Idx);
     }
 
@@ -345,8 +345,8 @@ std::string StackHintGeneratorForSymbol::getMessage(const ExplodedNode *N){
       if (ArgExpr->getType()->isVoidPointerType())
         continue;
       SVal PSV = N->getState()->getSVal(Reg->getRegion());
-      SymbolRef AS = PSV.getAsLocSymbol();
-      if (AS == Sym) {
+      
+      if (SymbolRef AS = PSV.getAsLocSymbol(); AS == Sym) {
         return getMessageForArg(ArgExpr, Idx);
       }
     }
@@ -427,11 +427,11 @@ static void removeRedundantMsgs(PathPieces &path) {
 
         if (auto *nextEvent =
             dyn_cast<PathDiagnosticEventPiece>(path.front().get())) {
-          auto *event = cast<PathDiagnosticEventPiece>(piece.get());
+          
           // Check to see if we should keep one of the two pieces.  If we
           // come up with a preference, record which piece to keep, and consume
           // another piece from the path.
-          if (auto *pieceToKeep =
+          if (auto *event = cast<PathDiagnosticEventPiece>(piece.get()); auto *pieceToKeep =
                   eventsDescribeSameCondition(event, nextEvent)) {
             piece = std::move(pieceToKeep == event ? piece : path.front());
             path.pop_front();
@@ -467,9 +467,9 @@ static bool removeUnneededCalls(const PathDiagnosticConstruct &C,
 
     switch (piece->getKind()) {
       case PathDiagnosticPiece::Call: {
-        auto &call = cast<PathDiagnosticCallPiece>(*piece);
+        
         // Check if the location context is interesting.
-        if (!removeUnneededCalls(
+        if (auto &call = cast<PathDiagnosticCallPiece>(*piece); !removeUnneededCalls(
                 C, call.path, R,
                 R->isInteresting(C.getLocationContextFor(&call.path))))
           continue;
@@ -478,8 +478,8 @@ static bool removeUnneededCalls(const PathDiagnosticConstruct &C,
         break;
       }
       case PathDiagnosticPiece::Macro: {
-        auto &macro = cast<PathDiagnosticMacroPiece>(*piece);
-        if (!removeUnneededCalls(C, macro.subPieces, R, IsInteresting))
+        
+        if (auto &macro = cast<PathDiagnosticMacroPiece>(*piece); !removeUnneededCalls(C, macro.subPieces, R, IsInteresting))
           continue;
         containsSomethingInteresting = true;
         break;
@@ -680,8 +680,8 @@ getEnclosingStmtLocation(const Stmt *S, const LocationContext *LC,
   while (const Stmt *Parent = getEnclosingParent(S, LC->getParentMap())) {
     switch (Parent->getStmtClass()) {
       case Stmt::BinaryOperatorClass: {
-        const auto *B = cast<BinaryOperator>(Parent);
-        if (B->isLogicalOp())
+        
+        if (const auto *B = cast<BinaryOperator>(Parent); B->isLogicalOp())
           return PathDiagnosticLocation(allowNestedContexts ? B : S, SMgr, LC);
         break;
       }
@@ -806,9 +806,9 @@ PathDiagnosticPieceRef PathDiagnosticBuilder::generateDiagForSwitchOP(
       if (const auto *DR = dyn_cast<DeclRefExpr>(LHS)) {
         // FIXME: Maybe this should be an assertion.  Are there cases
         // were it is not an EnumConstantDecl?
-        const auto *D = dyn_cast<EnumConstantDecl>(DR->getDecl());
+        
 
-        if (D) {
+        if (const auto *D = dyn_cast<EnumConstantDecl>(DR->getDecl()); D) {
           GetRawInt = false;
           os << *D;
         }
@@ -1062,8 +1062,8 @@ static const Stmt *getStmtBeforeCond(const ParentMap &PM, const Stmt *Term,
   while (N) {
     std::optional<StmtPoint> SP = N->getLocation().getAs<StmtPoint>();
     if (SP) {
-      const Stmt *S = SP->getStmt();
-      if (!isContainedByStmt(PM, Term, S))
+      
+      if (const Stmt *S = SP->getStmt(); !isContainedByStmt(PM, Term, S))
         return S;
     }
     N = N->getFirstPred();
@@ -1163,14 +1163,14 @@ void PathDiagnosticBuilder::generatePathDiagnosticsForNode(
     if (C.shouldAddPathEdges()) {
       // Add an edge to the start of the function.
       const StackFrameContext *CalleeLC = CE->getCalleeContext();
-      const Decl *D = CalleeLC->getDecl();
+      
       // Add the edge only when the callee has body. We jump to the beginning
       // of the *declaration*, however we expect it to be followed by the
       // body. This isn't the case for autosynthesized property accessors in
       // Objective-C. No need for a similar extra check for CallExit points
       // because the exit edge comes from a statement (i.e. return),
       // not from declaration.
-      if (D->hasBody())
+      if (const Decl *D = CalleeLC->getDecl(); D->hasBody())
         addEdgeToPath(C.getActivePath(), PrevLoc,
                       PathDiagnosticLocation::createBegin(D, SM));
     }
@@ -1303,9 +1303,9 @@ void PathDiagnosticBuilder::generatePathDiagnosticsForNode(
     }
 
     const CFGBlock *BSrc = BE->getSrc();
-    const ParentMap &PM = C.getParentMap();
+    
 
-    if (const Stmt *Term = BSrc->getTerminatorStmt()) {
+    if (const ParentMap &PM = C.getParentMap(); const Stmt *Term = BSrc->getTerminatorStmt()) {
       // Are we jumping past the loop body without ever executing the
       // loop (because the condition was false)?
       if (isLoop(Term)) {
@@ -1493,13 +1493,13 @@ static void addContextEdges(PathPieces &pieces, const LocationContext *LC) {
       // Try to extend the previous edge if it's at the same level as the source
       // context.
       if (Prev != E) {
-        auto *PrevPiece = dyn_cast<PathDiagnosticControlFlowPiece>(Prev->get());
+        
 
-        if (PrevPiece) {
+        if (auto *PrevPiece = dyn_cast<PathDiagnosticControlFlowPiece>(Prev->get()); PrevPiece) {
           if (const Stmt *PrevSrc =
                   PrevPiece->getStartLocation().getStmtOrNull()) {
-            const Stmt *PrevSrcParent = getStmtParent(PrevSrc, PM);
-            if (PrevSrcParent ==
+            
+            if (const Stmt *PrevSrcParent = getStmtParent(PrevSrc, PM); PrevSrcParent ==
                 getStmtParent(DstContext.getStmtOrNull(), PM)) {
               PrevPiece->setEndLocation(DstContext);
               break;
@@ -1552,8 +1552,8 @@ static void simplifySimpleBranches(PathPieces &pieces) {
       if (NextI == E)
         break;
 
-      const auto *EV = dyn_cast<PathDiagnosticEventPiece>(NextI->get());
-      if (EV) {
+      
+      if (const auto *EV = dyn_cast<PathDiagnosticEventPiece>(NextI->get()); EV) {
         StringRef S = EV->getString();
         if (S == StrEnteringLoop || S == StrLoopBodyZero ||
             S == StrLoopCollectionEmpty || S == StrLoopRangeEmpty) {
@@ -1934,8 +1934,8 @@ static bool optimizeEdges(const PathDiagnosticConstruct &C, PathPieces &path,
     //
     // (X -> element)
     if (s1End == s2Start) {
-      const auto *FS = dyn_cast_or_null<ObjCForCollectionStmt>(level3);
-      if (FS && FS->getCollection()->IgnoreParens() == s2Start &&
+      
+      if (const auto *FS = dyn_cast_or_null<ObjCForCollectionStmt>(level3); FS && FS->getCollection()->IgnoreParens() == s2Start &&
           s2End == FS->getElement()) {
         PieceI->setEndLocation(PieceNextI->getEndLocation());
         path.erase(NextI);
@@ -2418,8 +2418,8 @@ const Stmt *PathSensitiveBugReport::getStmt() const {
   const Stmt *S = nullptr;
 
   if (std::optional<BlockEntrance> BE = ProgP.getAs<BlockEntrance>()) {
-    CFGBlock &Exit = ProgP.getLocationContext()->getCFG()->getExit();
-    if (BE->getBlock() == &Exit)
+    
+    if (CFGBlock &Exit = ProgP.getLocationContext()->getCFG()->getExit(); BE->getBlock() == &Exit)
       S = ErrorNode->getPreviousStmtForDiagnostics();
   }
   if (!S)
@@ -3009,13 +3009,13 @@ void PathSensitiveBugReporter::emitReport(std::unique_ptr<BugReport> R) {
       assert((E->isSink() || E->getLocation().getTag()) &&
              "Error node must either be a sink or have a tag");
 
-      const AnalysisDeclContext *DeclCtx =
-          E->getLocationContext()->getAnalysisDeclContext();
+      
       // The source of autosynthesized body can be handcrafted AST or a model
       // file. The locations from handcrafted ASTs have no valid source
       // locations and have to be discarded. Locations from model files should
       // be preserved for processing and reporting.
-      if (DeclCtx->isBodyAutosynthesized() &&
+      if (const AnalysisDeclContext *DeclCtx =
+          E->getLocationContext()->getAnalysisDeclContext(); DeclCtx->isBodyAutosynthesized() &&
           !DeclCtx->isBodyAutosynthesizedFromModelFile())
         return;
     }
@@ -3350,8 +3350,8 @@ static void resetDiagnosticLocationToMainFile(PathDiagnostic &PD) {
        CP->setAsLastInMainSourceFile();
 
       // Update the path diagnostic message.
-      const auto *ND = dyn_cast<NamedDecl>(CP->getCallee());
-      if (ND) {
+      
+      if (const auto *ND = dyn_cast<NamedDecl>(CP->getCallee()); ND) {
         SmallString<200> buf;
         llvm::raw_svector_ostream os(buf);
         os << " (within a call to '" << ND->getDeclName() << "')";

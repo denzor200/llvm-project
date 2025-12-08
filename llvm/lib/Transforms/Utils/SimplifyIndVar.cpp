@@ -269,8 +269,8 @@ void SimplifyIndvar::eliminateIVComparison(ICmpInst *ICmp,
   SmallVector<Instruction *, 4> Users;
   for (auto *U : ICmp->users())
     Users.push_back(cast<Instruction>(U));
-  const Instruction *CtxI = findCommonDominator(Users, *DT);
-  if (auto Ev = SE->evaluatePredicateAt(Pred, S, X, CtxI)) {
+  
+  if (const Instruction *CtxI = findCommonDominator(Users, *DT); auto Ev = SE->evaluatePredicateAt(Pred, S, X, CtxI)) {
     SE->forgetValue(ICmp);
     ICmp->replaceAllUsesWith(ConstantInt::getBool(ICmp->getContext(), *Ev));
     DeadInsts.emplace_back(ICmp);
@@ -399,8 +399,8 @@ void SimplifyIndvar::simplifyIVRemainder(BinaryOperator *Rem,
     }
 
     auto *T = Rem->getType();
-    const SCEV *NLessOne = SE->getMinusSCEV(N, SE->getOne(T));
-    if (SE->isKnownPredicate(LT, NLessOne, D)) {
+    
+    if (const SCEV *NLessOne = SE->getMinusSCEV(N, SE->getOne(T)); SE->isKnownPredicate(LT, NLessOne, D)) {
       replaceRemWithNumeratorOrZero(Rem);
       return;
     }
@@ -416,8 +416,8 @@ void SimplifyIndvar::simplifyIVRemainder(BinaryOperator *Rem,
 
 bool SimplifyIndvar::eliminateOverflowIntrinsic(WithOverflowInst *WO) {
   const SCEV *LHS = SE->getSCEV(WO->getLHS());
-  const SCEV *RHS = SE->getSCEV(WO->getRHS());
-  if (!SE->willNotOverflow(WO->getBinaryOp(), WO->isSigned(), LHS, RHS))
+  
+  if (const SCEV *RHS = SE->getSCEV(WO->getRHS()); !SE->willNotOverflow(WO->getBinaryOp(), WO->isSigned(), LHS, RHS))
     return false;
 
   // Proved no overflow, nuke the overflow check and, if possible, the overflow
@@ -458,8 +458,8 @@ bool SimplifyIndvar::eliminateOverflowIntrinsic(WithOverflowInst *WO) {
 
 bool SimplifyIndvar::eliminateSaturatingIntrinsic(SaturatingInst *SI) {
   const SCEV *LHS = SE->getSCEV(SI->getLHS());
-  const SCEV *RHS = SE->getSCEV(SI->getRHS());
-  if (!SE->willNotOverflow(SI->getBinaryOp(), SI->isSigned(), LHS, RHS))
+  
+  if (const SCEV *RHS = SE->getSCEV(SI->getRHS()); !SE->willNotOverflow(SI->getBinaryOp(), SI->isSigned(), LHS, RHS))
     return false;
 
   BinaryOperator *BO = BinaryOperator::Create(
@@ -600,8 +600,8 @@ bool SimplifyIndvar::eliminateIVUser(Instruction *UseInst,
     return true;
   }
   if (BinaryOperator *Bin = dyn_cast<BinaryOperator>(UseInst)) {
-    bool IsSRem = Bin->getOpcode() == Instruction::SRem;
-    if (IsSRem || Bin->getOpcode() == Instruction::URem) {
+    
+    if (bool IsSRem = Bin->getOpcode() == Instruction::SRem; IsSRem || Bin->getOpcode() == Instruction::URem) {
       simplifyIVRemainder(Bin, IVOperand, IsSRem);
       return true;
     }
@@ -837,8 +837,8 @@ bool SimplifyIndvar::strengthenRightShift(BinaryOperator *BO,
                 m_AShr(m_Shl(m_Value(), m_Specific(IVOperand)), m_APInt(C))) ||
           match(U,
                 m_LShr(m_Shl(m_Value(), m_Specific(IVOperand)), m_APInt(C)))) {
-        BinaryOperator *Shr = cast<BinaryOperator>(U);
-        if (!Shr->isExact() && IVRange.getUnsignedMin().uge(*C)) {
+        
+        if (BinaryOperator *Shr = cast<BinaryOperator>(U); !Shr->isExact() && IVRange.getUnsignedMin().uge(*C)) {
           Shr->setIsExact(true);
           Changed = true;
         }
@@ -891,8 +891,8 @@ static bool isSimpleIVUser(Instruction *I, const Loop *L, ScalarEvolution *SE) {
   const SCEV *S = SE->getSCEV(I);
 
   // Only consider affine recurrences.
-  const SCEVAddRecExpr *AR = dyn_cast<SCEVAddRecExpr>(S);
-  if (AR && AR->getLoop() == L)
+  
+  if (const SCEVAddRecExpr *AR = dyn_cast<SCEVAddRecExpr>(S); AR && AR->getLoop() == L)
     return true;
 
   return false;
@@ -951,8 +951,8 @@ void SimplifyIndvar::simplifyUsers(PHINode *CurrIV, IVVisitor *V) {
     // by truncation
     if ((isa<PtrToIntInst>(UseInst)) || (isa<TruncInst>(UseInst)))
       for (Use &U : UseInst->uses()) {
-        Instruction *User = cast<Instruction>(U.getUser());
-        if (replaceIVUserWithLoopInvariant(User))
+        
+        if (Instruction *User = cast<Instruction>(U.getUser()); replaceIVUserWithLoopInvariant(User))
           break; // done replacing
       }
 
@@ -989,8 +989,8 @@ void SimplifyIndvar::simplifyUsers(PHINode *CurrIV, IVVisitor *V) {
       continue;
     }
 
-    CastInst *Cast = dyn_cast<CastInst>(UseInst);
-    if (V && Cast) {
+    
+    if (CastInst *Cast = dyn_cast<CastInst>(UseInst); V && Cast) {
       V->visitCast(Cast);
       continue;
     }
@@ -1254,8 +1254,8 @@ Value *WidenIV::createExtendInst(Value *NarrowOper, Type *WideType,
 /// 0 for any operation we decide not to clone.
 Instruction *WidenIV::cloneIVUser(WidenIV::NarrowIVDefUse DU,
                                   const SCEVAddRecExpr *WideAR) {
-  unsigned Opcode = DU.NarrowUse->getOpcode();
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = DU.NarrowUse->getOpcode(); Opcode) {
   default:
     return nullptr;
   case Instruction::Add:
@@ -1440,13 +1440,13 @@ static std::optional<BinaryOp> matchBinaryOp(Instruction *Op) {
   }
   case Instruction::Shl: {
     if (ConstantInt *SA = dyn_cast<ConstantInt>(Op->getOperand(1))) {
-      unsigned BitWidth = cast<IntegerType>(SA->getType())->getBitWidth();
+      
 
       // If the shift count is not less than the bitwidth, the result of
       // the shift is undefined. Don't try to analyze it, because the
       // resolution chosen here may differ from the resolution chosen in
       // other parts of the compiler.
-      if (SA->getValue().ult(BitWidth)) {
+      if (unsigned BitWidth = cast<IntegerType>(SA->getType())->getBitWidth(); SA->getValue().ult(BitWidth)) {
         // We can safely preserve the nuw flag in all cases. It's also safe to
         // turn a nuw nsw shl into a nuw nsw mul. However, nsw in isolation
         // requires special handling. It can be preserved as long as we're not
@@ -1893,8 +1893,8 @@ Instruction *WidenIV::widenIVUse(WidenIV::NarrowIVDefUse DU,
     Value *NewDef = DU.WideDef;
     if (DU.NarrowUse->getType() != WideType) {
       unsigned CastWidth = SE->getTypeSizeInBits(DU.NarrowUse->getType());
-      unsigned IVWidth = SE->getTypeSizeInBits(WideType);
-      if (CastWidth < IVWidth) {
+      
+      if (unsigned IVWidth = SE->getTypeSizeInBits(WideType); CastWidth < IVWidth) {
         // The cast isn't as wide as the IV, so insert a Trunc.
         IRBuilder<> Builder(DU.NarrowUse);
         NewDef = Builder.CreateTrunc(DU.WideDef, DU.NarrowUse->getType(), "",
@@ -2148,10 +2148,10 @@ PHINode *WidenIV::createWideIV(SCEVExpander &Rewriter) {
 
     // Process a def-use edge. This may replace the use, so don't hold a
     // use_iterator across it.
-    Instruction *WideUse = widenIVUse(DU, Rewriter, OrigPhi, WidePhi);
+    
 
     // Follow all def-use edges from the previous narrow use.
-    if (WideUse)
+    if (Instruction *WideUse = widenIVUse(DU, Rewriter, OrigPhi, WidePhi); WideUse)
       pushNarrowIVUsers(DU.NarrowUse, WideUse);
 
     // widenIVUse may have removed the def-use edge.
@@ -2255,8 +2255,8 @@ void WidenIV::calculatePostIncRanges(PHINode *OrigPhi) {
       auto *NarrowUser = cast<Instruction>(U.getUser());
 
       // Don't go looking outside the current loop.
-      auto *NarrowUserLoop = (*LI)[NarrowUser->getParent()];
-      if (!NarrowUserLoop || !L->contains(NarrowUserLoop))
+      
+      if (auto *NarrowUserLoop = (*LI)[NarrowUser->getParent()]; !NarrowUserLoop || !L->contains(NarrowUserLoop))
         continue;
 
       if (!Visited.insert(NarrowUser).second)

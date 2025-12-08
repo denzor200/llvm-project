@@ -232,8 +232,8 @@ void DependencyGraph::scanAndAddDeps(MemDGNode &DstN,
   // Walk up the instruction chain from ScanRange bottom to top, looking for
   // memory instrs that may alias.
   for (MemDGNode &SrcN : reverse(SrcScanRange)) {
-    Instruction *SrcI = SrcN.getInstruction();
-    if (hasDep(SrcI, DstI))
+    
+    if (Instruction *SrcI = SrcN.getInstruction(); hasDep(SrcI, DstI))
       DstN.addMemPred(&SrcN);
   }
 }
@@ -279,9 +279,9 @@ void DependencyGraph::setDefUseUnscheduledSuccs(
   // Walk over all instructions in "BotInterval" and update the counter
   // of operands that are in "TopInterval".
   for (Instruction &BotI : BotInterval) {
-    auto *BotN = getNode(&BotI);
+    
     // Skip scheduled nodes.
-    if (BotN->scheduled())
+    if (auto *BotN = getNode(&BotI); BotN->scheduled())
       continue;
     for (Value *Op : BotI.operands()) {
       auto *OpI = dyn_cast<Instruction>(Op);
@@ -302,9 +302,9 @@ void DependencyGraph::createNewNodes(const Interval<Instruction> &NewInterval) {
   DGNode *LastN = getOrCreateNode(NewInterval.top());
   MemDGNode *LastMemN = dyn_cast<MemDGNode>(LastN);
   for (Instruction &I : drop_begin(NewInterval)) {
-    auto *N = getOrCreateNode(&I);
+    
     // Build the Mem node chain.
-    if (auto *MemN = dyn_cast<MemDGNode>(N)) {
+    if (auto *N = getOrCreateNode(&I); auto *MemN = dyn_cast<MemDGNode>(N)) {
       MemN->setPrevNode(LastMemN);
       LastMemN = MemN;
     }
@@ -385,10 +385,10 @@ void DependencyGraph::notifyCreateInstr(Instruction *I) {
   // Include `I` into the interval.
   DAGInterval = DAGInterval.getUnionInterval({I, I});
   auto *N = getOrCreateNode(I);
-  auto *MemN = dyn_cast<MemDGNode>(N);
+  
 
   // Update the MemDGNode chain if this is a memory node.
-  if (MemN != nullptr) {
+  if (auto *MemN = dyn_cast<MemDGNode>(N); MemN != nullptr) {
     if (auto *PrevMemN = getMemDGNodeBefore(MemN, /*IncludingN=*/false)) {
       PrevMemN->NextMemN = MemN;
       MemN->PrevMemN = PrevMemN;

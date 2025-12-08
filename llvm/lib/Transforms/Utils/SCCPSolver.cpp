@@ -72,10 +72,10 @@ bool SCCPSolver::tryToReplaceWithConstant(Value *V) {
   CallBase *CB = dyn_cast<CallBase>(V);
   if (CB && ((CB->isMustTailCall() && !wouldInstructionBeTriviallyDead(CB)) ||
              CB->getOperandBundle(LLVMContext::OB_clang_arc_attachedcall))) {
-    Function *F = CB->getCalledFunction();
+    
 
     // Don't zap returns of the callee
-    if (F)
+    if (Function *F = CB->getCalledFunction(); F)
       addToMustPreserveReturnsInFunctions(F);
 
     LLVM_DEBUG(dbgs() << "  Can\'t treat the result of call " << *CB
@@ -436,8 +436,8 @@ bool SCCPSolver::removeNonFeasibleEdges(BasicBlock *BB, DomTreeUpdater &DTU,
 
     // If the default destination is unfeasible it will never be taken. Replace
     // it with a new block with a single Unreachable instruction.
-    BasicBlock *DefaultDest = SI->getDefaultDest();
-    if (!FeasibleSuccessors.contains(DefaultDest)) {
+    
+    if (BasicBlock *DefaultDest = SI->getDefaultDest(); !FeasibleSuccessors.contains(DefaultDest)) {
       if (!NewUnreachableBB) {
         NewUnreachableBB =
             BasicBlock::Create(DefaultDest->getContext(), "default.unreachable",
@@ -674,9 +674,9 @@ private:
       return LV; // Common case, already in the map.
 
     if (auto *C = dyn_cast<Constant>(V)) {
-      Constant *Elt = C->getAggregateElement(i);
+      
 
-      if (!Elt)
+      if (Constant *Elt = C->getAggregateElement(i); !Elt)
         LV.markOverdefined(); // Unknown sort of constant.
       else
         LV.markConstant(Elt); // Constants are constant.
@@ -1137,8 +1137,8 @@ Constant *SCCPInstVisitor::getConstant(const ValueLatticeElement &LV,
   }
 
   if (LV.isConstantRange()) {
-    const auto &CR = LV.getConstantRange();
-    if (CR.getSingleElement())
+    
+    if (const auto &CR = LV.getConstantRange(); CR.getSingleElement())
       return ConstantInt::get(Ty, *CR.getSingleElement());
   }
   return nullptr;
@@ -1297,8 +1297,8 @@ void SCCPInstVisitor::getFeasibleSuccessors(Instruction &TI,
       const ConstantRange &Range = SCValue.getConstantRange();
       unsigned ReachableCaseCount = 0;
       for (const auto &Case : SI->cases()) {
-        const APInt &CaseValue = Case.getCaseValue()->getValue();
-        if (Range.contains(CaseValue)) {
+        
+        if (const APInt &CaseValue = Case.getCaseValue()->getValue(); Range.contains(CaseValue)) {
           Succs[Case.getSuccessorIndex()] = true;
           ++ReachableCaseCount;
         }
@@ -1447,8 +1447,8 @@ void SCCPInstVisitor::visitReturnInst(ReturnInst &I) {
 
   // If we are tracking the return value of this function, merge it in.
   if (!TrackedRetVals.empty() && !ResultOp->getType()->isStructTy()) {
-    auto TFRVI = TrackedRetVals.find(F);
-    if (TFRVI != TrackedRetVals.end()) {
+    
+    if (auto TFRVI = TrackedRetVals.find(F); TFRVI != TrackedRetVals.end()) {
       mergeInValue(TFRVI->second, F, getValueState(ResultOp));
       return;
     }
@@ -1569,8 +1569,8 @@ void SCCPInstVisitor::visitExtractValueInst(ExtractValueInst &EVI) {
   if (EVI.getNumIndices() != 1)
     return (void)markOverdefined(&EVI);
 
-  Value *AggVal = EVI.getAggregateOperand();
-  if (AggVal->getType()->isStructTy()) {
+  
+  if (Value *AggVal = EVI.getAggregateOperand(); AggVal->getType()->isStructTy()) {
     unsigned i = *EVI.idx_begin();
     if (auto *WO = dyn_cast<WithOverflowInst>(AggVal))
       return handleExtractOfWithOverflow(EVI, WO, i);
@@ -1609,8 +1609,8 @@ void SCCPInstVisitor::visitInsertValueInst(InsertValueInst &IVI) {
       continue;
     }
 
-    Value *Val = IVI.getInsertedValueOperand();
-    if (Val->getType()->isStructTy())
+    
+    if (Value *Val = IVI.getInsertedValueOperand(); Val->getType()->isStructTy())
       // We don't track structs in structs.
       markOverdefined(getStructValueState(&IVI, i), &IVI);
     else {
@@ -1731,8 +1731,8 @@ void SCCPInstVisitor::visitBinaryOperator(Instruction &I) {
                     ? getConstant(V2State, I.getOperand(1)->getType())
                     : I.getOperand(1);
     Value *R = simplifyBinOp(I.getOpcode(), V1, V2, SimplifyQuery(DL, &I));
-    auto *C = dyn_cast_or_null<Constant>(R);
-    if (C) {
+    
+    if (auto *C = dyn_cast_or_null<Constant>(R); C) {
       // Conservatively assume that the result may be based on operands that may
       // be undef. Note that we use mergeInValue to combine the constant with
       // the existing lattice value for I, as different constants might be found
@@ -1782,8 +1782,8 @@ void SCCPInstVisitor::visitCmpInst(CmpInst &I) {
   auto V1State = getValueState(Op1);
   auto V2State = getValueState(Op2);
 
-  Constant *C = V1State.getCompare(I.getPredicate(), I.getType(), V2State, DL);
-  if (C) {
+  
+  if (Constant *C = V1State.getCompare(I.getPredicate(), I.getType(), V2State, DL); C) {
     ValueLatticeElement CV;
     CV.markConstant(C);
     mergeInValue(ValueState[&I], &I, CV);
@@ -1986,11 +1986,11 @@ void SCCPInstVisitor::handleCallOverdefined(CallBase &CB) {
 }
 
 void SCCPInstVisitor::handleCallArguments(CallBase &CB) {
-  Function *F = CB.getCalledFunction();
+  
   // If this is a local function that doesn't have its address taken, mark its
   // entry block executable and merge in the actual arguments to the call into
   // the formal arguments of the function.
-  if (TrackingIncomingArguments.count(F)) {
+  if (Function *F = CB.getCalledFunction(); TrackingIncomingArguments.count(F)) {
     markBlockExecutable(&F->front());
 
     // Propagate information from this call site into the callee.
@@ -2210,8 +2210,8 @@ bool SCCPInstVisitor::resolvedUndef(Instruction &I) {
     // Send the results of everything else to overdefined.  We could be
     // more precise than this but it isn't worth bothering.
     for (unsigned i = 0, e = STy->getNumElements(); i != e; ++i) {
-      ValueLatticeElement &LV = getStructValueState(&I, i);
-      if (LV.isUnknown()) {
+      
+      if (ValueLatticeElement &LV = getStructValueState(&I, i); LV.isUnknown()) {
         markOverdefined(LV, &I);
         return true;
       }
@@ -2219,8 +2219,8 @@ bool SCCPInstVisitor::resolvedUndef(Instruction &I) {
     return false;
   }
 
-  ValueLatticeElement &LV = getValueState(&I);
-  if (!LV.isUnknown())
+  
+  if (ValueLatticeElement &LV = getValueState(&I); !LV.isUnknown())
     return false;
 
   // There are two reasons a call can have an undef result

@@ -200,8 +200,8 @@ void X86RegisterBankInfo::getInstrPartialMappingIdxs(
 
   unsigned NumOperands = MI.getNumOperands();
   for (unsigned Idx = 0; Idx < NumOperands; ++Idx) {
-    auto &MO = MI.getOperand(Idx);
-    if (!MO.isReg() || !MO.getReg())
+    
+    if (auto &MO = MI.getOperand(Idx); !MO.isReg() || !MO.getReg())
       OpRegBankIdx[Idx] = PMI_None;
     else
       OpRegBankIdx[Idx] =
@@ -258,8 +258,8 @@ X86RegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
   // Try the default logic for non-generic instructions that are either
   // copies or already have some operands assigned to banks.
   if (!isPreISelGenericOpcode(Opc) || Opc == TargetOpcode::G_PHI) {
-    const InstructionMapping &Mapping = getInstrMappingImpl(MI);
-    if (Mapping.isValid())
+    
+    if (const InstructionMapping &Mapping = getInstrMappingImpl(MI); Mapping.isValid())
       return Mapping;
   }
 
@@ -412,15 +412,15 @@ X86RegisterBankInfo::getInstrAlternativeMappings(const MachineInstr &MI) const {
   const MachineFunction &MF = *MI.getParent()->getParent();
   const TargetSubtargetInfo &STI = MF.getSubtarget();
   const TargetRegisterInfo &TRI = *STI.getRegisterInfo();
-  const MachineRegisterInfo &MRI = MF.getRegInfo();
+  
 
-  switch (MI.getOpcode()) {
+  switch (const MachineRegisterInfo &MRI = MF.getRegInfo(); MI.getOpcode()) {
   case TargetOpcode::G_LOAD:
   case TargetOpcode::G_STORE:
   case TargetOpcode::G_IMPLICIT_DEF: {
     // we going to try to map 32/64/80 bit to PMI_FP32/PMI_FP64/PMI_FP80
-    unsigned Size = getSizeInBits(MI.getOperand(0).getReg(), MRI, TRI);
-    if (Size != 32 && Size != 64 && Size != 80)
+    
+    if (unsigned Size = getSizeInBits(MI.getOperand(0).getReg(), MRI, TRI); Size != 32 && Size != 64 && Size != 80)
       break;
 
     unsigned NumOperands = MI.getNumOperands();

@@ -90,8 +90,8 @@ LLVM_LIBC_FUNCTION(float16, tanhf16, (float16 x)) {
     // When |x| >= atanh(1 - 2^(-11)).
     fputil::raise_except_if_required(FE_INEXACT);
 
-    int rounding_mode = fputil::quick_get_round();
-    if ((rounding_mode == FE_TONEAREST && x_abs >= 0x4482U) ||
+    
+    if (int rounding_mode = fputil::quick_get_round(); (rounding_mode == FE_TONEAREST && x_abs >= 0x4482U) ||
         (rounding_mode == FE_UPWARD && x_bits.is_pos()) ||
         (rounding_mode == FE_DOWNWARD && x_bits.is_neg())) {
       return FPBits::one(x_bits.sign()).get_val();

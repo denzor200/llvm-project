@@ -164,8 +164,8 @@ struct ARMOutgoingValueHandler : public CallLowering::OutgoingValueHandler {
                           MRI.createGenericVirtualRegister(LLT::scalar(32))};
     MIRBuilder.buildUnmerge(NewRegs, Arg.Regs[0]);
 
-    bool IsLittle = MIRBuilder.getMF().getSubtarget<ARMSubtarget>().isLittle();
-    if (!IsLittle)
+    
+    if (bool IsLittle = MIRBuilder.getMF().getSubtarget<ARMSubtarget>().isLittle(); !IsLittle)
       std::swap(NewRegs[0], NewRegs[1]);
 
     if (Thunk) {
@@ -342,8 +342,8 @@ struct ARMIncomingValueHandler : public CallLowering::IncomingValueHandler {
     assignValueToReg(NewRegs[0], VA.getLocReg(), VA);
     assignValueToReg(NewRegs[1], NextVA.getLocReg(), NextVA);
 
-    bool IsLittle = MIRBuilder.getMF().getSubtarget<ARMSubtarget>().isLittle();
-    if (!IsLittle)
+    
+    if (bool IsLittle = MIRBuilder.getMF().getSubtarget<ARMSubtarget>().isLittle(); !IsLittle)
       std::swap(NewRegs[0], NewRegs[1]);
 
     MIRBuilder.buildMergeLikeInstr(Arg.Regs[0], NewRegs);
@@ -374,9 +374,9 @@ bool ARMCallLowering::lowerFormalArguments(MachineIRBuilder &MIRBuilder,
                                            ArrayRef<ArrayRef<Register>> VRegs,
                                            FunctionLoweringInfo &FLI) const {
   auto &TLI = *getTLI<ARMTargetLowering>();
-  auto Subtarget = TLI.getSubtarget();
+  
 
-  if (Subtarget->isThumb1Only())
+  if (auto Subtarget = TLI.getSubtarget(); Subtarget->isThumb1Only())
     return false;
 
   // Quick exit if there aren't any args

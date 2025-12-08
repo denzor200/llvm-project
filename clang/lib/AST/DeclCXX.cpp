@@ -663,14 +663,14 @@ bool CXXRecordDecl::hasSubobjectAtOffsetZeroOfEmptyBaseType(
       // Walk the bases the first time, stopping if we find the type. Build a
       // set of them so we don't need to walk them again.
       if (Bases.empty()) {
-        bool RDIsBase = !forallBases([&](const CXXRecordDecl *Base) -> bool {
+        
+        if (bool RDIsBase = !forallBases([&](const CXXRecordDecl *Base) -> bool {
           Base = Base->getCanonicalDecl();
           if (RD == Base)
             return false;
           Bases.insert(Base);
           return true;
-        });
-        if (RDIsBase)
+        }); RDIsBase)
           return true;
       } else {
         if (Bases.count(RD))
@@ -817,8 +817,8 @@ void CXXRecordDecl::addedMember(Decl *D) {
         // Note that we have a user-declared constructor.
         data().UserDeclaredConstructor = true;
 
-        const TargetInfo &TI = getASTContext().getTargetInfo();
-        if ((!Constructor->isDeleted() && !Constructor->isDefaulted()) ||
+        
+        if (const TargetInfo &TI = getASTContext().getTargetInfo(); (!Constructor->isDeleted() && !Constructor->isDefaulted()) ||
             !TI.areDefaultedSMFStillPOD(getLangOpts())) {
           // C++ [class]p4:
           //   A POD-struct is an aggregate class [...]
@@ -886,9 +886,9 @@ void CXXRecordDecl::addedMember(Decl *D) {
     if (Method->isCopyAssignmentOperator()) {
       SMKind |= SMF_CopyAssignment;
 
-      const auto *ParamTy =
-          Method->getNonObjectParameter(0)->getType()->getAs<ReferenceType>();
-      if (!ParamTy || ParamTy->getPointeeType().isConstQualified())
+      
+      if (const auto *ParamTy =
+          Method->getNonObjectParameter(0)->getType()->getAs<ReferenceType>(); !ParamTy || ParamTy->getPointeeType().isConstQualified())
         data().HasDeclaredCopyAssignmentWithConstParam = true;
     }
 
@@ -910,9 +910,9 @@ void CXXRecordDecl::addedMember(Decl *D) {
       } else {
         ASTContext &Ctx = getASTContext();
         ASTUnresolvedSet &Conversions = data().Conversions.get(Ctx);
-        NamedDecl *Primary =
-            FunTmpl ? cast<NamedDecl>(FunTmpl) : cast<NamedDecl>(Conversion);
-        if (Primary->getPreviousDecl())
+        
+        if (NamedDecl *Primary =
+            FunTmpl ? cast<NamedDecl>(FunTmpl) : cast<NamedDecl>(Conversion); Primary->getPreviousDecl())
           Conversions.replace(cast<NamedDecl>(Primary->getPreviousDecl()),
                               Primary, AS);
         else
@@ -934,8 +934,8 @@ void CXXRecordDecl::addedMember(Decl *D) {
       if (!Method->isImplicit()) {
         data().UserDeclaredSpecialMembers |= SMKind;
 
-        const TargetInfo &TI = getASTContext().getTargetInfo();
-        if ((!Method->isDeleted() && !Method->isDefaulted() &&
+        
+        if (const TargetInfo &TI = getASTContext().getTargetInfo(); (!Method->isDeleted() && !Method->isDefaulted() &&
              SMKind != SMF_MoveAssignment) ||
             !TI.areDefaultedSMFStillPOD(getLangOpts())) {
           // C++03 [class]p4:
@@ -1509,12 +1509,12 @@ bool CXXRecordDecl::isLiteral() const {
     // members or at least one variant member of non-volatile literal type,
     if (!isUnion())
       return false;
-    bool HasAtLeastOneLiteralMember =
+    
+    if (bool HasAtLeastOneLiteralMember =
         fields().empty() || any_of(fields(), [this](const FieldDecl *D) {
           return !D->getType().isVolatileQualified() &&
                  D->getType()->isLiteralType(getASTContext());
-        });
-    if (!HasAtLeastOneLiteralMember)
+        }); !HasAtLeastOneLiteralMember)
       return false;
   }
 
@@ -1720,8 +1720,8 @@ static NamedDecl* getLambdaCallOperatorHelper(const CXXRecordDecl &RD) {
   // https://github.com/llvm/llvm-project/issues/90154).
   Module *M = RD.getOwningModule();
   for (Decl *D : Calls.front()->redecls()) {
-    auto *MD = cast<NamedDecl>(D);
-    if (MD->getOwningModule() == M)
+    
+    if (auto *MD = cast<NamedDecl>(D); MD->getOwningModule() == M)
       return MD;
   }
 
@@ -1772,9 +1772,9 @@ CXXMethodDecl *CXXRecordDecl::getLambdaStaticInvoker(CallingConv CC) const {
   DeclContext::lookup_result Invoker = getLambdaStaticInvokers(*this);
 
   for (NamedDecl *ND : Invoker) {
-    const auto *FTy =
-        cast<ValueDecl>(ND->getAsFunction())->getType()->castAs<FunctionType>();
-    if (FTy->getCallConv() == CC)
+    
+    if (const auto *FTy =
+        cast<ValueDecl>(ND->getAsFunction())->getType()->castAs<FunctionType>(); FTy->getCallConv() == CC)
       return getInvokerAsMethod(ND);
   }
 
@@ -1804,8 +1804,8 @@ void CXXRecordDecl::getCaptureFields(
 TemplateParameterList *
 CXXRecordDecl::getGenericLambdaTemplateParameterList() const {
   if (!isGenericLambda()) return nullptr;
-  CXXMethodDecl *CallOp = getLambdaCallOperator();
-  if (FunctionTemplateDecl *Tmpl = CallOp->getDescribedFunctionTemplate())
+  
+  if (CXXMethodDecl *CallOp = getLambdaCallOperator(); FunctionTemplateDecl *Tmpl = CallOp->getDescribedFunctionTemplate())
     return Tmpl->getTemplateParameters();
   return nullptr;
 }
@@ -2130,8 +2130,8 @@ CXXDestructorDecl *CXXRecordDecl::getDestructor() const {
   // If a destructor was marked as not selected, we skip it. We don't always
   // have a selected destructor: dependent types, unnamed structs.
   for (auto *Decl : R) {
-    auto* DD = dyn_cast<CXXDestructorDecl>(Decl);
-    if (DD && !DD->isIneligibleOrNotSelected())
+    
+    if (auto* DD = dyn_cast<CXXDestructorDecl>(Decl); DD && !DD->isIneligibleOrNotSelected())
       return DD;
   }
   return nullptr;
@@ -2205,11 +2205,11 @@ bool CXXRecordDecl::isInterfaceLike() const {
       return false;
 
   // Check "Special" types.
-  const auto *Uuid = getAttr<UuidAttr>();
+  
   // MS SDK declares IUnknown/IDispatch both in the root of a TU, or in an
   // extern C++ block directly in the TU.  These are only valid if in one
   // of these two situations.
-  if (Uuid && isStruct() && !getDeclContext()->isExternCContext() &&
+  if (const auto *Uuid = getAttr<UuidAttr>(); Uuid && isStruct() && !getDeclContext()->isExternCContext() &&
       !isDeclContextInNamespace(getDeclContext()) &&
       ((getName() == "IUnknown" &&
         Uuid->getGuid() == "00000000-0000-0000-C000-000000000046") ||
@@ -2313,9 +2313,9 @@ bool CXXRecordDecl::mayBeAbstract() const {
     return false;
 
   for (const auto &B : bases()) {
-    const auto *BaseDecl = cast<CXXRecordDecl>(
-        B.getType()->castAsCanonical<RecordType>()->getDecl());
-    if (BaseDecl->isAbstract())
+    
+    if (const auto *BaseDecl = cast<CXXRecordDecl>(
+        B.getType()->castAsCanonical<RecordType>()->getDecl()); BaseDecl->isAbstract())
       return true;
   }
 
@@ -2399,9 +2399,9 @@ RequiresExprBodyDecl::CreateDeserialized(ASTContext &C, GlobalDeclID ID) {
 void CXXMethodDecl::anchor() {}
 
 bool CXXMethodDecl::isStatic() const {
-  const CXXMethodDecl *MD = getCanonicalDecl();
+  
 
-  if (MD->getStorageClass() == SC_Static)
+  if (const CXXMethodDecl *MD = getCanonicalDecl(); MD->getStorageClass() == SC_Static)
     return true;
 
   OverloadedOperatorKind OOK = getDeclName().getCXXOverloadedOperator();
@@ -2427,8 +2427,8 @@ CXXMethodDecl::getCorrespondingMethodDeclaredInClass(const CXXRecordDecl *RD,
 
   // Lookup doesn't work for destructors, so handle them separately.
   if (isa<CXXDestructorDecl>(this)) {
-    CXXMethodDecl *MD = RD->getDestructor();
-    if (MD) {
+    
+    if (CXXMethodDecl *MD = RD->getDestructor(); MD) {
       if (recursivelyOverrides(MD, this))
         return MD;
       if (MayBeBase && recursivelyOverrides(this, MD))
@@ -2580,8 +2580,8 @@ CXXMethodDecl *CXXMethodDecl::getDevirtualizedMethod(const Expr *Base,
   // member access.
   if (auto *BO = dyn_cast<BinaryOperator>(Base)) {
     if (BO->isPtrMemOp()) {
-      auto *MPT = BO->getRHS()->getType()->castAs<MemberPointerType>();
-      if (MPT->getPointeeType()->isRecordType())
+      
+      if (auto *MPT = BO->getRHS()->getType()->castAs<MemberPointerType>(); MPT->getPointeeType()->isRecordType())
         return DevirtualizedMethod;
     }
   }
@@ -2915,8 +2915,8 @@ SourceLocation CXXCtorInitializer::getSourceLocation() const {
 
 SourceRange CXXCtorInitializer::getSourceRange() const {
   if (isInClassMemberInitializer()) {
-    FieldDecl *D = getAnyMember();
-    if (Expr *I = D->getInClassInitializer())
+    
+    if (FieldDecl *D = getAnyMember(); Expr *I = D->getInClassInitializer())
       return I->getSourceRange();
     return {};
   }
@@ -2989,8 +2989,8 @@ CXXConstructorDecl::init_const_iterator CXXConstructorDecl::init_begin() const {
 
 CXXConstructorDecl *CXXConstructorDecl::getTargetConstructor() const {
   assert(isDelegatingConstructor() && "Not a delegating constructor!");
-  Expr *E = (*init_begin())->getInit()->IgnoreImplicit();
-  if (const auto *Construct = dyn_cast<CXXConstructExpr>(E))
+  
+  if (Expr *E = (*init_begin())->getInit()->IgnoreImplicit(); const auto *Construct = dyn_cast<CXXConstructExpr>(E))
     return Construct->getConstructor();
 
   return nullptr;
@@ -3110,8 +3110,8 @@ CXXDestructorDecl *CXXDestructorDecl::Create(
 }
 
 void CXXDestructorDecl::setOperatorDelete(FunctionDecl *OD, Expr *ThisArg) {
-  auto *First = cast<CXXDestructorDecl>(getFirstDecl());
-  if (OD && !First->OperatorDelete) {
+  
+  if (auto *First = cast<CXXDestructorDecl>(getFirstDecl()); OD && !First->OperatorDelete) {
     First->OperatorDelete = OD;
     First->OperatorDeleteThisArg = ThisArg;
     if (auto *L = getASTMutationListener())
@@ -3127,8 +3127,8 @@ void CXXDestructorDecl::setOperatorGlobalDelete(FunctionDecl *OD) {
   assert(!OD ||
          (OD->getDeclName().getCXXOverloadedOperator() == OO_Delete &&
           OD->getDeclContext()->getRedeclContext()->isTranslationUnit()));
-  auto *Canonical = cast<CXXDestructorDecl>(getCanonicalDecl());
-  if (!Canonical->OperatorGlobalDelete) {
+  
+  if (auto *Canonical = cast<CXXDestructorDecl>(getCanonicalDecl()); !Canonical->OperatorGlobalDelete) {
     Canonical->OperatorGlobalDelete = OD;
     if (auto *L = getASTMutationListener())
       L->ResolvedOperatorGlobDelete(Canonical, OD);

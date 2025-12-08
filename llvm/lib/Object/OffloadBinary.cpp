@@ -117,8 +117,8 @@ Error extractFromBitcode(MemoryBufferRef Buffer,
     if (Op->getNumOperands() < 2)
       continue;
 
-    MDString *SectionID = dyn_cast<MDString>(Op->getOperand(1));
-    if (!SectionID || SectionID->getString() != ".llvm.offloading")
+    
+    if (MDString *SectionID = dyn_cast<MDString>(Op->getOperand(1)); !SectionID || SectionID->getString() != ".llvm.offloading")
       continue;
 
     GlobalVariable *GV =

@@ -45,9 +45,9 @@ LogicalResult reshapeLowerToHigher(PatternRewriter &rewriter, Location loc,
   }
 
   int64_t input1Rank = input1Ty.getRank();
-  int64_t input2Rank = input2Ty.getRank();
+  
 
-  if (input1Rank == input2Rank)
+  if (int64_t input2Rank = input2Ty.getRank(); input1Rank == input2Rank)
     return rewriter.notifyMatchFailure(loc,
                                        "cannot rewrite as its already correct");
 
@@ -185,11 +185,11 @@ struct ConvertTosaOp<tosa::SelectOp> : public OpRewritePattern<tosa::SelectOp> {
                                           input1, input3)
                          .succeeded();
 
-    bool reshaped3 = reshapeLowerToHigher(rewriter, tosaOp.getLoc(), outputType,
-                                          input2, input3)
-                         .succeeded();
+    
 
-    if (!reshaped1 && !reshaped2 && !reshaped3)
+    if (bool reshaped3 = reshapeLowerToHigher(rewriter, tosaOp.getLoc(), outputType,
+                                          input2, input3)
+                         .succeeded(); !reshaped1 && !reshaped2 && !reshaped3)
       return rewriter.notifyMatchFailure(
           tosaOp,
           "cannot rewrite as the rank of all operands is already aligned");

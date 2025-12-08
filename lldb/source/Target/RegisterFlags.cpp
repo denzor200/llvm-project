@@ -124,8 +124,8 @@ void RegisterFlags::SetFields(const std::vector<Field> &fields) {
   unsigned register_msb = (m_size * 8) - 1;
   for (auto field : provided_fields) {
     if (previous_field) {
-      unsigned padding = previous_field->PaddingDistance(field);
-      if (padding) {
+      
+      if (unsigned padding = previous_field->PaddingDistance(field); padding) {
         // -1 to end just before the previous field.
         unsigned end = previous_field->GetStart() - 1;
         // +1 because if you want to pad 1 bit you want to start and end
@@ -202,8 +202,8 @@ std::string RegisterFlags::AsTable(uint32_t max_width) const {
     name.Printf(" %s ", field.GetName().c_str());
 
     unsigned column_width = position.GetString().size();
-    unsigned name_width = name.GetString().size();
-    if (name_width > column_width)
+    
+    if (unsigned name_width = name.GetString().size(); name_width > column_width)
       column_width = name_width;
 
     // If the next column would overflow and we have already formatted at least
@@ -319,8 +319,8 @@ std::string RegisterFlags::DumpEnums(uint32_t max_width) const {
 void RegisterFlags::EnumsToXML(Stream &strm, llvm::StringSet<> &seen) const {
   for (const Field &field : m_fields)
     if (const FieldEnum *enum_type = field.GetEnum()) {
-      const std::string &id = enum_type->GetID();
-      if (!seen.contains(id)) {
+      
+      if (const std::string &id = enum_type->GetID(); !seen.contains(id)) {
         enum_type->ToXML(strm, GetSize());
         seen.insert(id);
       }

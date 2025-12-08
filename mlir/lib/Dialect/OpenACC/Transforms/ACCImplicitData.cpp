@@ -717,7 +717,9 @@ static SmallVector<Value> getBaseRefsChain(Value val) {
 
 static void insertInSortedOrder(SmallVector<Value> &sortedDataClauseOperands,
                                 Operation *newClause) {
-  auto *insertPos =
+  
+
+  if (auto *insertPos =
       std::find_if(sortedDataClauseOperands.begin(),
                    sortedDataClauseOperands.end(), [&](Value dataClauseVal) {
                      // Get the base refs for the current clause we are looking
@@ -731,9 +733,7 @@ static void insertInSortedOrder(SmallVector<Value> &sortedDataClauseOperands,
                      // case.
                      return std::find(baseRefs.begin(), baseRefs.end(),
                                       acc::getVar(newClause)) != baseRefs.end();
-                   });
-
-  if (insertPos != sortedDataClauseOperands.end()) {
+                   }); insertPos != sortedDataClauseOperands.end()) {
     newClause->moveBefore(insertPos->getDefiningOp());
     sortedDataClauseOperands.insert(insertPos, acc::getAccVar(newClause));
   } else {

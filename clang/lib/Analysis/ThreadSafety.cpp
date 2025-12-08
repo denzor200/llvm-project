@@ -666,12 +666,12 @@ void VarMapBuilder::VisitBinaryOperator(const BinaryOperator *BO) {
   if (!BO->isAssignmentOp())
     return;
 
-  Expr *LHSExp = BO->getLHS()->IgnoreParenCasts();
+  
 
   // Update the variable map and current context.
-  if (const auto *DRE = dyn_cast<DeclRefExpr>(LHSExp)) {
-    const ValueDecl *VDec = DRE->getDecl();
-    if (Ctx.lookup(VDec)) {
+  if (Expr *LHSExp = BO->getLHS()->IgnoreParenCasts(); const auto *DRE = dyn_cast<DeclRefExpr>(LHSExp)) {
+    
+    if (const ValueDecl *VDec = DRE->getDecl(); Ctx.lookup(VDec)) {
       if (BO->getOpcode() == BO_Assign)
         Ctx = VMap->updateDefinition(VDec, BO->getRHS(), Ctx);
       else
@@ -718,8 +718,8 @@ void VarMapBuilder::VisitCallExpr(const CallExpr *CE) {
       Arg = Arg->IgnoreParenCasts();
       if (const auto *UO = dyn_cast<UnaryOperator>(Arg)) {
         if (UO->getOpcode() == UO_AddrOf) {
-          const Expr *SubE = UO->getSubExpr()->IgnoreParenCasts();
-          if (const auto *DRE = dyn_cast<DeclRefExpr>(SubE))
+          
+          if (const Expr *SubE = UO->getSubExpr()->IgnoreParenCasts(); const auto *DRE = dyn_cast<DeclRefExpr>(SubE))
             VDec = DRE->getDecl();
         }
       }
@@ -740,8 +740,8 @@ LocalVariableMap::intersectContexts(Context C1, Context C2) {
   Context Result = C1;
   for (const auto &P : C1) {
     const NamedDecl *Dec = P.first;
-    const unsigned *I2 = C2.lookup(Dec);
-    if (!I2) {
+    
+    if (const unsigned *I2 = C2.lookup(Dec); !I2) {
       // The variable doesn't exist on second path.
       Result = removeDefinition(Dec, Result);
     } else if (getCanonicalDefinitionID(P.second) !=
@@ -847,9 +847,9 @@ void LocalVariableMap::traverseCFG(CFG *CFGraph,
       }
 
       unsigned PrevBlockID = (*PI)->getBlockID();
-      CFGBlockInfo *PrevBlockInfo = &BlockInfo[PrevBlockID];
+      
 
-      if (CtxInit) {
+      if (CFGBlockInfo *PrevBlockInfo = &BlockInfo[PrevBlockID]; CtxInit) {
         CurrBlockInfo->EntryContext = PrevBlockInfo->ExitContext;
         CtxInit = false;
       }
@@ -1122,8 +1122,8 @@ public:
       return;
 
     for (const auto &UnderlyingMutex : getManaged()) {
-      const auto *Entry = FSet.findLock(FactMan, UnderlyingMutex.Cap);
-      if ((UnderlyingMutex.Kind == UCK_Acquired && Entry) ||
+      
+      if (const auto *Entry = FSet.findLock(FactMan, UnderlyingMutex.Cap); (UnderlyingMutex.Kind == UCK_Acquired && Entry) ||
           (UnderlyingMutex.Kind != UCK_Acquired && !Entry)) {
         // If this scoped lock manages another mutex, and if the underlying
         // mutex is still/not held, then warn about the underlying mutex.
@@ -1153,8 +1153,8 @@ public:
     for (const auto &UnderlyingMutex : getManaged()) {
       // Remove/lock the underlying mutex if it exists/is still unlocked; warn
       // on double unlocking/locking if we're not destroying the scoped object.
-      ThreadSafetyHandler *TSHandler = FullyRemove ? nullptr : &Handler;
-      if (UnderlyingMutex.Kind == UCK_Acquired) {
+      
+      if (ThreadSafetyHandler *TSHandler = FullyRemove ? nullptr : &Handler; UnderlyingMutex.Kind == UCK_Acquired) {
         unlock(FSet, FactMan, UnderlyingMutex.Cap, UnlockLoc, TSHandler);
       } else {
         LockKind kind = UnderlyingMutex.Kind == UCK_ReleasedShared
@@ -1176,8 +1176,8 @@ private:
             LockKind kind, SourceLocation loc,
             ThreadSafetyHandler *Handler) const {
     if (const auto It = FSet.findLockIter(FactMan, Cp); It != FSet.end()) {
-      const auto &Fact = cast<LockableFactEntry>(FactMan[*It]);
-      if (const FactEntry *RFact = Fact.tryReenter(FactMan, kind)) {
+      
+      if (const auto &Fact = cast<LockableFactEntry>(FactMan[*It]); const FactEntry *RFact = Fact.tryReenter(FactMan, kind)) {
         // This capability has been reentrantly acquired.
         FSet.replaceLock(FactMan, It, RFact);
       } else if (Handler) {
@@ -1193,8 +1193,8 @@ private:
   void unlock(FactSet &FSet, FactManager &FactMan, const CapabilityExpr &Cp,
               SourceLocation loc, ThreadSafetyHandler *Handler) const {
     if (const auto It = FSet.findLockIter(FactMan, Cp); It != FSet.end()) {
-      const auto &Fact = cast<LockableFactEntry>(FactMan[*It]);
-      if (const FactEntry *RFact = Fact.leaveReentrant(FactMan)) {
+      
+      if (const auto &Fact = cast<LockableFactEntry>(FactMan[*It]); const FactEntry *RFact = Fact.leaveReentrant(FactMan)) {
         // This capability remains reentrantly acquired.
         FSet.replaceLock(FactMan, It, RFact);
         return;
@@ -1458,8 +1458,8 @@ void ThreadSafetyAnalyzer::addLock(FactSet &FSet, const FactEntry *Entry,
   if (!ReqAttr && !Entry->negative()) {
     // look for the negative capability, and remove it from the fact set.
     CapabilityExpr NegC = !*Entry;
-    const FactEntry *Nen = FSet.findLock(FactMan, NegC);
-    if (Nen) {
+    
+    if (const FactEntry *Nen = FSet.findLock(FactMan, NegC); Nen) {
       FSet.removeLock(FactMan, NegC);
     }
     else {
@@ -1856,8 +1856,8 @@ void ThreadSafetyAnalyzer::warnIfMutexHeld(const FactSet &FSet,
     return;
   }
 
-  const FactEntry *LDat = FSet.findLock(FactMan, Cp);
-  if (LDat) {
+  
+  if (const FactEntry *LDat = FSet.findLock(FactMan, Cp); LDat) {
     Handler.handleFunExcludesLock(Cp.getKind(), D->getNameAsString(),
                                   Cp.toString(), Loc);
   }
@@ -1878,8 +1878,8 @@ void ThreadSafetyAnalyzer::checkAccess(const FactSet &FSet, const Expr *Exp,
   // Local variables of reference type cannot be re-assigned;
   // map them to their initializer.
   while (const auto *DRE = dyn_cast<DeclRefExpr>(Exp)) {
-    const auto *VD = dyn_cast<VarDecl>(DRE->getDecl()->getCanonicalDecl());
-    if (VD && VD->isLocalVarDecl() && VD->getType()->isReferenceType()) {
+    
+    if (const auto *VD = dyn_cast<VarDecl>(DRE->getDecl()->getCanonicalDecl()); VD && VD->isLocalVarDecl() && VD->getType()->isReferenceType()) {
       if (const auto *E = VD->getInit()) {
         // Guard against self-initialization. e.g., int &i = i;
         if (E == Exp)
@@ -2023,8 +2023,8 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
   CapabilityExpr Scp;
   if (Exp) {
     assert(!Self);
-    const auto *TagT = Exp->getType()->getAs<TagType>();
-    if (D->hasAttrs() && TagT && Exp->isPRValue()) {
+    
+    if (const auto *TagT = Exp->getType()->getAs<TagType>(); D->hasAttrs() && TagT && Exp->isPRValue()) {
       til::LiteralPtr *Placeholder =
           Analyzer->SxBuilder.createThisPlaceholder();
       [[maybe_unused]] auto inserted =
@@ -2070,8 +2070,8 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
       // When we encounter an unlock function, we need to remove unlocked
       // mutexes from the lockset, and flag a warning if they are not there.
       case attr::ReleaseCapability: {
-        const auto *A = cast<ReleaseCapabilityAttr>(At);
-        if (A->isGeneric())
+        
+        if (const auto *A = cast<ReleaseCapabilityAttr>(At); A->isGeneric())
           Analyzer->getMutexIDs(GenericLocksToRemove, A, Exp, D, Self);
         else if (A->isShared())
           Analyzer->getMutexIDs(SharedLocksToRemove, A, Exp, D, Self);
@@ -2119,8 +2119,8 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
     else
       llvm_unreachable("Unknown call kind");
   }
-  const auto *CalledFunction = dyn_cast<FunctionDecl>(D);
-  if (CalledFunction && Args.has_value()) {
+  
+  if (const auto *CalledFunction = dyn_cast<FunctionDecl>(D); CalledFunction && Args.has_value()) {
     for (auto [Param, Arg] : zip(CalledFunction->parameters(), *Args)) {
       CapExprSet DeclaredLocks;
       for (const Attr *At : Param->attrs()) {
@@ -2321,9 +2321,9 @@ void BuildLockset::VisitCallExpr(const CallExpr *Exp) {
   if (const auto *CE = dyn_cast<CXXMemberCallExpr>(Exp)) {
     const auto *ME = dyn_cast<MemberExpr>(CE->getCallee());
     // ME can be null when calling a method pointer
-    const CXXMethodDecl *MD = CE->getMethodDecl();
+    
 
-    if (ME && MD) {
+    if (const CXXMethodDecl *MD = CE->getMethodDecl(); ME && MD) {
       if (ME->isArrow()) {
         // Should perhaps be AK_Written if !MD->isConst().
         checkPtAccess(CE->getImplicitObjectArgument(), AK_Read);
@@ -2500,8 +2500,8 @@ bool ThreadSafetyAnalyzer::join(const FactEntry &A, const FactEntry &B,
     // anyway. For asserted capabilities no unlocking is needed.
     if ((A.managed() || A.asserted()) && (B.managed() || B.asserted())) {
       // The shared capability subsumes the exclusive capability, if possible.
-      bool ShouldTakeB = B.kind() == LK_Shared;
-      if (CanModify || !ShouldTakeB)
+      
+      if (bool ShouldTakeB = B.kind() == LK_Shared; CanModify || !ShouldTakeB)
         return ShouldTakeB;
     }
     Handler.handleExclusiveAndShared(B.getKind(), B.toString(), B.loc(),
@@ -2539,8 +2539,8 @@ void ThreadSafetyAnalyzer::intersectAndWarn(FactSet &EntrySet,
   for (const auto &Fact : ExitSet) {
     const FactEntry &ExitFact = FactMan[Fact];
 
-    FactSet::iterator EntryIt = EntrySet.findLockIter(FactMan, ExitFact);
-    if (EntryIt != EntrySet.end()) {
+    
+    if (FactSet::iterator EntryIt = EntrySet.findLockIter(FactMan, ExitFact); EntryIt != EntrySet.end()) {
       if (join(FactMan[*EntryIt], ExitFact, JoinLoc, EntryLEK))
         *EntryIt = Fact;
     } else if (!ExitFact.managed() || EntryLEK == LEK_LockedAtEndOfFunction) {
@@ -2552,9 +2552,9 @@ void ThreadSafetyAnalyzer::intersectAndWarn(FactSet &EntrySet,
   // Find locks in EntrySet that are not in ExitSet, and remove them.
   for (const auto &Fact : EntrySetOrig) {
     const FactEntry *EntryFact = &FactMan[Fact];
-    const FactEntry *ExitFact = ExitSet.findLock(FactMan, *EntryFact);
+    
 
-    if (!ExitFact) {
+    if (const FactEntry *ExitFact = ExitSet.findLock(FactMan, *EntryFact); !ExitFact) {
       if (!EntryFact->managed() || ExitLEK == LEK_LockedSomeLoopIterations ||
           ExitLEK == LEK_NotLockedAtEndOfFunction)
         EntryFact->handleRemovalFromIntersection(EntrySetOrig, FactMan, JoinLoc,
@@ -2847,8 +2847,8 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
           if (auto Object = ConstructedObjects.find(
                   TD.getBindTemporaryExpr()->getSubExpr());
               Object != ConstructedObjects.end()) {
-            const auto *DD = TD.getDestructorDecl(AC.getASTContext());
-            if (DD->hasAttrs())
+            
+            if (const auto *DD = TD.getDestructorDecl(AC.getASTContext()); DD->hasAttrs())
               // TODO: the location here isn't quite correct.
               LocksetBuilder.handleCall(nullptr, DD, Object->second,
                                         TD.getBindTemporaryExpr()->getEndLoc());

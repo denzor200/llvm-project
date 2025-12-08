@@ -18,8 +18,8 @@ using namespace llvm;
 
 static void reduceInvokesInFunction(Oracle &O, Function &F) {
   for (BasicBlock &BB : F) {
-    InvokeInst *Invoke = dyn_cast<InvokeInst>(BB.getTerminator());
-    if (Invoke && !O.shouldKeep())
+    
+    if (InvokeInst *Invoke = dyn_cast<InvokeInst>(BB.getTerminator()); Invoke && !O.shouldKeep())
       changeToCall(Invoke);
   }
 

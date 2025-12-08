@@ -349,8 +349,8 @@ std::string IdentifierNamingCheck::HungarianNotation::getDeclTypeName(
     TypeName = Type.erase(0, Type.find_first_not_of(' '));
 
     // Remove template parameters
-    const size_t Pos = Type.find('<');
-    if (Pos != std::string::npos) {
+    
+    if (const size_t Pos = Type.find('<'); Pos != std::string::npos) {
       TypeName = Type.erase(Pos, Type.size() - Pos);
     }
 
@@ -377,8 +377,8 @@ std::string IdentifierNamingCheck::HungarianNotation::getDeclTypeName(
         " int", " char", " double", " long", " short"};
     bool RedundantRemoved = false;
     for (auto Kw : TailsOfMultiWordType) {
-      const size_t Pos = Type.rfind(Kw);
-      if (Pos != std::string::npos) {
+      
+      if (const size_t Pos = Type.rfind(Kw); Pos != std::string::npos) {
         const size_t PtrCount = getAsteriskCount(Type, ND);
         Type = Type.substr(0, Pos + Kw.size() + PtrCount);
         RedundantRemoved = true;
@@ -388,8 +388,8 @@ std::string IdentifierNamingCheck::HungarianNotation::getDeclTypeName(
 
     TypeName = Type.erase(0, Type.find_first_not_of(' '));
     if (!RedundantRemoved) {
-      const std::size_t FoundSpace = Type.find(' ');
-      if (FoundSpace != std::string::npos)
+      
+      if (const std::size_t FoundSpace = Type.find(' '); FoundSpace != std::string::npos)
         Type = Type.substr(0, FoundSpace);
     }
 
@@ -593,8 +593,8 @@ std::string IdentifierNamingCheck::HungarianNotation::getDataTypePrefix(
       if (PrefixStr.empty())
         PrefixStr = HNOption.DerivedType.lookup("Array");
     } else if (QT->isReferenceType()) {
-      const size_t Pos = ModifiedTypeName.find_last_of('&');
-      if (Pos != std::string::npos)
+      
+      if (const size_t Pos = ModifiedTypeName.find_last_of('&'); Pos != std::string::npos)
         ModifiedTypeName = ModifiedTypeName.substr(0, Pos);
     }
   }
@@ -1199,8 +1199,8 @@ StyleKind IdentifierNamingCheck::findStyleKind(
 
   if (const auto *Decl = dyn_cast<FieldDecl>(D)) {
     if (CheckAnonFieldInParentScope) {
-      const RecordDecl *Record = Decl->getParent();
-      if (Record->isAnonymousStructOrUnion()) {
+      
+      if (const RecordDecl *Record = Decl->getParent(); Record->isAnonymousStructOrUnion()) {
         return findStyleKindForAnonField(Decl, NamingStyles);
       }
     }

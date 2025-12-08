@@ -194,8 +194,8 @@ public:
   /// ValueIsNewPHI - Like ValueIsPHI but also check if the PHI has no source
   /// operands, i.e., it was just added.
   static DbgSSAPhi *ValueIsNewPHI(DbgValueDef Val, DebugSSAUpdater *Updater) {
-    DbgSSAPhi *PHI = ValueIsPHI(Val, Updater);
-    if (PHI && PHI->getNumIncomingValues() == 0)
+    
+    if (DbgSSAPhi *PHI = ValueIsPHI(Val, Updater); PHI && PHI->getNumIncomingValues() == 0)
       return PHI;
     return nullptr;
   }

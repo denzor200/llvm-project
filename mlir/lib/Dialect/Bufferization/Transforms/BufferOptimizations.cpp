@@ -207,8 +207,8 @@ public:
       // that all dependency values have been computed before allocating the
       // buffer.
       for (Value depValue : operands) {
-        Block *depBlock = depValue.getParentBlock();
-        if (!dependencyBlock || dominators.dominates(dependencyBlock, depBlock))
+        
+        if (Block *depBlock = depValue.getParentBlock(); !dependencyBlock || dominators.dominates(dependencyBlock, depBlock))
           dependencyBlock = depBlock;
       }
 
@@ -381,12 +381,12 @@ public:
   void promote(function_ref<bool(Value)> isSmallAlloc) {
     for (BufferPlacementAllocs::AllocEntry &entry : allocs) {
       Value alloc = std::get<0>(entry);
-      Operation *dealloc = std::get<1>(entry);
+      
       // Checking several requirements to transform an AllocOp into an AllocaOp.
       // The transformation is done if the allocation is limited to a given
       // size. Furthermore, a deallocation must not be defined for this
       // allocation entry and a parent allocation scope must exist.
-      if (!isSmallAlloc(alloc) || dealloc ||
+      if (Operation *dealloc = std::get<1>(entry); !isSmallAlloc(alloc) || dealloc ||
           !hasAllocationScope(alloc, aliases))
         continue;
 

@@ -168,10 +168,10 @@ public:
   bool isScalarizableAsmOperand(CodeGen::CodeGenFunction &CGF,
                                 llvm::Type *Ty) const override {
     if (CGF.getTarget().hasFeature("ls64")) {
-      auto *ST = dyn_cast<llvm::StructType>(Ty);
-      if (ST && ST->getNumElements() == 1) {
-        auto *AT = dyn_cast<llvm::ArrayType>(ST->getElementType(0));
-        if (AT && AT->getNumElements() == 8 &&
+      
+      if (auto *ST = dyn_cast<llvm::StructType>(Ty); ST && ST->getNumElements() == 1) {
+        
+        if (auto *AT = dyn_cast<llvm::ArrayType>(ST->getElementType(0)); AT && AT->getNumElements() == 8 &&
             AT->getElementType()->isIntegerTy(64))
           return true;
       }
@@ -246,8 +246,8 @@ AArch64ABIInfo::convertFixedToScalableVectorType(const VectorType *VT) const {
   }
 
   if (VT->getVectorKind() == VectorKind::SveFixedLengthData) {
-    const auto *BT = VT->getElementType()->castAs<BuiltinType>();
-    switch (BT->getKind()) {
+    
+    switch (const auto *BT = VT->getElementType()->castAs<BuiltinType>(); BT->getKind()) {
     default:
       llvm_unreachable("unexpected builtin type for SVE vector!");
 
@@ -442,8 +442,8 @@ ABIArgInfo AArch64ABIInfo::classifyArgumentType(QualType Ty, bool IsVariadicFn,
   // apply, just fall through to the standard argument-handling path.
   // Darwin overrides the psABI here to ignore all empty records in all modes.
   uint64_t Size = getContext().getTypeSize(Ty);
-  bool IsEmpty = isEmptyRecord(getContext(), Ty, true);
-  if (!Ty->isSVESizelessBuiltinType() && (IsEmpty || Size == 0)) {
+  
+  if (bool IsEmpty = isEmptyRecord(getContext(), Ty, true); !Ty->isSVESizelessBuiltinType() && (IsEmpty || Size == 0)) {
     // Empty records are ignored in C mode, and in C++ on Darwin.
     if (!getContext().getLangOpts().CPlusPlus || isDarwinPCS())
       return ABIArgInfo::getIgnore();
@@ -689,8 +689,8 @@ bool AArch64ABIInfo::isHomogeneousAggregateBaseType(QualType Ty) const {
         Kind == VectorKind::SveFixedLengthPredicate)
       return false;
 
-    unsigned VecSize = getContext().getTypeSize(VT);
-    if (VecSize == 64 || VecSize == 128)
+    
+    if (unsigned VecSize = getContext().getTypeSize(VT); VecSize == 64 || VecSize == 128)
       return true;
   }
   return false;
@@ -1212,9 +1212,9 @@ static void diagnoseIfNeedsFPReg(DiagnosticsEngine &Diags,
 void AArch64TargetCodeGenInfo::checkFunctionABI(
     CodeGenModule &CGM, const FunctionDecl *FuncDecl) const {
   const AArch64ABIInfo &ABIInfo = getABIInfo<AArch64ABIInfo>();
-  const TargetInfo &TI = ABIInfo.getContext().getTargetInfo();
+  
 
-  if (!TI.hasFeature("fp") && !ABIInfo.isSoftFloat()) {
+  if (const TargetInfo &TI = ABIInfo.getContext().getTargetInfo(); !TI.hasFeature("fp") && !ABIInfo.isSoftFloat()) {
     diagnoseIfNeedsFPReg(CGM.getDiags(), TI.getABI(), ABIInfo,
                          FuncDecl->getReturnType(), FuncDecl,
                          FuncDecl->getLocation());

@@ -612,8 +612,8 @@ genHTML(const Index &Index, StringRef InfoPath, bool IsOutermostList) {
   std::vector<std::unique_ptr<TagNode>> Out;
   if (!Index.Name.empty()) {
     Out.emplace_back(std::make_unique<TagNode>(HTMLTag::TAG_SPAN));
-    auto &SpanBody = Out.back();
-    if (!Index.JumpToSection)
+    
+    if (auto &SpanBody = Out.back(); !Index.JumpToSection)
       SpanBody->Children.emplace_back(genReference(Index, InfoPath));
     else
       SpanBody->Children.emplace_back(

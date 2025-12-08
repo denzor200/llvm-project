@@ -476,10 +476,10 @@ static const char *getTargetIndexName(const MachineFunction &MF, int Index) {
   const auto *TII = MF.getSubtarget().getInstrInfo();
   assert(TII && "expected instruction info");
   auto Indices = TII->getSerializableTargetIndices();
-  auto Found = find_if(Indices, [&](const std::pair<int, const char *> &I) {
+  
+  if (auto Found = find_if(Indices, [&](const std::pair<int, const char *> &I) {
     return I.first == Index;
-  });
-  if (Found != Indices.end())
+  }); Found != Indices.end())
     return Found->second;
   return nullptr;
 }
@@ -855,8 +855,8 @@ void MachineOperand::print(raw_ostream &OS, ModuleSlotTracker &MST,
     // Print the register class / bank.
     if (Reg.isVirtual()) {
       if (const MachineFunction *MF = getMFIfAvailable(*this)) {
-        const MachineRegisterInfo &MRI = MF->getRegInfo();
-        if (IsStandalone || !PrintDef || MRI.def_empty(Reg)) {
+        
+        if (const MachineRegisterInfo &MRI = MF->getRegInfo(); IsStandalone || !PrintDef || MRI.def_empty(Reg)) {
           OS << ':';
           OS << printRegClassOrBank(Reg, MRI, TRI);
         }
@@ -954,8 +954,8 @@ void MachineOperand::print(raw_ostream &OS, ModuleSlotTracker &MST,
       unsigned NumRegsEmitted = 0;
       for (unsigned i = 0; i < TRI->getNumRegs(); ++i) {
         unsigned MaskWord = i / 32;
-        unsigned MaskBit = i % 32;
-        if (getRegMask()[MaskWord] & (1 << MaskBit)) {
+        
+        if (unsigned MaskBit = i % 32; getRegMask()[MaskWord] & (1 << MaskBit)) {
           if (PrintRegMaskNumRegs < 0 ||
               NumRegsEmitted <= static_cast<unsigned>(PrintRegMaskNumRegs)) {
             OS << " " << printReg(i, TRI);
@@ -1010,8 +1010,8 @@ void MachineOperand::print(raw_ostream &OS, ModuleSlotTracker &MST,
     break;
   }
   case MachineOperand::MO_IntrinsicID: {
-    Intrinsic::ID ID = getIntrinsicID();
-    if (ID < Intrinsic::num_intrinsics)
+    
+    if (Intrinsic::ID ID = getIntrinsicID(); ID < Intrinsic::num_intrinsics)
       OS << "intrinsic(@" << Intrinsic::getBaseName(ID) << ')';
     else
       OS << "intrinsic(" << ID << ')';

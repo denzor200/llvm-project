@@ -73,8 +73,8 @@ public:
   SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                  ExecutionContext *execution_context) override {
     Status error;
-    char short_option = (char)GetDefinitions()[option_idx].short_option;
-    switch (short_option) {
+    
+    switch (char short_option = (char)GetDefinitions()[option_idx].short_option; short_option) {
     case 'v': {
       if (option_arg.getAsInteger(8, m_permissions)) {
         m_permissions = 0777;
@@ -84,8 +84,8 @@ public:
 
     } break;
     case 's': {
-      mode_t perms = ParsePermissionString(option_arg);
-      if (perms == (mode_t)-1)
+      
+      if (mode_t perms = ParsePermissionString(option_arg); perms == (mode_t)-1)
         error = Status::FromErrorStringWithFormat(
             "invalid value for permissions: %s", option_arg.str().c_str());
       else
@@ -170,8 +170,8 @@ public:
 protected:
   void DoExecute(Args &args, CommandReturnObject &result) override {
     if (args.GetArgumentCount() == 1) {
-      const char *platform_name = args.GetArgumentAtIndex(0);
-      if (platform_name && platform_name[0]) {
+      
+      if (const char *platform_name = args.GetArgumentAtIndex(0); platform_name && platform_name[0]) {
         const bool select = true;
         m_platform_options.SetPlatformName(platform_name);
         Status error;
@@ -345,8 +345,8 @@ protected:
 
           error = platform_sp->DisconnectRemote();
           if (error.Success()) {
-            Stream &ostrm = result.GetOutputStream();
-            if (hostname.empty())
+            
+            if (Stream &ostrm = result.GetOutputStream(); hostname.empty())
               ostrm.Format("Disconnected from \"{0}\"\n",
                            platform_sp->GetPluginName());
             else
@@ -428,9 +428,9 @@ public:
       std::string cmd_line;
       args.GetCommandString(cmd_line);
       uint32_t mode;
-      const OptionPermissions *options_permissions =
-          (const OptionPermissions *)m_options.GetGroupWithOption('r');
-      if (options_permissions)
+      
+      if (const OptionPermissions *options_permissions =
+          (const OptionPermissions *)m_options.GetGroupWithOption('r'); options_permissions)
         mode = options_permissions->m_permissions;
       else
         mode = lldb::eFilePermissionsUserRWX | lldb::eFilePermissionsGroupRWX |
@@ -477,9 +477,9 @@ public:
       std::string cmd_line;
       args.GetCommandString(cmd_line);
       mode_t perms;
-      const OptionPermissions *options_permissions =
-          (const OptionPermissions *)m_options.GetGroupWithOption('r');
-      if (options_permissions)
+      
+      if (const OptionPermissions *options_permissions =
+          (const OptionPermissions *)m_options.GetGroupWithOption('r'); options_permissions)
         perms = options_permissions->m_permissions;
       else
         perms = lldb::eFilePermissionsUserRW | lldb::eFilePermissionsGroupRW |
@@ -535,8 +535,8 @@ public:
         return;
       }
       Status error;
-      bool success = platform_sp->CloseFile(fd, error);
-      if (success) {
+      
+      if (bool success = platform_sp->CloseFile(fd, error); success) {
         result.AppendMessageWithFormat("file %" PRIu64 " closed.\n", fd);
         result.SetStatus(eReturnStatusSuccessFinishResult);
       } else {
@@ -578,9 +578,9 @@ public:
       }
       std::string buffer(m_options.m_count, 0);
       Status error;
-      uint64_t retcode = platform_sp->ReadFile(
-          fd, m_options.m_offset, &buffer[0], m_options.m_count, error);
-      if (retcode != UINT64_MAX) {
+      
+      if (uint64_t retcode = platform_sp->ReadFile(
+          fd, m_options.m_offset, &buffer[0], m_options.m_count, error); retcode != UINT64_MAX) {
         result.AppendMessageWithFormat("Return = %" PRIu64 "\n", retcode);
         result.AppendMessageWithFormat("Data = \"%s\"\n", buffer.c_str());
         result.SetStatus(eReturnStatusSuccessFinishResult);
@@ -604,9 +604,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      char short_option = (char)m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (char short_option = (char)m_getopt_table[option_idx].val; short_option) {
       case 'o':
         if (option_arg.getAsInteger(0, m_offset))
           error = Status::FromErrorStringWithFormat("invalid offset: '%s'",
@@ -671,10 +671,10 @@ public:
                                       cmd_line);
         return;
       }
-      uint64_t retcode =
+      
+      if (uint64_t retcode =
           platform_sp->WriteFile(fd, m_options.m_offset, &m_options.m_data[0],
-                                 m_options.m_data.size(), error);
-      if (retcode != UINT64_MAX) {
+                                 m_options.m_data.size(), error); retcode != UINT64_MAX) {
         result.AppendMessageWithFormat("Return = %" PRIu64 "\n", retcode);
         result.SetStatus(eReturnStatusSuccessFinishResult);
       } else {
@@ -697,9 +697,9 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      char short_option = (char)m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (char short_option = (char)m_getopt_table[option_idx].val; short_option) {
       case 'o':
         if (option_arg.getAsInteger(0, m_offset))
           error = Status::FromErrorStringWithFormat("invalid offset: '%s'",
@@ -873,8 +873,8 @@ public:
         GetDebugger().GetPlatformList().GetSelectedPlatform());
     if (platform_sp) {
       std::string remote_file_path(args.GetArgumentAtIndex(0));
-      user_id_t size = platform_sp->GetFileSize(FileSpec(remote_file_path));
-      if (size != UINT64_MAX) {
+      
+      if (user_id_t size = platform_sp->GetFileSize(FileSpec(remote_file_path)); size != UINT64_MAX) {
         result.AppendMessageWithFormat("File size of %s (remote): %" PRIu64
                                        "\n",
                                        remote_file_path.c_str(), size);
@@ -1085,8 +1085,8 @@ protected:
       Status error;
       const size_t argc = args.GetArgumentCount();
       Target *target = m_exe_ctx.GetTargetPtr();
-      Module *exe_module = target->GetExecutableModulePointer();
-      if (exe_module) {
+      
+      if (Module *exe_module = target->GetExecutableModulePointer(); exe_module) {
         m_options.launch_info.GetExecutableFile() = exe_module->GetFileSpec();
         llvm::SmallString<128> exe_path;
         m_options.launch_info.GetExecutableFile().GetPath(exe_path);
@@ -1233,8 +1233,8 @@ protected:
     if (platform_sp) {
       Stream &ostrm = result.GetOutputStream();
 
-      lldb::pid_t pid = m_options.match_info.GetProcessInfo().GetProcessID();
-      if (pid != LLDB_INVALID_PROCESS_ID) {
+      
+      if (lldb::pid_t pid = m_options.match_info.GetProcessInfo().GetProcessID(); pid != LLDB_INVALID_PROCESS_ID) {
         ProcessInstanceInfo proc_info;
         if (platform_sp->GetProcessInfo(pid, proc_info)) {
           ProcessInstanceInfo::DumpTableHeader(ostrm, m_options.show_args,
@@ -1476,8 +1476,8 @@ protected:
     }
 
     if (platform_sp) {
-      const size_t argc = args.GetArgumentCount();
-      if (argc > 0) {
+      
+      if (const size_t argc = args.GetArgumentCount(); argc > 0) {
         Status error;
 
         if (platform_sp->IsConnected()) {
@@ -1618,9 +1618,9 @@ public:
                           ExecutionContext *execution_context) override {
       Status error;
 
-      const char short_option = (char)GetDefinitions()[option_idx].short_option;
+      
 
-      switch (short_option) {
+      switch (const char short_option = (char)GetDefinitions()[option_idx].short_option; short_option) {
       case 'h':
         m_use_host_platform = true;
         break;
@@ -1715,8 +1715,8 @@ public:
         result.GetOutputStream().PutCString(output);
       if (status > 0) {
         if (signo > 0) {
-          const char *signo_cstr = Host::GetSignalAsCString(signo);
-          if (signo_cstr)
+          
+          if (const char *signo_cstr = Host::GetSignalAsCString(signo); signo_cstr)
             result.GetOutputStream().Printf(
                 "error: command returned with status %i and signal %s\n",
                 status, signo_cstr);

@@ -562,8 +562,8 @@ void WebAssembly::getLibcallSignature(const WebAssemblySubtarget &Subtarget,
   wasm::ValType PtrTy =
       Subtarget.hasAddr64() ? wasm::ValType::I64 : wasm::ValType::I32;
 
-  auto &Table = getRuntimeLibcallSignatures().Table;
-  switch (Table[LC]) {
+  
+  switch (auto &Table = getRuntimeLibcallSignatures().Table; Table[LC]) {
   case func:
     break;
   case f32_func_f32:

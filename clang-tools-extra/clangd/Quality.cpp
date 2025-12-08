@@ -42,8 +42,8 @@ static bool hasDeclInMainFile(const Decl &D) {
 
 static bool hasUsingDeclInMainFile(const CodeCompletionResult &R) {
   const auto &Context = R.Declaration->getASTContext();
-  const auto &SourceMgr = Context.getSourceManager();
-  if (R.ShadowDecl) {
+  
+  if (const auto &SourceMgr = Context.getSourceManager(); R.ShadowDecl) {
     if (isInsideMainFile(R.ShadowDecl->getLocation(), SourceMgr))
       return true;
   }

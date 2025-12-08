@@ -118,8 +118,8 @@ static void VerifyPHIs(MachineFunction &MF, bool CheckExtra) {
       for (MachineBasicBlock *PredBB : Preds) {
         bool Found = false;
         for (unsigned i = 1, e = MI->getNumOperands(); i != e; i += 2) {
-          MachineBasicBlock *PHIBB = MI->getOperand(i + 1).getMBB();
-          if (PHIBB == PredBB) {
+          
+          if (MachineBasicBlock *PHIBB = MI->getOperand(i + 1).getMBB(); PHIBB == PredBB) {
             Found = true;
             break;
           }
@@ -490,8 +490,8 @@ void TailDuplicator::updateSuccessorsPHIs(
       MachineInstrBuilder MIB(*FromBB->getParent(), MI);
       unsigned Idx = 0;
       for (unsigned i = 1, e = MI.getNumOperands(); i != e; i += 2) {
-        MachineOperand &MO = MI.getOperand(i + 1);
-        if (MO.getMBB() == FromBB) {
+        
+        if (MachineOperand &MO = MI.getOperand(i + 1); MO.getMBB() == FromBB) {
           Idx = i;
           break;
         }
@@ -505,8 +505,8 @@ void TailDuplicator::updateSuccessorsPHIs(
         // There could be duplicate phi source entries. FIXME: Should sdisel
         // or earlier pass fixed this?
         for (unsigned i = MI.getNumOperands() - 2; i != Idx; i -= 2) {
-          MachineOperand &MO = MI.getOperand(i + 1);
-          if (MO.getMBB() == FromBB) {
+          
+          if (MachineOperand &MO = MI.getOperand(i + 1); MO.getMBB() == FromBB) {
             MI.removeOperand(i + 1);
             MI.removeOperand(i);
           }
@@ -696,8 +696,8 @@ bool TailDuplicator::shouldTailDuplicate(bool IsSimple,
         break;
       unsigned Idx = getPHISrcRegOpIdx(&I, &TailBB);
       assert(Idx != 0);
-      MachineOperand &PU = I.getOperand(Idx);
-      if (PU.getSubReg() != 0)
+      
+      if (MachineOperand &PU = I.getOperand(Idx); PU.getSubReg() != 0)
         return false;
     }
   }

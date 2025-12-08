@@ -74,11 +74,11 @@ PreservedAnalyses LoopRotatePass::run(Loop &L, LoopAnalysisManager &AM,
   std::optional<MemorySSAUpdater> MSSAU;
   if (AR.MSSA)
     MSSAU = MemorySSAUpdater(AR.MSSA);
-  bool Changed = LoopRotation(&L, &AR.LI, &AR.TTI, &AR.AC, &AR.DT, &AR.SE,
-                              MSSAU ? &*MSSAU : nullptr, SQ, false, Threshold,
-                              false, PrepareForLTO || PrepareForLTOOption);
+  
 
-  if (!Changed)
+  if (bool Changed = LoopRotation(&L, &AR.LI, &AR.TTI, &AR.AC, &AR.DT, &AR.SE,
+                              MSSAU ? &*MSSAU : nullptr, SQ, false, Threshold,
+                              false, PrepareForLTO || PrepareForLTOOption); !Changed)
     return PreservedAnalyses::all();
 
   if (AR.MSSA && VerifyMemorySSA)

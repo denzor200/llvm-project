@@ -115,8 +115,8 @@ static void EmitInstructions(std::vector<AsmWriterInst> &Insts, raw_ostream &O,
   std::vector<AsmWriterInst> SimilarInsts;
   unsigned DifferingOperand = ~0;
   for (unsigned i = Insts.size(); i != 0; --i) {
-    unsigned DiffOp = Insts[i - 1].MatchesAllButOneOp(FirstInst);
-    if (DiffOp != ~1U) {
+    
+    if (unsigned DiffOp = Insts[i - 1].MatchesAllButOneOp(FirstInst); DiffOp != ~1U) {
       if (DifferingOperand == ~0U) // First match!
         DifferingOperand = DiffOp;
 
@@ -414,8 +414,8 @@ void AsmWriterEmitter::EmitGetMnemonic(
         OpcodeInfo[Instructions[Idx].CGIIndex] |=
             (uint64_t)i << (OpcodeInfoBits - BitsLeft);
         // Remove the info about this operand from the instruction.
-        AsmWriterInst &Inst = Instructions[Idx];
-        if (!Inst.Operands.empty()) {
+        
+        if (AsmWriterInst &Inst = Instructions[Idx]; !Inst.Operands.empty()) {
           assert(NumOps <= Inst.Operands.size() &&
                  "Can't remove this many ops!");
           Inst.Operands.erase(Inst.Operands.begin(),
@@ -897,13 +897,13 @@ void AsmWriterEmitter::EmitPrintAliasInstruction(raw_ostream &O) {
         // Skip over tied operands as they're not part of an alias declaration.
         auto &Operands = CGA.ResultInst->Operands;
         while (true) {
-          unsigned OpNum = Operands.getSubOperandNumber(MIOpNum).first;
-          if (Operands[OpNum].MINumOperands == 1 &&
+          
+          if (unsigned OpNum = Operands.getSubOperandNumber(MIOpNum).first; Operands[OpNum].MINumOperands == 1 &&
               Operands[OpNum].getTiedRegister() != -1) {
             // Tied operands of different RegisterClass should be explicit
             // within an instruction's syntax and so cannot be skipped.
-            int TiedOpNum = Operands[OpNum].getTiedRegister();
-            if (Operands[OpNum].Rec->getName() ==
+            
+            if (int TiedOpNum = Operands[OpNum].getTiedRegister(); Operands[OpNum].Rec->getName() ==
                 Operands[TiedOpNum].Rec->getName()) {
               ++MIOpNum;
               continue;

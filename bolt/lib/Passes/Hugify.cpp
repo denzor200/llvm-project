@@ -16,8 +16,8 @@ namespace llvm {
 namespace bolt {
 
 Error HugePage::runOnFunctions(BinaryContext &BC) {
-  auto *RtLibrary = BC.getRuntimeLibrary();
-  if (!RtLibrary || !BC.isELF() || !BC.StartFunctionAddress) {
+  
+  if (auto *RtLibrary = BC.getRuntimeLibrary(); !RtLibrary || !BC.isELF() || !BC.StartFunctionAddress) {
     return Error::success();
   }
 

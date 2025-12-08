@@ -382,8 +382,8 @@ void SIMachineFunctionInfo::shiftWwmVGPRsToLowestRange(
 
     // Replace the register in SpillPhysVGPRs. This is needed to look for free
     // lanes while spilling special SGPRs like FP, BP, etc. during PEI.
-    auto *RegItr = llvm::find(SpillPhysVGPRs, Reg);
-    if (RegItr != SpillPhysVGPRs.end()) {
+    
+    if (auto *RegItr = llvm::find(SpillPhysVGPRs, Reg); RegItr != SpillPhysVGPRs.end()) {
       unsigned Idx = std::distance(SpillPhysVGPRs.begin(), RegItr);
       SpillPhysVGPRs[Idx] = NewReg;
     }
@@ -455,12 +455,12 @@ bool SIMachineFunctionInfo::allocatePhysicalVGPRForSGPRSpills(
 bool SIMachineFunctionInfo::allocateSGPRSpillToVGPRLane(
     MachineFunction &MF, int FI, bool SpillToPhysVGPRLane,
     bool IsPrologEpilog) {
-  std::vector<SIRegisterInfo::SpilledReg> &SpillLanes =
-      SpillToPhysVGPRLane ? SGPRSpillsToPhysicalVGPRLanes[FI]
-                          : SGPRSpillsToVirtualVGPRLanes[FI];
+  
 
   // This has already been allocated.
-  if (!SpillLanes.empty())
+  if (std::vector<SIRegisterInfo::SpilledReg> &SpillLanes =
+      SpillToPhysVGPRLane ? SGPRSpillsToPhysicalVGPRLanes[FI]
+                          : SGPRSpillsToVirtualVGPRLanes[FI]; !SpillLanes.empty())
     return true;
 
   const GCNSubtarget &ST = MF.getSubtarget<GCNSubtarget>();
@@ -483,11 +483,11 @@ bool SIMachineFunctionInfo::allocateSGPRSpillToVGPRLane(
   for (unsigned I = 0; I < NumLanes; ++I, ++NumSpillLanes) {
     unsigned LaneIndex = (NumSpillLanes % WaveSize);
 
-    bool Allocated = SpillToPhysVGPRLane
+    
+    if (bool Allocated = SpillToPhysVGPRLane
                          ? allocatePhysicalVGPRForSGPRSpills(MF, FI, LaneIndex,
                                                              IsPrologEpilog)
-                         : allocateVirtualVGPRForSGPRSpills(MF, FI, LaneIndex);
-    if (!Allocated) {
+                         : allocateVirtualVGPRForSGPRSpills(MF, FI, LaneIndex); !Allocated) {
       NumSpillLanes -= I;
       return false;
     }

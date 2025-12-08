@@ -980,11 +980,11 @@ static inline void emitBinaryDwarfLineTable(
   };
 
   for (const DwarfLineTable::RowSequence &Sequence : InputSequences) {
-    const uint64_t SequenceStart =
-        Table->Rows[Sequence.FirstIndex].Address.Address;
+    
 
     // Check if we need to mark the end of the sequence.
-    if (PrevEndOfSequence != InvalidAddress && LastAddress != InvalidAddress &&
+    if (const uint64_t SequenceStart =
+        Table->Rows[Sequence.FirstIndex].Address.Address; PrevEndOfSequence != InvalidAddress && LastAddress != InvalidAddress &&
         PrevEndOfSequence != SequenceStart) {
       emitEndOfSequence(PrevEndOfSequence);
     }

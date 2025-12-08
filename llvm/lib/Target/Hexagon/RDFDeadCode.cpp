@@ -187,8 +187,8 @@ bool DeadCodeElimination::erase(const SetVector<NodeId> &Nodes) {
   NodeList DRNs, DINs;
   for (auto I : Nodes) {
     auto BA = DFG.addr<NodeBase*>(I);
-    uint16_t Type = BA.Addr->getType();
-    if (Type == NodeAttrs::Ref) {
+    
+    if (uint16_t Type = BA.Addr->getType(); Type == NodeAttrs::Ref) {
       DRNs.push_back(DFG.addr<RefNode*>(I));
       continue;
     }

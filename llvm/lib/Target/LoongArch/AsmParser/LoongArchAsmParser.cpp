@@ -872,9 +872,9 @@ void LoongArchAsmParser::emitLAInstSeq(MCRegister DestReg, MCRegister TmpReg,
   for (LoongArchAsmParser::Inst &Inst : Insts) {
     unsigned Opc = Inst.Opc;
     auto VK = LoongArchMCExpr::Specifier(Inst.Specifier);
-    const LoongArchMCExpr *LE =
-        LoongArchMCExpr::create(Symbol, VK, Ctx, RelaxHint);
-    switch (Opc) {
+    
+    switch (const LoongArchMCExpr *LE =
+        LoongArchMCExpr::create(Symbol, VK, Ctx, RelaxHint); Opc) {
     default:
       llvm_unreachable("unexpected opcode");
     case LoongArch::PCALAU12I:
@@ -1561,8 +1561,8 @@ bool LoongArchAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
 
 unsigned LoongArchAsmParser::checkTargetMatchPredicate(MCInst &Inst) {
   unsigned Opc = Inst.getOpcode();
-  const MCInstrDesc &MCID = MII.get(Opc);
-  switch (Opc) {
+  
+  switch (const MCInstrDesc &MCID = MII.get(Opc); Opc) {
   default:
     if (LoongArchII::isSubjectToAMORdConstraint(MCID.TSFlags)) {
       const bool IsAMCAS = LoongArchII::isAMCAS(MCID.TSFlags);
@@ -1607,11 +1607,11 @@ unsigned LoongArchAsmParser::checkTargetMatchPredicate(MCInst &Inst) {
         (Opc == LoongArch::BSTRINS_W || Opc == LoongArch::BSTRINS_D)
             ? Inst.getOperand(3).getImm()
             : Inst.getOperand(2).getImm();
-    const signed Lsb =
+    
+    if (const signed Lsb =
         (Opc == LoongArch::BSTRINS_W || Opc == LoongArch::BSTRINS_D)
             ? Inst.getOperand(4).getImm()
-            : Inst.getOperand(3).getImm();
-    if (Msb < Lsb)
+            : Inst.getOperand(3).getImm(); Msb < Lsb)
       return Match_RequiresMsbNotLessThanLsb;
     return Match_Success;
   }

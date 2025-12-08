@@ -1902,8 +1902,8 @@ static void insertMultibyteShift(MachineInstr &MI, MachineBasicBlock *BB,
 
     // Move all registers to the left, zeroing the bottom registers as needed.
     for (size_t I = 0; I < Regs.size(); I++) {
-      int ShiftRegsIdx = I + 1;
-      if (ShiftRegsIdx < (int)ShiftRegs.size()) {
+      
+      if (int ShiftRegsIdx = I + 1; ShiftRegsIdx < (int)ShiftRegs.size()) {
         Regs[I] = ShiftRegs[ShiftRegsIdx];
       } else if (ShiftRegsIdx == (int)ShiftRegs.size()) {
         Regs[I] = std::pair(LowByte, 0);
@@ -1962,8 +1962,8 @@ static void insertMultibyteShift(MachineInstr &MI, MachineBasicBlock *BB,
 
     // Move all to the right, while sign or zero extending.
     for (int I = Regs.size() - 1; I >= 0; I--) {
-      int ShiftRegsIdx = I - (Regs.size() - ShiftRegs.size()) - 1;
-      if (ShiftRegsIdx >= 0) {
+      
+      if (int ShiftRegsIdx = I - (Regs.size() - ShiftRegs.size()) - 1; ShiftRegsIdx >= 0) {
         Regs[I] = ShiftRegs[ShiftRegsIdx];
       } else if (ShiftRegsIdx == -1) {
         Regs[I] = std::pair(HighByte, 0);
@@ -2292,11 +2292,11 @@ MachineBasicBlock *
 AVRTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
                                                MachineBasicBlock *MBB) const {
   int Opc = MI.getOpcode();
-  const AVRSubtarget &STI = MBB->getParent()->getSubtarget<AVRSubtarget>();
+  
 
   // Pseudo shift instructions with a non constant shift amount are expanded
   // into a loop.
-  switch (Opc) {
+  switch (const AVRSubtarget &STI = MBB->getParent()->getSubtarget<AVRSubtarget>(); Opc) {
   case AVR::Lsl8:
   case AVR::Lsl16:
   case AVR::Lsr8:
@@ -2356,12 +2356,12 @@ AVRTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
 
   MachineFunction *MF = MBB->getParent();
   const BasicBlock *LLVM_BB = MBB->getBasicBlock();
-  MachineBasicBlock *FallThrough = MBB->getFallThrough();
+  
 
   // If the current basic block falls through to another basic block,
   // we must insert an unconditional branch to the fallthrough destination
   // if we are to insert basic blocks at the prior fallthrough point.
-  if (FallThrough != nullptr) {
+  if (MachineBasicBlock *FallThrough = MBB->getFallThrough(); FallThrough != nullptr) {
     BuildMI(MBB, dl, TII.get(AVR::RJMPk)).addMBB(FallThrough);
   }
 
@@ -2670,8 +2670,8 @@ void AVRTargetLowering::LowerAsmOperandForConstraint(SDValue Op,
     return;
   }
 
-  char ConstraintLetter = Constraint[0];
-  switch (ConstraintLetter) {
+  
+  switch (char ConstraintLetter = Constraint[0]; ConstraintLetter) {
   default:
     break;
   // Deal with integers first:
@@ -2690,8 +2690,8 @@ void AVRTargetLowering::LowerAsmOperandForConstraint(SDValue Op,
     }
 
     int64_t CVal64 = C->getSExtValue();
-    uint64_t CUVal64 = C->getZExtValue();
-    switch (ConstraintLetter) {
+    
+    switch (uint64_t CUVal64 = C->getZExtValue(); ConstraintLetter) {
     case 'I': // 0..63
       if (!isUInt<6>(CUVal64))
         return;

@@ -64,8 +64,8 @@ StringExtractorGDBRemote::GetServerPacketType() const {
     return eServerPacketType_invalid;
 
   const size_t packet_size = m_packet.size();
-  const char *packet_cstr = m_packet.c_str();
-  switch (m_packet[0]) {
+  
+  switch (const char *packet_cstr = m_packet.c_str(); m_packet[0]) {
 
   case '%':
     return eServerPacketType_notify;
@@ -515,8 +515,8 @@ size_t StringExtractorGDBRemote::GetEscapedBinaryData(std::string &str) {
   // characters. If any 0x7d characters are left in the packet, then they are
   // supposed to be there...
   str.clear();
-  const size_t bytes_left = GetBytesLeft();
-  if (bytes_left > 0) {
+  
+  if (const size_t bytes_left = GetBytesLeft(); bytes_left > 0) {
     str.assign(m_packet, m_index, bytes_left);
     m_index += bytes_left;
   }

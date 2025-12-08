@@ -119,8 +119,8 @@ bool TypeMapTy::recursivelyAddMappingIfTypesAreIsomorphic(Type *DstTy,
     if (FT->isVarArg() != cast<FunctionType>(SrcTy)->isVarArg())
       return false;
   } else if (StructType *DSTy = dyn_cast<StructType>(DstTy)) {
-    StructType *SSTy = cast<StructType>(SrcTy);
-    if (DSTy->isLiteral() != SSTy->isLiteral() ||
+    
+    if (StructType *SSTy = cast<StructType>(SrcTy); DSTy->isLiteral() != SSTy->isLiteral() ||
         DSTy->isPacked() != SSTy->isPacked())
       return false;
   } else if (auto *DArrTy = dyn_cast<ArrayType>(DstTy)) {
@@ -472,10 +472,10 @@ static void forceRenaming(GlobalValue *GV, StringRef Name) {
   if (GV->hasLocalLinkage() || GV->getName() == Name)
     return;
 
-  Module *M = GV->getParent();
+  
 
   // If there is a conflict, rename the conflict.
-  if (GlobalValue *ConflictGV = M->getNamedValue(Name)) {
+  if (Module *M = GV->getParent(); GlobalValue *ConflictGV = M->getNamedValue(Name)) {
     GV->takeName(ConflictGV);
     ConflictGV->setName(Name); // This will cause ConflictGV to get renamed
     assert(ConflictGV->getName() != Name && "forceRenaming didn't work");
@@ -1145,8 +1145,8 @@ void IRLinker::linkNamedMDNodes() {
 
     // Add Src elements into Dest node.
     for (const MDNode *Op : NMD.operands()) {
-      MDNode *MD = Mapper.mapMDNode(*Op);
-      if (Inserted.insert(MD).second)
+      
+      if (MDNode *MD = Mapper.mapMDNode(*Op); Inserted.insert(MD).second)
         DestNMD->addOperand(MD);
     }
   }
@@ -1259,11 +1259,11 @@ Error IRLinker::linkModuleFlagsMetadata() {
                          DstBehaviorValue == Module::Warning) ||
                         (DstBehaviorValue == Module::Min &&
                          SrcBehaviorValue == Module::Warning);
-      bool MaxAndWarn = (SrcBehaviorValue == Module::Max &&
+      
+      if (bool MaxAndWarn = (SrcBehaviorValue == Module::Max &&
                          DstBehaviorValue == Module::Warning) ||
                         (DstBehaviorValue == Module::Max &&
-                         SrcBehaviorValue == Module::Warning);
-      if (!(MaxAndWarn || MinAndWarn))
+                         SrcBehaviorValue == Module::Warning); !(MaxAndWarn || MinAndWarn))
         return stringErr("linking module flags '" + ID->getString() +
                          "': IDs have conflicting behaviors in '" +
                          SrcM->getModuleIdentifier() + "' and '" +
@@ -1387,8 +1387,8 @@ Error IRLinker::linkModuleFlagsMetadata() {
   // flag.
   for (auto Idx : Mins) {
     MDNode *Op = DstModFlags->getOperand(Idx);
-    MDString *ID = cast<MDString>(Op->getOperand(1));
-    if (!SeenMin.count(ID)) {
+    
+    if (MDString *ID = cast<MDString>(Op->getOperand(1)); !SeenMin.count(ID)) {
       ConstantInt *V = mdconst::extract<ConstantInt>(Op->getOperand(2));
       Metadata *FlagOps[] = {
           Op->getOperand(0), ID,
@@ -1402,8 +1402,8 @@ Error IRLinker::linkModuleFlagsMetadata() {
     MDString *Flag = cast<MDString>(Requirement->getOperand(0));
     Metadata *ReqValue = Requirement->getOperand(1);
 
-    MDNode *Op = Flags[Flag].first;
-    if (!Op || Op->getOperand(2) != ReqValue)
+    
+    if (MDNode *Op = Flags[Flag].first; !Op || Op->getOperand(2) != ReqValue)
       return stringErr("linking module flags '" + Flag->getString() +
                        "': does not have the required value");
   }
@@ -1575,8 +1575,8 @@ Error IRLinker::run() {
     if (FoundError)
       return std::move(*FoundError);
     if (NewValue) {
-      auto *NewGV = dyn_cast<GlobalVariable>(NewValue->stripPointerCasts());
-      if (NewGV) {
+      
+      if (auto *NewGV = dyn_cast<GlobalVariable>(NewValue->stripPointerCasts()); NewGV) {
         NewGV->removeFromParent();
         DstM.insertGlobalVariable(NewGV);
       }

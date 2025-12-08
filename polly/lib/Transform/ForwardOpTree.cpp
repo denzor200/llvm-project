@@ -320,10 +320,10 @@ private:
     for (isl::map Map : MustKnown.get_map_list()) {
       // Get the array this is accessing.
       isl::id ArrayId = Map.get_tuple_id(isl::dim::out);
-      ScopArrayInfo *SAI = static_cast<ScopArrayInfo *>(ArrayId.get_user());
+      
 
       // No support for generation of indirect array accesses.
-      if (SAI->getBasePtrOriginSAI())
+      if (ScopArrayInfo *SAI = static_cast<ScopArrayInfo *>(ArrayId.get_user()); SAI->getBasePtrOriginSAI())
         continue;
 
       // Determine whether this map contains all wanted values.

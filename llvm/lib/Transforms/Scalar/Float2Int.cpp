@@ -369,9 +369,9 @@ bool Float2IntPass::validateAndTransform(const DataLayout &DL) {
     // Do we need more bits than are in the mantissa of the type we converted
     // to? semanticsPrecision returns the number of mantissa bits plus one
     // for the sign bit.
-    unsigned MaxRepresentableBits
-      = APFloat::semanticsPrecision(ConvertedToTy->getFltSemantics()) - 1;
-    if (MinBW > MaxRepresentableBits) {
+    
+    if (unsigned MaxRepresentableBits
+      = APFloat::semanticsPrecision(ConvertedToTy->getFltSemantics()) - 1; MinBW > MaxRepresentableBits) {
       LLVM_DEBUG(dbgs() << "F2I: Value not guaranteed to be representable!\n");
       continue;
     }
@@ -505,8 +505,8 @@ bool Float2IntPass::runImpl(Function &F, const DominatorTree &DT) {
 }
 
 PreservedAnalyses Float2IntPass::run(Function &F, FunctionAnalysisManager &AM) {
-  const DominatorTree &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  if (!runImpl(F, DT))
+  
+  if (const DominatorTree &DT = AM.getResult<DominatorTreeAnalysis>(F); !runImpl(F, DT))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

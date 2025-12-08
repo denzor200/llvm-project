@@ -155,8 +155,8 @@ static bool isExpandedFromConfigurationMacro(const Stmt *S,
   // so that we can refine it later.
   SourceLocation L = S->getBeginLoc();
   if (L.isMacroID()) {
-    SourceManager &SM = PP.getSourceManager();
-    if (IgnoreYES_NO) {
+    
+    if (SourceManager &SM = PP.getSourceManager(); IgnoreYES_NO) {
       // The Objective-C constant 'YES' and 'NO'
       // are defined as macros.  Do not treat them
       // as configuration values.
@@ -208,9 +208,9 @@ static bool isConfigurationValue(const Stmt *S,
   if (const Expr *Ex = dyn_cast<Expr>(S))
     S = Ex->IgnoreCasts();
 
-  bool IgnoreYES_NO = false;
+  
 
-  switch (S->getStmtClass()) {
+  switch (bool IgnoreYES_NO = false; S->getStmtClass()) {
     case Stmt::CallExprClass: {
       const FunctionDecl *Callee =
         dyn_cast_or_null<FunctionDecl>(cast<CallExpr>(S)->getCalleeDecl());
@@ -223,8 +223,8 @@ static bool isConfigurationValue(const Stmt *S,
       [[fallthrough]];
     case Stmt::CXXBoolLiteralExprClass:
     case Stmt::IntegerLiteralClass: {
-      const Expr *E = cast<Expr>(S);
-      if (IncludeIntegers) {
+      
+      if (const Expr *E = cast<Expr>(S); IncludeIntegers) {
         if (SilenceableCondVal && !SilenceableCondVal->getBegin().isValid())
           *SilenceableCondVal = E->getSourceRange();
         return WrappedInParens ||
@@ -367,8 +367,8 @@ static unsigned scanFromBlock(const CFGBlock *Start,
       while (false);
 
       if (B) {
-        unsigned blockID = B->getBlockID();
-        if (!Reachable[blockID]) {
+        
+        if (unsigned blockID = B->getBlockID(); !Reachable[blockID]) {
           Reachable.set(blockID);
           WL.push_back(B);
           ++count;
@@ -507,15 +507,15 @@ static bool isValidDeadStmt(const Stmt *S, const clang::CFGBlock *Block) {
 const Stmt *DeadCodeScan::findDeadCode(const clang::CFGBlock *Block) {
   for (CFGBlock::const_iterator I = Block->begin(), E = Block->end(); I!=E; ++I)
     if (std::optional<CFGStmt> CS = I->getAs<CFGStmt>()) {
-      const Stmt *S = CS->getStmt();
-      if (isValidDeadStmt(S, Block))
+      
+      if (const Stmt *S = CS->getStmt(); isValidDeadStmt(S, Block))
         return S;
     }
 
   CFGTerminator T = Block->getTerminator();
   if (T.isStmtBranch()) {
-    const Stmt *S = T.getStmt();
-    if (S && isValidDeadStmt(S, Block))
+    
+    if (const Stmt *S = T.getStmt(); S && isValidDeadStmt(S, Block))
       return S;
   }
 
@@ -702,8 +702,8 @@ void DeadCodeScan::reportDeadCode(const CFGBlock *B,
     // Check if the dead block has a predecessor whose branch has
     // a configuration value that *could* be modified to
     // silence the warning.
-    CFGBlock::const_pred_iterator PI = B->pred_begin();
-    if (PI != B->pred_end()) {
+    
+    if (CFGBlock::const_pred_iterator PI = B->pred_begin(); PI != B->pred_end()) {
       if (const CFGBlock *PredBlock = PI->getPossiblyUnreachableBlock()) {
         const Stmt *TermCond =
             PredBlock->getTerminatorCondition(/* strip parens */ false);

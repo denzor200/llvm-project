@@ -440,8 +440,8 @@ void llvm::moveInstructionsToTheEnd(BasicBlock &FromBB, BasicBlock &ToBB,
                                     DependenceInfo &DI) {
   Instruction *MovePos = ToBB.getTerminator();
   while (FromBB.size() > 1) {
-    Instruction &I = FromBB.front();
-    if (isSafeToMoveBefore(I, *MovePos, DT, &PDT, &DI))
+    
+    if (Instruction &I = FromBB.front(); isSafeToMoveBefore(I, *MovePos, DT, &PDT, &DI))
       I.moveBeforePreserving(MovePos->getIterator());
   }
 }

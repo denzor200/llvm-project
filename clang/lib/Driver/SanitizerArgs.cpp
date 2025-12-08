@@ -501,9 +501,9 @@ SanitizerArgs::SanitizerArgs(const ToolChain &TC,
                 Add & NotAllowedWithExecuteOnly & ~DiagnosedKinds) {
           if (DiagnoseErrors) {
             std::string Desc = describeSanitizeArg(Arg, KindsToDiagnose);
-            llvm::opt::Arg *A = Args.getLastArgNoClaim(
-                options::OPT_mexecute_only, options::OPT_mno_execute_only);
-            if (A && A->getOption().matches(options::OPT_mexecute_only))
+            
+            if (llvm::opt::Arg *A = Args.getLastArgNoClaim(
+                options::OPT_mexecute_only, options::OPT_mno_execute_only); A && A->getOption().matches(options::OPT_mexecute_only))
               D.Diag(diag::err_drv_argument_not_allowed_with)
                   << Desc << A->getAsString(Args);
             else
@@ -954,11 +954,11 @@ SanitizerArgs::SanitizerArgs(const ToolChain &TC,
   }
 
   int InsertionPointTypes = CoverageFunc | CoverageBB | CoverageEdge;
-  int InstrumentationTypes = CoverageTracePC | CoverageTracePCGuard |
+  
+  if (int InstrumentationTypes = CoverageTracePC | CoverageTracePCGuard |
                              CoverageInline8bitCounters | CoverageTraceLoads |
                              CoverageTraceStores | CoverageInlineBoolFlag |
-                             CoverageControlFlow;
-  if ((CoverageFeatures & InsertionPointTypes) &&
+                             CoverageControlFlow; (CoverageFeatures & InsertionPointTypes) &&
       !(CoverageFeatures & InstrumentationTypes) && DiagnoseErrors) {
     D.Diag(clang::diag::warn_drv_deprecated_arg)
         << "-fsanitize-coverage=[func|bb|edge]" << /*hasReplacement=*/true
@@ -1742,8 +1742,8 @@ std::string lastArgumentForMask(const Driver &D, const llvm::opt::ArgList &Args,
   for (llvm::opt::ArgList::const_reverse_iterator I = Args.rbegin(),
                                                   E = Args.rend();
        I != E; ++I) {
-    const auto *Arg = *I;
-    if (Arg->getOption().matches(options::OPT_fsanitize_EQ)) {
+    
+    if (const auto *Arg = *I; Arg->getOption().matches(options::OPT_fsanitize_EQ)) {
       SanitizerMask AddKinds =
           expandSanitizerGroups(parseArgValues(D, Arg, false));
       if (AddKinds & Mask)

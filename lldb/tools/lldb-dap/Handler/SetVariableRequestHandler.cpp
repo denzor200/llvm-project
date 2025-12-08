@@ -46,8 +46,8 @@ SetVariableRequestHandler::Run(const SetVariableArguments &args) const {
     return llvm::make_error<DAPError>("could not find variable in scope");
 
   lldb::SBError error;
-  const bool success = variable.SetValueFromCString(args.value.c_str(), error);
-  if (!success)
+  
+  if (const bool success = variable.SetValueFromCString(args.value.c_str(), error); !success)
     return llvm::make_error<DAPError>(error.GetCString());
 
   VariableDescription desc(variable,

@@ -400,8 +400,8 @@ FileEntryRef FileManager::getVirtualFileRef(StringRef Filename, off_t Size,
 
   // Check to see if the file exists. If so, drop the virtual file
   llvm::vfs::Status Status;
-  const char *InterndFileName = NamedFileEnt.first().data();
-  if (!getStatValue(InterndFileName, Status, true, nullptr)) {
+  
+  if (const char *InterndFileName = NamedFileEnt.first().data(); !getStatValue(InterndFileName, Status, true, nullptr)) {
     Status = llvm::vfs::Status(
       Status.getName(), Status.getUniqueID(),
       llvm::sys::toTimePoint(ModificationTime),
@@ -605,8 +605,8 @@ void FileManager::GetUniqueIDMapping(
     FileEntryRef FE(Entry);
     // Add this file if it's the first one with the UID, or if its name is
     // better than the existing one.
-    OptionalFileEntryRef &ExistingFE = UIDToFiles[FE.getUID()];
-    if (!ExistingFE || FE.getName() < ExistingFE->getName())
+    
+    if (OptionalFileEntryRef &ExistingFE = UIDToFiles[FE.getUID()]; !ExistingFE || FE.getName() < ExistingFE->getName())
       ExistingFE = FE;
   }
 }

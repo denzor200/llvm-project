@@ -299,8 +299,8 @@ StdThreadPool::~StdThreadPool() {
 
 // No threads are launched, issue a warning if ThreadCount is not 0
 SingleThreadExecutor::SingleThreadExecutor(ThreadPoolStrategy S) {
-  int ThreadCount = S.compute_thread_count();
-  if (ThreadCount != 1) {
+  
+  if (int ThreadCount = S.compute_thread_count(); ThreadCount != 1) {
     errs() << "Warning: request a ThreadPool with " << ThreadCount
            << " threads, but LLVM_ENABLE_THREADS has been turned off\n";
   }

@@ -1675,10 +1675,10 @@ void AggExprEmitter::EmitNullInitializationToLValue(LValue lv) {
 
   if (CGF.hasScalarEvaluationKind(type)) {
     // For non-aggregates, we can store the appropriate null constant.
-    llvm::Value *null = CGF.CGM.EmitNullConstant(type);
+    
     // Note that the following is not equivalent to
     // EmitStoreThroughBitfieldLValue for ARC types.
-    if (lv.isBitField()) {
+    if (llvm::Value *null = CGF.CGM.EmitNullConstant(type); lv.isBitField()) {
       CGF.EmitStoreThroughBitfieldLValue(RValue::get(null), lv);
     } else {
       assert(lv.isSimple());
@@ -1924,8 +1924,8 @@ void AggExprEmitter::DoZeroInitPadding(uint64_t &PaddingStart,
     const CGRecordLayout &RL =
         CGF.getTypes().getCGRecordLayout(NextField->getParent());
     const CGBitFieldInfo &Info = RL.getBitFieldInfo(NextField);
-    uint64_t StorageStart = CGF.getContext().toBits(Info.StorageOffset);
-    if (StorageStart + Info.StorageSize > PaddingStart) {
+    
+    if (uint64_t StorageStart = CGF.getContext().toBits(Info.StorageOffset); StorageStart + Info.StorageSize > PaddingStart) {
       if (StorageStart > PaddingStart)
         InitBytes(PaddingStart, StorageStart);
       Address Addr = Dest.getAddress();
@@ -2096,10 +2096,10 @@ static CharUnits GetNumNonZeroBytesInInit(const Expr *E, CodeGenFunction &CGF) {
         if (Field->isUnnamedBitField())
           continue;
 
-        const Expr *E = ILE->getInit(ILEElement++);
+        
 
         // Reference values are always non-null and have the width of a pointer.
-        if (Field->getType()->isReferenceType())
+        if (const Expr *E = ILE->getInit(ILEElement++); Field->getType()->isReferenceType())
           NumNonZeroBytes += CGF.getContext().toCharUnitsFromBits(
               CGF.getTarget().getPointerWidth(LangAS::Default));
         else
@@ -2132,8 +2132,8 @@ static void CheckAggExprForMemSetUse(AggValueSlot &Slot, const Expr *E,
     if (const RecordType *RT = CGF.getContext()
                                    .getBaseElementType(E->getType())
                                    ->getAsCanonical<RecordType>()) {
-      const auto *RD = cast<CXXRecordDecl>(RT->getDecl());
-      if (RD->hasUserDeclaredConstructor())
+      
+      if (const auto *RD = cast<CXXRecordDecl>(RT->getDecl()); RD->hasUserDeclaredConstructor())
         return;
     }
 
@@ -2208,8 +2208,8 @@ CodeGenFunction::getOverlapForFieldInit(const FieldDecl *FD) {
   // padding cannot overlap any already-initialized object. (The only subobjects
   // with greater addresses that might already be initialized are vbases.)
   const RecordDecl *ClassRD = FD->getParent();
-  const ASTRecordLayout &Layout = getContext().getASTRecordLayout(ClassRD);
-  if (Layout.getFieldOffset(FD->getFieldIndex()) +
+  
+  if (const ASTRecordLayout &Layout = getContext().getASTRecordLayout(ClassRD); Layout.getFieldOffset(FD->getFieldIndex()) +
           getContext().getTypeSize(FD->getType()) <=
       (uint64_t)getContext().toBits(Layout.getNonVirtualSize()))
     return AggValueSlot::DoesNotOverlap;
@@ -2233,8 +2233,8 @@ AggValueSlot::Overlap_t CodeGenFunction::getOverlapForBaseInit(
   // If the base class is laid out entirely within the nvsize of the derived
   // class, its tail padding cannot yet be initialized, so we can issue
   // stores at the full width of the base class.
-  const ASTRecordLayout &Layout = getContext().getASTRecordLayout(RD);
-  if (Layout.getBaseClassOffset(BaseRD) +
+  
+  if (const ASTRecordLayout &Layout = getContext().getASTRecordLayout(RD); Layout.getBaseClassOffset(BaseRD) +
           getContext().getASTRecordLayout(BaseRD).getSize() <=
       Layout.getNonVirtualSize())
     return AggValueSlot::DoesNotOverlap;

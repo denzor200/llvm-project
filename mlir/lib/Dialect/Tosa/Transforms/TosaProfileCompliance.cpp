@@ -477,10 +477,10 @@ LogicalResult TosaProfileCompliance::checkInvalid(Operation *op) {
   if (failed(maybeProfDef) && failed(maybeExtDef))
     return success();
 
-  const bool hasEntry =
+  
+  if (const bool hasEntry =
       (succeeded(maybeProfDef) && !maybeProfDef->mode.empty()) ||
-      (succeeded(maybeExtDef) && !maybeExtDef->mode.empty());
-  if (!hasEntry) {
+      (succeeded(maybeExtDef) && !maybeExtDef->mode.empty()); !hasEntry) {
     std::string message;
     llvm::raw_string_ostream os(message);
     os << "illegal: operation operand/result data types did not align with any "
@@ -502,12 +502,12 @@ LogicalResult TosaProfileCompliance::checkInvalid(Operation *op) {
         for (const auto &versionedTypeInfos :
              complianceInfos.operandTypeInfoSet) {
           const SmallVector<TypeInfo> typeInfos = versionedTypeInfos.first;
-          const int matches = llvm::count_if(
+          
+          if (const int matches = llvm::count_if(
               llvm::zip_equal(current, typeInfos), [&](const auto zipType) {
                 return isSameTypeInfo(std::get<0>(zipType),
                                       std::get<1>(zipType));
-              });
-          if (matches > maxMatches) {
+              }); matches > maxMatches) {
             maxMatches = matches;
             bestTypeInfo = typeInfos;
           }

@@ -259,8 +259,8 @@ ReorderData::sortedByFunc(BinaryContext &BC, const BinarySection &Section,
   };
 
   for (auto &Entry : BFs) {
-    BinaryFunction &BF = Entry.second;
-    if (BF.hasValidProfile()) {
+    
+    if (BinaryFunction &BF = Entry.second; BF.hasValidProfile()) {
       for (BinaryData *BD : dataUses(BF, true)) {
         if (!BC.getFunctionForSymbol(BD->getSymbol())) {
           BDtoFunc[BD->getAtomicRoot()].insert(&BF);
@@ -414,14 +414,14 @@ bool ReorderData::markUnmoveableSymbols(BinaryContext &BC,
   auto Range = BC.getBinaryDataForSection(Section);
   bool FoundUnmoveable = false;
   for (auto Itr = Range.begin(); Itr != Range.end(); ++Itr) {
-    BinaryData *Next =
-        std::next(Itr) != Range.end() ? std::next(Itr)->second : nullptr;
-    if (Itr->second->getName().starts_with("PG.")) {
+    
+    if (BinaryData *Next =
+        std::next(Itr) != Range.end() ? std::next(Itr)->second : nullptr; Itr->second->getName().starts_with("PG.")) {
       BinaryData *Prev =
           Itr != Range.begin() ? std::prev(Itr)->second : nullptr;
       bool PrevIsPrivate = Prev && isPrivate(Prev);
-      bool NextIsPrivate = Next && isPrivate(Next);
-      if (isPrivate(Itr->second) && (PrevIsPrivate || NextIsPrivate))
+      
+      if (bool NextIsPrivate = Next && isPrivate(Next); isPrivate(Itr->second) && (PrevIsPrivate || NextIsPrivate))
         Itr->second->setIsMoveable(false);
     } else {
       // check for overlapping symbols.

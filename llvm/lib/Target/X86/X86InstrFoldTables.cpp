@@ -114,8 +114,8 @@ lookupFoldTableImpl(ArrayRef<X86FoldTableEntry> Table, unsigned RegOp) {
   }
 #endif
 
-  const X86FoldTableEntry *Data = llvm::lower_bound(Table, RegOp);
-  if (Data != Table.end() && Data->KeyOp == RegOp &&
+  
+  if (const X86FoldTableEntry *Data = llvm::lower_bound(Table, RegOp); Data != Table.end() && Data->KeyOp == RegOp &&
       !(Data->Flags & TB_NO_FORWARD))
     return Data;
   return nullptr;
@@ -248,8 +248,8 @@ struct X86BroadcastFoldTable {
     // Broadcast tables.
     for (const X86FoldTableEntry &Reg2Bcst : BroadcastTable2) {
       unsigned RegOp = Reg2Bcst.KeyOp;
-      unsigned BcstOp = Reg2Bcst.DstOp;
-      if (const X86FoldTableEntry *Reg2Mem = lookupFoldTable(RegOp, 2)) {
+      
+      if (unsigned BcstOp = Reg2Bcst.DstOp; const X86FoldTableEntry *Reg2Mem = lookupFoldTable(RegOp, 2)) {
         unsigned MemOp = Reg2Mem->DstOp;
         uint16_t Flags =
             Reg2Mem->Flags | Reg2Bcst.Flags | TB_INDEX_2 | TB_FOLDED_LOAD;
@@ -258,8 +258,8 @@ struct X86BroadcastFoldTable {
     }
     for (const X86FoldTableEntry &Reg2Bcst : BroadcastSizeTable2) {
       unsigned RegOp = Reg2Bcst.KeyOp;
-      unsigned BcstOp = Reg2Bcst.DstOp;
-      if (const X86FoldTableEntry *Reg2Mem = lookupFoldTable(RegOp, 2)) {
+      
+      if (unsigned BcstOp = Reg2Bcst.DstOp; const X86FoldTableEntry *Reg2Mem = lookupFoldTable(RegOp, 2)) {
         unsigned MemOp = Reg2Mem->DstOp;
         uint16_t Flags =
             Reg2Mem->Flags | Reg2Bcst.Flags | TB_INDEX_2 | TB_FOLDED_LOAD;
@@ -269,8 +269,8 @@ struct X86BroadcastFoldTable {
 
     for (const X86FoldTableEntry &Reg2Bcst : BroadcastTable3) {
       unsigned RegOp = Reg2Bcst.KeyOp;
-      unsigned BcstOp = Reg2Bcst.DstOp;
-      if (const X86FoldTableEntry *Reg2Mem = lookupFoldTable(RegOp, 3)) {
+      
+      if (unsigned BcstOp = Reg2Bcst.DstOp; const X86FoldTableEntry *Reg2Mem = lookupFoldTable(RegOp, 3)) {
         unsigned MemOp = Reg2Mem->DstOp;
         uint16_t Flags =
             Reg2Mem->Flags | Reg2Bcst.Flags | TB_INDEX_3 | TB_FOLDED_LOAD;
@@ -279,8 +279,8 @@ struct X86BroadcastFoldTable {
     }
     for (const X86FoldTableEntry &Reg2Bcst : BroadcastSizeTable3) {
       unsigned RegOp = Reg2Bcst.KeyOp;
-      unsigned BcstOp = Reg2Bcst.DstOp;
-      if (const X86FoldTableEntry *Reg2Mem = lookupFoldTable(RegOp, 3)) {
+      
+      if (unsigned BcstOp = Reg2Bcst.DstOp; const X86FoldTableEntry *Reg2Mem = lookupFoldTable(RegOp, 3)) {
         unsigned MemOp = Reg2Mem->DstOp;
         uint16_t Flags =
             Reg2Mem->Flags | Reg2Bcst.Flags | TB_INDEX_3 | TB_FOLDED_LOAD;
@@ -290,8 +290,8 @@ struct X86BroadcastFoldTable {
 
     for (const X86FoldTableEntry &Reg2Bcst : BroadcastTable4) {
       unsigned RegOp = Reg2Bcst.KeyOp;
-      unsigned BcstOp = Reg2Bcst.DstOp;
-      if (const X86FoldTableEntry *Reg2Mem = lookupFoldTable(RegOp, 4)) {
+      
+      if (unsigned BcstOp = Reg2Bcst.DstOp; const X86FoldTableEntry *Reg2Mem = lookupFoldTable(RegOp, 4)) {
         unsigned MemOp = Reg2Mem->DstOp;
         uint16_t Flags =
             Reg2Mem->Flags | Reg2Bcst.Flags | TB_INDEX_4 | TB_FOLDED_LOAD;

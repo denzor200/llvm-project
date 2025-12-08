@@ -90,8 +90,8 @@ static bool IsAcceptableTarget(Instruction *Inst, BasicBlock *SuccToSinkTo,
 
     // Don't sink instructions into a loop.
     Loop *succ = LI.getLoopFor(SuccToSinkTo);
-    Loop *cur = LI.getLoopFor(Inst->getParent());
-    if (succ != nullptr && succ != cur)
+    
+    if (Loop *cur = LI.getLoopFor(Inst->getParent()); succ != nullptr && succ != cur)
       return false;
   }
 
@@ -227,9 +227,9 @@ static bool iterativelySinkInstructions(Function &F, DominatorTree &DT,
 PreservedAnalyses SinkingPass::run(Function &F, FunctionAnalysisManager &AM) {
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
   auto &LI = AM.getResult<LoopAnalysis>(F);
-  auto &AA = AM.getResult<AAManager>(F);
+  
 
-  if (!iterativelySinkInstructions(F, DT, LI, AA))
+  if (auto &AA = AM.getResult<AAManager>(F); !iterativelySinkInstructions(F, DT, LI, AA))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

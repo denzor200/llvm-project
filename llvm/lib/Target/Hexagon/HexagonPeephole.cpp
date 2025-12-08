@@ -155,8 +155,8 @@ bool HexagonPeephole::runOnMachineFunction(MachineFunction &MF) {
         assert(MI.getNumOperands() == 3);
         MachineOperand &Dst = MI.getOperand(0);
         MachineOperand &Src1 = MI.getOperand(1);
-        MachineOperand &Src2 = MI.getOperand(2);
-        if (Src2.getImm() != 32)
+        
+        if (MachineOperand &Src2 = MI.getOperand(2); Src2.getImm() != 32)
           continue;
         Register DstReg = Dst.getReg();
         Register SrcReg = Src1.getReg();
@@ -220,8 +220,8 @@ bool HexagonPeephole::runOnMachineFunction(MachineFunction &MF) {
         if (QII->isPredicated(MI)) {
           MachineOperand &Op0 = MI.getOperand(0);
           Register Reg0 = Op0.getReg();
-          const TargetRegisterClass *RC0 = MRI->getRegClass(Reg0);
-          if (RC0->getID() == Hexagon::PredRegsRegClassID) {
+          
+          if (const TargetRegisterClass *RC0 = MRI->getRegClass(Reg0); RC0->getID() == Hexagon::PredRegsRegClassID) {
             // Handle instructions that have a prediate register in op0
             // (most cases of predicable instructions).
             if (Reg0.isVirtual()) {

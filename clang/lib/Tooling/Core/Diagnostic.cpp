@@ -60,10 +60,10 @@ Diagnostic::Diagnostic(llvm::StringRef DiagnosticName,
 const llvm::StringMap<Replacements> *selectFirstFix(const Diagnostic& D) {
    if (!D.Message.Fix.empty())
     return &D.Message.Fix;
-  auto Iter = llvm::find_if(D.Notes, [](const tooling::DiagnosticMessage &D) {
+  
+  if (auto Iter = llvm::find_if(D.Notes, [](const tooling::DiagnosticMessage &D) {
     return !D.Fix.empty();
-  });
-  if (Iter != D.Notes.end())
+  }); Iter != D.Notes.end())
     return &Iter->Fix;
   return nullptr;
 }

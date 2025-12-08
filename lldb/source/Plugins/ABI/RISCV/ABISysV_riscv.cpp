@@ -546,8 +546,8 @@ static ValueObjectSP GetValObjFromIntRegs(Thread &thread,
   }
 
   if (type_flags & eTypeIsInteger) {
-    const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-    if (!SetSizedInteger(value.GetScalar(), raw_value, byte_size, is_signed))
+    
+    if (const bool is_signed = (type_flags & eTypeIsSigned) != 0; !SetSizedInteger(value.GetScalar(), raw_value, byte_size, is_signed))
       return return_valobj_sp;
   } else if (type_flags & eTypeIsFloat) {
     if (!SetSizedFloat(value.GetScalar(), raw_value, byte_size))

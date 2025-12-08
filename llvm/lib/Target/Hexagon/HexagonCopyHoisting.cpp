@@ -93,8 +93,8 @@ bool HexagonCopyHoisting::runOnMachineFunction(MachineFunction &Fn) {
     if (!BB->empty()) {
       if (BB->pred_size() != 1)
         continue;
-      auto &BBCopyInst = CopyMIList[BB->getNumber()];
-      if (BBCopyInst.size() > 0)
+      
+      if (auto &BBCopyInst = CopyMIList[BB->getNumber()]; BBCopyInst.size() > 0)
         Changed |= analyzeCopy(*BB->pred_begin());
     }
   }
@@ -181,8 +181,8 @@ bool HexagonCopyHoisting::analyzeCopy(MachineBasicBlock *BB) {
       }
       // If present, make sure that it's safe to pull this copy instruction
       // into the predecessor.
-      MachineInstr *SuccMI = It->second;
-      if (!isSafetoMove(SuccMI)) {
+      
+      if (MachineInstr *SuccMI = It->second; !isSafetoMove(SuccMI)) {
         IsSafetoMove = false;
         break;
       }

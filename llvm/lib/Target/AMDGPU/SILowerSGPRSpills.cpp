@@ -202,14 +202,14 @@ static void insertCSRRestores(MachineBasicBlock &RestoreBlock,
 /// Compute the sets of entry and return blocks for saving and restoring
 /// callee-saved registers, and placing prolog and epilog code.
 void SILowerSGPRSpills::calculateSaveRestoreBlocks(MachineFunction &MF) {
-  const MachineFrameInfo &MFI = MF.getFrameInfo();
+  
 
   // Even when we do not change any CSR, we still want to insert the
   // prologue and epilogue of the function.
   // So set the save points for those.
 
   // Use the points found by shrink-wrapping, if any.
-  if (!MFI.getSavePoints().empty()) {
+  if (const MachineFrameInfo &MFI = MF.getFrameInfo(); !MFI.getSavePoints().empty()) {
     assert(MFI.getSavePoints().size() == 1 &&
            "Multiple save points not yet supported!");
     const auto &SavePoint = *MFI.getSavePoints().begin();
@@ -217,11 +217,11 @@ void SILowerSGPRSpills::calculateSaveRestoreBlocks(MachineFunction &MF) {
     assert(MFI.getRestorePoints().size() == 1 &&
            "Multiple restore points not yet supported!");
     const auto &RestorePoint = *MFI.getRestorePoints().begin();
-    MachineBasicBlock *RestoreBlock = RestorePoint.first;
+    
     // If RestoreBlock does not have any successor and is not a return block
     // then the end point is unreachable and we do not need to insert any
     // epilogue.
-    if (!RestoreBlock->succ_empty() || RestoreBlock->isReturnBlock())
+    if (MachineBasicBlock *RestoreBlock = RestorePoint.first; !RestoreBlock->succ_empty() || RestoreBlock->isReturnBlock())
       RestoreBlocks.push_back(RestoreBlock);
     return;
   }
@@ -454,8 +454,8 @@ bool SILowerSGPRSpills::run(MachineFunction &MF) {
         int FI = TII->getNamedOperand(MI, AMDGPU::OpName::addr)->getIndex();
         assert(MFI.getStackID(FI) == TargetStackID::SGPRSpill);
 
-        bool IsCalleeSaveSGPRSpill = llvm::is_contained(CalleeSavedFIs, FI);
-        if (IsCalleeSaveSGPRSpill) {
+        
+        if (bool IsCalleeSaveSGPRSpill = llvm::is_contained(CalleeSavedFIs, FI); IsCalleeSaveSGPRSpill) {
           // Spill callee-saved SGPRs into physical VGPR lanes.
 
           // TODO: This is to ensure the CFIs are static for efficient frame
@@ -468,18 +468,18 @@ bool SILowerSGPRSpills::run(MachineFunction &MF) {
           // currently exist in the LLVM compiler.
           if (FuncInfo->allocateSGPRSpillToVGPRLane(
                   MF, FI, /*SpillToPhysVGPRLane=*/true)) {
-            bool Spilled = TRI->eliminateSGPRToVGPRSpillFrameIndex(
-                MI, FI, nullptr, Indexes, LIS, true);
-            if (!Spilled)
+            
+            if (bool Spilled = TRI->eliminateSGPRToVGPRSpillFrameIndex(
+                MI, FI, nullptr, Indexes, LIS, true); !Spilled)
               llvm_unreachable(
                   "failed to spill SGPR to physical VGPR lane when allocated");
           }
         } else {
           MachineInstrSpan MIS(&MI, &MBB);
           if (FuncInfo->allocateSGPRSpillToVGPRLane(MF, FI)) {
-            bool Spilled = TRI->eliminateSGPRToVGPRSpillFrameIndex(
-                MI, FI, nullptr, Indexes, LIS);
-            if (!Spilled)
+            
+            if (bool Spilled = TRI->eliminateSGPRToVGPRSpillFrameIndex(
+                MI, FI, nullptr, Indexes, LIS); !Spilled)
               llvm_unreachable(
                   "failed to spill SGPR to virtual VGPR lane when allocated");
             SpillFIs.set(FI);
@@ -531,8 +531,8 @@ bool SILowerSGPRSpills::run(MachineFunction &MF) {
       // adequate to lower the DIExpression. It should be worked out later.
       for (MachineInstr &MI : MBB) {
         if (MI.isDebugValue()) {
-          uint32_t StackOperandIdx = MI.isDebugValueList() ? 2 : 0;
-          if (MI.getOperand(StackOperandIdx).isFI() &&
+          
+          if (uint32_t StackOperandIdx = MI.isDebugValueList() ? 2 : 0; MI.getOperand(StackOperandIdx).isFI() &&
               !MFI.isFixedObjectIndex(
                   MI.getOperand(StackOperandIdx).getIndex()) &&
               SpillFIs[MI.getOperand(StackOperandIdx).getIndex()]) {

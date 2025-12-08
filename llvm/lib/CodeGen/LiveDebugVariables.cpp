@@ -112,8 +112,8 @@ public:
            "DBG_VALUE_LISTs should not be indirect.");
     SmallVector<unsigned> LocNoVec;
     for (unsigned LocNo : NewLocs) {
-      auto It = find(LocNoVec, LocNo);
-      if (It == LocNoVec.end())
+      
+      if (auto It = find(LocNoVec, LocNo); It == LocNoVec.end())
         LocNoVec.push_back(LocNo);
       else {
         // Loc duplicates an element in LocNos; replace references to Op
@@ -397,16 +397,16 @@ public:
   void removeLocationIfUnused(unsigned LocNo) {
     // Bail out if LocNo still is used.
     for (LocMap::const_iterator I = locInts.begin(); I.valid(); ++I) {
-      const DbgVariableValue &DbgValue = I.value();
-      if (DbgValue.containsLocNo(LocNo))
+      
+      if (const DbgVariableValue &DbgValue = I.value(); DbgValue.containsLocNo(LocNo))
         return;
     }
     // Remove the entry in the locations vector, and adjust all references to
     // location numbers above the removed entry.
     locations.erase(locations.begin() + LocNo);
     for (LocMap::iterator I = locInts.begin(); I.valid(); ++I) {
-      const DbgVariableValue &DbgValue = I.value();
-      if (DbgValue.hasLocNoGreaterThan(LocNo))
+      
+      if (const DbgVariableValue &DbgValue = I.value(); DbgValue.hasLocNoGreaterThan(LocNo))
         I.setValueUnchecked(DbgValue.decrementLocNosAfterPivot(LocNo));
     }
   }
@@ -1482,8 +1482,8 @@ UserValue::splitRegister(Register OldReg, ArrayRef<Register> NewRegs,
   // safely erase unused locations.
   for (unsigned i = locations.size(); i ; --i) {
     unsigned LocNo = i-1;
-    const MachineOperand *Loc = &locations[LocNo];
-    if (!Loc->isReg() || Loc->getReg() != OldReg)
+    
+    if (const MachineOperand *Loc = &locations[LocNo]; !Loc->isReg() || Loc->getReg() != OldReg)
       continue;
     DidChange |= splitLocation(LocNo, NewRegs, LIS);
   }
@@ -1507,8 +1507,8 @@ void LiveDebugVariables::LDVImpl::splitPHIRegister(Register OldReg,
     // Find the new register that covers this position.
     for (auto NewReg : NewRegs) {
       const LiveInterval &LI = LIS->getInterval(NewReg);
-      auto LII = LI.find(Slot);
-      if (LII != LI.end() && LII->start <= Slot) {
+      
+      if (auto LII = LI.find(Slot); LII != LI.end() && LII->start <= Slot) {
         // This new register covers this PHI position, record this for indexing.
         NewRegIdxes.push_back(std::make_pair(NewReg, InstrID));
         // Record that this value lives in a different VReg now.
@@ -1885,8 +1885,8 @@ void LiveDebugVariables::LDVImpl::emitDebugValues(VirtRegMap *VRM) {
     Register Reg = It.second.Reg;
     unsigned SubReg = It.second.SubReg;
 
-    MachineBasicBlock *OrigMBB = Slots->getMBBFromIndex(Slot);
-    if (VRM->isAssignedReg(Reg) && VRM->hasPhys(Reg)) {
+    
+    if (MachineBasicBlock *OrigMBB = Slots->getMBBFromIndex(Slot); VRM->isAssignedReg(Reg) && VRM->hasPhys(Reg)) {
       unsigned PhysReg = VRM->getPhys(Reg);
       if (SubReg != 0)
         PhysReg = TRI->getSubReg(PhysReg, SubReg);

@@ -197,8 +197,8 @@ Replacements Replacements::getCanonicalReplacements() const {
       continue;
     }
     auto &Prev = NewReplaces.back();
-    unsigned PrevEnd = Prev.getOffset() + Prev.getLength();
-    if (PrevEnd < R.getOffset()) {
+    
+    if (unsigned PrevEnd = Prev.getOffset() + Prev.getLength(); PrevEnd < R.getOffset()) {
       NewReplaces.push_back(R);
     } else {
       assert(PrevEnd == R.getOffset() &&
@@ -379,8 +379,8 @@ public:
   void merge(const Replacement &R) {
     if (MergeSecond) {
       unsigned REnd = R.getOffset() + Delta + R.getLength();
-      unsigned End = Offset + Text.size();
-      if (REnd > End) {
+      
+      if (unsigned End = Offset + Text.size(); REnd > End) {
         Length += REnd - End;
         MergeSecond = false;
       }

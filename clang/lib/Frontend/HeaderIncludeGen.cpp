@@ -213,10 +213,10 @@ void clang::AttachHeaderIncludeGen(Preprocessor &PP,
   // Open the output file, if used.
   if (!OutputPath.empty()) {
     std::error_code EC;
-    llvm::raw_fd_ostream *OS = new llvm::raw_fd_ostream(
+    
+    if (llvm::raw_fd_ostream *OS = new llvm::raw_fd_ostream(
         OutputPath.str(), EC,
-        llvm::sys::fs::OF_Append | llvm::sys::fs::OF_TextWithCRLF);
-    if (EC) {
+        llvm::sys::fs::OF_Append | llvm::sys::fs::OF_TextWithCRLF); EC) {
       PP.getDiagnostics().Report(clang::diag::warn_fe_cc_print_header_failure)
           << EC.message();
       delete OS;
@@ -342,8 +342,8 @@ void HeaderIncludesJSONCallback::EndOfMainFile() {
   OS << "\n";
 
   if (OutputFile->get_kind() == raw_ostream::OStreamKind::OK_FDStream) {
-    llvm::raw_fd_ostream *FDS = static_cast<llvm::raw_fd_ostream *>(OutputFile);
-    if (auto L = FDS->lock())
+    
+    if (llvm::raw_fd_ostream *FDS = static_cast<llvm::raw_fd_ostream *>(OutputFile); auto L = FDS->lock())
       *OutputFile << Str;
   } else
     *OutputFile << Str;
@@ -439,8 +439,8 @@ void HeaderIncludesDirectPerFileCallback::EndOfMainFile() {
   OS << "\n";
 
   if (OutputFile->get_kind() == raw_ostream::OStreamKind::OK_FDStream) {
-    llvm::raw_fd_ostream *FDS = static_cast<llvm::raw_fd_ostream *>(OutputFile);
-    if (auto L = FDS->lock())
+    
+    if (llvm::raw_fd_ostream *FDS = static_cast<llvm::raw_fd_ostream *>(OutputFile); auto L = FDS->lock())
       *OutputFile << Str;
   } else
     *OutputFile << Str;

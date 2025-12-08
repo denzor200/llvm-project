@@ -31,8 +31,8 @@ DataBreakpointInfoRequestHandler::Run(
   bool is_data_ok = true;
   if (variable.IsValid()) {
     lldb::addr_t load_addr = variable.GetLoadAddress();
-    size_t byte_size = variable.GetByteSize();
-    if (load_addr == LLDB_INVALID_ADDRESS) {
+    
+    if (size_t byte_size = variable.GetByteSize(); load_addr == LLDB_INVALID_ADDRESS) {
       is_data_ok = false;
       response.description = "does not exist in memory, its location is " +
                              std::string(variable.GetLocation());

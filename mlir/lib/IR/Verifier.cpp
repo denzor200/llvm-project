@@ -146,8 +146,8 @@ LogicalResult OperationVerifier::verifyOnExit(Block &block) {
   if (mayBeValidWithoutTerminator(&block))
     return success();
 
-  Operation &terminator = block.back();
-  if (!terminator.mightHaveTrait<OpTrait::IsTerminator>())
+  
+  if (Operation &terminator = block.back(); !terminator.mightHaveTrait<OpTrait::IsTerminator>())
     return block.back().emitError("block with no terminator, has ")
            << terminator;
 
@@ -201,8 +201,8 @@ LogicalResult OperationVerifier::verifyOnEntrance(Operation &op) {
       continue;
 
     // Verify the first block has no predecessors.
-    Block *firstBB = &region.front();
-    if (!firstBB->hasNoPredecessors())
+    
+    if (Block *firstBB = &region.front(); !firstBB->hasNoPredecessors())
       return emitError(op.getLoc(),
                        "entry block of region may not have predecessors");
   }
@@ -307,8 +307,8 @@ LogicalResult OperationVerifier::verifyOperation(Operation &op) {
       continue;
     }
 
-    Operation &currentOp = *cast<Operation *>(item);
-    if (verifyRecursively)
+    
+    if (Operation &currentOp = *cast<Operation *>(item); verifyRecursively)
       for (Region &region : llvm::reverse(currentOp.getRegions()))
         for (Block &block : llvm::reverse(region))
           worklist.emplace_back(&block);
@@ -336,8 +336,8 @@ static void diagnoseInvalidOperandDominance(Operation &op, unsigned operandNo) {
     Block *block1 = op.getBlock();
     Block *block2 = useOp->getBlock();
     Region *region1 = block1->getParent();
-    Region *region2 = block2->getParent();
-    if (block1 == block2)
+    
+    if (Region *region2 = block2->getParent(); block1 == block2)
       note << " (op in the same block)";
     else if (region1 == region2)
       note << " (op in the same region)";

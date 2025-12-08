@@ -733,8 +733,8 @@ NamedDecl *Parser::ParseTemplateTemplateParameter(unsigned Depth,
     // or greater appear immediately or after 'struct'. In the latter case,
     // replace the keyword with 'class'.
     bool Replace = Tok.isOneOf(tok::kw_typename, tok::kw_struct);
-    const Token &Next = Tok.is(tok::kw_struct) ? NextToken() : Tok;
-    if (Tok.is(tok::kw_typename)) {
+    
+    if (const Token &Next = Tok.is(tok::kw_struct) ? NextToken() : Tok; Tok.is(tok::kw_typename)) {
       TypenameKeyword = true;
       Kind = TemplateNameKind::TNK_Type_template;
       Diag(Tok.getLocation(),

@@ -522,8 +522,8 @@ void SplitGraph::buildGraph(CallGraph &CG) {
     SetVector<const Function *> DirectCallees;
     bool CallsExternal = false;
     for (auto &CGEntry : *CG[&Fn]) {
-      auto *CGNode = CGEntry.second;
-      if (auto *Callee = CGNode->getFunction()) {
+      
+      if (auto *CGNode = CGEntry.second; auto *Callee = CGNode->getFunction()) {
         if (!Callee->isDeclaration())
           DirectCallees.insert(Callee);
       } else if (CGNode == CG.getCallsExternalNode())
@@ -1021,8 +1021,8 @@ void RecursiveSearchSplitting::setupWorkList() {
 
     BitVector Cluster = SG.createNodesBitVector();
     for (unsigned M : NodeEC.members(*Node)) {
-      const SplitGraph::Node &N = SG.getNode(M);
-      if (N.isGraphEntryPoint())
+      
+      if (const SplitGraph::Node &N = SG.getNode(M); N.isGraphEntryPoint())
         N.getDependencies(Cluster);
     }
     WorkList.emplace_back(std::move(Cluster));
@@ -1182,9 +1182,9 @@ RecursiveSearchSplitting::findMostSimilarPartition(const WorkListEntry &Entry,
     if (BV.none())
       continue;
 
-    const CostType Cost = SG.calculateCost(BV);
+    
 
-    if (ChosenPID == InvalidPID || ChosenCost < Cost ||
+    if (const CostType Cost = SG.calculateCost(BV); ChosenPID == InvalidPID || ChosenCost < Cost ||
         (ChosenCost == Cost && PID > ChosenPID)) {
       ChosenPID = PID;
       ChosenCost = Cost;

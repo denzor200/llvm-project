@@ -183,8 +183,8 @@ static bool isCandidate(const MachineInstr *MI, Register &DefedReg,
   if (!MI->isSafeToMove(SawStore) || MI->isImplicitDef() || MI->isInlineAsm())
     return false;
   for (unsigned i = 0, e = MI->getNumOperands(); i != e; ++i) {
-    const MachineOperand &MO = MI->getOperand(i);
-    if (MO.isReg()) {
+    
+    if (const MachineOperand &MO = MI->getOperand(i); MO.isReg()) {
       if (MO.isDef()) {
         if (i == 0 && !MO.isImplicit() && !MO.isDead())
           DefedReg = MO.getReg();

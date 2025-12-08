@@ -237,8 +237,8 @@ void ModuleList::AppendImpl(const ModuleSP &module_sp, bool use_notifier) {
       const bool elem_zero_is_executable =
           m_modules[0]->GetObjectFile()->GetType() ==
           ObjectFile::Type::eTypeExecutable;
-      lldb_private::ObjectFile *obj = module_sp->GetObjectFile();
-      if (!elem_zero_is_executable && obj &&
+      
+      if (lldb_private::ObjectFile *obj = module_sp->GetObjectFile(); !elem_zero_is_executable && obj &&
           obj->GetType() == ObjectFile::Type::eTypeExecutable) {
         m_modules.insert(m_modules.begin(), module_sp);
       } else {
@@ -361,8 +361,8 @@ bool ModuleList::RemoveIfOrphaned(const ModuleWP module_wp) {
       if (pos->get() == module_sp.get()) {
         // Since module_sp increases the refcount by 1, the use count should be
         // the regular use count + 1.
-        constexpr long kUseCountOrphaned = kUseCountModuleListOrphaned + 1;
-        if (pos->use_count() == kUseCountOrphaned) {
+        
+        if (constexpr long kUseCountOrphaned = kUseCountModuleListOrphaned + 1; pos->use_count() == kUseCountOrphaned) {
           pos = RemoveImpl(pos);
           return true;
         }
@@ -453,9 +453,9 @@ void ModuleList::FindFunctions(ConstString name,
                                FunctionNameType name_type_mask,
                                const ModuleFunctionSearchOptions &options,
                                SymbolContextList &sc_list) const {
-  const size_t old_size = sc_list.GetSize();
+  
 
-  if (name_type_mask & eFunctionNameTypeAuto) {
+  if (const size_t old_size = sc_list.GetSize(); name_type_mask & eFunctionNameTypeAuto) {
     Module::LookupInfo lookup_info(name, name_type_mask, eLanguageTypeUnknown);
 
     std::lock_guard<std::recursive_mutex> guard(m_modules_mutex);
@@ -464,9 +464,9 @@ void ModuleList::FindFunctions(ConstString name,
                                sc_list);
     }
 
-    const size_t new_size = sc_list.GetSize();
+    
 
-    if (old_size < new_size)
+    if (const size_t new_size = sc_list.GetSize(); old_size < new_size)
       lookup_info.Prune(sc_list, old_size);
   } else {
     std::lock_guard<std::recursive_mutex> guard(m_modules_mutex);
@@ -480,9 +480,9 @@ void ModuleList::FindFunctions(ConstString name,
 void ModuleList::FindFunctionSymbols(ConstString name,
                                      lldb::FunctionNameType name_type_mask,
                                      SymbolContextList &sc_list) {
-  const size_t old_size = sc_list.GetSize();
+  
 
-  if (name_type_mask & eFunctionNameTypeAuto) {
+  if (const size_t old_size = sc_list.GetSize(); name_type_mask & eFunctionNameTypeAuto) {
     Module::LookupInfo lookup_info(name, name_type_mask, eLanguageTypeUnknown);
 
     std::lock_guard<std::recursive_mutex> guard(m_modules_mutex);
@@ -491,9 +491,9 @@ void ModuleList::FindFunctionSymbols(ConstString name,
                                      lookup_info.GetNameTypeMask(), sc_list);
     }
 
-    const size_t new_size = sc_list.GetSize();
+    
 
-    if (old_size < new_size)
+    if (const size_t new_size = sc_list.GetSize(); old_size < new_size)
       lookup_info.Prune(sc_list, old_size);
   } else {
     std::lock_guard<std::recursive_mutex> guard(m_modules_mutex);
@@ -903,9 +903,9 @@ private:
         if (it->get() == module_sp.get()) {
           // Since module_sp increases the refcount by 1, the use count should
           // be the regular use count + 1.
-          constexpr long kUseCountOrphaned =
-              kUseCountSharedModuleListOrphaned + 1;
-          if (!if_orphaned || it->use_count() == kUseCountOrphaned) {
+          
+          if (constexpr long kUseCountOrphaned =
+              kUseCountSharedModuleListOrphaned + 1; !if_orphaned || it->use_count() == kUseCountOrphaned) {
             vec.erase(it);
             break;
           }
@@ -1066,9 +1066,9 @@ ModuleList::GetSharedModule(const ModuleSpec &module_spec, ModuleSP &module_sp,
   if (!always_create) {
     ModuleList matching_module_list;
     shared_module_list.FindModules(module_spec, matching_module_list);
-    const size_t num_matching_modules = matching_module_list.GetSize();
+    
 
-    if (num_matching_modules > 0) {
+    if (const size_t num_matching_modules = matching_module_list.GetSize(); num_matching_modules > 0) {
       for (size_t module_idx = 0; module_idx < num_matching_modules;
            ++module_idx) {
         module_sp = matching_module_list.GetModuleAtIndex(module_idx);
@@ -1078,8 +1078,8 @@ ModuleList::GetSharedModule(const ModuleSpec &module_spec, ModuleSP &module_sp,
           if (old_modules)
             old_modules->push_back(module_sp);
 
-          Log *log = GetLog(LLDBLog::Modules);
-          if (log != nullptr)
+          
+          if (Log *log = GetLog(LLDBLog::Modules); log != nullptr)
             LLDB_LOGF(
                 log, "%p '%s' module changed: removing from global module list",
                 static_cast<void *>(module_sp.get()),

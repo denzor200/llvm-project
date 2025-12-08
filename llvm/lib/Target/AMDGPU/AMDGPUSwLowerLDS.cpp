@@ -521,10 +521,10 @@ static void replacesUsesOfGlobalInFunction(Function *Func, GlobalVariable *GV,
                                            Value *Replacement) {
   // Replace all uses of LDS global in this Function with a Replacement.
   auto ReplaceUsesLambda = [Func](const Use &U) -> bool {
-    auto *V = U.getUser();
-    if (auto *Inst = dyn_cast<Instruction>(V)) {
-      auto *Func1 = Inst->getFunction();
-      if (Func == Func1)
+    
+    if (auto *V = U.getUser(); auto *Inst = dyn_cast<Instruction>(V)) {
+      
+      if (auto *Func1 = Inst->getFunction(); Func == Func1)
         return true;
     }
     return false;
@@ -1155,10 +1155,10 @@ bool AMDGPUSwLowerLDS::run() {
 
   // Flag to decide whether to lower all the LDS accesses
   // based on sanitize_address attribute.
-  bool LowerAllLDS = hasFnWithSanitizeAddressAttr(LDSUsesInfo.direct_access) ||
-                     hasFnWithSanitizeAddressAttr(LDSUsesInfo.indirect_access);
+  
 
-  if (!LowerAllLDS)
+  if (bool LowerAllLDS = hasFnWithSanitizeAddressAttr(LDSUsesInfo.direct_access) ||
+                     hasFnWithSanitizeAddressAttr(LDSUsesInfo.indirect_access); !LowerAllLDS)
     return Changed;
 
   // Utility to group LDS access into direct, indirect, static and dynamic.
@@ -1203,8 +1203,8 @@ bool AMDGPUSwLowerLDS::run() {
 
   for (auto &K : FuncLDSAccessInfo.KernelToLDSParametersMap) {
     Function *Func = K.first;
-    auto &LDSParams = FuncLDSAccessInfo.KernelToLDSParametersMap[Func];
-    if (LDSParams.DirectAccess.StaticLDSGlobals.empty() &&
+    
+    if (auto &LDSParams = FuncLDSAccessInfo.KernelToLDSParametersMap[Func]; LDSParams.DirectAccess.StaticLDSGlobals.empty() &&
         LDSParams.DirectAccess.DynamicLDSGlobals.empty() &&
         LDSParams.IndirectAccess.StaticLDSGlobals.empty() &&
         LDSParams.IndirectAccess.DynamicLDSGlobals.empty()) {
@@ -1254,8 +1254,8 @@ bool AMDGPUSwLowerLDS::run() {
       lowerNonKernelLDSAccesses(Func, OrderedLDSGlobals, NKLDSParams);
     }
     for (Function *Func : FuncLDSAccessInfo.NonKernelsWithLDSArgument) {
-      auto &K = FuncLDSAccessInfo.NonKernelToLDSAccessMap;
-      if (K.contains(Func))
+      
+      if (auto &K = FuncLDSAccessInfo.NonKernelToLDSAccessMap; K.contains(Func))
         continue;
       SetVector<llvm::GlobalVariable *> Vec;
       lowerNonKernelLDSAccesses(Func, Vec, NKLDSParams);
@@ -1352,8 +1352,8 @@ PreservedAnalyses AMDGPUSwLowerLDSPass::run(Module &M,
     return &FAM.getResult<DominatorTreeAnalysis>(F);
   };
   AMDGPUSwLowerLDS SwLowerLDSImpl(M, TM, DTCallback);
-  bool IsChanged = SwLowerLDSImpl.run();
-  if (!IsChanged)
+  
+  if (bool IsChanged = SwLowerLDSImpl.run(); !IsChanged)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

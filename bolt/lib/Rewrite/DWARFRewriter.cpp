@@ -378,8 +378,8 @@ static bool getLowPC(const DIE &Die, const DWARFUnit &DU, uint64_t &LowPC,
 
   dwarf::Form Form = DvalLowPc.getForm();
   bool AddrOffset = Form == dwarf::DW_FORM_LLVM_addrx_offset;
-  uint64_t LowPcValue = DvalLowPc.getDIEInteger().getValue();
-  if (Form == dwarf::DW_FORM_GNU_addr_index || Form == dwarf::DW_FORM_addrx ||
+  
+  if (uint64_t LowPcValue = DvalLowPc.getDIEInteger().getValue(); Form == dwarf::DW_FORM_GNU_addr_index || Form == dwarf::DW_FORM_addrx ||
       AddrOffset) {
 
     uint32_t Index = AddrOffset ? (LowPcValue >> 32) : LowPcValue;

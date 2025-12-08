@@ -22,16 +22,16 @@ using namespace llvm;
 static int ascii_strncasecmp(StringRef LHS, StringRef RHS) {
   for (auto [LC, RC] : zip_equal(LHS, RHS)) {
     unsigned char LHC = toLower(LC);
-    unsigned char RHC = toLower(RC);
-    if (LHC != RHC)
+    
+    if (unsigned char RHC = toLower(RC); LHC != RHC)
       return LHC < RHC ? -1 : 1;
   }
   return 0;
 }
 
 int StringRef::compare_insensitive(StringRef RHS) const {
-  size_t Min = std::min(size(), RHS.size());
-  if (int Res = ascii_strncasecmp(take_front(Min), RHS.take_front(Min)))
+  
+  if (size_t Min = std::min(size(), RHS.size()); int Res = ascii_strncasecmp(take_front(Min), RHS.take_front(Min)))
     return Res;
   if (size() == RHS.size())
     return 0;

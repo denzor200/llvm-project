@@ -161,8 +161,8 @@ public:
 
     // Ref-counted smartpointers actually have raw-pointer to uncounted type as
     // a member but we trust them to handle it correctly.
-    auto R = llvm::dyn_cast_or_null<CXXRecordDecl>(RD);
-    if (!R || isRefCounted(R) || isCheckedPtr(R) || isRetainPtrOrOSPtr(R))
+    
+    if (auto R = llvm::dyn_cast_or_null<CXXRecordDecl>(RD); !R || isRefCounted(R) || isCheckedPtr(R) || isRetainPtrOrOSPtr(R))
       return;
 
     for (auto *Member : RD->fields()) {
@@ -266,8 +266,8 @@ public:
     while (ArgExpr) {
       ArgExpr = ArgExpr->IgnoreParenCasts();
       if (auto *InnerCE = dyn_cast<CallExpr>(ArgExpr)) {
-        auto *InnerCallee = InnerCE->getDirectCallee();
-        if (InnerCallee && InnerCallee->isInStdNamespace() &&
+        
+        if (auto *InnerCallee = InnerCE->getDirectCallee(); InnerCallee && InnerCallee->isInStdNamespace() &&
             safeGetName(InnerCallee) == "move" && InnerCE->getNumArgs() == 1) {
           ArgExpr = InnerCE->getArg(0);
           continue;
@@ -289,8 +289,8 @@ public:
     }
 
     if (auto *OpCE = dyn_cast<CXXOperatorCallExpr>(ArgExpr)) {
-      auto *Method = dyn_cast_or_null<CXXMethodDecl>(OpCE->getDirectCallee());
-      if (Method && isOwnerPtr(safeGetName(Method->getParent()))) {
+      
+      if (auto *Method = dyn_cast_or_null<CXXMethodDecl>(OpCE->getDirectCallee()); Method && isOwnerPtr(safeGetName(Method->getParent()))) {
         if (OpCE->getOperator() == OO_Star && OpCE->getNumArgs() == 1)
           return;
       }

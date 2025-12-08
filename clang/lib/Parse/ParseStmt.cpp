@@ -1380,9 +1380,9 @@ struct MisleadingIndentationChecker {
     SourceManager &SM = P.getPreprocessor().getSourceManager();
     unsigned PrevColNum = getVisualIndentation(SM, PrevLoc);
     unsigned CurColNum = getVisualIndentation(SM, Tok.getLocation());
-    unsigned StmtColNum = getVisualIndentation(SM, StmtLoc);
+    
 
-    if (PrevColNum != 0 && CurColNum != 0 && StmtColNum != 0 &&
+    if (unsigned StmtColNum = getVisualIndentation(SM, StmtLoc); PrevColNum != 0 && CurColNum != 0 && StmtColNum != 0 &&
         ((PrevColNum > StmtColNum && PrevColNum == CurColNum) ||
          !Tok.isAtStartOfLine()) &&
         SM.getPresumedLineNumber(StmtLoc) !=

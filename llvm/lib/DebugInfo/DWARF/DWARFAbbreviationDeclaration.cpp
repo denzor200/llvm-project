@@ -93,8 +93,8 @@ DWARFAbbreviationDeclaration::extract(DataExtractor Data, uint64_t *OffsetPtr) {
           "or the form is zero while the other is not");
     }
 
-    bool IsImplicitConst = (F == DW_FORM_implicit_const);
-    if (IsImplicitConst) {
+    
+    if (bool IsImplicitConst = (F == DW_FORM_implicit_const); IsImplicitConst) {
       int64_t V = Data.getSLEB128(OffsetPtr);
       AttributeSpecs.push_back(AttributeSpec(A, F, V));
       continue;

@@ -545,8 +545,8 @@ ParallelLowering::matchAndRewrite(ParallelOp parallelOp,
   rewriter.eraseOp(reductionOp);
 
   // Then merge the loop body without the terminator.
-  Block *newBody = rewriter.getInsertionBlock();
-  if (newBody->empty())
+  
+  if (Block *newBody = rewriter.getInsertionBlock(); newBody->empty())
     rewriter.mergeBlocks(parallelOp.getBody(), newBody, ivs);
   else
     rewriter.inlineBlockBefore(parallelOp.getBody(), newBody->getTerminator(),

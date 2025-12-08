@@ -914,9 +914,9 @@ SeparateConstOffsetFromGEP::accumulateByteOffset(GetElementPtrInst *GEP,
         continue;
 
       // Tries to extract a constant offset from this GEP index.
-      int64_t ConstantOffset =
-          ConstantOffsetExtractor::Find(GEP->getOperand(I), GEP);
-      if (ConstantOffset != 0) {
+      
+      if (int64_t ConstantOffset =
+          ConstantOffsetExtractor::Find(GEP->getOperand(I), GEP); ConstantOffset != 0) {
         NeedsExtraction = true;
         // A GEP may have multiple indices.  We accumulate the extracted
         // constant offset to a byte offset, and later offset the remainder of
@@ -926,9 +926,9 @@ SeparateConstOffsetFromGEP::accumulateByteOffset(GetElementPtrInst *GEP,
       }
     } else if (LowerGEP) {
       StructType *StTy = GTI.getStructType();
-      uint64_t Field = cast<ConstantInt>(GEP->getOperand(I))->getZExtValue();
+      
       // Skip field 0 as the offset is always 0.
-      if (Field != 0) {
+      if (uint64_t Field = cast<ConstantInt>(GEP->getOperand(I))->getZExtValue(); Field != 0) {
         NeedsExtraction = true;
         AccumulativeByteOffset +=
             DL->getStructLayout(StTy)->getElementOffset(Field);
@@ -992,8 +992,8 @@ void SeparateConstOffsetFromGEP::lowerToSingleIndexGEPs(
   // then we swap the first one with it, so LICM can move constant GEP out
   // later.
   auto *FirstGEP = dyn_cast_or_null<GetElementPtrInst>(FirstResult);
-  auto *SecondGEP = dyn_cast<GetElementPtrInst>(ResultPtr);
-  if (isSwapCandidate && isLegalToSwapOperand(FirstGEP, SecondGEP, L))
+  
+  if (auto *SecondGEP = dyn_cast<GetElementPtrInst>(ResultPtr); isSwapCandidate && isLegalToSwapOperand(FirstGEP, SecondGEP, L))
     swapGEPOperand(FirstGEP, SecondGEP);
 
   Variadic->replaceAllUsesWith(ResultPtr);
@@ -1085,8 +1085,8 @@ bool SeparateConstOffsetFromGEP::splitGEP(GetElementPtrInst *GEP) {
   // of variable indices. Therefore, we don't check for addressing modes in that
   // case.
   if (!LowerGEP) {
-    unsigned AddrSpace = GEP->getPointerAddressSpace();
-    if (!TTI.isLegalAddressingMode(GEP->getResultElementType(),
+    
+    if (unsigned AddrSpace = GEP->getPointerAddressSpace(); !TTI.isLegalAddressingMode(GEP->getResultElementType(),
                                    /*BaseGV=*/nullptr, AccumulativeByteOffset,
                                    /*HasBaseReg=*/true, /*Scale=*/0,
                                    AddrSpace)) {
@@ -1119,9 +1119,9 @@ bool SeparateConstOffsetFromGEP::splitGEP(GetElementPtrInst *GEP) {
       Value *Idx = GEP->getOperand(I);
       User *UserChainTail;
       bool PreservesNUW;
-      Value *NewIdx = ConstantOffsetExtractor::Extract(Idx, GEP, UserChainTail,
-                                                       PreservesNUW);
-      if (NewIdx != nullptr) {
+      
+      if (Value *NewIdx = ConstantOffsetExtractor::Extract(Idx, GEP, UserChainTail,
+                                                       PreservesNUW); NewIdx != nullptr) {
         // Switches to the index with the constant offset removed.
         GEP->setOperand(I, NewIdx);
         // After switching to the new index, we can garbage-collect UserChain
@@ -1288,8 +1288,8 @@ Instruction *SeparateConstOffsetFromGEP::findClosestMatchingDominator(
   // future instruction either. Therefore, we pop it out of the stack. This
   // optimization makes the algorithm O(n).
   while (!Candidates.empty()) {
-    Instruction *Candidate = Candidates.back();
-    if (DT->dominates(Candidate, Dominatee))
+    
+    if (Instruction *Candidate = Candidates.back(); DT->dominates(Candidate, Dominatee))
       return Candidate;
     Candidates.pop_back();
   }
@@ -1383,9 +1383,9 @@ bool SeparateConstOffsetFromGEP::isLegalToSwapOperand(
     return false;
 
   unsigned FirstNum = FirstGEP->getNumOperands();
-  unsigned SecondNum = SecondGEP->getNumOperands();
+  
   // Give up if the number of operands are not 2.
-  if (FirstNum != SecondNum || FirstNum != 2)
+  if (unsigned SecondNum = SecondGEP->getNumOperands(); FirstNum != SecondNum || FirstNum != 2)
     return false;
 
   Value *FirstBase = FirstGEP->getOperand(0);
@@ -1418,8 +1418,8 @@ bool SeparateConstOffsetFromGEP::isLegalToSwapOperand(
   // Because it may not profitable at all due to constant folding.
   if (FirstOffsetDef)
     if (BinaryOperator *BO = dyn_cast<BinaryOperator>(FirstOffsetDef)) {
-      unsigned opc = BO->getOpcode();
-      if ((opc == Instruction::Add || opc == Instruction::Sub) &&
+      
+      if (unsigned opc = BO->getOpcode(); (opc == Instruction::Add || opc == Instruction::Sub) &&
           (isa<ConstantInt>(BO->getOperand(0)) ||
            isa<ConstantInt>(BO->getOperand(1))))
         return false;

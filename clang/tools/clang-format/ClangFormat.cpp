@@ -346,8 +346,8 @@ static void outputReplacementsXML(const Replacements &Replaces) {
 static bool
 emitReplacementWarnings(const Replacements &Replaces, StringRef AssumedFileName,
                         const std::unique_ptr<llvm::MemoryBuffer> &Code) {
-  unsigned Errors = 0;
-  if (WarnFormat && !NoWarnFormat) {
+  
+  if (unsigned Errors = 0; WarnFormat && !NoWarnFormat) {
     SourceMgr Mgr;
     const char *StartBuf = Code->getBufferStart();
 

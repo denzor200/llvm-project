@@ -46,8 +46,8 @@ public:
 } // end anonymous namespace
 
 static const Expr *getDenomExpr(const ExplodedNode *N) {
-  const Stmt *S = N->getLocationAs<PreStmt>()->getStmt();
-  if (const auto *BE = dyn_cast<BinaryOperator>(S))
+  
+  if (const Stmt *S = N->getLocationAs<PreStmt>()->getStmt(); const auto *BE = dyn_cast<BinaryOperator>(S))
     return BE->getRHS();
   return nullptr;
 }

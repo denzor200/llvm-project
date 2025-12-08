@@ -118,8 +118,8 @@ SemaCUDA::CUDATargetContextRAII::CUDATargetContextRAII(
     : S(S_) {
   SavedCtx = S.CurCUDATargetCtx;
   assert(K == SemaCUDA::CTCK_InitGlobalVar);
-  auto *VD = dyn_cast_or_null<VarDecl>(D);
-  if (VD && VD->hasGlobalStorage() && !VD->isStaticLocal()) {
+  
+  if (auto *VD = dyn_cast_or_null<VarDecl>(D); VD && VD->hasGlobalStorage() && !VD->isStaticLocal()) {
     auto Target = CUDAFunctionTarget::Host;
     if ((hasAttr<CUDADeviceAttr>(VD, /*IgnoreImplicit=*/true) &&
          !hasAttr<CUDAHostAttr>(VD, /*IgnoreImplicit=*/true)) ||
@@ -445,9 +445,9 @@ bool SemaCUDA::inferTargetForImplicitSpecialMember(CXXRecordDecl *ClassDecl,
     if (!InferredTarget) {
       InferredTarget = BaseMethodTarget;
     } else {
-      bool ResolutionError = resolveCalleeCUDATargetConflict(
-          *InferredTarget, BaseMethodTarget, &*InferredTarget);
-      if (ResolutionError) {
+      
+      if (bool ResolutionError = resolveCalleeCUDATargetConflict(
+          *InferredTarget, BaseMethodTarget, &*InferredTarget); ResolutionError) {
         if (Diagnose) {
           Diag(ClassDecl->getLocation(),
                diag::note_implicit_member_target_infer_collision)
@@ -488,9 +488,9 @@ bool SemaCUDA::inferTargetForImplicitSpecialMember(CXXRecordDecl *ClassDecl,
     if (!InferredTarget) {
       InferredTarget = FieldMethodTarget;
     } else {
-      bool ResolutionError = resolveCalleeCUDATargetConflict(
-          *InferredTarget, FieldMethodTarget, &*InferredTarget);
-      if (ResolutionError) {
+      
+      if (bool ResolutionError = resolveCalleeCUDATargetConflict(
+          *InferredTarget, FieldMethodTarget, &*InferredTarget); ResolutionError) {
         if (Diagnose) {
           Diag(ClassDecl->getLocation(),
                diag::note_implicit_member_target_infer_collision)
@@ -804,8 +804,8 @@ void SemaCUDA::maybeAddHostDeviceAttrs(FunctionDecl *NewD,
     // (ignoring CUDA attrs).  This is an error unless that function is defined
     // in a system header, in which case we simply return without making NewD
     // host+device.
-    NamedDecl *Match = *It;
-    if (!SemaRef.getSourceManager().isInSystemHeader(Match->getLocation())) {
+    
+    if (NamedDecl *Match = *It; !SemaRef.getSourceManager().isInSystemHeader(Match->getLocation())) {
       Diag(NewD->getLocation(),
            diag::err_cuda_unattributed_constexpr_cannot_overload_device)
           << NewD;
@@ -903,8 +903,8 @@ bool SemaCUDA::CheckCall(SourceLocation Loc, FunctionDecl *Callee) {
   assert(getLangOpts().CUDA && "Should only be called during CUDA compilation");
   assert(Callee && "Callee may not be null.");
 
-  const auto &ExprEvalCtx = SemaRef.currentEvaluationContext();
-  if (ExprEvalCtx.isUnevaluated() || ExprEvalCtx.isConstantEvaluated())
+  
+  if (const auto &ExprEvalCtx = SemaRef.currentEvaluationContext(); ExprEvalCtx.isUnevaluated() || ExprEvalCtx.isConstantEvaluated())
     return true;
 
   // FIXME: Is bailing out early correct here?  Should we instead assume that

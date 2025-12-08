@@ -228,8 +228,8 @@ void fuchsia::StaticLibTool::ConstructJob(Compilation &C, const JobAction &JA,
 
   // Delete old output archive file if it already exists before generating a new
   // archive file.
-  const char *OutputFileName = Output.getFilename();
-  if (Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
+  
+  if (const char *OutputFileName = Output.getFilename(); Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
     if (std::error_code EC = llvm::sys::fs::remove(OutputFileName)) {
       D.Diag(diag::err_drv_unable_to_remove_file) << EC.message();
       return;

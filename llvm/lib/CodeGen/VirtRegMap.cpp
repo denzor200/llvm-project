@@ -585,7 +585,7 @@ bool VirtRegRewriter::subRegLiveThrough(const MachineInstr &MI,
   SlotIndex BeforeMIUses = MIIndex.getBaseIndex();
   SlotIndex AfterMIDefs = MIIndex.getBoundaryIndex();
   for (MCRegUnit Unit : TRI->regunits(SuperPhysReg)) {
-    const LiveRange &UnitRange = LIS->getRegUnit(Unit);
+    
     // If the regunit is live both before and after MI,
     // we assume it is live through.
     // Generally speaking, this is not true, because something like
@@ -596,7 +596,7 @@ bool VirtRegRewriter::subRegLiveThrough(const MachineInstr &MI,
     // is defined at the same time as RU (i.e., "vreg, RU = op RU").
     // Thus, vreg and RU interferes and vreg cannot be assigned to
     // SuperPhysReg. Therefore, this situation cannot happen.
-    if (UnitRange.liveAt(AfterMIDefs) && UnitRange.liveAt(BeforeMIUses))
+    if (const LiveRange &UnitRange = LIS->getRegUnit(Unit); UnitRange.liveAt(AfterMIDefs) && UnitRange.liveAt(BeforeMIUses))
       return true;
   }
   return false;
@@ -664,8 +664,8 @@ void VirtRegRewriter::rewrite() {
         assert(!MRI->isReserved(PhysReg) && "Reserved register assignment");
 
         // Preserve semantics of sub-register operands.
-        unsigned SubReg = MO.getSubReg();
-        if (SubReg != 0) {
+        
+        if (unsigned SubReg = MO.getSubReg(); SubReg != 0) {
           if (NoSubRegLiveness || !MRI->shouldTrackSubRegLiveness(VirtReg)) {
             // A virtual register kill refers to the whole register, so we may
             // have to add implicit killed operands for the super-register.  A

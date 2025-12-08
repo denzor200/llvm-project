@@ -190,8 +190,8 @@ ARMBaseRegisterInfo::getTLSCallPreservedMask(const MachineFunction &MF) const {
 
 const uint32_t *
 ARMBaseRegisterInfo::getSjLjDispatchPreservedMask(const MachineFunction &MF) const {
-  const ARMSubtarget &STI = MF.getSubtarget<ARMSubtarget>();
-  if (!STI.useSoftFloat() && STI.hasVFP2Base() && !STI.isThumb1Only())
+  
+  if (const ARMSubtarget &STI = MF.getSubtarget<ARMSubtarget>(); !STI.useSoftFloat() && STI.hasVFP2Base() && !STI.isThumb1Only())
     return CSR_NoRegs_RegMask;
   else
     return CSR_FPRegs_RegMask;
@@ -328,9 +328,9 @@ unsigned
 ARMBaseRegisterInfo::getRegPressureLimit(const TargetRegisterClass *RC,
                                          MachineFunction &MF) const {
   const ARMSubtarget &STI = MF.getSubtarget<ARMSubtarget>();
-  const ARMFrameLowering *TFI = getFrameLowering(MF);
+  
 
-  switch (RC->getID()) {
+  switch (const ARMFrameLowering *TFI = getFrameLowering(MF); RC->getID()) {
   default:
     return 0;
   case ARM::tGPRRegClassID: {
@@ -513,9 +513,9 @@ cannotEliminateFrame(const MachineFunction &MF) const {
 Register
 ARMBaseRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
   const ARMSubtarget &STI = MF.getSubtarget<ARMSubtarget>();
-  const ARMFrameLowering *TFI = getFrameLowering(MF);
+  
 
-  if (TFI->hasFP(MF))
+  if (const ARMFrameLowering *TFI = getFrameLowering(MF); TFI->hasFP(MF))
     return STI.getFramePointerReg();
   return ARM::SP;
 }
@@ -562,8 +562,8 @@ getFrameIndexInstrOffset(const MachineInstr *MI, int Idx) const {
   unsigned AddrMode = (Desc.TSFlags & ARMII::AddrModeMask);
   int64_t InstrOffs = 0;
   int Scale = 1;
-  unsigned ImmIdx = 0;
-  switch (AddrMode) {
+  
+  switch (unsigned ImmIdx = 0; AddrMode) {
   case ARMII::AddrModeT2_i8:
   case ARMII::AddrModeT2_i8neg:
   case ARMII::AddrModeT2_i8pos:
@@ -624,8 +624,8 @@ needsFrameBaseReg(MachineInstr *MI, int64_t Offset) const {
 
   // We only generate virtual base registers for loads and stores, so
   // return false for everything else.
-  unsigned Opc = MI->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI->getOpcode(); Opc) {
   case ARM::LDRi12: case ARM::LDRH: case ARM::LDRBi12:
   case ARM::STRi12: case ARM::STRH: case ARM::STRBi12:
   case ARM::t2LDRi12: case ARM::t2LDRi8:
@@ -808,8 +808,8 @@ bool ARMBaseRegisterInfo::isFrameOffsetLegal(const MachineInstr *MI,
   if (isSigned && Offset < 0)
     Offset = -Offset;
 
-  unsigned Mask = (1 << NumBits) - 1;
-  if ((unsigned)Offset <= Mask * Scale)
+  
+  if (unsigned Mask = (1 << NumBits) - 1; (unsigned)Offset <= Mask * Scale)
     return true;
 
   return false;

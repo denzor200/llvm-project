@@ -165,9 +165,9 @@ LogWriter *LogWriter::Open() XRAY_NEVER_INSTRUMENT {
   char TmpWildcardPattern[] = "XXXXXX";
   auto **Argv = GetArgv();
   const char *Progname = !Argv ? "(unknown)" : Argv[0];
-  const char *LastSlash = internal_strrchr(Progname, '/');
+  
 
-  if (LastSlash != nullptr)
+  if (const char *LastSlash = internal_strrchr(Progname, '/'); LastSlash != nullptr)
     Progname = LastSlash + 1;
 
   int NeededLength = internal_snprintf(

@@ -163,8 +163,8 @@ public:
       return;
     for (int64_t Offset = Start - Start % 8; Offset < End; Offset += 8) {
       uint64_t Cst = 0x0101010101010101UL;
-      int LowBits = Offset < Start ? (Start - Offset) * 8 : 0;
-      if (LowBits)
+      
+      if (int LowBits = Offset < Start ? (Start - Offset) * 8 : 0; LowBits)
         Cst = (Cst >> LowBits) << LowBits;
       int HighBits = End - Offset < 8 ? (8 - (End - Offset)) * 8 : 0;
       if (HighBits)
@@ -283,8 +283,8 @@ public:
     // vector of pointers -> vector of ints
     if (VectorType *VecTy = dyn_cast<VectorType>(V->getType())) {
       LLVMContext &Ctx = IRB.getContext();
-      Type *EltTy = VecTy->getElementType();
-      if (EltTy->isPointerTy()) {
+      
+      if (Type *EltTy = VecTy->getElementType(); EltTy->isPointerTy()) {
         uint32_t EltSize = DL->getTypeSizeInBits(EltTy);
         auto *NewTy = FixedVectorType::get(
             IntegerType::get(Ctx, EltSize),
@@ -426,9 +426,9 @@ void AArch64StackTagging::tagAlloca(AllocaInst *AI, Instruction *InsertBefore,
                                                     Intrinsic::aarch64_stgp);
 
   InitializerBuilder IB(Size, DL, Ptr, SetTagFunc, SetTagZeroFunc, StgpFunc);
-  bool LittleEndian = AI->getModule()->getTargetTriple().isLittleEndian();
+  
   // Current implementation of initializer merging assumes little endianness.
-  if (MergeInit && !F->hasOptNone() && LittleEndian &&
+  if (bool LittleEndian = AI->getModule()->getTargetTriple().isLittleEndian(); MergeInit && !F->hasOptNone() && LittleEndian &&
       Size < ClMergeInitSizeLimit) {
     LLVM_DEBUG(dbgs() << "collecting initializers for " << *AI
                       << ", size = " << Size << "\n");
@@ -468,11 +468,11 @@ Instruction *AArch64StackTagging::insertBaseTaggedPointer(
       IRB.CreateIntrinsic(Intrinsic::aarch64_irg_sp, {},
                           {Constant::getNullValue(IRB.getInt64Ty())});
   Base->setName("basetag");
-  const Triple &TargetTriple = M.getTargetTriple();
+  
   // This ABI will make it into Android API level 35.
   // The ThreadLong format is the same as with HWASan, but the entries for
   // stack MTE take two slots (16 bytes).
-  if (ClRecordStackHistory == instr && TargetTriple.isAndroid() &&
+  if (const Triple &TargetTriple = M.getTargetTriple(); ClRecordStackHistory == instr && TargetTriple.isAndroid() &&
       TargetTriple.isAArch64() && !TargetTriple.isAndroidVersionLT(35) &&
       !AllocasToInstrument.empty()) {
     constexpr int StackMteSlot = -3;

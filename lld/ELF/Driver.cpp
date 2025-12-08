@@ -1059,8 +1059,8 @@ processCallGraphRelocations(Ctx &ctx, SmallVector<uint32_t, 32> &symbolIndices,
           objSections[inputObj->cgProfileSectionIndex]));
 
   for (size_t i = 0, e = objSections.size(); i < e; ++i) {
-    const Elf_Shdr_Impl<ELFT> &sec = objSections[i];
-    if (sec.sh_info == inputObj->cgProfileSectionIndex) {
+    
+    if (const Elf_Shdr_Impl<ELFT> &sec = objSections[i]; sec.sh_info == inputObj->cgProfileSectionIndex) {
       if (sec.sh_type == SHT_CREL) {
         auto crels =
             CHECK(obj.crels(sec), "could not retrieve cg profile rela section");
@@ -2374,8 +2374,8 @@ static void handleUndefinedGlob(Ctx &ctx, StringRef arg) {
 }
 
 static void handleLibcall(Ctx &ctx, StringRef name) {
-  Symbol *sym = ctx.symtab->find(name);
-  if (sym && sym->isLazy() && isa<BitcodeFile>(sym->file)) {
+  
+  if (Symbol *sym = ctx.symtab->find(name); sym && sym->isLazy() && isa<BitcodeFile>(sym->file)) {
     if (!ctx.arg.whyExtract.empty())
       ctx.whyExtractRecords.emplace_back("<libcall>", sym->file, *sym);
     sym->extract(ctx);
@@ -2920,10 +2920,10 @@ static void readSecurityNotes(Ctx &ctx) {
 
   StringRef referenceFileName;
   if (ctx.arg.emachine == EM_AARCH64) {
-    auto it = llvm::find_if(ctx.objectFiles, [](const ELFFileBase *f) {
+    
+    if (auto it = llvm::find_if(ctx.objectFiles, [](const ELFFileBase *f) {
       return f->aarch64PauthAbiCoreInfo.has_value();
-    });
-    if (it != ctx.objectFiles.end()) {
+    }); it != ctx.objectFiles.end()) {
       ctx.aarch64PauthAbiCoreInfo = (*it)->aarch64PauthAbiCoreInfo;
       referenceFileName = (*it)->getName();
     }

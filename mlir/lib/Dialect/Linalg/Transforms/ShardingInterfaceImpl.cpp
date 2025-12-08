@@ -283,11 +283,11 @@ struct StructuredOpShardingInterface
     LinalgOp linalgOp = llvm::cast<LinalgOp>(op);
 
     SmallVector<AffineMap> indexingMaps = linalgOp.getIndexingMapsArray();
-    bool allIndexingMapsAreProjectedPermutation =
+    
+    if (bool allIndexingMapsAreProjectedPermutation =
         llvm::all_of(indexingMaps, [](AffineMap map) {
           return map.isProjectedPermutation();
-        });
-    if (!allIndexingMapsAreProjectedPermutation) {
+        }); !allIndexingMapsAreProjectedPermutation) {
       // TODO: handle non-projected permutations.
       return op->emitOpError()
              << "supports indexing maps that are only projected permutation.";

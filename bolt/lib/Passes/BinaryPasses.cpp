@@ -417,9 +417,9 @@ Error ReorderBasicBlocks::runOnFunctions(BinaryContext &BC) {
     if (opts::PrintFuncStat > 0)
       llvm::copy(BF.getLayout().blocks(), std::back_inserter(OldBlockOrder));
 
-    const bool LayoutChanged =
-        modifyFunctionLayout(BF, opts::ReorderBlocks, opts::MinBranchClusters);
-    if (LayoutChanged) {
+    
+    if (const bool LayoutChanged =
+        modifyFunctionLayout(BF, opts::ReorderBlocks, opts::MinBranchClusters); LayoutChanged) {
       ModifiedFuncCount.fetch_add(1, std::memory_order_relaxed);
       if (opts::PrintFuncStat > 0) {
         const uint64_t Distance = BF.getLayout().getEditDistance(OldBlockOrder);
@@ -715,8 +715,8 @@ static uint64_t fixDoubleJumps(BinaryFunction &Function, bool MarkInvalid) {
         const MCSymbol *FBB = nullptr;
         MCInst *CondBranch = nullptr;
         MCInst *UncondBranch = nullptr;
-        bool Res = Pred->analyzeBranch(TBB, FBB, CondBranch, UncondBranch);
-        if (!Res) {
+        
+        if (bool Res = Pred->analyzeBranch(TBB, FBB, CondBranch, UncondBranch); !Res) {
           LLVM_DEBUG(dbgs() << "analyzeBranch failed in peepholes in block:\n";
                      Pred->dump());
           return false;
@@ -740,8 +740,8 @@ static uint64_t fixDoubleJumps(BinaryFunction &Function, bool MarkInvalid) {
       } else {
         // Succ will be null in the tail call case.  In this case we
         // need to explicitly add a tail call instruction.
-        MCInst *Branch = Pred->getLastNonPseudoInstr();
-        if (Branch && MIB->isUnconditionalBranch(*Branch)) {
+        
+        if (MCInst *Branch = Pred->getLastNonPseudoInstr(); Branch && MIB->isUnconditionalBranch(*Branch)) {
           assert(MIB->getTargetSymbol(*Branch) == BB.getLabel());
           Pred->removeSuccessor(&BB);
           Pred->eraseInstruction(Pred->findInstruction(Branch));
@@ -994,9 +994,9 @@ uint64_t SimplifyConditionalTailCalls::fixTailCalls(BinaryFunction &BF) {
     const BinaryBasicBlock *PredSucc = PredBB->getSuccessor();
     assert(PredSucc && "The other branch should be a tail call");
 
-    const bool HasFallthrough = (NextBlock && PredSucc == NextBlock);
+    
 
-    if (UncondBranch) {
+    if (const bool HasFallthrough = (NextBlock && PredSucc == NextBlock); UncondBranch) {
       if (HasFallthrough)
         PredBB->eraseInstruction(PredBB->findInstruction(UncondBranch));
       else
@@ -1113,8 +1113,8 @@ Error ShortenInstructions::runOnFunctions(BinaryContext &BC) {
 void Peepholes::addTailcallTraps(BinaryFunction &Function) {
   MCPlusBuilder *MIB = Function.getBinaryContext().MIB.get();
   for (BinaryBasicBlock &BB : Function) {
-    MCInst *Inst = BB.getLastNonPseudoInstr();
-    if (Inst && MIB->isTailCall(*Inst) && MIB->isIndirectBranch(*Inst)) {
+    
+    if (MCInst *Inst = BB.getLastNonPseudoInstr(); Inst && MIB->isTailCall(*Inst) && MIB->isIndirectBranch(*Inst)) {
       MCInst Trap;
       MIB->createTrap(Trap);
       BB.addInstruction(Trap);
@@ -1129,8 +1129,8 @@ void Peepholes::removeUselessCondBranches(BinaryFunction &Function) {
       continue;
 
     BinaryBasicBlock *CondBB = BB.getConditionalSuccessor(true);
-    BinaryBasicBlock *UncondBB = BB.getConditionalSuccessor(false);
-    if (CondBB != UncondBB)
+    
+    if (BinaryBasicBlock *UncondBB = BB.getConditionalSuccessor(false); CondBB != UncondBB)
       continue;
 
     const MCSymbol *TBB = nullptr;
@@ -1157,8 +1157,8 @@ Error Peepholes::runOnFunctions(BinaryContext &BC) {
     return Error::success();
 
   for (auto &It : BC.getBinaryFunctions()) {
-    BinaryFunction &Function = It.second;
-    if (shouldOptimize(Function)) {
+    
+    if (BinaryFunction &Function = It.second; shouldOptimize(Function)) {
       if (Opts & PEEP_DOUBLE_JUMPS)
         NumDoubleJumps += fixDoubleJumps(Function, false);
       if (Opts & PEEP_TAILCALL_TRAPS)
@@ -1189,10 +1189,10 @@ bool SimplifyRODataLoads::simplifyRODataLoads(BinaryFunction &BF) {
   for (BinaryBasicBlock *BB : BF.getLayout().blocks()) {
     for (MCInst &Inst : *BB) {
       unsigned Opcode = Inst.getOpcode();
-      const MCInstrDesc &Desc = BC.MII->get(Opcode);
+      
 
       // Skip instructions that do not load from memory.
-      if (!Desc.mayLoad())
+      if (const MCInstrDesc &Desc = BC.MII->get(Opcode); !Desc.mayLoad())
         continue;
 
       // Try to statically evaluate the target memory address;
@@ -1261,8 +1261,8 @@ bool SimplifyRODataLoads::simplifyRODataLoads(BinaryFunction &BF) {
 
 Error SimplifyRODataLoads::runOnFunctions(BinaryContext &BC) {
   for (auto &It : BC.getBinaryFunctions()) {
-    BinaryFunction &Function = It.second;
-    if (shouldOptimize(Function) && simplifyRODataLoads(Function))
+    
+    if (BinaryFunction &Function = It.second; shouldOptimize(Function) && simplifyRODataLoads(Function))
       Modified.insert(&Function);
   }
 
@@ -1620,8 +1620,8 @@ Error PrintProgramStats::runOnFunctions(BinaryContext &BC) {
     std::map<const BinaryFunction *, DynoStats> Stats;
 
     for (auto &BFI : BC.getBinaryFunctions()) {
-      BinaryFunction &BF = BFI.second;
-      if (shouldOptimize(BF) && BF.hasValidProfile()) {
+      
+      if (BinaryFunction &BF = BFI.second; shouldOptimize(BF) && BF.hasValidProfile()) {
         Functions.push_back(&BF);
         Stats.emplace(&BF, getDynoStats(BF));
       }
@@ -2030,8 +2030,8 @@ void RemoveNops::runOnFunction(BinaryFunction &BF) {
   const BinaryContext &BC = BF.getBinaryContext();
   for (BinaryBasicBlock &BB : BF) {
     for (int64_t I = BB.size() - 1; I >= 0; --I) {
-      MCInst &Inst = BB.getInstructionAtIndex(I);
-      if (BC.MIB->isNoop(Inst) && BC.MIB->hasAnnotation(Inst, "NOP"))
+      
+      if (MCInst &Inst = BB.getInstructionAtIndex(I); BC.MIB->isNoop(Inst) && BC.MIB->hasAnnotation(Inst, "NOP"))
         BB.eraseInstructionAtIndex(I);
     }
   }

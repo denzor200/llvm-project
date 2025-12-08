@@ -283,8 +283,8 @@ void Property::DumpDescription(CommandInterpreter &interpreter, Stream &strm,
     return;
 
   StreamString qualified_name;
-  const OptionValueProperties *sub_properties = m_value_sp->GetAsProperties();
-  if (sub_properties) {
+  
+  if (const OptionValueProperties *sub_properties = m_value_sp->GetAsProperties(); sub_properties) {
     strm.EOL();
 
     if (m_value_sp->DumpQualifiedName(qualified_name))

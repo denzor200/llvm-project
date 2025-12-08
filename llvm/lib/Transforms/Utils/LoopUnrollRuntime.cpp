@@ -152,8 +152,8 @@ static void ConnectProlog(Loop *L, Value *BECount, unsigned Count,
 
   // Make sure that created prolog loop is in simplified form
   SmallVector<BasicBlock *, 4> PrologExitPreds;
-  Loop *PrologLoop = LI->getLoopFor(PrologLatch);
-  if (PrologLoop) {
+  
+  if (Loop *PrologLoop = LI->getLoopFor(PrologLatch); PrologLoop) {
     for (BasicBlock *PredBB : predecessors(PrologExit))
       if (PrologLoop->contains(PredBB))
         PrologExitPreds.push_back(PredBB);
@@ -982,8 +982,8 @@ bool llvm::UnrollRuntimeLoopRemainder(
     for (auto *BB : L->blocks()) {
       auto *DomNodeBB = DT->getNode(BB);
       for (auto *DomChild : DomNodeBB->children()) {
-        auto *DomChildBB = DomChild->getBlock();
-        if (!L->contains(LI->getLoopFor(DomChildBB)) &&
+        
+        if (auto *DomChildBB = DomChild->getBlock(); !L->contains(LI->getLoopFor(DomChildBB)) &&
             DomChildBB->getUniquePredecessor() != BB)
           ChildrenToUpdate.push_back(DomChildBB);
       }

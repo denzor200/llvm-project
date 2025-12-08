@@ -69,9 +69,9 @@ public:
         Inc.HeaderID = static_cast<unsigned>(HID);
         if (IsAngled)
           if (auto StdlibHeader = tooling::stdlib::Header::named(Inc.Written)) {
-            auto &IDs = Out->StdlibHeaders[*StdlibHeader];
+            
             // Few physical files for one stdlib header name, linear scan is ok.
-            if (!llvm::is_contained(IDs, HID))
+            if (auto &IDs = Out->StdlibHeaders[*StdlibHeader]; !llvm::is_contained(IDs, HID))
               IDs.push_back(HID);
           }
       }
@@ -218,8 +218,8 @@ IncludeStructure::HeaderID IncludeStructure::getOrCreateID(FileEntryRef Entry) {
   if (R.second)
     RealPathNames.emplace_back();
   IncludeStructure::HeaderID Result = R.first->getSecond();
-  std::string &RealPathName = RealPathNames[static_cast<unsigned>(Result)];
-  if (RealPathName.empty())
+  
+  if (std::string &RealPathName = RealPathNames[static_cast<unsigned>(Result)]; RealPathName.empty())
     RealPathName = Entry.getFileEntry().tryGetRealPathName().str();
   return Result;
 }

@@ -87,8 +87,8 @@ void ThreadPlanStepRange::AddRange(const AddressRange &new_range) {
 }
 
 void ThreadPlanStepRange::DumpRanges(Stream *s) {
-  size_t num_ranges = m_address_ranges.size();
-  if (num_ranges == 1) {
+  
+  if (size_t num_ranges = m_address_ranges.size(); num_ranges == 1) {
     m_address_ranges[0].Dump(s, &GetTarget(), Address::DumpStyleLoadAddress);
   } else {
     for (size_t i = 0; i < num_ranges; i++) {
@@ -358,8 +358,8 @@ bool ThreadPlanStepRange::SetNextBranchBreakpoint() {
 
     // If we didn't find a branch, run to the end of the range.
     if (branch_index == UINT32_MAX) {
-      uint32_t last_index = instructions->GetSize() - 1;
-      if (last_index - pc_index > 1) {
+      
+      if (uint32_t last_index = instructions->GetSize() - 1; last_index - pc_index > 1) {
         InstructionSP last_inst =
             instructions->GetInstructionAtIndex(last_index);
         size_t last_inst_size = last_inst->GetOpcode().GetByteSize();
@@ -403,8 +403,8 @@ bool ThreadPlanStepRange::SetNextBranchBreakpoint() {
         // stack.  If that's true, we should always stop at the top of the
         // inlined call stack.  Only virtual steps should walk deeper into the
         // inlined call stack.
-        Block *block = run_to_address.CalculateSymbolContextBlock();
-        if (bp_loc && block) {
+        
+        if (Block *block = run_to_address.CalculateSymbolContextBlock(); bp_loc && block) {
           LineEntry top_most_line_entry;
           lldb::addr_t run_to_addr = run_to_address.GetFileAddress();
           for (Block *inlined_parent = block->GetContainingInlinedBlock();
@@ -551,9 +551,9 @@ bool ThreadPlanStepRange::IsPlanStale() {
       lldb::addr_t addr = GetThread().GetRegisterContext()->GetPC() - 1;
       size_t num_ranges = m_address_ranges.size();
       for (size_t i = 0; i < num_ranges; i++) {
-        bool in_range = 
-            m_address_ranges[i].ContainsLoadAddress(addr, &GetTarget());
-        if (in_range) {
+        
+        if (bool in_range = 
+            m_address_ranges[i].ContainsLoadAddress(addr, &GetTarget()); in_range) {
           SetPlanComplete();
         }
       }

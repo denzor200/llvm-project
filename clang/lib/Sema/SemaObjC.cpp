@@ -88,8 +88,8 @@ StmtResult SemaObjC::ActOnObjCForCollectionStmt(SourceLocation ForLoc,
       }
 
     } else {
-      Expr *FirstE = cast<Expr>(First);
-      if (!FirstE->isTypeDependent() && !FirstE->isLValue())
+      
+      if (Expr *FirstE = cast<Expr>(First); !FirstE->isTypeDependent() && !FirstE->isLValue())
         return StmtError(
             Diag(First->getBeginLoc(), diag::err_selector_element_not_lvalue)
             << First->getSourceRange());
@@ -252,8 +252,8 @@ StmtResult SemaObjC::BuildObjCAtThrowStmt(SourceLocation AtLoc, Expr *Throw) {
     // Make sure the expression type is an ObjC pointer or "void *".
     if (!ThrowType->isDependentType() &&
         !ThrowType->isObjCObjectPointerType()) {
-      const PointerType *PT = ThrowType->getAs<PointerType>();
-      if (!PT || !PT->getPointeeType()->isVoidType())
+      
+      if (const PointerType *PT = ThrowType->getAs<PointerType>(); !PT || !PT->getPointeeType()->isVoidType())
         return StmtError(Diag(AtLoc, diag::err_objc_throw_expects_object)
                          << Throw->getType() << Throw->getSourceRange());
     }
@@ -289,8 +289,8 @@ ExprResult SemaObjC::ActOnObjCAtSynchronizedOperand(SourceLocation atLoc,
   // Make sure the expression type is an ObjC pointer or "void *".
   QualType type = operand->getType();
   if (!type->isDependentType() && !type->isObjCObjectPointerType()) {
-    const PointerType *pointerType = type->getAs<PointerType>();
-    if (!pointerType || !pointerType->getPointeeType()->isVoidType()) {
+    
+    if (const PointerType *pointerType = type->getAs<PointerType>(); !pointerType || !pointerType->getPointeeType()->isVoidType()) {
       if (getLangOpts().CPlusPlus) {
         if (SemaRef.RequireCompleteType(atLoc, type,
                                         diag::err_incomplete_receiver_type))
@@ -612,10 +612,10 @@ static QualType applyObjCTypeArgs(Sema &S, SourceLocation loc, QualType type,
 
       // Retrieve the bound.
       QualType bound = typeParam->getUnderlyingType();
-      const auto *boundObjC = bound->castAs<ObjCObjectPointerType>();
+      
 
       // Determine whether the type argument is substitutable for the bound.
-      if (typeArgObjC->isObjCIdType()) {
+      if (const auto *boundObjC = bound->castAs<ObjCObjectPointerType>(); typeArgObjC->isObjCIdType()) {
         // When the type argument is 'id', the only acceptable type
         // parameter bound is 'id'.
         if (boundObjC->isObjCIdType())
@@ -797,8 +797,8 @@ static bool findRetainCycleOwner(Sema &S, Expr *e, RetainCycleOwner &owner) {
     }
 
     if (ObjCIvarRefExpr *ref = dyn_cast<ObjCIvarRefExpr>(e)) {
-      ObjCIvarDecl *ivar = ref->getDecl();
-      if (ivar->getType().getObjCLifetime() != Qualifiers::OCL_Strong)
+      
+      if (ObjCIvarDecl *ivar = ref->getDecl(); ivar->getType().getObjCLifetime() != Qualifiers::OCL_Strong)
         return false;
 
       // Try to find a retain cycle in the base.
@@ -901,8 +901,8 @@ struct FindCaptureVisitor : EvaluatedExprVisitor<FindCaptureVisitor> {
   void VisitBinaryOperator(BinaryOperator *BinOp) {
     if (!Variable || VarWillBeReased || BinOp->getOpcode() != BO_Assign)
       return;
-    Expr *LHS = BinOp->getLHS();
-    if (const DeclRefExpr *DRE = dyn_cast_or_null<DeclRefExpr>(LHS)) {
+    
+    if (Expr *LHS = BinOp->getLHS(); const DeclRefExpr *DRE = dyn_cast_or_null<DeclRefExpr>(LHS)) {
       if (DRE->getDecl() != Variable)
         return;
       if (Expr *RHS = BinOp->getRHS()) {
@@ -936,10 +936,10 @@ static Expr *findCapturingExpr(Sema &S, Expr *e, RetainCycleOwner &owner) {
     }
   } else if (CallExpr *CE = dyn_cast<CallExpr>(e)) {
     if (CE->getNumArgs() == 1) {
-      FunctionDecl *Fn = dyn_cast_or_null<FunctionDecl>(CE->getCalleeDecl());
-      if (Fn) {
-        const IdentifierInfo *FnI = Fn->getIdentifier();
-        if (FnI && FnI->isStr("_Block_copy")) {
+      
+      if (FunctionDecl *Fn = dyn_cast_or_null<FunctionDecl>(CE->getCalleeDecl()); Fn) {
+        
+        if (const IdentifierInfo *FnI = Fn->getIdentifier(); FnI && FnI->isStr("_Block_copy")) {
           e = CE->getArg(0)->IgnoreParenCasts();
         }
       }
@@ -991,9 +991,9 @@ static bool isSetterLikeSelector(Selector sel) {
 
 static std::optional<int>
 GetNSMutableArrayArgumentIndex(SemaObjC &S, ObjCMessageExpr *Message) {
-  bool IsMutableArray = S.NSAPIObj->isSubclassOfNSClass(
-      Message->getReceiverInterface(), NSAPI::ClassId_NSMutableArray);
-  if (!IsMutableArray) {
+  
+  if (bool IsMutableArray = S.NSAPIObj->isSubclassOfNSClass(
+      Message->getReceiverInterface(), NSAPI::ClassId_NSMutableArray); !IsMutableArray) {
     return std::nullopt;
   }
 
@@ -1024,9 +1024,9 @@ GetNSMutableArrayArgumentIndex(SemaObjC &S, ObjCMessageExpr *Message) {
 
 static std::optional<int>
 GetNSMutableDictionaryArgumentIndex(SemaObjC &S, ObjCMessageExpr *Message) {
-  bool IsMutableDictionary = S.NSAPIObj->isSubclassOfNSClass(
-      Message->getReceiverInterface(), NSAPI::ClassId_NSMutableDictionary);
-  if (!IsMutableDictionary) {
+  
+  if (bool IsMutableDictionary = S.NSAPIObj->isSubclassOfNSClass(
+      Message->getReceiverInterface(), NSAPI::ClassId_NSMutableDictionary); !IsMutableDictionary) {
     return std::nullopt;
   }
 
@@ -1058,9 +1058,9 @@ static std::optional<int> GetNSSetArgumentIndex(SemaObjC &S,
   bool IsMutableSet = S.NSAPIObj->isSubclassOfNSClass(
       Message->getReceiverInterface(), NSAPI::ClassId_NSMutableSet);
 
-  bool IsMutableOrderedSet = S.NSAPIObj->isSubclassOfNSClass(
-      Message->getReceiverInterface(), NSAPI::ClassId_NSMutableOrderedSet);
-  if (!IsMutableSet && !IsMutableOrderedSet) {
+  
+  if (bool IsMutableOrderedSet = S.NSAPIObj->isSubclassOfNSClass(
+      Message->getReceiverInterface(), NSAPI::ClassId_NSMutableOrderedSet); !IsMutableSet && !IsMutableOrderedSet) {
     return std::nullopt;
   }
 
@@ -1738,8 +1738,8 @@ static bool isValidSubjectOfOSAttribute(QualType QT) {
 void SemaObjC::AddXConsumedAttr(Decl *D, const AttributeCommonInfo &CI,
                                 Sema::RetainOwnershipKind K,
                                 bool IsTemplateInstantiation) {
-  ValueDecl *VD = cast<ValueDecl>(D);
-  switch (K) {
+  
+  switch (ValueDecl *VD = cast<ValueDecl>(D); K) {
   case Sema::RetainOwnershipKind::OS:
     handleSimpleAttributeOrDiagnose<OSConsumedAttr>(
         *this, VD, CI, isValidSubjectOfOSAttribute(VD->getType()),
@@ -1971,8 +1971,8 @@ void SemaObjC::handleReturnsInnerPointerAttr(Decl *D, const ParsedAttr &Attrs) {
 void SemaObjC::handleRequiresSuperAttr(Decl *D, const ParsedAttr &Attrs) {
   const auto *Method = cast<ObjCMethodDecl>(D);
 
-  const DeclContext *DC = Method->getDeclContext();
-  if (const auto *PDecl = dyn_cast_if_present<ObjCProtocolDecl>(DC)) {
+  
+  if (const DeclContext *DC = Method->getDeclContext(); const auto *PDecl = dyn_cast_if_present<ObjCProtocolDecl>(DC)) {
     Diag(D->getBeginLoc(), diag::warn_objc_requires_super_protocol)
         << Attrs << 0;
     Diag(PDecl->getLocation(), diag::note_protocol_decl);

@@ -74,8 +74,8 @@ static cl::opt<IntrinsicCostStrategy> IntrinsicCost(
 static InstructionCost getCost(Instruction &Inst, TTI::TargetCostKind CostKind,
                                TargetTransformInfo &TTI,
                                TargetLibraryInfo &TLI) {
-  auto *II = dyn_cast<IntrinsicInst>(&Inst);
-  if (II && IntrinsicCost != IntrinsicCostStrategy::InstructionCost) {
+  
+  if (auto *II = dyn_cast<IntrinsicInst>(&Inst); II && IntrinsicCost != IntrinsicCostStrategy::InstructionCost) {
     IntrinsicCostAttributes ICA(
         II->getIntrinsicID(), *II, InstructionCost::getInvalid(),
         /*TypeBasedOnly=*/IntrinsicCost ==

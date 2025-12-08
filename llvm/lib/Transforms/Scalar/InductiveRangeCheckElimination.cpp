@@ -343,8 +343,8 @@ bool InductiveRangeCheck::parseIvAgaisntLimit(Loop *L, Value *LHS, Value *RHS,
   case ICmpInst::ICMP_ULE:
     const SCEV *One = SE.getOne(RHS->getType());
     const SCEV *RHSS = SE.getSCEV(RHS);
-    bool Signed = Pred == ICmpInst::ICMP_SLE;
-    if (SE.willNotOverflow(Instruction::BinaryOps::Add, Signed, RHSS, One)) {
+    
+    if (bool Signed = Pred == ICmpInst::ICMP_SLE; SE.willNotOverflow(Instruction::BinaryOps::Add, Signed, RHSS, One)) {
       Index = AddRec;
       End = SE.getAddExpr(RHSS, One);
       return true;
@@ -530,9 +530,9 @@ void InductiveRangeCheck::extractRangeChecksFromBranch(
     auto SuccessProbability =
         BPI->getEdgeProbability(BI->getParent(), IndexLoopSucc);
     if (EstimatedTripCount) {
-      auto EstimatedEliminatedChecks =
-          SuccessProbability.scale(*EstimatedTripCount);
-      if (EstimatedEliminatedChecks < MinEliminatedChecks) {
+      
+      if (auto EstimatedEliminatedChecks =
+          SuccessProbability.scale(*EstimatedTripCount); EstimatedEliminatedChecks < MinEliminatedChecks) {
         LLVM_DEBUG(dbgs() << "irce: could not prove profitability for branch "
                           << *BI << ": "
                           << "estimated eliminated checks too low "
@@ -939,8 +939,8 @@ PreservedAnalyses IRCEPass::run(Function &F, FunctionAnalysisManager &AM) {
   };
 
   while (!Worklist.empty()) {
-    Loop *L = Worklist.pop_back_val();
-    if (IRCE.run(L, LPMAddNewLoop)) {
+    
+    if (Loop *L = Worklist.pop_back_val(); IRCE.run(L, LPMAddNewLoop)) {
       Changed = true;
       if (!SkipProfitabilityChecks) {
         PreservedAnalyses PA = PreservedAnalyses::all();

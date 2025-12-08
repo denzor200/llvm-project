@@ -90,10 +90,10 @@ public:
                       exe_ctx.GetTargetSP());
     if ((reg_info.encoding == eEncodingUint) ||
         (reg_info.encoding == eEncodingSint)) {
-      Process *process = exe_ctx.GetProcessPtr();
-      if (process && reg_info.byte_size == process->GetAddressByteSize()) {
-        addr_t reg_addr = reg_value.GetAsUInt64(LLDB_INVALID_ADDRESS);
-        if (reg_addr != LLDB_INVALID_ADDRESS) {
+      
+      if (Process *process = exe_ctx.GetProcessPtr(); process && reg_info.byte_size == process->GetAddressByteSize()) {
+        
+        if (addr_t reg_addr = reg_value.GetAsUInt64(LLDB_INVALID_ADDRESS); reg_addr != LLDB_INVALID_ADDRESS) {
           Address so_reg_addr;
           if (exe_ctx.GetTargetRef().ResolveLoadAddress(reg_addr,
                                                         so_reg_addr)) {
@@ -149,14 +149,14 @@ public:
 protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
     Stream &strm = result.GetOutputStream();
-    RegisterContext *reg_ctx = m_exe_ctx.GetRegisterContext();
+    
 
-    if (command.GetArgumentCount() == 0) {
+    if (RegisterContext *reg_ctx = m_exe_ctx.GetRegisterContext(); command.GetArgumentCount() == 0) {
       size_t set_idx;
 
       size_t num_register_sets = 1;
-      const size_t set_array_size = m_command_options.set_indexes.GetSize();
-      if (set_array_size > 0) {
+      
+      if (const size_t set_array_size = m_command_options.set_indexes.GetSize(); set_array_size > 0) {
         for (size_t i = 0; i < set_array_size; ++i) {
           set_idx =
               m_command_options.set_indexes[i]->GetValueAs<uint64_t>().value_or(
@@ -208,9 +208,9 @@ protected:
                   reg_ctx->GetRegisterInfoByName(arg_str)) {
             // If they have asked for a specific format don't obscure that by
             // printing flags afterwards.
-            bool print_flags =
-                !m_format_options.GetFormatValue().OptionWasSet();
-            if (!DumpRegister(m_exe_ctx, strm, *reg_ctx, *reg_info,
+            
+            if (bool print_flags =
+                !m_format_options.GetFormatValue().OptionWasSet(); !DumpRegister(m_exe_ctx, strm, *reg_ctx, *reg_info,
                               print_flags))
               strm.Printf("%-12s = error: unavailable\n", reg_info->name);
           } else {
@@ -244,8 +244,8 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_value,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = GetDefinitions()[option_idx].short_option;
-      switch (short_option) {
+      
+      switch (const int short_option = GetDefinitions()[option_idx].short_option; short_option) {
       case 's': {
         OptionValueSP value_sp(OptionValueUInt64::Create(option_value, error));
         if (value_sp)
@@ -335,9 +335,9 @@ public:
 protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
     DataExtractor reg_data;
-    RegisterContext *reg_ctx = m_exe_ctx.GetRegisterContext();
+    
 
-    if (command.GetArgumentCount() != 2) {
+    if (RegisterContext *reg_ctx = m_exe_ctx.GetRegisterContext(); command.GetArgumentCount() != 2) {
       result.AppendError(
           "register write takes exactly 2 arguments: <reg-name> <value>");
     } else {
@@ -351,9 +351,9 @@ protected:
       // call our registers $rbx in our own API
       reg_name.consume_front("$");
 
-      const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoByName(reg_name);
+      
 
-      if (reg_info) {
+      if (const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoByName(reg_name); reg_info) {
         RegisterValue reg_value;
 
         Status error(reg_value.SetValueFromString(reg_info, value_str));
@@ -432,8 +432,8 @@ protected:
 
     llvm::StringRef reg_name = command[0].ref();
     RegisterContext *reg_ctx = m_exe_ctx.GetRegisterContext();
-    const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoByName(reg_name);
-    if (reg_info) {
+    
+    if (const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoByName(reg_name); reg_info) {
       DumpRegisterInfo(
           result.GetOutputStream(), *reg_ctx, *reg_info,
           GetCommandInterpreter().GetDebugger().GetTerminalWidth());

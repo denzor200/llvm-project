@@ -127,8 +127,8 @@ Triple ObjectFile::makeTriple() const {
   if (isMachO()) {
     TheTriple.setObjectFormat(Triple::MachO);
   } else if (isCOFF()) {
-    const auto COFFObj = cast<COFFObjectFile>(this);
-    if (COFFObj->getArch() == Triple::thumb)
+    
+    if (const auto COFFObj = cast<COFFObjectFile>(this); COFFObj->getArch() == Triple::thumb)
       TheTriple.setTriple("thumbv7-windows");
   } else if (isXCOFF()) {
     // XCOFF implies AIX.

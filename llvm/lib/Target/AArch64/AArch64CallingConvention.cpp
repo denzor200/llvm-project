@@ -76,8 +76,8 @@ static bool finishStackBlock(SmallVectorImpl<CCValAssign> &PendingMembers,
     CCAssignFn *AssignFn =
         TLI->CCAssignFnForCall(State.getCallingConv(), /*IsVarArg=*/false);
     // FIXME: Get the correct original type.
-    Type *OrigTy = EVT(It.getValVT()).getTypeForEVT(State.getContext());
-    if (AssignFn(It.getValNo(), It.getValVT(), It.getValVT(), CCValAssign::Full,
+    
+    if (Type *OrigTy = EVT(It.getValVT()).getTypeForEVT(State.getContext()); AssignFn(It.getValNo(), It.getValVT(), It.getValVT(), CCValAssign::Full,
                  ArgFlags, OrigTy, State))
       llvm_unreachable("Call operand has unhandled type");
 

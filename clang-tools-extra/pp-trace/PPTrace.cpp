@@ -156,10 +156,10 @@ int main(int argc, const char **argv) {
   if (EC)
     error(EC.message());
   PPTraceFrontendActionFactory Factory(Filters, Out.os());
-  int HadErrors = Tool.run(&Factory);
+  
 
   // If we had errors, exit early.
-  if (HadErrors)
+  if (int HadErrors = Tool.run(&Factory); HadErrors)
     return HadErrors;
 
   Out.keep();

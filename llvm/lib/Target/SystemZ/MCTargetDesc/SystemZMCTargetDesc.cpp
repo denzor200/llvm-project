@@ -137,8 +137,8 @@ const unsigned SystemZMC::CR64Regs[16] = {
 
 unsigned SystemZMC::getFirstReg(unsigned Reg) {
   static unsigned Map[SystemZ::NUM_TARGET_REGS];
-  static bool Initialized = false;
-  if (!Initialized) {
+  
+  if (static bool Initialized = false; !Initialized) {
     for (unsigned I = 0; I < 16; ++I) {
       Map[GR32Regs[I]] = I;
       Map[GRH32Regs[I]] = I;

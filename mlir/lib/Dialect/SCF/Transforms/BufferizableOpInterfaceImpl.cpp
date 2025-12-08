@@ -800,9 +800,9 @@ struct ForOpInterface
   /// activated with `alloc-return-allocs`.
   LogicalResult verifyAnalysis(Operation *op,
                                const AnalysisState &state) const {
-    const auto &options =
-        static_cast<const OneShotBufferizationOptions &>(state.getOptions());
-    if (options.allowReturnAllocsFromLoops)
+    
+    if (const auto &options =
+        static_cast<const OneShotBufferizationOptions &>(state.getOptions()); options.allowReturnAllocsFromLoops)
       return success();
 
     auto forOp = cast<scf::ForOp>(op);
@@ -1094,9 +1094,9 @@ struct WhileOpInterface
   LogicalResult verifyAnalysis(Operation *op,
                                const AnalysisState &state) const {
     auto whileOp = cast<scf::WhileOp>(op);
-    const auto &options =
-        static_cast<const OneShotBufferizationOptions &>(state.getOptions());
-    if (options.allowReturnAllocsFromLoops)
+    
+    if (const auto &options =
+        static_cast<const OneShotBufferizationOptions &>(state.getOptions()); options.allowReturnAllocsFromLoops)
       return success();
 
     auto conditionOp = whileOp.getConditionOp();

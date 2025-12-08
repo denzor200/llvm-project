@@ -862,11 +862,11 @@ void Pattern::collectBoundSymbols(DagNode tree, SymbolInfoMap &infoMap,
                      treeArgName);
         } else {
           auto constraint = leaf.getAsConstraint();
-          bool isAttr = leaf.isAttrMatcher() || leaf.isEnumCase() ||
-                        leaf.isConstantAttr() ||
-                        constraint.getKind() == Constraint::Kind::CK_Attr;
+          
 
-          if (isAttr) {
+          if (bool isAttr = leaf.isAttrMatcher() || leaf.isEnumCase() ||
+                        leaf.isConstantAttr() ||
+                        constraint.getKind() == Constraint::Kind::CK_Attr; isAttr) {
             // This is case of $a, a binding to a certain attribute.
             verifyBind(infoMap.bindAttr(treeArgName), treeArgName);
             continue;

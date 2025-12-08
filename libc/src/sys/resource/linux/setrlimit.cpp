@@ -18,9 +18,9 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, setrlimit, (int res, const struct rlimit *limits)) {
-  int ret =
-      LIBC_NAMESPACE::syscall_impl<int>(SYS_prlimit64, 0, res, limits, nullptr);
-  if (ret < 0) {
+  
+  if (int ret =
+      LIBC_NAMESPACE::syscall_impl<int>(SYS_prlimit64, 0, res, limits, nullptr); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

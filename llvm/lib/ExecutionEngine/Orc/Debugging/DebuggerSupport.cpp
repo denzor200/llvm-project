@@ -31,9 +31,9 @@ Error enableDebuggerSupport(LLJIT &J) {
                                    inconvertibleErrorCode());
 
   auto &ES = J.getExecutionSession();
-  const auto &TT = J.getTargetTriple();
+  
 
-  switch (TT.getObjectFormat()) {
+  switch (const auto &TT = J.getTargetTriple(); TT.getObjectFormat()) {
   case Triple::ELF: {
     Error TargetSymErr = Error::success();
     ObjLinkingLayer->addPlugin(

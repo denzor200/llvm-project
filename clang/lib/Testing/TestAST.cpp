@@ -126,8 +126,8 @@ TestAST::TestAST(const TestInputs &In) {
   EXPECT_TRUE(Clang->createTarget());
   Action =
       In.MakeAction ? In.MakeAction() : std::make_unique<SyntaxOnlyAction>();
-  const FrontendInputFile &Main = Clang->getFrontendOpts().Inputs.front();
-  if (!Action->BeginSourceFile(*Clang, Main)) {
+  
+  if (const FrontendInputFile &Main = Clang->getFrontendOpts().Inputs.front(); !Action->BeginSourceFile(*Clang, Main)) {
     ADD_FAILURE() << "Failed to BeginSourceFile()";
     Action.reset(); // Don't call EndSourceFile if BeginSourceFile failed.
     return;

@@ -290,8 +290,8 @@ Error randomizeUnsetVariables(const LLVMState &State,
                               const BitVector &ForbiddenRegs,
                               InstructionTemplate &IT) {
   for (const Variable &Var : IT.getInstr().Variables) {
-    MCOperand &AssignedValue = IT.getValueFor(Var);
-    if (!AssignedValue.isValid())
+    
+    if (MCOperand &AssignedValue = IT.getValueFor(Var); !AssignedValue.isValid())
       if (auto Err = randomizeMCOperand(State, IT.getInstr(), Var,
                                         AssignedValue, ForbiddenRegs))
         return Err;

@@ -77,8 +77,8 @@ XRayArgs::XRayArgs(const ToolChain &TC, const ArgList &Args) {
           << "-fxray-shared" << Triple.str();
     }
 
-    unsigned PICLvl = std::get<1>(tools::ParsePICArgs(TC, Args));
-    if (!PICLvl) {
+    
+    if (unsigned PICLvl = std::get<1>(tools::ParsePICArgs(TC, Args)); !PICLvl) {
       D.Diag(diag::err_opt_not_valid_without_opt) << "-fxray-shared"
                                                   << "-fPIC";
     }
@@ -104,13 +104,13 @@ XRayArgs::XRayArgs(const ToolChain &TC, const ArgList &Args) {
       llvm::SplitString(B, BundleParts, ",");
       for (const auto &P : BundleParts) {
         // TODO: Automate the generation of the string case table.
-        auto Valid = llvm::StringSwitch<bool>(P)
+        
+
+        if (auto Valid = llvm::StringSwitch<bool>(P)
                          .Cases({"none", "all", "function", "function-entry",
                                  "function-exit", "custom"},
                                 true)
-                         .Default(false);
-
-        if (!Valid) {
+                         .Default(false); !Valid) {
           D.Diag(clang::diag::err_drv_invalid_value)
               << "-fxray-instrumentation-bundle=" << P;
           continue;

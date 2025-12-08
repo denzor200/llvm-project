@@ -120,8 +120,8 @@ static void printEhFrame(Ctx &ctx, raw_ostream &os, const EhFrameSection *sec) {
   auto add = [&](const EhSectionPiece &p) {
     // If P is adjacent to Last, squash the two.
     if (!pieces.empty()) {
-      EhSectionPiece &last = pieces.back();
-      if (last.sec == p.sec && last.inputOff + last.size == p.inputOff &&
+      
+      if (EhSectionPiece &last = pieces.back(); last.sec == p.sec && last.inputOff + last.size == p.inputOff &&
           last.outputOff + last.size == (unsigned)p.outputOff) {
         last.size += p.size;
         return;

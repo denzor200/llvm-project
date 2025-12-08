@@ -462,8 +462,8 @@ void TableGenTextFile::initialize(
   // Set the diagnostic handler for the tablegen source manager.
   sourceMgr.setDiagHandler(
       [](const llvm::SMDiagnostic &diag, void *rawHandlerContext) {
-        auto *ctx = reinterpret_cast<DiagHandlerContext *>(rawHandlerContext);
-        if (auto lspDiag = getLspDiagnoticFromDiag(diag, ctx->uri))
+        
+        if (auto *ctx = reinterpret_cast<DiagHandlerContext *>(rawHandlerContext); auto lspDiag = getLspDiagnoticFromDiag(diag, ctx->uri))
           ctx->diagnostics.push_back(*lspDiag);
       },
       &handlerContext);
@@ -637,8 +637,8 @@ llvm::lsp::Hover TableGenTextFile::buildHoverForField(
 
     // Check to see if there is a base value that we can use for
     // documentation.
-    auto [baseRecord, baseValue] = getBaseValue(record, value);
-    if (baseValue) {
+    
+    if (auto [baseRecord, baseValue] = getBaseValue(record, value); baseValue) {
       if (std::optional<std::string> doc =
               lsp::extractSourceDocComment(sourceMgr, baseValue->getLoc())) {
         hoverOS << "\n *From `" << baseRecord->getName() << "`*:\n\n"

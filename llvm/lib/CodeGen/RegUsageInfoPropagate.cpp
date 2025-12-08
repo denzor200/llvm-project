@@ -132,8 +132,8 @@ bool RegUsageInfoPropagation::run(MachineFunction &MF) {
                     << " ++++++++++++++++++++  \n");
   LLVM_DEBUG(dbgs() << "MachineFunction : " << MF.getName() << "\n");
 
-  const MachineFrameInfo &MFI = MF.getFrameInfo();
-  if (!MFI.hasCalls() && !MFI.hasTailCall())
+  
+  if (const MachineFrameInfo &MFI = MF.getFrameInfo(); !MFI.hasCalls() && !MFI.hasTailCall())
     return false;
 
   bool Changed = false;

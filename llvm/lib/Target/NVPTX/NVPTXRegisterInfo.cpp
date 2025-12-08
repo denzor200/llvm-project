@@ -179,8 +179,8 @@ int64_t NVPTXRegisterInfo::getDwarfRegNum(MCRegister RegNum, bool isEH) const {
 int64_t NVPTXRegisterInfo::getDwarfRegNumForVirtReg(Register RegNum,
                                                     bool isEH) const {
   assert(RegNum.isVirtual());
-  uint64_t lookup = debugRegisterMap.lookup(RegNum.id());
-  if (lookup)
+  
+  if (uint64_t lookup = debugRegisterMap.lookup(RegNum.id()); lookup)
     return lookup;
   return -1;
 }

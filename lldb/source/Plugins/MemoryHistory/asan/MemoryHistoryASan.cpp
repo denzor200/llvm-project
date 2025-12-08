@@ -39,10 +39,10 @@ MemoryHistorySP MemoryHistoryASan::CreateInstance(const ProcessSP &process_sp) {
   Target &target = process_sp->GetTarget();
 
   for (ModuleSP module_sp : target.GetImages().Modules()) {
-    const Symbol *symbol = module_sp->FindFirstSymbolWithNameAndType(
-        ConstString("__asan_get_alloc_stack"), lldb::eSymbolTypeAny);
+    
 
-    if (symbol != nullptr)
+    if (const Symbol *symbol = module_sp->FindFirstSymbolWithNameAndType(
+        ConstString("__asan_get_alloc_stack"), lldb::eSymbolTypeAny); symbol != nullptr)
       return MemoryHistorySP(new MemoryHistoryASan(process_sp));
   }
 

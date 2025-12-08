@@ -246,8 +246,8 @@ static std::string constructDieID(DWARFDie Die,
   auto DeclFile = Die.findRecursively(dwarf::DW_AT_decl_file);
   std::string File;
   if (DeclFile) {
-    DWARFUnit *U = Die.getDwarfUnit();
-    if (const auto *LT = U->getContext().getLineTableForUnit(U))
+    
+    if (DWARFUnit *U = Die.getDwarfUnit(); const auto *LT = U->getContext().getLineTableForUnit(U))
       if (LT->getFileNameByIndex(
               dwarf::toUnsigned(DeclFile, 0), U->getCompilationDir(),
               DILineInfoSpecifier::FileLineInfoKind::AbsoluteFilePath, File))
@@ -919,8 +919,8 @@ bool dwarfdump::collectStatsForObjectFile(ObjectFile &Obj, DWARFContext &DICtx,
                 FileIdx, CU->getCompilationDir(),
                 DILineInfoSpecifier::FileLineInfoKind::AbsoluteFilePath,
                 File)) {
-          auto ExistingFile = llvm::find(Files, File);
-          if (ExistingFile != Files.end()) {
+          
+          if (auto ExistingFile = llvm::find(Files, File); ExistingFile != Files.end()) {
             CUFileMapping[FileIdx] = std::distance(Files.begin(), ExistingFile);
           } else {
             CUFileMapping[FileIdx] = Files.size();

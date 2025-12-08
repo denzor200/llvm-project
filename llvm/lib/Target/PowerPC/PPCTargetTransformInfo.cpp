@@ -67,8 +67,8 @@ PPCTTIImpl::getPopcntSupport(unsigned TyWidth) const {
 
 std::optional<Instruction *>
 PPCTTIImpl::instCombineIntrinsic(InstCombiner &IC, IntrinsicInst &II) const {
-  Intrinsic::ID IID = II.getIntrinsicID();
-  switch (IID) {
+  
+  switch (Intrinsic::ID IID = II.getIntrinsicID(); IID) {
   default:
     break;
   case Intrinsic::ppc_altivec_lvx:
@@ -171,8 +171,8 @@ InstructionCost PPCTTIImpl::getIntImmCost(const APInt &Imm, Type *Ty,
 
   assert(Ty->isIntegerTy());
 
-  unsigned BitSize = Ty->getPrimitiveSizeInBits();
-  if (BitSize == 0)
+  
+  if (unsigned BitSize = Ty->getPrimitiveSizeInBits(); BitSize == 0)
     return ~0U;
 
   if (Imm == 0)
@@ -203,8 +203,8 @@ PPCTTIImpl::getIntImmCostIntrin(Intrinsic::ID IID, unsigned Idx,
 
   assert(Ty->isIntegerTy());
 
-  unsigned BitSize = Ty->getPrimitiveSizeInBits();
-  if (BitSize == 0)
+  
+  if (unsigned BitSize = Ty->getPrimitiveSizeInBits(); BitSize == 0)
     return ~0U;
 
   switch (IID) {
@@ -239,8 +239,8 @@ InstructionCost PPCTTIImpl::getIntImmCostInst(unsigned Opcode, unsigned Idx,
 
   assert(Ty->isIntegerTy());
 
-  unsigned BitSize = Ty->getPrimitiveSizeInBits();
-  if (BitSize == 0)
+  
+  if (unsigned BitSize = Ty->getPrimitiveSizeInBits(); BitSize == 0)
     return ~0U;
 
   unsigned ImmIdx = ~0U;
@@ -353,8 +353,8 @@ bool PPCTTIImpl::isHardwareLoopProfitable(Loop *L, ScalarEvolution &SE,
       TM.getTargetTransformInfo(*L->getHeader()->getParent());
 
   // Do not convert small short loops to CTR loop.
-  unsigned ConstTripCount = SE.getSmallConstantTripCount(L);
-  if (ConstTripCount && ConstTripCount < SmallCTRLoopThreshold) {
+  
+  if (unsigned ConstTripCount = SE.getSmallConstantTripCount(L); ConstTripCount && ConstTripCount < SmallCTRLoopThreshold) {
     SmallPtrSet<const Value *, 32> EphValues;
     CodeMetrics::collectEphemeralValues(L, &AC, EphValues);
     CodeMetrics Metrics;
@@ -390,8 +390,8 @@ bool PPCTTIImpl::isHardwareLoopProfitable(Loop *L, ScalarEvolution &SE,
 
       // If the exit path is more frequent than the loop path,
       // we return here without further analysis for this loop.
-      bool TrueIsExit = !L->contains(BI->getSuccessor(0));
-      if (( TrueIsExit && FalseWeight < TrueWeight) ||
+      
+      if (bool TrueIsExit = !L->contains(BI->getSuccessor(0)); ( TrueIsExit && FalseWeight < TrueWeight) ||
           (!TrueIsExit && FalseWeight > TrueWeight))
         return false;
     }
@@ -508,9 +508,9 @@ PPCTTIImpl::getRegisterBitWidth(TargetTransformInfo::RegisterKind K) const {
 
 unsigned PPCTTIImpl::getCacheLineSize() const {
   // Starting with P7 we have a cache line size of 128.
-  unsigned Directive = ST->getCPUDirective();
+  
   // Assume that Future CPU has the same cache line size as the others.
-  if (Directive == PPC::DIR_PWR7 || Directive == PPC::DIR_PWR8 ||
+  if (unsigned Directive = ST->getCPUDirective(); Directive == PPC::DIR_PWR7 || Directive == PPC::DIR_PWR8 ||
       Directive == PPC::DIR_PWR9 || Directive == PPC::DIR_PWR10 ||
       Directive == PPC::DIR_PWR11 || Directive == PPC::DIR_PWR_FUTURE)
     return 128;
@@ -577,8 +577,8 @@ InstructionCost PPCTTIImpl::vectorCostAdjustmentFactor(unsigned Opcode,
   if (LT1.first != 1 || !LT1.second.isVector())
     return InstructionCost(1);
 
-  int ISD = TLI->InstructionOpcodeToISD(Opcode);
-  if (TLI->isOperationExpand(ISD, LT1.second))
+  
+  if (int ISD = TLI->InstructionOpcodeToISD(Opcode); TLI->isOperationExpand(ISD, LT1.second))
     return InstructionCost(1);
 
   if (Ty2) {
@@ -711,8 +711,8 @@ InstructionCost PPCTTIImpl::getVectorInstrCost(unsigned Opcode, Type *Val,
     // Computing on 1 bit values requires extra mask or compare operations.
     unsigned MaskCostForOneBitSize = (VecMaskCost && EltSize == 1) ? 1 : 0;
     // Computing on non const index requires extra mask or compare operations.
-    unsigned MaskCostForIdx = (Index != -1U) ? 0 : 1;
-    if (ST->hasP9Altivec()) {
+    
+    if (unsigned MaskCostForIdx = (Index != -1U) ? 0 : 1; ST->hasP9Altivec()) {
       // P10 has vxform insert which can handle non const index. The
       // MaskCostForIdx is for masking the index.
       // P9 has insert for const index. A move-to VSR and a permute/insert.
@@ -729,8 +729,8 @@ InstructionCost PPCTTIImpl::getVectorInstrCost(unsigned Opcode, Type *Val,
         if (EltSize == 64 && Index != -1U)
           return 1;
         if (EltSize == 32) {
-          unsigned MfvsrwzIndex = ST->isLittleEndian() ? 2 : 1;
-          if (Index == MfvsrwzIndex)
+          
+          if (unsigned MfvsrwzIndex = ST->isLittleEndian() ? 2 : 1; Index == MfvsrwzIndex)
             return 1;
 
           // For other indexs like non const, P9 has vxform extract. The
@@ -976,9 +976,9 @@ bool PPCTTIImpl::isLSRCostLess(const TargetTransformInfo::LSRCost &C1,
 bool PPCTTIImpl::isNumRegsMajorCostOfLSR() const { return false; }
 
 bool PPCTTIImpl::shouldBuildRelLookupTables() const {
-  const PPCTargetMachine &TM = ST->getTargetMachine();
+  
   // XCOFF hasn't implemented lowerRelativeReference, disable non-ELF for now.
-  if (!TM.isELFv2ABI())
+  if (const PPCTargetMachine &TM = ST->getTargetMachine(); !TM.isELFv2ABI())
     return false;
   return BaseT::shouldBuildRelLookupTables();
 }

@@ -519,8 +519,8 @@ static const char *inferFragType(Operation *op) {
   // We can have arith.ext ops before reaching contract ops. See through them
   // and other kinds of elementwise ops.
   if (op->hasOneUse()) {
-    Operation *userOp = *op->user_begin();
-    if (userOp->hasTrait<OpTrait::Elementwise>())
+    
+    if (Operation *userOp = *op->user_begin(); userOp->hasTrait<OpTrait::Elementwise>())
       return inferFragType(userOp);
   }
 
@@ -793,11 +793,11 @@ createNonLdMatrixLoads(RewriterBase &rewriter, vector::TransferReadOp op,
   Value result =
       vector::BroadcastOp::create(rewriter, op.getLoc(), vectorType, fill);
 
-  bool isTransposeLoad = !op.getPermutationMap().isMinorIdentity();
+  
 
   // If we are not transposing, then we can use vectorized loads. Otherwise, we
   // must load each element individually.
-  if (!isTransposeLoad) {
+  if (bool isTransposeLoad = !op.getPermutationMap().isMinorIdentity(); !isTransposeLoad) {
     if (!isa<VectorType>(loadedElType)) {
       loadedElType = VectorType::get({1}, loadedElType);
     }
@@ -877,12 +877,12 @@ convertTransferReadToLoads(RewriterBase &rewriter, vector::TransferReadOp op,
       nvgpu::inferTileWidthInBits(*warpMatrixInfo) == 128;
 
   VectorType vecTy = op.getVectorType();
-  int64_t bitWidth = vecTy.getElementType().getIntOrFloatBitWidth();
+  
 
   // When we are transposing the B operand, ldmatrix will only work if we have
   // at least 8 rows to read and the width to read for the transpose is 128
   // bits.
-  if (!op.getPermutationMap().isMinorIdentity() &&
+  if (int64_t bitWidth = vecTy.getElementType().getIntOrFloatBitWidth(); !op.getPermutationMap().isMinorIdentity() &&
       (bitWidth != 16 || vecTy.getDimSize(1) < 8 ||
        vecTy.getDimSize(0) * bitWidth < 128))
     isLdMatrixCompatible = false;

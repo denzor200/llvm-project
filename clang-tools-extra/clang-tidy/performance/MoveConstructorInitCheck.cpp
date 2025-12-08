@@ -46,8 +46,8 @@ void MoveConstructorInitCheck::check(const MatchFinder::MatchResult &Result) {
   if (QT.isConstQualified())
     return;
 
-  const auto *RD = QT->getAsCXXRecordDecl();
-  if (RD && RD->isTriviallyCopyable())
+  
+  if (const auto *RD = QT->getAsCXXRecordDecl(); RD && RD->isTriviallyCopyable())
     return;
 
   // Diagnose when the class type has a move constructor available, but the

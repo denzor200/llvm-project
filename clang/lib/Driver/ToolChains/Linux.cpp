@@ -44,11 +44,11 @@ std::string Linux::getMultiarchTriple(const Driver &D,
       TargetTriple.getEnvironment();
   bool IsAndroid = TargetTriple.isAndroid();
   bool IsMipsR6 = TargetTriple.getSubArch() == llvm::Triple::MipsSubArch_r6;
-  bool IsMipsN32Abi = TargetTriple.getEnvironment() == llvm::Triple::GNUABIN32;
+  
 
   // For most architectures, just use whatever we have rather than trying to be
   // clever.
-  switch (TargetTriple.getArch()) {
+  switch (bool IsMipsN32Abi = TargetTriple.getEnvironment() == llvm::Triple::GNUABIN32; TargetTriple.getArch()) {
   default:
     break;
 
@@ -448,10 +448,10 @@ std::string Linux::computeSysRoot() const {
 static void setPAuthABIInTriple(const Driver &D, const ArgList &Args,
                                 llvm::Triple &Triple) {
   Arg *ABIArg = Args.getLastArg(options::OPT_mabi_EQ);
-  bool HasPAuthABI =
-      ABIArg ? (StringRef(ABIArg->getValue()) == "pauthtest") : false;
+  
 
-  switch (Triple.getEnvironment()) {
+  switch (bool HasPAuthABI =
+      ABIArg ? (StringRef(ABIArg->getValue()) == "pauthtest") : false; Triple.getEnvironment()) {
   case llvm::Triple::UnknownEnvironment:
     if (HasPAuthABI)
       Triple.setEnvironment(llvm::Triple::PAuthTest);

@@ -636,9 +636,9 @@ bool ClassDescriptorV2::Describe(
 
 ConstString ClassDescriptorV2::GetClassName() {
   if (!m_name) {
-    lldb_private::Process *process = m_runtime.GetProcess();
+    
 
-    if (process) {
+    if (lldb_private::Process *process = m_runtime.GetProcess(); process) {
       std::unique_ptr<objc_class_t> objc_class;
       std::unique_ptr<class_ro_t> class_ro;
       std::unique_ptr<class_rw_t> class_rw;
@@ -687,9 +687,9 @@ ObjCLanguageRuntime::ClassDescriptorSP ClassDescriptorV2::GetMetaclass() const {
 }
 
 uint64_t ClassDescriptorV2::GetInstanceSize() {
-  lldb_private::Process *process = m_runtime.GetProcess();
+  
 
-  if (process) {
+  if (lldb_private::Process *process = m_runtime.GetProcess(); process) {
     std::unique_ptr<objc_class_t> objc_class;
     std::unique_ptr<class_ro_t> class_ro;
     std::unique_ptr<class_rw_t> class_rw;

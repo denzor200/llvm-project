@@ -80,8 +80,8 @@ IncrementalParser::ParseOrWrapTopLevelDecl() {
                                                  std::error_code());
   }
 
-  DiagnosticsEngine &Diags = S.getDiagnostics();
-  if (Diags.hasErrorOccurred()) {
+  
+  if (DiagnosticsEngine &Diags = S.getDiagnostics(); Diags.hasErrorOccurred()) {
     CleanUpPTU(C.getTranslationUnitDecl());
 
     Diags.Reset(/*soft=*/true);

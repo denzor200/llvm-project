@@ -1630,9 +1630,9 @@ std::string PatternEmitter::handleOpCreation(DagNode tree, int resultIndex,
   auto checkIfMatchedVariadic = [&](int i) {
     // FIXME: This does not yet check for variable/leaf case.
     // FIXME: Change so that native code call can be handled.
-    const auto *operand =
-        llvm::dyn_cast_if_present<NamedTypeConstraint *>(resultOp.getArg(i));
-    if (!operand || !operand->isVariadic())
+    
+    if (const auto *operand =
+        llvm::dyn_cast_if_present<NamedTypeConstraint *>(resultOp.getArg(i)); !operand || !operand->isVariadic())
       return;
 
     auto child = tree.getArgAsNestedDag(i);
@@ -1686,10 +1686,10 @@ std::string PatternEmitter::handleOpCreation(DagNode tree, int resultIndex,
   // when building an op.
   bool isSameOperandsAndResultType =
       resultOp.getTrait("::mlir::OpTrait::SameOperandsAndResultType");
-  bool useFirstAttr =
-      resultOp.getTrait("::mlir::OpTrait::FirstAttrDerivedResultType");
+  
 
-  if (!tail.returnType && (isSameOperandsAndResultType || useFirstAttr)) {
+  if (bool useFirstAttr =
+      resultOp.getTrait("::mlir::OpTrait::FirstAttrDerivedResultType"); !tail.returnType && (isSameOperandsAndResultType || useFirstAttr)) {
     // We know how to deduce the result type for ops with these traits and we've
     // generated builders taking aggregate parameters. Use those builders to
     // create the ops.
@@ -1942,9 +1942,9 @@ void PatternEmitter::createAggregateLocalVarsForOpArgs(
       continue;
     }
 
-    const auto *operand =
-        cast<NamedTypeConstraint *>(resultOp.getArg(argIndex));
-    if (operand->isVariadic()) {
+    
+    if (const auto *operand =
+        cast<NamedTypeConstraint *>(resultOp.getArg(argIndex)); operand->isVariadic()) {
       ++numVariadic;
       std::string range;
       if (node.isNestedDagArg(argIndex)) {
@@ -1989,9 +1989,9 @@ void PatternEmitter::createAggregateLocalVarsForOpArgs(
 
   if (numVariadic > 1 && !hasOperandSegmentSizes) {
     // Only set size if it can't be computed.
-    const auto *sameVariadicSize =
-        resultOp.getTrait("::mlir::OpTrait::SameVariadicOperandSize");
-    if (!sameVariadicSize) {
+    
+    if (const auto *sameVariadicSize =
+        resultOp.getTrait("::mlir::OpTrait::SameVariadicOperandSize"); !sameVariadicSize) {
       if (useProperties) {
         const char *setSizes = R"(
           tblgen_props.operandSegmentSizes = {{ {0} };

@@ -825,8 +825,8 @@ Expected<LoopUnrollOptions> parseLoopUnrollOptions(StringRef Params) {
       continue;
     }
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "partial") {
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "partial") {
       UnrollOpts.setPartial(Enable);
     } else if (ParamName == "peeling") {
       UnrollOpts.setPeeling(Enable);
@@ -919,8 +919,8 @@ Expected<IRNormalizerOptions> parseIRNormalizerPassOptions(StringRef Params) {
     StringRef ParamName;
     std::tie(ParamName, Params) = Params.split(';');
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "preserve-order")
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "preserve-order")
       Result.PreserveOrder = Enable;
     else if (ParamName == "rename-all")
       Result.RenameAll = Enable;
@@ -1139,8 +1139,8 @@ Expected<SimplifyCFGOptions> parseSimplifyCFGOptions(StringRef Params) {
     StringRef ParamName;
     std::tie(ParamName, Params) = Params.split(';');
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "speculate-blocks") {
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "speculate-blocks") {
       Result.speculateBlocks(Enable);
     } else if (ParamName == "simplify-cond-branch") {
       Result.setSimplifyCondBranch(Enable);
@@ -1190,8 +1190,8 @@ Expected<InstCombineOptions> parseInstCombineOptions(StringRef Params) {
     StringRef ParamName;
     std::tie(ParamName, Params) = Params.split(';');
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "verify-fixpoint") {
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "verify-fixpoint") {
       Result.setVerifyFixpoint(Enable);
     } else if (Enable && ParamName.consume_front("max-iterations=")) {
       APInt MaxIterations;
@@ -1219,8 +1219,8 @@ Expected<LoopVectorizeOptions> parseLoopVectorizeOptions(StringRef Params) {
     StringRef ParamName;
     std::tie(ParamName, Params) = Params.split(';');
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "interleave-forced-only") {
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "interleave-forced-only") {
       Opts.setInterleaveOnlyWhenForced(Enable);
     } else if (ParamName == "vectorize-forced-only") {
       Opts.setVectorizeOnlyWhenForced(Enable);
@@ -1239,8 +1239,8 @@ Expected<std::pair<bool, bool>> parseLoopUnswitchOptions(StringRef Params) {
     StringRef ParamName;
     std::tie(ParamName, Params) = Params.split(';');
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "nontrivial") {
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "nontrivial") {
       Result.first = Enable;
     } else if (ParamName == "trivial") {
       Result.second = Enable;
@@ -1259,8 +1259,8 @@ Expected<LICMOptions> parseLICMOptions(StringRef Params) {
     StringRef ParamName;
     std::tie(ParamName, Params) = Params.split(';');
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "allowspeculation") {
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "allowspeculation") {
       Result.AllowSpeculation = Enable;
     } else {
       return make_error<StringError>(
@@ -1277,8 +1277,8 @@ Expected<std::pair<bool, bool>> parseLoopRotateOptions(StringRef Params) {
     StringRef ParamName;
     std::tie(ParamName, Params) = Params.split(';');
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "header-duplication") {
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "header-duplication") {
       Result.first = Enable;
     } else if (ParamName == "prepare-for-lto") {
       Result.second = Enable;
@@ -1297,8 +1297,8 @@ Expected<bool> parseMergedLoadStoreMotionOptions(StringRef Params) {
     StringRef ParamName;
     std::tie(ParamName, Params) = Params.split(';');
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "split-footer-bb") {
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "split-footer-bb") {
       Result = Enable;
     } else {
       return make_error<StringError>(
@@ -1317,8 +1317,8 @@ Expected<GVNOptions> parseGVNOptions(StringRef Params) {
     StringRef ParamName;
     std::tie(ParamName, Params) = Params.split(';');
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "pre") {
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "pre") {
       Result.setPRE(Enable);
     } else if (ParamName == "load-pre") {
       Result.setLoadPRE(Enable);
@@ -1347,8 +1347,8 @@ Expected<IPSCCPOptions> parseIPSCCPOptions(StringRef Params) {
     StringRef ParamName;
     std::tie(ParamName, Params) = Params.split(';');
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "func-spec")
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "func-spec")
       Result.setFuncSpec(Enable);
     else
       return make_error<StringError>(
@@ -1377,8 +1377,8 @@ Expected<ScalarizerPassOptions> parseScalarizerOptions(StringRef Params) {
       continue;
     }
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "load-store")
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "load-store")
       Result.ScalarizeLoadStore = Enable;
     else if (ParamName == "variable-insert-extract")
       Result.ScalarizeVariableInsertExtract = Enable;
@@ -1502,8 +1502,8 @@ Expected<GlobalMergeOptions> parseGlobalMergeOptions(StringRef Params) {
     StringRef ParamName;
     std::tie(ParamName, Params) = Params.split(';');
 
-    bool Enable = !ParamName.consume_front("no-");
-    if (ParamName == "group-by-use")
+    
+    if (bool Enable = !ParamName.consume_front("no-"); ParamName == "group-by-use")
       Result.GroupByUse = Enable;
     else if (ParamName == "ignore-single-use")
       Result.IgnoreSingleUse = Enable;

@@ -164,8 +164,8 @@ static void emitARMTargetDef(const RecordKeeper &RK, raw_ostream &OS) {
     OS << ", " << Rec->getValueAsString("FeatureBit");
     OS << ", " << Rec->getValueAsString("PriorityBit");
     auto FeatName = Rec->getValueAsString("BackendFeature");
-    const Record *FeatRec = ExtensionMap[FeatName];
-    if (FeatRec)
+    
+    if (const Record *FeatRec = ExtensionMap[FeatName]; FeatRec)
       OS << ", " << FeatRec->getValueAsString("ArchExtKindSpelling").upper();
     else
       OS << ", std::nullopt";

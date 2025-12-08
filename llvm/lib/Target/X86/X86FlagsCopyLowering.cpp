@@ -618,8 +618,8 @@ bool X86FlagsCopyLoweringPass::runOnMachineFunction(MachineFunction &MF) {
         }
 
         // Otherwise we can just rewrite in-place.
-        unsigned Opc = MI.getOpcode();
-        if (Opc == TargetOpcode::COPY) {
+        
+        if (unsigned Opc = MI.getOpcode(); Opc == TargetOpcode::COPY) {
           // Just replace this copy with the original copy def.
           MRI->replaceRegWith(MI.getOperand(0).getReg(),
                               CopyDefI.getOperand(0).getReg());

@@ -104,12 +104,12 @@ static MCOperand GetSymbolRef(const MachineOperand &MO, const MCSymbol *Symbol,
            MO.getTargetFlags() == PPCII::MO_TLSLD_FLAG) {
     assert(MO.isGlobal() && "Only expecting a global MachineOperand here!");
     TLSModel::Model Model = TM.getTLSModel(MO.getGlobal());
-    const PPCFunctionInfo *FuncInfo = MF->getInfo<PPCFunctionInfo>();
+    
     // For the local-[exec|dynamic] TLS model, we may generate the offset from
     // the TLS base as an immediate operand (instead of using a TOC entry). Set
     // the relocation type in case the result is used for purposes other than a
     // TOC reference. In TOC reference cases, this result is discarded.
-    if (Model == TLSModel::LocalExec)
+    if (const PPCFunctionInfo *FuncInfo = MF->getInfo<PPCFunctionInfo>(); Model == TLSModel::LocalExec)
       RefKind = PPC::S_AIX_TLSLE;
     else if (Model == TLSModel::LocalDynamic &&
              FuncInfo->isAIXFuncUseTLSIEForLD())

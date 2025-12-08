@@ -255,8 +255,8 @@ void DwarfUnit::addIntAsBlock(DIE &Die, dwarf::Attribute Attribute, const APInt 
 
 void DwarfUnit::addInt(DIE &Die, dwarf::Attribute Attribute,
 		       const APInt &Val, bool Unsigned) {
-  unsigned CIBitWidth = Val.getBitWidth();
-  if (CIBitWidth <= 64) {
+  
+  if (unsigned CIBitWidth = Val.getBitWidth(); CIBitWidth <= 64) {
     if (Unsigned)
       addUInt(Die, Attribute, std::nullopt, Val.getZExtValue());
     else
@@ -301,8 +301,8 @@ void DwarfUnit::addString(DIE &Die, dwarf::Attribute Attribute,
   // For DWARF v5 and beyond, use the smallest strx? form possible.
   if (useSegmentedStringOffsetsTable()) {
     IxForm = dwarf::DW_FORM_strx1;
-    unsigned Index = StringPoolEntry.getIndex();
-    if (Index > 0xffffff)
+    
+    if (unsigned Index = StringPoolEntry.getIndex(); Index > 0xffffff)
       IxForm = dwarf::DW_FORM_strx4;
     else if (Index > 0xffff)
       IxForm = dwarf::DW_FORM_strx3;
@@ -525,8 +525,8 @@ void DwarfUnit::addConstantValue(DIE &Die, const APInt &Val, const DIType *Ty) {
 }
 
 void DwarfUnit::addConstantValue(DIE &Die, const APInt &Val, bool Unsigned) {
-  unsigned CIBitWidth = Val.getBitWidth();
-  if (CIBitWidth <= 64) {
+  
+  if (unsigned CIBitWidth = Val.getBitWidth(); CIBitWidth <= 64) {
     addConstantValue(Die, Unsigned,
                      Unsigned ? Val.getZExtValue() : Val.getSExtValue());
     return;
@@ -857,8 +857,8 @@ void DwarfUnit::constructTypeDIE(DIE &Buffer, const DIDerivedType *DTy) {
   uint16_t Tag = Buffer.getTag();
 
   // Map to main type, void will not have a type.
-  const DIType *FromTy = DTy->getBaseType();
-  if (FromTy)
+  
+  if (const DIType *FromTy = DTy->getBaseType(); FromTy)
     addType(Buffer, FromTy);
 
   // Add name if not anonymous or intermediate type.
@@ -870,8 +870,8 @@ void DwarfUnit::constructTypeDIE(DIE &Buffer, const DIDerivedType *DTy) {
   // If alignment is specified for a typedef , create and insert DW_AT_alignment
   // attribute in DW_TAG_typedef DIE.
   if (Tag == dwarf::DW_TAG_typedef && DD->getDwarfVersion() >= 5) {
-    uint32_t AlignInBytes = DTy->getAlignInBytes();
-    if (AlignInBytes > 0)
+    
+    if (uint32_t AlignInBytes = DTy->getAlignInBytes(); AlignInBytes > 0)
       addUInt(Buffer, dwarf::DW_AT_alignment, dwarf::DW_FORM_udata,
               AlignInBytes);
   }
@@ -923,8 +923,8 @@ DwarfUnit::constructSubprogramArguments(DIE &Buffer, DITypeRefArray Args) {
   // Args[0] is the return type.
   std::optional<unsigned> ObjectPointerIndex;
   for (unsigned i = 1, N = Args.size(); i < N; ++i) {
-    const DIType *Ty = Args[i];
-    if (!Ty) {
+    
+    if (const DIType *Ty = Args[i]; !Ty) {
       assert(i == N-1 && "Unspecified parameter must be the last argument");
       createAndAddDIE(dwarf::DW_TAG_unspecified_parameters, Buffer);
     } else {
@@ -1137,8 +1137,8 @@ void DwarfUnit::constructTypeDIE(DIE &Buffer, const DICompositeType *CTy) {
         }
       } else if (Tag == dwarf::DW_TAG_namelist) {
         auto *Var = dyn_cast<DINode>(Element);
-        auto *VarDIE = getDIE(Var);
-        if (VarDIE) {
+        
+        if (auto *VarDIE = getDIE(Var); VarDIE) {
           DIE &ItemDie = createAndAddDIE(dwarf::DW_TAG_namelist_item, Buffer);
           addDIEEntry(ItemDie, dwarf::DW_AT_namelist_item, *VarDIE);
         }
@@ -1205,11 +1205,11 @@ void DwarfUnit::constructTypeDIE(DIE &Buffer, const DICompositeType *CTy) {
                    dyn_cast_or_null<DIExpression>(CTy->getRawSizeInBits())) {
       addBlock(Buffer, dwarf::DW_AT_bit_size, Exp);
     } else {
-      uint64_t Size = CTy->getSizeInBits() >> 3;
+      
       // Add size if non-zero (derived types might be zero-sized.)
       // Ignore the size if it's a non-enum forward decl.
       // TODO: Do we care about size for enum forward declarations?
-      if (Size &&
+      if (uint64_t Size = CTy->getSizeInBits() >> 3; Size &&
           (!CTy->isForwardDecl() || Tag == dwarf::DW_TAG_enumeration_type))
         addUInt(Buffer, dwarf::DW_AT_byte_size, std::nullopt, Size);
       else if (!CTy->isForwardDecl())
@@ -1229,8 +1229,8 @@ void DwarfUnit::constructTypeDIE(DIE &Buffer, const DICompositeType *CTy) {
       addSourceLine(Buffer, CTy);
 
     // No harm in adding the runtime language to the declaration.
-    unsigned RLang = CTy->getRuntimeLang();
-    if (RLang)
+    
+    if (unsigned RLang = CTy->getRuntimeLang(); RLang)
       addUInt(Buffer, dwarf::DW_AT_APPLE_runtime_class, dwarf::DW_FORM_data1,
               RLang);
 
@@ -1410,8 +1410,8 @@ bool DwarfUnit::applySubprogramDefinitionAttributes(const DISubprogram *SP,
       if (DD->useAllLinkageNames())
         DeclLinkageName = SPDecl->getLinkageName();
       unsigned DeclID = getOrCreateSourceID(SPDecl->getFile());
-      unsigned DefID = getOrCreateSourceID(SP->getFile());
-      if (DeclID != DefID)
+      
+      if (unsigned DefID = getOrCreateSourceID(SP->getFile()); DeclID != DefID)
         addUInt(SPDie, dwarf::DW_AT_decl_file, std::nullopt, DefID);
 
       if (SP->getLine() != SPDecl->getLine())
@@ -1814,8 +1814,8 @@ void DwarfUnit::constructEnumTypeDIE(DIE &Buffer, const DICompositeType *CTy) {
 
   // Add enumerators to enumeration type.
   for (const DINode *E : Elements) {
-    auto *Enum = dyn_cast_or_null<DIEnumerator>(E);
-    if (Enum) {
+    
+    if (auto *Enum = dyn_cast_or_null<DIEnumerator>(E); Enum) {
       DIE &Enumerator = createAndAddDIE(dwarf::DW_TAG_enumerator, Buffer);
       StringRef Name = Enum->getName();
       addString(Enumerator, dwarf::DW_AT_name, Name);
@@ -2063,8 +2063,8 @@ void DwarfUnit::emitCommonHeader(bool UseOffsets, dwarf::UnitType UT) {
   // start of the section. Use a relocatable offset where needed to ensure
   // linking doesn't invalidate that offset.
   Asm->OutStreamer->AddComment("Offset Into Abbrev. Section");
-  const TargetLoweringObjectFile &TLOF = Asm->getObjFileLowering();
-  if (UseOffsets)
+  
+  if (const TargetLoweringObjectFile &TLOF = Asm->getObjFileLowering(); UseOffsets)
     Asm->emitDwarfLengthOrOffset(0);
   else
     Asm->emitDwarfSymbolReference(

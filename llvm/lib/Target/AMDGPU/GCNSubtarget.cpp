@@ -156,8 +156,8 @@ GCNSubtarget &GCNSubtarget::initializeSubtargetDependencies(const Triple &TT,
 }
 
 void GCNSubtarget::checkSubtargetFeatures(const Function &F) const {
-  LLVMContext &Ctx = F.getContext();
-  if (hasFeature(AMDGPU::FeatureWavefrontSize32) &&
+  
+  if (LLVMContext &Ctx = F.getContext(); hasFeature(AMDGPU::FeatureWavefrontSize32) &&
       hasFeature(AMDGPU::FeatureWavefrontSize64)) {
     Ctx.diagnose(DiagnosticInfoUnsupported(
         F, "must specify exactly one of wavefrontsize32 and wavefrontsize64"));
@@ -464,10 +464,10 @@ unsigned GCNSubtarget::getBaseMaxNumSGPRs(
 
   // Check if maximum number of SGPRs was explicitly requested using
   // "amdgpu-num-sgpr" attribute.
-  unsigned Requested =
-      F.getFnAttributeAsParsedInteger("amdgpu-num-sgpr", MaxNumSGPRs);
+  
 
-  if (Requested != MaxNumSGPRs) {
+  if (unsigned Requested =
+      F.getFnAttributeAsParsedInteger("amdgpu-num-sgpr", MaxNumSGPRs); Requested != MaxNumSGPRs) {
     // Make sure requested value does not violate subtarget's specifications.
     if (Requested && (Requested <= ReservedNumSGPRs))
       Requested = 0;
@@ -479,8 +479,8 @@ unsigned GCNSubtarget::getBaseMaxNumSGPRs(
     // of reserved special registers in total. Theoretically you could re-use
     // the last input registers for these special registers, but this would
     // require a lot of complexity to deal with the weird aliasing.
-    unsigned InputNumSGPRs = PreloadedSGPRs;
-    if (Requested && Requested < InputNumSGPRs)
+    
+    if (unsigned InputNumSGPRs = PreloadedSGPRs; Requested && Requested < InputNumSGPRs)
       Requested = InputNumSGPRs;
 
     // Make sure requested value is compatible with values implied by
@@ -635,9 +635,9 @@ void GCNSubtarget::adjustSchedDependency(
     return;
 
   MachineInstr *DefI = Def->getInstr();
-  MachineInstr *UseI = Use->getInstr();
+  
 
-  if (DefI->isBundle()) {
+  if (MachineInstr *UseI = Use->getInstr(); DefI->isBundle()) {
     const SIRegisterInfo *TRI = getRegisterInfo();
     auto Reg = Dep.getReg();
     MachineBasicBlock::const_instr_iterator I(DefI->getIterator());
@@ -691,10 +691,10 @@ GCNUserSGPRUsageInfo::GCNUserSGPRUsageInfo(const Function &F,
                                            const GCNSubtarget &ST)
     : ST(ST) {
   const CallingConv::ID CC = F.getCallingConv();
-  const bool IsKernel =
-      CC == CallingConv::AMDGPU_KERNEL || CC == CallingConv::SPIR_KERNEL;
+  
 
-  if (IsKernel && (!F.arg_empty() || ST.getImplicitArgNumBytes(F) != 0))
+  if (const bool IsKernel =
+      CC == CallingConv::AMDGPU_KERNEL || CC == CallingConv::SPIR_KERNEL; IsKernel && (!F.arg_empty() || ST.getImplicitArgNumBytes(F) != 0))
     KernargSegmentPtr = true;
 
   bool IsAmdHsaOrMesa = ST.isAmdHsaOrMesa(F);

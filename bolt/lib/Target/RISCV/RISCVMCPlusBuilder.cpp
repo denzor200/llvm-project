@@ -340,8 +340,8 @@ public:
   }
 
   const MCSymbol *getTargetSymbol(const MCExpr *Expr) const override {
-    auto *RISCVExpr = dyn_cast<MCSpecifierExpr>(Expr);
-    if (RISCVExpr && RISCVExpr->getSubExpr())
+    
+    if (auto *RISCVExpr = dyn_cast<MCSpecifierExpr>(Expr); RISCVExpr && RISCVExpr->getSubExpr())
       return getTargetSymbol(RISCVExpr->getSubExpr());
 
     return MCPlusBuilder::getTargetSymbol(Expr);
@@ -772,8 +772,8 @@ public:
   }
 
   void convertIndirectCallToLoad(MCInst &Inst, MCPhysReg Reg) override {
-    bool IsTailCall = isTailCall(Inst);
-    if (IsTailCall)
+    
+    if (bool IsTailCall = isTailCall(Inst); IsTailCall)
       removeAnnotation(Inst, MCPlus::MCAnnotation::kTailCall);
     Inst.setOpcode(RISCV::ADD);
     Inst.insert(Inst.begin(), MCOperand::createReg(Reg));

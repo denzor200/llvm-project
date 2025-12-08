@@ -174,8 +174,8 @@ Error SymbolizableObjectFile::addSymbol(const SymbolRef &Symbol,
 
     // Allow function and data symbols. Additionally allow STT_NONE, which are
     // common for functions defined in assembly.
-    uint8_t Type = ELFSymbolRef(Symbol).getELFType();
-    if (Type != ELF::STT_NOTYPE && Type != ELF::STT_FUNC &&
+    
+    if (uint8_t Type = ELFSymbolRef(Symbol).getELFType(); Type != ELF::STT_NOTYPE && Type != ELF::STT_FUNC &&
         Type != ELF::STT_OBJECT && Type != ELF::STT_GNU_IFUNC)
       return Error::success();
     // Some STT_NOTYPE symbols are not desired. This excludes STT_SECTION and

@@ -878,9 +878,9 @@ static LogicalResult printOperation(CppEmitter &emitter,
 static LogicalResult printOperation(CppEmitter &emitter,
                                     emitc::ApplyOp applyOp) {
   raw_ostream &os = emitter.ostream();
-  Operation &op = *applyOp.getOperation();
+  
 
-  if (failed(emitter.emitAssignPrefix(op)))
+  if (Operation &op = *applyOp.getOperation(); failed(emitter.emitAssignPrefix(op)))
     return failure();
   os << applyOp.getApplicableOperator();
   return emitter.emitOperand(applyOp.getOperand());
@@ -954,9 +954,9 @@ static LogicalResult printOperation(CppEmitter &emitter,
   if (shouldBeInlined(expressionOp))
     return success();
 
-  Operation &op = *expressionOp.getOperation();
+  
 
-  if (failed(emitter.emitAssignPrefix(op)))
+  if (Operation &op = *expressionOp.getOperation(); failed(emitter.emitAssignPrefix(op)))
     return failure();
 
   return emitter.emitExpression(expressionOp);
@@ -1075,8 +1075,8 @@ static LogicalResult printOperation(CppEmitter &emitter, emitc::IfOp ifOp) {
     return failure();
   os.unindent() << "}";
 
-  Region &elseRegion = ifOp.getElseRegion();
-  if (!elseRegion.empty()) {
+  
+  if (Region &elseRegion = ifOp.getElseRegion(); !elseRegion.empty()) {
     os << " else {\n";
     os.indent();
     if (failed(emitAllExceptLast(elseRegion)))
@@ -1365,8 +1365,8 @@ static LogicalResult printOperation(CppEmitter &emitter,
   os << " " << functionOp.getName();
 
   os << "(";
-  Operation *operation = functionOp.getOperation();
-  if (failed(printFunctionArgs(emitter, operation, functionOp.getArguments())))
+  
+  if (Operation *operation = functionOp.getOperation(); failed(printFunctionArgs(emitter, operation, functionOp.getArguments())))
     return failure();
   os << ");";
 
@@ -1616,8 +1616,8 @@ LogicalResult CppEmitter::emitOperand(Value value, bool isInBrackets) {
   if (BlockArgument arg = dyn_cast<BlockArgument>(value)) {
     // If this operand is a block argument of an expression, emit instead the
     // matching expression parameter.
-    Operation *argOp = arg.getParentBlock()->getParentOp();
-    if (auto expressionOp = dyn_cast<ExpressionOp>(argOp)) {
+    
+    if (Operation *argOp = arg.getParentBlock()->getParentOp(); auto expressionOp = dyn_cast<ExpressionOp>(argOp)) {
       // This scenario is only expected when one of the operations within the
       // expression being emitted references one of the expression's block
       // arguments.

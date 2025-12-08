@@ -136,10 +136,10 @@ Status TargetList::CreateTargetInternal(
     lldb::offset_t file_offset = 0;
     lldb::offset_t file_size = 0;
     ModuleSpecList module_specs;
-    const size_t num_specs = ObjectFile::GetModuleSpecifications(
-        module_spec.GetFileSpec(), file_offset, file_size, module_specs);
+    
 
-    if (num_specs > 0) {
+    if (const size_t num_specs = ObjectFile::GetModuleSpecifications(
+        module_spec.GetFileSpec(), file_offset, file_size, module_specs); num_specs > 0) {
       ModuleSpec matching_module_spec;
 
       if (num_specs == 1) {
@@ -457,8 +457,8 @@ uint32_t TargetList::SendAsyncInterrupt(lldb::pid_t pid) {
   if (pid != LLDB_INVALID_PROCESS_ID) {
     TargetSP target_sp(FindTargetWithProcessID(pid));
     if (target_sp) {
-      Process *process = target_sp->GetProcessSP().get();
-      if (process) {
+      
+      if (Process *process = target_sp->GetProcessSP().get(); process) {
         process->SendAsyncInterrupt();
         ++num_async_interrupts_sent;
       }
@@ -474,8 +474,8 @@ uint32_t TargetList::SendAsyncInterrupt(lldb::pid_t pid) {
 
 uint32_t TargetList::SignalIfRunning(lldb::pid_t pid, int signo) {
   uint32_t num_signals_sent = 0;
-  Process *process = nullptr;
-  if (pid == LLDB_INVALID_PROCESS_ID) {
+  
+  if (Process *process = nullptr; pid == LLDB_INVALID_PROCESS_ID) {
     // Signal all processes with signal
     std::lock_guard<std::recursive_mutex> guard(m_target_list_mutex);
     for (const auto &target_sp : m_target_list) {

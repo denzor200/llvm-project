@@ -79,10 +79,10 @@ static bool isNullOrUndef(const Constant *C) {
 }
 
 static bool isSuitableForBSS(const GlobalVariable *GV) {
-  const Constant *C = GV->getInitializer();
+  
 
   // Must have zero initializer.
-  if (!isNullOrUndef(C))
+  if (const Constant *C = GV->getInitializer(); !isNullOrUndef(C))
     return false;
 
   // Leave constant zeros in readonly constant sections, so they can be shared.
@@ -286,8 +286,8 @@ SectionKind TargetLoweringObjectFile::getKindForGlobal(const GlobalObject *GO,
     // If the initializer for the global contains something that requires a
     // relocation, then we may have to drop this into a writable data section
     // even though it is marked const.
-    const Constant *C = GVar->getInitializer();
-    if (!C->needsRelocation()) {
+    
+    if (const Constant *C = GVar->getInitializer(); !C->needsRelocation()) {
       // If the global is required to have a unique address, it can't be put
       // into a mergable section: just drop it into the general read-only
       // section instead.

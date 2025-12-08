@@ -587,13 +587,13 @@ bool HexagonVectorLoopCarriedReuse::doVLCR() {
 
 void HexagonVectorLoopCarriedReuse::findDepChainFromPHI(Instruction *I,
                                                         DepChain &D) {
-  PHINode *PN = dyn_cast<PHINode>(I);
-  if (!PN) {
+  
+  if (PHINode *PN = dyn_cast<PHINode>(I); !PN) {
     D.push_back(I);
     return;
   } else {
-    auto NumIncomingValues = PN->getNumIncomingValues();
-    if (NumIncomingValues != 2) {
+    
+    if (auto NumIncomingValues = PN->getNumIncomingValues(); NumIncomingValues != 2) {
       D.clear();
       return;
     }

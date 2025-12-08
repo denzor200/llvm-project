@@ -225,8 +225,8 @@ ObjectContainerBSDArchive::Archive::ParseAndCacheArchiveForFile(
   shared_ptr archive_sp(
       new Archive(arch, time, file_offset, data, archive_type));
   if (archive_sp) {
-    const size_t num_objects = archive_sp->ParseObjects();
-    if (num_objects > 0) {
+    
+    if (const size_t num_objects = archive_sp->ParseObjects(); num_objects > 0) {
       std::lock_guard<std::recursive_mutex> guard(
           Archive::GetArchiveCacheMutex());
       Archive::GetArchiveCache().insert(std::make_pair(file, archive_sp));
@@ -400,9 +400,9 @@ ObjectFileSP ObjectContainerBSDArchive::GetObjectFile(const FileSpec *file) {
   ModuleSP module_sp(GetModule());
   if (module_sp) {
     if (module_sp->GetObjectName() && m_archive_sp) {
-      Object *object = m_archive_sp->FindObject(
-          module_sp->GetObjectName(), module_sp->GetObjectModificationTime());
-      if (object) {
+      
+      if (Object *object = m_archive_sp->FindObject(
+          module_sp->GetObjectName(), module_sp->GetObjectModificationTime()); object) {
         if (m_archive_type == ArchiveType::ThinArchive) {
           // Set file to child object file
           FileSpec child = GetChildFileSpecificationsFromThin(
@@ -464,8 +464,8 @@ size_t ObjectContainerBSDArchive::GetModuleSpecifications(
   if (archive_sp) {
     const size_t num_objects = archive_sp->GetNumObjects();
     for (size_t idx = 0; idx < num_objects; ++idx) {
-      const Object *object = archive_sp->GetObjectAtIndex(idx);
-      if (object) {
+      
+      if (const Object *object = archive_sp->GetObjectAtIndex(idx); object) {
         if (archive_sp->GetArchiveType() == ArchiveType::ThinArchive) {
           if (object->ar_name.IsEmpty())
             continue;
@@ -484,9 +484,9 @@ size_t ObjectContainerBSDArchive::GetModuleSpecifications(
           }
           continue;
         }
-        const lldb::offset_t object_file_offset =
-            file_offset + object->file_offset;
-        if (object->file_offset < file_size && file_size > object_file_offset) {
+        
+        if (const lldb::offset_t object_file_offset =
+            file_offset + object->file_offset; object->file_offset < file_size && file_size > object_file_offset) {
           if (ObjectFile::GetModuleSpecifications(
                   file, object_file_offset, file_size - object_file_offset,
                   specs)) {

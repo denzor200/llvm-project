@@ -18,9 +18,9 @@ static bool isResultValueDead(linalg::GenericOp genericOp, OpResult result) {
   if (!result.use_empty())
     return false;
   // If out operand not used in payload, we can drop it.
-  OpOperand *outputOpOperand =
-      genericOp.getDpsInitOperand(result.getResultNumber());
-  if (!genericOp.payloadUsesValueFromOperand(outputOpOperand))
+  
+  if (OpOperand *outputOpOperand =
+      genericOp.getDpsInitOperand(result.getResultNumber()); !genericOp.payloadUsesValueFromOperand(outputOpOperand))
     return true;
 
   // The out operand that is part of a payload can be dropped if

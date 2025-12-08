@@ -925,9 +925,9 @@ public:
       return failure();
     if (!vectorType.getElementType().isSignlessIntOrFloat())
       return failure();
-    unsigned trailingVectorDimBitwidth =
-        vectorType.getShape().back() * vectorType.getElementTypeBitWidth();
-    if (trailingVectorDimBitwidth >= targetVectorBitwidth)
+    
+    if (unsigned trailingVectorDimBitwidth =
+        vectorType.getShape().back() * vectorType.getElementTypeBitWidth(); trailingVectorDimBitwidth >= targetVectorBitwidth)
       return failure();
     if (!vector::isContiguousSlice(sourceType, vectorType))
       return failure();

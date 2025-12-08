@@ -99,9 +99,9 @@ OptionGroupPlatform::SetOptionValue(uint32_t option_idx,
   if (!m_include_platform_option)
     ++option_idx;
 
-  const int short_option = g_option_table[option_idx].short_option;
+  
 
-  switch (short_option) {
+  switch (const int short_option = g_option_table[option_idx].short_option; short_option) {
   case 'p':
     m_platform_name.assign(option_arg.str());
     break;

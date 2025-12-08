@@ -159,10 +159,10 @@ mlir::linalg::computeContinuousTileSizes(OpBuilder &builder, TilingInterface op,
                                          bool emitAssertions) {
 
   SmallVector<Range> loopRanges = op.getIterationDomain(builder);
-  unsigned numLoops = loopRanges.size();
+  
 
   // Bail out on dimension overflow.
-  if (dimension >= numLoops)
+  if (unsigned numLoops = loopRanges.size(); dimension >= numLoops)
     return failure();
 
   // The code below works only on values.
@@ -215,9 +215,9 @@ mlir::linalg::computeContinuousTileSizes(OpBuilder &builder, TilingInterface op,
     // Optimization if tripCount can be determined to be zero.
     if (Attribute attr = llvm::dyn_cast_if_present<Attribute>(tripCountSize)) {
       auto intAttr = cast<IntegerAttr>(attr);
-      bool isTripCountZero = intAttr.getValue().isZero();
+      
 
-      if (!isTripCountZero) {
+      if (bool isTripCountZero = intAttr.getValue().isZero(); !isTripCountZero) {
         spec.tileSizes.push_back(constStepOp);
         spec.tripCounts.push_back(tripCountValue);
       }
@@ -377,9 +377,9 @@ static void calculateTileOffsetsAndSizes(
   tiledSizes.reserve(nLoops);
   for (unsigned loopIdx = 0, threadIdIdx = 0; loopIdx < nLoops; ++loopIdx) {
     bool overflow = loopIdx >= numThreads.size();
-    bool isZero = !overflow && isZeroInteger(numThreads[loopIdx]);
+    
     // Degenerate case: take the whole domain.
-    if (overflow || isZero) {
+    if (bool isZero = !overflow && isZeroInteger(numThreads[loopIdx]); overflow || isZero) {
       tiledOffsets.push_back(loopRanges[loopIdx].offset);
       tiledSizes.push_back(loopRanges[loopIdx].size);
       continue;

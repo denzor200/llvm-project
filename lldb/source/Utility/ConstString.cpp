@@ -233,8 +233,8 @@ bool ConstString::operator<(ConstString rhs) const {
 }
 
 Stream &lldb_private::operator<<(Stream &s, ConstString str) {
-  const char *cstr = str.GetCString();
-  if (cstr != nullptr)
+  
+  if (const char *cstr = str.GetCString(); cstr != nullptr)
     s << cstr;
 
   return s;
@@ -287,8 +287,8 @@ int ConstString::Compare(ConstString lhs, ConstString rhs,
 
 void ConstString::Dump(Stream *s, const char *fail_value) const {
   if (s != nullptr) {
-    const char *cstr = AsCString(fail_value);
-    if (cstr != nullptr)
+    
+    if (const char *cstr = AsCString(fail_value); cstr != nullptr)
       s->PutCString(cstr);
   }
 }

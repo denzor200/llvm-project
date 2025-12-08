@@ -151,8 +151,8 @@ static SmallVector<int64_t> maximizeNumThreads(ArrayRef<int64_t> sizes,
   for (auto factor : factors) {
     auto nestedThreadsPerDim =
         maximizeNumThreads(sizes, currentIndex + 1, maxNumThreads / factor);
-    int64_t localBest = factor * product(nestedThreadsPerDim);
-    if (localBest > best && localBest <= maxNumThreads) {
+    
+    if (int64_t localBest = factor * product(nestedThreadsPerDim); localBest > best && localBest <= maxNumThreads) {
       LDBG() << indent << "new localBest: " << localBest;
       LDBG() << indent << "nestedThreadsPerDim: "
              << llvm::interleaved(nestedThreadsPerDim);

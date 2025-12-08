@@ -480,8 +480,8 @@ testing::AssertionResult isPropertyImplied(const Environment &Env,
   auto [Result, Prop] = getProperty(Env, ASTCtx, N, Property);
   if (!Prop)
     return Result;
-  auto *BVProp = cast<BoolValue>(Prop);
-  if (Env.proves(BVProp->formula()) != Implies)
+  
+  if (auto *BVProp = cast<BoolValue>(Prop); Env.proves(BVProp->formula()) != Implies)
     return testing::AssertionFailure()
            << Property << " is " << (Implies ? "not" : "") << " implied"
            << ", but should " << (Implies ? "" : "not ") << "be";

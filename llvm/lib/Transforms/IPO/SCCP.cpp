@@ -284,8 +284,8 @@ static bool runIPSCCP(
   for (auto *F : Solver.getMRVFunctionsTracked()) {
     assert(F->getReturnType()->isStructTy() &&
            "The return type should be a struct");
-    StructType *STy = cast<StructType>(F->getReturnType());
-    if (Solver.isStructLatticeConstant(F, STy))
+    
+    if (StructType *STy = cast<StructType>(F->getReturnType()); Solver.isStructLatticeConstant(F, STy))
       findReturnsToZap(*F, ReturnsToZap, Solver);
   }
 

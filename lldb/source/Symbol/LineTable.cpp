@@ -63,7 +63,7 @@ void LineTable::AppendLineEntryToSequence(
   Entry entry(file_addr, line, column, file_idx, is_start_of_statement,
               is_start_of_basic_block, is_prologue_end, is_epilogue_begin,
               is_terminal_entry);
-  entry_collection &entries = sequence.m_entries;
+  
   // Replace the last entry if the address is the same, otherwise append it. If
   // we have multiple line entries at the same address, this indicates illegal
   // DWARF so this "fixes" the line table to be correct. If not fixed this can
@@ -73,7 +73,7 @@ void LineTable::AppendLineEntryToSequence(
   // here to avoid these kinds of inconsistencies. We will need tor revisit
   // this if the DWARF line tables are updated to allow multiple entries at the
   // same address legally.
-  if (!entries.empty() && entries.back().file_addr == file_addr) {
+  if (entry_collection &entries = sequence.m_entries; !entries.empty() && entries.back().file_addr == file_addr) {
     // GCC don't use the is_prologue_end flag to mark the first instruction
     // after the prologue.
     // Instead of it is issuing a line table entry for the first instruction
@@ -302,8 +302,8 @@ size_t LineTable::FindLineEntriesForFileIndex(uint32_t file_idx, bool append,
     sc_list.Clear();
 
   size_t num_added = 0;
-  const size_t count = m_entries.size();
-  if (count > 0) {
+  
+  if (const size_t count = m_entries.size(); count > 0) {
     SymbolContext sc(m_comp_unit);
 
     for (size_t idx = 0; idx < count; ++idx) {
@@ -358,9 +358,9 @@ size_t LineTable::GetContiguousFileAddressRanges(FileAddressRanges &file_ranges,
   LineEntry line_entry;
   FileAddressRanges::Entry range(LLDB_INVALID_ADDRESS, 0);
   for (size_t idx = 0; idx < count; ++idx) {
-    const Entry &entry = m_entries[idx];
+    
 
-    if (entry.is_terminal_entry) {
+    if (const Entry &entry = m_entries[idx]; entry.is_terminal_entry) {
       if (range.GetRangeBase() != LLDB_INVALID_ADDRESS) {
         range.SetRangeEnd(entry.file_addr);
         file_ranges.Append(range);
@@ -387,9 +387,9 @@ LineTable *LineTable::LinkLineTable(const FileRangeMap &file_range_map) {
     const Entry &entry = m_entries[idx];
 
     const bool end_sequence = entry.is_terminal_entry;
-    const lldb::addr_t lookup_file_addr =
-        entry.file_addr - (end_sequence ? 1 : 0);
-    if (file_range_entry == nullptr ||
+    
+    if (const lldb::addr_t lookup_file_addr =
+        entry.file_addr - (end_sequence ? 1 : 0); file_range_entry == nullptr ||
         !file_range_entry->Contains(lookup_file_addr)) {
       prev_file_range_entry = file_range_entry;
       file_range_entry = file_range_map.FindEntryThatContains(lookup_file_addr);

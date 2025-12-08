@@ -104,8 +104,8 @@ unsigned AArch64InstrInfo::getInstSizeInBytes(const MachineInstr &MI) const {
   const MCAsmInfo *MAI = MF->getTarget().getMCAsmInfo();
 
   {
-    auto Op = MI.getOpcode();
-    if (Op == AArch64::INLINEASM || Op == AArch64::INLINEASM_BR)
+    
+    if (auto Op = MI.getOpcode(); Op == AArch64::INLINEASM || Op == AArch64::INLINEASM_BR)
       return getInlineAsmLength(MI.getOperand(0).getSymbolName(), *MAI);
   }
 
@@ -121,8 +121,8 @@ unsigned AArch64InstrInfo::getInstSizeInBytes(const MachineInstr &MI) const {
   if (!MI.isBundle() && isTailCallReturnInst(MI)) {
     NumBytes = Desc.getSize() ? Desc.getSize() : 4;
 
-    const auto *MFI = MF->getInfo<AArch64FunctionInfo>();
-    if (!MFI->shouldSignReturnAddress(*MF))
+    
+    if (const auto *MFI = MF->getInfo<AArch64FunctionInfo>(); !MFI->shouldSignReturnAddress(*MF))
       return NumBytes;
 
     const auto &STI = MF->getSubtarget<AArch64Subtarget>();
@@ -370,8 +370,8 @@ void AArch64InstrInfo::insertIndirectBranch(MachineBasicBlock &MBB,
 
   // Note: Spilling X16 briefly moves the stack pointer, making it incompatible
   // with red zones.
-  AArch64FunctionInfo *AFI = MBB.getParent()->getInfo<AArch64FunctionInfo>();
-  if (!AFI || AFI->hasRedZone().value_or(true))
+  
+  if (AArch64FunctionInfo *AFI = MBB.getParent()->getInfo<AArch64FunctionInfo>(); !AFI || AFI->hasRedZone().value_or(true))
     report_fatal_error(
         "Unable to insert indirect branch inside function that has red zone");
 
@@ -783,8 +783,8 @@ static unsigned canFoldIntoCSel(const MachineRegisterInfo &MRI, unsigned VReg,
   case AArch64::ORNXrr:
   case AArch64::ORNWrr: {
     // not x -> csinv, represented as orn dst, xzr, src.
-    unsigned ZReg = removeCopies(MRI, DefMI->getOperand(1).getReg());
-    if (ZReg != AArch64::XZR && ZReg != AArch64::WZR)
+    
+    if (unsigned ZReg = removeCopies(MRI, DefMI->getOperand(1).getReg()); ZReg != AArch64::XZR && ZReg != AArch64::WZR)
       return 0;
     SrcReg = DefMI->getOperand(2).getReg();
     Opc = Is64Bit ? AArch64::CSINVXr : AArch64::CSINVWr;
@@ -802,8 +802,8 @@ static unsigned canFoldIntoCSel(const MachineRegisterInfo &MRI, unsigned VReg,
   case AArch64::SUBXrr:
   case AArch64::SUBWrr: {
     // neg x -> csneg, represented as sub dst, xzr, src.
-    unsigned ZReg = removeCopies(MRI, DefMI->getOperand(1).getReg());
-    if (ZReg != AArch64::XZR && ZReg != AArch64::WZR)
+    
+    if (unsigned ZReg = removeCopies(MRI, DefMI->getOperand(1).getReg()); ZReg != AArch64::XZR && ZReg != AArch64::WZR)
       return 0;
     SrcReg = DefMI->getOperand(2).getReg();
     Opc = Is64Bit ? AArch64::CSNEGXr : AArch64::CSNEGWr;
@@ -1159,8 +1159,8 @@ static bool isCheapCopy(const MachineInstr &MI, const AArch64RegisterInfo &RI) {
     return nullptr;
   };
   const TargetRegisterClass *DstRC = GetRegClass(MI.getOperand(0).getReg());
-  const TargetRegisterClass *SrcRC = GetRegClass(MI.getOperand(1).getReg());
-  if (DstRC && SrcRC && !RI.getCommonSubClass(DstRC, SrcRC))
+  
+  if (const TargetRegisterClass *SrcRC = GetRegClass(MI.getOperand(1).getReg()); DstRC && SrcRC && !RI.getCommonSubClass(DstRC, SrcRC))
     return false;
 
   return MI.isAsCheapAsAMove();
@@ -1220,8 +1220,8 @@ bool AArch64InstrInfo::isFalkorShiftExtFast(const MachineInstr &MI) {
   case AArch64::ADDSWrx:
   case AArch64::ADDSXrx:
   case AArch64::ADDSXrx64: {
-    unsigned Imm = MI.getOperand(3).getImm();
-    switch (AArch64_AM::getArithExtendType(Imm)) {
+    
+    switch (unsigned Imm = MI.getOperand(3).getImm(); AArch64_AM::getArithExtendType(Imm)) {
     default:
       return false;
     case AArch64_AM::UXTB:
@@ -1254,8 +1254,8 @@ bool AArch64InstrInfo::isFalkorShiftExtFast(const MachineInstr &MI) {
   case AArch64::SUBSWrx:
   case AArch64::SUBSXrx:
   case AArch64::SUBSXrx64: {
-    unsigned Imm = MI.getOperand(3).getImm();
-    switch (AArch64_AM::getArithExtendType(Imm)) {
+    
+    switch (unsigned Imm = MI.getOperand(3).getImm(); AArch64_AM::getArithExtendType(Imm)) {
     default:
       return false;
     case AArch64_AM::UXTB:
@@ -1321,8 +1321,8 @@ bool AArch64InstrInfo::isFalkorShiftExtFast(const MachineInstr &MI) {
 }
 
 bool AArch64InstrInfo::isSEHInstruction(const MachineInstr &MI) {
-  unsigned Opc = MI.getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI.getOpcode(); Opc) {
     default:
       return false;
     case AArch64::SEH_StackAlloc:
@@ -1649,9 +1649,9 @@ AArch64InstrInfo::canRemovePTestInstr(MachineInstr *PTest, MachineInstr *Mask,
   unsigned MaskOpcode = Mask->getOpcode();
   unsigned PredOpcode = Pred->getOpcode();
   bool PredIsPTestLike = isPTestLikeOpcode(PredOpcode);
-  bool PredIsWhileLike = isWhileOpcode(PredOpcode);
+  
 
-  if (PredIsWhileLike) {
+  if (bool PredIsWhileLike = isWhileOpcode(PredOpcode); PredIsWhileLike) {
     // For PTEST(PG, PG), PTEST is redundant when PG is the result of a WHILEcc
     // instruction and the condition is "any" since WHILcc does an implicit
     // PTEST(ALL, PG) check and PG is always a subset of ALL.
@@ -1751,8 +1751,8 @@ AArch64InstrInfo::canRemovePTestInstr(MachineInstr *PTest, MachineInstr *Mask,
   case AArch64::RDFFR_PPz: {
     // Check to see if our mask is the same. If not the resulting flag bits
     // may be different and we can't remove the ptest.
-    auto *PredMask = MRI->getUniqueVRegDef(Pred->getOperand(1).getReg());
-    if (Mask != PredMask)
+    
+    if (auto *PredMask = MRI->getUniqueVRegDef(Pred->getOperand(1).getReg()); Mask != PredMask)
       return {};
     break;
   }
@@ -1822,8 +1822,8 @@ bool AArch64InstrInfo::optimizePTestInstr(
   if (Pred->registerDefIsDead(AArch64::NZCV, TRI)) {
     unsigned i = 0, e = Pred->getNumOperands();
     for (; i != e; ++i) {
-      MachineOperand &MO = Pred->getOperand(i);
-      if (MO.isReg() && MO.isDef() && MO.getReg() == AArch64::NZCV) {
+      
+      if (MachineOperand &MO = Pred->getOperand(i); MO.isReg() && MO.isDef() && MO.getReg() == AArch64::NZCV) {
         MO.setIsDead(false);
         break;
       }
@@ -1850,9 +1850,9 @@ bool AArch64InstrInfo::optimizeCompareInstr(
   assert(MRI);
 
   // Replace SUBSWrr with SUBWrr if NZCV is not used.
-  int DeadNZCVIdx =
-      CmpInstr.findRegisterDefOperandIdx(AArch64::NZCV, /*TRI=*/nullptr, true);
-  if (DeadNZCVIdx != -1) {
+  
+  if (int DeadNZCVIdx =
+      CmpInstr.findRegisterDefOperandIdx(AArch64::NZCV, /*TRI=*/nullptr, true); DeadNZCVIdx != -1) {
     if (CmpInstr.definesRegister(AArch64::WZR, /*TRI=*/nullptr) ||
         CmpInstr.definesRegister(AArch64::XZR, /*TRI=*/nullptr)) {
       CmpInstr.eraseFromParent();
@@ -2112,8 +2112,8 @@ static bool isSUBSRegImm(unsigned Opcode) {
 }
 
 static bool isANDOpcode(MachineInstr &MI) {
-  unsigned Opc = sForm(MI);
-  switch (Opc) {
+  
+  switch (unsigned Opc = sForm(MI); Opc) {
   case AArch64::ANDSWri:
   case AArch64::ANDSWrr:
   case AArch64::ANDSWrs:
@@ -2149,8 +2149,8 @@ static bool canInstrSubstituteCmpInstr(MachineInstr &MI, MachineInstr &CmpInstr,
   // that may or may not set flags.
   assert(sForm(MI) != AArch64::INSTRUCTION_LIST_END);
 
-  const unsigned CmpOpcode = CmpInstr.getOpcode();
-  if (!isADDSRegImm(CmpOpcode) && !isSUBSRegImm(CmpOpcode))
+  
+  if (const unsigned CmpOpcode = CmpInstr.getOpcode(); !isADDSRegImm(CmpOpcode) && !isSUBSRegImm(CmpOpcode))
     return false;
 
   assert((CmpInstr.getOperand(2).isImm() &&
@@ -2220,8 +2220,8 @@ static bool canCmpInstrBeRemoved(MachineInstr &MI, MachineInstr &CmpInstr,
          "Only comparisons to 0 or 1 considered for removal!");
 
   // MI is 'CSINCWr %vreg, wzr, wzr, <cc>' or 'CSINCXr %vreg, xzr, xzr, <cc>'
-  unsigned MIOpc = MI.getOpcode();
-  if (MIOpc == AArch64::CSINCWr) {
+  
+  if (unsigned MIOpc = MI.getOpcode(); MIOpc == AArch64::CSINCWr) {
     if (MI.getOperand(1).getReg() != AArch64::WZR ||
         MI.getOperand(2).getReg() != AArch64::WZR)
       return false;
@@ -2369,8 +2369,8 @@ bool AArch64InstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
   }
 
   Register Reg = MI.getOperand(0).getReg();
-  Module &M = *MBB.getParent()->getFunction().getParent();
-  if (M.getStackProtectorGuard() == "sysreg") {
+  
+  if (Module &M = *MBB.getParent()->getFunction().getParent(); M.getStackProtectorGuard() == "sysreg") {
     const AArch64SysReg::SysReg *SrcReg =
         AArch64SysReg::lookupSysRegByName(M.getStackProtectorGuardReg());
     if (!SrcReg)
@@ -2481,8 +2481,8 @@ bool AArch64InstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
   } else {
     BuildMI(MBB, MI, DL, get(AArch64::ADRP), Reg)
         .addGlobalAddress(GV, 0, OpFlags | AArch64II::MO_PAGE);
-    unsigned char LoFlags = OpFlags | AArch64II::MO_PAGEOFF | MO_NC;
-    if (Subtarget.isTargetILP32()) {
+    
+    if (unsigned char LoFlags = OpFlags | AArch64II::MO_PAGEOFF | MO_NC; Subtarget.isTargetILP32()) {
       unsigned Reg32 = TRI->getSubReg(Reg, AArch64::sub_32);
       BuildMI(MBB, MI, DL, get(AArch64::LDRWui))
           .addDef(Reg32, RegState::Dead)
@@ -3226,8 +3226,8 @@ bool AArch64InstrInfo::isCandidateToMergeOrPair(const MachineInstr &MI) const {
   //   ldp q0, q1, [x11, #32]!
   if (MI.getOperand(1).isReg() && !IsPreLdSt) {
     Register BaseReg = MI.getOperand(1).getReg();
-    const TargetRegisterInfo *TRI = &getRegisterInfo();
-    if (MI.modifiesRegister(BaseReg, TRI))
+    
+    if (const TargetRegisterInfo *TRI = &getRegisterInfo(); MI.modifiesRegister(BaseReg, TRI))
       return false;
   }
 
@@ -3420,8 +3420,8 @@ bool AArch64InstrInfo::canFoldIntoAddrMode(const MachineInstr &MemI,
   }
 
   // Check the fold operand is not the loaded/stored value.
-  const MachineOperand &BaseRegOp = MemI.getOperand(0);
-  if (BaseRegOp.isReg() && BaseRegOp.getReg() == Reg)
+  
+  if (const MachineOperand &BaseRegOp = MemI.getOperand(0); BaseRegOp.isReg() && BaseRegOp.getReg() == Reg)
     return false;
 
   // Handle memory instructions with a [Reg, Reg] addressing mode.
@@ -4045,8 +4045,8 @@ MachineInstr *AArch64InstrInfo::emitLdStWithAddr(MachineInstr &MemI,
     MRI.constrainRegClass(AM.BaseReg, &AArch64::GPR64spRegClass);
     // Make sure the offset register is in the correct register class.
     Register OffsetReg = AM.ScaledReg;
-    const TargetRegisterClass *RC = MRI.getRegClass(OffsetReg);
-    if (RC->hasSuperClassEq(&AArch64::GPR64RegClass)) {
+    
+    if (const TargetRegisterClass *RC = MRI.getRegClass(OffsetReg); RC->hasSuperClassEq(&AArch64::GPR64RegClass)) {
       OffsetReg = MRI.createVirtualRegister(&AArch64::GPR32RegClass);
       BuildMI(MBB, MemI, DL, get(TargetOpcode::COPY), OffsetReg)
           .addReg(AM.ScaledReg, 0, AArch64::sub_32);
@@ -6054,8 +6054,8 @@ void AArch64InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
       Opc = AArch64::LDRBui;
     break;
   case 2: {
-    bool IsPNR = AArch64::PNRRegClass.hasSubClassEq(RC);
-    if (AArch64::FPR16RegClass.hasSubClassEq(RC))
+    
+    if (bool IsPNR = AArch64::PNRRegClass.hasSubClassEq(RC); AArch64::FPR16RegClass.hasSubClassEq(RC))
       Opc = AArch64::LDRHui;
     else if (IsPNR || AArch64::PPRRegClass.hasSubClassEq(RC)) {
       assert(Subtarget.isSVEorStreamingSVEAvailable() &&
@@ -6499,8 +6499,8 @@ static void emitFrameOffsetAdj(MachineBasicBlock &MBB,
     }
 
     if (NeedsWinCFI) {
-      int Imm = (int)(ThisVal << LocalShiftSize);
-      if (VScale != 1 && DestReg == AArch64::SP) {
+      
+      if (int Imm = (int)(ThisVal << LocalShiftSize); VScale != 1 && DestReg == AArch64::SP) {
         if (HasWinCFI)
           *HasWinCFI = true;
         BuildMI(MBB, MBBI, DL, TII->get(AArch64::SEH_AllocZ))
@@ -7180,10 +7180,10 @@ static bool getMaddPatterns(MachineInstr &Root,
   if (!isCombineInstrCandidate(Opc))
     return false;
   if (isCombineInstrSettingFlag(Opc)) {
-    int Cmp_NZCV =
-        Root.findRegisterDefOperandIdx(AArch64::NZCV, /*TRI=*/nullptr, true);
+    
     // When NZCV is live bail out.
-    if (Cmp_NZCV == -1)
+    if (int Cmp_NZCV =
+        Root.findRegisterDefOperandIdx(AArch64::NZCV, /*TRI=*/nullptr, true); Cmp_NZCV == -1)
       return false;
     unsigned NewOpc = convertToNonFlagSettingOpc(Root);
     // When opcode can't change bail out.
@@ -7642,8 +7642,8 @@ static bool getFNEGPatterns(MachineInstr &Root,
 
   auto Match = [&](unsigned Opcode, unsigned Pattern) -> bool {
     MachineOperand &MO = Root.getOperand(1);
-    MachineInstr *MI = MRI.getUniqueVRegDef(MO.getReg());
-    if (MI != nullptr && (MI->getOpcode() == Opcode) &&
+    
+    if (MachineInstr *MI = MRI.getUniqueVRegDef(MO.getReg()); MI != nullptr && (MI->getOpcode() == Opcode) &&
         MRI.hasOneNonDBGUse(MI->getOperand(0).getReg()) &&
         Root.getFlag(MachineInstr::MIFlag::FmContract) &&
         Root.getFlag(MachineInstr::MIFlag::FmNsz) &&
@@ -8582,8 +8582,8 @@ void AArch64InstrInfo::genAlternativeCodeSequence(
 
   MachineInstr *MUL = nullptr;
   const TargetRegisterClass *RC;
-  unsigned Opc;
-  switch (Pattern) {
+  
+  switch (unsigned Opc; Pattern) {
   default:
     // Reassociate instructions.
     TargetInstrInfo::genAlternativeCodeSequence(Root, Pattern, InsInstrs,
@@ -10104,11 +10104,11 @@ AArch64InstrInfo::getOutliningCandidateInfo(
       //
       // FIXME: We can probably do better than always disabling this in
       // noreturn functions by fixing up the liveness info.
-      bool IsNoReturn =
-          C.getMF()->getFunction().hasFnAttribute(Attribute::NoReturn);
+      
 
       // Is LR available? If so, we don't need a save.
-      if (LRAvailable && !IsNoReturn) {
+      if (bool IsNoReturn =
+          C.getMF()->getFunction().hasFnAttribute(Attribute::NoReturn); LRAvailable && !IsNoReturn) {
         NumBytesNoStackCalls += 4;
         C.setCallInfo(MachineOutlinerNoLRSave, 4);
         CandidatesWithoutStackFixups.push_back(C);
@@ -10817,9 +10817,9 @@ void AArch64InstrInfo::buildClearRegister(Register Reg, MachineBasicBlock &MBB,
                                           bool AllowSideEffects) const {
   const MachineFunction &MF = *MBB.getParent();
   const AArch64Subtarget &STI = MF.getSubtarget<AArch64Subtarget>();
-  const AArch64RegisterInfo &TRI = *STI.getRegisterInfo();
+  
 
-  if (TRI.isGeneralPurposeRegister(MF, Reg)) {
+  if (const AArch64RegisterInfo &TRI = *STI.getRegisterInfo(); TRI.isGeneralPurposeRegister(MF, Reg)) {
     BuildMI(MBB, Iter, DL, get(AArch64::MOVZXi), Reg).addImm(0).addImm(0);
   } else if (STI.isSVEorStreamingSVEAvailable()) {
     BuildMI(MBB, Iter, DL, get(AArch64::DUP_ZI_D), Reg)
@@ -10882,8 +10882,8 @@ AArch64InstrInfo::isAddImmediate(const MachineInstr &MI, Register Reg) const {
 
   // TODO: Handle cases where Reg is a super- or sub-register of the
   // destination register.
-  const MachineOperand &Op0 = MI.getOperand(0);
-  if (!Op0.isReg() || Reg != Op0.getReg())
+  
+  if (const MachineOperand &Op0 = MI.getOperand(0); !Op0.isReg() || Reg != Op0.getReg())
     return std::nullopt;
 
   switch (MI.getOpcode()) {
@@ -11005,8 +11005,8 @@ std::optional<ParamLoadedValue>
 AArch64InstrInfo::describeLoadedValue(const MachineInstr &MI,
                                       Register Reg) const {
   const MachineFunction *MF = MI.getMF();
-  const TargetRegisterInfo *TRI = MF->getSubtarget().getRegisterInfo();
-  switch (MI.getOpcode()) {
+  
+  switch (const TargetRegisterInfo *TRI = MF->getSubtarget().getRegisterInfo(); MI.getOpcode()) {
   case AArch64::MOVZWi:
   case AArch64::MOVZXi: {
     // MOVZWi may be used for producing zero-extended 32-bit immediates in
@@ -11078,8 +11078,8 @@ bool AArch64InstrInfo::isLegalAddressingMode(unsigned NumBytes, int64_t Offset,
       return true;
 
     // 12-bit unsigned offset
-    unsigned Shift = Log2_64(NumBytes);
-    if (NumBytes && Offset > 0 && (Offset / NumBytes) <= (1LL << 12) - 1 &&
+    
+    if (unsigned Shift = Log2_64(NumBytes); NumBytes && Offset > 0 && (Offset / NumBytes) <= (1LL << 12) - 1 &&
         // Must be a multiple of NumBytes (NumBytes is a power of 2)
         (Offset >> Shift) << Shift == Offset)
       return true;
@@ -11596,10 +11596,10 @@ bool AArch64InstrInfo::verifyInstruction(const MachineInstr &MI,
   TypeSize Scale(0U, false), Width(0U, false);
   int64_t MinOffset, MaxOffset;
   if (getMemOpInfo(MI.getOpcode(), Scale, Width, MinOffset, MaxOffset)) {
-    unsigned ImmIdx = getLoadStoreImmIdx(MI.getOpcode());
-    if (MI.getOperand(ImmIdx).isImm() && !MI.getOperand(ImmIdx - 1).isFI()) {
-      int64_t Imm = MI.getOperand(ImmIdx).getImm();
-      if (Imm < MinOffset || Imm > MaxOffset) {
+    
+    if (unsigned ImmIdx = getLoadStoreImmIdx(MI.getOpcode()); MI.getOperand(ImmIdx).isImm() && !MI.getOperand(ImmIdx - 1).isFI()) {
+      
+      if (int64_t Imm = MI.getOperand(ImmIdx).getImm(); Imm < MinOffset || Imm > MaxOffset) {
         ErrInfo = "Unexpected immediate on load/store instruction";
         return false;
       }
@@ -11608,8 +11608,8 @@ bool AArch64InstrInfo::verifyInstruction(const MachineInstr &MI,
 
   const MCInstrDesc &MCID = MI.getDesc();
   for (unsigned Op = 0; Op < MCID.getNumOperands(); Op++) {
-    const MachineOperand &MO = MI.getOperand(Op);
-    switch (MCID.operands()[Op].OperandType) {
+    
+    switch (const MachineOperand &MO = MI.getOperand(Op); MCID.operands()[Op].OperandType) {
     case AArch64::OPERAND_IMPLICIT_IMM_0:
       if (!MO.isImm() || MO.getImm() != 0) {
         ErrInfo = "OPERAND_IMPLICIT_IMM_0 should be 0";

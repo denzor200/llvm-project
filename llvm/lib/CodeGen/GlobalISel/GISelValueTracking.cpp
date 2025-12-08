@@ -53,8 +53,8 @@ GISelValueTracking::GISelValueTracking(MachineFunction &MF, unsigned MaxDepth)
       DL(MF.getFunction().getDataLayout()), MaxDepth(MaxDepth) {}
 
 Align GISelValueTracking::computeKnownAlignment(Register R, unsigned Depth) {
-  const MachineInstr *MI = MRI.getVRegDef(R);
-  switch (MI->getOpcode()) {
+  
+  switch (const MachineInstr *MI = MRI.getVRegDef(R); MI->getOpcode()) {
   case TargetOpcode::COPY:
     return computeKnownAlignment(MI->getOperand(1).getReg(), Depth);
   case TargetOpcode::G_ASSERT_ALIGN: {
@@ -686,8 +686,8 @@ void GISelValueTracking::computeKnownBitsImpl(Register R, KnownBits &Known,
     APInt DemandedLHS, DemandedRHS;
     // Collect the known bits that are shared by every vector element referenced
     // by the shuffle.
-    unsigned NumElts = MRI.getType(MI.getOperand(1).getReg()).getNumElements();
-    if (!getShuffleDemandedElts(NumElts, MI.getOperand(3).getShuffleMask(),
+    
+    if (unsigned NumElts = MRI.getType(MI.getOperand(1).getReg()).getNumElements(); !getShuffleDemandedElts(NumElts, MI.getOperand(3).getShuffleMask(),
                                 DemandedElts, DemandedLHS, DemandedRHS))
       break;
 
@@ -859,9 +859,9 @@ void GISelValueTracking::computeKnownFPClass(Register R,
   if (Depth == MaxAnalysisRecursionDepth)
     return;
 
-  const MachineFunction *MF = MI.getMF();
+  
 
-  switch (Opcode) {
+  switch (const MachineFunction *MF = MI.getMF(); Opcode) {
   default:
     TL.computeKnownFPClassForTargetInstr(*this, R, Known, DemandedElts, MRI,
                                          Depth);
@@ -1538,10 +1538,10 @@ void GISelValueTracking::computeKnownFPClass(Register R,
     LLT DstTy = MRI.getType(Dst).getScalarType();
     const fltSemantics &DstSem = getFltSemanticForLLT(DstTy);
     LLT SrcTy = MRI.getType(Src).getScalarType();
-    const fltSemantics &SrcSem = getFltSemanticForLLT(SrcTy);
+    
 
     // All subnormal inputs should be in the normal range in the result type.
-    if (APFloat::isRepresentableAsNormalIn(SrcSem, DstSem)) {
+    if (const fltSemantics &SrcSem = getFltSemanticForLLT(SrcTy); APFloat::isRepresentableAsNormalIn(SrcSem, DstSem)) {
       if (Known.KnownFPClasses & fcPosSubnormal)
         Known.KnownFPClasses |= fcPosNormal;
       if (Known.KnownFPClasses & fcNegSubnormal)
@@ -1604,10 +1604,10 @@ void GISelValueTracking::computeKnownFPClass(Register R,
     bool First = true;
     for (unsigned Idx = 0; Idx < Merge.getNumSources(); ++Idx) {
       // We know the index we are inserting to, so clear it from Vec check.
-      bool NeedsElt = DemandedElts[Idx];
+      
 
       // Do we demand the inserted element?
-      if (NeedsElt) {
+      if (bool NeedsElt = DemandedElts[Idx]; NeedsElt) {
         Register Src = Merge.getSourceReg(Idx);
         if (First) {
           computeKnownFPClass(Src, Known, InterestedClasses, Depth + 1);
@@ -1849,8 +1849,8 @@ unsigned GISelValueTracking::computeNumSignBits(Register R,
   unsigned FirstAnswer = 1;
   switch (Opcode) {
   case TargetOpcode::COPY: {
-    MachineOperand &Src = MI.getOperand(1);
-    if (Src.getReg().isVirtual() && Src.getSubReg() == 0 &&
+    
+    if (MachineOperand &Src = MI.getOperand(1); Src.getReg().isVirtual() && Src.getSubReg() == 0 &&
         MRI.getType(Src.getReg()).isValid()) {
       // Don't increment Depth for this one since we didn't do any work.
       return computeNumSignBits(Src.getReg(), DemandedElts, Depth);
@@ -1941,25 +1941,25 @@ unsigned GISelValueTracking::computeNumSignBits(Register R,
       uint64_t MinShAmt = ShAmtRange->getUnsignedMin().getZExtValue();
 
       MachineInstr &ExtMI = *MRI.getVRegDef(Src1);
-      unsigned ExtOpc = ExtMI.getOpcode();
+      
 
       // Try to look through ZERO/SIGN/ANY_EXTEND. If all extended bits are
       // shifted out, then we can compute the number of sign bits for the
       // operand being extended. A future improvement could be to pass along the
       // "shifted left by" information in the recursive calls to
       // ComputeKnownSignBits. Allowing us to handle this more generically.
-      if (ExtOpc == TargetOpcode::G_SEXT || ExtOpc == TargetOpcode::G_ZEXT ||
+      if (unsigned ExtOpc = ExtMI.getOpcode(); ExtOpc == TargetOpcode::G_SEXT || ExtOpc == TargetOpcode::G_ZEXT ||
           ExtOpc == TargetOpcode::G_ANYEXT) {
         LLT ExtTy = MRI.getType(Src1);
         Register Extendee = ExtMI.getOperand(1).getReg();
         LLT ExtendeeTy = MRI.getType(Extendee);
-        uint64_t SizeDiff =
-            ExtTy.getScalarSizeInBits() - ExtendeeTy.getScalarSizeInBits();
+        
 
-        if (SizeDiff <= MinShAmt) {
-          unsigned Tmp =
-              SizeDiff + computeNumSignBits(Extendee, DemandedElts, Depth + 1);
-          if (MaxShAmt < Tmp)
+        if (uint64_t SizeDiff =
+            ExtTy.getScalarSizeInBits() - ExtendeeTy.getScalarSizeInBits(); SizeDiff <= MinShAmt) {
+          
+          if (unsigned Tmp =
+              SizeDiff + computeNumSignBits(Extendee, DemandedElts, Depth + 1); MaxShAmt < Tmp)
             return Tmp - MaxShAmt;
         }
       }
@@ -1977,8 +1977,8 @@ unsigned GISelValueTracking::computeNumSignBits(Register R,
     // Check if the sign bits of source go down as far as the truncated value.
     unsigned DstTyBits = DstTy.getScalarSizeInBits();
     unsigned NumSrcBits = SrcTy.getScalarSizeInBits();
-    unsigned NumSrcSignBits = computeNumSignBits(Src, DemandedElts, Depth + 1);
-    if (NumSrcSignBits > (NumSrcBits - DstTyBits))
+    
+    if (unsigned NumSrcSignBits = computeNumSignBits(Src, DemandedElts, Depth + 1); NumSrcSignBits > (NumSrcBits - DstTyBits))
       return NumSrcSignBits - (NumSrcBits - DstTyBits);
     break;
   }
@@ -2149,8 +2149,8 @@ unsigned GISelValueTracking::computeNumSignBits(Register R,
     // element referenced by the shuffle.
     APInt DemandedLHS, DemandedRHS;
     Register Src1 = MI.getOperand(1).getReg();
-    unsigned NumElts = MRI.getType(Src1).getNumElements();
-    if (!getShuffleDemandedElts(NumElts, MI.getOperand(3).getShuffleMask(),
+    
+    if (unsigned NumElts = MRI.getType(Src1).getNumElements(); !getShuffleDemandedElts(NumElts, MI.getOperand(3).getShuffleMask(),
                                 DemandedElts, DemandedLHS, DemandedRHS))
       return 1;
 
@@ -2170,8 +2170,8 @@ unsigned GISelValueTracking::computeNumSignBits(Register R,
     // Check if the sign bits of source go down as far as the truncated value.
     Register Src = MI.getOperand(1).getReg();
     unsigned NumSrcSignBits = computeNumSignBits(Src, APInt(1, 1), Depth + 1);
-    unsigned NumSrcBits = MRI.getType(Src).getSizeInBits();
-    if (NumSrcSignBits > (NumSrcBits - TyBits))
+    
+    if (unsigned NumSrcBits = MRI.getType(Src).getSizeInBits(); NumSrcSignBits > (NumSrcBits - TyBits))
       return NumSrcSignBits - (NumSrcBits - TyBits);
     break;
   }

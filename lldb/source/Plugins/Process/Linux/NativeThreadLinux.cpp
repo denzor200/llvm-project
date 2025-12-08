@@ -202,8 +202,8 @@ Status NativeThreadLinux::RemoveHardwareBreakpoint(lldb::addr_t addr) {
   if (bp == m_hw_break_index_map.end())
     return Status();
 
-  uint32_t bp_index = bp->second;
-  if (m_reg_context_up->ClearHardwareBreakpoint(bp_index)) {
+  
+  if (uint32_t bp_index = bp->second; m_reg_context_up->ClearHardwareBreakpoint(bp_index)) {
     m_hw_break_index_map.erase(bp);
     return Status();
   }

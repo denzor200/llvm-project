@@ -811,9 +811,9 @@ private:
     SourceLocation Expansion = SM.getExpansionLoc(Tok.location());
     FileID File = SM.getFileID(Expansion);
     const auto &SpelledTokens = Result.Files[File].SpelledTokens;
-    auto &NextSpelled = this->NextSpelled[File];
+    
 
-    if (Tok.location().isFileID()) {
+    if (auto &NextSpelled = this->NextSpelled[File]; Tok.location().isFileID()) {
       // A run of file tokens continues while the expanded/spelled tokens match.
       while (NextSpelled < SpelledTokens.size() &&
              NextExpanded < Result.ExpandedTokens.size() &&

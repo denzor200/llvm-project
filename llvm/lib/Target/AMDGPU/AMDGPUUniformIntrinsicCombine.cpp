@@ -56,11 +56,11 @@ isDivergentUseWithNew(const Use &U, const UniformityInfo &UI,
 static bool optimizeUniformIntrinsic(IntrinsicInst &II,
                                      const UniformityInfo &UI,
                                      ValueMap<const Value *, bool> &Tracker) {
-  llvm::Intrinsic::ID IID = II.getIntrinsicID();
+  
   /// We deliberately do not simplify readfirstlane with a uniform argument, so
   /// that frontends can use it to force a copy to SGPR and thereby prevent the
   /// backend from generating unwanted waterfall loops.
-  switch (IID) {
+  switch (llvm::Intrinsic::ID IID = II.getIntrinsicID(); IID) {
   case Intrinsic::amdgcn_permlane64:
   case Intrinsic::amdgcn_readlane: {
     Value *Src = II.getArgOperand(0);
@@ -83,9 +83,9 @@ static bool optimizeUniformIntrinsic(IntrinsicInst &II,
         Value *Op0 = ICmp->getOperand(0);
         Value *Op1 = ICmp->getOperand(1);
         ICmpInst::Predicate Pred = ICmp->getPredicate();
-        Value *OtherOp = Op0 == &II ? Op1 : Op0;
+        
 
-        if (Pred == ICmpInst::ICMP_EQ && match(OtherOp, m_Zero())) {
+        if (Value *OtherOp = Op0 == &II ? Op1 : Op0; Pred == ICmpInst::ICMP_EQ && match(OtherOp, m_Zero())) {
           // Case: (icmp eq %ballot, 0) -> xor %ballot_arg, 1
           Instruction *NotOp =
               BinaryOperator::CreateNot(Src, "", ICmp->getIterator());
@@ -130,8 +130,8 @@ static bool runUniformIntrinsicCombine(Function &F, const UniformityInfo &UI) {
 PreservedAnalyses
 AMDGPUUniformIntrinsicCombinePass::run(Function &F,
                                        FunctionAnalysisManager &AM) {
-  const auto &UI = AM.getResult<UniformityInfoAnalysis>(F);
-  if (!runUniformIntrinsicCombine(F, UI))
+  
+  if (const auto &UI = AM.getResult<UniformityInfoAnalysis>(F); !runUniformIntrinsicCombine(F, UI))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

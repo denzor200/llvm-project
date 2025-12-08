@@ -220,8 +220,8 @@ X86RegisterInfo::getRegPressureLimit(const TargetRegisterClass *RC,
                                      MachineFunction &MF) const {
   const X86FrameLowering *TFI = getFrameLowering(MF);
 
-  unsigned FPDiff = TFI->hasFP(MF) ? 1 : 0;
-  switch (RC->getID()) {
+  
+  switch (unsigned FPDiff = TFI->hasFP(MF) ? 1 : 0; RC->getID()) {
   default:
     return 0;
   case X86::GR32RegClassID:
@@ -349,9 +349,9 @@ X86RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
   }
 
   if (Is64Bit) {
-    bool IsSwiftCC = Subtarget.getTargetLowering()->supportSwiftError() &&
-                     F.getAttributes().hasAttrSomewhere(Attribute::SwiftError);
-    if (IsSwiftCC)
+    
+    if (bool IsSwiftCC = Subtarget.getTargetLowering()->supportSwiftError() &&
+                     F.getAttributes().hasAttrSomewhere(Attribute::SwiftError); IsSwiftCC)
       return IsWin64 ? CSR_Win64_SwiftError_SaveList
                      : CSR_64_SwiftError_SaveList;
 
@@ -385,9 +385,9 @@ X86RegisterInfo::getCallPreservedMask(const MachineFunction &MF,
   const X86Subtarget &Subtarget = MF.getSubtarget<X86Subtarget>();
   bool HasSSE = Subtarget.hasSSE1();
   bool HasAVX = Subtarget.hasAVX();
-  bool HasAVX512 = Subtarget.hasAVX512();
+  
 
-  switch (CC) {
+  switch (bool HasAVX512 = Subtarget.hasAVX512(); CC) {
   case CallingConv::GHC:
   case CallingConv::HiPE:
     return CSR_NoRegs_RegMask;
@@ -475,9 +475,9 @@ X86RegisterInfo::getCallPreservedMask(const MachineFunction &MF,
   // callsEHReturn().
   if (Is64Bit) {
     const Function &F = MF.getFunction();
-    bool IsSwiftCC = Subtarget.getTargetLowering()->supportSwiftError() &&
-                     F.getAttributes().hasAttrSomewhere(Attribute::SwiftError);
-    if (IsSwiftCC)
+    
+    if (bool IsSwiftCC = Subtarget.getTargetLowering()->supportSwiftError() &&
+                     F.getAttributes().hasAttrSomewhere(Attribute::SwiftError); IsSwiftCC)
       return IsWin64 ? CSR_Win64_SwiftError_RegMask : CSR_64_SwiftError_RegMask;
 
     return (IsWin64 || IsUEFI64) ? CSR_Win64_RegMask : CSR_64_RegMask;
@@ -1034,8 +1034,8 @@ static ShapeT getTileShape(Register VirtReg, VirtRegMap *VRM,
 
   const MachineOperand &Def = *MRI->def_begin(VirtReg);
   MachineInstr *MI = const_cast<MachineInstr *>(Def.getParent());
-  unsigned OpCode = MI->getOpcode();
-  switch (OpCode) {
+  
+  switch (unsigned OpCode = MI->getOpcode(); OpCode) {
   default:
     llvm_unreachable("Unexpected machine instruction on tile register!");
     break;

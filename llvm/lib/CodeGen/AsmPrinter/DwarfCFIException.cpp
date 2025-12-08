@@ -42,9 +42,9 @@ void DwarfCFIException::endModule() {
 
   const TargetLoweringObjectFile &TLOF = Asm->getObjFileLowering();
 
-  unsigned PerEncoding = TLOF.getPersonalityEncoding();
+  
 
-  if ((PerEncoding & 0x80) != dwarf::DW_EH_PE_indirect)
+  if (unsigned PerEncoding = TLOF.getPersonalityEncoding(); (PerEncoding & 0x80) != dwarf::DW_EH_PE_indirect)
     return;
 
   // Emit indirect reference table for all used personality functions

@@ -329,8 +329,8 @@ Status Socket::Read(void *buf, size_t &num_bytes) {
   } else
     num_bytes = bytes_received;
 
-  Log *log = GetLog(LLDBLog::Communication);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Communication); log) {
     LLDB_LOGF(log,
               "%p Socket::Read() (socket = %" PRIu64
               ", src = %p, src_len = %" PRIu64 ", flags = 0) => %" PRIi64
@@ -357,8 +357,8 @@ Status Socket::Write(const void *buf, size_t &num_bytes) {
   } else
     num_bytes = bytes_sent;
 
-  Log *log = GetLog(LLDBLog::Communication);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Communication); log) {
     LLDB_LOGF(log,
               "%p Socket::Write() (socket = %" PRIu64
               ", src = %p, src_len = %" PRIu64 ", flags = 0) => %" PRIi64

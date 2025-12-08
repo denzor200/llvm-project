@@ -360,11 +360,11 @@ uint64_t ProfiledBinary::CanonicalizeNonTextAddress(uint64_t Address) {
   if (MMapIter == NonTextMMapEvents.end())
     return Address; // No non-text mmap event found, return the address as is.
 
-  const auto &MMapEvent = MMapIter->second;
+  
 
   // If the address is within the non-text mmap event, calculate its file
   // offset in the binary.
-  if (MMapEvent.Address <= Address &&
+  if (const auto &MMapEvent = MMapIter->second; MMapEvent.Address <= Address &&
       Address < MMapEvent.Address + MMapEvent.Size)
     FileOffset = Address - MMapEvent.Address + MMapEvent.Offset;
 
@@ -394,8 +394,8 @@ void ProfiledBinary::setPreferredTextSegmentAddresses(const COFFObjectFile *Obj,
   FirstLoadableAddress = ImageBase;
 
   for (SectionRef Section : Obj->sections()) {
-    const coff_section *Sec = Obj->getCOFFSection(Section);
-    if (Sec->Characteristics & COFF::IMAGE_SCN_CNT_CODE)
+    
+    if (const coff_section *Sec = Obj->getCOFFSection(Section); Sec->Characteristics & COFF::IMAGE_SCN_CNT_CODE)
       TextSegmentOffsets.push_back(Sec->VirtualAddress);
   }
 }
@@ -571,8 +571,8 @@ bool ProfiledBinary::dissassembleSymbol(std::size_t SI, ArrayRef<uint8_t> Bytes,
       else
         outs() << "\t<unknown>";
       if (ShowSourceLocations) {
-        unsigned Cur = outs().tell() - Start;
-        if (Cur < 40)
+        
+        if (unsigned Cur = outs().tell() - Start; Cur < 40)
           outs().indent(40 - Cur);
         InstructionPointer IP(this, Address);
         outs() << getReversedLocWithContext(
@@ -615,8 +615,8 @@ bool ProfiledBinary::dissassembleSymbol(std::size_t SI, ArrayRef<uint8_t> Bytes,
           // Any inter-function unconditional jump is considered tail call at
           // this point. This is not 100% accurate and could further be
           // optimized based on some source annotation.
-          FuncRange *ToFRange = findFuncRange(Target);
-          if (ToFRange && ToFRange->Func != FRange->Func)
+          
+          if (FuncRange *ToFRange = findFuncRange(Target); ToFRange && ToFRange->Func != FRange->Func)
             MissingContextInferrer->TailCallEdges[Address].insert(Target);
           LLVM_DEBUG({
             dbgs() << "Direct Tail call: " << format("%8" PRIx64 ":", Address);
@@ -889,8 +889,8 @@ void ProfiledBinary::loadSymbolsFromDWARF(ObjectFile &Obj) {
   // Handles DWO sections that can either be in .o, .dwo or .dwp files.
   uint32_t NumOfDWOMissing = 0;
   for (const auto &CompilationUnit : DebugContext->compile_units()) {
-    DWARFUnit *const DwarfUnit = CompilationUnit.get();
-    if (DwarfUnit->getDWOId()) {
+    
+    if (DWARFUnit *const DwarfUnit = CompilationUnit.get(); DwarfUnit->getDWOId()) {
       DWARFUnit *DWOCU = DwarfUnit->getNonSkeletonUnitDIE(false).getDwarfUnit();
       if (!DWOCU->isDWOUnit()) {
         NumOfDWOMissing++;

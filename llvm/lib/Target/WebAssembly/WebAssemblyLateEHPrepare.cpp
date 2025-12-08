@@ -157,8 +157,8 @@ void WebAssemblyLateEHPrepare::recordCatchRetBBs(MachineFunction &MF) {
     auto Pos = MBB.getFirstTerminator();
     if (Pos == MBB.end())
       continue;
-    MachineInstr *TI = &*Pos;
-    if (TI->getOpcode() == WebAssembly::CATCHRET)
+    
+    if (MachineInstr *TI = &*Pos; TI->getOpcode() == WebAssembly::CATCHRET)
       CatchRetBBs.insert(&MBB);
   }
 }
@@ -238,13 +238,13 @@ bool WebAssemblyLateEHPrepare::replaceFuncletReturns(MachineFunction &MF) {
     auto Pos = MBB.getFirstTerminator();
     if (Pos == MBB.end())
       continue;
-    MachineInstr *TI = &*Pos;
+    
 
-    switch (TI->getOpcode()) {
+    switch (MachineInstr *TI = &*Pos; TI->getOpcode()) {
     case WebAssembly::CATCHRET: {
       // Replace a catchret with a branch
-      MachineBasicBlock *TBB = TI->getOperand(0).getMBB();
-      if (!MBB.isLayoutSuccessor(TBB))
+      
+      if (MachineBasicBlock *TBB = TI->getOperand(0).getMBB(); !MBB.isLayoutSuccessor(TBB))
         BuildMI(MBB, TI, TI->getDebugLoc(), TII.get(WebAssembly::BR))
             .addMBB(TBB);
       TI->eraseFromParent();

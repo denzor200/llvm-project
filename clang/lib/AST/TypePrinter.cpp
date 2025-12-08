@@ -1649,10 +1649,10 @@ void TypePrinter::printInjectedClassNameBefore(const InjectedClassNameType *T,
   IncludeStrongLifetimeRAII Strong(Policy);
   T->getTemplateName(Ctx).print(OS, Policy);
   if (Policy.PrintInjectedClassNameWithArguments) {
-    auto *Decl = T->getDecl();
+    
     // FIXME: Use T->getTemplateArgs(Ctx) when that supports as-written
     // arguments.
-    if (auto *RD = dyn_cast<ClassTemplateSpecializationDecl>(Decl)) {
+    if (auto *Decl = T->getDecl(); auto *RD = dyn_cast<ClassTemplateSpecializationDecl>(Decl)) {
       printTemplateArgumentList(OS, RD->getTemplateArgsAsWritten()->arguments(),
                                 Policy,
                                 T->getTemplateDecl()->getTemplateParameters());
@@ -1672,8 +1672,8 @@ void TypePrinter::printInjectedClassNameAfter(const InjectedClassNameType *T,
 
 void TypePrinter::printTemplateTypeParmBefore(const TemplateTypeParmType *T,
                                               raw_ostream &OS) {
-  TemplateTypeParmDecl *D = T->getDecl();
-  if (D && D->isImplicit()) {
+  
+  if (TemplateTypeParmDecl *D = T->getDecl(); D && D->isImplicit()) {
     if (auto *TC = D->getTypeConstraint()) {
       TC->print(OS, Policy);
       OS << ' ';
@@ -2458,8 +2458,8 @@ static bool isSubstitutedTemplateArgument(ASTContext &Ctx, TemplateArgument Arg,
                              Depth);
 
   if (Arg.getKind() == TemplateArgument::Template) {
-    TemplateDecl *PatTD = Pattern.getAsTemplate().getAsTemplateDecl();
-    if (auto *TTPD = dyn_cast_or_null<TemplateTemplateParmDecl>(PatTD))
+    
+    if (TemplateDecl *PatTD = Pattern.getAsTemplate().getAsTemplateDecl(); auto *TTPD = dyn_cast_or_null<TemplateTemplateParmDecl>(PatTD))
       return TTPD->getDepth() == Depth && Args.size() > TTPD->getIndex() &&
              Ctx.getCanonicalTemplateArgument(Args[TTPD->getIndex()])
                  .structurallyEquals(Arg);
@@ -2518,8 +2518,8 @@ printTo(raw_ostream &OS, ArrayRef<TA> Args, const PrintingPolicy &Policy,
     // Print the argument into a string.
     SmallString<128> Buf;
     llvm::raw_svector_ostream ArgOS(Buf);
-    const TemplateArgument &Argument = getArgument(Arg);
-    if (Argument.getKind() == TemplateArgument::Pack) {
+    
+    if (const TemplateArgument &Argument = getArgument(Arg); Argument.getKind() == TemplateArgument::Pack) {
       if (Argument.pack_size() && !FirstArg)
         OS << Comma;
       printTo(ArgOS, Argument.getPackAsArray(), Policy, TPL,
@@ -2708,8 +2708,8 @@ void Qualifiers::print(raw_ostream &OS, const PrintingPolicy& Policy,
                        bool appendSpaceIfNonEmpty) const {
   bool addSpace = false;
 
-  unsigned quals = getCVRQualifiers();
-  if (quals) {
+  
+  if (unsigned quals = getCVRQualifiers(); quals) {
     AppendTypeQualList(OS, quals, Policy.Restrict);
     addSpace = true;
   }

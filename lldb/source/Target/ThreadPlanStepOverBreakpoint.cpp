@@ -77,9 +77,9 @@ bool ThreadPlanStepOverBreakpoint::DoPlanExplainsStop(Event *event_ptr) {
         // Be careful, however, as we may have "seen a breakpoint under the PC
         // because we stopped without changing the PC, in which case we do want
         // to re-claim this stop so we'll try again.
-        lldb::addr_t pc_addr = GetThread().GetRegisterContext()->GetPC();
+        
 
-        if (pc_addr == m_breakpoint_addr) {
+        if (lldb::addr_t pc_addr = GetThread().GetRegisterContext()->GetPC(); pc_addr == m_breakpoint_addr) {
           LLDB_LOGF(log,
                     "Got breakpoint stop reason but pc: 0x%" PRIx64
                     "hasn't changed.",
@@ -135,9 +135,9 @@ bool ThreadPlanStepOverBreakpoint::WillStop() {
 void ThreadPlanStepOverBreakpoint::DidPop() { ReenableBreakpointSite(); }
 
 bool ThreadPlanStepOverBreakpoint::MischiefManaged() {
-  lldb::addr_t pc_addr = GetThread().GetRegisterContext()->GetPC();
+  
 
-  if (pc_addr == m_breakpoint_addr) {
+  if (lldb::addr_t pc_addr = GetThread().GetRegisterContext()->GetPC(); pc_addr == m_breakpoint_addr) {
     // If we are still at the PC of our breakpoint, then for some reason we
     // didn't get a chance to run.
     return false;

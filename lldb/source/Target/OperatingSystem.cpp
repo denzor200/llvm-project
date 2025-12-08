@@ -15,8 +15,8 @@ using namespace lldb_private;
 
 OperatingSystem *OperatingSystem::FindPlugin(Process *process,
                                              const char *plugin_name) {
-  OperatingSystemCreateInstance create_callback = nullptr;
-  if (plugin_name) {
+  
+  if (OperatingSystemCreateInstance create_callback = nullptr; plugin_name) {
     create_callback =
         PluginManager::GetOperatingSystemCreateCallbackForPluginName(
             plugin_name);

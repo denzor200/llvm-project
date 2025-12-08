@@ -112,8 +112,8 @@ void InvalidatedIteratorChecker::checkPreStmt(const MemberExpr *ME,
 void InvalidatedIteratorChecker::verifyAccess(CheckerContext &C,
                                               SVal Val) const {
   auto State = C.getState();
-  const auto *Pos = getIteratorPosition(State, Val);
-  if (Pos && !Pos->isValid()) {
+  
+  if (const auto *Pos = getIteratorPosition(State, Val); Pos && !Pos->isValid()) {
     auto *N = C.generateErrorNode(State);
     if (!N) {
       return;

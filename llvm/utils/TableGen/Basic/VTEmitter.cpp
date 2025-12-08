@@ -30,9 +30,9 @@ public:
 
 static void vTtoGetLlvmTyString(raw_ostream &OS, const Record *VT) {
   bool IsVector = VT->getValueAsBit("isVector");
-  bool IsRISCVVecTuple = VT->getValueAsBit("isRISCVVecTuple");
+  
 
-  if (IsRISCVVecTuple) {
+  if (bool IsRISCVVecTuple = VT->getValueAsBit("isRISCVVecTuple"); IsRISCVVecTuple) {
     unsigned NF = VT->getValueAsInt("NF");
     unsigned Sz = VT->getValueAsInt("Size");
     OS << "TargetExtType::get(Context, \"riscv.vector.tuple\", "
@@ -206,9 +206,9 @@ void VTEmitter::run(raw_ostream &OS) {
     bool IsInteger = VT->getValueAsBit("isInteger");
     bool IsVector = VT->getValueAsBit("isVector");
     bool IsFP = VT->getValueAsBit("isFP");
-    bool IsRISCVVecTuple = VT->getValueAsBit("isRISCVVecTuple");
+    
 
-    if (!IsInteger && !IsVector && !IsFP && !IsRISCVVecTuple)
+    if (bool IsRISCVVecTuple = VT->getValueAsBit("isRISCVVecTuple"); !IsInteger && !IsVector && !IsFP && !IsRISCVVecTuple)
       continue;
 
     OS << "  GET_VT_EVT(" << VT->getValueAsString("LLVMName") << ", ";

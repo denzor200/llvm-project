@@ -127,9 +127,9 @@ struct TestXeGPUUnrollingPatterns
             // If the encoding is a ScatterTensorDescAttr, we need to
             // potentially adjust the chunk size based on the inst_data.
             if (tdescTy.isScattered()) {
-              int64_t chunkSize = tdescTy.getChunkSizeAsInt();
+              
 
-              if (chunkSize > 1) {
+              if (int64_t chunkSize = tdescTy.getChunkSizeAsInt(); chunkSize > 1) {
                 int64_t blockedChunkSize = chunkSize;
                 auto instData = layout.getInstData();
                 if (!instData.empty())

@@ -223,8 +223,8 @@ static ValueMap clone_params(LLVMValueRef Src, LLVMValueRef Dst) {
     if (DstNext == nullptr)
       report_fatal_error("DstNext was unexpectedly null");
 
-    LLVMValueRef SrcPrev = LLVMGetPreviousParam(SrcNext);
-    if (SrcPrev != SrcCur)
+    
+    if (LLVMValueRef SrcPrev = LLVMGetPreviousParam(SrcNext); SrcPrev != SrcCur)
       report_fatal_error("SrcNext.Previous param is not Current");
 
     LLVMValueRef DstPrev = LLVMGetPreviousParam(DstNext);
@@ -269,8 +269,8 @@ static LLVMValueRef clone_constant_impl(LLVMValueRef Cst, LLVMModuleRef M) {
 
       LLVMValueRef Dst = nullptr;
       // Try an intrinsic
-      unsigned ID = LLVMGetIntrinsicID(Cst);
-      if (ID > 0 && !LLVMIntrinsicIsOverloaded(ID)) {
+      
+      if (unsigned ID = LLVMGetIntrinsicID(Cst); ID > 0 && !LLVMIntrinsicIsOverloaded(ID)) {
         Dst = LLVMGetIntrinsicDeclaration(M, ID, nullptr, 0);
       } else {
         // Try a normal function
@@ -285,8 +285,8 @@ static LLVMValueRef clone_constant_impl(LLVMValueRef Cst, LLVMModuleRef M) {
     // Try global variable
     if (LLVMIsAGlobalVariable(Cst)) {
       check_value_kind(Cst, LLVMGlobalVariableValueKind);
-      LLVMValueRef Dst = LLVMGetNamedGlobal(M, Name);
-      if (Dst)
+      
+      if (LLVMValueRef Dst = LLVMGetNamedGlobal(M, Name); Dst)
         return Dst;
       report_fatal_error("Could not find variable");
     }
@@ -294,8 +294,8 @@ static LLVMValueRef clone_constant_impl(LLVMValueRef Cst, LLVMModuleRef M) {
     // Try global alias
     if (LLVMIsAGlobalAlias(Cst)) {
       check_value_kind(Cst, LLVMGlobalAliasValueKind);
-      LLVMValueRef Dst = LLVMGetNamedGlobalAlias(M, Name, NameLen);
-      if (Dst)
+      
+      if (LLVMValueRef Dst = LLVMGetNamedGlobalAlias(M, Name, NameLen); Dst)
         return Dst;
       report_fatal_error("Could not find alias");
     }
@@ -553,8 +553,8 @@ struct FunCloner {
     LLVMOpcode Op = LLVMGetInstructionOpcode(Src);
     switch(Op) {
       case LLVMRet: {
-        int OpCount = LLVMGetNumOperands(Src);
-        if (OpCount == 0)
+        
+        if (int OpCount = LLVMGetNumOperands(Src); OpCount == 0)
           Dst = LLVMBuildRetVoid(Builder);
         else
           Dst = LLVMBuildRet(Builder, CloneValue(LLVMGetOperand(Src, 0)));
@@ -984,8 +984,8 @@ struct FunCloner {
         SmallVector<LLVMValueRef, 8> MaskElts;
         unsigned NumMaskElts = LLVMGetNumMaskElements(Src);
         for (unsigned i = 0; i < NumMaskElts; i++) {
-          int Val = LLVMGetMaskValue(Src, i);
-          if (Val == LLVMGetUndefMaskElem()) {
+          
+          if (int Val = LLVMGetMaskValue(Src, i); Val == LLVMGetUndefMaskElem()) {
             MaskElts.push_back(LLVMGetUndef(LLVMInt64Type()));
           } else {
             MaskElts.push_back(LLVMConstInt(LLVMInt64Type(), Val, true));
@@ -1123,8 +1123,8 @@ struct FunCloner {
     LLVMBasicBlockRef BB = DeclareBB(Src);
 
     // Make sure ordering is correct.
-    LLVMBasicBlockRef Prev = LLVMGetPreviousBasicBlock(Src);
-    if (Prev)
+    
+    if (LLVMBasicBlockRef Prev = LLVMGetPreviousBasicBlock(Src); Prev)
       LLVMMoveBasicBlockAfter(BB, DeclareBB(Prev));
 
     LLVMValueRef First = LLVMGetFirstInstruction(Src);
@@ -1151,8 +1151,8 @@ struct FunCloner {
         break;
       }
 
-      LLVMValueRef Prev = LLVMGetPreviousInstruction(Next);
-      if (Prev != Cur)
+      
+      if (LLVMValueRef Prev = LLVMGetPreviousInstruction(Next); Prev != Cur)
         report_fatal_error("Next.Previous instruction is not Current");
 
       Cur = Next;
@@ -1182,8 +1182,8 @@ struct FunCloner {
         break;
       }
 
-      LLVMBasicBlockRef Prev = LLVMGetPreviousBasicBlock(Next);
-      if (Prev != Cur)
+      
+      if (LLVMBasicBlockRef Prev = LLVMGetPreviousBasicBlock(Next); Prev != Cur)
         report_fatal_error("Next.Previous basic bloc is not Current");
 
       Cur = Next;
@@ -1587,8 +1587,8 @@ NamedMDClone:
   while (true) {
     size_t NameLen;
     const char *Name = LLVMGetNamedMetadataName(CurMD, &NameLen);
-    LLVMNamedMDNodeRef NamedMD = LLVMGetNamedMetadata(M, Name, NameLen);
-    if (!NamedMD)
+    
+    if (LLVMNamedMDNodeRef NamedMD = LLVMGetNamedMetadata(M, Name, NameLen); !NamedMD)
       report_fatal_error("Named MD Node must have been declared already");
 
     unsigned OperandCount = LLVMGetNamedMetadataNumOperands(Src, Name);

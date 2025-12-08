@@ -343,9 +343,9 @@ PreservedAnalyses SpeculativeExecutionPass::run(Function &F,
                                                 FunctionAnalysisManager &AM) {
   auto *TTI = &AM.getResult<TargetIRAnalysis>(F);
 
-  bool Changed = runImpl(F, TTI);
+  
 
-  if (!Changed)
+  if (bool Changed = runImpl(F, TTI); !Changed)
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserveSet<CFGAnalyses>();

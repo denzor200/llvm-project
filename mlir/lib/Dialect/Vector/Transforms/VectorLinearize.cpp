@@ -363,13 +363,13 @@ struct LinearizeVectorShuffle final
     Value vec1 = adaptor.getV1();
     Value vec2 = adaptor.getV2();
     int shuffleSliceLen = 1;
-    int rank = shuffleOp.getV1().getType().getRank();
+    
 
     // If rank > 1, we need to do the shuffle in the granularity of slices
     // instead of scalars. Size of the slice is equal to the rank-1 innermost
     // dims. Mask of the shuffle op specifies which slice to take from the
     // outermost dim.
-    if (rank > 1) {
+    if (int rank = shuffleOp.getV1().getType().getRank(); rank > 1) {
       llvm::ArrayRef<int64_t> shape = shuffleOp.getV1().getType().getShape();
       for (unsigned i = 1; i < shape.size(); ++i) {
         shuffleSliceLen *= shape[i];
@@ -871,10 +871,10 @@ static bool isLinearizable(Operation *op) {
   // are Vectorizable might be linearized currently.
   StringLiteral vectorDialect = vector::VectorDialect::getDialectNamespace();
   StringRef opDialect = op->getDialect()->getNamespace();
-  bool supported = (opDialect == vectorDialect) ||
+  
+  if (bool supported = (opDialect == vectorDialect) ||
                    op->hasTrait<OpTrait::ConstantLike>() ||
-                   op->hasTrait<OpTrait::Vectorizable>();
-  if (!supported)
+                   op->hasTrait<OpTrait::Vectorizable>(); !supported)
     return false;
 
   return TypeSwitch<Operation *, bool>(op)

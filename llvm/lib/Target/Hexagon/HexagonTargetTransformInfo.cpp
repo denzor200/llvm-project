@@ -109,8 +109,8 @@ HexagonTTIImpl::getPreferredAddressingMode(const Loop *L,
 /// --- Vector TTI begin ---
 
 unsigned HexagonTTIImpl::getNumberOfRegisters(unsigned ClassID) const {
-  bool Vector = ClassID == 1;
-  if (Vector)
+  
+  if (bool Vector = ClassID == 1; Vector)
     return useHVX() ? 32 : 0;
   return 32;
 }
@@ -324,9 +324,9 @@ InstructionCost HexagonTTIImpl::getVectorInstrCost(unsigned Opcode, Type *Val,
                                                    unsigned Index,
                                                    const Value *Op0,
                                                    const Value *Op1) const {
-  Type *ElemTy = Val->isVectorTy() ? cast<VectorType>(Val)->getElementType()
-                                   : Val;
-  if (Opcode == Instruction::InsertElement) {
+  
+  if (Type *ElemTy = Val->isVectorTy() ? cast<VectorType>(Val)->getElementType()
+                                   : Val; Opcode == Instruction::InsertElement) {
     // Need two rotations for non-zero index.
     unsigned Cost = (Index != 0) ? 2 : 0;
     if (ElemTy->isIntegerTy(32))
@@ -434,8 +434,8 @@ HexagonTTIImpl::getInstructionCost(const User *U,
     // can be folded into the load.
     const DataLayout &DL = getDataLayout();
     unsigned SBW = DL.getTypeSizeInBits(CI->getSrcTy());
-    unsigned DBW = DL.getTypeSizeInBits(CI->getDestTy());
-    if (DBW != 32 || SBW >= DBW)
+    
+    if (unsigned DBW = DL.getTypeSizeInBits(CI->getDestTy()); DBW != 32 || SBW >= DBW)
       return false;
 
     const LoadInst *LI = dyn_cast<const LoadInst>(CI->getOperand(0));

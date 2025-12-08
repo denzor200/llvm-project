@@ -129,8 +129,8 @@ convertToRGB(const std::tuple<double, double, double> &Color) {
   double X = C * (1 - std::abs(std::fmod(HPrime, 2.0) - 1));
 
   double RGB1[3];
-  int HPrimeInt = static_cast<int>(HPrime);
-  if (HPrimeInt % 2 == 0) {
+  
+  if (int HPrimeInt = static_cast<int>(HPrime); HPrimeInt % 2 == 0) {
     RGB1[(HPrimeInt / 2) % 3] = C;
     RGB1[(HPrimeInt / 2 + 1) % 3] = X;
     RGB1[(HPrimeInt / 2 + 2) % 3] = 0.0;

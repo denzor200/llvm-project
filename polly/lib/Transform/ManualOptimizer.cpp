@@ -75,8 +75,8 @@ static DebugLoc findFirstDebugLoc(MDNode *MD) {
 static DebugLoc findTransformationDebugLoc(MDNode *LoopMD, StringRef Name) {
   // First find dedicated transformation location
   // (such as the location of #pragma clang loop)
-  MDNode *MD = findOptionMDForLoopID(LoopMD, Name);
-  if (DebugLoc K = findFirstDebugLoc(MD))
+  
+  if (MDNode *MD = findOptionMDForLoopID(LoopMD, Name); DebugLoc K = findFirstDebugLoc(MD))
     return K;
 
   // Otherwise, fall back to the location of the loop itself

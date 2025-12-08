@@ -100,8 +100,8 @@ static struct {
   }
 
   Action next_action() {
-    uint8_t byte = next<uint8_t>();
-    switch (byte % 5) {
+    
+    switch (uint8_t byte = next<uint8_t>(); byte % 5) {
     case 4:
       return {Action::Tag::CrossCheck, {}};
     case 3:
@@ -159,8 +159,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     case Action::Tag::Insert: {
       char *ptr = const_cast<char *>(action.key.data());
       ENTRY *a = table_a.insert(ENTRY{ptr, ptr});
-      ENTRY *b = table_b.insert(ENTRY{ptr, ptr});
-      if (a->data != b->data)
+      
+      if (ENTRY *b = table_b.insert(ENTRY{ptr, ptr}); a->data != b->data)
         __builtin_trap();
       break;
     }

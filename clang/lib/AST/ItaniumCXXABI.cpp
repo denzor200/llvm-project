@@ -86,8 +86,8 @@ template <typename T> static bool isDenseMapKeyTombstone(T V) {
 template <typename T>
 static std::optional<bool> areDenseMapKeysEqualSpecialValues(T LHS, T RHS) {
   bool LHSEmpty = isDenseMapKeyEmpty(LHS);
-  bool RHSEmpty = isDenseMapKeyEmpty(RHS);
-  if (LHSEmpty || RHSEmpty)
+  
+  if (bool RHSEmpty = isDenseMapKeyEmpty(RHS); LHSEmpty || RHSEmpty)
     return LHSEmpty && RHSEmpty;
 
   bool LHSTombstone = isDenseMapKeyTombstone(LHS);
@@ -234,8 +234,8 @@ public:
   }
 
   CallingConv getDefaultMethodCallConv(bool isVariadic) const override {
-    const llvm::Triple &T = Context.getTargetInfo().getTriple();
-    if (!isVariadic && T.isWindowsGNUEnvironment() &&
+    
+    if (const llvm::Triple &T = Context.getTargetInfo().getTriple(); !isVariadic && T.isWindowsGNUEnvironment() &&
         T.getArch() == llvm::Triple::x86)
       return CC_X86ThisCall;
     return Context.getTargetInfo().getDefaultCallingConv();

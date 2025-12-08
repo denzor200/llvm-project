@@ -575,8 +575,8 @@ struct ConvertAllReduceOp : public OpConversionPattern<AllReduceOp> {
     // Get the actual shape to allocate the buffer.
     SmallVector<OpFoldResult> shape(inType.getRank());
     for (auto i = 0; i < inType.getRank(); ++i) {
-      auto s = inputShape[i];
-      if (ShapedType::isDynamic(s))
+      
+      if (auto s = inputShape[i]; ShapedType::isDynamic(s))
         shape[i] = memref::DimOp::create(iBuilder, input, s).getResult();
       else
         shape[i] = iBuilder.getIndexAttr(s);
@@ -711,8 +711,8 @@ struct ConvertUpdateHaloOp : public OpConversionPattern<UpdateHaloOp> {
     auto currHaloDim = -1; // halo sizes are provided for split dimensions only
     // we need the actual shape to compute offsets and sizes
     for (auto i = 0; i < rank; ++i) {
-      auto s = dstShape[i];
-      if (ShapedType::isDynamic(s))
+      
+      if (auto s = dstShape[i]; ShapedType::isDynamic(s))
         shape[i] = memref::DimOp::create(rewriter, loc, array, s).getResult();
       else
         shape[i] = rewriter.getIndexAttr(s);

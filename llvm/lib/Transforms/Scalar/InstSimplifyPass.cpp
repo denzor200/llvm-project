@@ -127,8 +127,8 @@ PreservedAnalyses InstSimplifyPass::run(Function &F,
   auto &AC = AM.getResult<AssumptionAnalysis>(F);
   const DataLayout &DL = F.getDataLayout();
   const SimplifyQuery SQ(DL, &TLI, &DT, &AC);
-  bool Changed = runImpl(F, SQ);
-  if (!Changed)
+  
+  if (bool Changed = runImpl(F, SQ); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

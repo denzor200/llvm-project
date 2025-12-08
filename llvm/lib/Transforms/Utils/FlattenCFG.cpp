@@ -218,8 +218,8 @@ bool FlattenCFGOpt::FlattenParallelAndOr(BasicBlock *BB, IRBuilder<> &Builder) {
       LastCondBlock = Pred;
     } else {
       // Case 1
-      BranchInst *BPS = dyn_cast<BranchInst>(PS->getTerminator());
-      if (BPS && BPS->isUnconditional()) {
+      
+      if (BranchInst *BPS = dyn_cast<BranchInst>(PS->getTerminator()); BPS && BPS->isUnconditional()) {
         // Case 1: PS(BB3) should be an unconditional branch.
         LastCondBlock = Pred;
       }
@@ -343,8 +343,8 @@ bool FlattenCFGOpt::CompareIfRegionBlock(BasicBlock *Block1, BasicBlock *Block2,
     // non-volatile stores.
     if (iter1->mayHaveSideEffects()) {
       Instruction *CurI = &*iter1;
-      StoreInst *SI = dyn_cast<StoreInst>(CurI);
-      if (!SI || SI->isVolatile())
+      
+      if (StoreInst *SI = dyn_cast<StoreInst>(CurI); !SI || SI->isVolatile())
         return false;
     }
 

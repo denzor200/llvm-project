@@ -510,8 +510,8 @@ void SelectionDAGLegalize::LegalizeStoreOps(SDNode *Node) {
       // If this is an unaligned store and the target doesn't support it,
       // expand it.
       EVT MemVT = ST->getMemoryVT();
-      const DataLayout &DL = DAG.getDataLayout();
-      if (!TLI.allowsMemoryAccessForAlignment(*DAG.getContext(), DL, MemVT,
+      
+      if (const DataLayout &DL = DAG.getDataLayout(); !TLI.allowsMemoryAccessForAlignment(*DAG.getContext(), DL, MemVT,
                                               *ST->getMemOperand())) {
         LLVM_DEBUG(dbgs() << "Expanding unsupported unaligned store\n");
         SDValue Result = TLI.expandUnalignedStore(ST, DAG);
@@ -546,9 +546,9 @@ void SelectionDAGLegalize::LegalizeStoreOps(SDNode *Node) {
   EVT StVT = ST->getMemoryVT();
   TypeSize StWidth = StVT.getSizeInBits();
   TypeSize StSize = StVT.getStoreSizeInBits();
-  auto &DL = DAG.getDataLayout();
+  
 
-  if (StWidth != StSize) {
+  if (auto &DL = DAG.getDataLayout(); StWidth != StSize) {
     // Promote to a byte-sized store with upper bits zero if not
     // storing an integral number of bytes.  For example, promote
     // TRUNCSTORE:i1 X -> TRUNCSTORE:i8 (and X, 1)
@@ -573,9 +573,9 @@ void SelectionDAGLegalize::LegalizeStoreOps(SDNode *Node) {
     EVT RoundVT = EVT::getIntegerVT(*DAG.getContext(), RoundWidth);
     EVT ExtraVT = EVT::getIntegerVT(*DAG.getContext(), ExtraWidth);
     SDValue Lo, Hi;
-    unsigned IncrementSize;
+    
 
-    if (DL.isLittleEndian()) {
+    if (unsigned IncrementSize; DL.isLittleEndian()) {
       // TRUNCSTORE:i24 X -> TRUNCSTORE:i16 X, TRUNCSTORE@+2:i8 (srl X, 16)
       // Store the bottom RoundWidth bits.
       Lo = DAG.getTruncStore(Chain, dl, Value, Ptr, ST->getPointerInfo(),
@@ -679,10 +679,10 @@ void SelectionDAGLegalize::LegalizeLoadOps(SDNode *Node) {
     default: llvm_unreachable("This action is not supported yet!");
     case TargetLowering::Legal: {
       EVT MemVT = LD->getMemoryVT();
-      const DataLayout &DL = DAG.getDataLayout();
+      
       // If this is an unaligned load and the target doesn't support it,
       // expand it.
-      if (!TLI.allowsMemoryAccessForAlignment(*DAG.getContext(), DL, MemVT,
+      if (const DataLayout &DL = DAG.getDataLayout(); !TLI.allowsMemoryAccessForAlignment(*DAG.getContext(), DL, MemVT,
                                               *LD->getMemOperand())) {
         std::tie(RVal, RChain) = TLI.expandUnalignedLoad(LD, DAG);
       }
@@ -703,8 +703,8 @@ void SelectionDAGLegalize::LegalizeLoadOps(SDNode *Node) {
       // If the range metadata type does not match the legalized memory
       // operation type, remove the range metadata.
       if (const MDNode *MD = LD->getRanges()) {
-        ConstantInt *Lower = mdconst::extract<ConstantInt>(MD->getOperand(0));
-        if (Lower->getBitWidth() != NVT.getScalarSizeInBits() ||
+        
+        if (ConstantInt *Lower = mdconst::extract<ConstantInt>(MD->getOperand(0)); Lower->getBitWidth() != NVT.getScalarSizeInBits() ||
             !NVT.isInteger())
           LD->getMemOperand()->clearRanges();
       }
@@ -791,9 +791,9 @@ void SelectionDAGLegalize::LegalizeLoadOps(SDNode *Node) {
     EVT ExtraVT = EVT::getIntegerVT(*DAG.getContext(), ExtraWidth);
     SDValue Lo, Hi, Ch;
     unsigned IncrementSize;
-    auto &DL = DAG.getDataLayout();
+    
 
-    if (DL.isLittleEndian()) {
+    if (auto &DL = DAG.getDataLayout(); DL.isLittleEndian()) {
       // EXTLOAD:i24 -> ZEXTLOAD:i16 | (shl EXTLOAD@+2:i8, 16)
       // Load the bottom RoundWidth bits.
       Lo = DAG.getExtLoad(ISD::ZEXTLOAD, dl, Node->getValueType(0), Chain, Ptr,
@@ -852,8 +852,8 @@ void SelectionDAGLegalize::LegalizeLoadOps(SDNode *Node) {
 
     Chain = Ch;
   } else {
-    bool isCustom = false;
-    switch (TLI.getLoadExtAction(ExtType, Node->getValueType(0),
+    
+    switch (bool isCustom = false; TLI.getLoadExtAction(ExtType, Node->getValueType(0),
                                  SrcVT.getSimpleVT())) {
     default: llvm_unreachable("This action is not supported yet!");
     case TargetLowering::Custom:
@@ -872,8 +872,8 @@ void SelectionDAGLegalize::LegalizeLoadOps(SDNode *Node) {
         // If this is an unaligned load and the target doesn't support it,
         // expand it.
         EVT MemVT = LD->getMemoryVT();
-        const DataLayout &DL = DAG.getDataLayout();
-        if (!TLI.allowsMemoryAccess(*DAG.getContext(), DL, MemVT,
+        
+        if (const DataLayout &DL = DAG.getDataLayout(); !TLI.allowsMemoryAccess(*DAG.getContext(), DL, MemVT,
                                     *LD->getMemOperand())) {
           std::tie(Value, Chain) = TLI.expandUnalignedLoad(LD, DAG);
         }
@@ -3679,8 +3679,8 @@ bool SelectionDAGLegalize::ExpandNode(SDNode *Node) {
         Ops.push_back(DAG.getUNDEF(EltVT));
         continue;
       }
-      unsigned Idx = Mask[i];
-      if (Idx < NumElems)
+      
+      if (unsigned Idx = Mask[i]; Idx < NumElems)
         Ops.push_back(DAG.getNode(ISD::EXTRACT_VECTOR_ELT, dl, EltVT, Op0,
                                   DAG.getVectorIdxConstant(Idx, dl)));
       else
@@ -3949,10 +3949,10 @@ bool SelectionDAGLegalize::ExpandNode(SDNode *Node) {
     }
     break;
   case ISD::ConstantFP: {
-    ConstantFPSDNode *CFP = cast<ConstantFPSDNode>(Node);
+    
     // Check to see if this FP immediate is already legal.
     // If this is a legal constant, turn it into a TargetConstantFP node.
-    if (!TLI.isFPImmLegal(CFP->getValueAPF(), Node->getValueType(0),
+    if (ConstantFPSDNode *CFP = cast<ConstantFPSDNode>(Node); !TLI.isFPImmLegal(CFP->getValueAPF(), Node->getValueType(0),
                           DAG.shouldOptForSize()))
       Results.push_back(ExpandConstantFP(CFP, true));
     break;
@@ -4018,10 +4018,10 @@ bool SelectionDAGLegalize::ExpandNode(SDNode *Node) {
     SDValue LHS = Node->getOperand(0);
     SDValue RHS = Node->getOperand(1);
     MVT VT = LHS.getSimpleValueType();
-    unsigned MULHOpcode =
-        Node->getOpcode() == ISD::UMUL_LOHI ? ISD::MULHU : ISD::MULHS;
+    
 
-    if (TLI.isOperationLegalOrCustom(MULHOpcode, VT)) {
+    if (unsigned MULHOpcode =
+        Node->getOpcode() == ISD::UMUL_LOHI ? ISD::MULHU : ISD::MULHS; TLI.isOperationLegalOrCustom(MULHOpcode, VT)) {
       Results.push_back(DAG.getNode(ISD::MUL, dl, VT, LHS, RHS));
       Results.push_back(DAG.getNode(MULHOpcode, dl, VT, LHS, RHS));
       break;
@@ -4319,11 +4319,11 @@ bool SelectionDAGLegalize::ExpandNode(SDNode *Node) {
       Mask = Node->getOperand(3 + Offset);
       EVL = Node->getOperand(4 + Offset);
     }
-    bool Legalized = TLI.LegalizeSetCCCondCode(
-        DAG, Node->getValueType(0), Tmp1, Tmp2, Tmp3, Mask, EVL, NeedInvert, dl,
-        Chain, IsSignaling);
+    
 
-    if (Legalized) {
+    if (bool Legalized = TLI.LegalizeSetCCCondCode(
+        DAG, Node->getValueType(0), Tmp1, Tmp2, Tmp3, Mask, EVL, NeedInvert, dl,
+        Chain, IsSignaling); Legalized) {
       // If we expanded the SETCC by swapping LHS and RHS, or by inverting the
       // condition code, create a new SETCC node.
       if (Tmp3.getNode()) {
@@ -4642,8 +4642,8 @@ void SelectionDAGLegalize::ConvertNodeToLibcall(SDNode *Node) {
   TargetLowering::MakeLibCallOptions CallOptions;
   CallOptions.IsPostTypeLegalization = true;
   // FIXME: Check flags on the node to see if we can use a finite call.
-  unsigned Opc = Node->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = Node->getOpcode(); Opc) {
   case ISD::ATOMIC_FENCE: {
     // If the target didn't lower this, lower it to '__sync_synchronize()' call
     // FIXME: handle "fence singlethread" more efficiently.
@@ -4842,8 +4842,8 @@ void SelectionDAGLegalize::ConvertNodeToLibcall(SDNode *Node) {
     RTLIB::Libcall LC = Node->getOpcode() == ISD::FSINCOS
                             ? RTLIB::getSINCOS(VT)
                             : RTLIB::getSINCOSPI(VT);
-    bool Expanded = TLI.expandMultipleResultFPLibCall(DAG, LC, Node, Results);
-    if (!Expanded) {
+    
+    if (bool Expanded = TLI.expandMultipleResultFPLibCall(DAG, LC, Node, Results); !Expanded) {
       DAG.getContext()->emitError(Twine("no libcall available for ") +
                                   Node->getOperationName(&DAG));
       SDValue Poison = DAG.getPOISON(VT);
@@ -4940,9 +4940,9 @@ void SelectionDAGLegalize::ConvertNodeToLibcall(SDNode *Node) {
     EVT VT = Node->getValueType(0);
     RTLIB::Libcall LC = Node->getOpcode() == ISD::FMODF ? RTLIB::getMODF(VT)
                                                         : RTLIB::getFREXP(VT);
-    bool Expanded = TLI.expandMultipleResultFPLibCall(DAG, LC, Node, Results,
-                                                      /*CallRetResNo=*/0);
-    if (!Expanded)
+    
+    if (bool Expanded = TLI.expandMultipleResultFPLibCall(DAG, LC, Node, Results,
+                                                      /*CallRetResNo=*/0); !Expanded)
       llvm_unreachable("Expected scalar FFREXP/FMODF to expand to libcall!");
     break;
   }
@@ -4974,10 +4974,10 @@ void SelectionDAGLegalize::ConvertNodeToLibcall(SDNode *Node) {
       break;
     }
     unsigned Offset = Node->isStrictFPOpcode() ? 1 : 0;
-    bool ExponentHasSizeOfInt =
+    
+    if (bool ExponentHasSizeOfInt =
         DAG.getLibInfo().getIntSize() ==
-        Node->getOperand(1 + Offset).getValueType().getSizeInBits();
-    if (!ExponentHasSizeOfInt) {
+        Node->getOperand(1 + Offset).getValueType().getSizeInBits(); !ExponentHasSizeOfInt) {
       // If the exponent does not match with sizeof(int) a libcall to
       // RTLIB::POWI would use the wrong type for the argument.
       DAG.getContext()->emitError("POWI exponent does not match sizeof(int)");

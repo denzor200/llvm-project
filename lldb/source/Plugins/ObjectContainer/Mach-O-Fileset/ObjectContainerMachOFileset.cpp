@@ -179,9 +179,9 @@ bool ObjectContainerMachOFileset::ParseHeader(
     return false;
 
   const size_t header_size = MachHeaderSizeFromMagic(header->magic);
-  const size_t header_and_lc_size = header_size + header->sizeofcmds;
+  
 
-  if (data.GetByteSize() < header_and_lc_size) {
+  if (const size_t header_and_lc_size = header_size + header->sizeofcmds; data.GetByteSize() < header_and_lc_size) {
     DataBufferSP data_sp =
         ObjectFile::MapFileData(file, header_and_lc_size, file_offset);
     data.SetData(data_sp);
@@ -202,9 +202,9 @@ bool ObjectContainerMachOFileset::ParseHeader() {
     return false;
 
   const size_t header_size = MachHeaderSizeFromMagic(header->magic);
-  const size_t header_and_lc_size = header_size + header->sizeofcmds;
+  
 
-  if (m_data.GetByteSize() < header_and_lc_size) {
+  if (const size_t header_and_lc_size = header_size + header->sizeofcmds; m_data.GetByteSize() < header_and_lc_size) {
     ProcessSP process_sp(m_process_wp.lock());
     DataBufferSP data_sp =
         process_sp
@@ -230,8 +230,8 @@ size_t ObjectContainerMachOFileset::GetModuleSpecifications(
     std::vector<Entry> entries;
     if (ParseHeader(data, file, file_offset, entries)) {
       for (const Entry &entry : entries) {
-        const lldb::offset_t entry_offset = entry.fileoff + file_offset;
-        if (ObjectFile::GetModuleSpecifications(
+        
+        if (const lldb::offset_t entry_offset = entry.fileoff + file_offset; ObjectFile::GetModuleSpecifications(
                 file, entry_offset, file_size - entry_offset, specs)) {
           ModuleSpec &spec = specs.GetModuleSpecRefAtIndex(specs.GetSize() - 1);
           spec.GetObjectName() = ConstString(entry.id);
@@ -252,8 +252,8 @@ bool ObjectContainerMachOFileset::MagicBytesMatch(DataBufferSP data_sp,
 
 bool ObjectContainerMachOFileset::MagicBytesMatch(const DataExtractor &data) {
   lldb::offset_t offset = 0;
-  uint32_t magic = data.GetU32(&offset);
-  switch (magic) {
+  
+  switch (uint32_t magic = data.GetU32(&offset); magic) {
   case MH_MAGIC:
   case MH_CIGAM:
   case MH_MAGIC_64:

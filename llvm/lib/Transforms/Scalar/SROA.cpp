@@ -1955,9 +1955,9 @@ static bool canConvertValue(const DataLayout &DL, Type *OldTy, Type *NewTy,
     // a single domain (either fixed or scalable). Any additional conversion
     // between fixed and scalable types is handled through integer types.
     auto OldVTy = OldTy->isPtrOrPtrVectorTy() ? DL.getIntPtrType(OldTy) : OldTy;
-    auto NewVTy = NewTy->isPtrOrPtrVectorTy() ? DL.getIntPtrType(NewTy) : NewTy;
+    
 
-    if (isa<ScalableVectorType>(NewTy)) {
+    if (auto NewVTy = NewTy->isPtrOrPtrVectorTy() ? DL.getIntPtrType(NewTy) : NewTy; isa<ScalableVectorType>(NewTy)) {
       if (!VectorType::getWithSizeAndScalar(cast<VectorType>(NewVTy), OldVTy))
         return false;
 
@@ -2085,14 +2085,14 @@ static Value *convertValue(const DataLayout &DL, IRBuilderTy &IRB, Value *V,
 
   if (OldTy->isPtrOrPtrVectorTy() && NewTy->isPtrOrPtrVectorTy()) {
     unsigned OldAS = OldTy->getPointerAddressSpace();
-    unsigned NewAS = NewTy->getPointerAddressSpace();
+    
     // To convert pointers with different address spaces (they are already
     // checked convertible, i.e. they have the same pointer size), so far we
     // cannot use `bitcast` (which has restrict on the same address space) or
     // `addrspacecast` (which is not always no-op casting). Instead, use a pair
     // of no-op `ptrtoint`/`inttoptr` casts through an integer with the same bit
     // size.
-    if (OldAS != NewAS) {
+    if (unsigned NewAS = NewTy->getPointerAddressSpace(); OldAS != NewAS) {
       assert(DL.getPointerSize(OldAS) == DL.getPointerSize(NewAS));
       return IRB.CreateIntToPtr(
           CreateBitCastLike(IRB.CreatePtrToInt(V, DL.getIntPtrType(OldTy)),
@@ -2318,9 +2318,9 @@ static VectorType *createAndCheckVectorTypesForPromotion(
       // The elements in the copy should remain invariant throughout the loop
       assert(CandidateTysCopy[0] == OriginalElt && "Different Element");
       unsigned VectorSize = DL.getTypeSizeInBits(VTy).getFixedValue();
-      unsigned ElementSize =
-          DL.getTypeSizeInBits(VTy->getElementType()).getFixedValue();
-      if (TypeSize != VectorSize && TypeSize != ElementSize &&
+      
+      if (unsigned ElementSize =
+          DL.getTypeSizeInBits(VTy->getElementType()).getFixedValue(); TypeSize != VectorSize && TypeSize != ElementSize &&
           VectorSize % TypeSize == 0) {
         VectorType *NewVTy = VectorType::get(Ty, VectorSize / TypeSize, false);
         CheckCandidateType(NewVTy);
@@ -2358,8 +2358,8 @@ static VectorType *isVectorPromotionViable(Partition &P, const DataLayout &DL,
     if (auto *VTy = dyn_cast<FixedVectorType>(Ty)) {
       // Return if bitcast to vectors is different for total size in bits.
       if (!CandidateTys.empty()) {
-        VectorType *V = CandidateTys[0];
-        if (DL.getTypeSizeInBits(VTy).getFixedValue() !=
+        
+        if (VectorType *V = CandidateTys[0]; DL.getTypeSizeInBits(VTy).getFixedValue() !=
             DL.getTypeSizeInBits(V).getFixedValue()) {
           CandidateTys.clear();
           return;
@@ -2726,8 +2726,8 @@ static Value *mergeTwoVectors(Value *V0, Value *V1, const DataLayout &DL,
   // we need to introduce bitcasts before merging them
   auto BitcastIfNeeded = [&](Value *&V, FixedVectorType *&VecType,
                              const char *DebugName) {
-    Type *EltType = VecType->getElementType();
-    if (EltType != NewAIEltTy) {
+    
+    if (Type *EltType = VecType->getElementType(); EltType != NewAIEltTy) {
       // Calculate new number of elements to maintain same bit width
       unsigned TotalBits =
           VecType->getNumElements() * DL.getTypeSizeInBits(EltType);
@@ -2999,8 +2999,8 @@ public:
     };
 
     for (Slice &S : P) {
-      auto *User = cast<Instruction>(S.getUse()->getUser());
-      if (auto *LI = dyn_cast<LoadInst>(User)) {
+      
+      if (auto *User = cast<Instruction>(S.getUse()->getUser()); auto *LI = dyn_cast<LoadInst>(User)) {
         // Do not handle the case if
         //   1. There is more than one load
         //   2. The load is volatile
@@ -3023,8 +3023,8 @@ public:
           return std::nullopt;
         auto *VecTy = cast<FixedVectorType>(SI->getValueOperand()->getType());
         unsigned NumElts = VecTy->getNumElements();
-        unsigned EltSize = DL.getTypeSizeInBits(VecTy->getElementType());
-        if (NumElts * EltSize % AllocatedEltTySize != 0)
+        
+        if (unsigned EltSize = DL.getTypeSizeInBits(VecTy->getElementType()); NumElts * EltSize % AllocatedEltTySize != 0)
           return std::nullopt;
         StoreInfos.emplace_back(SI, S.beginOffset(), S.endOffset(),
                                 SI->getValueOperand());
@@ -3202,8 +3202,8 @@ private:
   }
 
   void deleteIfTriviallyDead(Value *V) {
-    Instruction *I = cast<Instruction>(V);
-    if (isInstructionTriviallyDead(I))
+    
+    if (Instruction *I = cast<Instruction>(V); isInstructionTriviallyDead(I))
       Pass.DeadInsts.push_back(I);
   }
 
@@ -3227,8 +3227,8 @@ private:
                                      NewAI.getAlign(), "load");
     V = convertValue(DL, IRB, V, IntTy);
     assert(NewBeginOffset >= NewAllocaBeginOffset && "Out of bounds offset");
-    uint64_t Offset = NewBeginOffset - NewAllocaBeginOffset;
-    if (Offset > 0 || NewEndOffset < NewAllocaEndOffset) {
+    
+    if (uint64_t Offset = NewBeginOffset - NewAllocaBeginOffset; Offset > 0 || NewEndOffset < NewAllocaEndOffset) {
       IntegerType *ExtractTy = Type::getIntNTy(LI.getContext(), SliceSize * 8);
       V = extractInteger(DL, IRB, V, ExtractTy, Offset, "extract");
     }
@@ -3370,10 +3370,10 @@ private:
       unsigned NumElements = EndIndex - BeginIndex;
       assert(NumElements <= cast<FixedVectorType>(VecTy)->getNumElements() &&
              "Too many elements!");
-      Type *SliceTy = (NumElements == 1)
+      
+      if (Type *SliceTy = (NumElements == 1)
                           ? ElementTy
-                          : FixedVectorType::get(ElementTy, NumElements);
-      if (V->getType() != SliceTy)
+                          : FixedVectorType::get(ElementTy, NumElements); V->getType() != SliceTy)
         V = convertValue(DL, IRB, V, SliceTy);
 
       // Mix in the existing elements.
@@ -3556,7 +3556,11 @@ private:
     Type *AllocaTy = NewAI.getAllocatedType();
     Type *ScalarTy = AllocaTy->getScalarType();
 
-    const bool CanContinue = [&]() {
+    
+
+    // If this doesn't map cleanly onto the alloca type, and that type isn't
+    // a single value type, just emit a memset.
+    if (const bool CanContinue = [&]() {
       if (VecTy || IntTy)
         return true;
       if (BeginOffset > NewAllocaBeginOffset || EndOffset < NewAllocaEndOffset)
@@ -3570,11 +3574,7 @@ private:
       auto *SrcTy = FixedVectorType::get(Int8Ty, Len);
       return canConvertValue(DL, SrcTy, AllocaTy) &&
              DL.isLegalInteger(DL.getTypeSizeInBits(ScalarTy).getFixedValue());
-    }();
-
-    // If this doesn't map cleanly onto the alloca type, and that type isn't
-    // a single value type, just emit a memset.
-    if (!CanContinue) {
+    }(); !CanContinue) {
       Type *SizeTy = II.getLength()->getType();
       unsigned Sz = NewEndOffset - NewBeginOffset;
       Constant *Size = ConstantInt::get(SizeTy, Sz);
@@ -3690,8 +3690,8 @@ private:
     // memcpy, and so simply updating the pointers is the necessary for us to
     // update both source and dest of a single call.
     if (!IsSplittable) {
-      Value *AdjustedPtr = getNewAllocaSlicePtr(IRB, OldPtr->getType());
-      if (IsDest) {
+      
+      if (Value *AdjustedPtr = getNewAllocaSlicePtr(IRB, OldPtr->getType()); IsDest) {
         // Update the address component of linked dbg.assigns.
         for (DbgVariableRecord *DbgAssign : at::getDVRAssignmentMarkers(&II)) {
           if (llvm::is_contained(DbgAssign->location_ops(), II.getDest()) ||
@@ -4285,8 +4285,8 @@ private:
       // If we cannot (because there's an intervening non-const or unbounded
       // gep) then we wouldn't expect to see dbg.assign intrinsics linked to
       // this instruction.
-      Value *Base = AggStore->getPointerOperand()->stripInBoundsOffsets();
-      if (auto *OldAI = dyn_cast<AllocaInst>(Base)) {
+      
+      if (Value *Base = AggStore->getPointerOperand()->stripInBoundsOffsets(); auto *OldAI = dyn_cast<AllocaInst>(Base)) {
         uint64_t SizeInBits =
             DL.getTypeSizeInBits(Store->getValueOperand()->getType());
         migrateDebugInfo(OldAI, /*IsSplit*/ true, Offset.getZExtValue() * 8,
@@ -4785,8 +4785,8 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
         // simple to avoid changing semantics.
         auto IsLoadSimplyStored = [](LoadInst *LI) {
           for (User *LU : LI->users()) {
-            auto *SI = dyn_cast<StoreInst>(LU);
-            if (!SI || !SI->isSimple())
+            
+            if (auto *SI = dyn_cast<StoreInst>(LU); !SI || !SI->isSimple())
               return false;
           }
           return true;
@@ -4801,8 +4801,8 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
         if (S.getUse() != &SI->getOperandUse(SI->getPointerOperandIndex()))
           // Skip stores *of* pointers. FIXME: This shouldn't even be possible!
           continue;
-        auto *StoredLoad = dyn_cast<LoadInst>(SI->getValueOperand());
-        if (!StoredLoad || !StoredLoad->isSimple())
+        
+        if (auto *StoredLoad = dyn_cast<LoadInst>(SI->getValueOperand()); !StoredLoad || !StoredLoad->isSimple())
           continue;
         assert(!SI->isVolatile() && "Cannot split volatile stores!");
 
@@ -5250,8 +5250,8 @@ AllocaInst *SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS,
   if (SliceVecTy && !checkVectorTypeForPromotion(P, SliceVecTy, DL, VScale))
     if (Type *TypePartitionTy = getTypePartition(DL, AI.getAllocatedType(),
                                                  P.beginOffset(), P.size())) {
-      VectorType *TypePartitionVecTy = dyn_cast<VectorType>(TypePartitionTy);
-      if (TypePartitionVecTy &&
+      
+      if (VectorType *TypePartitionVecTy = dyn_cast<VectorType>(TypePartitionTy); TypePartitionVecTy &&
           checkVectorTypeForPromotion(P, TypePartitionVecTy, DL, VScale))
         SliceTy = TypePartitionTy;
     }
@@ -5576,8 +5576,8 @@ bool SROA::splitAlloca(AllocaInst &AI, AllocaSlices &AS) {
 
   uint64_t AllocaSize =
       DL.getTypeAllocSize(AI.getAllocatedType()).getFixedValue();
-  const uint64_t MaxBitVectorSize = 1024;
-  if (AllocaSize <= MaxBitVectorSize) {
+  
+  if (const uint64_t MaxBitVectorSize = 1024; AllocaSize <= MaxBitVectorSize) {
     // If a byte boundary is included in any load or store, a slice starting or
     // ending at the boundary is not splittable.
     SmallBitVector SplittableOffset(AllocaSize + 1, true);

@@ -35,8 +35,8 @@ static bool GlibcSupportsFloat128(const std::string &Linker) {
 
   if (!LinkerName.starts_with("ld-2."))
     return false;
-  unsigned Minor = (LinkerName[5] - '0') * 10 + (LinkerName[6] - '0');
-  if (Minor < 32)
+  
+  if (unsigned Minor = (LinkerName[5] - '0') * 10 + (LinkerName[6] - '0'); Minor < 32)
     return false;
 
   return true;

@@ -69,8 +69,8 @@ ModuleSymbolsRequestHandler::Run(const ModuleSymbolsArguments &args) const {
 
     lldb::SBAddress start_address = symbol.GetStartAddress();
     if (start_address.IsValid()) {
-      lldb::addr_t file_address = start_address.GetFileAddress();
-      if (file_address != LLDB_INVALID_ADDRESS)
+      
+      if (lldb::addr_t file_address = start_address.GetFileAddress(); file_address != LLDB_INVALID_ADDRESS)
         dap_symbol.fileAddress = file_address;
 
       lldb::addr_t load_address = start_address.GetLoadAddress(dap.target);

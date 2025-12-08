@@ -364,9 +364,9 @@ static bool shouldIgnoreUnsupportedTargetFeature(const Arg &TargetFeatureArg,
     return false;
   auto GPUKind = T.isAMDGCN() ? llvm::AMDGPU::parseArchAMDGCN(Processor)
                               : llvm::AMDGPU::parseArchR600(Processor);
-  auto GPUFeatures = T.isAMDGCN() ? llvm::AMDGPU::getArchAttrAMDGCN(GPUKind)
-                                  : llvm::AMDGPU::getArchAttrR600(GPUKind);
-  if (GPUFeatures & llvm::AMDGPU::FEATURE_WGP)
+  
+  if (auto GPUFeatures = T.isAMDGCN() ? llvm::AMDGPU::getArchAttrAMDGCN(GPUKind)
+                                  : llvm::AMDGPU::getArchAttrR600(GPUKind); GPUFeatures & llvm::AMDGPU::FEATURE_WGP)
     return false;
   return TargetFeatureArg.getOption().matches(options::OPT_mno_cumode);
 }
@@ -513,10 +513,10 @@ void tools::AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
       continue;
 
     // Otherwise, this is a linker input argument.
-    const Arg &A = II.getInputArg();
+    
 
     // Handle reserved library options.
-    if (A.getOption().matches(options::OPT_Z_reserved_lib_stdcxx))
+    if (const Arg &A = II.getInputArg(); A.getOption().matches(options::OPT_Z_reserved_lib_stdcxx))
       TC.AddCXXStdlibLibArgs(Args, CmdArgs);
     else if (A.getOption().matches(options::OPT_Z_reserved_lib_cckext))
       TC.AddCCKextLibArgs(Args, CmdArgs);
@@ -1183,9 +1183,9 @@ void tools::addLTOOptions(const ToolChain &ToolChain, const ArgList &Args,
     // On AIX, clang assumes strict-dwarf is true if any debug option is
     // specified, unless it is told explicitly not to assume so.
     Arg *A = Args.getLastArg(options::OPT_g_Group);
-    bool EnableDebugInfo = A && !A->getOption().matches(options::OPT_g0) &&
-                           !A->getOption().matches(options::OPT_ggdb0);
-    if (EnableDebugInfo && Args.hasFlag(options::OPT_gstrict_dwarf,
+    
+    if (bool EnableDebugInfo = A && !A->getOption().matches(options::OPT_g0) &&
+                           !A->getOption().matches(options::OPT_ggdb0); EnableDebugInfo && Args.hasFlag(options::OPT_gstrict_dwarf,
                                         options::OPT_gno_strict_dwarf, true))
       CmdArgs.push_back(
           Args.MakeArgString(Twine(PluginOptPrefix) + "-strict-dwarf=true"));
@@ -1511,11 +1511,11 @@ static void addSanitizerRuntime(const ToolChain &TC, const ArgList &Args,
 static bool addSanitizerDynamicList(const ToolChain &TC, const ArgList &Args,
                                     ArgStringList &CmdArgs,
                                     StringRef Sanitizer) {
-  bool LinkerIsGnuLd = solaris::isLinkerGnuLd(TC, Args);
+  
 
   // Solaris ld defaults to --export-dynamic behaviour but doesn't support
   // the option, so don't try to pass it.
-  if (TC.getTriple().isOSSolaris() && !LinkerIsGnuLd)
+  if (bool LinkerIsGnuLd = solaris::isLinkerGnuLd(TC, Args); TC.getTriple().isOSSolaris() && !LinkerIsGnuLd)
     return true;
   SmallString<128> SanRT(TC.getCompilerRT(Args, Sanitizer));
   if (llvm::sys::fs::exists(SanRT + ".syms")) {
@@ -1531,14 +1531,14 @@ void tools::addAsNeededOption(const ToolChain &TC,
                               bool as_needed) {
   assert(!TC.getTriple().isOSAIX() &&
          "AIX linker does not support any form of --as-needed option yet.");
-  bool LinkerIsGnuLd = solaris::isLinkerGnuLd(TC, Args);
+  
 
   // While the Solaris 11.2 ld added --as-needed/--no-as-needed as aliases
   // for the native forms -z ignore/-z record, they are missing in Illumos,
   // so always use the native form.
   // GNU ld doesn't support -z ignore/-z record, so don't use them even on
   // Solaris.
-  if (TC.getTriple().isOSSolaris() && !LinkerIsGnuLd) {
+  if (bool LinkerIsGnuLd = solaris::isLinkerGnuLd(TC, Args); TC.getTriple().isOSSolaris() && !LinkerIsGnuLd) {
     CmdArgs.push_back("-z");
     CmdArgs.push_back(as_needed ? "ignore" : "record");
   } else {
@@ -1858,8 +1858,8 @@ const char *tools::SplitDebugName(const JobAction &JA, const ArgList &Args,
   if (const Arg *A = Args.getLastArg(options::OPT_dumpdir)) {
     T = A->getValue();
   } else {
-    Arg *FinalOutput = Args.getLastArg(options::OPT_o, options::OPT__SLASH_o);
-    if (FinalOutput && Args.hasArg(options::OPT_c)) {
+    
+    if (Arg *FinalOutput = Args.getLastArg(options::OPT_o, options::OPT__SLASH_o); FinalOutput && Args.hasArg(options::OPT_c)) {
       T = FinalOutput->getValue();
       llvm::sys::path::remove_filename(T);
       llvm::sys::path::append(T,
@@ -1938,10 +1938,10 @@ Arg *tools::getLastProfileUseArg(const ArgList &Args) {
 }
 
 Arg *tools::getLastProfileSampleUseArg(const ArgList &Args) {
-  auto *ProfileSampleUseArg = Args.getLastArg(
-      options::OPT_fprofile_sample_use_EQ, options::OPT_fno_profile_sample_use);
+  
 
-  if (ProfileSampleUseArg && (ProfileSampleUseArg->getOption().matches(
+  if (auto *ProfileSampleUseArg = Args.getLastArg(
+      options::OPT_fprofile_sample_use_EQ, options::OPT_fno_profile_sample_use); ProfileSampleUseArg && (ProfileSampleUseArg->getOption().matches(
                                  options::OPT_fno_profile_sample_use)))
     return nullptr;
 
@@ -2469,8 +2469,8 @@ void tools::AddRunTimeLibs(const ToolChain &TC, const Driver &D,
     if (TC.getTriple().isKnownWindowsMSVCEnvironment()) {
       // Issue error diagnostic if libgcc is explicitly specified
       // through command line as --rtlib option argument.
-      Arg *A = Args.getLastArg(options::OPT_rtlib_EQ);
-      if (A && A->getValue() != StringRef("platform")) {
+      
+      if (Arg *A = Args.getLastArg(options::OPT_rtlib_EQ); A && A->getValue() != StringRef("platform")) {
         TC.getDriver().Diag(diag::err_drv_unsupported_rtlib_for_platform)
             << A->getValue() << "MSVC";
       }
@@ -2694,8 +2694,8 @@ static void GetSDLFromOffloadArchive(
 
   llvm::Triple Triple(D.getTargetTriple());
   bool IsMSVC = Triple.isWindowsMSVCEnvironment();
-  auto Ext = IsMSVC ? ".lib" : ".a";
-  if (!Lib.starts_with(":") && !Lib.starts_with("-l")) {
+  
+  if (auto Ext = IsMSVC ? ".lib" : ".a"; !Lib.starts_with(":") && !Lib.starts_with("-l")) {
     if (llvm::sys::fs::exists(Lib)) {
       ArchiveOfBundles = Lib;
       FoundAOB = true;
@@ -2896,15 +2896,15 @@ getAMDGPUCodeObjectArgument(const Driver &D, const llvm::opt::ArgList &Args) {
 void tools::checkAMDGPUCodeObjectVersion(const Driver &D,
                                          const llvm::opt::ArgList &Args) {
   const unsigned MinCodeObjVer = 4;
-  const unsigned MaxCodeObjVer = 6;
+  
 
-  if (auto *CodeObjArg = getAMDGPUCodeObjectArgument(D, Args)) {
+  if (const unsigned MaxCodeObjVer = 6; auto *CodeObjArg = getAMDGPUCodeObjectArgument(D, Args)) {
     if (CodeObjArg->getOption().getID() ==
         options::OPT_mcode_object_version_EQ) {
       unsigned CodeObjVer = MaxCodeObjVer;
-      auto Remnant =
-          StringRef(CodeObjArg->getValue()).getAsInteger(0, CodeObjVer);
-      if (Remnant || CodeObjVer < MinCodeObjVer || CodeObjVer > MaxCodeObjVer)
+      
+      if (auto Remnant =
+          StringRef(CodeObjArg->getValue()).getAsInteger(0, CodeObjVer); Remnant || CodeObjVer < MinCodeObjVer || CodeObjVer > MaxCodeObjVer)
         D.Diag(diag::err_drv_invalid_int_value)
             << CodeObjArg->getAsString(Args) << CodeObjArg->getValue();
     }
@@ -3377,16 +3377,16 @@ bool tools::shouldEnableVectorizerAtOLevel(const ArgList &Args, bool isSlpVec) {
 
 void tools::handleVectorizeLoopsArgs(const ArgList &Args,
                                      ArgStringList &CmdArgs) {
-  bool EnableVec = shouldEnableVectorizerAtOLevel(Args, false);
-  if (Args.hasFlag(options::OPT_fvectorize, options::OPT_fno_vectorize,
+  
+  if (bool EnableVec = shouldEnableVectorizerAtOLevel(Args, false); Args.hasFlag(options::OPT_fvectorize, options::OPT_fno_vectorize,
                    EnableVec))
     CmdArgs.push_back("-vectorize-loops");
 }
 
 void tools::handleVectorizeSLPArgs(const ArgList &Args,
                                    ArgStringList &CmdArgs) {
-  bool EnableSLPVec = shouldEnableVectorizerAtOLevel(Args, true);
-  if (Args.hasFlag(options::OPT_fslp_vectorize, options::OPT_fno_slp_vectorize,
+  
+  if (bool EnableSLPVec = shouldEnableVectorizerAtOLevel(Args, true); Args.hasFlag(options::OPT_fslp_vectorize, options::OPT_fno_slp_vectorize,
                    EnableSLPVec))
     CmdArgs.push_back("-vectorize-slp");
 }

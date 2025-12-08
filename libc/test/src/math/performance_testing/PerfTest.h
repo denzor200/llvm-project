@@ -46,8 +46,8 @@ public:
       for (size_t i = 0; i < rounds; i++) {
         for (StorageType bits_x = startingBit, bits_y = endingBit;;
              bits_x += step, bits_y -= step) {
-          InputType x = FPBits(bits_x).get_val();
-          if constexpr (binary) {
+          
+          if constexpr (InputType x = FPBits(bits_x).get_val(); binary) {
             InputType y = FPBits(bits_y).get_val();
             result = func(x, y);
           } else {

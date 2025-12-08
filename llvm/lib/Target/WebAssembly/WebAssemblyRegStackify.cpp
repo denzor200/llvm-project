@@ -105,8 +105,8 @@ static void convertImplicitDefToConstZero(MachineInstr *MI,
                                           MachineFunction &MF) {
   assert(MI->getOpcode() == TargetOpcode::IMPLICIT_DEF);
 
-  const auto *RegClass = MRI.getRegClass(MI->getOperand(0).getReg());
-  if (RegClass == &WebAssembly::I32RegClass) {
+  
+  if (const auto *RegClass = MRI.getRegClass(MI->getOperand(0).getReg()); RegClass == &WebAssembly::I32RegClass) {
     MI->setDesc(TII->get(WebAssembly::CONST_I32));
     MI->addOperand(MachineOperand::CreateImm(0));
   } else if (RegClass == &WebAssembly::I64RegClass) {
@@ -139,8 +139,8 @@ static void queryCallee(const MachineInstr &MI, bool &Read, bool &Write,
   // All calls can use the stack pointer.
   StackPointer = true;
 
-  const MachineOperand &MO = WebAssembly::getCalleeOp(MI);
-  if (MO.isGlobal()) {
+  
+  if (const MachineOperand &MO = WebAssembly::getCalleeOp(MI); MO.isGlobal()) {
     const Constant *GV = MO.getGlobal();
     if (const auto *GA = dyn_cast<GlobalAlias>(GV))
       if (!GA->isInterposable())
@@ -427,8 +427,8 @@ static bool isSafeToMove(const MachineOperand *Def, const MachineOperand *Use,
 
   // If the instruction does not access memory and has no side effects, it has
   // no additional dependencies.
-  bool HasMutableRegisters = !MutableRegisters.empty();
-  if (!Read && !Write && !Effects && !StackPointer && !HasMutableRegisters)
+  
+  if (bool HasMutableRegisters = !MutableRegisters.empty(); !Read && !Write && !Effects && !StackPointer && !HasMutableRegisters)
     return true;
 
   // Scan through the intervening instructions between DefI and Insert.
@@ -475,9 +475,9 @@ static bool oneUseDominatesOtherUses(unsigned Reg, const MachineOperand &OneUse,
       continue;
 
     const MachineInstr *UseInst = Use.getParent();
-    VNInfo *UseVNI = LI.getVNInfoBefore(LIS.getInstructionIndex(*UseInst));
+    
 
-    if (UseVNI != OneUseVNI)
+    if (VNInfo *UseVNI = LI.getVNInfoBefore(LIS.getInstructionIndex(*UseInst)); UseVNI != OneUseVNI)
       continue;
 
     if (UseInst == OneUseInst) {

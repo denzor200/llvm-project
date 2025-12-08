@@ -328,12 +328,12 @@ void mlir::linalg::hoistRedundantVectorTransfers(Operation *root,
         // analysis.
         if (auto assume = dyn_cast<memref::AssumeAlignmentOp>(source)) {
           Value memPreAlignment = assume.getMemref();
-          auto numInLoopUses =
+          
+
+          if (auto numInLoopUses =
               llvm::count_if(base.getUses(), [&loop](OpOperand &use) {
                 return loop->isAncestor(use.getOwner());
-              });
-
-          if (numInLoopUses && memPreAlignment.hasOneUse())
+              }); numInLoopUses && memPreAlignment.hasOneUse())
             source = memPreAlignment.getDefiningOp();
         }
         if (isa_and_nonnull<ViewLikeOpInterface>(source))

@@ -107,8 +107,8 @@ ObjCContainerDecl::getMethod(Selector Sel, bool isInstance,
   lookup_result R = lookup(Sel);
   for (lookup_iterator Meth = R.begin(), MethEnd = R.end();
        Meth != MethEnd; ++Meth) {
-    auto *MD = dyn_cast<ObjCMethodDecl>(*Meth);
-    if (MD && MD->isInstanceMethod() == isInstance)
+    
+    if (auto *MD = dyn_cast<ObjCMethodDecl>(*Meth); MD && MD->isInstanceMethod() == isInstance)
       return MD;
   }
   return nullptr;
@@ -125,8 +125,8 @@ bool ObjCContainerDecl::HasUserDeclaredSetterMethod(
   lookup_result R = lookup(Sel);
   for (lookup_iterator Meth = R.begin(), MethEnd = R.end();
        Meth != MethEnd; ++Meth) {
-    auto *MD = dyn_cast<ObjCMethodDecl>(*Meth);
-    if (MD && MD->isInstanceMethod() && !MD->isImplicit())
+    
+    if (auto *MD = dyn_cast<ObjCMethodDecl>(*Meth); MD && MD->isInstanceMethod() && !MD->isImplicit())
       return true;
   }
 
@@ -301,9 +301,9 @@ ObjCPropertyDecl *ObjCContainerDecl::FindPropertyDeclaration(
       break;
     }
     case Decl::ObjCCategory: {
-      const auto *OCD = cast<ObjCCategoryDecl>(this);
+      
       // Look through protocols.
-      if (!OCD->IsClassExtension())
+      if (const auto *OCD = cast<ObjCCategoryDecl>(this); !OCD->IsClassExtension())
         for (const auto *I : OCD->protocols())
           if (ObjCPropertyDecl *P = I->FindPropertyDeclaration(PropertyId,
                                                                QueryKind))
@@ -1110,8 +1110,8 @@ ObjCMethodFamily ObjCMethodDecl::getMethodFamily() const {
     if (!isInstanceMethod() || !getReturnType()->isObjCIdType())
       family = OMF_None;
     else {
-      unsigned noParams = param_size();
-      if (noParams < 1 || noParams > 3)
+      
+      if (unsigned noParams = param_size(); noParams < 1 || noParams > 3)
         family = OMF_None;
       else {
         ObjCMethodDecl::param_type_iterator it = param_type_begin();
@@ -1226,8 +1226,8 @@ ObjCCategoryDecl *ObjCMethodDecl::getCategory() {
 }
 
 SourceRange ObjCMethodDecl::getReturnTypeSourceRange() const {
-  const auto *TSI = getReturnTypeSourceInfo();
-  if (TSI)
+  
+  if (const auto *TSI = getReturnTypeSourceInfo(); TSI)
     return TSI->getTypeLoc().getSourceRange();
   return SourceRange();
 }
@@ -1870,9 +1870,9 @@ ObjCIvarDecl *ObjCIvarDecl::CreateDeserialized(ASTContext &C, GlobalDeclID ID) {
 }
 
 ObjCInterfaceDecl *ObjCIvarDecl::getContainingInterface() {
-  auto *DC = cast<ObjCContainerDecl>(getDeclContext());
+  
 
-  switch (DC->getKind()) {
+  switch (auto *DC = cast<ObjCContainerDecl>(getDeclContext()); DC->getKind()) {
   default:
   case ObjCCategoryImpl:
   case ObjCProtocol:
@@ -1997,8 +1997,8 @@ ObjCMethodDecl *ObjCProtocolDecl::lookupMethod(Selector Sel,
 
   // If there is no definition or the definition is hidden, we don't find
   // anything.
-  const ObjCProtocolDecl *Def = getDefinition();
-  if (!Def || !Def->isUnconditionallyVisible())
+  
+  if (const ObjCProtocolDecl *Def = getDefinition(); !Def || !Def->isUnconditionallyVisible())
     return nullptr;
 
   if ((MethodDecl = getMethod(Sel, isInstance)))
@@ -2209,9 +2209,9 @@ void ObjCImplDecl::addPropertyImplementation(ObjCPropertyImplDecl *property) {
 }
 
 void ObjCImplDecl::setClassInterface(ObjCInterfaceDecl *IFace) {
-  ASTContext &Ctx = getASTContext();
+  
 
-  if (auto *ImplD = dyn_cast_or_null<ObjCImplementationDecl>(this)) {
+  if (ASTContext &Ctx = getASTContext(); auto *ImplD = dyn_cast_or_null<ObjCImplementationDecl>(this)) {
     if (IFace)
       Ctx.setObjCImplementation(IFace, ImplD);
 

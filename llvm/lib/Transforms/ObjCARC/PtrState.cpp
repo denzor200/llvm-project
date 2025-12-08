@@ -352,10 +352,10 @@ bool TopDownPtrState::MatchWithRelease(ARCMDKindCache &Cache,
 
   Sequence OldSeq = GetSeq();
 
-  MDNode *ReleaseMetadata =
-      Release->getMetadata(Cache.get(ARCMDKindID::ImpreciseRelease));
+  
 
-  switch (OldSeq) {
+  switch (MDNode *ReleaseMetadata =
+      Release->getMetadata(Cache.get(ARCMDKindID::ImpreciseRelease)); OldSeq) {
   case S_Retain:
   case S_CanRelease:
     if (OldSeq == S_Retain || ReleaseMetadata != nullptr)

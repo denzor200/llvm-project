@@ -987,8 +987,8 @@ bool AsmParser::Run(bool NoInitialTextSection, bool NoFinalize) {
       TheCondState.Ignore != StartingCondState.Ignore)
     printError(getTok().getLoc(), "unmatched .ifs or .elses");
   // Check to see there are no empty DwarfFile slots.
-  const auto &LineTables = getContext().getMCDwarfLineTables();
-  if (!LineTables.empty()) {
+  
+  if (const auto &LineTables = getContext().getMCDwarfLineTables(); !LineTables.empty()) {
     unsigned Index = 0;
     for (const auto &File : LineTables.begin()->second.getMCDwarfFiles()) {
       if (File.Name.empty() && Index != 0)
@@ -1006,11 +1006,11 @@ bool AsmParser::Run(bool NoInitialTextSection, bool NoFinalize) {
   if (!NoFinalize) {
     if (MAI.hasSubsectionsViaSymbols()) {
       for (const auto &TableEntry : getContext().getSymbols()) {
-        MCSymbol *Sym = TableEntry.getValue().Symbol;
+        
         // Variable symbols may not be marked as defined, so check those
         // explicitly. If we know it's a variable, we have a definition for
         // the purposes of this check.
-        if (Sym && Sym->isTemporary() && !Sym->isVariable() &&
+        if (MCSymbol *Sym = TableEntry.getValue().Symbol; Sym && Sym->isTemporary() && !Sym->isVariable() &&
             !Sym->isDefined())
           // FIXME: We would really like to refer back to where the symbol was
           // first referenced for a source location. We need to add something
@@ -1320,8 +1320,8 @@ bool AsmParser::parseExpression(const MCExpr *&Res) {
 
 const MCExpr *MCAsmParser::applySpecifier(const MCExpr *E, uint32_t Spec) {
   // Ask the target implementation about this expression first.
-  const MCExpr *NewE = getTargetParser().applySpecifier(E, Spec, Ctx);
-  if (NewE)
+  
+  if (const MCExpr *NewE = getTargetParser().applySpecifier(E, Spec, Ctx); NewE)
     return NewE;
   // Recurse over the given expression, rebuilding it to apply the given variant
   // if there is exactly one symbol.
@@ -1423,8 +1423,8 @@ bool MCAsmParser::parseAtSpecifier(const MCExpr *&Res, SMLoc &EndLoc) {
     if (!Spec)
       return TokError("invalid specifier '@" + getTok().getIdentifier() + "'");
 
-    const MCExpr *ModifiedRes = applySpecifier(Res, *Spec);
-    if (ModifiedRes)
+    
+    if (const MCExpr *ModifiedRes = applySpecifier(Res, *Spec); ModifiedRes)
       Res = ModifiedRes;
     Lex();
   }
@@ -1444,8 +1444,8 @@ bool MCAsmParser::parseAtSpecifier(const MCExpr *&Res, SMLoc &EndLoc) {
 bool AsmParser::parseExpression(const MCExpr *&Res, SMLoc &EndLoc) {
   // Parse the expression.
   Res = nullptr;
-  auto &TS = getTargetParser();
-  if (TS.parsePrimaryExpr(Res, EndLoc) || parseBinOpRHS(1, Res, EndLoc))
+  
+  if (auto &TS = getTargetParser(); TS.parsePrimaryExpr(Res, EndLoc) || parseBinOpRHS(1, Res, EndLoc))
     return true;
 
   // As a special case, we support 'a op b @ modifier' by rewriting the
@@ -1859,8 +1859,8 @@ bool AsmParser::parseStatement(ParseStatementInfo &Info,
     }
 
     if (MAI.isMachO() && CFIStartProcLoc) {
-      auto *SymM = static_cast<MCSymbolMachO *>(Sym);
-      if (SymM->isExternal() && !SymM->isAltEntry())
+      
+      if (auto *SymM = static_cast<MCSymbolMachO *>(Sym); SymM->isExternal() && !SymM->isAltEntry())
         return Error(StartTokLoc, "non-private labels cannot appear between "
                                   ".cfi_startproc / .cfi_endproc pairs") &&
                Error(*CFIStartProcLoc, "previous .cfi_startproc was here");
@@ -2375,8 +2375,8 @@ void AsmParser::DiagHandler(const SMDiagnostic &Diag, void *Context) {
 
   // Like SourceMgr::printMessage() we need to print the include stack if any
   // before printing the message.
-  unsigned DiagCurBuffer = DiagSrcMgr.FindBufferContainingLoc(DiagLoc);
-  if (!Parser->SavedDiagHandler && DiagCurBuffer &&
+  
+  if (unsigned DiagCurBuffer = DiagSrcMgr.FindBufferContainingLoc(DiagLoc); !Parser->SavedDiagHandler && DiagCurBuffer &&
       DiagCurBuffer != DiagSrcMgr.getMainFileID()) {
     SMLoc ParentIncludeLoc = DiagSrcMgr.getParentIncludeLoc(DiagCurBuffer);
     DiagSrcMgr.PrintIncludeStack(ParentIncludeLoc, OS);
@@ -2516,8 +2516,8 @@ bool AsmParser::expandMacro(raw_svector_ostream &OS, MCAsmMacro &Macro,
           break;
         // $[0-9] => argument
         // Missing arguments are ignored.
-        unsigned Index = Body[I + 1] - '0';
-        if (Index < A.size())
+        
+        if (unsigned Index = Body[I + 1] - '0'; Index < A.size())
           for (const AsmToken &Token : A[Index])
             OS << Token.getString();
         I += 2;
@@ -2791,8 +2791,8 @@ bool AsmParser::parseMacroArguments(const MCAsmMacro *M,
 bool AsmParser::handleMacroEntry(MCAsmMacro *M, SMLoc NameLoc) {
   // Arbitrarily limit macro nesting depth (default matches 'as'). We can
   // eliminate this, although we should protect against infinite loops.
-  unsigned MaxNestingDepth = AsmMacroMaxNestingDepth;
-  if (ActiveMacros.size() == MaxNestingDepth) {
+  
+  if (unsigned MaxNestingDepth = AsmMacroMaxNestingDepth; ActiveMacros.size() == MaxNestingDepth) {
     std::ostringstream MaxNestingDepthError;
     MaxNestingDepthError << "macros cannot be nested more than "
                          << MaxNestingDepth << " levels deep."
@@ -2856,9 +2856,9 @@ bool AsmParser::parseAssignment(StringRef Name, AssignmentKind Kind) {
   MCSymbol *Sym;
   const MCExpr *Value;
   SMLoc ExprLoc = getTok().getLoc();
-  bool AllowRedef =
-      Kind == AssignmentKind::Set || Kind == AssignmentKind::Equal;
-  if (MCParserUtils::parseAssignmentExpression(Name, AllowRedef, *this, Sym,
+  
+  if (bool AllowRedef =
+      Kind == AssignmentKind::Set || Kind == AssignmentKind::Equal; MCParserUtils::parseAssignmentExpression(Name, AllowRedef, *this, Sym,
                                                Value))
     return true;
 
@@ -3636,8 +3636,8 @@ bool AsmParser::parseDirectiveLoc() {
         return true;
       // The expression must be the constant 0 or 1.
       if (const MCConstantExpr *MCE = dyn_cast<MCConstantExpr>(Value)) {
-        int Value = MCE->getValue();
-        if (Value == 0)
+        
+        if (int Value = MCE->getValue(); Value == 0)
           Flags &= ~DWARF2_FLAG_IS_STMT;
         else if (Value == 1)
           Flags |= DWARF2_FLAG_IS_STMT;
@@ -4302,8 +4302,8 @@ static bool isValidEncoding(int64_t Encoding) {
   if (Encoding == dwarf::DW_EH_PE_omit)
     return true;
 
-  const unsigned Format = Encoding & 0xf;
-  if (Format != dwarf::DW_EH_PE_absptr && Format != dwarf::DW_EH_PE_udata2 &&
+  
+  if (const unsigned Format = Encoding & 0xf; Format != dwarf::DW_EH_PE_absptr && Format != dwarf::DW_EH_PE_udata2 &&
       Format != dwarf::DW_EH_PE_udata4 && Format != dwarf::DW_EH_PE_udata8 &&
       Format != dwarf::DW_EH_PE_sdata2 && Format != dwarf::DW_EH_PE_sdata4 &&
       Format != dwarf::DW_EH_PE_sdata8 && Format != dwarf::DW_EH_PE_signed)
@@ -4654,8 +4654,8 @@ void AsmParser::checkForBadMacro(SMLoc DirectiveLoc, StringRef Name,
       // This macro should have parameters, but look for $0, $1, ..., $n too.
       if (Body[Pos] != '$' || Pos + 1 == End)
         continue;
-      char Next = Body[Pos + 1];
-      if (Next == '$' || Next == 'n' ||
+      
+      if (char Next = Body[Pos + 1]; Next == '$' || Next == 'n' ||
           isdigit(static_cast<unsigned char>(Next)))
         break;
     }
@@ -5214,9 +5214,9 @@ bool AsmParser::parseDirectiveIfdef(SMLoc DirectiveLoc, bool expect_defined) {
         parseEOL())
       return true;
 
-    MCSymbol *Sym = getContext().lookupSymbol(Name);
+    
 
-    if (expect_defined)
+    if (MCSymbol *Sym = getContext().lookupSymbol(Name); expect_defined)
       TheCondState.CondMet = (Sym && !Sym->isUndefined());
     else
       TheCondState.CondMet = (!Sym || Sym->isUndefined());
@@ -5903,9 +5903,9 @@ bool AsmParser::parseMSInlineAsm(
       continue;
 
     ParseStatementInfo Info(&AsmStrRewrites);
-    bool StatementErr = parseStatement(Info, &SI);
+    
 
-    if (StatementErr || Info.ParseError) {
+    if (bool StatementErr = parseStatement(Info, &SI); StatementErr || Info.ParseError) {
       // Emit pending errors if any exist.
       printPendingErrors();
       return true;
@@ -5926,9 +5926,9 @@ bool AsmParser::parseMSInlineAsm(
       // Register operand.
       if (Operand.isReg() && !Operand.needAddressOf() &&
           !getTargetParser().omitRegisterFromClobberLists(Operand.getReg())) {
-        unsigned NumDefs = Desc.getNumDefs();
+        
         // Clobber.
-        if (NumDefs && Operand.getMCOperandNum() < NumDefs)
+        if (unsigned NumDefs = Desc.getNumDefs(); NumDefs && Operand.getMCOperandNum() < NumDefs)
           ClobberRegs.push_back(Operand.getReg());
         continue;
       }
@@ -6057,13 +6057,13 @@ bool AsmParser::parseMSInlineAsm(
         StringRef OffsetName = AR.IntelExp.OffsetName;
         SMLoc OffsetLoc = SMLoc::getFromPointer(AR.IntelExp.OffsetName.data());
         size_t OffsetLen = OffsetName.size();
-        auto rewrite_it = std::find_if(
+        
+        if (auto rewrite_it = std::find_if(
             I, AsmStrRewrites.end(), [&](const AsmRewrite &FusingAR) {
               return FusingAR.Loc == OffsetLoc && FusingAR.Len == OffsetLen &&
                      (FusingAR.Kind == AOK_Input ||
                       FusingAR.Kind == AOK_CallInput);
-            });
-        if (rewrite_it == AsmStrRewrites.end()) {
+            }); rewrite_it == AsmStrRewrites.end()) {
           OS << "offset " << OffsetName;
         } else if (rewrite_it->Kind == AOK_CallInput) {
           OS << "${" << InputIdx++ << ":P}";

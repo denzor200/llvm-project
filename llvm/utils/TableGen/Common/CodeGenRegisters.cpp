@@ -89,8 +89,8 @@ void CodeGenSubRegIndex::updateComponents(CodeGenRegBank &RegBank) {
                       "ComposedOf must have exactly two entries");
     CodeGenSubRegIndex *A = RegBank.getSubRegIdx(Comps[0]);
     CodeGenSubRegIndex *B = RegBank.getSubRegIdx(Comps[1]);
-    CodeGenSubRegIndex *X = A->addComposite(B, this, RegBank.getHwModes());
-    if (X)
+    
+    if (CodeGenSubRegIndex *X = A->addComposite(B, this, RegBank.getHwModes()); X)
       PrintFatalError(TheDef->getLoc(), "Ambiguous ComposedOf entries");
   }
 
@@ -341,8 +341,8 @@ CodeGenRegister::computeSubRegs(CodeGenRegBank &RegBank) {
     bool AnyArtificial = false;
     SmallVector<CodeGenSubRegIndex *, 8> Parts;
     for (unsigned j = 0, e = SR->ExplicitSubRegs.size(); j != e; ++j) {
-      CodeGenSubRegIndex &I = *SR->ExplicitSubRegIndices[j];
-      if (I.Artificial) {
+      
+      if (CodeGenSubRegIndex &I = *SR->ExplicitSubRegIndices[j]; I.Artificial) {
         AnyArtificial = true;
         break;
       }
@@ -1077,8 +1077,8 @@ void CodeGenRegisterClass::buildRegUnitSet(
   std::vector<unsigned> TmpUnits;
   for (const CodeGenRegister *Reg : Members) {
     for (unsigned UnitI : Reg->getRegUnits()) {
-      const RegUnit &RU = RegBank.getRegUnit(UnitI);
-      if (!RU.Artificial)
+      
+      if (const RegUnit &RU = RegBank.getRegUnit(UnitI); !RU.Artificial)
         TmpUnits.push_back(UnitI);
     }
   }
@@ -1240,8 +1240,8 @@ CodeGenRegBank::CodeGenRegBank(const RecordKeeper &Records,
   // Allocate user-defined register classes.
   for (const Record *R : RCs) {
     RegClasses.emplace_back(*this, R);
-    CodeGenRegisterClass &RC = RegClasses.back();
-    if (!RC.Artificial)
+    
+    if (CodeGenRegisterClass &RC = RegClasses.back(); !RC.Artificial)
       addToMaps(&RC);
   }
 
@@ -1865,13 +1865,13 @@ static bool normalizeWeight(CodeGenRegister *Reg,
   // Check if this register is too skinny for its UberRegSet.
   UberRegSet *UberSet = RegSets[RegBank.getRegIndex(Reg)];
 
-  unsigned RegWeight = Reg->getWeight(RegBank);
-  if (UberSet->Weight > RegWeight) {
+  
+  if (unsigned RegWeight = Reg->getWeight(RegBank); UberSet->Weight > RegWeight) {
     // A register unit's weight can be adjusted only if it is the singular unit
     // for this register, has not been used to normalize a subregister's set,
     // and has not already been used to singularly determine this UberRegSet.
-    unsigned AdjustUnit = *Reg->getRegUnits().begin();
-    if (Reg->getRegUnits().count() != 1 || NormalUnits.test(AdjustUnit) ||
+    
+    if (unsigned AdjustUnit = *Reg->getRegUnits().begin(); Reg->getRegUnits().count() != 1 || NormalUnits.test(AdjustUnit) ||
         UberSet->SingularDeterminants.test(AdjustUnit)) {
       // We don't have an adjustable unit, so adopt a new one.
       AdjustUnit = RegBank.newRegUnit(UberSet->Weight - RegWeight);
@@ -1966,8 +1966,8 @@ void CodeGenRegBank::pruneUnitSets() {
         continue;
 
       unsigned UnitWeight = RegUnits[SubSet.Units[0]].Weight;
-      const RegUnitSet &SuperSet = RegUnitSets[SuperIdx];
-      if (isRegUnitSubSet(SubSet.Units, SuperSet.Units) &&
+      
+      if (const RegUnitSet &SuperSet = RegUnitSets[SuperIdx]; isRegUnitSubSet(SubSet.Units, SuperSet.Units) &&
           (SubSet.Units.size() + 3 > SuperSet.Units.size()) &&
           UnitWeight == RegUnits[SuperSet.Units[0]].Weight &&
           UnitWeight == RegUnits[SuperSet.Units.back()].Weight) {
@@ -2422,12 +2422,12 @@ void CodeGenRegBank::inferMatchingSuperRegClass(
         }
       }
 
-      auto [SubSetRC, Inserted] = getOrCreateSubClass(
+      
+
+      if (auto [SubSetRC, Inserted] = getOrCreateSubClass(
           RC, &SubSetVec,
           RC->getName() + "_with_" + CompositeSubIdx->getName() + "_in_" +
-              CompositeSubRC->getName());
-
-      if (Inserted)
+              CompositeSubRC->getName()); Inserted)
         SubSetRC->setInferredFrom(CompositeSubIdx, CompositeSubRC);
     }
   }

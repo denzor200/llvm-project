@@ -632,9 +632,9 @@ LogicalResult ConcatOp::verify() {
 
   for (auto [inferredSize, actualSize] :
        llvm::zip_equal(inferredResultType.getShape(), resultType.getShape())) {
-    bool hasDynamic = ShapedType::isDynamic(inferredSize) ||
-                      ShapedType::isDynamic(actualSize);
-    if (!hasDynamic && inferredSize != actualSize)
+    
+    if (bool hasDynamic = ShapedType::isDynamic(inferredSize) ||
+                      ShapedType::isDynamic(actualSize); !hasDynamic && inferredSize != actualSize)
       return emitOpError("result type ")
              << resultType << "does not match inferred shape "
              << inferredResultType << " static sizes";
@@ -929,8 +929,8 @@ OpFoldResult DimOp::fold(FoldAdaptor adaptor) {
 
   // Out of bound indices produce undefined behavior but are still valid IR.
   // Don't choke on them.
-  int64_t indexVal = index.getInt();
-  if (indexVal < 0 || indexVal >= tensorType.getRank())
+  
+  if (int64_t indexVal = index.getInt(); indexVal < 0 || indexVal >= tensorType.getRank())
     return {};
 
   // Fold if the shape extent along the given index is known.
@@ -1312,9 +1312,9 @@ struct ExtractFromCollapseShape : public OpRewritePattern<tensor::ExtractOp> {
     for (auto [index, group] :
          llvm::zip(indices, collapseOp.getReassociationIndices())) {
       assert(!group.empty() && "association indices groups cannot be empty");
-      auto groupSize = group.size();
+      
 
-      if (groupSize == 1) {
+      if (auto groupSize = group.size(); groupSize == 1) {
         sourceIndices.push_back(index);
         continue;
       }
@@ -2332,8 +2332,8 @@ RankedTensorType ExtractSliceOp::inferCanonicalRankReducedResultType(
   // Type inferred in the absence of rank-reducing behavior.
   auto inferredType = llvm::cast<RankedTensorType>(
       inferResultType(sourceRankedTensorType, sizes));
-  int rankDiff = inferredType.getRank() - desiredResultRank;
-  if (rankDiff > 0) {
+  
+  if (int rankDiff = inferredType.getRank() - desiredResultRank; rankDiff > 0) {
     auto shape = inferredType.getShape();
     llvm::SmallBitVector dimsToProject =
         getPositionsOfShapeOne(rankDiff, shape);
@@ -3086,9 +3086,9 @@ struct InsertSliceOpCastFolder final : public OpRewritePattern<InsertOpTy> {
                            insertSliceOp.getMixedStrides());
 
     // In the parallel case there is no result and so nothing to cast.
-    bool isParallelInsert =
-        std::is_same<InsertOpTy, ParallelInsertSliceOp>::value;
-    if (!isParallelInsert && dst.getType() != insertSliceOp.getDestType()) {
+    
+    if (bool isParallelInsert =
+        std::is_same<InsertOpTy, ParallelInsertSliceOp>::value; !isParallelInsert && dst.getType() != insertSliceOp.getDestType()) {
       replacement = tensor::CastOp::create(rewriter, insertSliceOp.getLoc(),
                                            insertSliceOp.getDestType(),
                                            replacement->getResult(0));
@@ -3852,8 +3852,8 @@ OpResult ParallelInsertSliceOp::getTiedOpResult() {
   InParallelOpInterface parallelCombiningParent = getParallelCombiningParent();
   for (const auto &it :
        llvm::enumerate(parallelCombiningParent.getYieldingOps())) {
-    Operation &nextOp = it.value();
-    if (&nextOp == getOperation())
+    
+    if (Operation &nextOp = it.value(); &nextOp == getOperation())
       return parallelCombiningParent.getParentResult(it.index());
   }
   llvm_unreachable("ParallelInsertSliceOp no tied OpResult found");

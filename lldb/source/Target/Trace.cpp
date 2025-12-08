@@ -373,8 +373,8 @@ uint32_t Trace::GetStopID() {
 
 llvm::Expected<FileSpec>
 Trace::GetPostMortemThreadDataFile(lldb::tid_t tid, llvm::StringRef kind) {
-  Storage &storage = GetUpdatedStorage();
-  if (std::optional<FileSpec> file =
+  
+  if (Storage &storage = GetUpdatedStorage(); std::optional<FileSpec> file =
           Lookup(storage.postmortem_thread_data, tid, ConstString(kind)))
     return *file;
   else
@@ -386,8 +386,8 @@ Trace::GetPostMortemThreadDataFile(lldb::tid_t tid, llvm::StringRef kind) {
 
 llvm::Expected<FileSpec> Trace::GetPostMortemCpuDataFile(lldb::cpu_id_t cpu_id,
                                                          llvm::StringRef kind) {
-  Storage &storage = GetUpdatedStorage();
-  if (std::optional<FileSpec> file =
+  
+  if (Storage &storage = GetUpdatedStorage(); std::optional<FileSpec> file =
           Lookup(storage.postmortem_cpu_data, cpu_id, ConstString(kind)))
     return *file;
   else
@@ -511,8 +511,8 @@ llvm::Error Trace::OnCpuBinaryDataRead(lldb::cpu_id_t cpu_id,
 }
 
 ArrayRef<lldb::cpu_id_t> Trace::GetTracedCpus() {
-  Storage &storage = GetUpdatedStorage();
-  if (storage.cpus)
+  
+  if (Storage &storage = GetUpdatedStorage(); storage.cpus)
     return *storage.cpus;
   return {};
 }

@@ -32,8 +32,8 @@ static void
 ExpectThatElementsAre(sandboxir::SeedBundle &SR,
                       llvm::ArrayRef<sandboxir::Instruction *> Contents) {
   EXPECT_EQ(range_size(SR), Contents.size());
-  auto CI = Contents.begin();
-  if (range_size(SR) == Contents.size())
+  
+  if (auto CI = Contents.begin(); range_size(SR) == Contents.size())
     for (auto &S : SR)
       EXPECT_EQ(S, *CI++);
 }

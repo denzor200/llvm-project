@@ -419,9 +419,9 @@ visit(const ObjCImplementationDecl *ImplD) const {
   bool AtImplementationContainsAtLeastOnePartialInvalidationMethod = false;
   for (const ObjCMethodDecl *InterfD : PartialInfo.InvalidationMethods) {
     // Get the corresponding method in the @implementation.
-    const ObjCMethodDecl *D = ImplD->getMethod(InterfD->getSelector(),
-                                               InterfD->isInstanceMethod());
-    if (D && D->hasBody()) {
+    
+    if (const ObjCMethodDecl *D = ImplD->getMethod(InterfD->getSelector(),
+                                               InterfD->isInstanceMethod()); D && D->hasBody()) {
       AtImplementationContainsAtLeastOnePartialInvalidationMethod = true;
 
       bool CalledAnotherInvalidationMethod = false;
@@ -468,9 +468,9 @@ visit(const ObjCImplementationDecl *ImplD) const {
   bool AtImplementationContainsAtLeastOneInvalidationMethod = false;
   for (const ObjCMethodDecl *InterfD : Info.InvalidationMethods) {
     // Get the corresponding method in the @implementation.
-    const ObjCMethodDecl *D = ImplD->getMethod(InterfD->getSelector(),
-                                               InterfD->isInstanceMethod());
-    if (D && D->hasBody()) {
+    
+    if (const ObjCMethodDecl *D = ImplD->getMethod(InterfD->getSelector(),
+                                               InterfD->isInstanceMethod()); D && D->hasBody()) {
       AtImplementationContainsAtLeastOneInvalidationMethod = true;
 
       // Get a copy of ivars needing invalidation.
@@ -588,8 +588,8 @@ void IvarInvalidationCheckerImpl::MethodCrawler::checkObjCIvarRefExpr(
 
 void IvarInvalidationCheckerImpl::MethodCrawler::checkObjCMessageExpr(
     const ObjCMessageExpr *ME) {
-  const ObjCMethodDecl *MD = ME->getMethodDecl();
-  if (MD) {
+  
+  if (const ObjCMethodDecl *MD = ME->getMethodDecl(); MD) {
     MD = MD->getCanonicalDecl();
     MethToIvarMapTy::const_iterator IvI = PropertyGetterToIvarMap.find(MD);
     if (IvI != PropertyGetterToIvarMap.end())
@@ -601,8 +601,8 @@ void IvarInvalidationCheckerImpl::MethodCrawler::checkObjCPropertyRefExpr(
     const ObjCPropertyRefExpr *PA) {
 
   if (PA->isExplicitProperty()) {
-    const ObjCPropertyDecl *PD = PA->getExplicitProperty();
-    if (PD) {
+    
+    if (const ObjCPropertyDecl *PD = PA->getExplicitProperty(); PD) {
       PD = cast<ObjCPropertyDecl>(PD->getCanonicalDecl());
       PropToIvarMapTy::const_iterator IvI = PropertyToIvarMap.find(PD);
       if (IvI != PropertyToIvarMap.end())
@@ -612,8 +612,8 @@ void IvarInvalidationCheckerImpl::MethodCrawler::checkObjCPropertyRefExpr(
   }
 
   if (PA->isImplicitProperty()) {
-    const ObjCMethodDecl *MD = PA->getImplicitPropertySetter();
-    if (MD) {
+    
+    if (const ObjCMethodDecl *MD = PA->getImplicitPropertySetter(); MD) {
       MD = MD->getCanonicalDecl();
       MethToIvarMapTy::const_iterator IvI =PropertyGetterToIvarMap.find(MD);
       if (IvI != PropertyGetterToIvarMap.end())

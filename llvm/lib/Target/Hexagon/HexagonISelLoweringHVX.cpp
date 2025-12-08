@@ -508,8 +508,8 @@ HexagonTargetLowering::getPreferredHvxVectorAction(MVT VecTy) const {
   if (ElemTy == MVT::i1) {
     for (MVT T : Tys) {
       assert(T != MVT::i1);
-      auto A = getPreferredHvxVectorAction(MVT::getVectorVT(T, VecLen));
-      if (A != ~0u)
+      
+      if (auto A = getPreferredHvxVectorAction(MVT::getVectorVT(T, VecLen)); A != ~0u)
         return A;
     }
     return ~0u;
@@ -537,8 +537,8 @@ HexagonTargetLowering::getPreferredHvxVectorAction(MVT VecTy) const {
 
 unsigned
 HexagonTargetLowering::getCustomHvxOperationAction(SDNode &Op) const {
-  unsigned Opc = Op.getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = Op.getOpcode(); Opc) {
   case HexagonISD::SMUL_LOHI:
   case HexagonISD::UMUL_LOHI:
   case HexagonISD::USMUL_LOHI:
@@ -941,8 +941,8 @@ HexagonTargetLowering::buildHvxVectorReg(ArrayRef<SDValue> Values,
   SDValue ExtVec;
   if (IsBuildFromExtracts(ExtVec, ExtIdx)) {
     MVT ExtTy = ty(ExtVec);
-    unsigned ExtLen = ExtTy.getVectorNumElements();
-    if (ExtLen == VecLen || ExtLen == 2*VecLen) {
+    
+    if (unsigned ExtLen = ExtTy.getVectorNumElements(); ExtLen == VecLen || ExtLen == 2*VecLen) {
       // Construct a new shuffle mask that will produce a vector with the same
       // number of elements as the input vector, and such that the vector we
       // want will be the initial subvector of it.
@@ -3594,9 +3594,9 @@ HexagonTargetLowering::LegalizeHvxResize(SDValue Op, SelectionDAG &DAG) const {
   MVT ResTy = ty(Op);
   unsigned InpWidth = InpTy.getSizeInBits();
   unsigned ResWidth = ResTy.getSizeInBits();
-  unsigned Opc = Op.getOpcode();
+  
 
-  if (shouldWidenToHvx(InpTy, DAG) || shouldWidenToHvx(ResTy, DAG)) {
+  if (unsigned Opc = Op.getOpcode(); shouldWidenToHvx(InpTy, DAG) || shouldWidenToHvx(ResTy, DAG)) {
     // First, make sure that the narrower type is widened to HVX.
     // This may cause the result to be wider than what the legalizer
     // expects, so insert EXTRACT_SUBVECTOR to bring it back to the
@@ -3915,8 +3915,8 @@ bool
 HexagonTargetLowering::shouldSplitToHvx(MVT Ty, SelectionDAG &DAG) const {
   if (Subtarget.isHVXVectorType(Ty, true))
     return false;
-  auto Action = getPreferredHvxVectorAction(Ty);
-  if (Action == TargetLoweringBase::TypeSplitVector)
+  
+  if (auto Action = getPreferredHvxVectorAction(Ty); Action == TargetLoweringBase::TypeSplitVector)
     return Subtarget.isHVXVectorType(typeLegalize(Ty, DAG), true);
   return false;
 }
@@ -3925,8 +3925,8 @@ bool
 HexagonTargetLowering::shouldWidenToHvx(MVT Ty, SelectionDAG &DAG) const {
   if (Subtarget.isHVXVectorType(Ty, true))
     return false;
-  auto Action = getPreferredHvxVectorAction(Ty);
-  if (Action == TargetLoweringBase::TypeWidenVector)
+  
+  if (auto Action = getPreferredHvxVectorAction(Ty); Action == TargetLoweringBase::TypeWidenVector)
     return Subtarget.isHVXVectorType(typeLegalize(Ty, DAG), true);
   return false;
 }

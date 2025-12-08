@@ -838,8 +838,8 @@ LogicalResult Serializer::prepareBasicType(
         return failure();
       }
 
-      bool shaped = llvm::all_of(dims, [](const auto &dim) { return dim > 0; });
-      if (rank > 0 && shaped) {
+      
+      if (bool shaped = llvm::all_of(dims, [](const auto &dim) { return dim > 0; }); rank > 0 && shaped) {
         auto I32Type = IntegerType::get(type.getContext(), 32);
         auto shapeType = ArrayType::get(I32Type, rank);
         if (rank == 1) {

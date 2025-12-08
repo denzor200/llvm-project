@@ -433,8 +433,8 @@ void SampleContextTrimmer::trimAndMergeColdContextProfiles(
   std::vector<std::pair<hash_code, const FunctionSamples *>> ColdProfiles;
   for (const auto &I : ProfileMap) {
     const SampleContext &Context = I.second.getContext();
-    const FunctionSamples &FunctionProfile = I.second;
-    if (FunctionProfile.getTotalSamples() < ColdCountThreshold &&
+    
+    if (const FunctionSamples &FunctionProfile = I.second; FunctionProfile.getTotalSamples() < ColdCountThreshold &&
         (!TrimBaseProfileOnly || Context.isBaseContext()))
       ColdProfiles.emplace_back(I.first, &I.second);
   }

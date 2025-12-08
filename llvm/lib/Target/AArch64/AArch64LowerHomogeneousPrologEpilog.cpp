@@ -306,8 +306,8 @@ static Function *getOrCreateFrameHelper(Module *M, MachineModuleInfo *MMI,
                                         unsigned FpOffset = 0) {
   assert(Regs.size() >= 2);
   auto Name = getFrameHelperName(Regs, Type, FpOffset);
-  auto *F = M->getFunction(Name);
-  if (F)
+  
+  if (auto *F = M->getFunction(Name); F)
     return F;
 
   auto &MF = createFrameHelperMachineFunction(M, MMI, Name);
@@ -315,16 +315,16 @@ static Function *getOrCreateFrameHelper(Module *M, MachineModuleInfo *MMI,
   const TargetSubtargetInfo &STI = MF.getSubtarget();
   const TargetInstrInfo &TII = *STI.getInstrInfo();
 
-  int Size = (int)Regs.size();
-  switch (Type) {
+  
+  switch (int Size = (int)Regs.size(); Type) {
   case FrameHelperType::Prolog:
   case FrameHelperType::PrologFrame: {
     // Compute the remaining SP adjust beyond FP/LR.
-    auto LRIdx = std::distance(Regs.begin(), llvm::find(Regs, AArch64::LR));
+    
 
     // If the register stored to the lowest address is not LR, we must subtract
     // more from SP here.
-    if (LRIdx != Size - 2) {
+    if (auto LRIdx = std::distance(Regs.begin(), llvm::find(Regs, AArch64::LR)); LRIdx != Size - 2) {
       assert(Regs[Size - 2] != AArch64::LR);
       emitStore(MF, MBB, MBB.end(), TII, Regs[Size - 2], Regs[Size - 1],
                 LRIdx - Size + 2, true);
@@ -623,8 +623,8 @@ bool AArch64LowerHomogeneousPE::runOnMI(MachineBasicBlock &MBB,
                                         MachineBasicBlock::iterator MBBI,
                                         MachineBasicBlock::iterator &NextMBBI) {
   MachineInstr &MI = *MBBI;
-  unsigned Opcode = MI.getOpcode();
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = MI.getOpcode(); Opcode) {
   default:
     break;
   case AArch64::HOM_Prolog:

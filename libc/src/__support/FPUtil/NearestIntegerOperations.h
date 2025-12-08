@@ -212,10 +212,10 @@ round_using_specific_rounding_mode(T x, int rnd) {
   // If exponent is 0, trimSize will be equal to the mantissa width, and
   // truncIsOdd` will not be correct. So, we handle it as a special case
   // below.
-  StorageType trunc_is_odd =
-      new_bits.get_mantissa() & (StorageType(1) << trim_size);
+  
 
-  switch (rnd) {
+  switch (StorageType trunc_is_odd =
+      new_bits.get_mantissa() & (StorageType(1) << trim_size); rnd) {
   case FP_INT_DOWNWARD:
     return is_neg ? trunc_value - T(1.0) : trunc_value;
   case FP_INT_UPWARD:
@@ -246,9 +246,9 @@ round_using_specific_rounding_mode(T x, int rnd) {
 template <typename T>
 LIBC_INLINE cpp::enable_if_t<cpp::is_floating_point_v<T>, T>
 round_using_current_rounding_mode(T x) {
-  int rounding_mode = quick_get_round();
+  
 
-  switch (rounding_mode) {
+  switch (int rounding_mode = quick_get_round(); rounding_mode) {
   case FE_DOWNWARD:
     return round_using_specific_rounding_mode(x, FP_INT_DOWNWARD);
   case FE_UPWARD:
@@ -292,9 +292,9 @@ fromfp(T x, int rnd, unsigned int width) {
     StorageType range_exp =
         static_cast<StorageType>(width - 1 + FPBits<T>::EXP_BIAS);
     // rounded_value < -2^(width - 1)
-    T range_min =
-        FPBits<T>::create_value(Sign::NEG, range_exp, EXPLICIT_BIT).get_val();
-    if (rounded_value < range_min) {
+    
+    if (T range_min =
+        FPBits<T>::create_value(Sign::NEG, range_exp, EXPLICIT_BIT).get_val(); rounded_value < range_min) {
       raise_except_if_required(FE_INVALID);
       return FPBits<T>::quiet_nan().get_val();
     }
@@ -365,8 +365,8 @@ LIBC_INLINE IntType rounded_float_to_signed_integer(FloatType x) {
   }
 
   int exponent = bits.get_exponent();
-  constexpr int EXPONENT_LIMIT = sizeof(IntType) * 8 - 1;
-  if (exponent > EXPONENT_LIMIT) {
+  
+  if (constexpr int EXPONENT_LIMIT = sizeof(IntType) * 8 - 1; exponent > EXPONENT_LIMIT) {
     set_domain_error_and_raise_invalid();
     return bits.is_neg() ? INTEGER_MIN : INTEGER_MAX;
   } else if (exponent == EXPONENT_LIMIT) {

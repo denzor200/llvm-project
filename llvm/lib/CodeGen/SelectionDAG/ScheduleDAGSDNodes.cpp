@@ -77,8 +77,8 @@ SUnit *ScheduleDAGSDNodes::newSUnit(SDNode *N) {
          "SUnits std::vector reallocated on the fly!");
   SUnits.back().OrigNode = &SUnits.back();
   SUnit *SU = &SUnits.back();
-  const TargetLowering &TLI = DAG->getTargetLoweringInfo();
-  if (!N ||
+  
+  if (const TargetLowering &TLI = DAG->getTargetLoweringInfo(); !N ||
       (N->isMachineOpcode() &&
        N->getMachineOpcode() == TargetOpcode::IMPLICIT_DEF))
     SU->SchedulingPref = Sched::None;
@@ -124,8 +124,8 @@ static void CheckForPhysRegDependency(SDNode *Def, SDNode *User, unsigned Op,
       cast<RegisterSDNode>(Def->getOperand(1))->getReg() == Reg) {
     PhysReg = Reg;
   } else if (Def->isMachineOpcode()) {
-    const MCInstrDesc &II = TII->get(Def->getMachineOpcode());
-    if (ResNo >= II.getNumDefs() && II.hasImplicitDefOfPhysReg(Reg))
+    
+    if (const MCInstrDesc &II = TII->get(Def->getMachineOpcode()); ResNo >= II.getNumDefs() && II.hasImplicitDefOfPhysReg(Reg))
       PhysReg = Reg;
   }
 
@@ -199,8 +199,8 @@ static void RemoveUnusedGlue(SDNode *N, SelectionDAG *DAG) {
 /// optimization may benefit some targets by improving cache locality.
 void ScheduleDAGSDNodes::ClusterNeighboringLoads(SDNode *Node) {
   SDValue Chain;
-  unsigned NumOps = Node->getNumOperands();
-  if (Node->getOperand(NumOps-1).getValueType() == MVT::Other)
+  
+  if (unsigned NumOps = Node->getNumOperands(); Node->getOperand(NumOps-1).getValueType() == MVT::Other)
     Chain = Node->getOperand(NumOps-1);
   if (!Chain)
     return;
@@ -291,11 +291,11 @@ void ScheduleDAGSDNodes::ClusterNeighboringLoads(SDNode *Node) {
     InGlue = SDValue(Lead, Lead->getNumValues() - 1);
   for (unsigned I = 1, E = Loads.size(); I != E; ++I) {
     bool OutGlue = I < E - 1;
-    SDNode *Load = Loads[I];
+    
 
     // If AddGlue fails, we could leave an unsused glue value. This should not
     // cause any
-    if (AddGlue(Load, InGlue, OutGlue, DAG)) {
+    if (SDNode *Load = Loads[I]; AddGlue(Load, InGlue, OutGlue, DAG)) {
       if (OutGlue)
         InGlue = SDValue(Load, Load->getNumValues() - 1);
 
@@ -443,9 +443,9 @@ void ScheduleDAGSDNodes::AddSchedEdges() {
 
   // Pass 2: add the preds, succs, etc.
   for (SUnit &SU : SUnits) {
-    SDNode *MainNode = SU.getNode();
+    
 
-    if (MainNode->isMachineOpcode()) {
+    if (SDNode *MainNode = SU.getNode(); MainNode->isMachineOpcode()) {
       unsigned Opc = MainNode->getMachineOpcode();
       const MCInstrDesc &MCID = TII->get(Opc);
       for (unsigned i = 0; i != MCID.getNumOperands(); ++i) {
@@ -915,8 +915,8 @@ EmitSchedule(MachineBasicBlock::iterator &InsertPos) {
     SDDbgInfo::DbgIterator PDI = DAG->ByvalParmDbgBegin();
     SDDbgInfo::DbgIterator PDE = DAG->ByvalParmDbgEnd();
     for (; PDI != PDE; ++PDI) {
-      MachineInstr *DbgMI= Emitter.EmitDbgValue(*PDI, VRBaseMap);
-      if (DbgMI) {
+      
+      if (MachineInstr *DbgMI= Emitter.EmitDbgValue(*PDI, VRBaseMap); DbgMI) {
         BB->insert(InsertPos, DbgMI);
         // We re-emit the dbg_value closer to its use, too, after instructions
         // are emitted to the BB.
@@ -998,8 +998,8 @@ EmitSchedule(MachineBasicBlock::iterator &InsertPos) {
         if ((*DI)->isEmitted())
           continue;
 
-        MachineInstr *DbgMI = Emitter.EmitDbgValue(*DI, VRBaseMap);
-        if (DbgMI) {
+        
+        if (MachineInstr *DbgMI = Emitter.EmitDbgValue(*DI, VRBaseMap); DbgMI) {
           if (!LastOrder)
             // Insert to start of the BB (after PHIs).
             BB->insert(BBBegin, DbgMI);
@@ -1043,8 +1043,8 @@ EmitSchedule(MachineBasicBlock::iterator &InsertPos) {
       for (; DLI != DLE &&
              (*DLI)->getOrder() >= LastOrder && (*DLI)->getOrder() < Order;
              ++DLI) {
-        MachineInstr *DbgMI = Emitter.EmitDbgLabel(*DLI);
-        if (DbgMI) {
+        
+        if (MachineInstr *DbgMI = Emitter.EmitDbgLabel(*DLI); DbgMI) {
           if (!LastOrder)
             // Insert to start of the BB (after PHIs).
             BB->insert(BBBegin, DbgMI);

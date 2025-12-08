@@ -524,8 +524,8 @@ void collectMemAccessInfo(
         continue;
 
       // Skip non-address-space-0 pointers; we don't know how to handle them.
-      Type *PtrTy = cast<PointerType>(MLoc.Ptr->getType());
-      if (PtrTy->getPointerAddressSpace() != 0)
+      
+      if (Type *PtrTy = cast<PointerType>(MLoc.Ptr->getType()); PtrTy->getPointerAddressSpace() != 0)
         continue;
 
       if (MLoc.AATags.TBAA)
@@ -868,8 +868,8 @@ bool TypeSanitizer::instrumentMemInst(Value *V, Instruction *ShadowBase,
     Size =
         ConstantInt::get(IntptrTy, DL.getTypeAllocSize(A->getParamByValType()));
   } else {
-    auto *I = cast<Instruction>(V);
-    if (auto *MI = dyn_cast<MemIntrinsic>(I)) {
+    
+    if (auto *I = cast<Instruction>(V); auto *MI = dyn_cast<MemIntrinsic>(I)) {
       if (MI->getDestAddressSpace() != 0)
         return false;
 

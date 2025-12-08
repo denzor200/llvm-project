@@ -185,9 +185,9 @@ PreservedAnalyses NaryReassociatePass::run(Function &F,
   auto *DT = &AM.getResult<DominatorTreeAnalysis>(F);
   auto *SE = &AM.getResult<ScalarEvolutionAnalysis>(F);
   auto *TLI = &AM.getResult<TargetLibraryAnalysis>(F);
-  auto *TTI = &AM.getResult<TargetIRAnalysis>(F);
+  
 
-  if (!runImpl(F, AC, DT, SE, TLI, TTI))
+  if (auto *TTI = &AM.getResult<TargetIRAnalysis>(F); !runImpl(F, AC, DT, SE, TLI, TTI))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;
@@ -311,11 +311,11 @@ Instruction *NaryReassociatePass::tryReassociate(Instruction * I,
   }
 
   // Try to match signed/unsigned Min/Max.
-  Instruction *ResI = nullptr;
+  
   // TODO: Currently min/max reassociation is restricted to integer types only
   // due to use of SCEVExpander which my introduce incompatible forms of min/max
   // for pointer types.
-  if (I->getType()->isIntegerTy())
+  if (Instruction *ResI = nullptr; I->getType()->isIntegerTy())
     if ((ResI = matchAndReassociateMinOrMax<umin_pred_ty>(I, OrigSCEV)) ||
         (ResI = matchAndReassociateMinOrMax<smin_pred_ty>(I, OrigSCEV)) ||
         (ResI = matchAndReassociateMinOrMax<umax_pred_ty>(I, OrigSCEV)) ||
@@ -405,8 +405,8 @@ NaryReassociatePass::tryReassociateGEPAtIndex(GetElementPtrInst *GEP,
   Type *GEPArgType = SE->getEffectiveSCEVType(GEP->getOperand(I)->getType());
   Type *LHSType = SE->getEffectiveSCEVType(LHS->getType());
   size_t LHSSize = DL->getTypeSizeInBits(LHSType).getFixedValue();
-  size_t GEPArgSize = DL->getTypeSizeInBits(GEPArgType).getFixedValue();
-  if (isKnownNonNegative(LHS, SimplifyQuery(*DL, DT, AC, GEP)) &&
+  
+  if (size_t GEPArgSize = DL->getTypeSizeInBits(GEPArgType).getFixedValue(); isKnownNonNegative(LHS, SimplifyQuery(*DL, DT, AC, GEP)) &&
       LHSSize < GEPArgSize) {
     // Zero-extend LHS if it is non-negative. InstCombine canonicalizes sext to
     // zext if the source operand is proved non-negative. We should do that

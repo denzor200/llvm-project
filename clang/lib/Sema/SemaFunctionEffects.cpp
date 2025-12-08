@@ -549,8 +549,8 @@ public:
     // Gather all of the effects to be verified to see what operations need to
     // be checked, and to see which ones are inferrable.
     for (FunctionEffect Effect : S.AllEffectsToVerify) {
-      const FunctionEffect::Flags Flags = Effect.flags();
-      if (Flags & FunctionEffect::FE_InferrableOnCallees)
+      
+      if (const FunctionEffect::Flags Flags = Effect.flags(); Flags & FunctionEffect::FE_InferrableOnCallees)
         AllInferrableEffectsToVerify.insert(Effect);
     }
     LLVM_DEBUG(llvm::dbgs() << "AllInferrableEffectsToVerify: ";
@@ -790,8 +790,8 @@ private:
         return CDK_Constructor;
       if (isa<CXXDestructorDecl>(D))
         return CDK_Destructor;
-      const CXXRecordDecl *Rec = Method->getParent();
-      if (Rec->isLambda())
+      
+      if (const CXXRecordDecl *Rec = Method->getParent(); Rec->isLambda())
         return CDK_Lambda;
     }
     return CDK_Function;
@@ -1283,8 +1283,8 @@ private:
     }
 
     bool VisitCXXBindTemporaryExpr(CXXBindTemporaryExpr *BTE) override {
-      const CXXDestructorDecl *Dtor = BTE->getTemporary()->getDestructor();
-      if (Dtor != nullptr) {
+      
+      if (const CXXDestructorDecl *Dtor = BTE->getTemporary()->getDestructor(); Dtor != nullptr) {
         CallableInfo CI(*Dtor);
         followCall(CI, BTE->getBeginLoc());
       }
@@ -1355,8 +1355,8 @@ private:
     }
 
     bool VisitDeclRefExpr(DeclRefExpr *E) override {
-      const ValueDecl *Val = E->getDecl();
-      if (const auto *Var = dyn_cast<VarDecl>(Val)) {
+      
+      if (const ValueDecl *Val = E->getDecl(); const auto *Var = dyn_cast<VarDecl>(Val)) {
         if (Var->getTLSKind() != VarDecl::TLS_None) {
           // At least on macOS, thread-local variables are initialized on
           // first access, including a heap allocation.

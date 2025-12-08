@@ -251,8 +251,8 @@ InFlightDiagnostic Parser::emitWrongTokenError(const Twine &message) {
     // `//` is the start of a comment, which is mostly correct.
     // TODO: This will do the wrong thing for // in a string literal.
     auto prevLine = startOfBuffer;
-    size_t newLineIndex = prevLine.find_last_of("\n\r");
-    if (newLineIndex != StringRef::npos)
+    
+    if (size_t newLineIndex = prevLine.find_last_of("\n\r"); newLineIndex != StringRef::npos)
       prevLine = prevLine.drop_front(newLineIndex);
 
     // If we find a // in the current line, then emit the diagnostic before it.
@@ -304,8 +304,8 @@ OptionalParseResult Parser::parseOptionalInteger(APInt &result) {
     return failure();
 
   StringRef spelling = curTok.getSpelling();
-  bool isHex = spelling.size() > 1 && spelling[1] == 'x';
-  if (spelling.getAsInteger(isHex ? 0 : 10, result))
+  
+  if (bool isHex = spelling.size() > 1 && spelling[1] == 'x'; spelling.getAsInteger(isHex ? 0 : 10, result))
     return emitError(curTok.getLoc(), "integer value too large");
 
   // Make sure we have a zero at the top so we return the right signedness.
@@ -974,8 +974,8 @@ ParseResult OperationParser::popSSANameScope() {
 
   // Pop the next nested namescope. If there is only one internal namescope,
   // just pop the isolated scope.
-  auto &currentNameScope = isolatedNameScopes.back();
-  if (currentNameScope.definitionsPerScope.size() == 1)
+  
+  if (auto &currentNameScope = isolatedNameScopes.back(); currentNameScope.definitionsPerScope.size() == 1)
     isolatedNameScopes.pop_back();
   else
     currentNameScope.popSSANameScope();
@@ -2062,8 +2062,8 @@ OperationParser::parseCustomOperation(ArrayRef<ResultRecord> resultIDs) {
   if (auto opInfo = opNameInfo->getRegisteredInfo()) {
     parseAssemblyFn = opInfo->getParseAssemblyFn();
     isIsolatedFromAbove = opInfo->hasTrait<OpTrait::IsIsolatedFromAbove>();
-    auto *iface = opInfo->getInterface<OpAsmOpInterface>();
-    if (iface && !iface->getDefaultDialect().empty())
+    
+    if (auto *iface = opInfo->getInterface<OpAsmOpInterface>(); iface && !iface->getDefaultDialect().empty())
       defaultDialect = iface->getDefaultDialect();
   } else {
     std::optional<Dialect::ParseOpHook> dialectHook;

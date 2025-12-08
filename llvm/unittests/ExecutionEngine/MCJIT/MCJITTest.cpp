@@ -229,9 +229,9 @@ TEST_F(MCJITTest, lazy_function_creator_pointer) {
     // Try to resolve the function in the current process before marking it as
     // unresolved. This solves an issue on ARM where '__aeabi_*' function names
     // are passed to this handler.
-    void *symbol =
-        llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(str.c_str());
-    if (symbol) {
+    
+    if (void *symbol =
+        llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(str.c_str()); symbol) {
       return symbol;
     }
     
@@ -271,9 +271,9 @@ TEST_F(MCJITTest, lazy_function_creator_lambda) {
     // Try to resolve the function in the current process before marking it as
     // unresolved. This solves an issue on ARM where '__aeabi_*' function names
     // are passed to this handler.
-    void *symbol =
-        llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(str.c_str());
-    if (symbol) {
+    
+    if (void *symbol =
+        llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(str.c_str()); symbol) {
       return symbol;
     }
     UnresolvedExternals.push_back(str);

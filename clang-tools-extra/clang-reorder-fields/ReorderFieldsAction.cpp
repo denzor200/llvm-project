@@ -100,8 +100,8 @@ static bool containsPreprocessorDirectives(const RecordDecl *Decl,
     if (T.getKind() == tok::hash) {
       L.LexFromRawLexer(T);
       if (T.getKind() == tok::raw_identifier) {
-        clang::IdentifierInfo &II = Identifiers.get(T.getRawIdentifier());
-        if (II.getPPKeywordID() != clang::tok::pp_not_keyword)
+        
+        if (clang::IdentifierInfo &II = Identifiers.get(T.getRawIdentifier()); II.getPPKeywordID() != clang::tok::pp_not_keyword)
           return true;
       }
     }
@@ -388,8 +388,8 @@ static bool reorderFieldsInDefinition(
 
   // Check that the permutation of the fields doesn't change the accesses
   for (const auto *Field : RS.Definition->fields()) {
-    const auto FieldIndex = Field->getFieldIndex();
-    if (Field->getAccess() !=
+    
+    if (const auto FieldIndex = Field->getFieldIndex(); Field->getAccess() !=
         Fields[RS.NewFieldsOrder[FieldIndex]]->getAccess()) {
       llvm::errs() << "Currently reordering of fields with different accesses "
                       "is not supported\n";

@@ -1853,8 +1853,8 @@ X86GenericDisassembler::X86GenericDisassembler(
                                          MCContext &Ctx,
                                          std::unique_ptr<const MCInstrInfo> MII)
   : MCDisassembler(STI, Ctx), MII(std::move(MII)) {
-  const FeatureBitset &FB = STI.getFeatureBits();
-  if (FB[X86::Is16Bit]) {
+  
+  if (const FeatureBitset &FB = STI.getFeatureBits(); FB[X86::Is16Bit]) {
     fMode = MODE_16BIT;
     return;
   } else if (FB[X86::Is32Bit]) {

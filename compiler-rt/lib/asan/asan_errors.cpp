@@ -73,9 +73,9 @@ void ErrorNewDeleteTypeMismatch::Print() {
         "  size of the deallocated type: %zd bytes.\n",
         addr_description.chunk_access.chunk_size, delete_size);
   }
-  const uptr user_alignment =
-      addr_description.chunk_access.user_requested_alignment;
-  if (delete_alignment != user_alignment) {
+  
+  if (const uptr user_alignment =
+      addr_description.chunk_access.user_requested_alignment; delete_alignment != user_alignment) {
     char user_alignment_str[32];
     char delete_alignment_str[32];
     internal_snprintf(user_alignment_str, sizeof(user_alignment_str),

@@ -84,8 +84,8 @@ TGLexer::TGLexer(SourceMgr &SM, ArrayRef<std::string> Macros) : SrcMgr(SM) {
   // Add all macros defined on the command line to the DefinedMacros set.
   // Check invalid macro names and print fatal error if we find one.
   for (StringRef MacroName : Macros) {
-    const char *End = lexMacroName(MacroName);
-    if (End != MacroName.end())
+    
+    if (const char *End = lexMacroName(MacroName); End != MacroName.end())
       PrintFatalError("invalid macro name `" + MacroName +
                       "` specified on command line");
 
@@ -138,8 +138,8 @@ bool TGLexer::processEOF() {
 }
 
 int TGLexer::getNextChar() {
-  char CurChar = *CurPtr++;
-  switch (CurChar) {
+  
+  switch (char CurChar = *CurPtr++; CurChar) {
   default:
     return (unsigned char)CurChar;
 
@@ -172,9 +172,9 @@ tgtok::TokKind TGLexer::LexToken(bool FileOrLineStart) {
   while (true) {
     TokStart = CurPtr;
     // This always consumes at least one character.
-    int CurChar = getNextChar();
+    
 
-    switch (CurChar) {
+    switch (int CurChar = getNextChar(); CurChar) {
     default:
       // Handle letters: [a-zA-Z_]
       if (isValidIDChar(CurChar, /*First=*/true))
@@ -287,8 +287,8 @@ tgtok::TokKind TGLexer::LexToken(bool FileOrLineStart) {
         if (NextChar == 'x' || NextChar == 'b') {
           // If this is [0-9]b[01] or [0-9]x[0-9A-fa-f] this is most
           // likely a number.
-          int NextNextChar = peekNextChar(i);
-          switch (NextNextChar) {
+          
+          switch (int NextNextChar = peekNextChar(i); NextNextChar) {
           default:
             break;
           case '0':
@@ -512,8 +512,8 @@ bool TGLexer::SkipCComment() {
   unsigned CommentDepth = 1;
 
   while (true) {
-    int CurChar = getNextChar();
-    switch (CurChar) {
+    
+    switch (int CurChar = getNextChar(); CurChar) {
     case EOF:
       PrintError(TokStart, "unterminated comment");
       return true;
@@ -987,8 +987,8 @@ bool TGLexer::prepSkipLineBegin() {
       break;
 
     case '/': {
-      int NextChar = peekNextChar(1);
-      if (NextChar == '*') {
+      
+      if (int NextChar = peekNextChar(1); NextChar == '*') {
         // Skip C-style comment.
         // Note that we do not care about skipping the C++-style comments.
         // If the line contains "//", it may not contain any processable
@@ -1038,8 +1038,8 @@ bool TGLexer::prepSkipDirectiveEnd() {
       return true;
 
     case '/': {
-      int NextChar = peekNextChar(1);
-      if (NextChar == '/') {
+      
+      if (int NextChar = peekNextChar(1); NextChar == '/') {
         // Skip C++-style comment.
         // We may just return true now, but let's skip to the line/buffer end
         // to simplify the method specification.

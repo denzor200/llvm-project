@@ -522,8 +522,8 @@ Error InstrProfSymtab::create(SectionRef &Section) {
 StringRef InstrProfSymtab::getFuncName(uint64_t Pointer, size_t Size) const {
   if (Pointer < Address)
     return StringRef();
-  auto Offset = Pointer - Address;
-  if (Offset + Size > Data.size())
+  
+  if (auto Offset = Pointer - Address; Offset + Size > Data.size())
     return StringRef();
   return Data.substr(Pointer - Address, Size);
 }
@@ -717,8 +717,8 @@ public:
         // The same filenames ref was encountered twice. It's possible that
         // the associated filenames are the same.
         auto It = Filenames.begin();
-        FilenameRange &OrigRange = Insert.first->getSecond();
-        if (std::equal(It + OrigRange.StartingIndex,
+        
+        if (FilenameRange &OrigRange = Insert.first->getSecond(); std::equal(It + OrigRange.StartingIndex,
                        It + OrigRange.StartingIndex + OrigRange.Length,
                        It + FileRange.StartingIndex,
                        It + FileRange.StartingIndex + FileRange.Length))
@@ -1273,10 +1273,10 @@ BinaryCoverageReader::create(
   std::vector<std::unique_ptr<BinaryCoverageReader>> Readers;
 
   if (ObjectBuffer.getBuffer().size() > sizeof(TestingFormatMagic)) {
-    uint64_t Magic = support::endian::byte_swap<uint64_t>(
+    
+    if (uint64_t Magic = support::endian::byte_swap<uint64_t>(
         *reinterpret_cast<const uint64_t *>(ObjectBuffer.getBufferStart()),
-        llvm::endianness::little);
-    if (Magic == TestingFormatMagic) {
+        llvm::endianness::little); Magic == TestingFormatMagic) {
       // This is a special format used for testing.
       auto ReaderOrErr =
           loadTestingFormat(ObjectBuffer.getBuffer(), CompilationDir);

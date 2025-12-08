@@ -933,8 +933,8 @@ static Expected<std::unique_ptr<ExecutorProcessControl>> launchExecutor() {
     }
 
     char *const Args[] = {ExecutorPath.get(), FDSpecifier.get(), nullptr};
-    int RC = execvp(ExecutorPath.get(), Args);
-    if (RC != 0) {
+    
+    if (int RC = execvp(ExecutorPath.get(), Args); RC != 0) {
       errs() << "unable to launch out-of-process executor \""
              << ExecutorPath.get() << "\"\n";
       exit(1);
@@ -1285,8 +1285,8 @@ Session::Session(std::unique_ptr<ExecutorProcessControl> EPC, Error &Err)
       if ((Err = ES.getBootstrapMapValue<bool, bool>("darwin-use-ehframes-only",
                                                      ForceEHFrames)))
         return;
-      bool UseEHFrames = ForceEHFrames.value_or(false);
-      if (!UseEHFrames)
+      
+      if (bool UseEHFrames = ForceEHFrames.value_or(false); !UseEHFrames)
         ObjLayer.addPlugin(ExitOnErr(UnwindInfoRegistrationPlugin::Create(ES)));
       else
         ObjLayer.addPlugin(ExitOnErr(EHFrameRegistrationPlugin::Create(ES)));
@@ -2026,8 +2026,8 @@ static Error addAliases(Session &S,
   }
 
   for (auto &[JDs, AliasMap] : Reexports) {
-    auto [DstJD, SrcJD] = JDs;
-    if (auto Err = DstJD->define(reexports(*SrcJD, std::move(AliasMap))))
+    
+    if (auto [DstJD, SrcJD] = JDs; auto Err = DstJD->define(reexports(*SrcJD, std::move(AliasMap))))
       return Err;
   }
 

@@ -66,8 +66,8 @@ ConstructionContext::createMaterializedTemporaryFromLayers(
 
   // Handle pre-C++17 copy and move elision.
   const CXXConstructExpr *ElidedCE = nullptr;
-  const ConstructionContext *ElidedCC = nullptr;
-  if (ParentLayer) {
+  
+  if (const ConstructionContext *ElidedCC = nullptr; ParentLayer) {
     const ConstructionContextItem &ElidedItem = ParentLayer->getItem();
     assert(ElidedItem.getKind() ==
            ConstructionContextItem::ElidableConstructorKind);
@@ -104,8 +104,8 @@ const ConstructionContext *ConstructionContext::createBoundTemporaryFromLayers(
                                                             /*MTE=*/nullptr);
   }
 
-  const ConstructionContextItem &ParentItem = ParentLayer->getItem();
-  switch (ParentItem.getKind()) {
+  
+  switch (const ConstructionContextItem &ParentItem = ParentLayer->getItem(); ParentItem.getKind()) {
   case ConstructionContextItem::VariableKind: {
     const auto *DS = cast<DeclStmt>(ParentItem.getStmt());
     assert(!cast<VarDecl>(DS->getSingleDecl())->getType().getCanonicalType()
@@ -172,8 +172,8 @@ const ConstructionContext *ConstructionContext::createFromLayers(
   // Before this point all we've had was a stockpile of arbitrary layers.
   // Now validate that it is shaped as one of the finite amount of expected
   // patterns.
-  const ConstructionContextItem &TopItem = TopLayer->getItem();
-  switch (TopItem.getKind()) {
+  
+  switch (const ConstructionContextItem &TopItem = TopLayer->getItem(); TopItem.getKind()) {
   case ConstructionContextItem::VariableKind: {
     assert(TopLayer->isLast());
     const auto *DS = cast<DeclStmt>(TopItem.getStmt());

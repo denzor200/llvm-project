@@ -322,9 +322,9 @@ protected:
     // for the stop ourselves here.
 
     StateType state = eStateInvalid;
-    Process *process = m_exe_ctx.GetProcessPtr();
+    
 
-    if (!StopProcessIfNecessary(process, state, result))
+    if (Process *process = m_exe_ctx.GetProcessPtr(); !StopProcessIfNecessary(process, state, result))
       return;
 
     if (target == nullptr) {
@@ -458,8 +458,8 @@ protected:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *exe_ctx) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
-      switch (short_option) {
+      
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'i':
         if (option_arg.getAsInteger(0, m_ignore))
           error = Status::FromErrorStringWithFormat(
@@ -764,9 +764,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 's':
         bool tmp_result;
         bool success;
@@ -855,9 +855,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'p':
         plugin_name.assign(std::string(option_arg));
         break;
@@ -901,8 +901,8 @@ protected:
       return;
     }
 
-    Process *process = m_exe_ctx.GetProcessPtr();
-    if (process && process->IsAlive()) {
+    
+    if (Process *process = m_exe_ctx.GetProcessPtr(); process && process->IsAlive()) {
       result.AppendErrorWithFormat(
           "Process %" PRIu64
           " is currently being debugged, kill the process before connecting.\n",
@@ -948,8 +948,8 @@ public:
   ~CommandObjectProcessPlugin() override = default;
 
   CommandObject *GetProxyCommandObject() override {
-    Process *process = m_interpreter.GetExecutionContext().GetProcessPtr();
-    if (process)
+    
+    if (Process *process = m_interpreter.GetExecutionContext().GetProcessPtr(); process)
       return process->GetPluginCommandObject();
     return nullptr;
   }
@@ -1166,13 +1166,13 @@ public:
 
 protected:
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    Process *process = m_exe_ctx.GetProcessPtr();
+    
 
-    if (command.GetArgumentCount() == 1) {
+    if (Process *process = m_exe_ctx.GetProcessPtr(); command.GetArgumentCount() == 1) {
       int signo = LLDB_INVALID_SIGNAL_NUMBER;
 
-      const char *signal_name = command.GetArgumentAtIndex(0);
-      if (::isxdigit(signal_name[0])) {
+      
+      if (const char *signal_name = command.GetArgumentAtIndex(0); ::isxdigit(signal_name[0])) {
         if (!llvm::to_integer(signal_name, signo))
           signo = LLDB_INVALID_SIGNAL_NUMBER;
       } else
@@ -1414,9 +1414,9 @@ public:
 
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'v':
         m_verbose = true;
         break;
@@ -1463,8 +1463,8 @@ protected:
 
     if (m_options.m_verbose) {
       addr_t code_mask = process->GetCodeAddressMask();
-      addr_t data_mask = process->GetDataAddressMask();
-      if (code_mask != LLDB_INVALID_ADDRESS_MASK) {
+      
+      if (addr_t data_mask = process->GetDataAddressMask(); code_mask != LLDB_INVALID_ADDRESS_MASK) {
         int bits = std::bitset<64>(~code_mask).count();
         result.AppendMessageWithFormat(
             "Addressable code address mask: 0x%" PRIx64 "\n", code_mask);
@@ -1527,9 +1527,9 @@ public:
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = m_getopt_table[option_idx].val;
+      
 
-      switch (short_option) {
+      switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
       case 'c':
         do_clear = true;
         break;
@@ -1637,9 +1637,9 @@ public:
     if (num_valid_signals > 0) {
       size_t num_args = signal_args.GetArgumentCount();
       for (size_t i = 0; i < num_args; ++i) {
-        int32_t signo = signals_sp->GetSignalNumberFromName(
-            signal_args.GetArgumentAtIndex(i));
-        if (signo != LLDB_INVALID_SIGNAL_NUMBER)
+        
+        if (int32_t signo = signals_sp->GetSignalNumberFromName(
+            signal_args.GetArgumentAtIndex(i)); signo != LLDB_INVALID_SIGNAL_NUMBER)
           PrintSignal(str, signo, signal_args.GetArgumentAtIndex(i),
                       signals_sp);
       }
@@ -1745,8 +1745,8 @@ protected:
         // Do the process first.  If we have a process we can catch
         // invalid signal names, which we do here.
         if (signals_sp) {
-          int32_t signo = signals_sp->GetSignalNumberFromName(arg.c_str());
-          if (signo != LLDB_INVALID_SIGNAL_NUMBER) {
+          
+          if (int32_t signo = signals_sp->GetSignalNumberFromName(arg.c_str()); signo != LLDB_INVALID_SIGNAL_NUMBER) {
             if (stop_action.has_value())
               signals_sp->SetShouldStop(signo, *stop_action);
             if (pass_action.has_value()) {

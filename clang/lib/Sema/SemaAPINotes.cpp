@@ -143,8 +143,8 @@ void handleAPINotedAttribute(
     llvm::function_ref<A *()> CreateAttr,
     llvm::function_ref<Decl::attr_iterator(const Decl *)> GetExistingAttr) {
   if (Metadata.IsActive) {
-    auto Existing = GetExistingAttr(D);
-    if (Existing != D->attr_end()) {
+    
+    if (auto Existing = GetExistingAttr(D); Existing != D->attr_end()) {
       // Remove the existing attribute, and treat it as a superseded
       // non-versioned attribute.
       auto *Versioned = SwiftVersionedAdditionAttr::CreateImplicit(
@@ -322,11 +322,11 @@ static void ProcessAPINotes(Sema &S, Decl *D,
           AttributeFactory AF{};
           AttributePool AP{AF};
           auto &C = S.getASTContext();
-          ParsedAttr *SNA = AP.create(
-              &C.Idents.get("swift_name"), SourceRange(), AttributeScopeInfo(),
-              nullptr, nullptr, nullptr, ParsedAttr::Form::GNU());
+          
 
-          if (!S.Swift().DiagnoseName(D, Info.SwiftName, D->getLocation(), *SNA,
+          if (ParsedAttr *SNA = AP.create(
+              &C.Idents.get("swift_name"), SourceRange(), AttributeScopeInfo(),
+              nullptr, nullptr, nullptr, ParsedAttr::Form::GNU()); !S.Swift().DiagnoseName(D, Info.SwiftName, D->getLocation(), *SNA,
                                       /*IsAsync=*/false))
             return nullptr;
 
@@ -390,8 +390,8 @@ void Sema::ApplyAPINotesType(Decl *D, StringRef TypeString) {
                                                   D->getLocation());
     if (ParsedType.isUsable()) {
       QualType Type = Sema::GetTypeFromParser(ParsedType.get());
-      auto TypeInfo = Context.getTrivialTypeSourceInfo(Type, D->getLocation());
-      if (auto Var = dyn_cast<VarDecl>(D)) {
+      
+      if (auto TypeInfo = Context.getTrivialTypeSourceInfo(Type, D->getLocation()); auto Var = dyn_cast<VarDecl>(D)) {
         // Make adjustments to parameter types.
         if (isa<ParmVarDecl>(Var)) {
           Type = ObjC().AdjustParameterTypeForObjCAutoRefCount(
@@ -431,8 +431,8 @@ void Sema::ApplyNullability(Decl *D, NullabilityKind Nullability) {
   if (auto Function = dyn_cast<FunctionDecl>(D)) {
     if (auto Modified =
             GetModified(D, Function->getReturnType(), Nullability)) {
-      const FunctionType *FnType = Function->getType()->castAs<FunctionType>();
-      if (const FunctionProtoType *proto = dyn_cast<FunctionProtoType>(FnType))
+      
+      if (const FunctionType *FnType = Function->getType()->castAs<FunctionType>(); const FunctionProtoType *proto = dyn_cast<FunctionProtoType>(FnType))
         Function->setType(Context.getFunctionType(
             *Modified, proto->getParamTypes(), proto->getExtProtoInfo()));
       else

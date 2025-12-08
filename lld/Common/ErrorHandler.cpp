@@ -82,9 +82,9 @@ raw_ostream &ErrorHandler::errs() {
 
 void lld::exitLld(int val) {
   if (hasContext()) {
-    ErrorHandler &e = errorHandler();
+    
     // Delete any temporary file, while keeping the memory mapping open.
-    if (e.outputBuffer)
+    if (ErrorHandler &e = errorHandler(); e.outputBuffer)
       e.outputBuffer->discard();
   }
 
@@ -302,8 +302,8 @@ void ErrorHandler::error(const Twine &msg, ErrorTag tag,
     break;
   }
   scriptArgs.insert(scriptArgs.end(), args.begin(), args.end());
-  int res = llvm::sys::ExecuteAndWait(errorHandlingScript, scriptArgs);
-  if (res == 0) {
+  
+  if (int res = llvm::sys::ExecuteAndWait(errorHandlingScript, scriptArgs); res == 0) {
     return error(msg);
   } else {
     // Temporarily disable error limit to make sure the two calls to error(...)

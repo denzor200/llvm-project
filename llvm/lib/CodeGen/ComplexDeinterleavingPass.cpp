@@ -534,8 +534,8 @@ INITIALIZE_PASS_END(ComplexDeinterleavingLegacyPass, DEBUG_TYPE,
 PreservedAnalyses ComplexDeinterleavingPass::run(Function &F,
                                                  FunctionAnalysisManager &AM) {
   const TargetLowering *TL = TM->getSubtargetImpl(F)->getTargetLowering();
-  auto &TLI = AM.getResult<llvm::TargetLibraryAnalysis>(F);
-  if (!ComplexDeinterleaving(TL, &TLI).runOnFunction(F))
+  
+  if (auto &TLI = AM.getResult<llvm::TargetLibraryAnalysis>(F); !ComplexDeinterleaving(TL, &TLI).runOnFunction(F))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;
@@ -589,8 +589,8 @@ static bool isInterleavingMask(ArrayRef<int> Mask) {
 
   int HalfNumElements = Mask.size() / 2;
   for (int Idx = 0; Idx < HalfNumElements; ++Idx) {
-    int MaskIdx = Idx * 2;
-    if (Mask[MaskIdx] != Idx || Mask[MaskIdx + 1] != (Idx + HalfNumElements))
+    
+    if (int MaskIdx = Idx * 2; Mask[MaskIdx] != Idx || Mask[MaskIdx + 1] != (Idx + HalfNumElements))
       return false;
   }
 
@@ -1169,8 +1169,8 @@ ComplexDeinterleavingGraph::identifyNode(ComplexValues &Vals) {
 
   for (auto &V : Vals) {
     auto *Real = dyn_cast<Instruction>(V.Real);
-    auto *Imag = dyn_cast<Instruction>(V.Imag);
-    if (!Real || !Imag)
+    
+    if (auto *Imag = dyn_cast<Instruction>(V.Imag); !Real || !Imag)
       return nullptr;
   }
 
@@ -1674,10 +1674,10 @@ ComplexDeinterleavingGraph::extractPositiveAddend(AddendList &RealAddends,
   for (auto ItR = RealAddends.begin(); ItR != RealAddends.end(); ++ItR) {
     for (auto ItI = ImagAddends.begin(); ItI != ImagAddends.end(); ++ItI) {
       auto [R, IsPositiveR] = *ItR;
-      auto [I, IsPositiveI] = *ItI;
-      if (IsPositiveR && IsPositiveI) {
-        auto Result = identifyNode(R, I);
-        if (Result) {
+      
+      if (auto [I, IsPositiveI] = *ItI; IsPositiveR && IsPositiveI) {
+        
+        if (auto Result = identifyNode(R, I); Result) {
           RealAddends.erase(ItR);
           ImagAddends.erase(ItI);
           return Result;
@@ -2201,8 +2201,8 @@ ComplexDeinterleavingGraph::identifySplat(ComplexValues &Vals) {
         return nullptr;
 
       auto *Real = dyn_cast<Instruction>(V.Real);
-      auto *Imag = dyn_cast<Instruction>(V.Imag);
-      if (!Real || !Imag || Real->getParent() != FirstBB ||
+      
+      if (auto *Imag = dyn_cast<Instruction>(V.Imag); !Real || !Imag || Real->getParent() != FirstBB ||
           Imag->getParent() != FirstBB)
         return nullptr;
     }
@@ -2216,8 +2216,8 @@ ComplexDeinterleavingGraph::identifySplat(ComplexValues &Vals) {
 
   for (auto &V : Vals) {
     auto *Real = dyn_cast<Instruction>(V.Real);
-    auto *Imag = dyn_cast<Instruction>(V.Imag);
-    if (Real && Imag) {
+    
+    if (auto *Imag = dyn_cast<Instruction>(V.Imag); Real && Imag) {
       FinalInstructions.insert(Real);
       FinalInstructions.insert(Imag);
     }
@@ -2243,8 +2243,8 @@ ComplexDeinterleavingGraph::CompositeNode *
 ComplexDeinterleavingGraph::identifySelectNode(Instruction *Real,
                                                Instruction *Imag) {
   auto *SelectReal = dyn_cast<SelectInst>(Real);
-  auto *SelectImag = dyn_cast<SelectInst>(Imag);
-  if (!SelectReal || !SelectImag)
+  
+  if (auto *SelectImag = dyn_cast<SelectInst>(Imag); !SelectReal || !SelectImag)
     return nullptr;
 
   Instruction *MaskA, *MaskB;
@@ -2366,8 +2366,8 @@ Value *ComplexDeinterleavingGraph::replaceNode(IRBuilderBase &Builder,
       Ops.push_back(V.Imag);
     }
     auto *R = dyn_cast<Instruction>(Node->Vals[0].Real);
-    auto *I = dyn_cast<Instruction>(Node->Vals[0].Imag);
-    if (R && I) {
+    
+    if (auto *I = dyn_cast<Instruction>(Node->Vals[0].Imag); R && I) {
       // Splats that are not constant are interleaved where they are located
       Instruction *InsertPoint = R;
       for (auto V : Node->Vals) {
@@ -2499,9 +2499,9 @@ void ComplexDeinterleavingGraph::replaceNodes() {
 
     IRBuilder<> Builder(RootInstruction);
     auto RootNode = RootToNode[RootInstruction];
-    Value *R = replaceNode(Builder, RootNode);
+    
 
-    if (RootNode->Operation ==
+    if (Value *R = replaceNode(Builder, RootNode); RootNode->Operation ==
         ComplexDeinterleavingOperation::ReductionOperation) {
       auto *RootReal = cast<Instruction>(RootNode->Vals[0].Real);
       auto *RootImag = cast<Instruction>(RootNode->Vals[0].Imag);

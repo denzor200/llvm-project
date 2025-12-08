@@ -465,8 +465,8 @@ TEST(ClangdAST, GetQualification) {
 
     ASSERT_EQ(InsertionPoints.size(), Case.Qualifications.size());
     for (size_t I = 0, E = InsertionPoints.size(); I != E; ++I) {
-      const Decl *D = InsertionPoints[I];
-      if (Case.VisibleNamespaces.empty()) {
+      
+      if (const Decl *D = InsertionPoints[I]; Case.VisibleNamespaces.empty()) {
         EXPECT_EQ(getQualification(AST.getASTContext(),
                                    D->getLexicalDeclContext(), D->getBeginLoc(),
                                    TargetDecl),

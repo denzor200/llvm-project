@@ -310,8 +310,8 @@ ValueObjectConstResult::GetDynamicValue(lldb::DynamicValueType use_dynamic) {
   if (use_dynamic != eNoDynamicValues) {
     if (!IsDynamic()) {
       ExecutionContext exe_ctx(GetExecutionContextRef());
-      Process *process = exe_ctx.GetProcessPtr();
-      if (process && process->IsPossibleDynamicValue(*this))
+      
+      if (Process *process = exe_ctx.GetProcessPtr(); process && process->IsPossibleDynamicValue(*this))
         m_dynamic_value = new ValueObjectDynamicValue(*this, use_dynamic);
     }
     if (m_dynamic_value && m_dynamic_value->GetError().Success())

@@ -547,8 +547,8 @@ Error OnDiskOutputBackendProvider::checkFlushed(StringRef FilePath,
   if (Error E = checkOpen(*Info))
     return E;
 
-  OnDiskFile &F = shouldUseTemporaries(*Info) ? *Info->Temp : *Info->F;
-  if (!F.equalsCurrentContent(Data))
+  
+  if (OnDiskFile &F = shouldUseTemporaries(*Info) ? *Info->Temp : *Info->F; !F.equalsCurrentContent(Data))
     return createStringError(inconvertibleErrorCode(), "content not flushed");
   return Error::success();
 }

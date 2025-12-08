@@ -91,8 +91,8 @@ std::string getStringValueFromReg(Register Reg, MachineRegisterInfo &MRI) {
 }
 
 void addNumImm(const APInt &Imm, MachineInstrBuilder &MIB) {
-  const auto Bitwidth = Imm.getBitWidth();
-  if (Bitwidth == 1)
+  
+  if (const auto Bitwidth = Imm.getBitWidth(); Bitwidth == 1)
     return; // Already handled
   else if (Bitwidth <= 32) {
     MIB.addImm(Imm.getZExtValue());
@@ -342,10 +342,10 @@ SPIRV::Scope::Scope getMemScope(LLVMContext &Ctx, SyncScope::ID Id) {
       Ctx.getOrInsertSyncScopeID("subgroup");
   static const llvm::SyncScope::ID WorkGroup =
       Ctx.getOrInsertSyncScopeID("workgroup");
-  static const llvm::SyncScope::ID Device =
-      Ctx.getOrInsertSyncScopeID("device");
+  
 
-  if (Id == llvm::SyncScope::SingleThread)
+  if (static const llvm::SyncScope::ID Device =
+      Ctx.getOrInsertSyncScopeID("device"); Id == llvm::SyncScope::SingleThread)
     return SPIRV::Scope::Invocation;
   else if (Id == llvm::SyncScope::System)
     return SPIRV::Scope::CrossDevice;
@@ -361,11 +361,11 @@ SPIRV::Scope::Scope getMemScope(LLVMContext &Ctx, SyncScope::ID Id) {
 MachineInstr *getDefInstrMaybeConstant(Register &ConstReg,
                                        const MachineRegisterInfo *MRI) {
   MachineInstr *MI = MRI->getVRegDef(ConstReg);
-  MachineInstr *ConstInstr =
+  
+  if (MachineInstr *ConstInstr =
       MI->getOpcode() == SPIRV::G_TRUNC || MI->getOpcode() == SPIRV::G_ZEXT
           ? MRI->getVRegDef(MI->getOperand(1).getReg())
-          : MI;
-  if (auto *GI = dyn_cast<GIntrinsic>(ConstInstr)) {
+          : MI; auto *GI = dyn_cast<GIntrinsic>(ConstInstr)) {
     if (GI->is(Intrinsic::spv_track_constant)) {
       ConstReg = ConstInstr->getOperand(2).getReg();
       return MRI->getVRegDef(ConstReg);
@@ -457,10 +457,10 @@ std::string getOclOrSpirvBuiltinDemangledName(StringRef Name) {
   bool IsNonMangledOCL = isNonMangledOCLBuiltin(Name);
   bool IsNonMangledSPIRV = Name.starts_with("__spirv_");
   bool IsNonMangledHLSL = Name.starts_with("__hlsl_");
-  bool IsMangled = Name.starts_with("_Z");
+  
 
   // Otherwise use simple demangling to return the function name.
-  if (IsNonMangledOCL || IsNonMangledSPIRV || IsNonMangledHLSL || !IsMangled)
+  if (bool IsMangled = Name.starts_with("_Z"); IsNonMangledOCL || IsNonMangledSPIRV || IsNonMangledHLSL || !IsMangled)
     return Name.str();
 
   // Try to use the itanium demangler.

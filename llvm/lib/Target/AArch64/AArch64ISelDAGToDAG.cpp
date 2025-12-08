@@ -139,11 +139,11 @@ public:
   bool SelectAddrModeIndexedUImm(SDValue N, SDValue &Base, SDValue &OffImm) {
     // Test if there is an appropriate addressing mode and check if the
     // immediate fits.
-    bool Found = SelectAddrModeIndexed(N, Size, Base, OffImm);
-    if (Found) {
+    
+    if (bool Found = SelectAddrModeIndexed(N, Size, Base, OffImm); Found) {
       if (auto *CI = dyn_cast<ConstantSDNode>(OffImm)) {
-        int64_t C = CI->getSExtValue();
-        if (C <= Max)
+        
+        if (int64_t C = CI->getSExtValue(); C <= Max)
           return true;
       }
     }
@@ -174,8 +174,8 @@ public:
       return false;
     EVT VT = N->getValueType(0);
     EVT LVT = N->getOperand(0).getValueType();
-    unsigned Index = N->getConstantOperandVal(1);
-    if (!VT.is64BitVector() || !LVT.is128BitVector() ||
+    
+    if (unsigned Index = N->getConstantOperandVal(1); !VT.is64BitVector() || !LVT.is128BitVector() ||
         Index != VT.getVectorNumElements())
       return false;
     Res = N->getOperand(0);
@@ -316,9 +316,9 @@ public:
     if (!isa<ConstantSDNode>(N))
       return false;
 
-    int64_t MulImm = cast<ConstantSDNode>(N)->getSExtValue();
+    
 
-    if (MulImm >= 0 && MulImm <= Max) {
+    if (int64_t MulImm = cast<ConstantSDNode>(N)->getSExtValue(); MulImm >= 0 && MulImm <= Max) {
       MulImm *= Scale;
       Imm = CurDAG->getTargetConstant(MulImm, SDLoc(N), MVT::i32);
       return true;
@@ -847,9 +847,9 @@ getExtendTypeForNode(SDValue N, bool IsLoadStore = false) {
     ConstantSDNode *CSD = dyn_cast<ConstantSDNode>(N.getOperand(1));
     if (!CSD)
       return AArch64_AM::InvalidShiftExtend;
-    uint64_t AndMask = CSD->getZExtValue();
+    
 
-    switch (AndMask) {
+    switch (uint64_t AndMask = CSD->getZExtValue(); AndMask) {
     default:
       return AArch64_AM::InvalidShiftExtend;
     case 0xFF:
@@ -932,10 +932,10 @@ bool AArch64DAGToDAGISel::SelectRDVLImm(SDValue N, SDValue &Imm) {
   if (!isa<ConstantSDNode>(N))
     return false;
 
-  int64_t MulImm = cast<ConstantSDNode>(N)->getSExtValue();
-  if ((MulImm % std::abs(Scale)) == 0) {
-    int64_t RDVLImm = MulImm / Scale;
-    if ((RDVLImm >= Low) && (RDVLImm <= High)) {
+  
+  if (int64_t MulImm = cast<ConstantSDNode>(N)->getSExtValue(); (MulImm % std::abs(Scale)) == 0) {
+    
+    if (int64_t RDVLImm = MulImm / Scale; (RDVLImm >= Low) && (RDVLImm <= High)) {
       Imm = CurDAG->getSignedTargetConstant(RDVLImm, SDLoc(N), MVT::i32);
       return true;
     }
@@ -950,8 +950,8 @@ bool AArch64DAGToDAGISel::SelectRDSVLShiftImm(SDValue N, SDValue &Imm) {
   if (!isa<ConstantSDNode>(N))
     return false;
 
-  int64_t MulImm = 1LL << cast<ConstantSDNode>(N)->getSExtValue();
-  if (MulImm >= Low && MulImm <= High) {
+  
+  if (int64_t MulImm = 1LL << cast<ConstantSDNode>(N)->getSExtValue(); MulImm >= Low && MulImm <= High) {
     Imm = CurDAG->getSignedTargetConstant(MulImm, SDLoc(N), MVT::i32);
     return true;
   }
@@ -1090,9 +1090,9 @@ bool AArch64DAGToDAGISel::SelectAddrModeIndexedBitWidth(SDValue N, bool IsSigned
       if (IsSignedImm) {
         int64_t RHSC = RHS->getSExtValue();
         unsigned Scale = Log2_32(Size);
-        int64_t Range = 0x1LL << (BW - 1);
+        
 
-        if ((RHSC & (Size - 1)) == 0 && RHSC >= -(Range << Scale) &&
+        if (int64_t Range = 0x1LL << (BW - 1); (RHSC & (Size - 1)) == 0 && RHSC >= -(Range << Scale) &&
             RHSC < (Range << Scale)) {
           Base = N.getOperand(0);
           if (Base.getOpcode() == ISD::FrameIndex) {
@@ -1106,9 +1106,9 @@ bool AArch64DAGToDAGISel::SelectAddrModeIndexedBitWidth(SDValue N, bool IsSigned
         // unsigned Immediate
         uint64_t RHSC = RHS->getZExtValue();
         unsigned Scale = Log2_32(Size);
-        uint64_t Range = 0x1ULL << BW;
+        
 
-        if ((RHSC & (Size - 1)) == 0 && RHSC < (Range << Scale)) {
+        if (uint64_t Range = 0x1ULL << BW; (RHSC & (Size - 1)) == 0 && RHSC < (Range << Scale)) {
           Base = N.getOperand(0);
           if (Base.getOpcode() == ISD::FrameIndex) {
             int FI = cast<FrameIndexSDNode>(Base)->getIndex();
@@ -1160,8 +1160,8 @@ bool AArch64DAGToDAGISel::SelectAddrModeIndexed(SDValue N, unsigned Size,
   if (CurDAG->isBaseWithConstantOffset(N)) {
     if (ConstantSDNode *RHS = dyn_cast<ConstantSDNode>(N.getOperand(1))) {
       int64_t RHSC = (int64_t)RHS->getZExtValue();
-      unsigned Scale = Log2_32(Size);
-      if (isValidAsScaledImmediate(RHSC, 0x1000, Size)) {
+      
+      if (unsigned Scale = Log2_32(Size); isValidAsScaledImmediate(RHSC, 0x1000, Size)) {
         Base = N.getOperand(0);
         if (Base.getOpcode() == ISD::FrameIndex) {
           int FI = cast<FrameIndexSDNode>(Base)->getIndex();
@@ -1198,8 +1198,8 @@ bool AArch64DAGToDAGISel::SelectAddrModeUnscaled(SDValue N, unsigned Size,
   if (!CurDAG->isBaseWithConstantOffset(N))
     return false;
   if (ConstantSDNode *RHS = dyn_cast<ConstantSDNode>(N.getOperand(1))) {
-    int64_t RHSC = RHS->getSExtValue();
-    if (RHSC >= -256 && RHSC < 256) {
+    
+    if (int64_t RHSC = RHS->getSExtValue(); RHSC >= -256 && RHSC < 256) {
       Base = N.getOperand(0);
       if (Base.getOpcode() == ISD::FrameIndex) {
         int FI = cast<FrameIndexSDNode>(Base)->getIndex();
@@ -1376,11 +1376,11 @@ bool AArch64DAGToDAGISel::SelectAddrModeXRO(SDValue N, unsigned Size,
   //     MOV  X0, WideImmediate
   //     LDR  X2, [BaseReg, X0]
   if (isa<ConstantSDNode>(RHS)) {
-    int64_t ImmOff = (int64_t)RHS->getAsZExtVal();
+    
     // Skip the immediate can be selected by load/store addressing mode.
     // Also skip the immediate can be encoded by a single ADD (SUB is also
     // checked by using -ImmOff).
-    if (isValidAsScaledImmediate(ImmOff, 0x1000, Size) ||
+    if (int64_t ImmOff = (int64_t)RHS->getAsZExtVal(); isValidAsScaledImmediate(ImmOff, 0x1000, Size) ||
         isPreferredADD(ImmOff) || isPreferredADD(-ImmOff))
       return false;
 
@@ -2341,10 +2341,10 @@ bool AArch64DAGToDAGISel::SelectAddrModeFrameIndexSVE(SDValue N, SDValue &Base,
                                                       SDValue &OffImm) {
   SDLoc dl(N);
   const DataLayout &DL = CurDAG->getDataLayout();
-  const TargetLowering *TLI = getTargetLowering();
+  
 
   // Try to match it for the frame address
-  if (auto FINode = dyn_cast<FrameIndexSDNode>(N)) {
+  if (const TargetLowering *TLI = getTargetLowering(); auto FINode = dyn_cast<FrameIndexSDNode>(N)) {
     int FI = FINode->getIndex();
     Base = CurDAG->getTargetFrameIndex(FI, TLI->getPointerTy(DL));
     OffImm = CurDAG->getTargetConstant(0, dl, MVT::i64);
@@ -2844,8 +2844,8 @@ static bool isBitfieldExtractOp(SelectionDAG *CurDAG, SDNode *N, unsigned &Opc,
     return isBitfieldExtractOpFromSExtInReg(N, Opc, Opd0, Immr, Imms);
   }
 
-  unsigned NOpc = N->getMachineOpcode();
-  switch (NOpc) {
+  
+  switch (unsigned NOpc = N->getMachineOpcode(); NOpc) {
   default:
     return false;
   case AArch64::SBFMWri:
@@ -3309,8 +3309,8 @@ static bool isSeveralBitsPositioningOpFromShl(const uint64_t ShlImm, SDValue Op,
   if (!isOpcWithIntImmediate(Op0.getNode(), ISD::AND, AndImm))
     return false;
 
-  const uint64_t ShiftedAndImm = ((AndImm << ShlImm) >> ShlImm);
-  if (isMask_64(ShiftedAndImm)) {
+  
+  if (const uint64_t ShiftedAndImm = ((AndImm << ShlImm) >> ShlImm); isMask_64(ShiftedAndImm)) {
     // AndImm is a superset of (AllOnes >> ShlImm); in other words, AndImm
     // should end with Mask, and could be prefixed with random bits if those
     // bits are shifted out.
@@ -3491,8 +3491,8 @@ static bool isWorthFoldingIntoOrrWithShift(SDValue Dst, SelectionDAG *CurDAG,
     // the dependency chain is improved after the transformation.
     uint64_t SrlImm;
     if (isOpcWithIntImmediate(DstOp0.getNode(), ISD::SRL, SrlImm)) {
-      uint64_t NumTrailingZeroInShiftedMask = llvm::countr_zero(AndImm);
-      if ((SrlImm + NumTrailingZeroInShiftedMask) < SizeInBits) {
+      
+      if (uint64_t NumTrailingZeroInShiftedMask = llvm::countr_zero(AndImm); (SrlImm + NumTrailingZeroInShiftedMask) < SizeInBits) {
         unsigned MaskWidth =
             llvm::countr_one(AndImm >> NumTrailingZeroInShiftedMask);
         unsigned UBFMOpc =
@@ -4090,9 +4090,9 @@ bool AArch64DAGToDAGISel::tryReadRegister(SDNode *N) {
   if (Imm == -1) {
     // No match, Use the sysreg mapper to map the remaining possible strings to
     // the value for the register to be used for the instruction operand.
-    const auto *TheReg =
-        AArch64SysReg::lookupSysRegByName(RegString->getString());
-    if (TheReg && TheReg->Readable &&
+    
+    if (const auto *TheReg =
+        AArch64SysReg::lookupSysRegByName(RegString->getString()); TheReg && TheReg->Readable &&
         TheReg->haveFeatures(Subtarget->getFeatureBits()))
       Imm = TheReg->Encoding;
     else
@@ -4181,8 +4181,8 @@ bool AArch64DAGToDAGISel::tryWriteRegister(SDNode *N) {
     // Use the sysreg mapper to attempt to map the remaining possible strings
     // to the value for the register to be used for the MSR (register)
     // instruction operand.
-    auto TheReg = AArch64SysReg::lookupSysRegByName(RegString->getString());
-    if (TheReg && TheReg->Writeable &&
+    
+    if (auto TheReg = AArch64SysReg::lookupSysRegByName(RegString->getString()); TheReg && TheReg->Writeable &&
         TheReg->haveFeatures(Subtarget->getFeatureBits()))
       Imm = TheReg->Encoding;
     else
@@ -4616,8 +4616,8 @@ bool AArch64DAGToDAGISel::trySelectXAR(SDNode *N) {
         N1.getOpcode() != AArch64ISD::SRL_PRED)
       return false;
 
-    auto *TLI = static_cast<const AArch64TargetLowering *>(getTargetLowering());
-    if (!TLI->isAllActivePredicate(*CurDAG, N0.getOperand(0)) ||
+    
+    if (auto *TLI = static_cast<const AArch64TargetLowering *>(getTargetLowering()); !TLI->isAllActivePredicate(*CurDAG, N0.getOperand(0)) ||
         !TLI->isAllActivePredicate(*CurDAG, N1.getOperand(0)))
       return false;
 
@@ -4885,8 +4885,8 @@ void AArch64DAGToDAGISel::Select(SDNode *Node) {
   case ISD::Constant: {
     // Materialize zero constants as copies from WZR/XZR.  This allows
     // the coalescer to propagate these into other instructions.
-    ConstantSDNode *ConstNode = cast<ConstantSDNode>(Node);
-    if (ConstNode->isZero()) {
+    
+    if (ConstantSDNode *ConstNode = cast<ConstantSDNode>(Node); ConstNode->isZero()) {
       if (VT == MVT::i32) {
         SDValue New = CurDAG->getCopyFromReg(
             CurDAG->getEntryNode(), SDLoc(Node), AArch64::WZR, MVT::i32);
@@ -4916,8 +4916,8 @@ void AArch64DAGToDAGISel::Select(SDNode *Node) {
     return;
   }
   case ISD::INTRINSIC_W_CHAIN: {
-    unsigned IntNo = Node->getConstantOperandVal(1);
-    switch (IntNo) {
+    
+    switch (unsigned IntNo = Node->getConstantOperandVal(1); IntNo) {
     default:
       break;
     case Intrinsic::aarch64_gcsss: {
@@ -5791,8 +5791,8 @@ void AArch64DAGToDAGISel::Select(SDNode *Node) {
     }
   } break;
   case ISD::INTRINSIC_WO_CHAIN: {
-    unsigned IntNo = Node->getConstantOperandVal(0);
-    switch (IntNo) {
+    
+    switch (unsigned IntNo = Node->getConstantOperandVal(0); IntNo) {
     default:
       break;
     case Intrinsic::aarch64_tagp:
@@ -7503,10 +7503,10 @@ bool AArch64DAGToDAGISel::SelectAddrModeIndexedSVE(SDNode *Root, SDValue N,
   const MachineFrameInfo &MFI = MF->getFrameInfo();
 
   if (N.getOpcode() == ISD::FrameIndex) {
-    int FI = cast<FrameIndexSDNode>(N)->getIndex();
+    
     // We can only encode VL scaled offsets, so only fold in frame indexes
     // referencing SVE objects.
-    if (MFI.hasScalableStackID(FI)) {
+    if (int FI = cast<FrameIndexSDNode>(N)->getIndex(); MFI.hasScalableStackID(FI)) {
       Base = CurDAG->getTargetFrameIndex(FI, TLI->getPointerTy(DL));
       OffImm = CurDAG->getTargetConstant(0, SDLoc(N), MVT::i64);
       return true;
@@ -7549,10 +7549,10 @@ bool AArch64DAGToDAGISel::SelectAddrModeIndexedSVE(SDNode *Root, SDValue N,
 
   Base = N.getOperand(0);
   if (Base.getOpcode() == ISD::FrameIndex) {
-    int FI = cast<FrameIndexSDNode>(Base)->getIndex();
+    
     // We can only encode VL scaled offsets, so only fold in frame indexes
     // referencing SVE objects.
-    if (MFI.hasScalableStackID(FI))
+    if (int FI = cast<FrameIndexSDNode>(Base)->getIndex(); MFI.hasScalableStackID(FI))
       Base = CurDAG->getTargetFrameIndex(FI, TLI->getPointerTy(DL));
   }
 
@@ -7582,11 +7582,11 @@ bool AArch64DAGToDAGISel::SelectSVERegRegAddrMode(SDValue N, unsigned Scale,
 
   if (auto C = dyn_cast<ConstantSDNode>(RHS)) {
     int64_t ImmOff = C->getSExtValue();
-    unsigned Size = 1 << Scale;
+    
 
     // To use the reg+reg addressing mode, the immediate must be a multiple of
     // the vector element's byte size.
-    if (ImmOff % Size)
+    if (unsigned Size = 1 << Scale; ImmOff % Size)
       return false;
 
     SDLoc DL(N);
@@ -7630,8 +7630,8 @@ bool AArch64DAGToDAGISel::SelectSMETileSlice(SDValue N, unsigned MaxSize,
                                              unsigned Scale) {
   auto MatchConstantOffset = [&](SDValue CN) -> SDValue {
     if (auto *C = dyn_cast<ConstantSDNode>(CN)) {
-      int64_t ImmOff = C->getSExtValue();
-      if ((ImmOff > 0 && ImmOff <= MaxSize && (ImmOff % Scale == 0)))
+      
+      if (int64_t ImmOff = C->getSExtValue(); (ImmOff > 0 && ImmOff <= MaxSize && (ImmOff % Scale == 0)))
         return CurDAG->getTargetConstant(ImmOff / Scale, SDLoc(N), MVT::i64);
     }
     return SDValue();

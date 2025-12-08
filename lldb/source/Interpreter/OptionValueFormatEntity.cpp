@@ -87,8 +87,8 @@ Status OptionValueFormatEntity::SetValueFromString(llvm::StringRef value_str,
     // the string alone and parse as is.
     llvm::StringRef trimmed_value_str = value_str.trim();
     if (!trimmed_value_str.empty()) {
-      const char first_char = trimmed_value_str[0];
-      if (first_char == '"' || first_char == '\'') {
+      
+      if (const char first_char = trimmed_value_str[0]; first_char == '"' || first_char == '\'') {
         const size_t trimmed_len = trimmed_value_str.size();
         if (trimmed_len == 1 || value_str[trimmed_len - 1] != first_char) {
           error = Status::FromErrorString("mismatched quotes");

@@ -104,8 +104,8 @@ static void EnumerateConstantFPRangesImpl(Fn TestFn, SparseLevel Level,
     unsigned BitWidth = APFloat::semanticsSizeInBits(Sem);
     unsigned Exponents = APFloat::semanticsMaxExponent(Sem) -
                          APFloat::semanticsMinExponent(Sem) + 3;
-    unsigned MantissaBits = APFloat::semanticsPrecision(Sem) - 1;
-    if (Level == SparseLevel::SpecialValuesWithAllPowerOfTwos) {
+    
+    if (unsigned MantissaBits = APFloat::semanticsPrecision(Sem) - 1; Level == SparseLevel::SpecialValuesWithAllPowerOfTwos) {
       // Add -2^(max exponent), -2^(max exponent-1), ..., -2^(min exponent)
       for (unsigned M = Exponents - 2; M != 0; --M)
         Values.push_back(
@@ -169,8 +169,8 @@ static void EnumerateTwoInterestingConstantFPRanges(Fn TestFn,
 template <typename Fn>
 static void EnumerateValuesInConstantFPRange(const ConstantFPRange &CR,
                                              Fn TestFn, bool IgnoreNaNPayload) {
-  const fltSemantics &Sem = CR.getSemantics();
-  if (IgnoreNaNPayload) {
+  
+  if (const fltSemantics &Sem = CR.getSemantics(); IgnoreNaNPayload) {
     if (CR.containsSNaN()) {
       TestFn(APFloat::getSNaN(Sem, false));
       TestFn(APFloat::getSNaN(Sem, true));

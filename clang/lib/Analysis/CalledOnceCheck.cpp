@@ -622,9 +622,9 @@ private:
   //===----------------------------------------------------------------------===//
 
   void initDataStructures() {
-    const Decl *AnalyzedDecl = AC.getDecl();
+    
 
-    if (const auto *Function = dyn_cast<FunctionDecl>(AnalyzedDecl)) {
+    if (const Decl *AnalyzedDecl = AC.getDecl(); const auto *Function = dyn_cast<FunctionDecl>(AnalyzedDecl)) {
       findParamsToTrack(Function);
     } else if (const auto *Method = dyn_cast<ObjCMethodDecl>(AnalyzedDecl)) {
       findParamsToTrack(Method);
@@ -644,8 +644,8 @@ private:
     for (const auto &Capture : Block->captures()) {
       if (const auto *P = dyn_cast<ParmVarDecl>(Capture.getVariable())) {
         // Parameter DeclContext is its owning function or method.
-        const DeclContext *ParamContext = P->getDeclContext();
-        if (shouldBeCalledOnce(ParamContext, P)) {
+        
+        if (const DeclContext *ParamContext = P->getDeclContext(); shouldBeCalledOnce(ParamContext, P)) {
           TrackedParams.push_back(P);
         }
       }
@@ -770,9 +770,9 @@ private:
 
     // Check if there are no calls of the marked parameter at all
     for (const auto &IndexedStatus : llvm::enumerate(EntryStatus)) {
-      const ParmVarDecl *Parameter = getParameter(IndexedStatus.index());
+      
 
-      switch (IndexedStatus.value().getKind()) {
+      switch (const ParmVarDecl *Parameter = getParameter(IndexedStatus.index()); IndexedStatus.value().getKind()) {
       case ParameterStatus::NotCalled:
         // If there were places where this parameter escapes (aka being used),
         // we can provide a more useful diagnostic by pointing at the exact
@@ -900,9 +900,9 @@ private:
 
   /// Process call of the parameter with the given index
   void processCallFor(unsigned Index, const Expr *Call) {
-    ParameterStatus &CurrentParamStatus = CurrentState.getStatusFor(Index);
+    
 
-    if (CurrentParamStatus.seenAnyCalls()) {
+    if (ParameterStatus &CurrentParamStatus = CurrentState.getStatusFor(Index); CurrentParamStatus.seenAnyCalls()) {
 
       // At this point, this parameter was called, so this is a second call.
       const ParmVarDecl *Parameter = getParameter(Index);
@@ -927,10 +927,10 @@ private:
 
   /// Process escape of the parameter with the given index
   void processEscapeFor(unsigned Index) {
-    ParameterStatus &CurrentParamStatus = CurrentState.getStatusFor(Index);
+    
 
     // Escape overrides whatever error we think happened.
-    if (CurrentParamStatus.isErrorStatus() &&
+    if (ParameterStatus &CurrentParamStatus = CurrentState.getStatusFor(Index); CurrentParamStatus.isErrorStatus() &&
         CurrentParamStatus.getKind() != ParameterStatus::Kind::Reported) {
       CurrentParamStatus = ParameterStatus::Escaped;
     }
@@ -1408,9 +1408,9 @@ private:
     }
 
     for (const auto &IndexedStatus : llvm::enumerate(ToAlter)) {
-      const ParmVarDecl *Parameter = getParameter(IndexedStatus.index());
+      
       // Conventions do not apply to explicitly marked parameters.
-      if (isExplicitlyMarked(Parameter)) {
+      if (const ParmVarDecl *Parameter = getParameter(IndexedStatus.index()); isExplicitlyMarked(Parameter)) {
         continue;
       }
 
@@ -1505,9 +1505,9 @@ private:
               Assignment->getRHS()->IgnoreParenCasts()->getIntegerConstantExpr(
                   AC.getASTContext())) {
 
-        ParameterStatus &CurrentParamStatus = CurrentState.getStatusFor(*Index);
+        
 
-        if (0 == *Constant && CurrentParamStatus.seenAnyCalls()) {
+        if (ParameterStatus &CurrentParamStatus = CurrentState.getStatusFor(*Index); 0 == *Constant && CurrentParamStatus.seenAnyCalls()) {
           // Even though this suppression mechanism is introduced to tackle
           // false positives for multiple calls, the fact that the user has
           // to use suppression can also tell us that we couldn't figure out
@@ -1654,10 +1654,10 @@ private:
     //
     // In this setting, linear search seems reasonable and even performs better
     // than bisection.
-    ParamSizedVector<const ParmVarDecl *>::const_iterator It =
-        llvm::find(TrackedParams, &Parameter);
+    
 
-    if (It != TrackedParams.end()) {
+    if (ParamSizedVector<const ParmVarDecl *>::const_iterator It =
+        llvm::find(TrackedParams, &Parameter); It != TrackedParams.end()) {
       return It - TrackedParams.begin();
     }
 

@@ -364,8 +364,8 @@ bool MemRefDependenceGraph::init(bool fullAffineDependences) {
     } else if (op.getNumResults() > 0 && !op.use_empty()) {
       // Create graph node for top-level producer of SSA values, which
       // could be used by loop nest nodes.
-      Node *node = addNodeToMDG(&op, *this, memrefAccesses);
-      if (!node)
+      
+      if (Node *node = addNodeToMDG(&op, *this, memrefAccesses); !node)
         return false;
     } else if (!isMemoryEffectFree(&op) &&
                (op.getNumRegions() == 0 || isa<RegionBranchOpInterface>(op))) {
@@ -374,8 +374,8 @@ bool MemRefDependenceGraph::init(bool fullAffineDependences) {
       // non-affine ops with memory effects, and region-holding ops with a
       // well-defined control flow. During the fusion validity checks, edges
       // to/from these ops get looked at.
-      Node *node = addNodeToMDG(&op, *this, memrefAccesses);
-      if (!node)
+      
+      if (Node *node = addNodeToMDG(&op, *this, memrefAccesses); !node)
         return false;
     } else if (op.getNumRegions() != 0 && !isa<RegionBranchOpInterface>(op)) {
       // Return false if non-handled/unknown region-holding ops are found. We
@@ -434,9 +434,9 @@ bool MemRefDependenceGraph::init(bool fullAffineDependences) {
       for (unsigned j = i + 1; j < n; ++j) {
         unsigned dstId = memrefAndList.second[j];
         Node *dstNode = getNode(dstId);
-        bool dstHasStoreOrFree =
-            dstNode->hasStore(srcMemRef) || dstNode->hasFree(srcMemRef);
-        if ((srcHasStoreOrFree || dstHasStoreOrFree)) {
+        
+        if (bool dstHasStoreOrFree =
+            dstNode->hasStore(srcMemRef) || dstNode->hasFree(srcMemRef); (srcHasStoreOrFree || dstHasStoreOrFree)) {
           // Check precise affine deps if asked for; otherwise, conservative.
           if (!fullAffineDependences ||
               mayDependence(*srcNode, *dstNode, srcMemRef))
@@ -498,9 +498,9 @@ bool MemRefDependenceGraph::writesToLiveInOrEscapingMemrefs(unsigned id) const {
   const Node *node = getNode(id);
   for (auto *storeOpInst : node->stores) {
     auto memref = cast<AffineWriteOpInterface>(storeOpInst).getMemRef();
-    auto *op = memref.getDefiningOp();
+    
     // Return true if 'memref' is a block argument.
-    if (!op)
+    if (auto *op = memref.getDefiningOp(); !op)
       return true;
     // Return true if any use of 'memref' does not deference it in an affine
     // way.
@@ -607,9 +607,9 @@ unsigned MemRefDependenceGraph::getIncomingMemRefAccesses(unsigned id,
   unsigned inEdgeCount = 0;
   for (const Edge &inEdge : inEdges.lookup(id)) {
     if (inEdge.value == memref) {
-      const Node *srcNode = getNode(inEdge.id);
+      
       // Only count in edges from 'srcNode' if 'srcNode' accesses 'memref'
-      if (srcNode->getStoreOpCount(memref) > 0)
+      if (const Node *srcNode = getNode(inEdge.id); srcNode->getStoreOpCount(memref) > 0)
         ++inEdgeCount;
     }
   }
@@ -1738,9 +1738,9 @@ mlir::affine::computeSliceUnion(ArrayRef<Operation *> opsA,
     ops.push_back(isBackwardSlice ? dep.second : dep.first);
   }
   SmallVector<AffineForOp, 4> surroundingLoops;
-  unsigned innermostCommonLoopDepth =
-      getInnermostCommonLoopDepth(ops, &surroundingLoops);
-  if (loopDepth > innermostCommonLoopDepth) {
+  
+  if (unsigned innermostCommonLoopDepth =
+      getInnermostCommonLoopDepth(ops, &surroundingLoops); loopDepth > innermostCommonLoopDepth) {
     LDBG() << "Exceeds max loop depth";
     return SliceComputationResult::GenericFailure;
   }
@@ -1990,8 +1990,8 @@ AffineForOp mlir::affine::insertBackwardComputationSlice(
   // Get loop nest surrounding dst operation.
   SmallVector<AffineForOp, 4> dstLoopIVs;
   getAffineForIVs(*dstOpInst, &dstLoopIVs);
-  unsigned dstLoopIVsSize = dstLoopIVs.size();
-  if (dstLoopDepth > dstLoopIVsSize) {
+  
+  if (unsigned dstLoopIVsSize = dstLoopIVs.size(); dstLoopDepth > dstLoopIVsSize) {
     dstOpInst->emitError("invalid destination loop depth");
     return AffineForOp();
   }
@@ -2391,8 +2391,8 @@ FailureOr<AffineValueMap> mlir::affine::simplifyConstrainedMinMaxOp(
 Block *mlir::affine::findInnermostCommonBlockInScope(Operation *a,
                                                      Operation *b) {
   Region *aScope = getAffineAnalysisScope(a);
-  Region *bScope = getAffineAnalysisScope(b);
-  if (aScope != bScope)
+  
+  if (Region *bScope = getAffineAnalysisScope(b); aScope != bScope)
     return nullptr;
 
   // Get the block ancestry of `op` while stopping at the affine scope `aScope`

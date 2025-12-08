@@ -821,8 +821,8 @@ NodeId ASTDiff::Impl::findCandidate(const Mapping &M, NodeId Id1) const {
       continue;
     if (M.hasDst(Id2))
       continue;
-    double Similarity = getJaccardSimilarity(M, Id1, Id2);
-    if (Similarity >= Options.MinSimilarity && Similarity > HighestSimilarity) {
+    
+    if (double Similarity = getJaccardSimilarity(M, Id1, Id2); Similarity >= Options.MinSimilarity && Similarity > HighestSimilarity) {
       HighestSimilarity = Similarity;
       Candidate = Id2;
     }
@@ -843,9 +843,9 @@ void ASTDiff::Impl::matchBottomUp(Mapping &M) const {
     }
     bool Matched = M.hasSrc(Id1);
     const Node &N1 = T1.getNode(Id1);
-    bool MatchedChildren = llvm::any_of(
-        N1.Children, [&](NodeId Child) { return M.hasSrc(Child); });
-    if (Matched || !MatchedChildren)
+    
+    if (bool MatchedChildren = llvm::any_of(
+        N1.Children, [&](NodeId Child) { return M.hasSrc(Child); }); Matched || !MatchedChildren)
       continue;
     NodeId Id2 = findCandidate(M, Id1);
     if (Id2.isValid()) {

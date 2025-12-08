@@ -270,8 +270,8 @@ static bool CheckStmtInlineAttr(Sema &SemaRef, const Stmt *OrigSt,
     // diagnosed this, so skip it here. We can't skip if there isn't a 1:1
     // relationship between the two lists of call expressions.
     if (!CanSuppressDiag || !(*std::get<0>(Tup))->getCalleeDecl()) {
-      const Decl *Callee = (*std::get<1>(Tup))->getCalleeDecl();
-      if (Callee &&
+      
+      if (const Decl *Callee = (*std::get<1>(Tup))->getCalleeDecl(); Callee &&
           (Callee->hasAttr<OtherAttr>() || Callee->hasAttr<FlattenAttr>())) {
         SemaRef.Diag(CurSt->getBeginLoc(),
                      diag::warn_function_stmt_attribute_precedence)
@@ -667,8 +667,8 @@ static Attr *ProcessStmtAttribute(Sema &S, Stmt *St, const ParsedAttr &A,
   // Unknown attributes are automatically warned on. Target-specific attributes
   // which do not apply to the current target architecture are treated as
   // though they were unknown attributes.
-  const TargetInfo *Aux = S.Context.getAuxTargetInfo();
-  if (A.getKind() == ParsedAttr::UnknownAttribute ||
+  
+  if (const TargetInfo *Aux = S.Context.getAuxTargetInfo(); A.getKind() == ParsedAttr::UnknownAttribute ||
       !(A.existsInTarget(S.Context.getTargetInfo()) ||
         (S.Context.getLangOpts().SYCLIsDevice && Aux &&
          A.existsInTarget(*Aux)))) {

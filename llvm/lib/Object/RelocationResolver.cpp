@@ -473,8 +473,8 @@ static bool supportsRISCV(uint64_t Type) {
 static uint64_t resolveRISCV(uint64_t Type, uint64_t Offset, uint64_t S,
                              uint64_t LocData, int64_t Addend) {
   int64_t RA = Addend;
-  uint64_t A = LocData;
-  switch (Type) {
+  
+  switch (uint64_t A = LocData; Type) {
   case ELF::R_RISCV_NONE:
     return LocData;
   case ELF::R_RISCV_32:

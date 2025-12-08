@@ -430,13 +430,13 @@ bool LoopIdiomVectorize::recognizeByteCompare() {
   if (FoundBB == EndBB) {
     for (PHINode &EndPN : EndBB->phis()) {
       Value *WhileCondVal = EndPN.getIncomingValueForBlock(Header);
-      Value *WhileBodyVal = EndPN.getIncomingValueForBlock(WhileBB);
+      
 
       // The value of the index when leaving the while.cond block is always the
       // same as the end value (MaxLen) so we permit either. The value when
       // leaving the while.body block should only be the index. Otherwise for
       // any other values we only allow ones that are same for both blocks.
-      if (WhileCondVal != WhileBodyVal &&
+      if (Value *WhileBodyVal = EndPN.getIncomingValueForBlock(WhileBB); WhileCondVal != WhileBodyVal &&
           ((WhileCondVal != Index && WhileCondVal != MaxLen) ||
            (WhileBodyVal != Index)))
         return false;
@@ -1056,8 +1056,8 @@ bool LoopIdiomVectorize::recognizeFindFirstByte() {
   // We expect outside uses of `IndPhi' in ExitSucc (and only there).
   for (User *U : IndPhi->users())
     if (!CurLoop->contains(cast<Instruction>(U))) {
-      auto *PN = dyn_cast<PHINode>(U);
-      if (!PN || PN->getParent() != ExitSucc)
+      
+      if (auto *PN = dyn_cast<PHINode>(U); !PN || PN->getParent() != ExitSucc)
         return false;
     }
 

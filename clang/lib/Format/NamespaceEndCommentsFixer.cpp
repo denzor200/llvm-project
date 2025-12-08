@@ -128,8 +128,8 @@ std::string computeName(const FormatToken *NamespaceTok) {
     }
     FirstNSTok = Tok;
     Tok = Tok->getNextNonComment();
-    const FormatToken *TokAfterAttr = skipAttribute(Tok);
-    if (TokAfterAttr != Tok)
+    
+    if (const FormatToken *TokAfterAttr = skipAttribute(Tok); TokAfterAttr != Tok)
       FirstNSTok = Tok = TokAfterAttr;
   }
   if (!NameFinished && FirstNSTok && FirstNSTok->isNot(tok::l_brace))

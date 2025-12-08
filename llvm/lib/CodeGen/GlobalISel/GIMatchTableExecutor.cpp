@@ -79,8 +79,8 @@ bool GIMatchTableExecutor::isObviouslySafeToFold(MachineInstr &MI,
   if (MI.mayLoad() && MI.getParent() == IntoMI.getParent()) {
     if (MI.memoperands_empty())
       return false;
-    auto &MMO = **(MI.memoperands_begin());
-    if (MMO.isAtomic() || MMO.isVolatile())
+    
+    if (auto &MMO = **(MI.memoperands_begin()); MMO.isAtomic() || MMO.isVolatile())
       return false;
 
     // Ensure instructions between MI and IntoMI are not affected when combined

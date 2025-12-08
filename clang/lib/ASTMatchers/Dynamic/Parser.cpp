@@ -224,8 +224,8 @@ private:
 
     // Try to recognize a floating point literal.
     while (Length < Code.size()) {
-      char c = Code[Length];
-      if (c == '-' || c == '+' || c == '.' || isHexDigit(c)) {
+      
+      if (char c = Code[Length]; c == '-' || c == '+' || c == '.' || isHexDigit(c)) {
         isFloatingLiteral = true;
         Length++;
       } else {
@@ -240,8 +240,8 @@ private:
       char *end;
       errno = 0;
       std::string Text = Result->Text.str();
-      double doubleValue = strtod(Text.c_str(), &end);
-      if (*end == 0 && errno == 0) {
+      
+      if (double doubleValue = strtod(Text.c_str(), &end); *end == 0 && errno == 0) {
         Result->Kind = TokenInfo::TK_Literal;
         Result->Value = doubleValue;
         return;

@@ -20,8 +20,8 @@ namespace clang::tidy::abseil {
 /// Returns an integer if the fractional part of a `FloatingLiteral` is `0`.
 static std::optional<llvm::APSInt>
 truncateIfIntegral(const FloatingLiteral &FloatLiteral) {
-  const double Value = FloatLiteral.getValueAsApproximateDouble();
-  if (std::fmod(Value, 1) == 0) {
+  
+  if (const double Value = FloatLiteral.getValueAsApproximateDouble(); std::fmod(Value, 1) == 0) {
     if (Value >= static_cast<double>(1U << 31))
       return std::nullopt;
 
@@ -50,9 +50,9 @@ getDurationInverseForScale(DurationScale Scale) {
 static std::optional<std::string>
 rewriteInverseDurationCall(const MatchFinder::MatchResult &Result,
                            DurationScale Scale, const Expr &Node) {
-  const std::pair<llvm::StringRef, llvm::StringRef> &InverseFunctions =
-      getDurationInverseForScale(Scale);
-  if (const auto *MaybeCallArg = selectFirst<const Expr>(
+  
+  if (const std::pair<llvm::StringRef, llvm::StringRef> &InverseFunctions =
+      getDurationInverseForScale(Scale); const auto *MaybeCallArg = selectFirst<const Expr>(
           "e",
           match(callExpr(callee(functionDecl(hasAnyName(
                              InverseFunctions.first, InverseFunctions.second))),

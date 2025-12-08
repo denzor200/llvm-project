@@ -184,10 +184,10 @@ size_t MutationDispatcher::ApplyDictionaryEntry(uint8_t *Data, size_t Size,
                                                 size_t MaxSize,
                                                 DictionaryEntry &DE) {
   const Word &W = DE.GetW();
-  bool UsePositionHint = DE.HasPositionHint() &&
+  
+  if (bool UsePositionHint = DE.HasPositionHint() &&
                          DE.GetPositionHint() + W.size() < Size &&
-                         Rand.RandBool();
-  if (Rand.RandBool()) {  // Insert W.
+                         Rand.RandBool(); Rand.RandBool()) {  // Insert W.
     if (Size + W.size() > MaxSize) return 0;
     size_t Idx = UsePositionHint ? DE.GetPositionHint() : Rand(Size + 1);
     memmove(Data + Idx + W.size(), Data + Idx, Size - Idx);
@@ -340,8 +340,8 @@ size_t MutationDispatcher::InsertPartOf(const uint8_t *From, size_t FromSize,
   assert(FromBeg + CopySize <= FromSize);
   size_t ToInsertPos = Rand(ToSize + 1);
   assert(ToInsertPos + CopySize <= MaxToSize);
-  size_t TailSize = ToSize - ToInsertPos;
-  if (To == From) {
+  
+  if (size_t TailSize = ToSize - ToInsertPos; To == From) {
     MutateInPlaceHere.resize(MaxToSize);
     memcpy(MutateInPlaceHere.data(), From + FromBeg, CopySize);
     memmove(To + ToInsertPos + CopySize, To + ToInsertPos, TailSize);
@@ -547,8 +547,8 @@ size_t MutationDispatcher::MutateImpl(uint8_t *Data, size_t Size,
   // Try several times before returning un-mutated data.
   for (int Iter = 0; Iter < 100; Iter++) {
     auto M = Mutators[Rand(Mutators.size())];
-    size_t NewSize = (this->*(M.Fn))(Data, Size, MaxSize);
-    if (NewSize && NewSize <= MaxSize) {
+    
+    if (size_t NewSize = (this->*(M.Fn))(Data, Size, MaxSize); NewSize && NewSize <= MaxSize) {
       if (Options.OnlyASCII)
         ToASCII(Data, NewSize);
       CurrentMutatorSequence.push_back(M);

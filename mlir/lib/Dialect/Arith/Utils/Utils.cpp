@@ -47,10 +47,10 @@ mlir::inferExpandShapeOutputShape(OpBuilder &b, Location loc,
     int64_t indexGroupStaticSizesProductInt = 1;
     bool foundDynamicShape = false;
     for (int64_t index : indexGroup) {
-      int64_t outputDimSize = expandedType.getDimSize(index);
+      
       // Cannot infer expanded shape with multiple dynamic dims in the
       // same reassociation group!
-      if (ShapedType::isDynamic(outputDimSize)) {
+      if (int64_t outputDimSize = expandedType.getDimSize(index); ShapedType::isDynamic(outputDimSize)) {
         if (foundDynamicShape)
           return std::nullopt;
         foundDynamicShape = true;
@@ -122,8 +122,8 @@ Value mlir::getValueOrCreateCastToIndexLike(OpBuilder &b, Location loc,
     return value;
 
   bool targetIsIndex = targetType.isIndex();
-  bool valueIsIndex = value.getType().isIndex();
-  if (targetIsIndex ^ valueIsIndex)
+  
+  if (bool valueIsIndex = value.getType().isIndex(); targetIsIndex ^ valueIsIndex)
     return arith::IndexCastOp::create(b, loc, targetType, value);
 
   auto targetIntegerType = dyn_cast<IntegerType>(targetType);

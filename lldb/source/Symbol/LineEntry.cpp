@@ -145,9 +145,9 @@ bool lldb_private::operator<(const LineEntry &a, const LineEntry &b) {
 }
 
 int LineEntry::Compare(const LineEntry &a, const LineEntry &b) {
-  int result = Address::CompareFileAddress(a.range.GetBaseAddress(),
-                                           b.range.GetBaseAddress());
-  if (result != 0)
+  
+  if (int result = Address::CompareFileAddress(a.range.GetBaseAddress(),
+                                           b.range.GetBaseAddress()); result != 0)
     return result;
 
   const lldb::addr_t a_byte_size = a.range.GetByteSize();
@@ -222,10 +222,10 @@ AddressRange LineEntry::GetSameLineContiguousAddressRange(
       // as this line entry. The current block could represent a nested inline
       // function call so we need to need to check up the block tree to see if
       // we find one.
-      auto inlined_parent_block =
+      
+      if (auto inlined_parent_block =
           next_line_sc.block->GetContainingInlinedBlockWithCallSite(
-              start_call_site);
-      if (!inlined_parent_block)
+              start_call_site); !inlined_parent_block)
         // We didn't find any parent inlined block with a call site at this line
         // entry so this inlined function is probably at another line.
         break;

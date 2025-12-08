@@ -1265,9 +1265,9 @@ SubstituteConceptsInConstraintExpression(Sema &S, const NamedDecl *D,
   ConceptDecl *Concept = CSE->getNamedConcept()->getCanonicalDecl();
   Sema::ArgPackSubstIndexRAII _(S, SubstIndex);
 
-  const ASTTemplateArgumentListInfo *ArgsAsWritten =
-      CSE->getTemplateArgsAsWritten();
-  if (llvm::none_of(
+  
+  if (const ASTTemplateArgumentListInfo *ArgsAsWritten =
+      CSE->getTemplateArgsAsWritten(); llvm::none_of(
           ArgsAsWritten->arguments(), [&](const TemplateArgumentLoc &ArgLoc) {
             return !ArgLoc.getArgument().isDependent() &&
                    ArgLoc.getArgument().isConceptOrConceptTemplateParameter();
@@ -1534,14 +1534,14 @@ static const Expr *SubstituteConstraintExpressionWithoutSatisfaction(
   // possible that e.g. constraints involving C<Class<T>> and C<Class> are
   // perceived identical.
   std::optional<Sema::ContextRAII> ContextScope;
-  const DeclContext *DC = [&] {
+  
+  if (const DeclContext *DC = [&] {
     if (!DeclInfo.getDecl())
       return DeclInfo.getDeclContext();
     return DeclInfo.getDecl()->getFriendObjectKind()
                ? DeclInfo.getLexicalDeclContext()
                : DeclInfo.getDeclContext();
-  }();
-  if (auto *RD = dyn_cast<CXXRecordDecl>(DC)) {
+  }(); auto *RD = dyn_cast<CXXRecordDecl>(DC)) {
     ThisScope.emplace(S, const_cast<CXXRecordDecl *>(RD), Qualifiers());
     ContextScope.emplace(S, const_cast<DeclContext *>(cast<DeclContext>(RD)),
                          /*NewThisContext=*/false);
@@ -1732,8 +1732,8 @@ static void diagnoseUnsatisfiedRequirement(Sema &S,
     llvm_unreachable("Diagnosing a dependent requirement");
     break;
   case concepts::ExprRequirement::SS_ExprSubstitutionFailure: {
-    auto *SubstDiag = Req->getExprSubstitutionDiagnostic();
-    if (!SubstDiag->DiagMessage.empty())
+    
+    if (auto *SubstDiag = Req->getExprSubstitutionDiagnostic(); !SubstDiag->DiagMessage.empty())
       S.Diag(SubstDiag->DiagLoc,
              diag::note_expr_requirement_expr_substitution_error)
           << (int)First << SubstDiag->SubstitutedEntity
@@ -1749,9 +1749,9 @@ static void diagnoseUnsatisfiedRequirement(Sema &S,
         << (int)First << Req->getExpr();
     break;
   case concepts::ExprRequirement::SS_TypeRequirementSubstitutionFailure: {
-    auto *SubstDiag =
-        Req->getReturnTypeRequirement().getSubstitutionDiagnostic();
-    if (!SubstDiag->DiagMessage.empty())
+    
+    if (auto *SubstDiag =
+        Req->getReturnTypeRequirement().getSubstitutionDiagnostic(); !SubstDiag->DiagMessage.empty())
       S.Diag(SubstDiag->DiagLoc,
              diag::note_expr_requirement_type_requirement_substitution_error)
           << (int)First << SubstDiag->SubstitutedEntity
@@ -1785,8 +1785,8 @@ static void diagnoseUnsatisfiedRequirement(Sema &S,
     llvm_unreachable("Diagnosing a dependent requirement");
     return;
   case concepts::TypeRequirement::SS_SubstitutionFailure: {
-    auto *SubstDiag = Req->getSubstitutionDiagnostic();
-    if (!SubstDiag->DiagMessage.empty())
+    
+    if (auto *SubstDiag = Req->getSubstitutionDiagnostic(); !SubstDiag->DiagMessage.empty())
       S.Diag(SubstDiag->DiagLoc, diag::note_type_requirement_substitution_error)
           << (int)First << SubstDiag->SubstitutedEntity
           << SubstDiag->DiagMessage;
@@ -1859,9 +1859,9 @@ static void diagnoseWellFormedUnsatisfiedConstraintExpr(Sema &S,
                                                   /*First=*/false);
       return;
     case BO_LAnd: {
-      bool LHSSatisfied =
-          BO->getLHS()->EvaluateKnownConstInt(S.Context).getBoolValue();
-      if (LHSSatisfied) {
+      
+      if (bool LHSSatisfied =
+          BO->getLHS()->EvaluateKnownConstInt(S.Context).getBoolValue(); LHSSatisfied) {
         // LHS is true, so RHS must be false.
         diagnoseWellFormedUnsatisfiedConstraintExpr(S, BO->getRHS(), First);
         return;
@@ -2043,10 +2043,10 @@ void SubstituteParameterMappings::buildParameterMapping(
         /*OnlyDeduced=*/false,
         /*Depth=*/0, OccurringIndices);
   } else if (N.getKind() == NormalizedConstraint::ConstraintKind::ConceptId) {
-    auto *Args = static_cast<ConceptIdConstraint &>(N)
+    
+    if (auto *Args = static_cast<ConceptIdConstraint &>(N)
                      .getConceptId()
-                     ->getTemplateArgsAsWritten();
-    if (Args)
+                     ->getTemplateArgsAsWritten(); Args)
       SemaRef.MarkUsedTemplateParameters(Args->arguments(),
                                          /*Depth=*/0, OccurringIndices);
   }
@@ -2120,9 +2120,9 @@ bool SubstituteParameterMappings::substitute(
           /*BuildPackExpansionTypes=*/!InFoldExpr))
     return true;
   Sema::CheckTemplateArgumentInfo CTAI;
-  auto *TD =
-      const_cast<TemplateDecl *>(cast<TemplateDecl>(N.getConstraintDecl()));
-  if (SemaRef.CheckTemplateArgumentList(TD, N.getUsedTemplateParamList(),
+  
+  if (auto *TD =
+      const_cast<TemplateDecl *>(cast<TemplateDecl>(N.getConstraintDecl())); SemaRef.CheckTemplateArgumentList(TD, N.getUsedTemplateParamList(),
                                         TD->getLocation(), SubstArgs,
                                         /*DefaultArguments=*/{},
                                         /*PartialTemplateArgs=*/false, CTAI))
@@ -2440,10 +2440,10 @@ bool FoldExpandedConstraint::AreCompatibleForSubsumption(
     auto ADI = getDepthAndIndex(APack);
     if (!ADI)
       continue;
-    auto It = llvm::find_if(BPacks, [&](const UnexpandedParameterPack &BPack) {
+    
+    if (auto It = llvm::find_if(BPacks, [&](const UnexpandedParameterPack &BPack) {
       return getDepthAndIndex(BPack) == ADI;
-    });
-    if (It != BPacks.end())
+    }); It != BPacks.end())
       return true;
   }
   return false;

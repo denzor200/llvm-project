@@ -74,8 +74,8 @@ void MSP430AsmPrinter::PrintSymbolOperand(const MachineOperand &MO,
 
 void MSP430AsmPrinter::printOperand(const MachineInstr *MI, int OpNum,
                                     raw_ostream &O, bool PrefixHash) {
-  const MachineOperand &MO = MI->getOperand(OpNum);
-  switch (MO.getType()) {
+  
+  switch (const MachineOperand &MO = MI->getOperand(OpNum); MO.getType()) {
   default: llvm_unreachable("Not implemented yet!");
   case MachineOperand::MO_Register:
     O << MSP430InstPrinter::getRegisterName(MO.getReg());
@@ -104,12 +104,12 @@ void MSP430AsmPrinter::printOperand(const MachineInstr *MI, int OpNum,
 void MSP430AsmPrinter::printSrcMemOperand(const MachineInstr *MI, int OpNum,
                                           raw_ostream &O) {
   const MachineOperand &Base = MI->getOperand(OpNum);
-  const MachineOperand &Disp = MI->getOperand(OpNum+1);
+  
 
   // Print displacement first
 
   // Imm here is in fact global address - print extra modifier.
-  if (Disp.isImm() && Base.getReg() == MSP430::SR)
+  if (const MachineOperand &Disp = MI->getOperand(OpNum+1); Disp.isImm() && Base.getReg() == MSP430::SR)
     O << '&';
   printOperand(MI, OpNum + 1, O, /*PrefixHash=*/false);
 

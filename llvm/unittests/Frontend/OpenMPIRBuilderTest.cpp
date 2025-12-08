@@ -166,8 +166,8 @@ static void findCalls(Function *F, omp::RuntimeFunction FnID,
   Function *Fn = OMPBuilder.getOrCreateRuntimeFunctionPtr(FnID);
   for (BasicBlock &BB : *F) {
     for (Instruction &I : BB) {
-      auto *Call = dyn_cast<CallInst>(&I);
-      if (Call && Call->getCalledFunction() == Fn)
+      
+      if (auto *Call = dyn_cast<CallInst>(&I); Call && Call->getCalledFunction() == Fn)
         Calls.push_back(Call);
     }
   }
@@ -255,8 +255,8 @@ protected:
         *BodyCode = Builder.GetInsertBlock();
 
       // Add something that consumes the induction variable to the body.
-      CallInst *CallInst = createPrintfCall(Builder, "%d\\n", {LC});
-      if (Call)
+      
+      if (CallInst *CallInst = createPrintfCall(Builder, "%d\\n", {LC}); Call)
         *Call = CallInst;
 
       return Error::success();
@@ -2057,8 +2057,8 @@ TEST_F(OpenMPIRBuilderTest, ApplySimdCustomAligned) {
   for (Instruction &Instr : *sourceBlock) {
     if (!isa<AssumeInst>(Instr))
       continue;
-    AssumeInst *AssumeInstruction = cast<AssumeInst>(&Instr);
-    if (AssumeInstruction->getNumTotalBundleOperands()) {
+    
+    if (AssumeInst *AssumeInstruction = cast<AssumeInst>(&Instr); AssumeInstruction->getNumTotalBundleOperands()) {
       auto Bundle = AssumeInstruction->getOperandBundleAt(0);
       if (Bundle.getTagName() == "align") {
         EXPECT_TRUE(isa<ConstantInt>(Bundle.Inputs[1]));
@@ -2712,8 +2712,8 @@ TEST_P(OpenMPIRBuilderTestWithParams, DynamicWorkShareLoop) {
             "__kmpc_dispatch_init_4u");
   EXPECT_EQ(InitCall->arg_size(), 7U);
   EXPECT_EQ(InitCall->getArgOperand(6), ConstantInt::get(LCTy, ChunkSize));
-  ConstantInt *SchedVal = cast<ConstantInt>(InitCall->getArgOperand(2));
-  if ((SchedType & OMPScheduleType::MonotonicityMask) ==
+  
+  if (ConstantInt *SchedVal = cast<ConstantInt>(InitCall->getArgOperand(2)); (SchedType & OMPScheduleType::MonotonicityMask) ==
       OMPScheduleType::None) {
     // Implementation is allowed to add default nonmonotonicity flag
     EXPECT_EQ(
@@ -3536,8 +3536,8 @@ TEST_F(OpenMPIRBuilderTest, SingleDirective) {
 
   bool FoundBarrier = false;
   for (auto &FI : *ExitBB) {
-    Instruction *cur = &FI;
-    if (auto CI = dyn_cast<CallInst>(cur)) {
+    
+    if (Instruction *cur = &FI; auto CI = dyn_cast<CallInst>(cur)) {
       if (CI->getCalledFunction()->getName() == "__kmpc_barrier") {
         FoundBarrier = true;
         break;
@@ -3629,8 +3629,8 @@ TEST_F(OpenMPIRBuilderTest, SingleDirectiveNowait) {
 
   CallInst *ExitBarrier = nullptr;
   for (auto &FI : *ExitBB) {
-    Instruction *cur = &FI;
-    if (auto CI = dyn_cast<CallInst>(cur)) {
+    
+    if (Instruction *cur = &FI; auto CI = dyn_cast<CallInst>(cur)) {
       if (CI->getCalledFunction()->getName() == "__kmpc_barrier") {
         ExitBarrier = CI;
         break;

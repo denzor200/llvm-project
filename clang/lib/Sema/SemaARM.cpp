@@ -600,10 +600,10 @@ static bool checkArmStreamingBuiltin(Sema &S, CallExpr *TheCall,
 
     bool SatisfiesSVE = Builtin::evaluateRequiredTargetFeatures(
         NonStreamingBuiltinGuard, CallerFeatures);
-    bool SatisfiesSME = Builtin::evaluateRequiredTargetFeatures(
-        StreamingBuiltinGuard, CallerFeatures);
+    
 
-    if (SatisfiesSVE && SatisfiesSME)
+    if (bool SatisfiesSME = Builtin::evaluateRequiredTargetFeatures(
+        StreamingBuiltinGuard, CallerFeatures); SatisfiesSVE && SatisfiesSME)
       // Function type is irrelevant for streaming-agnostic builtins.
       return false;
     else if (SatisfiesSVE)
@@ -1348,8 +1348,8 @@ void SemaARM::handleCmseNSEntryAttr(Decl *D, const ParsedAttr &AL) {
     return;
   }
 
-  const auto *FD = cast<FunctionDecl>(D);
-  if (!FD->isExternallyVisible()) {
+  
+  if (const auto *FD = cast<FunctionDecl>(D); !FD->isExternallyVisible()) {
     Diag(AL.getLoc(), diag::warn_attribute_cmse_entry_static);
     return;
   }
@@ -1380,8 +1380,8 @@ void SemaARM::handleInterruptAttr(Decl *D, const ParsedAttr &AL) {
   }
 
   if (!D->hasAttr<ARMSaveFPAttr>()) {
-    const TargetInfo &TI = getASTContext().getTargetInfo();
-    if (TI.hasFeature("vfp"))
+    
+    if (const TargetInfo &TI = getASTContext().getTargetInfo(); TI.hasFeature("vfp"))
       Diag(D->getLocation(), diag::warn_arm_interrupt_vfp_clobber);
   }
 
@@ -1403,9 +1403,9 @@ void SemaARM::handleInterruptSaveFPAttr(Decl *D, const ParsedAttr &AL) {
   }
 
   // If VFP not enabled, remove ARMSaveFPAttr but leave ARMInterruptAttr.
-  bool VFP = SemaRef.Context.getTargetInfo().hasFeature("vfp");
+  
 
-  if (!VFP) {
+  if (bool VFP = SemaRef.Context.getTargetInfo().hasFeature("vfp"); !VFP) {
     SemaRef.Diag(D->getLocation(), diag::warn_arm_interrupt_save_fp_without_vfp_unit);
     D->dropAttr<ARMSaveFPAttr>();
   }
@@ -1507,8 +1507,8 @@ bool SemaARM::areCompatibleSveTypes(QualType FirstType, QualType SecondType) {
       if (const auto *VT = SecondType->getAs<VectorType>()) {
         // Predicates have the same representation as uint8 so we also have to
         // check the kind to make these types incompatible.
-        ASTContext &Context = getASTContext();
-        if (VT->getVectorKind() == VectorKind::SveFixedLengthPredicate)
+        
+        if (ASTContext &Context = getASTContext(); VT->getVectorKind() == VectorKind::SveFixedLengthPredicate)
           return BT->getKind() == BuiltinType::SveBool;
         else if (VT->getVectorKind() == VectorKind::SveFixedLengthData)
           return VT->getElementType().getCanonicalType() ==

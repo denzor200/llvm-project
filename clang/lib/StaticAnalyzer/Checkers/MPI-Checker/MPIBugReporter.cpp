@@ -94,11 +94,11 @@ MPIBugReporter::RequestNodeVisitor::VisitNode(const ExplodedNode *N,
   const Request *const Req = N->getState()->get<RequestMap>(RequestRegion);
   assert(Req && "The region must be tracked and alive, given that we've "
                 "just emitted a report against it");
-  const Request *const PrevReq =
-      N->getFirstPred()->getState()->get<RequestMap>(RequestRegion);
+  
 
   // Check if request was previously unused or in a different state.
-  if (!PrevReq || (Req->CurrentState != PrevReq->CurrentState)) {
+  if (const Request *const PrevReq =
+      N->getFirstPred()->getState()->get<RequestMap>(RequestRegion); !PrevReq || (Req->CurrentState != PrevReq->CurrentState)) {
     IsNodeFound = true;
 
     ProgramPoint P = N->getFirstPred()->getLocation();

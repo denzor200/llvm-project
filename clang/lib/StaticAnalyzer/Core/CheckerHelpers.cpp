@@ -38,9 +38,9 @@ bool containsMacro(const Stmt *S) {
 
 // Recursively find any substatements containing enum constants
 bool containsEnum(const Stmt *S) {
-  const DeclRefExpr *DR = dyn_cast<DeclRefExpr>(S);
+  
 
-  if (DR && isa<EnumConstantDecl>(DR->getDecl()))
+  if (const DeclRefExpr *DR = dyn_cast<DeclRefExpr>(S); DR && isa<EnumConstantDecl>(DR->getDecl()))
     return true;
 
   for (const Stmt *Child : S->children())
@@ -52,9 +52,9 @@ bool containsEnum(const Stmt *S) {
 
 // Recursively find any substatements containing static vars
 bool containsStaticLocal(const Stmt *S) {
-  const DeclRefExpr *DR = dyn_cast<DeclRefExpr>(S);
+  
 
-  if (DR)
+  if (const DeclRefExpr *DR = dyn_cast<DeclRefExpr>(S); DR)
     if (const VarDecl *VD = dyn_cast<VarDecl>(DR->getDecl()))
       if (VD->isStaticLocal())
         return true;

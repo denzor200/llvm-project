@@ -1071,8 +1071,8 @@ std::string Intrinsic::replaceTemplatedArgs(std::string Name, TypeSpec TS,
     assert(NumChars == 3 && "Unexpected template argument");
 
     SVEType T;
-    char C = Ret[Pos+1];
-    switch(C) {
+    
+    switch(char C = Ret[Pos+1]; C) {
     default:
       llvm_unreachable("Unknown predication specifier");
     case 'd':
@@ -1284,8 +1284,8 @@ void SVEEmitter::createIntrinsic(
              "ImmArgIdx and Kind must be nonnegative");
 
       unsigned ElementSizeInBits = 0;
-      auto [Mod, NumVectors] = getProtoModifier(Proto, EltSizeArgIdx + 1);
-      if (EltSizeArgIdx >= 0)
+      
+      if (auto [Mod, NumVectors] = getProtoModifier(Proto, EltSizeArgIdx + 1); EltSizeArgIdx >= 0)
         ElementSizeInBits = SVEType(TS, Mod, NumVectors).getElementSizeInBits();
       ImmChecks.push_back(ImmCheck(ArgIdx, Kind, ElementSizeInBits));
     }
@@ -1654,10 +1654,10 @@ void SVEEmitter::createBuiltinsJSON(raw_ostream &OS) {
       }
 
       // Pass ImmCheck information by pretending it's a type.
-      auto Iter = llvm::find_if(Def->getImmChecks(), [I](const auto &Chk) {
+      
+      if (auto Iter = llvm::find_if(Def->getImmChecks(), [I](const auto &Chk) {
         return (unsigned)Chk.getImmArgIdx() == I;
-      });
-      if (Iter != Def->getImmChecks().end())
+      }); Iter != Def->getImmChecks().end())
         OS << getImmCheckForEnumValue(Iter->getKind());
       else
         OS << ParamType.str();

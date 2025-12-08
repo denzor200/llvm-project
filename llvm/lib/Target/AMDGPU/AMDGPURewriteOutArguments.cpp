@@ -149,10 +149,10 @@ Type *AMDGPURewriteOutArguments::getStoredType(Value &Arg) const {
 
 Type *AMDGPURewriteOutArguments::getOutArgumentType(Argument &Arg) const {
   const unsigned MaxOutArgSizeBytes = 4 * MaxNumRetRegs;
-  PointerType *ArgTy = dyn_cast<PointerType>(Arg.getType());
+  
 
   // TODO: It might be useful for any out arguments, not just privates.
-  if (!ArgTy || (ArgTy->getAddressSpace() != DL->getAllocaAddrSpace() &&
+  if (PointerType *ArgTy = dyn_cast<PointerType>(Arg.getType()); !ArgTy || (ArgTy->getAddressSpace() != DL->getAllocaAddrSpace() &&
                  !AnyAddressSpace) ||
       Arg.hasByValAttr() || Arg.hasStructRetAttr()) {
     return nullptr;
@@ -243,8 +243,8 @@ bool AMDGPURewriteOutArguments::runOnFunction(Function &F) {
 
       // TODO: This is an approximation. When legalized this could be more. We
       // can ask TLI for exactly how many.
-      unsigned ArgNumRegs = DL->getTypeStoreSize(ArgTy) / 4;
-      if (ArgNumRegs + ReturnNumRegs > MaxNumRetRegs)
+      
+      if (unsigned ArgNumRegs = DL->getTypeStoreSize(ArgTy) / 4; ArgNumRegs + ReturnNumRegs > MaxNumRetRegs)
         continue;
 
       // An argument is convertible only if all exit blocks are able to replace

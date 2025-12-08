@@ -1630,8 +1630,8 @@ private:
       // Integers need a zero or sign extension on the operand
       // (depending on the source type) as well as a signed or
       // unsigned print method. Up to 64-bit is supported.
-      unsigned width = intTy.getWidth();
-      if (intTy.isUnsigned()) {
+      
+      if (unsigned width = intTy.getWidth(); intTy.isUnsigned()) {
         if (width <= 64) {
           if (width < 64)
             conversion = PrintConversion::ZeroExt64;

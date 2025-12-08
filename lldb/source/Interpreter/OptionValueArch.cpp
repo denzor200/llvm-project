@@ -27,8 +27,8 @@ void OptionValueArch::DumpValue(const ExecutionContext *exe_ctx, Stream &strm,
       strm.PutCString(" = ");
 
     if (m_current_value.IsValid()) {
-      const char *arch_name = m_current_value.GetArchitectureName();
-      if (arch_name)
+      
+      if (const char *arch_name = m_current_value.GetArchitectureName(); arch_name)
         strm.PutCString(arch_name);
     }
 

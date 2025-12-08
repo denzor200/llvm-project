@@ -126,8 +126,8 @@ Value *IslExprBuilder::createBinOp(BinaryOperator::BinaryOps Opc, Value *LHS,
   }
 
   Function *F = nullptr;
-  Module *M = Builder.GetInsertBlock()->getModule();
-  switch (Opc) {
+  
+  switch (Module *M = Builder.GetInsertBlock()->getModule(); Opc) {
   case Instruction::Add:
     F = Intrinsic::getOrInsertDeclaration(M, Intrinsic::sadd_with_overflow,
                                           {LHS->getType()});
@@ -147,13 +147,13 @@ Value *IslExprBuilder::createBinOp(BinaryOperator::BinaryOps Opc, Value *LHS,
   auto *ResultStruct = Builder.CreateCall(F, {LHS, RHS}, Name);
   assert(ResultStruct->getType()->isStructTy());
 
-  auto *OverflowFlag =
-      Builder.CreateExtractValue(ResultStruct, 1, Name + ".obit");
+  
 
   // If all overflows are tracked we do not combine the results as this could
   // cause dominance problems. Instead we will always keep the last overflow
   // flag as current state.
-  if (OTMode == OT_ALWAYS)
+  if (auto *OverflowFlag =
+      Builder.CreateExtractValue(ResultStruct, 1, Name + ".obit"); OTMode == OT_ALWAYS)
     OverflowState = OverflowFlag;
   else
     OverflowState =
@@ -424,8 +424,8 @@ Value *IslExprBuilder::createOpBin(__isl_take isl_ast_expr *Expr) {
     break;
   case isl_ast_op_fdiv_q: { // Round towards -infty
     if (auto *Const = dyn_cast<ConstantInt>(RHS)) {
-      auto &Val = Const->getValue();
-      if (Val.isPowerOf2() && Val.isNonNegative()) {
+      
+      if (auto &Val = Const->getValue(); Val.isPowerOf2() && Val.isNonNegative()) {
         Res = Builder.CreateAShr(LHS, Val.ceilLogBase2(), "polly.fdiv_q.shr");
         break;
       }
@@ -763,8 +763,8 @@ Value *IslExprBuilder::createInt(__isl_take isl_ast_expr *Expr) {
   Val = isl_ast_expr_get_val(Expr);
   APValue = APIntFromVal(Val);
 
-  auto BitWidth = APValue.getBitWidth();
-  if (BitWidth <= 64)
+  
+  if (auto BitWidth = APValue.getBitWidth(); BitWidth <= 64)
     T = getType(Expr);
   else
     T = Builder.getIntNTy(BitWidth);

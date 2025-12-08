@@ -188,10 +188,10 @@ void X86InstrMappingEmitter::emitCompressEVEXTable(
 
     RecognizableInstrBase RI(*Inst);
 
-    bool IsND = RI.OpMap == X86Local::T_MAP4 && RI.HasEVEX_B && RI.HasVEX_4V;
+    
     // Add VEX encoded instructions to one of CompressedInsts vectors according
     // to it's opcode.
-    if (RI.Encoding == X86Local::VEX)
+    if (bool IsND = RI.OpMap == X86Local::T_MAP4 && RI.HasEVEX_B && RI.HasVEX_4V; RI.Encoding == X86Local::VEX)
       CompressedInsts[RI.Opcode].push_back(Inst);
     // Add relevant EVEX encoded instructions to PreCompressionInsts
     else if (RI.Encoding == X86Local::EVEX && !RI.HasEVEX_K && !RI.HasEVEX_L2 &&

@@ -84,10 +84,10 @@ static void cleanUpTemporaries(NamedMDNode &NamedNode, MDTuple *TemporaryTuple,
       // as resizing is not supported for unique nodes and is redundant.
       unsigned int NotToRemove = 0;
       for (unsigned int I = 0; I < CurrentTuple->getNumOperands(); ++I) {
-        Metadata *Operand = CurrentTuple->getOperand(I).get();
+        
         // If current operand is not the temporary node, move it to the front
         // and increase notToRemove so that it will be saved
-        if (Operand != TemporaryTuple) {
+        if (Metadata *Operand = CurrentTuple->getOperand(I).get(); Operand != TemporaryTuple) {
           Metadata *TemporaryMetadata =
               CurrentTuple->getOperand(NotToRemove).get();
           CurrentTuple->replaceOperandWith(NotToRemove, Operand);

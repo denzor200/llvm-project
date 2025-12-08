@@ -162,9 +162,9 @@ private:
         auto referenceOrder = referenceUseListOrder.at(valueID++);
         for (auto [use, referenceID] :
              llvm::zip(val.getUses(), referenceOrder)) {
-          uint64_t uniqueID =
-              bytecode::getUseID(use, opNumbering.at(use.getOwner()));
-          if (uniqueID != referenceID) {
+          
+          if (uint64_t uniqueID =
+              bytecode::getUseID(use, opNumbering.at(use.getOwner())); uniqueID != referenceID) {
             use.getOwner()->emitError()
                 << "found use-list order mismatch for value: " << val;
             return failure();

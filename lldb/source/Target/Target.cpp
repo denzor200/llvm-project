@@ -251,8 +251,8 @@ void Target::Dump(Stream *s, lldb::DescriptionLevel description_level) {
     m_internal_breakpoint_list.Dump(s);
     s->IndentLess();
   } else {
-    Module *exe_module = GetExecutableModulePointer();
-    if (exe_module)
+    
+    if (Module *exe_module = GetExecutableModulePointer(); exe_module)
       s->PutCString(exe_module->GetFileSpec().GetFilename().GetCString());
     else
       s->PutCString("No executable module.");
@@ -619,8 +619,8 @@ Target::CreateBreakpoint(const FileSpecList *containingModules,
                          LanguageType language, lldb::addr_t offset,
                          LazyBool skip_prologue, bool internal, bool hardware) {
   BreakpointSP bp_sp;
-  size_t num_names = func_names.size();
-  if (num_names > 0) {
+  
+  if (size_t num_names = func_names.size(); num_names > 0) {
     SearchFilterSP filter_sp(GetSearchFilterForModuleAndCUList(
         containingModules, containingSourceFiles));
 
@@ -767,9 +767,9 @@ lldb::BreakpointSP Target::CreateScriptedBreakpoint(
   lldb::SearchDepth depth = lldb::eSearchDepthTarget;
   bool has_files =
       containingSourceFiles && containingSourceFiles->GetSize() > 0;
-  bool has_modules = containingModules && containingModules->GetSize() > 0;
+  
 
-  if (has_files && has_modules) {
+  if (bool has_modules = containingModules && containingModules->GetSize() > 0; has_files && has_modules) {
     filter_sp = GetSearchFilterForModuleAndCUList(containingModules,
                                                   containingSourceFiles);
   } else if (has_files) {
@@ -810,8 +810,8 @@ void Target::AddBreakpoint(lldb::BreakpointSP bp_sp, bool internal) {
   else
     m_breakpoint_list.Add(bp_sp, true);
 
-  Log *log = GetLog(LLDBLog::Breakpoints);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Breakpoints); log) {
     StreamString s;
     bp_sp->GetDescription(&s, lldb::eDescriptionLevelVerbose);
     LLDB_LOGF(log, "Target::%s (internal = %s) => break_id = %s\n",
@@ -1012,12 +1012,12 @@ WatchpointSP Target::CreateWatchpoint(lldb::addr_t addr, size_t size,
   WatchpointSP matched_sp = m_watchpoint_list.FindByAddress(addr);
   if (matched_sp) {
     size_t old_size = matched_sp->GetByteSize();
-    uint32_t old_type =
+    
+    // Return the existing watchpoint if both size and type match.
+    if (uint32_t old_type =
         (matched_sp->WatchpointRead() ? LLDB_WATCH_TYPE_READ : 0) |
         (matched_sp->WatchpointWrite() ? LLDB_WATCH_TYPE_WRITE : 0) |
-        (matched_sp->WatchpointModify() ? LLDB_WATCH_TYPE_MODIFY : 0);
-    // Return the existing watchpoint if both size and type match.
-    if (size == old_size && kind == old_type) {
+        (matched_sp->WatchpointModify() ? LLDB_WATCH_TYPE_MODIFY : 0); size == old_size && kind == old_type) {
       wp_sp = matched_sp;
       wp_sp->SetEnabled(false, notify);
     } else {
@@ -1652,8 +1652,8 @@ void Target::SetExecutableModule(ModuleSP &executable_sp,
             GetOrCreateModule(module_spec, false /* notify */));
         if (image_module_sp) {
           added_modules.AppendIfNeeded(image_module_sp, false);
-          ObjectFile *objfile = image_module_sp->GetObjectFile();
-          if (objfile) {
+          
+          if (ObjectFile *objfile = image_module_sp->GetObjectFile(); objfile) {
             // Create a local copy of the dependent file list so we don't have
             // to lock for the whole duration of GetDependentModules.
             FileSpecList dependent_files_copy;
@@ -1793,8 +1793,8 @@ bool Target::SetArchitecture(const ArchSpec &arch_spec, bool set_platform,
 }
 
 bool Target::MergeArchitecture(const ArchSpec &arch_spec) {
-  Log *log = GetLog(LLDBLog::Target);
-  if (arch_spec.IsValid()) {
+  
+  if (Log *log = GetLog(LLDBLog::Target); arch_spec.IsValid()) {
     if (m_arch.GetSpec().IsCompatibleMatch(arch_spec)) {
       // The current target arch is compatible with "arch_spec", see if we can
       // improve our current architecture using bits from "arch_spec"
@@ -1859,8 +1859,8 @@ void Target::ModulesDidLoad(ModuleList &module_list) {
   if (GetPreloadSymbols())
     module_list.PreloadSymbols(GetParallelModuleLoad());
 
-  const size_t num_images = module_list.GetSize();
-  if (m_valid && num_images) {
+  
+  if (const size_t num_images = module_list.GetSize(); m_valid && num_images) {
     for (size_t idx = 0; idx < num_images; ++idx) {
       ModuleSP module_sp(module_list.GetModuleAtIndex(idx));
       LoadScriptingResourceForModule(module_sp, this);
@@ -1912,7 +1912,9 @@ void Target::ModulesDidUnload(ModuleList &module_list, bool delete_locations) {
     // unloaded was capable of describing a source type. JITted module unloads
     // happen frequently for Objective-C utility functions or the REPL and rely
     // on the persistent variables to stick around.
-    const bool should_flush_type_systems =
+    
+
+    if (const bool should_flush_type_systems =
         module_list.AnyOf([](lldb_private::Module &module) {
           auto *object_file = module.GetObjectFile();
 
@@ -1927,9 +1929,7 @@ void Target::ModulesDidUnload(ModuleList &module_list, bool delete_locations) {
                  (type == ObjectFile::eTypeObjectFile ||
                   type == ObjectFile::eTypeExecutable ||
                   type == ObjectFile::eTypeSharedLibrary);
-        });
-
-    if (should_flush_type_systems)
+        }); should_flush_type_systems)
       m_scratch_type_system_map.Clear();
   }
 }
@@ -1940,11 +1940,11 @@ bool Target::ModuleIsExcludedForUnconstrainedSearches(
     ModuleList matchingModules;
     ModuleSpec module_spec(module_file_spec);
     GetImages().FindModules(module_spec, matchingModules);
-    size_t num_modules = matchingModules.GetSize();
+    
 
     // If there is more than one module for this file spec, only
     // return true if ALL the modules are on the black list.
-    if (num_modules > 0) {
+    if (size_t num_modules = matchingModules.GetSize(); num_modules > 0) {
       for (size_t i = 0; i < num_modules; i++) {
         if (!ModuleIsExcludedForUnconstrainedSearches(
                 matchingModules.GetModuleAtIndex(i)))
@@ -1978,11 +1978,11 @@ size_t Target::ReadMemoryFromFileCache(const Address &addr, void *dst,
     }
     ModuleSP module_sp(section_sp->GetModule());
     if (module_sp) {
-      ObjectFile *objfile = section_sp->GetModule()->GetObjectFile();
-      if (objfile) {
-        size_t bytes_read = objfile->ReadSectionData(
-            section_sp.get(), addr.GetOffset(), dst, dst_len);
-        if (bytes_read > 0)
+      
+      if (ObjectFile *objfile = section_sp->GetModule()->GetObjectFile(); objfile) {
+        
+        if (size_t bytes_read = objfile->ReadSectionData(
+            section_sp.get(), addr.GetOffset(), dst, dst_len); bytes_read > 0)
           return bytes_read;
         else
           error = Status::FromErrorStringWithFormat(
@@ -2025,8 +2025,8 @@ size_t Target::ReadMemory(const Address &addr, void *dst, size_t dst_len,
   addr_t file_addr = LLDB_INVALID_ADDRESS;
   Address resolved_addr;
   if (!fixed_addr.IsSectionOffset()) {
-    SectionLoadList &section_load_list = GetSectionLoadList();
-    if (section_load_list.IsEmpty()) {
+    
+    if (SectionLoadList &section_load_list = GetSectionLoadList(); section_load_list.IsEmpty()) {
       // No sections are loaded, so we must assume we are not running yet and
       // anything we are given is a file address.
       file_addr =
@@ -2058,9 +2058,9 @@ size_t Target::ReadMemory(const Address &addr, void *dst, size_t dst_len,
     SectionSP section_sp(resolved_addr.GetSection());
     if (section_sp) {
       auto permissions = Flags(section_sp->GetPermissions());
-      bool is_readonly = !permissions.Test(ePermissionsWritable) &&
-                         permissions.Test(ePermissionsReadable);
-      if (is_readonly) {
+      
+      if (bool is_readonly = !permissions.Test(ePermissionsWritable) &&
+                         permissions.Test(ePermissionsReadable); is_readonly) {
         file_cache_bytes_read =
             ReadMemoryFromFileCache(resolved_addr, dst, dst_len, error);
         if (file_cache_bytes_read == dst_len)
@@ -2204,8 +2204,8 @@ size_t Target::ReadCStringFromMemory(const Address &addr, char *dst,
 }
 
 addr_t Target::GetReasonableReadSize(const Address &addr) {
-  addr_t load_addr = addr.GetLoadAddress(this);
-  if (load_addr != LLDB_INVALID_ADDRESS && m_process_sp) {
+  
+  if (addr_t load_addr = addr.GetLoadAddress(this); load_addr != LLDB_INVALID_ADDRESS && m_process_sp) {
     // Avoid crossing cache line boundaries.
     addr_t cache_line_size = m_process_sp->GetMemoryCacheLineSize();
     return cache_line_size - (load_addr % cache_line_size);
@@ -2272,9 +2272,9 @@ size_t Target::ReadScalarIntegerFromMemory(const Address &addr, uint32_t byte_si
   uint64_t uval;
 
   if (byte_size <= sizeof(uval)) {
-    size_t bytes_read =
-        ReadMemory(addr, &uval, byte_size, error, force_live_memory);
-    if (bytes_read == byte_size) {
+    
+    if (size_t bytes_read =
+        ReadMemory(addr, &uval, byte_size, error, force_live_memory); bytes_read == byte_size) {
       DataExtractor data(&uval, sizeof(uval), m_arch.GetSpec().GetByteOrder(),
                          m_arch.GetSpec().GetAddressByteSize());
       lldb::offset_t offset = 0;
@@ -2324,10 +2324,10 @@ bool Target::ReadPointerFromMemory(const Address &addr, Status &error,
   Scalar scalar;
   if (ReadScalarIntegerFromMemory(addr, m_arch.GetSpec().GetAddressByteSize(),
                                   false, scalar, error, force_live_memory)) {
-    addr_t pointer_vm_addr = scalar.ULongLong(LLDB_INVALID_ADDRESS);
-    if (pointer_vm_addr != LLDB_INVALID_ADDRESS) {
-      SectionLoadList &section_load_list = GetSectionLoadList();
-      if (section_load_list.IsEmpty()) {
+    
+    if (addr_t pointer_vm_addr = scalar.ULongLong(LLDB_INVALID_ADDRESS); pointer_vm_addr != LLDB_INVALID_ADDRESS) {
+      
+      if (SectionLoadList &section_load_list = GetSectionLoadList(); section_load_list.IsEmpty()) {
         // No sections are loaded, so we must assume we are not running yet and
         // anything we are given is a file address.
         m_images.ResolveFileAddress(pointer_vm_addr, pointer_addr);
@@ -2357,8 +2357,8 @@ ModuleSP Target::GetOrCreateModule(const ModuleSpec &orig_module_spec,
   // Apply any remappings specified in target.object-map:
   ModuleSpec module_spec(orig_module_spec);
   module_spec.SetTarget(shared_from_this());
-  PathMappingList &obj_mapping = GetObjectPathMap();
-  if (std::optional<FileSpec> remapped_obj_file =
+  
+  if (PathMappingList &obj_mapping = GetObjectPathMap(); std::optional<FileSpec> remapped_obj_file =
           obj_mapping.RemapPath(orig_module_spec.GetFileSpec().GetPath(),
                                 true /* only_if_exists */)) {
     module_spec.GetFileSpec().SetPath(remapped_obj_file->GetPath());
@@ -2454,8 +2454,8 @@ ModuleSP Target::GetOrCreateModule(const ModuleSpec &orig_module_spec,
     // there wasn't an equivalent module in the list already, and if there was,
     // let's remove it.
     if (module_sp) {
-      ObjectFile *objfile = module_sp->GetObjectFile();
-      if (objfile) {
+      
+      if (ObjectFile *objfile = module_sp->GetObjectFile(); objfile) {
         switch (objfile->GetType()) {
         case ObjectFile::eTypeCoreFile: /// A core file that has a checkpoint of
                                         /// a program's execution state
@@ -3334,10 +3334,10 @@ bool Target::ResolveFileAddress(lldb::addr_t file_addr,
 bool Target::SetSectionLoadAddress(const SectionSP &section_sp,
                                    addr_t new_section_load_addr,
                                    bool warn_multiple) {
-  const addr_t old_section_load_addr =
+  
+  if (const addr_t old_section_load_addr =
       m_section_load_history.GetSectionLoadAddress(
-          SectionLoadHistory::eStopIDNow, section_sp);
-  if (old_section_load_addr != new_section_load_addr) {
+          SectionLoadHistory::eStopIDNow, section_sp); old_section_load_addr != new_section_load_addr) {
     uint32_t stop_id = 0;
     ProcessSP process_sp(GetProcessSP());
     if (process_sp)
@@ -3707,8 +3707,8 @@ Status Target::Attach(ProcessAttachInfo &attach_info, Stream *stream) {
       RunStopHooks(/* at_initial_stop= */ true);
 
       if (state != eStateStopped) {
-        const char *exit_desc = process_sp->GetExitDescription();
-        if (exit_desc)
+        
+        if (const char *exit_desc = process_sp->GetExitDescription(); exit_desc)
           error = Status::FromErrorStringWithFormat("%s", exit_desc);
         else
           error = Status::FromErrorString(
@@ -3945,8 +3945,8 @@ void Target::StopHook::SetThreadSpecifier(ThreadSpec *specifier) {
 }
 
 bool Target::StopHook::ExecutionContextPasses(const ExecutionContext &exc_ctx) {
-  SymbolContextSpecifier *specifier = GetSpecifier();
-  if (!specifier)
+  
+  if (SymbolContextSpecifier *specifier = GetSpecifier(); !specifier)
     return true;
 
   bool will_run = true;
@@ -4358,12 +4358,12 @@ public:
     // try and grab the setting from the current target if there is one. Else
     // we just use the one from this instance.
     if (exe_ctx) {
-      Target *target = exe_ctx->GetTargetPtr();
-      if (target) {
-        TargetOptionValueProperties *target_properties =
+      
+      if (Target *target = exe_ctx->GetTargetPtr(); target) {
+        
+        if (TargetOptionValueProperties *target_properties =
             static_cast<TargetOptionValueProperties *>(
-                target->GetValueProperties().get());
-        if (this != target_properties)
+                target->GetValueProperties().get()); this != target_properties)
           return target_properties->ProtectedGetPropertyAtIndex(idx);
       }
     }
@@ -4475,9 +4475,9 @@ std::optional<bool> TargetProperties::GetExperimentalPropertyValue(
     size_t prop_idx, ExecutionContext *exe_ctx) const {
   const Property *exp_property =
       m_collection_sp->GetPropertyAtIndex(ePropertyExperimental, exe_ctx);
-  OptionValueProperties *exp_values =
-      exp_property->GetValue()->GetAsProperties();
-  if (exp_values)
+  
+  if (OptionValueProperties *exp_values =
+      exp_property->GetValue()->GetAsProperties(); exp_values)
     return exp_values->GetPropertyAtIndexAs<bool>(prop_idx, exe_ctx);
   return std::nullopt;
 }
@@ -4491,9 +4491,9 @@ bool TargetProperties::GetInjectLocalVariables(
 bool TargetProperties::GetUseDIL(ExecutionContext *exe_ctx) const {
   const Property *exp_property =
       m_collection_sp->GetPropertyAtIndex(ePropertyExperimental, exe_ctx);
-  OptionValueProperties *exp_values =
-      exp_property->GetValue()->GetAsProperties();
-  if (exp_values)
+  
+  if (OptionValueProperties *exp_values =
+      exp_property->GetValue()->GetAsProperties(); exp_values)
     return exp_values->GetPropertyAtIndexAs<bool>(ePropertyUseDIL, exe_ctx)
         .value_or(false);
   else
@@ -4503,9 +4503,9 @@ bool TargetProperties::GetUseDIL(ExecutionContext *exe_ctx) const {
 void TargetProperties::SetUseDIL(ExecutionContext *exe_ctx, bool b) {
   const Property *exp_property =
       m_collection_sp->GetPropertyAtIndex(ePropertyExperimental, exe_ctx);
-  OptionValueProperties *exp_values =
-      exp_property->GetValue()->GetAsProperties();
-  if (exp_values)
+  
+  if (OptionValueProperties *exp_values =
+      exp_property->GetValue()->GetAsProperties(); exp_values)
     exp_values->SetPropertyAtIndex(ePropertyUseDIL, true, exe_ctx);
 }
 
@@ -4957,9 +4957,9 @@ SourceLanguage TargetProperties::GetLanguage() const {
 
 llvm::StringRef TargetProperties::GetExpressionPrefixContents() {
   const uint32_t idx = ePropertyExprPrefix;
-  OptionValueFileSpec *file =
-      m_collection_sp->GetPropertyAtIndexAsOptionValueFileSpec(idx);
-  if (file) {
+  
+  if (OptionValueFileSpec *file =
+      m_collection_sp->GetPropertyAtIndexAsOptionValueFileSpec(idx); file) {
     DataBufferSP data_sp(file->GetFileContents());
     if (data_sp)
       return llvm::StringRef(
@@ -5087,9 +5087,9 @@ void TargetProperties::SetProcessLaunchInfo(
   SetArg0(launch_info.GetArg0());
   SetRunArguments(launch_info.GetArguments());
   SetEnvironment(launch_info.GetEnvironment());
-  const FileAction *input_file_action =
-      launch_info.GetFileActionForFD(STDIN_FILENO);
-  if (input_file_action) {
+  
+  if (const FileAction *input_file_action =
+      launch_info.GetFileActionForFD(STDIN_FILENO); input_file_action) {
     SetStandardInputPath(input_file_action->GetPath());
   }
   const FileAction *output_file_action =
@@ -5226,8 +5226,8 @@ void Target::TargetEventData::Dump(Stream *s) const {
 const Target::TargetEventData *
 Target::TargetEventData::GetEventDataFromEvent(const Event *event_ptr) {
   if (event_ptr) {
-    const EventData *event_data = event_ptr->GetData();
-    if (event_data &&
+    
+    if (const EventData *event_data = event_ptr->GetData(); event_data &&
         event_data->GetFlavor() == TargetEventData::GetFlavorString())
       return static_cast<const TargetEventData *>(event_ptr->GetData());
   }
@@ -5236,8 +5236,8 @@ Target::TargetEventData::GetEventDataFromEvent(const Event *event_ptr) {
 
 TargetSP Target::TargetEventData::GetTargetFromEvent(const Event *event_ptr) {
   TargetSP target_sp;
-  const TargetEventData *event_data = GetEventDataFromEvent(event_ptr);
-  if (event_data)
+  
+  if (const TargetEventData *event_data = GetEventDataFromEvent(event_ptr); event_data)
     target_sp = event_data->m_target_sp;
   return target_sp;
 }
@@ -5245,8 +5245,8 @@ TargetSP Target::TargetEventData::GetTargetFromEvent(const Event *event_ptr) {
 TargetSP
 Target::TargetEventData::GetCreatedTargetFromEvent(const Event *event_ptr) {
   TargetSP created_target_sp;
-  const TargetEventData *event_data = GetEventDataFromEvent(event_ptr);
-  if (event_data)
+  
+  if (const TargetEventData *event_data = GetEventDataFromEvent(event_ptr); event_data)
     created_target_sp = event_data->m_created_target_sp;
   return created_target_sp;
 }
@@ -5254,8 +5254,8 @@ Target::TargetEventData::GetCreatedTargetFromEvent(const Event *event_ptr) {
 ModuleList
 Target::TargetEventData::GetModuleListFromEvent(const Event *event_ptr) {
   ModuleList module_list;
-  const TargetEventData *event_data = GetEventDataFromEvent(event_ptr);
-  if (event_data)
+  
+  if (const TargetEventData *event_data = GetEventDataFromEvent(event_ptr); event_data)
     module_list = event_data->m_module_list;
   return module_list;
 }

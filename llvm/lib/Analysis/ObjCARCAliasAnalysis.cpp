@@ -56,8 +56,8 @@ AliasResult ObjCARCAAResult::alias(const MemoryLocation &LocA,
   // If that failed, climb to the underlying object, including climbing through
   // ObjC-specific no-ops, and try making an imprecise alias query.
   const Value *UA = GetUnderlyingObjCPtr(SA);
-  const Value *UB = GetUnderlyingObjCPtr(SB);
-  if (UA != SA || UB != SB) {
+  
+  if (const Value *UB = GetUnderlyingObjCPtr(SB); UA != SA || UB != SB) {
     Result = AAResultBase::alias(MemoryLocation::getBeforeOrAfter(UA),
                                  MemoryLocation::getBeforeOrAfter(UB), AAQI,
                                  nullptr);

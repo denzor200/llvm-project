@@ -81,8 +81,8 @@ std::error_code llvm::getRandomBytes(void *Buffer, size_t Size) {
   int Fd = open("/dev/urandom", O_RDONLY);
   if (Fd != -1) {
     std::error_code Ret;
-    ssize_t BytesRead = read(Fd, Buffer, Size);
-    if (BytesRead == -1)
+    
+    if (ssize_t BytesRead = read(Fd, Buffer, Size); BytesRead == -1)
       Ret = errnoAsErrorCode();
     else if (BytesRead != static_cast<ssize_t>(Size))
       Ret = std::error_code(EIO, std::system_category());

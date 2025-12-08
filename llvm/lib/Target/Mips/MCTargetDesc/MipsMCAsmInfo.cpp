@@ -185,11 +185,11 @@ static bool evaluate(const MCSpecifierExpr &Expr, MCValue &Res,
   // Look for the %hi(%neg(%gp_rel(X))) and %lo(%neg(%gp_rel(X)))
   // special cases.
   if (Mips::isGpOff(Expr)) {
-    const MCExpr *SubExpr =
+    
+    if (const MCExpr *SubExpr =
         cast<MCSpecifierExpr>(
             cast<MCSpecifierExpr>(Expr.getSubExpr())->getSubExpr())
-            ->getSubExpr();
-    if (!SubExpr->evaluateAsRelocatable(Res, Asm))
+            ->getSubExpr(); !SubExpr->evaluateAsRelocatable(Res, Asm))
       return false;
 
     Res.setSpecifier(Mips::S_Special);

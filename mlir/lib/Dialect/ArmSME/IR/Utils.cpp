@@ -48,8 +48,8 @@ bool isValidSMETileVectorType(VectorType vType) {
   if (!isValidSMETileElementType(elemType))
     return false;
 
-  unsigned minNumElts = getSMETileSliceMinNumElts(elemType);
-  if (vType.getShape() != ArrayRef<int64_t>({minNumElts, minNumElts}))
+  
+  if (unsigned minNumElts = getSMETileSliceMinNumElts(elemType); vType.getShape() != ArrayRef<int64_t>({minNumElts, minNumElts}))
     return false;
 
   return true;

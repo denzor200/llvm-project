@@ -101,9 +101,9 @@ static bool hasELFSignedGOTHelper(const Function &F,
   if (!STI->getTargetTriple().isOSBinFormatELF())
     return false;
   const Module *M = F.getParent();
-  const auto *Flag = mdconst::extract_or_null<ConstantInt>(
-      M->getModuleFlag("ptrauth-elf-got"));
-  if (Flag && Flag->getZExtValue() == 1)
+  
+  if (const auto *Flag = mdconst::extract_or_null<ConstantInt>(
+      M->getModuleFlag("ptrauth-elf-got")); Flag && Flag->getZExtValue() == 1)
     return true;
   return false;
 }

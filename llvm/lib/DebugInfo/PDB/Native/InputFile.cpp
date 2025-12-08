@@ -492,8 +492,8 @@ SymbolGroupIterator::SymbolGroupIterator(InputFile &File) : Value(&File) {
 
 bool SymbolGroupIterator::operator==(const SymbolGroupIterator &R) const {
   bool E = isEnd();
-  bool RE = R.isEnd();
-  if (E || RE)
+  
+  if (bool RE = R.isEnd(); E || RE)
     return E == RE;
 
   if (Value.File != R.Value.File)

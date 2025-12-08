@@ -220,8 +220,8 @@ bool ObjCMemberwiseInitializer::prepare(const Selection &Inputs) {
     Interface = ID->getClassInterface();
     Impl = ID;
   } else if (isa<ObjCPropertyDecl, ObjCIvarDecl>(D)) {
-    const auto *DC = D->getDeclContext();
-    if (const auto *ID = dyn_cast<ObjCInterfaceDecl>(DC)) {
+    
+    if (const auto *DC = D->getDeclContext(); const auto *ID = dyn_cast<ObjCInterfaceDecl>(DC)) {
       Interface = ID;
     } else if (const auto *ID = dyn_cast<ObjCImplementationDecl>(DC)) {
       Interface = ID->getClassInterface();
@@ -241,10 +241,10 @@ ObjCMemberwiseInitializer::paramsForSelection(const SelectionTree::Node *N) {
       return Params;
     }
   }
-  const ObjCContainerDecl *Container =
+  
+  if (const ObjCContainerDecl *Container =
       Impl ? static_cast<const ObjCContainerDecl *>(Impl)
-           : static_cast<const ObjCContainerDecl *>(Interface);
-  if (Container == N->ASTNode.get<ObjCContainerDecl>() && N->Children.empty())
+           : static_cast<const ObjCContainerDecl *>(Interface); Container == N->ASTNode.get<ObjCContainerDecl>() && N->Children.empty())
     return getAllParams(Interface);
 
   llvm::DenseSet<llvm::StringRef> Names;

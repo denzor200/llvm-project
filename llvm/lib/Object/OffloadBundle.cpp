@@ -272,8 +272,8 @@ Error object::extractOffloadBundleByURI(StringRef URIstr) {
   if (!ObjOrErr)
     return ObjOrErr.takeError();
 
-  auto Obj = ObjOrErr->getBinary();
-  if (Error Err =
+  
+  if (auto Obj = ObjOrErr->getBinary(); Error Err =
           object::extractCodeObject(*Obj, Uri.Offset, Uri.Size, OutputFile))
     return Err;
 
@@ -467,9 +467,9 @@ CompressedOffloadBundle::CompressedBundleHeader::tryParse(StringRef Blob) {
   CompressedBundleHeader Normalized;
   Normalized.Version = Header.Common.Version;
 
-  size_t RequiredSize = getHeaderSize(Normalized.Version);
+  
 
-  if (Blob.size() < RequiredSize)
+  if (size_t RequiredSize = getHeaderSize(Normalized.Version); Blob.size() < RequiredSize)
     return createStringError("compressed bundle header size too small");
 
   switch (Normalized.Version) {

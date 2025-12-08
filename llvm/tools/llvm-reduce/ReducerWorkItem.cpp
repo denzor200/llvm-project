@@ -325,8 +325,8 @@ static std::unique_ptr<MachineFunction> cloneMF(MachineFunction *SrcMF,
       DstMRI->setType(NewReg, RegTy);
 
     // Copy register allocation hints.
-    const auto *Hints = SrcMRI->getRegAllocationHints(Reg);
-    if (Hints)
+    
+    if (const auto *Hints = SrcMRI->getRegAllocationHints(Reg); Hints)
       for (Register PrefReg : Hints->second)
         DstMRI->addRegAllocationHint(NewReg, PrefReg);
   }
@@ -790,9 +790,9 @@ void ReducerWorkItem::readBitcode(MemoryBufferRef Data, LLVMContext &Ctx,
 }
 
 void ReducerWorkItem::writeBitcode(raw_ostream &OutStream) const {
-  const bool ShouldPreserveUseListOrder = true;
+  
 
-  if (LTOInfo && LTOInfo->IsThinLTO && LTOInfo->EnableSplitLTOUnit) {
+  if (const bool ShouldPreserveUseListOrder = true; LTOInfo && LTOInfo->IsThinLTO && LTOInfo->EnableSplitLTOUnit) {
     PassBuilder PB;
     LoopAnalysisManager LAM;
     FunctionAnalysisManager FAM;

@@ -79,10 +79,10 @@ void ReportShapeFnPass::runOnOperation() {
       return;
 
     func.walk([&](Operation *op) {
-      bool found = llvm::any_of(libraries, [&](shape::FunctionLibraryOp lib) {
+      
+      if (bool found = llvm::any_of(libraries, [&](shape::FunctionLibraryOp lib) {
         return remarkShapeFn(lib, op);
-      });
-      if (!found)
+      }); !found)
         op->emitRemark() << "no associated way to refine shape";
     });
   });

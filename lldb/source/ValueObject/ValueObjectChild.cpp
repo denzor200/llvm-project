@@ -86,12 +86,12 @@ LazyBool ValueObjectChild::CanUpdateWithInvalidExecutionContext() {
   if (m_can_update_with_invalid_exe_ctx)
     return *m_can_update_with_invalid_exe_ctx;
   if (m_parent) {
-    ValueObject *opinionated_parent =
+    
+    if (ValueObject *opinionated_parent =
         m_parent->FollowParentChain([](ValueObject *valobj) -> bool {
           return (valobj->CanUpdateWithInvalidExecutionContext() ==
                   eLazyBoolCalculate);
-        });
-    if (opinionated_parent)
+        }); opinionated_parent)
       return *(m_can_update_with_invalid_exe_ctx =
                    opinionated_parent->CanUpdateWithInvalidExecutionContext());
   }
@@ -102,8 +102,8 @@ LazyBool ValueObjectChild::CanUpdateWithInvalidExecutionContext() {
 bool ValueObjectChild::UpdateValue() {
   m_error.Clear();
   SetValueIsValid(false);
-  ValueObject *parent = m_parent;
-  if (parent) {
+  
+  if (ValueObject *parent = m_parent; parent) {
     if (parent->UpdateValueIfNeeded(false)) {
       m_value.SetCompilerType(GetCompilerType());
 
@@ -148,8 +148,8 @@ bool ValueObjectChild::UpdateValue() {
       case Value::ValueType::LoadAddress:
       case Value::ValueType::FileAddress:
       case Value::ValueType::HostAddress: {
-        lldb::addr_t addr = m_value.GetScalar().ULongLong(LLDB_INVALID_ADDRESS);
-        if (addr == LLDB_INVALID_ADDRESS) {
+        
+        if (lldb::addr_t addr = m_value.GetScalar().ULongLong(LLDB_INVALID_ADDRESS); addr == LLDB_INVALID_ADDRESS) {
           m_error = Status::FromErrorString("parent address is invalid.");
         } else if (addr == 0) {
           m_error = Status::FromErrorString("parent is NULL");
@@ -167,9 +167,9 @@ bool ValueObjectChild::UpdateValue() {
             if (auto type_bit_size =
                     llvm::expectedToOptional(GetCompilerType().GetBitSize(
                         exe_ctx.GetBestExecutionContextScope()))) {
-              uint64_t bitfield_end =
-                  m_bitfield_bit_size + m_bitfield_bit_offset;
-              if (bitfield_end > *type_bit_size) {
+              
+              if (uint64_t bitfield_end =
+                  m_bitfield_bit_size + m_bitfield_bit_offset; bitfield_end > *type_bit_size) {
                 uint64_t overhang_bytes =
                     (bitfield_end - *type_bit_size + 7) / 8;
                 m_byte_offset += overhang_bytes;
@@ -219,8 +219,8 @@ bool ValueObjectChild::UpdateValue() {
 }
 
 bool ValueObjectChild::IsInScope() {
-  ValueObject *root(GetRoot());
-  if (root)
+  
+  if (ValueObject *root(GetRoot()); root)
     return root->IsInScope();
   return false;
 }

@@ -1216,10 +1216,10 @@ AArch64LegalizerInfo::AArch64LegalizerInfo(const AArch64Subtarget &ST)
   getActionDefinitionsBuilder(G_SHUFFLE_VECTOR)
       .legalIf([=](const LegalityQuery &Query) {
         const LLT &DstTy = Query.Types[0];
-        const LLT &SrcTy = Query.Types[1];
+        
         // For now just support the TBL2 variant which needs the source vectors
         // to be the same size as the dest.
-        if (DstTy != SrcTy)
+        if (const LLT &SrcTy = Query.Types[1]; DstTy != SrcTy)
           return false;
         return llvm::is_contained(
             {v8s8, v16s8, v4s16, v8s16, v2s32, v4s32, v2s64}, DstTy);
@@ -1442,8 +1442,8 @@ bool AArch64LegalizerInfo::legalizeCustom(
     LostDebugLocObserver &LocObserver) const {
   MachineIRBuilder &MIRBuilder = Helper.MIRBuilder;
   MachineRegisterInfo &MRI = *MIRBuilder.getMRI();
-  GISelChangeObserver &Observer = Helper.Observer;
-  switch (MI.getOpcode()) {
+  
+  switch (GISelChangeObserver &Observer = Helper.Observer; MI.getOpcode()) {
   default:
     // No idea what to do.
     return false;
@@ -1695,8 +1695,8 @@ bool AArch64LegalizerInfo::legalizeIntrinsic(LegalizerHelper &Helper,
     return true;
   };
 
-  Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MI).getIntrinsicID();
-  switch (IntrinsicID) {
+  
+  switch (Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MI).getIntrinsicID(); IntrinsicID) {
   case Intrinsic::vacopy: {
     unsigned PtrSize = ST->isTargetILP32() ? 4 : 8;
     unsigned VaListSize =
@@ -2337,10 +2337,10 @@ bool AArch64LegalizerInfo::legalizeCTTZ(MachineInstr &MI,
 
 bool AArch64LegalizerInfo::legalizeMemOps(MachineInstr &MI,
                                           LegalizerHelper &Helper) const {
-  MachineIRBuilder &MIRBuilder = Helper.MIRBuilder;
+  
 
   // Tagged version MOPSMemorySetTagged is legalised in legalizeIntrinsic
-  if (MI.getOpcode() == TargetOpcode::G_MEMSET) {
+  if (MachineIRBuilder &MIRBuilder = Helper.MIRBuilder; MI.getOpcode() == TargetOpcode::G_MEMSET) {
     // Anyext the value being set to 64 bit (only the bottom 8 bits are read by
     // the instruction).
     auto &Value = MI.getOperand(1);

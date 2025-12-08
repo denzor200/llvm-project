@@ -426,9 +426,9 @@ void ClangUserExpression::CreateSourceCode(
     // transformed code. We need this later for the code completion.
     std::size_t original_start;
     std::size_t original_end;
-    bool found_bounds = m_source_code->GetOriginalBodyBounds(
-        m_transformed_text, original_start, original_end);
-    if (found_bounds)
+    
+    if (bool found_bounds = m_source_code->GetOriginalBodyBounds(
+        m_transformed_text, original_start, original_end); found_bounds)
       m_user_expression_start_pos = original_start;
   }
 }
@@ -570,11 +570,11 @@ bool ClangUserExpression::TryParse(
       exe_ctx.GetBestExecutionContextScope(), *this, generate_debug_info,
       diagnostic_manager, m_include_directories, m_filename);
 
-  unsigned num_errors = m_parser->Parse(diagnostic_manager);
+  
 
   // Check here for FixItHints.  If there are any try to apply the fixits and
   // set the fixed text in m_fixed_text before returning an error.
-  if (num_errors) {
+  if (unsigned num_errors = m_parser->Parse(diagnostic_manager); num_errors) {
     if (diagnostic_manager.HasFixIts()) {
       if (m_parser->RewriteExpression(diagnostic_manager)) {
         size_t fixed_start;
@@ -602,8 +602,8 @@ bool ClangUserExpression::TryParse(
         m_can_interpret, execution_policy);
 
     if (!jit_error.Success()) {
-      const char *error_cstr = jit_error.AsCString();
-      if (error_cstr && error_cstr[0])
+      
+      if (const char *error_cstr = jit_error.AsCString(); error_cstr && error_cstr[0])
         diagnostic_manager.PutString(lldb::eSeverityError, error_cstr);
       else
         diagnostic_manager.PutString(lldb::eSeverityError,
@@ -953,9 +953,9 @@ void ClangUserExpression::ClangUserExpressionHelper::ResetDeclMap(
     bool keep_result_in_memory,
     ValueObject *ctx_obj) {
   std::shared_ptr<ClangASTImporter> ast_importer;
-  auto *state = exe_ctx.GetTargetSP()->GetPersistentExpressionStateForLanguage(
-      lldb::eLanguageTypeC);
-  if (state) {
+  
+  if (auto *state = exe_ctx.GetTargetSP()->GetPersistentExpressionStateForLanguage(
+      lldb::eLanguageTypeC); state) {
     auto *persistent_vars = llvm::cast<ClangPersistentVariables>(state);
     ast_importer = persistent_vars->GetClangASTImporter();
   }

@@ -242,10 +242,10 @@ LIBC_INLINE static constexpr double exp10_set_exceptional(double x) {
   FPBits xbits(x);
 
   uint64_t x_u = xbits.uintval();
-  uint64_t x_abs = xbits.abs().uintval();
+  
 
   // |x| < log10(1 + 2^-53)
-  if (x_abs <= 0x3c8bcb7b1526e50e) {
+  if (uint64_t x_abs = xbits.abs().uintval(); x_abs <= 0x3c8bcb7b1526e50e) {
     // 10^(x) ~ 1 + x/2
     return fputil::multiply_add(x, 0.5, 1.0);
   }
@@ -275,8 +275,8 @@ LIBC_INLINE static constexpr double exp10_set_exceptional(double x) {
   // x >= log10(2^1024) or +inf/nan
   // x is finite
   if (x_u < 0x7ff0'0000'0000'0000ULL) {
-    int rounding = fputil::quick_get_round();
-    if (rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
+    
+    if (int rounding = fputil::quick_get_round(); rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
       return FPBits::max_normal().get_val();
 
     fputil::set_errno_if_required(ERANGE);

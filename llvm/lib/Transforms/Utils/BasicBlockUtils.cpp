@@ -76,13 +76,13 @@ emptyAndDetachBlock(BasicBlock *BB,
 
   // Zap all the instructions in the block.
   while (!BB->empty()) {
-    Instruction &I = BB->back();
+    
     // If this instruction is used, replace uses with an arbitrary value.
     // Because control flow can't get here, we don't care what we replace the
     // value with. Note that since this block is unreachable, and all values
     // contained within it must dominate their uses, that all uses will
     // eventually be removed (they are themselves dead).
-    if (!I.use_empty())
+    if (Instruction &I = BB->back(); !I.use_empty())
       I.replaceAllUsesWith(PoisonValue::get(I.getType()));
     BB->back().eraseFromParent();
   }
@@ -99,14 +99,14 @@ void llvm::detachDeadBlocks(ArrayRef<BasicBlock *> BBs,
   for (auto *BB : BBs) {
     auto NonFirstPhiIt = BB->getFirstNonPHIIt();
     if (NonFirstPhiIt != BB->end()) {
-      Instruction &I = *NonFirstPhiIt;
+      
       // Exception handling funclets need to be explicitly addressed.
       // These funclets must begin with cleanuppad or catchpad and end with
       // cleanupred or catchret. The return instructions can be in different
       // basic blocks than the pad instruction. If we would only delete the
       // first block, the we would have possible cleanupret and catchret
       // instructions with poison arguments, which wouldn't be valid.
-      if (isa<FuncletPadInst>(I)) {
+      if (Instruction &I = *NonFirstPhiIt; isa<FuncletPadInst>(I)) {
         UniqueEHRetBlocksToDelete.clear();
 
         for (User *User : I.users()) {
@@ -275,8 +275,8 @@ bool llvm::MergeBlockIntoPredecessor(BasicBlock *BB, DomTreeUpdater *DTU,
   if (DT) {
     assert(!DTU && "cannot use both DT and DTU for updates");
     DomTreeNode *PredNode = DT->getNode(PredBB);
-    DomTreeNode *BBNode = DT->getNode(BB);
-    if (PredNode) {
+    
+    if (DomTreeNode *BBNode = DT->getNode(BB); PredNode) {
       assert(BBNode && "PredNode unreachable but BBNode reachable?");
       for (DomTreeNode *C : to_vector(BBNode->children()))
         C->setIDom(PredNode);
@@ -382,8 +382,8 @@ bool llvm::MergeBlockSuccessorsIntoGivenBlocks(
   bool BlocksHaveBeenMerged = false;
   while (!MergeBlocks.empty()) {
     BasicBlock *BB = *MergeBlocks.begin();
-    BasicBlock *Dest = BB->getSingleSuccessor();
-    if (Dest && (!L || L->contains(Dest))) {
+    
+    if (BasicBlock *Dest = BB->getSingleSuccessor(); Dest && (!L || L->contains(Dest))) {
       BasicBlock *Fold = Dest->getUniquePredecessor();
       (void)Fold;
       if (MergeBlockIntoPredecessor(Dest, DTU, LI)) {
@@ -550,8 +550,8 @@ static bool removeUndefDbgAssignsFromEntryBlock(BasicBlock *BB) {
 
       DebugVariableAggregate Aggregate(&DVR);
       if (!SeenDefForAggregate.contains(Aggregate)) {
-        bool IsKill = DVR.isKillLocation() && IsDbgValueKind;
-        if (!IsKill) {
+        
+        if (bool IsKill = DVR.isKillLocation() && IsDbgValueKind; !IsKill) {
           SeenDefForAggregate.insert(Aggregate);
         } else if (DVR.isDbgAssign()) {
           DVR.eraseFromParent();
@@ -732,9 +732,9 @@ BasicBlock *llvm::SplitCallBrEdge(BasicBlock *CallBrBlock, BasicBlock *Succ,
   // Jump from the new target block to the original successor.
   BranchInst::Create(Succ, CallBrTarget);
 
-  bool Updated =
-      updateCycleLoopInfo<LoopInfo, Loop>(LI, CallBrBlock, CallBrTarget, Succ);
-  if (UpdatedLI)
+  
+  if (bool Updated =
+      updateCycleLoopInfo<LoopInfo, Loop>(LI, CallBrBlock, CallBrTarget, Succ); UpdatedLI)
     *UpdatedLI = Updated;
   updateCycleLoopInfo<CycleInfo, Cycle>(CI, CallBrBlock, CallBrTarget, Succ);
   if (DTU) {
@@ -916,9 +916,9 @@ BasicBlock *llvm::ehAwareSplitEdge(BasicBlock *BB, BasicBlock *Succ,
         }
 
         if (!LoopPreds.empty()) {
-          BasicBlock *NewExitBB = SplitBlockPredecessors(
-              Succ, LoopPreds, "split", DT, LI, MSSAU, Options.PreserveLCSSA);
-          if (Options.PreserveLCSSA)
+          
+          if (BasicBlock *NewExitBB = SplitBlockPredecessors(
+              Succ, LoopPreds, "split", DT, LI, MSSAU, Options.PreserveLCSSA); Options.PreserveLCSSA)
             createPHIsForSplitLoopExit(LoopPreds, NewExitBB, Succ);
         }
       }
@@ -1259,8 +1259,8 @@ static void UpdatePHINodes(BasicBlock *OrigBB, BasicBlock *NewBB,
     // second off, this ensures that the indices for the incoming values aren't
     // invalidated when we remove one.
     for (int64_t i = PN->getNumIncomingValues() - 1; i >= 0; --i) {
-      BasicBlock *IncomingBB = PN->getIncomingBlock(i);
-      if (PredSet.count(IncomingBB)) {
+      
+      if (BasicBlock *IncomingBB = PN->getIncomingBlock(i); PredSet.count(IncomingBB)) {
         Value *V = PN->removeIncomingValue(i, false);
         NewPHI->addIncoming(V, IncomingBB);
       }
@@ -1351,14 +1351,14 @@ SplitBlockPredecessorsImpl(BasicBlock *BB, ArrayRef<BasicBlock *> Preds,
   }
 
   if (OldLatch) {
-    BasicBlock *NewLatch = L->getLoopLatch();
-    if (NewLatch != OldLatch) {
+    
+    if (BasicBlock *NewLatch = L->getLoopLatch(); NewLatch != OldLatch) {
       MDNode *MD = OldLatch->getTerminator()->getMetadata(LLVMContext::MD_loop);
       NewLatch->getTerminator()->setMetadata(LLVMContext::MD_loop, MD);
       // It's still possible that OldLatch is the latch of another inner loop,
       // in which case we do not remove the metadata.
-      Loop *IL = LI->getLoopFor(OldLatch);
-      if (IL && IL->getLoopLatch() != OldLatch)
+      
+      if (Loop *IL = LI->getLoopFor(OldLatch); IL && IL->getLoopLatch() != OldLatch)
         OldLatch->getTerminator()->setMetadata(LLVMContext::MD_loop, nullptr);
     }
   }

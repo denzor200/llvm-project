@@ -262,8 +262,8 @@ void __kmp_str_fname_init(kmp_str_fname_t *fname, char const *path) {
     slash = strrchr(fname->dir, '/');
     if (KMP_OS_WINDOWS &&
         slash == NULL) { // On Windows* OS, if slash not found,
-      char first = (char)TOLOWER(fname->dir[0]); // look for drive.
-      if ('a' <= first && first <= 'z' && fname->dir[1] == ':') {
+      // look for drive.
+      if (char first = (char)TOLOWER(fname->dir[0]); 'a' <= first && first <= 'z' && fname->dir[1] == ':') {
         slash = &fname->dir[1];
       }
     }
@@ -576,8 +576,8 @@ void __kmp_str_split(char *str, // I: String to split.
   char *h = str;
   char *t = NULL;
   if (str != NULL) {
-    char *ptr = strchr(str, delim);
-    if (ptr != NULL) {
+    
+    if (char *ptr = strchr(str, delim); ptr != NULL) {
       *ptr = 0;
       t = ptr + 1;
     }

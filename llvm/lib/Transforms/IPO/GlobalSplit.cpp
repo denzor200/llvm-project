@@ -136,8 +136,8 @@ static bool splitGlobal(GlobalVariable &GV) {
       // global variables that !type metadata can be attached to, and that they
       // are either Itanium ABI vtable groups or contain a single vtable (i.e.
       // Microsoft ABI vtables).
-      uint64_t AttachedTo = (ByteOffset == 0) ? ByteOffset : ByteOffset - 1;
-      if (AttachedTo < SplitBegin || AttachedTo >= SplitEnd)
+      
+      if (uint64_t AttachedTo = (ByteOffset == 0) ? ByteOffset : ByteOffset - 1; AttachedTo < SplitBegin || AttachedTo >= SplitEnd)
         continue;
       SplitGV->addMetadata(
           LLVMContext::MD_type,
@@ -176,9 +176,9 @@ static bool splitGlobals(Module &M) {
       Intrinsic::getDeclarationIfExists(&M, Intrinsic::type_test);
   Function *TypeCheckedLoadFunc =
       Intrinsic::getDeclarationIfExists(&M, Intrinsic::type_checked_load);
-  Function *TypeCheckedLoadRelativeFunc = Intrinsic::getDeclarationIfExists(
-      &M, Intrinsic::type_checked_load_relative);
-  if ((!TypeTestFunc || TypeTestFunc->use_empty()) &&
+  
+  if (Function *TypeCheckedLoadRelativeFunc = Intrinsic::getDeclarationIfExists(
+      &M, Intrinsic::type_checked_load_relative); (!TypeTestFunc || TypeTestFunc->use_empty()) &&
       (!TypeCheckedLoadFunc || TypeCheckedLoadFunc->use_empty()) &&
       (!TypeCheckedLoadRelativeFunc ||
        TypeCheckedLoadRelativeFunc->use_empty()))

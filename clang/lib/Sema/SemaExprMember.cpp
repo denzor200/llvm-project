@@ -394,11 +394,11 @@ CheckExtVectorComponent(Sema &S, QualType baseType, ExprValueKind &VK,
   bool HasRepeated = false;
   bool HasIndex[16] = {};
 
-  int Idx;
+  
 
   // Check that we've found one of the special components, or that the component
   // names must come from the same set.
-  if (!strcmp(compStr, "hi") || !strcmp(compStr, "lo") ||
+  if (int Idx; !strcmp(compStr, "hi") || !strcmp(compStr, "lo") ||
       !strcmp(compStr, "even") || !strcmp(compStr, "odd")) {
     HalvingSwizzle = true;
   } else if (!HexSwizzle &&
@@ -572,8 +572,8 @@ Sema::ActOnDependentMemberExpr(Expr *BaseExpr, QualType BaseType,
   // accessing the 'f' property if T is an Obj-C interface. The extra check
   // allows this, while still reporting an error if T is a struct pointer.
   if (!IsArrow) {
-    const PointerType *PT = BaseType->getAs<PointerType>();
-    if (PT && (!getLangOpts().ObjC ||
+    
+    if (const PointerType *PT = BaseType->getAs<PointerType>(); PT && (!getLangOpts().ObjC ||
                PT->getPointeeType()->isRecordType())) {
       assert(BaseExpr && "cannot happen with implicit member accesses");
       Diag(OpLoc, diag::err_typecheck_member_reference_struct_union)
@@ -1467,8 +1467,8 @@ static ExprResult LookupMemberExpr(Sema &S, LookupResult &R,
   }
 
   // Objective-C property access.
-  const ObjCObjectPointerType *OPT;
-  if (!IsArrow && (OPT = BaseType->getAs<ObjCObjectPointerType>())) {
+  
+  if (const ObjCObjectPointerType *OPT; !IsArrow && (OPT = BaseType->getAs<ObjCObjectPointerType>())) {
     if (!SS.isEmpty() && !SS.isInvalid()) {
       S.Diag(SS.getRange().getBegin(), diag::err_qualified_objc_access)
           << 0 << SS.getScopeRep() << FixItHint::CreateRemoval(SS.getRange());

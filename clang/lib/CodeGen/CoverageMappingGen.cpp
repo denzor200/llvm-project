@@ -1036,8 +1036,8 @@ struct CounterCoverageMappingBuilder
   void popRegions(size_t ParentIndex) {
     assert(RegionStack.size() >= ParentIndex && "parent not in stack");
     while (RegionStack.size() > ParentIndex) {
-      SourceMappingRegion &Region = RegionStack.back();
-      if (Region.hasStartLoc() &&
+      
+      if (SourceMappingRegion &Region = RegionStack.back(); Region.hasStartLoc() &&
           (Region.hasEndLoc() || RegionStack[ParentIndex].hasEndLoc())) {
         SourceLocation StartLoc = Region.getBeginLoc();
         SourceLocation EndLoc = Region.hasEndLoc()
@@ -1048,8 +1048,8 @@ struct CounterCoverageMappingBuilder
         size_t EndDepth = locationDepth(EndLoc);
         while (!SM.isWrittenInSameFile(StartLoc, EndLoc)) {
           bool UnnestStart = StartDepth >= EndDepth;
-          bool UnnestEnd = EndDepth >= StartDepth;
-          if (UnnestEnd) {
+          
+          if (bool UnnestEnd = EndDepth >= StartDepth; UnnestEnd) {
             // The region ends in a nested file or macro expansion. If the
             // region is not a branch region, create a separate region for each
             // expansion, and for all regions, update the EndLoc. Branch
@@ -1155,8 +1155,8 @@ struct CounterCoverageMappingBuilder
     if (CodeGenFunction::isInstrumentedCondition(C) ||
         LeafExprSet.count(CodeGenFunction::stripCond(C))) {
       mcdc::Parameters BranchParams;
-      mcdc::ConditionID ID = MCDCBuilder.getCondID(C);
-      if (ID >= 0)
+      
+      if (mcdc::ConditionID ID = MCDCBuilder.getCondID(C); ID >= 0)
         BranchParams = mcdc::BranchParameters{ID, Conds};
 
       // If a condition can fold to true or false, the corresponding branch
@@ -1333,8 +1333,8 @@ struct CounterCoverageMappingBuilder
     // location.
     if (AfterLoc.isMacroID()) {
       FileID FID = SM.getFileID(AfterLoc);
-      const SrcMgr::ExpansionInfo *EI = &SM.getSLocEntry(FID).getExpansion();
-      if (EI->isFunctionMacroExpansion())
+      
+      if (const SrcMgr::ExpansionInfo *EI = &SM.getSLocEntry(FID).getExpansion(); EI->isFunctionMacroExpansion())
         AfterLoc = EI->getExpansionLocEnd();
     }
 
@@ -1342,8 +1342,8 @@ struct CounterCoverageMappingBuilder
     size_t EndDepth = locationDepth(BeforeLoc);
     while (!SM.isWrittenInSameFile(AfterLoc, BeforeLoc)) {
       bool UnnestStart = StartDepth >= EndDepth;
-      bool UnnestEnd = EndDepth >= StartDepth;
-      if (UnnestEnd) {
+      
+      if (bool UnnestEnd = EndDepth >= StartDepth; UnnestEnd) {
         assert(SM.isWrittenInSameFile(getStartOfFileOrMacro(BeforeLoc),
                                       BeforeLoc));
 
@@ -1393,8 +1393,8 @@ struct CounterCoverageMappingBuilder
     // If StartingLoc is in function-like macro, use its start location.
     if (StartingLoc.isMacroID()) {
       FileID FID = SM.getFileID(StartingLoc);
-      const SrcMgr::ExpansionInfo *EI = &SM.getSLocEntry(FID).getExpansion();
-      if (EI->isFunctionMacroExpansion())
+      
+      if (const SrcMgr::ExpansionInfo *EI = &SM.getSLocEntry(FID).getExpansion(); EI->isFunctionMacroExpansion())
         StartingLoc = EI->getExpansionLocStart();
     }
 
@@ -1402,8 +1402,8 @@ struct CounterCoverageMappingBuilder
     size_t EndDepth = locationDepth(BeforeLoc);
     while (!SM.isWrittenInSameFile(StartingLoc, BeforeLoc)) {
       bool UnnestStart = StartDepth >= EndDepth;
-      bool UnnestEnd = EndDepth >= StartDepth;
-      if (UnnestEnd) {
+      
+      if (bool UnnestEnd = EndDepth >= StartDepth; UnnestEnd) {
         assert(SM.isWrittenInSameFile(getStartOfFileOrMacro(BeforeLoc),
                                       BeforeLoc));
 
@@ -1534,8 +1534,8 @@ struct CounterCoverageMappingBuilder
     if (auto *Ctor = dyn_cast<CXXConstructorDecl>(D)) {
       for (auto *Initializer : Ctor->inits()) {
         if (Initializer->isWritten()) {
-          auto *Init = Initializer->getInit();
-          if (getStart(Init).isValid() && getEnd(Init).isValid())
+          
+          if (auto *Init = Initializer->getInit(); getStart(Init).isValid() && getEnd(Init).isValid())
             propagateCounts(BodyCounter, Init);
         }
       }
@@ -2027,9 +2027,9 @@ struct CounterCoverageMappingBuilder
     }
 
     const auto *Then = S->getThen();
-    const auto *Else = S->getElse();
+    
 
-    if (isTrue) {
+    if (const auto *Else = S->getElse(); isTrue) {
       // ignore '<condition>)'
       markSkipped(startOfSkipped, getStart(Then));
       propagateCounts(ParentCount, Then);

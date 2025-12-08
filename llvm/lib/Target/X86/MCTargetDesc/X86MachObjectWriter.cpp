@@ -211,8 +211,8 @@ void X86MachObjectWriter::RecordX86_64Relocation(
   } else {
     const MCSymbol *Symbol = Target.getAddSym();
     if (Symbol->isTemporary() && Value) {
-      const MCSection &Sec = Symbol->getSection();
-      if (!MCAsmInfoDarwin::isSectionAtomizableBySymbols(Sec))
+      
+      if (const MCSection &Sec = Symbol->getSection(); !MCAsmInfoDarwin::isSectionAtomizableBySymbols(Sec))
         Symbol->setUsedInReloc();
     }
     RelSymbol = Writer->getAtom(*Symbol);
@@ -222,9 +222,9 @@ void X86MachObjectWriter::RecordX86_64Relocation(
     // understand x86_64 relocation entries, and expects to find values that
     // have already been fixed up.
     if (Symbol->isInSection()) {
-      const MCSectionMachO &Section =
-          static_cast<const MCSectionMachO &>(*Fragment->getParent());
-      if (Section.hasAttribute(MachO::S_ATTR_DEBUG))
+      
+      if (const MCSectionMachO &Section =
+          static_cast<const MCSectionMachO &>(*Fragment->getParent()); Section.hasAttribute(MachO::S_ATTR_DEBUG))
         RelSymbol = nullptr;
     }
 

@@ -1105,8 +1105,8 @@ bool EmulateInstructionARM64::EmulateB(const uint32_t opcode) {
 
   switch (branch_type) {
   case BranchType_CALL: {
-    addr_t x30 = pc + 4;
-    if (!WriteRegisterUnsigned(context, eRegisterKindLLDB, gpr_lr_arm64, x30))
+    
+    if (addr_t x30 = pc + 4; !WriteRegisterUnsigned(context, eRegisterKindLLDB, gpr_lr_arm64, x30))
       return false;
   } break;
   case BranchType_JMP:

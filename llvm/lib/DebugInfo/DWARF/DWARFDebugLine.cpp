@@ -1089,8 +1089,8 @@ Error DWARFDebugLine::LineTable::parse(
         // Takes a single signed LEB128 operand and adds that value to
         // the line register of the state machine.
         {
-          int64_t LineDelta = TableData.getSLEB128(Cursor);
-          if (Cursor) {
+          
+          if (int64_t LineDelta = TableData.getSLEB128(Cursor); Cursor) {
             State.Row.Line += LineDelta;
             if (Verbose)
               *OS << " (" << State.Row.Line << ")";
@@ -1324,9 +1324,9 @@ DWARFDebugLine::LineTable::lookupAddress(object::SectionedAddress Address,
                                          bool *IsApproximateLine) const {
 
   // Search for relocatable addresses
-  uint32_t Result = lookupAddressImpl(Address, IsApproximateLine);
+  
 
-  if (Result != UnknownRowIndex ||
+  if (uint32_t Result = lookupAddressImpl(Address, IsApproximateLine); Result != UnknownRowIndex ||
       Address.SectionIndex == object::SectionedAddress::UndefSection)
     return Result;
 
@@ -1462,8 +1462,8 @@ DWARFDebugLine::LineTable::getSourceByIndex(uint64_t FileIndex,
                                             FileLineInfoKind Kind) const {
   if (Kind == FileLineInfoKind::None || !Prologue.hasFileAtIndex(FileIndex))
     return std::nullopt;
-  const FileNameEntry &Entry = Prologue.getFileNameEntry(FileIndex);
-  if (auto E = dwarf::toString(Entry.Source))
+  
+  if (const FileNameEntry &Entry = Prologue.getFileNameEntry(FileIndex); auto E = dwarf::toString(Entry.Source))
     return StringRef(*E);
   return std::nullopt;
 }

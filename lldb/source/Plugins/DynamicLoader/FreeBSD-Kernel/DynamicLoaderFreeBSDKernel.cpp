@@ -74,8 +74,8 @@ static bool is_kmod(Module *module) {
     return false;
   if (!module->GetObjectFile())
     return false;
-  ObjectFile *objfile = module->GetObjectFile();
-  if (objfile->GetType() != ObjectFile::eTypeObjectFile &&
+  
+  if (ObjectFile *objfile = module->GetObjectFile(); objfile->GetType() != ObjectFile::eTypeObjectFile &&
       objfile->GetType() != ObjectFile::eTypeSharedLibrary)
     return false;
 
@@ -87,8 +87,8 @@ static bool is_reloc(Module *module) {
     return false;
   if (!module->GetObjectFile())
     return false;
-  ObjectFile *objfile = module->GetObjectFile();
-  if (objfile->GetType() != ObjectFile::eTypeObjectFile)
+  
+  if (ObjectFile *objfile = module->GetObjectFile(); objfile->GetType() != ObjectFile::eTypeObjectFile)
     return false;
 
   return true;
@@ -100,15 +100,15 @@ DynamicLoader *
 DynamicLoaderFreeBSDKernel::CreateInstance(lldb_private::Process *process,
                                            bool force) {
   // Check the environment when the plugin is not force loaded
-  Module *exec = process->GetTarget().GetExecutableModulePointer();
-  if (exec && !is_kernel(exec)) {
+  
+  if (Module *exec = process->GetTarget().GetExecutableModulePointer(); exec && !is_kernel(exec)) {
     return nullptr;
   }
   if (!force) {
     // Check if the target is kernel
-    const llvm::Triple &triple_ref =
-        process->GetTarget().GetArchitecture().GetTriple();
-    if (!triple_ref.isOSFreeBSD()) {
+    
+    if (const llvm::Triple &triple_ref =
+        process->GetTarget().GetArchitecture().GetTriple(); !triple_ref.isOSFreeBSD()) {
       return nullptr;
     }
   }
@@ -411,9 +411,9 @@ bool DynamicLoaderFreeBSDKernel::KModImageInfo::LoadImageUsingMemoryModule(
   // Find the slide address
   addr_t fixed_slide = LLDB_INVALID_ADDRESS;
   if (llvm::dyn_cast<ObjectFileELF>(memory_object_file)) {
-    addr_t load_address = memory_object_file->GetBaseAddress().GetFileAddress();
+    
 
-    if (load_address != LLDB_INVALID_ADDRESS &&
+    if (addr_t load_address = memory_object_file->GetBaseAddress().GetFileAddress(); load_address != LLDB_INVALID_ADDRESS &&
         m_load_address != load_address) {
       fixed_slide = m_load_address - load_address;
       LLDB_LOGF(log,
@@ -443,11 +443,11 @@ bool DynamicLoaderFreeBSDKernel::KModImageInfo::LoadImageUsingMemoryModule(
                                          fixed_slide);
 
       } else {
-        const Section *memory_section =
+        
+        if (const Section *memory_section =
             memory_section_list
                 ->FindSectionByName(on_disk_section_sp->GetName())
-                .get();
-        if (memory_section) {
+                .get(); memory_section) {
           target.SetSectionLoadAddress(on_disk_section_sp,
                                        memory_section->GetFileAddress());
           ++num_load_sections;
@@ -465,11 +465,11 @@ bool DynamicLoaderFreeBSDKernel::KModImageInfo::LoadImageUsingMemoryModule(
 
   if (IsLoaded() && m_module_sp && IsKernel()) {
     lldb::StreamUP s = target.GetDebugger().GetAsyncOutputStream();
-    ObjectFile *kernel_object_file = m_module_sp->GetObjectFile();
-    if (kernel_object_file) {
-      addr_t file_address =
-          kernel_object_file->GetBaseAddress().GetFileAddress();
-      if (m_load_address != LLDB_INVALID_ADDRESS &&
+    
+    if (ObjectFile *kernel_object_file = m_module_sp->GetObjectFile(); kernel_object_file) {
+      
+      if (addr_t file_address =
+          kernel_object_file->GetBaseAddress().GetFileAddress(); m_load_address != LLDB_INVALID_ADDRESS &&
           file_address != LLDB_INVALID_ADDRESS) {
         s->Printf("Kernel slide 0x%" PRIx64 " in memory.\n",
                   m_load_address - file_address);
@@ -505,10 +505,10 @@ bool DynamicLoaderFreeBSDKernel::ReadKmodsListHeader() {
   if (m_linker_file_list_struct_addr.IsValid()) {
     // Get tqh_first struct element from linker_files
     Status error;
-    addr_t address = m_process->ReadPointerFromMemory(
+    
+    if (addr_t address = m_process->ReadPointerFromMemory(
         m_linker_file_list_struct_addr.GetLoadAddress(&m_process->GetTarget()),
-        error);
-    if (address != LLDB_INVALID_ADDRESS && error.Success()) {
+        error); address != LLDB_INVALID_ADDRESS && error.Success()) {
       m_linker_file_head_addr = Address(address);
     } else {
       m_linker_file_list_struct_addr.Clear();
@@ -728,11 +728,11 @@ void DynamicLoaderFreeBSDKernel::LoadKernelModules() {
 
   static ConstString modlist_symbol_name("linker_files");
 
-  const Symbol *symbol =
-      m_kernel_image_info.GetModule()->FindFirstSymbolWithNameAndType(
-          modlist_symbol_name, lldb::eSymbolTypeData);
+  
 
-  if (symbol) {
+  if (const Symbol *symbol =
+      m_kernel_image_info.GetModule()->FindFirstSymbolWithNameAndType(
+          modlist_symbol_name, lldb::eSymbolTypeData); symbol) {
     m_linker_file_list_struct_addr = symbol->GetAddress();
     ReadAllKmods();
   } else {

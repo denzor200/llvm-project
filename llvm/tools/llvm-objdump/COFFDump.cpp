@@ -360,8 +360,8 @@ static Error resolveSectionAndAddress(const COFFObjectFile *Obj,
 static Error resolveSymbol(const std::vector<RelocationRef> &Rels,
                                      uint64_t Offset, SymbolRef &Sym) {
   for (auto &R : Rels) {
-    uint64_t Ofs = R.getOffset();
-    if (Ofs == Offset) {
+    
+    if (uint64_t Ofs = R.getOffset(); Ofs == Offset) {
       Sym = *R.getSymbol();
       return Error::success();
     }
@@ -453,10 +453,10 @@ static void printTLSDirectoryT(const coff_tls_directory<T> *TLSDir) {
 
 static void printTLSDirectory(const COFFObjectFile *Obj) {
   const pe32_header *PE32Header = Obj->getPE32Header();
-  const pe32plus_header *PE32PlusHeader = Obj->getPE32PlusHeader();
+  
 
   // Skip if it's not executable.
-  if (!PE32Header && !PE32PlusHeader)
+  if (const pe32plus_header *PE32PlusHeader = Obj->getPE32PlusHeader(); !PE32Header && !PE32PlusHeader)
     return;
 
   if (PE32Header) {
@@ -775,8 +775,8 @@ void objdump::printCOFFUnwindInfo(const COFFObjectFile *Obj) {
     return;
   ArrayRef<RuntimeFunction> RFs(RFStart, NumRFs);
 
-  bool IsExecutable = Rels.empty();
-  if (IsExecutable) {
+  
+  if (bool IsExecutable = Rels.empty(); IsExecutable) {
     for (const RuntimeFunction &RF : RFs)
       printRuntimeFunction(Obj, RF);
     return;
@@ -877,9 +877,9 @@ void objdump::printCOFFSymbolTable(const COFFObjectFile &coff) {
            << Name;
     if (Demangle && Name.starts_with("?")) {
       int Status = -1;
-      char *DemangledSymbol = microsoftDemangle(Name, nullptr, &Status);
+      
 
-      if (Status == 0 && DemangledSymbol) {
+      if (char *DemangledSymbol = microsoftDemangle(Name, nullptr, &Status); Status == 0 && DemangledSymbol) {
         outs() << " (" << StringRef(DemangledSymbol) << ")";
         std::free(DemangledSymbol);
       } else {

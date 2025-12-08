@@ -39,8 +39,8 @@ template <class CallOnceCallback>
   // returns. So, we use futexes to synchronize calls with the same flag value.
   if (futex_word->compare_exchange_strong(not_called, START)) {
     callback();
-    auto status = futex_word->exchange(FINISH);
-    if (status == WAITING)
+    
+    if (auto status = futex_word->exchange(FINISH); status == WAITING)
       futex_word->notify_all();
     return 0;
   }

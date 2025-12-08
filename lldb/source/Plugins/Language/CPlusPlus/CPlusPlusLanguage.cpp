@@ -485,8 +485,8 @@ bool CPlusPlusLanguage::CxxMethodName::TrySimplifiedParse() {
       return false;
     size_t basename_end = arg_start;
     size_t context_start = 0;
-    size_t context_end = full.rfind(':', basename_end);
-    if (context_end == llvm::StringRef::npos)
+    
+    if (size_t context_end = full.rfind(':', basename_end); context_end == llvm::StringRef::npos)
       m_basename = full.substr(0, basename_end);
     else {
       if (context_start < context_end)
@@ -559,9 +559,9 @@ bool CPlusPlusLanguage::CxxMethodName::ContainsPath(llvm::StringRef path) {
 
   llvm::StringRef identifier;
   llvm::StringRef context;
-  const bool success =
-      CPlusPlusLanguage::ExtractContextAndIdentifier(path, context, identifier);
-  if (!success)
+  
+  if (const bool success =
+      CPlusPlusLanguage::ExtractContextAndIdentifier(path, context, identifier); !success)
     return m_full.GetStringRef().contains(path);
 
   // Basename may include template arguments.

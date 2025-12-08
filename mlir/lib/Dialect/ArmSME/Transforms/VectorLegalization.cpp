@@ -428,8 +428,8 @@ struct LegalizeMultiTileTransferWriteAsStoreLoop
       return rewriter.notifyMatchFailure(writeOp,
                                          kMatchFailureNonPermutationMap);
 
-    bool transposed = !permutationMap.isIdentity();
-    if (transposed)
+    
+    if (bool transposed = !permutationMap.isIdentity(); transposed)
       return rewriter.notifyMatchFailure(writeOp,
                                          "TODO: transpose unsupported");
 
@@ -553,8 +553,8 @@ struct FoldExtractFromVectorOfSMELikeCreateMasks
       return rewriter.notifyMatchFailure(extractOp,
                                          "extracted type is not a vector type");
 
-    auto numScalable = extractedMaskType.getNumScalableDims();
-    if (numScalable != 2)
+    
+    if (auto numScalable = extractedMaskType.getNumScalableDims(); numScalable != 2)
       return rewriter.notifyMatchFailure(
           extractOp, "expected extracted type to be an SME-like mask");
 

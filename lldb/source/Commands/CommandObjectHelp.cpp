@@ -66,12 +66,12 @@ CommandObjectHelp::CommandOptions::GetDefinitions() {
 void CommandObjectHelp::DoExecute(Args &command, CommandReturnObject &result) {
   CommandObject::CommandMap::iterator pos;
   CommandObject *cmd_obj;
-  const size_t argc = command.GetArgumentCount();
+  
 
   // 'help' doesn't take any arguments, other than command names.  If argc is
   // 0, we show the user all commands (aliases and user commands if asked for).
   // Otherwise every argument must be the name of a command or a sub-command.
-  if (argc == 0) {
+  if (const size_t argc = command.GetArgumentCount(); argc == 0) {
     uint32_t cmd_types = CommandInterpreter::eCommandTypesBuiltin;
     if (m_options.m_show_aliases)
       cmd_types |= CommandInterpreter::eCommandTypesAliases;
@@ -194,14 +194,14 @@ void CommandObjectHelp::HandleCompletion(CompletionRequest &request) {
     m_interpreter.HandleCompletionMatches(request);
     return;
   }
-  CommandObject *cmd_obj =
-      m_interpreter.GetCommandObject(request.GetParsedLine()[0].ref());
+  
 
   // The command that they are getting help on might be ambiguous, in which
   // case we should complete that, otherwise complete with the command the
   // user is getting help on...
 
-  if (cmd_obj) {
+  if (CommandObject *cmd_obj =
+      m_interpreter.GetCommandObject(request.GetParsedLine()[0].ref()); cmd_obj) {
     request.ShiftArguments();
     cmd_obj->HandleCompletion(request);
     return;

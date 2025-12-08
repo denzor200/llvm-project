@@ -693,8 +693,8 @@ std::optional<DecodeResult> EmulateInstructionRISCV::Decode(uint32_t inst) {
   bool is_16b = (inst & 0b11) != 0b11;
   bool is_32b = (inst & 0x1f) != 0x1f;
   bool is_48b = (inst & 0x3f) != 0x1f;
-  bool is_64b = (inst & 0x7f) != 0x3f;
-  if (is_16b)
+  
+  if (bool is_64b = (inst & 0x7f) != 0x3f; is_16b)
     m_last_size = 2;
   else if (is_32b)
     m_last_size = 4;
@@ -774,8 +774,8 @@ public:
     return transformOptional(zipOpt(m_emu.ReadPC(), inst.rs1.Read(m_emu),
                                     inst.rs2.Read(m_emu)),
                              [&](auto &&tup) {
-                               auto [pc, rs1, rs2] = tup;
-                               if (m_ignore_cond ||
+                               
+                               if (auto [pc, rs1, rs2] = tup; m_ignore_cond ||
                                    CompareB(rs1, rs2, inst.funct3))
                                  return m_emu.WritePC(SignExt(inst.imm) + pc);
                                return true;
@@ -1481,8 +1481,8 @@ public:
                    else
                      return inst.rd.Write(m_emu, 0x7fc0'0000);
                  }
-                 auto bits = rs1.bitcastToAPInt().getZExtValue();
-                 if (isDouble)
+                 
+                 if (auto bits = rs1.bitcastToAPInt().getZExtValue(); isDouble)
                    return inst.rd.Write(m_emu, bits);
                  else
                    return inst.rd.Write(m_emu, uint64_t(bits & 0xffff'ffff));
@@ -1759,8 +1759,8 @@ RoundingMode EmulateInstructionRISCV::GetRoundingMode() {
                                    LLDB_INVALID_ADDRESS, &success);
   if (!success)
     return RoundingMode::Invalid;
-  auto frm = (fcsr >> 5) & 0x7;
-  switch (frm) {
+  
+  switch (auto frm = (fcsr >> 5) & 0x7; frm) {
   case 0b000:
     return RoundingMode::NearestTiesToEven;
   case 0b001:
@@ -1840,9 +1840,9 @@ EmulateInstructionRISCV::GetRegisterInfo(RegisterKind reg_kind,
   RegisterInfoPOSIX_riscv64 reg_info(m_arch,
                                      RegisterInfoPOSIX_riscv64::eRegsetMaskAll);
   const RegisterInfo *array = reg_info.GetRegisterInfo();
-  const uint32_t length = reg_info.GetRegisterCount();
+  
 
-  if (reg_index >= length || reg_kind != eRegisterKindLLDB)
+  if (const uint32_t length = reg_info.GetRegisterCount(); reg_index >= length || reg_kind != eRegisterKindLLDB)
     return {};
 
   return array[reg_index];
@@ -2042,8 +2042,8 @@ RISCVSingleStepBreakpointLocationsPredictor::HandleAtomicSequence(
   // sequence.
   inst = riscv_emulator->ReadInstructionAt(exit_pc);
   if (inst) {
-    B *branch = std::get_if<B>(&inst->decoded);
-    if (branch && (exit_pc + SignExt(branch->imm)) == entry_pc)
+    
+    if (B *branch = std::get_if<B>(&inst->decoded); branch && (exit_pc + SignExt(branch->imm)) == entry_pc)
       exit_pc += inst->is_rvc ? 2 : 4;
   }
 

@@ -225,8 +225,8 @@ bool isErrnoLocationCall(const CallEvent &CE) {
 
 const NoteTag *getErrnoNoteTag(CheckerContext &C, const std::string &Message) {
   return C.getNoteTag([Message](PathSensitiveBugReport &BR) -> std::string {
-    const MemRegion *ErrnoR = BR.getErrorNode()->getState()->get<ErrnoRegion>();
-    if (ErrnoR && BR.isInteresting(ErrnoR)) {
+    
+    if (const MemRegion *ErrnoR = BR.getErrorNode()->getState()->get<ErrnoRegion>(); ErrnoR && BR.isInteresting(ErrnoR)) {
       BR.markNotInteresting(ErrnoR);
       return Message;
     }

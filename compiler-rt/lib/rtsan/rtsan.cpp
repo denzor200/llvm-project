@@ -54,8 +54,8 @@ static void OnViolation(const BufferedStackTrace &stack,
   // need to make our own stackdepot
   StackDepotHandle handle = StackDepotPut_WithHandle(stack);
 
-  const bool is_stack_novel = handle.use_count() == 0;
-  if (is_stack_novel || !flags().suppress_equal_stacks) {
+  
+  if (const bool is_stack_novel = handle.use_count() == 0; is_stack_novel || !flags().suppress_equal_stacks) {
     IncrementUniqueErrorCount();
 
     {

@@ -53,8 +53,8 @@ void ppc::getPPCTargetFeatures(const Driver &D, const llvm::Triple &Triple,
     Features.push_back("+secure-plt");
 
   bool UseSeparateSections = isUseSeparateSections(Triple);
-  bool HasDefaultDataSections = Triple.isOSBinFormatXCOFF();
-  if (Args.hasArg(options::OPT_maix_small_local_exec_tls) ||
+  
+  if (bool HasDefaultDataSections = Triple.isOSBinFormatXCOFF(); Args.hasArg(options::OPT_maix_small_local_exec_tls) ||
       Args.hasArg(options::OPT_maix_small_local_dynamic_tls)) {
     if (!Triple.isOSAIX() || !Triple.isArch64Bit())
       D.Diag(diag::err_opt_not_valid_on_target)

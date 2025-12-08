@@ -102,9 +102,9 @@ Status CommandOptionsProcessLaunch::SetOptionValue(
   case 'A': // Disable ASLR.
   {
     bool success;
-    const bool disable_aslr_arg =
-        OptionArgParser::ToBoolean(option_arg, true, &success);
-    if (success)
+    
+    if (const bool disable_aslr_arg =
+        OptionArgParser::ToBoolean(option_arg, true, &success); success)
       disable_aslr = disable_aslr_arg ? eLazyBoolYes : eLazyBoolNo;
     else
       return Status::FromErrorStringWithFormat(
@@ -116,9 +116,9 @@ Status CommandOptionsProcessLaunch::SetOptionValue(
   case 'X': // shell expand args.
   {
     bool success;
-    const bool expand_args =
-        OptionArgParser::ToBoolean(option_arg, true, &success);
-    if (success)
+    
+    if (const bool expand_args =
+        OptionArgParser::ToBoolean(option_arg, true, &success); success)
       launch_info.SetShellExpandArguments(expand_args);
     else
       return Status::FromErrorStringWithFormat(

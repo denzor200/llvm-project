@@ -201,9 +201,9 @@ SVal SimpleSValBuilder::MakeSymIntVal(const SymExpr *LHS,
     ASTContext &Ctx = getContext();
     QualType SymbolType = LHS->getType();
     uint64_t ValWidth = RHS.getBitWidth();
-    uint64_t TypeWidth = Ctx.getTypeSize(SymbolType);
+    
 
-    if (ValWidth < TypeWidth) {
+    if (uint64_t TypeWidth = Ctx.getTypeSize(SymbolType); ValWidth < TypeWidth) {
       // If the value is too small, extend it.
       ConvertedRHS = BasicVals.Convert(SymbolType, RHS);
     } else if (ValWidth == TypeWidth) {
@@ -779,9 +779,9 @@ static void assertEqualBitWidths(ProgramStateRef State, Loc RhsLoc,
   ASTContext &Ctx = State->getStateManager().getContext();
   uint64_t RhsBitwidth =
       RhsLoc.getType(Ctx).isNull() ? 0 : Ctx.getTypeSize(RhsLoc.getType(Ctx));
-  uint64_t LhsBitwidth =
-      LhsLoc.getType(Ctx).isNull() ? 0 : Ctx.getTypeSize(LhsLoc.getType(Ctx));
-  if (RhsBitwidth && LhsBitwidth && (LhsLoc.getKind() == RhsLoc.getKind())) {
+  
+  if (uint64_t LhsBitwidth =
+      LhsLoc.getType(Ctx).isNull() ? 0 : Ctx.getTypeSize(LhsLoc.getType(Ctx)); RhsBitwidth && LhsBitwidth && (LhsLoc.getKind() == RhsLoc.getKind())) {
     assert(RhsBitwidth == LhsBitwidth &&
            "RhsLoc and LhsLoc bitwidth must be same!");
   }
@@ -1046,9 +1046,9 @@ SVal SimpleSValBuilder::evalBinOpLL(ProgramStateRef state,
         LeftOffset.getRegion() == RightOffset.getRegion() &&
         !LeftOffset.hasSymbolicOffset() && !RightOffset.hasSymbolicOffset()) {
       int64_t left = LeftOffset.getOffset();
-      int64_t right = RightOffset.getOffset();
+      
 
-      switch (op) {
+      switch (int64_t right = RightOffset.getOffset(); op) {
         default:
           return UnknownVal();
         case BO_LT:
@@ -1297,9 +1297,9 @@ SVal SimpleSValBuilder::simplifySValOnce(ProgramStateRef State, SVal V) {
     // Return the known const value for the Sym if available, or return Undef
     // otherwise.
     SVal getConst(SymbolRef Sym) {
-      const llvm::APSInt *Const =
-          State->getConstraintManager().getSymVal(State, Sym);
-      if (Const)
+      
+      if (const llvm::APSInt *Const =
+          State->getConstraintManager().getSymVal(State, Sym); Const)
         return Loc::isLocType(Sym->getType()) ? (SVal)SVB.makeIntLocVal(*Const)
                                               : (SVal)SVB.makeIntVal(*Const);
       return UndefinedVal();

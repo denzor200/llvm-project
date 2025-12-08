@@ -88,9 +88,9 @@ DynamicLoader *DynamicLoaderHexagonDYLD::CreateInstance(Process *process,
                                                         bool force) {
   bool create = force;
   if (!create) {
-    const llvm::Triple &triple_ref =
-        process->GetTarget().GetArchitecture().GetTriple();
-    if (triple_ref.getArch() == llvm::Triple::hexagon)
+    
+    if (const llvm::Triple &triple_ref =
+        process->GetTarget().GetArchitecture().GetTriple(); triple_ref.getArch() == llvm::Triple::hexagon)
       create = true;
   }
 
@@ -318,9 +318,9 @@ bool DynamicLoaderHexagonDYLD::RendezvousBreakpointHit(
     Process *proc = dyld_instance->m_process;
 
     const ConstString dyldStructName("_rtld_debug");
-    addr_t structAddr = findSymbolAddress(proc, dyldStructName);
+    
 
-    if (structAddr != LLDB_INVALID_ADDRESS) {
+    if (addr_t structAddr = findSymbolAddress(proc, dyldStructName); structAddr != LLDB_INVALID_ADDRESS) {
       dyld_instance->m_rendezvous.SetRendezvousAddress(structAddr);
 
       LLDB_LOGF(log, "Found _rtld_debug structure @ 0x%08" PRIx64, structAddr);
@@ -512,9 +512,9 @@ addr_t DynamicLoaderHexagonDYLD::GetEntryPoint() {
   // Get the current executable module
   Module &module = *(m_process->GetTarget().GetExecutableModule().get());
   // Get the object file (elf file) for this module
-  lldb_private::ObjectFile &object = *(module.GetObjectFile());
+  
   // Check if the file is executable (ie, not shared object or relocatable)
-  if (object.IsExecutable()) {
+  if (lldb_private::ObjectFile &object = *(module.GetObjectFile()); object.IsExecutable()) {
     // Get the entry point address for this object
     lldb_private::Address entry = object.GetEntryPointAddress();
     // Return the entry point address
@@ -528,8 +528,8 @@ const SectionList *DynamicLoaderHexagonDYLD::GetSectionListFromModule(
     const ModuleSP module) const {
   SectionList *sections = nullptr;
   if (module.get()) {
-    ObjectFile *obj_file = module->GetObjectFile();
-    if (obj_file) {
+    
+    if (ObjectFile *obj_file = module->GetObjectFile(); obj_file) {
       sections = obj_file->GetSectionList();
     }
   }
@@ -538,9 +538,9 @@ const SectionList *DynamicLoaderHexagonDYLD::GetSectionListFromModule(
 
 static int ReadInt(Process *process, addr_t addr) {
   Status error;
-  int value = (int)process->ReadUnsignedIntegerFromMemory(
-      addr, sizeof(uint32_t), 0, error);
-  if (error.Fail())
+  
+  if (int value = (int)process->ReadUnsignedIntegerFromMemory(
+      addr, sizeof(uint32_t), 0, error); error.Fail())
     return -1;
   else
     return value;

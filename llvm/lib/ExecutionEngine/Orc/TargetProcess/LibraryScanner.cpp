@@ -452,8 +452,8 @@ std::optional<std::string> PathResolver::readlinkCached(StringRef Path) {
 
   // If result not in cache - call system function and cache result
   char buf[PATH_MAX];
-  ssize_t len;
-  if ((len = readlink(Path.str().c_str(), buf, sizeof(buf))) != -1) {
+  
+  if (ssize_t len; (len = readlink(Path.str().c_str(), buf, sizeof(buf))) != -1) {
     buf[len] = '\0';
     std::string s(buf);
     LibPathCache->insert_link(Path, s);
@@ -583,8 +583,8 @@ std::optional<std::string> PathResolver::realpathCached(StringRef Path,
       continue;
     if (Component == "..") {
       // collapse "a/b/../c" to "a/c"
-      size_t S = Resolved.rfind(Separator);
-      if (S != llvm::StringRef::npos)
+      
+      if (size_t S = Resolved.rfind(Separator); S != llvm::StringRef::npos)
         Resolved.resize(S);
       if (Resolved.empty())
         Resolved = Separator;
@@ -596,9 +596,9 @@ std::optional<std::string> PathResolver::realpathCached(StringRef Path,
     const char *ResolvedPath = Resolved.c_str();
     LLVM_DEBUG(dbgs() << "  Processing Component: " << Component << " => "
                       << ResolvedPath << "\n";);
-    mode_t st_mode = lstatCached(ResolvedPath);
+    
 
-    if (S_ISLNK(st_mode)) {
+    if (mode_t st_mode = lstatCached(ResolvedPath); S_ISLNK(st_mode)) {
       LLVM_DEBUG(dbgs() << "    Found symlink: " << ResolvedPath << "\n";);
 
       auto SymlinkOpt = readlinkCached(ResolvedPath);
@@ -726,8 +726,8 @@ bool LibraryScanHelper::isTrackedBasePath(StringRef Path) const {
 bool LibraryScanHelper::leftToScan(PathType K) const {
   std::shared_lock<std::shared_mutex> Lock(Mtx);
   for (const auto &KV : LibSearchPaths) {
-    const auto &SP = KV.second;
-    if (SP->Kind == K && SP->State == ScanState::NotScanned)
+    
+    if (const auto &SP = KV.second; SP->Kind == K && SP->State == ScanState::NotScanned)
       return true;
   }
   return false;
@@ -767,8 +767,8 @@ std::string LibraryScanHelper::resolveCanonical(StringRef Path,
 
 PathType LibraryScanHelper::classifyKind(StringRef Path) const {
   // Detect home directory
-  const char *Home = getenv("HOME");
-  if (Home && Path.starts_with(Home))
+  
+  if (const char *Home = getenv("HOME"); Home && Path.starts_with(Home))
     return PathType::User;
 
   static const std::array<std::string, 5> UserPrefixes = {
@@ -1062,8 +1062,8 @@ void LibraryScanner::handleLibrary(StringRef FilePath, PathType K, int level) {
     return;
   }
 
-  bool Added = LibMgr.addLibrary(CanonicalPath, K);
-  if (!Added) {
+  
+  if (bool Added = LibMgr.addLibrary(CanonicalPath, K); !Added) {
     LLVM_DEBUG(dbgs() << "  Already added: " << CanonicalPath << "\n";);
     return;
   }

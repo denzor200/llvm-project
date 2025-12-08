@@ -564,8 +564,8 @@ static void dumpArchive(const Archive *Arc, ScopedPrinter &Writer) {
       continue;
     }
 
-    Binary *Bin = ChildOrErr->get();
-    if (ObjectFile *Obj = dyn_cast<ObjectFile>(Bin))
+    
+    if (Binary *Bin = ChildOrErr->get(); ObjectFile *Obj = dyn_cast<ObjectFile>(Bin))
       dumpObject(*Obj, Writer, Arc);
     else if (COFFImportFile *Imp = dyn_cast<COFFImportFile>(Bin))
       dumpCOFFImportFile(Imp, Writer);

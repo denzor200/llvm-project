@@ -103,9 +103,9 @@ static bool formatStringImpl(ValueObject &valobj, Stream &stream,
                              const TypeSummaryOptions &summary_options,
                              std::string prefix_token) {
   StreamString scratch_stream;
-  const bool success = MsvcStlStringSummaryProviderImpl<element_type>(
-      valobj, scratch_stream, summary_options, prefix_token);
-  if (success)
+  
+  if (const bool success = MsvcStlStringSummaryProviderImpl<element_type>(
+      valobj, scratch_stream, summary_options, prefix_token); success)
     stream << scratch_stream.GetData();
   else
     stream << "Summary Unavailable";

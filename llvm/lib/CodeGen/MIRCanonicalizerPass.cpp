@@ -392,8 +392,8 @@ static bool runOnBasicBlock(MachineBasicBlock *MBB,
 
 bool MIRCanonicalizer::runOnMachineFunction(MachineFunction &MF) {
 
-  static unsigned functionNum = 0;
-  if (CanonicalizeFunctionNumber != ~0U) {
+  
+  if (static unsigned functionNum = 0; CanonicalizeFunctionNumber != ~0U) {
     if (CanonicalizeFunctionNumber != functionNum++)
       return false;
     LLVM_DEBUG(dbgs() << "\n Canonicalizing Function " << MF.getName()

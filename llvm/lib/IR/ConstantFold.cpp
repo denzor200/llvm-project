@@ -360,8 +360,8 @@ Constant *llvm::ConstantFoldExtractElementInstruction(Constant *Val,
       SmallVector<Constant *, 8> Ops;
       Ops.reserve(CE->getNumOperands());
       for (unsigned i = 0, e = CE->getNumOperands(); i != e; ++i) {
-        Constant *Op = CE->getOperand(i);
-        if (Op->getType()->isVectorTy()) {
+        
+        if (Constant *Op = CE->getOperand(i); Op->getType()->isVectorTy()) {
           Constant *ScalarOp = ConstantExpr::getExtractElement(Op, Idx);
           if (!ScalarOp)
             return nullptr;
@@ -543,10 +543,10 @@ Constant *llvm::ConstantFoldUnaryInstruction(unsigned Opcode, Constant *C) {
   // Handle scalar UndefValue and scalable vector UndefValue. Fixed-length
   // vectors are always evaluated per element.
   bool IsScalableVector = isa<ScalableVectorType>(C->getType());
-  bool HasScalarUndefOrScalableVectorUndef =
-      (!C->getType()->isVectorTy() || IsScalableVector) && isa<UndefValue>(C);
+  
 
-  if (HasScalarUndefOrScalableVectorUndef) {
+  if (bool HasScalarUndefOrScalableVectorUndef =
+      (!C->getType()->isVectorTy() || IsScalableVector) && isa<UndefValue>(C); HasScalarUndefOrScalableVectorUndef) {
     switch (static_cast<Instruction::UnaryOps>(Opcode)) {
     case Instruction::FNeg:
       return C; // -undef -> undef
@@ -561,8 +561,8 @@ Constant *llvm::ConstantFoldUnaryInstruction(unsigned Opcode, Constant *C) {
   assert(!isa<ConstantInt>(C) && "Unexpected Integer UnaryOp");
 
   if (ConstantFP *CFP = dyn_cast<ConstantFP>(C)) {
-    const APFloat &CV = CFP->getValueAPF();
-    switch (Opcode) {
+    
+    switch (const APFloat &CV = CFP->getValueAPF(); Opcode) {
     default:
       break;
     case Instruction::FNeg:
@@ -620,10 +620,10 @@ Constant *llvm::ConstantFoldBinaryInstruction(unsigned Opcode, Constant *C1,
   // Handle scalar UndefValue and scalable vector UndefValue. Fixed-length
   // vectors are always evaluated per element.
   bool IsScalableVector = isa<ScalableVectorType>(C1->getType());
-  bool HasScalarUndefOrScalableVectorUndef =
+  
+  if (bool HasScalarUndefOrScalableVectorUndef =
       (!C1->getType()->isVectorTy() || IsScalableVector) &&
-      (isa<UndefValue>(C1) || isa<UndefValue>(C2));
-  if (HasScalarUndefOrScalableVectorUndef) {
+      (isa<UndefValue>(C1) || isa<UndefValue>(C2)); HasScalarUndefOrScalableVectorUndef) {
     switch (static_cast<Instruction::BinaryOps>(Opcode)) {
     case Instruction::Xor:
       if (isa<UndefValue>(C1) && isa<UndefValue>(C2))
@@ -791,8 +791,8 @@ Constant *llvm::ConstantFoldBinaryInstruction(unsigned Opcode, Constant *C1,
   if (ConstantInt *CI1 = dyn_cast<ConstantInt>(C1)) {
     if (ConstantInt *CI2 = dyn_cast<ConstantInt>(C2)) {
       const APInt &C1V = CI1->getValue();
-      const APInt &C2V = CI2->getValue();
-      switch (Opcode) {
+      
+      switch (const APInt &C2V = CI2->getValue(); Opcode) {
       default:
         break;
       case Instruction::Add:
@@ -1049,10 +1049,10 @@ static ICmpInst::Predicate evaluateICmpRelation(Constant *V1, Constant *V2) {
 
     switch (CE1->getOpcode()) {
     case Instruction::GetElementPtr: {
-      GEPOperator *CE1GEP = cast<GEPOperator>(CE1);
+      
       // Ok, since this is a getelementptr, we know that the constant has a
       // pointer type.  Check the various cases.
-      if (isa<ConstantPointerNull>(V2)) {
+      if (GEPOperator *CE1GEP = cast<GEPOperator>(CE1); isa<ConstantPointerNull>(V2)) {
         // If we are comparing a GEP to a null pointer, check to see if the base
         // of the GEP equals the null pointer.
         if (const GlobalValue *GV = dyn_cast<GlobalValue>(CE1Op0)) {

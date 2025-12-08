@@ -122,8 +122,8 @@ bool HexagonTfrCleanup::updateImmMap(MachineInstr *MI, ImmediateMap &IMap) {
 
   // If this is an instruction that loads a constant into a register,
   // record this information in IMap.
-  unsigned Opc = MI->getOpcode();
-  if (Opc == A2_tfrsi || Opc == A2_tfrpi) {
+  
+  if (unsigned Opc = MI->getOpcode(); Opc == A2_tfrsi || Opc == A2_tfrpi) {
     unsigned DefR = MI->getOperand(0).getReg();
     bool Is32;
     if (!isIntReg(DefR, Is32))
@@ -137,9 +137,9 @@ bool HexagonTfrCleanup::updateImmMap(MachineInstr *MI, ImmediateMap &IMap) {
       }
       return false;
     }
-    uint64_t Val = MI->getOperand(1).getImm();
+    
     // If it's a 64-bit register, break it up into subregisters.
-    if (!Is32) {
+    if (uint64_t Val = MI->getOperand(1).getImm(); !Is32) {
       uint32_t VH = (Val >> 32), VL = (Val & 0xFFFFFFFFU);
       setReg(TRI->getSubReg(DefR, isub_lo), VL, IMap);
       setReg(TRI->getSubReg(DefR, isub_hi), VH, IMap);
@@ -171,8 +171,8 @@ bool HexagonTfrCleanup::updateImmMap(MachineInstr *MI, ImmediateMap &IMap) {
 bool HexagonTfrCleanup::rewriteIfImm(MachineInstr *MI, ImmediateMap &IMap,
                                      SlotIndexes *Indexes) {
   using namespace Hexagon;
-  unsigned Opc = MI->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI->getOpcode(); Opc) {
   case A2_tfr:
   case A2_tfrp:
   case COPY:
@@ -188,8 +188,8 @@ bool HexagonTfrCleanup::rewriteIfImm(MachineInstr *MI, ImmediateMap &IMap,
     return false;
   assert(Tmp == Is32 && "Register size mismatch");
   uint64_t Val;
-  bool Found = getReg(SrcR, Val, IMap);
-  if (!Found)
+  
+  if (bool Found = getReg(SrcR, Val, IMap); !Found)
     return false;
 
   MachineBasicBlock &B = *MI->getParent();

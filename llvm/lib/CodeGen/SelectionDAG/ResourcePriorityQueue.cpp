@@ -211,8 +211,8 @@ bool resource_sort::operator()(const SUnit *LHS, const SUnit *RHS) const {
 SUnit *ResourcePriorityQueue::getSingleUnscheduledPred(SUnit *SU) {
   SUnit *OnlyAvailablePred = nullptr;
   for (const SDep &Pred : SU->Preds) {
-    SUnit &PredSU = *Pred.getSUnit();
-    if (!PredSU.isScheduled) {
+    
+    if (SUnit &PredSU = *Pred.getSUnit(); !PredSU.isScheduled) {
       // We found an available, but not scheduled, predecessor.  If it's the
       // only one we have found, keep track of it... otherwise give up.
       if (OnlyAvailablePred && OnlyAvailablePred != &PredSU)
@@ -434,8 +434,8 @@ int ResourcePriorityQueue::SUSchedulingCost(SUnit *SU) {
   // and accessed from here via a hook.
   for (SDNode *N = SU->getNode(); N; N = N->getGluedNode()) {
     if (N->isMachineOpcode()) {
-      const MCInstrDesc &TID = TII->get(N->getMachineOpcode());
-      if (TID.isCall())
+      
+      if (const MCInstrDesc &TID = TII->get(N->getMachineOpcode()); TID.isCall())
         ResCount += (PriorityTwo + (ScaleThree*N->getNumValues()));
     }
     else
@@ -467,17 +467,17 @@ void ResourcePriorityQueue::scheduledNode(SUnit *SU) {
     return;
   }
 
-  const SDNode *ScegN = SU->getNode();
+  
   // Update reg pressure tracking.
   // First update current node.
-  if (ScegN->isMachineOpcode()) {
+  if (const SDNode *ScegN = SU->getNode(); ScegN->isMachineOpcode()) {
     // Estimate generated regs.
     for (unsigned i = 0, e = ScegN->getNumValues(); i != e; ++i) {
       MVT VT = ScegN->getSimpleValueType(i);
 
       if (TLI->isTypeLegal(VT)) {
-        const TargetRegisterClass *RC = TLI->getRegClassFor(VT);
-        if (RC)
+        
+        if (const TargetRegisterClass *RC = TLI->getRegClassFor(VT); RC)
           RegPressure[RC->getID()] += numberRCValSuccInSU(SU, RC->getID());
       }
     }
@@ -487,8 +487,8 @@ void ResourcePriorityQueue::scheduledNode(SUnit *SU) {
       MVT VT = Op.getNode()->getSimpleValueType(Op.getResNo());
 
       if (TLI->isTypeLegal(VT)) {
-        const TargetRegisterClass *RC = TLI->getRegClassFor(VT);
-        if (RC) {
+        
+        if (const TargetRegisterClass *RC = TLI->getRegClassFor(VT); RC) {
           if (RegPressure[RC->getID()] >
             (numberRCValPredInSU(SU, RC->getID())))
             RegPressure[RC->getID()] -= numberRCValPredInSU(SU, RC->getID());

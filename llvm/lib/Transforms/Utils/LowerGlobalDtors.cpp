@@ -65,8 +65,8 @@ bool LowerGlobalDtorsLegacyPass::runOnModule(Module &M) { return runImpl(M); }
 
 PreservedAnalyses LowerGlobalDtorsPass::run(Module &M,
                                             ModuleAnalysisManager &AM) {
-  bool Changed = runImpl(M);
-  if (!Changed)
+  
+  if (bool Changed = runImpl(M); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

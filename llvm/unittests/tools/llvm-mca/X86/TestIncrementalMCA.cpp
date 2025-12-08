@@ -92,8 +92,8 @@ TEST_F(X86TestBase, TestInstructionRecycling) {
   auto GetRecycledInst = [&](const mca::InstrDesc &Desc) -> mca::Instruction * {
     auto It = RecycledInsts.find(&Desc);
     if (It != RecycledInsts.end()) {
-      auto &Insts = It->second;
-      if (Insts.size()) {
+      
+      if (auto &Insts = It->second; Insts.size()) {
         mca::Instruction *I = *Insts.begin();
         Insts.erase(I);
         return I;

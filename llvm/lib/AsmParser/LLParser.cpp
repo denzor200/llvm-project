@@ -433,8 +433,8 @@ bool LLParser::validateEndOfModule(bool UpgradeDebugInfo) {
     if (!AllowIncompleteIR)
       assert(MD && "UpgradeInstWithTBAATag should have a TBAA tag");
     if (MD) {
-      auto *UpgradedMD = UpgradeTBAANode(*MD);
-      if (MD != UpgradedMD)
+      
+      if (auto *UpgradedMD = UpgradeTBAANode(*MD); MD != UpgradedMD)
         Inst->setMetadata(LLVMContext::MD_tbaa, UpgradedMD);
     }
   }
@@ -974,8 +974,8 @@ bool LLParser::parseNamedMetadata() {
       parseToken(lltok::lbrace, "Expected '{' here"))
     return true;
 
-  NamedMDNode *NMD = M->getOrInsertNamedMetadata(Name);
-  if (Lex.getKind() != lltok::rbrace)
+  
+  if (NamedMDNode *NMD = M->getOrInsertNamedMetadata(Name); Lex.getKind() != lltok::rbrace)
     do {
       MDNode *N = nullptr;
       // parse DIExpressions inline as a special case. They are still MDNodes,
@@ -1770,8 +1770,8 @@ static inline GlobalValue *createGlobalFwdRef(Module *M, PointerType *PTy) {
 
 Value *LLParser::checkValidVariableType(LocTy Loc, const Twine &Name, Type *Ty,
                                         Value *Val) {
-  Type *ValTy = Val->getType();
-  if (ValTy == Ty)
+  
+  if (Type *ValTy = Val->getType(); ValTy == Ty)
     return Val;
   if (Ty->isLabelTy())
     error(Loc, "'" + Name + "' is not a basic block");
@@ -2680,8 +2680,8 @@ unsigned LLParser::parseNoFPClassAttr() {
 
   do {
     uint64_t Value = 0;
-    unsigned TestMask = keywordToFPClassTest(Lex.getKind());
-    if (TestMask != 0) {
+    
+    if (unsigned TestMask = keywordToFPClassTest(Lex.getKind()); TestMask != 0) {
       Mask |= TestMask;
       // TODO: Disallow overlapping masks to avoid copy paste errors
     } else if (Mask == 0 && Lex.getKind() == lltok::APSInt &&
@@ -3173,9 +3173,9 @@ bool LLParser::parseRangeAttr(AttrBuilder &B) {
   if (!Ty->isIntegerTy())
     return error(TyLoc, "the range must have integer type!");
 
-  unsigned BitWidth = Ty->getPrimitiveSizeInBits();
+  
 
-  if (ParseAPSInt(BitWidth, Lower) ||
+  if (unsigned BitWidth = Ty->getPrimitiveSizeInBits(); ParseAPSInt(BitWidth, Lower) ||
       parseToken(lltok::comma, "expected ','") || ParseAPSInt(BitWidth, Upper))
     return true;
   if (Lower == Upper && !Lower.isZero())
@@ -7305,8 +7305,8 @@ int LLParser::parseInstruction(Instruction *&Inst, BasicBlock *BB,
   // Unary Operators.
   case lltok::kw_fneg: {
     FastMathFlags FMF = EatFastMathFlagsIfPresent();
-    int Res = parseUnaryOp(Inst, PFS, KeywordVal, /*IsFP*/ true);
-    if (Res != 0)
+    
+    if (int Res = parseUnaryOp(Inst, PFS, KeywordVal, /*IsFP*/ true); Res != 0)
       return Res;
     if (FMF.any())
       Inst->setFastMathFlags(FMF);
@@ -7334,8 +7334,8 @@ int LLParser::parseInstruction(Instruction *&Inst, BasicBlock *BB,
   case lltok::kw_fdiv:
   case lltok::kw_frem: {
     FastMathFlags FMF = EatFastMathFlagsIfPresent();
-    int Res = parseArithmetic(Inst, PFS, KeywordVal, /*IsFP*/ true);
-    if (Res != 0)
+    
+    if (int Res = parseArithmetic(Inst, PFS, KeywordVal, /*IsFP*/ true); Res != 0)
       return Res;
     if (FMF.any())
       Inst->setFastMathFlags(FMF);
@@ -7379,8 +7379,8 @@ int LLParser::parseInstruction(Instruction *&Inst, BasicBlock *BB,
   }
   case lltok::kw_fcmp: {
     FastMathFlags FMF = EatFastMathFlagsIfPresent();
-    int Res = parseCompare(Inst, PFS, KeywordVal);
-    if (Res != 0)
+    
+    if (int Res = parseCompare(Inst, PFS, KeywordVal); Res != 0)
       return Res;
     if (FMF.any())
       Inst->setFastMathFlags(FMF);
@@ -7391,8 +7391,8 @@ int LLParser::parseInstruction(Instruction *&Inst, BasicBlock *BB,
   case lltok::kw_uitofp:
   case lltok::kw_zext: {
     bool NonNeg = EatIfPresent(lltok::kw_nneg);
-    bool Res = parseCast(Inst, PFS, KeywordVal);
-    if (Res != 0)
+    
+    if (bool Res = parseCast(Inst, PFS, KeywordVal); Res != 0)
       return Res;
     if (NonNeg)
       Inst->setNonNeg();
@@ -7434,8 +7434,8 @@ int LLParser::parseInstruction(Instruction *&Inst, BasicBlock *BB,
   // Other.
   case lltok::kw_select: {
     FastMathFlags FMF = EatFastMathFlagsIfPresent();
-    int Res = parseSelect(Inst, PFS);
-    if (Res != 0)
+    
+    if (int Res = parseSelect(Inst, PFS); Res != 0)
       return Res;
     if (FMF.any()) {
       if (!isa<FPMathOperator>(Inst))
@@ -7455,8 +7455,8 @@ int LLParser::parseInstruction(Instruction *&Inst, BasicBlock *BB,
     return parseShuffleVector(Inst, PFS);
   case lltok::kw_phi: {
     FastMathFlags FMF = EatFastMathFlagsIfPresent();
-    int Res = parsePHI(Inst, PFS);
-    if (Res != 0)
+    
+    if (int Res = parsePHI(Inst, PFS); Res != 0)
       return Res;
     if (FMF.any()) {
       if (!isa<FPMathOperator>(Inst))
@@ -8004,10 +8004,10 @@ bool LLParser::parseUnaryOp(Instruction *&Inst, PerFunctionState &PFS,
   if (parseTypeAndValue(LHS, Loc, PFS))
     return true;
 
-  bool Valid = IsFP ? LHS->getType()->isFPOrFPVectorTy()
-                    : LHS->getType()->isIntOrIntVectorTy();
+  
 
-  if (!Valid)
+  if (bool Valid = IsFP ? LHS->getType()->isFPOrFPVectorTy()
+                    : LHS->getType()->isIntOrIntVectorTy(); !Valid)
     return error(Loc, "invalid operand type for instruction");
 
   Inst = UnaryOperator::Create((Instruction::UnaryOps)Opc, LHS);
@@ -8134,10 +8134,10 @@ bool LLParser::parseArithmetic(Instruction *&Inst, PerFunctionState &PFS,
       parseValue(LHS->getType(), RHS, PFS))
     return true;
 
-  bool Valid = IsFP ? LHS->getType()->isFPOrFPVectorTy()
-                    : LHS->getType()->isIntOrIntVectorTy();
+  
 
-  if (!Valid)
+  if (bool Valid = IsFP ? LHS->getType()->isFPOrFPVectorTy()
+                    : LHS->getType()->isIntOrIntVectorTy(); !Valid)
     return error(Loc, "invalid operand type for instruction");
 
   Inst = BinaryOperator::Create((Instruction::BinaryOps)Opc, LHS, RHS);
@@ -8858,10 +8858,10 @@ int LLParser::parseAtomicRMW(Instruction *&Inst, PerFunctionState &PFS) {
     }
   }
 
-  unsigned Size =
+  
+  if (unsigned Size =
       PFS.getFunction().getDataLayout().getTypeStoreSizeInBits(
-          Val->getType());
-  if (Size < 8 || (Size & (Size - 1)))
+          Val->getType()); Size < 8 || (Size & (Size - 1)))
     return error(ValLoc, "atomicrmw operand must be power-of-two byte-sized"
                          " integer");
   const Align DefaultAlignment(
@@ -8918,8 +8918,8 @@ int LLParser::parseGetElementPtr(Instruction *&Inst, PerFunctionState &PFS) {
     return true;
 
   Type *BaseType = Ptr->getType();
-  PointerType *BasePointerType = dyn_cast<PointerType>(BaseType->getScalarType());
-  if (!BasePointerType)
+  
+  if (PointerType *BasePointerType = dyn_cast<PointerType>(BaseType->getScalarType()); !BasePointerType)
     return error(Loc, "base of getelementptr must be a pointer");
 
   SmallVector<Value*, 16> Indices;
@@ -9231,8 +9231,8 @@ bool LLParser::parseTypeIdEntry(unsigned ID) {
       parseStringConstant(Name))
     return true;
 
-  TypeIdSummary &TIS = Index->getOrInsertTypeIdSummary(Name);
-  if (parseToken(lltok::comma, "expected ',' here") ||
+  
+  if (TypeIdSummary &TIS = Index->getOrInsertTypeIdSummary(Name); parseToken(lltok::comma, "expected ',' here") ||
       parseTypeIdSummary(TIS) || parseToken(lltok::rparen, "expected ')' here"))
     return true;
 

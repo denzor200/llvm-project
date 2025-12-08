@@ -81,10 +81,10 @@ bool StringMatcher::EmitStringMatcherForChar(
   // across the whole set and match all of them at once.
   if (MatchesByLetter.size() == 1) {
     unsigned FirstNonCommonLetter = FindFirstNonCommonLetter(Matches);
-    unsigned NumChars = FirstNonCommonLetter-CharNo;
+    
 
     // Emit code to break out if the prefix doesn't match.
-    if (NumChars == 1) {
+    if (unsigned NumChars = FirstNonCommonLetter-CharNo; NumChars == 1) {
       // Do the comparison with if (Str[1] != 'f')
       // FIXME: Need to escape general characters.
       OS << Indent << "if (" << StrVariableName << "[" << CharNo << "] != '"

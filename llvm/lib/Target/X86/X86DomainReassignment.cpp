@@ -533,8 +533,8 @@ static bool usedAsAddr(const MachineInstr &MI, Register Reg,
   for (unsigned MemOpIdx = MemOpStart,
                 MemOpEnd = MemOpStart + X86::AddrNumOperands;
        MemOpIdx < MemOpEnd; ++MemOpIdx) {
-    const MachineOperand &Op = MI.getOperand(MemOpIdx);
-    if (Op.isReg() && Op.getReg() == Reg)
+    
+    if (const MachineOperand &Op = MI.getOperand(MemOpIdx); Op.isReg() && Op.getReg() == Reg)
       return true;
   }
   return false;

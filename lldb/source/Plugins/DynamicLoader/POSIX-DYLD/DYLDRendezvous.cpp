@@ -79,8 +79,8 @@ addr_t DYLDRendezvous::ResolveRendezvousAddress() {
   // If the process fails to return an address, fall back to seeing if the
   // local object file can help us find it.
   if (info_location == LLDB_INVALID_ADDRESS) {
-    Target *target = &m_process->GetTarget();
-    if (target) {
+    
+    if (Target *target = &m_process->GetTarget(); target) {
       ObjectFile *obj_file = target->GetExecutableModule()->GetObjectFile();
       Address addr = obj_file->GetImageInfoAddress(target);
 
@@ -90,10 +90,10 @@ addr_t DYLDRendezvous::ResolveRendezvousAddress() {
                   "%s resolved via direct object file approach to 0x%" PRIx64,
                   __FUNCTION__, info_location);
       } else {
-        const Symbol *_r_debug =
+        
+        if (const Symbol *_r_debug =
             target->GetExecutableModule()->FindFirstSymbolWithNameAndType(
-                ConstString("_r_debug"));
-        if (_r_debug) {
+                ConstString("_r_debug")); _r_debug) {
           info_addr = _r_debug->GetAddress().GetLoadAddress(target);
           if (info_addr != LLDB_INVALID_ADDRESS) {
             LLDB_LOGF(log,
@@ -141,8 +141,8 @@ addr_t DYLDRendezvous::ResolveRendezvousAddress() {
 void DYLDRendezvous::UpdateExecutablePath() {
   if (m_process) {
     Log *log = GetLog(LLDBLog::DynamicLoader);
-    Module *exe_mod = m_process->GetTarget().GetExecutableModulePointer();
-    if (exe_mod) {
+    
+    if (Module *exe_mod = m_process->GetTarget().GetExecutableModulePointer(); exe_mod) {
       m_exe_file_spec = exe_mod->GetPlatformFileSpec();
       LLDB_LOGF(log, "DYLDRendezvous::%s exe module executable path set: '%s'",
                 __FUNCTION__, m_exe_file_spec.GetPath().c_str());
@@ -672,8 +672,8 @@ bool DYLDRendezvous::ReadSOEntryFromMemory(lldb::addr_t addr, SOEntry &entry) {
   // mips adds an extra load offset field to the link map struct on FreeBSD and
   // NetBSD (need to validate other OSes).
   // http://svnweb.freebsd.org/base/head/sys/sys/link_elf.h?revision=217153&view=markup#l57
-  const ArchSpec &arch = m_process->GetTarget().GetArchitecture();
-  if ((arch.GetTriple().getOS() == llvm::Triple::FreeBSD ||
+  
+  if (const ArchSpec &arch = m_process->GetTarget().GetArchitecture(); (arch.GetTriple().getOS() == llvm::Triple::FreeBSD ||
        arch.GetTriple().getOS() == llvm::Triple::NetBSD) &&
       arch.IsMIPS()) {
     addr_t mips_l_offs;

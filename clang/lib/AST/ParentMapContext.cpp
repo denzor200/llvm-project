@@ -46,8 +46,8 @@ class ParentMapContext::ParentMap {
       return Dedup.contains(Identity);
     }
     void push_back(const DynTypedNode &Value) {
-      const void *Identity = Value.getMemoizationData();
-      if (!Identity || Dedup.insert(Identity).second) {
+      
+      if (const void *Identity = Value.getMemoizationData(); !Identity || Dedup.insert(Identity).second) {
         Items.push_back(Value);
       }
     }
@@ -152,8 +152,8 @@ public:
           }
         }
 
-        const auto *ParentExpr = ParentList[0].get<Expr>();
-        if (ParentExpr && ChildExpr)
+        
+        if (const auto *ParentExpr = ParentList[0].get<Expr>(); ParentExpr && ChildExpr)
           return AscendIgnoreUnlessSpelledInSource(ParentExpr, ChildExpr);
 
         {
@@ -389,8 +389,8 @@ private:
     // map. The main problem there is to implement hash functions /
     // comparison operators for all types that DynTypedNode supports that
     // do not have pointer identity.
-    auto &NodeOrVector = (*Parents)[MapNode];
-    if (NodeOrVector.isNull()) {
+    
+    if (auto &NodeOrVector = (*Parents)[MapNode]; NodeOrVector.isNull()) {
       if (const auto *D = ParentStack.back().get<Decl>())
         NodeOrVector = D;
       else if (const auto *S = ParentStack.back().get<Stmt>())
@@ -410,9 +410,9 @@ private:
       // We must check that the type has memoization data before calling
       // llvm::is_contained() because DynTypedNode::operator== can't compare all
       // types.
-      bool Found = ParentStack.back().getMemoizationData() &&
-                   llvm::is_contained(*Vector, ParentStack.back());
-      if (!Found)
+      
+      if (bool Found = ParentStack.back().getMemoizationData() &&
+                   llvm::is_contained(*Vector, ParentStack.back()); !Found)
         Vector->push_back(ParentStack.back());
     }
   }

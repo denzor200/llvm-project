@@ -334,12 +334,12 @@ bool AssemblerInvocation::CreateFromArgs(AssemblerInvocation &Opts,
       std::string(Args.getLastArgValue(OPT_split_dwarf_output));
   if (Arg *A = Args.getLastArg(OPT_filetype)) {
     StringRef Name = A->getValue();
-    unsigned OutputType = StringSwitch<unsigned>(Name)
+    
+    if (unsigned OutputType = StringSwitch<unsigned>(Name)
       .Case("asm", FT_Asm)
       .Case("null", FT_Null)
       .Case("obj", FT_Obj)
-      .Default(~0U);
-    if (OutputType == ~0U) {
+      .Default(~0U); OutputType == ~0U) {
       Diags.Report(diag::err_drv_invalid_value) << A->getAsString(Args) << Name;
       Success = false;
     } else

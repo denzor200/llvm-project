@@ -256,8 +256,8 @@ public:
   AttributeLikeVariable *
   getUnitVariableParsingElement(ArrayRef<FormatElement *> pelement) {
     if (pelement.size() == 1) {
-      auto *attrElem = dyn_cast<AttributeLikeVariable>(pelement[0]);
-      if (attrElem && attrElem->isUnit())
+      
+      if (auto *attrElem = dyn_cast<AttributeLikeVariable>(pelement[0]); attrElem && attrElem->isUnit())
         return attrElem;
     }
     return nullptr;
@@ -1067,8 +1067,8 @@ static void genCustomDirectiveParser(CustomDirective *dir, MethodBody &body,
             listName);
       }
     } else if (auto *dir = dyn_cast<RefDirective>(param)) {
-      FormatElement *input = dir->getArg();
-      if (auto *operand = dyn_cast<OperandVariable>(input)) {
+      
+      if (FormatElement *input = dir->getArg(); auto *operand = dyn_cast<OperandVariable>(input)) {
         if (!operand->getVar()->isOptional())
           continue;
         body << formatv(
@@ -1118,8 +1118,8 @@ static void genCustomDirectiveParser(CustomDirective *dir, MethodBody &body,
                         var->name);
       }
     } else if (auto *operand = dyn_cast<OperandVariable>(param)) {
-      const NamedTypeConstraint *var = operand->getVar();
-      if (var->isOptional()) {
+      
+      if (const NamedTypeConstraint *var = operand->getVar(); var->isOptional()) {
         body << formatv("    if ({0}Operand.has_value())\n"
                         "      {0}Operands.push_back(*{0}Operand);\n",
                         var->name);
@@ -1495,8 +1495,8 @@ void OperationFormat::genElementParser(FormatElement *element, MethodBody &body,
       genElementParser(opVar, body, attrTypeCtx);
       body << "  if (!" << opVar->getVar()->name << "Operands.empty()) {\n";
     } else if (auto *regionVar = dyn_cast<RegionVariable>(firstElement)) {
-      const NamedRegion *region = regionVar->getVar();
-      if (region->isVariadic()) {
+      
+      if (const NamedRegion *region = regionVar->getVar(); region->isVariadic()) {
         genElementParser(regionVar, body, attrTypeCtx);
         body << "  if (!" << region->name << "Regions.empty()) {\n";
       } else {
@@ -1862,9 +1862,9 @@ void OperationFormat::genParserOperandTypeResolution(
 void OperationFormat::genParserRegionResolution(Operator &op,
                                                 MethodBody &body) {
   // Check for the case where all regions were parsed.
-  bool hasAllRegions = llvm::any_of(
-      elements, [](FormatElement *elt) { return isa<RegionsDirective>(elt); });
-  if (hasAllRegions) {
+  
+  if (bool hasAllRegions = llvm::any_of(
+      elements, [](FormatElement *elt) { return isa<RegionsDirective>(elt); }); hasAllRegions) {
     body << "  result.addRegions(fullRegions);\n";
     return;
   }
@@ -1881,10 +1881,10 @@ void OperationFormat::genParserRegionResolution(Operator &op,
 void OperationFormat::genParserSuccessorResolution(Operator &op,
                                                    MethodBody &body) {
   // Check for the case where all successors were parsed.
-  bool hasAllSuccessors = llvm::any_of(elements, [](FormatElement *elt) {
+  
+  if (bool hasAllSuccessors = llvm::any_of(elements, [](FormatElement *elt) {
     return isa<SuccessorsDirective>(elt);
-  });
-  if (hasAllSuccessors) {
+  }); hasAllSuccessors) {
     body << "  result.addSuccessors(fullSuccessors);\n";
     return;
   }
@@ -2064,8 +2064,8 @@ static void genPropDictPrinter(OperationFormat &fmt, Operator &op,
   // Default-valued attributes will not be printed when their value matches the
   // default.
   for (const NamedAttribute &namedAttr : op.getAttributes()) {
-    const Attribute &attr = namedAttr.attr;
-    if (!attr.isDerivedAttr() && attr.hasDefaultValue()) {
+    
+    if (const Attribute &attr = namedAttr.attr; !attr.isDerivedAttr() && attr.hasDefaultValue()) {
       const StringRef &name = namedAttr.name;
       FmtContext fctx;
       fctx.withBuilder("odsBuilder");
@@ -2116,8 +2116,8 @@ static void genAttrDictPrinter(OperationFormat &fmt, Operator &op,
   // Default-valued attributes will not be printed when their value matches the
   // default.
   for (const NamedAttribute &namedAttr : op.getAttributes()) {
-    const Attribute &attr = namedAttr.attr;
-    if (!attr.isDerivedAttr() && attr.hasDefaultValue()) {
+    
+    if (const Attribute &attr = namedAttr.attr; !attr.isDerivedAttr() && attr.hasDefaultValue()) {
       const StringRef &name = namedAttr.name;
       FmtContext fctx;
       fctx.withBuilder("odsBuilder");
@@ -2307,8 +2307,8 @@ static void genEnumAttrPrinter(const NamedAttribute *var, const Operator &op,
   // single bit value.
   if (enumInfo.isBitEnum()) {
     for (auto it : llvm::enumerate(cases)) {
-      int64_t value = it.value().getValue();
-      if (value < 0 || !llvm::isPowerOf2_64(value))
+      
+      if (int64_t value = it.value().getValue(); value < 0 || !llvm::isPowerOf2_64(value))
         nonKeywordCases.set(it.index());
     }
   }
@@ -2447,8 +2447,8 @@ void OperationFormat::genElementPrinter(FormatElement *element,
     ArrayRef<FormatElement *> thenElements = optional->getThenElements();
     ArrayRef<FormatElement *> elseElements = optional->getElseElements();
     FormatElement *elidedAnchorElement = nullptr;
-    auto *anchorAttr = dyn_cast<AttributeLikeVariable>(anchor);
-    if (anchorAttr && anchorAttr != thenElements.front() &&
+    
+    if (auto *anchorAttr = dyn_cast<AttributeLikeVariable>(anchor); anchorAttr && anchorAttr != thenElements.front() &&
         (elseElements.empty() || anchorAttr != elseElements.front()) &&
         anchorAttr->isUnit()) {
       elidedAnchorElement = anchorAttr;
@@ -2846,8 +2846,8 @@ LogicalResult OpFormatParser::verify(SMLoc loc,
   // Check for any type traits that we can use for inferring types.
   StringMap<TypeResolutionInstance> variableTyResolver;
   for (const Trait &trait : op.getTraits()) {
-    const Record &def = trait.getDef();
-    if (def.isSubClassOf("AllTypesMatch")) {
+    
+    if (const Record &def = trait.getDef(); def.isSubClassOf("AllTypesMatch")) {
       handleAllTypesMatchConstraint(def.getValueAsListOfStrings("values"),
                                     variableTyResolver);
     } else if (def.getName() == "SameTypeOperands") {
@@ -3043,8 +3043,8 @@ OpFormatParser::verifyAttributeColonType(SMLoc loc,
             attr->getVar()->attr.getStorageType() == "::mlir::Attribute");
   };
   auto isInvalid = [&](FormatElement *base, FormatElement *el) {
-    auto *literal = dyn_cast<LiteralElement>(el);
-    if (!literal || literal->getSpelling() != ":")
+    
+    if (auto *literal = dyn_cast<LiteralElement>(el); !literal || literal->getSpelling() != ":")
       return false;
     // If we encounter `:`, the range is known to be invalid.
     (void)emitError(
@@ -3132,8 +3132,8 @@ LogicalResult OpFormatParser::verifyRegions(SMLoc loc) {
     return success();
 
   for (unsigned i = 0, e = op.getNumRegions(); i != e; ++i) {
-    const NamedRegion &region = op.getRegion(i);
-    if (!seenRegions.count(&region)) {
+    
+    if (const NamedRegion &region = op.getRegion(i); !seenRegions.count(&region)) {
       return emitErrorAndNote(loc,
                               "region #" + Twine(i) + ", named '" +
                                   region.name + "', not found",
@@ -3198,8 +3198,8 @@ LogicalResult OpFormatParser::verifySuccessors(SMLoc loc) {
     return success();
 
   for (unsigned i = 0, e = op.getNumSuccessors(); i != e; ++i) {
-    const NamedSuccessor &successor = op.getSuccessor(i);
-    if (!seenSuccessors.count(&successor)) {
+    
+    if (const NamedSuccessor &successor = op.getSuccessor(i); !seenSuccessors.count(&successor)) {
       return emitErrorAndNote(loc,
                               "successor #" + Twine(i) + ", named '" +
                                   successor.name + "', not found",
@@ -3268,10 +3268,10 @@ void OpFormatParser::handleSameTypesConstraint(
     StringMap<TypeResolutionInstance> &variableTyResolver,
     bool includeResults) {
   const NamedTypeConstraint *resolver = nullptr;
-  int resolvedIt = -1;
+  
 
   // Check to see if there is an operand or result to use for the resolution.
-  if ((resolvedIt = seenOperandTypes.find_first()) != -1)
+  if (int resolvedIt = -1; (resolvedIt = seenOperandTypes.find_first()) != -1)
     resolver = &op.getOperand(resolvedIt);
   else if (includeResults && (resolvedIt = seenResultTypes.find_first()) != -1)
     resolver = &op.getResult(resolvedIt);

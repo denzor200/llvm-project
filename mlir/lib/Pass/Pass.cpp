@@ -774,8 +774,8 @@ LogicalResult OpToOpPassAdaptor::tryMergeInto(MLIRContext *ctx,
   // compatible within any non-generic pass managers.
   //
   // Check the current adaptor.
-  auto *lhsGenericPMIt = llvm::find_if(mgrs, isGenericPM);
-  if (lhsGenericPMIt != mgrs.end()) {
+  
+  if (auto *lhsGenericPMIt = llvm::find_if(mgrs, isGenericPM); lhsGenericPMIt != mgrs.end()) {
     LDBG(4) << "Found generic pass manager on LHS, checking for conflicts";
     if (hasScheduleConflictWith(*lhsGenericPMIt, rhs.mgrs)) {
       LDBG(4)

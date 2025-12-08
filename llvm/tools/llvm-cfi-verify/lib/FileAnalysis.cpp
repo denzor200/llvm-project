@@ -176,8 +176,8 @@ bool FileAnalysis::isCFITrap(const Instr &InstrMeta) const {
 }
 
 bool FileAnalysis::willTrapOnCFIViolation(const Instr &InstrMeta) const {
-  const auto &InstrDesc = MII->get(InstrMeta.Instruction.getOpcode());
-  if (!InstrDesc.isCall())
+  
+  if (const auto &InstrDesc = MII->get(InstrMeta.Instruction.getOpcode()); !InstrDesc.isCall())
     return false;
   uint64_t Target;
   if (!MIA->evaluateBranch(InstrMeta.Instruction, InstrMeta.VMAddress,
@@ -193,8 +193,8 @@ bool FileAnalysis::canFallThrough(const Instr &InstrMeta) const {
   if (isCFITrap(InstrMeta))
     return false;
 
-  const auto &InstrDesc = MII->get(InstrMeta.Instruction.getOpcode());
-  if (InstrDesc.mayAffectControlFlow(InstrMeta.Instruction, *RegisterInfo))
+  
+  if (const auto &InstrDesc = MII->get(InstrMeta.Instruction.getOpcode()); InstrDesc.mayAffectControlFlow(InstrMeta.Instruction, *RegisterInfo))
     return InstrDesc.isConditionalBranch();
 
   return true;
@@ -343,8 +343,8 @@ uint64_t FileAnalysis::indirectCFOperandClobber(const GraphResult &Graph) const 
 
       for (auto RI = CurRegisterNumbers.begin(), RE = CurRegisterNumbers.end();
            RI != RE; ++RI) {
-        unsigned RegNum = *RI;
-        if (InstrDesc.hasDefOfPhysReg(NodeInstr.Instruction, RegNum,
+        
+        if (unsigned RegNum = *RI; InstrDesc.hasDefOfPhysReg(NodeInstr.Instruction, RegNum,
                                       *RegisterInfo)) {
           if (!canLoad || !InstrDesc.mayLoad())
             return Node;
@@ -353,8 +353,8 @@ uint64_t FileAnalysis::indirectCFOperandClobber(const GraphResult &Graph) const 
           // Add the registers this load reads to those we check for clobbers.
           for (unsigned i = InstrDesc.getNumDefs(),
                         e = InstrDesc.getNumOperands(); i != e; i++) {
-            const auto &Operand = NodeInstr.Instruction.getOperand(i);
-            if (Operand.isReg())
+            
+            if (const auto &Operand = NodeInstr.Instruction.getOperand(i); Operand.isReg())
               CurRegisterNumbers.insert(Operand.getReg());
           }
           break;

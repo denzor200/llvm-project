@@ -52,9 +52,9 @@ void ARMTargetStreamer::reset() {}
 void ARMTargetStreamer::emitInst(uint32_t Inst, char Suffix) {
   unsigned Size;
   char Buffer[4];
-  const bool LittleEndian = getContext().getAsmInfo()->isLittleEndian();
+  
 
-  switch (Suffix) {
+  switch (const bool LittleEndian = getContext().getAsmInfo()->isLittleEndian(); Suffix) {
   case '\0':
     Size = 4;
 

@@ -22,8 +22,8 @@ namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, tcgetattr, (int fd, struct termios *t)) {
   LIBC_NAMESPACE::kernel_termios kt;
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_ioctl, fd, TCGETS, &kt);
-  if (ret < 0) {
+  
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_ioctl, fd, TCGETS, &kt); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

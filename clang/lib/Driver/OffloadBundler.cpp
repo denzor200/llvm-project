@@ -820,8 +820,8 @@ protected:
     // Read up to the next new line.
     assert(FC[ReadChars] == '\n' && "The bundle should end with a new line.");
 
-    size_t TripleEnd = ReadChars = FC.find("\n", ReadChars + 1);
-    if (TripleEnd != FC.npos)
+    
+    if (size_t TripleEnd = ReadChars = FC.find("\n", ReadChars + 1); TripleEnd != FC.npos)
       // Next time we read after the new line.
       ++ReadChars;
 
@@ -1190,8 +1190,8 @@ CompressedOffloadBundle::CompressedBundleHeader::tryParse(StringRef Blob) {
   CompressedBundleHeader Normalized;
   Normalized.Version = Header.Common.Version;
 
-  size_t RequiredSize = getHeaderSize(Normalized.Version);
-  if (Blob.size() < RequiredSize)
+  
+  if (size_t RequiredSize = getHeaderSize(Normalized.Version); Blob.size() < RequiredSize)
     return createStringError(inconvertibleErrorCode(),
                              "Compressed bundle header size too small");
 

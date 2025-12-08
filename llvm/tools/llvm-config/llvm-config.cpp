@@ -124,8 +124,8 @@ static void visitComponent(const std::string &Name,
       for (const char *Lib : AvailableExtension.RequiredLibraries) {
         if (!Lib)
           break;
-        AvailableComponent *AC = ComponentMap.lookup(Lib);
-        if (!AC)
+        
+        if (AvailableComponent *AC = ComponentMap.lookup(Lib); !AC)
           RequiredLibs.push_back(Lib);
         else
           visitComponent(Lib, ComponentMap, VisitedComponents, RequiredLibs,

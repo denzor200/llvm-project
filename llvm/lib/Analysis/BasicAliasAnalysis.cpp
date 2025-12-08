@@ -1361,8 +1361,8 @@ AliasResult BasicAAResult::aliasGEP(
   std::optional<APInt> MinAbsVarIndex;
   if (DecompGEP1.VarIndices.size() == 1) {
     // VarIndex = Scale*V.
-    const VariableGEPIndex &Var = DecompGEP1.VarIndices[0];
-    if (Var.Val.TruncBits == 0 &&
+    
+    if (const VariableGEPIndex &Var = DecompGEP1.VarIndices[0]; Var.Val.TruncBits == 0 &&
         isKnownNonZero(Var.Val.V, SimplifyQuery(DL, DT, &AC, Var.CxtI))) {
       // Refine MinAbsVarIndex, if abs(Scale*V) >= abs(Scale) holds in the
       // presence of potentially wrapping math.
@@ -1377,8 +1377,8 @@ AliasResult BasicAAResult::aliasGEP(
     // Check that MayBeCrossIteration is false, to avoid reasoning about
     // inequality of values across loop iterations.
     const VariableGEPIndex &Var0 = DecompGEP1.VarIndices[0];
-    const VariableGEPIndex &Var1 = DecompGEP1.VarIndices[1];
-    if (Var0.hasNegatedScaleOf(Var1) && Var0.Val.TruncBits == 0 &&
+    
+    if (const VariableGEPIndex &Var1 = DecompGEP1.VarIndices[1]; Var0.hasNegatedScaleOf(Var1) && Var0.Val.TruncBits == 0 &&
         Var0.Val.hasSameCastsAs(Var1.Val) && !AAQI.MayBeCrossIteration &&
         MultiplyByScaleNoWrap(Var0) && MultiplyByScaleNoWrap(Var1) &&
         isKnownNonEqual(Var0.Val.V, Var1.Val.V,
@@ -1851,8 +1851,8 @@ AliasResult BasicAAResult::aliasCheckRecursive(
   // If both pointers are pointing into the same object and one of them
   // accesses the entire object, then the accesses must overlap in some way.
   if (O1 == O2) {
-    bool NullIsValidLocation = NullPointerIsDefined(&F);
-    if (V1Size.isPrecise() && V2Size.isPrecise() &&
+    
+    if (bool NullIsValidLocation = NullPointerIsDefined(&F); V1Size.isPrecise() && V2Size.isPrecise() &&
         (isObjectSize(O1, V1Size.getValue(), DL, TLI, NullIsValidLocation) ||
          isObjectSize(O2, V2Size.getValue(), DL, TLI, NullIsValidLocation)))
       return AliasResult::PartialAlias;

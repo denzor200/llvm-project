@@ -522,8 +522,8 @@ int32_t checkFT(const FT value, ShadowFT Shadow, CheckTypeT CheckType,
                log2l(static_cast<long double>(abs_err / largest / Eps)));
     }
     char ulp_err_buf[128] = "";
-    const double shadow_ulp_diff = GetULPDiff(check_value, check_shadow);
-    if (shadow_ulp_diff != kMaxULPDiff) {
+    
+    if (const double shadow_ulp_diff = GetULPDiff(check_value, check_shadow); shadow_ulp_diff != kMaxULPDiff) {
       // This is the ULP diff in the internal domain. The user actually cares
       // about that in the original domain.
       const double ulp_diff =

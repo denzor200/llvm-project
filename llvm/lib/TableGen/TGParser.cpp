@@ -103,8 +103,8 @@ static void checkConcrete(Record &R) {
       continue;
 
     if (const Init *V = RV.getValue()) {
-      bool Ok = isa<BitsInit>(V) ? checkBitsConcrete(R, RV) : V->isConcrete();
-      if (!Ok) {
+      
+      if (bool Ok = isa<BitsInit>(V) ? checkBitsConcrete(R, RV) : V->isConcrete(); !Ok) {
         PrintError(R.getLoc(), Twine("Initializer of '") +
                                    RV.getNameInitAsString() + "' in '" +
                                    R.getNameInitAsString() +
@@ -193,8 +193,8 @@ const Init *TGVarScope::getVar(RecordKeeper &Records,
   case SK_ForeachLoop: {
     // The variable is a loop iterator?
     if (CurLoop->IterVar) {
-      const auto *IterVar = dyn_cast<VarInit>(CurLoop->IterVar);
-      if (IterVar && IterVar->getNameInit() == Name)
+      
+      if (const auto *IterVar = dyn_cast<VarInit>(CurLoop->IterVar); IterVar && IterVar->getNameInit() == Name)
         return IterVar;
     }
     break;
@@ -1385,8 +1385,8 @@ const Init *TGParser::ParseOperation(Record *CurRec, const RecTy *ItemType) {
       // for !listflatten, we expect a list of lists, but also support a list of
       // non-lists, where !listflatten will be a NOP.
       if (Code == UnOpInit::LISTFLATTEN) {
-        const auto *InnerListTy = dyn_cast<ListRecTy>(Type);
-        if (InnerListTy) {
+        
+        if (const auto *InnerListTy = dyn_cast<ListRecTy>(Type); InnerListTy) {
           // listflatten will convert list<list<X>> to list<X>.
           Type = ListRecTy::get(InnerListTy->getElementType());
         } else {
@@ -2172,8 +2172,8 @@ const Init *TGParser::ParseOperation(Record *CurRec, const RecTy *ItemType) {
       break;
     }
     case tgtok::XSetDagArg: {
-      const auto *MHSt = dyn_cast<TypedInit>(MHS);
-      if (!MHSt || !isa<IntRecTy, StringRecTy>(MHSt->getType())) {
+      
+      if (const auto *MHSt = dyn_cast<TypedInit>(MHS); !MHSt || !isa<IntRecTy, StringRecTy>(MHSt->getType())) {
         Error(MHSLoc, Twine("expected integer index or string name, got ") +
                           (MHSt ? ("type '" + MHSt->getType()->getAsString())
                                 : ("'" + MHS->getAsString())) +
@@ -2183,8 +2183,8 @@ const Init *TGParser::ParseOperation(Record *CurRec, const RecTy *ItemType) {
       break;
     }
     case tgtok::XSetDagName: {
-      const auto *MHSt = dyn_cast<TypedInit>(MHS);
-      if (!MHSt || !isa<IntRecTy, StringRecTy>(MHSt->getType())) {
+      
+      if (const auto *MHSt = dyn_cast<TypedInit>(MHS); !MHSt || !isa<IntRecTy, StringRecTy>(MHSt->getType())) {
         Error(MHSLoc, Twine("expected integer index or string name, got ") +
                           (MHSt ? ("type '" + MHSt->getType()->getAsString())
                                 : ("'" + MHS->getAsString())) +
@@ -2971,8 +2971,8 @@ const Init *TGParser::ParseSimpleValue(Record *CurRec, const RecTy *ItemType,
     // Check elements
     const RecTy *EltTy = nullptr;
     for (const Init *V : Vals) {
-      const auto *TArg = dyn_cast<TypedInit>(V);
-      if (TArg) {
+      
+      if (const auto *TArg = dyn_cast<TypedInit>(V); TArg) {
         if (EltTy) {
           EltTy = resolveTypes(EltTy, TArg->getType());
           if (!EltTy) {
@@ -3476,8 +3476,8 @@ const Init *TGParser::ParseDeclaration(Record *CurRec,
   // If a value is present, parse it and set new field's value.
   if (consume(tgtok::equal)) {
     SMLoc ValLoc = Lex.getLoc();
-    const Init *Val = ParseValue(CurRec, Type);
-    if (!Val ||
+    
+    if (const Init *Val = ParseValue(CurRec, Type); !Val ||
         SetValue(CurRec, ValLoc, DeclName, {}, Val,
                  /*AllowSelfAssignment=*/false, /*OverrideDefLoc=*/false)) {
       // Return the name, even if an error is thrown. This is so that we can
@@ -3909,8 +3909,8 @@ bool TGParser::ParseDefvar(Record *CurRec) {
 
   // The name should not be conflicted with existed field names.
   if (CurRec) {
-    auto *V = CurRec->getValue(DeclName->getValue());
-    if (V && !V->isTemplateArg())
+    
+    if (auto *V = CurRec->getValue(DeclName->getValue()); V && !V->isTemplateArg())
       return TokError("field of this name already exists");
   }
 
@@ -4593,8 +4593,8 @@ bool TGParser::CheckTemplateArgValues(
     const RecTy *ArgType = Arg->getType();
 
     if (const auto *ArgValue = dyn_cast<TypedInit>(Value->getValue())) {
-      auto *CastValue = ArgValue->getCastTo(ArgType);
-      if (CastValue) {
+      
+      if (auto *CastValue = ArgValue->getCastTo(ArgType); CastValue) {
         assert((!isa<TypedInit>(CastValue) ||
                 cast<TypedInit>(CastValue)->getType()->typeIsA(ArgType)) &&
                "result of template arg value cast has wrong type");

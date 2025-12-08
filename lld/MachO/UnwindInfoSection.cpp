@@ -304,12 +304,12 @@ void UnwindInfoSectionImpl::prepareRelocations(ConcatInputSection *isec) {
       // by this point.
       Symbol *&s = personalityTable[{referentIsec, r.addend}];
       if (s == nullptr) {
-        Defined *const *gotEntry =
+        
+        if (Defined *const *gotEntry =
             llvm::find_if(referentIsec->symbols, [&](Defined const *d) {
               return d->value == static_cast<uint64_t>(r.addend) &&
                      d->isInGot();
-            });
-        if (gotEntry != referentIsec->symbols.end()) {
+            }); gotEntry != referentIsec->symbols.end()) {
           s = *gotEntry;
         } else {
           // This runs after dead stripping, so the noDeadStrip argument does

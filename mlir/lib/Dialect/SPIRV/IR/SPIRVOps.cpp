@@ -79,9 +79,9 @@ spirv::verifyMemorySemantics(Operation *op,
                         spirv::MemorySemantics::AcquireRelease |
                         spirv::MemorySemantics::SequentiallyConsistent;
 
-  auto bitCount =
-      llvm::popcount(static_cast<uint32_t>(memorySemantics & atMostOneInSet));
-  if (bitCount > 1) {
+  
+  if (auto bitCount =
+      llvm::popcount(static_cast<uint32_t>(memorySemantics & atMostOneInSet)); bitCount > 1) {
     return op->emitError(
         "expected at most one of these four memory constraints "
         "to be set: `Acquire`, `Release`,"
@@ -990,8 +990,8 @@ void spirv::FuncOp::print(OpAsmPrinter &printer) {
        getFunctionControlAttrName()});
 
   // Print the body if this is not an external function.
-  Region &body = this->getBody();
-  if (!body.empty()) {
+  
+  if (Region &body = this->getBody(); !body.empty()) {
     printer << ' ';
     printer.printRegion(body, /*printEntryBlockArgs=*/false,
                         /*printBlockTerminators=*/true);
@@ -1035,9 +1035,9 @@ LogicalResult spirv::FuncOp::verifyType() {
 
       bool hasAliasedPtr =
           hasDecorationAttr(spirv::Decoration::AliasedPointer, i);
-      bool hasRestrictPtr =
-          hasDecorationAttr(spirv::Decoration::RestrictPointer, i);
-      if (!hasAliasedPtr && !hasRestrictPtr)
+      
+      if (bool hasRestrictPtr =
+          hasDecorationAttr(spirv::Decoration::RestrictPointer, i); !hasAliasedPtr && !hasRestrictPtr)
         return emitOpError()
                << "with a pointer points to a physical buffer pointer must "
                   "be decorated either 'AliasedPointer' or 'RestrictPointer'";
@@ -1060,8 +1060,8 @@ LogicalResult spirv::FuncOp::verifyType() {
       continue;
 
     bool hasAliased = hasDecorationAttr(spirv::Decoration::Aliased, i);
-    bool hasRestrict = hasDecorationAttr(spirv::Decoration::Restrict, i);
-    if (!hasAliased && !hasRestrict)
+    
+    if (bool hasRestrict = hasDecorationAttr(spirv::Decoration::Restrict, i); !hasAliased && !hasRestrict)
       return emitOpError() << "with physical buffer pointer must be decorated "
                               "either 'Aliased' or 'Restrict'";
   }
@@ -1565,10 +1565,10 @@ LogicalResult spirv::ModuleOp::verifyRegions() {
       // linkage_attributes(LinkageAttributes), throw an error. 'Import'
       // LinkageAttributes is used to import external functions.
       auto linkageAttr = funcOp.getLinkageAttributes();
-      auto hasImportLinkage =
+      
+      if (auto hasImportLinkage =
           linkageAttr && (linkageAttr.value().getLinkageType().getValue() ==
-                          spirv::LinkageType::Import);
-      if (funcOp.isExternal() && !hasImportLinkage)
+                          spirv::LinkageType::Import); funcOp.isExternal() && !hasImportLinkage)
         return op.emitError(
             "'spirv.module' cannot contain external functions "
             "without 'Import' linkage_attributes (LinkageAttributes)");

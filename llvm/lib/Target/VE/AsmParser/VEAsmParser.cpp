@@ -777,9 +777,9 @@ bool VEAsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                                           MCStreamer &Out, uint64_t &ErrorInfo,
                                           bool MatchingInlineAsm) {
   MCInst Inst;
-  unsigned MatchResult =
-      MatchInstructionImpl(Operands, Inst, ErrorInfo, MatchingInlineAsm);
-  switch (MatchResult) {
+  
+  switch (unsigned MatchResult =
+      MatchInstructionImpl(Operands, Inst, ErrorInfo, MatchingInlineAsm); MatchResult) {
   case Match_Success:
     Inst.setLoc(IDLoc);
     Out.emitInstruction(Inst, getSTI());
@@ -1172,8 +1172,8 @@ bool VEAsmParser::parseExpression(const MCExpr *&EVal) {
 
   // Convert MCSymbolRefExpr with specifier to MCSpecifierExpr.
   VE::Specifier Specifier;
-  const MCExpr *E = extractSpecifier(EVal, Specifier);
-  if (E)
+  
+  if (const MCExpr *E = extractSpecifier(EVal, Specifier); E)
     EVal = MCSpecifierExpr::create(E, Specifier, getParser().getContext());
 
   return false;
@@ -1537,12 +1537,12 @@ extern "C" LLVM_ABI LLVM_EXTERNAL_VISIBILITY void LLVMInitializeVEAsmParser() {
 
 unsigned VEAsmParser::validateTargetOperandClass(MCParsedAsmOperand &GOp,
                                                  unsigned Kind) {
-  VEOperand &Op = (VEOperand &)GOp;
+  
 
   // VE uses identical register name for all registers like both
   // F32 and I32 uses "%s23".  Need to convert the name of them
   // for validation.
-  switch (Kind) {
+  switch (VEOperand &Op = (VEOperand &)GOp; Kind) {
   default:
     break;
   case MCK_F32:

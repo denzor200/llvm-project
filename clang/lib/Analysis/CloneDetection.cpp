@@ -43,10 +43,10 @@ bool StmtSequence::contains(const StmtSequence &Other) const {
 
   // Otherwise check if the start and end locations of the current sequence
   // surround the other sequence.
-  bool StartIsInBounds =
+  
+  if (bool StartIsInBounds =
       SM.isBeforeInTranslationUnit(getBeginLoc(), Other.getBeginLoc()) ||
-      getBeginLoc() == Other.getBeginLoc();
-  if (!StartIsInBounds)
+      getBeginLoc() == Other.getBeginLoc(); !StartIsInBounds)
     return false;
 
   bool EndIsInBounds =

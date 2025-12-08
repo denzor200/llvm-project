@@ -51,8 +51,8 @@ bool RISCVExegesisPostprocessing::runOnMachineFunction(MachineFunction &MF) {
   bool Changed = false;
   for (auto &MBB : MF)
     for (auto &MI : MBB) {
-      unsigned Opcode = MI.getOpcode();
-      switch (Opcode) {
+      
+      switch (unsigned Opcode = MI.getOpcode(); Opcode) {
       case RISCV::VSETVLI:
       case RISCV::VSETVL:
       case RISCV::PseudoVSETVLI:

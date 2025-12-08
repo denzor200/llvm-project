@@ -340,9 +340,9 @@ public:
 
     for (unsigned Idx = FirstFieldOpNo; Idx < NumOperands;
          Idx += NumOpsPerField) {
-      uint64_t Cur =
-          mdconst::extract<ConstantInt>(Operands[Idx + 1])->getZExtValue();
-      if (Cur > Offset) {
+      
+      if (uint64_t Cur =
+          mdconst::extract<ConstantInt>(Operands[Idx + 1])->getZExtValue(); Cur > Offset) {
         assert(Idx >= FirstFieldOpNo + NumOpsPerField &&
                "TBAAStructTypeNode::getField should have an offset match!");
         TheIdx = Idx - NumOpsPerField;
@@ -848,8 +848,8 @@ MDNode *AAMDNodes::extendToTBAA(MDNode *MD, ssize_t Len) {
 
 AAMDNodes AAMDNodes::adjustForAccess(unsigned AccessSize) {
   AAMDNodes New = *this;
-  MDNode *M = New.TBAAStruct;
-  if (!New.TBAA && M && M->getNumOperands() >= 3 && M->getOperand(0) &&
+  
+  if (MDNode *M = New.TBAAStruct; !New.TBAA && M && M->getNumOperands() >= 3 && M->getOperand(0) &&
       mdconst::hasa<ConstantInt>(M->getOperand(0)) &&
       mdconst::extract<ConstantInt>(M->getOperand(0))->isZero() &&
       M->getOperand(1) && mdconst::hasa<ConstantInt>(M->getOperand(1)) &&

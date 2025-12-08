@@ -185,8 +185,8 @@ bool lldb_private::formatters::CFBitVectorSummaryProvider(
     bool bit4 = (byte & 16) == 16;
     bool bit5 = (byte & 32) == 32;
     bool bit6 = (byte & 64) == 64;
-    bool bit7 = (byte & 128) == 128;
-    if (count) {
+    
+    if (bool bit7 = (byte & 128) == 128; count) {
       stream.Printf("%c", bit7 ? '1' : '0');
       count -= 1;
     }

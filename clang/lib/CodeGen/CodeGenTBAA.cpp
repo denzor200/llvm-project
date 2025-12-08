@@ -462,9 +462,9 @@ CodeGenTBAA::CollectFields(uint64_t BaseOffset,
         // at the most-significant end; see CGRecordLowering::setBitFieldInfo
         // for more information.
         bool IsBE = Context.getTargetInfo().isBigEndian();
-        bool IsFirst = IsBE ? Info.StorageSize - (Info.Offset + Info.Size) == 0
-                            : Info.Offset == 0;
-        if (!IsFirst)
+        
+        if (bool IsFirst = IsBE ? Info.StorageSize - (Info.Offset + Info.Size) == 0
+                            : Info.Offset == 0; !IsFirst)
           continue;
         unsigned CurrentBitFieldSize = Info.StorageSize;
         uint64_t Size =

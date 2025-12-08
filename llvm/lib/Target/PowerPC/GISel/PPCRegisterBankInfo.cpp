@@ -54,9 +54,9 @@ PPCRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
   // Try the default logic for non-generic instructions that are either copies
   // or already have some operands assigned to banks.
   if (!isPreISelGenericOpcode(Opc) || Opc == TargetOpcode::G_PHI) {
-    const RegisterBankInfo::InstructionMapping &Mapping =
-        getInstrMappingImpl(MI);
-    if (Mapping.isValid())
+    
+    if (const RegisterBankInfo::InstructionMapping &Mapping =
+        getInstrMappingImpl(MI); Mapping.isValid())
       return Mapping;
   }
 
@@ -85,8 +85,8 @@ PPCRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
     assert(NumOperands <= 3 &&
            "This code is for instructions with 3 or less operands");
     LLT Ty = MRI.getType(MI.getOperand(0).getReg());
-    unsigned Size = Ty.getSizeInBits();
-    switch (Size) {
+    
+    switch (unsigned Size = Ty.getSizeInBits(); Size) {
     case 128:
       OperandsMapping = getValueMapping(PMI_VEC128);
       break;
@@ -154,9 +154,9 @@ PPCRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
     break;
   }
   case TargetOpcode::G_LOAD: {
-    unsigned Size = MRI.getType(MI.getOperand(0).getReg()).getSizeInBits();
+    
     // Check if that load feeds fp instructions.
-    if (any_of(MRI.use_nodbg_instructions(MI.getOperand(0).getReg()),
+    if (unsigned Size = MRI.getType(MI.getOperand(0).getReg()).getSizeInBits(); any_of(MRI.use_nodbg_instructions(MI.getOperand(0).getReg()),
                [&](const MachineInstr &UseMI) {
                  // If we have at least one direct use in a FP instruction,
                  // assume this was a floating point load in the IR. If it was
@@ -179,8 +179,8 @@ PPCRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
   case TargetOpcode::G_STORE: {
     // Check if the store is fed by fp instructions.
     MachineInstr *DefMI = MRI.getVRegDef(MI.getOperand(0).getReg());
-    unsigned Size = MRI.getType(MI.getOperand(0).getReg()).getSizeInBits();
-    if (onlyDefinesFP(*DefMI, MRI, TRI))
+    
+    if (unsigned Size = MRI.getType(MI.getOperand(0).getReg()).getSizeInBits(); onlyDefinesFP(*DefMI, MRI, TRI))
       OperandsMapping = getOperandsMapping(
           {getValueMapping(Size == 64 ? PMI_FPR64 : PMI_FPR32),
            getValueMapping(PMI_GPR64)});

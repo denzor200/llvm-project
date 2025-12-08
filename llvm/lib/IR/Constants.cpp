@@ -150,8 +150,8 @@ bool Constant::isNotOneValue() const {
   // Check that vectors don't contain 1
   if (auto *VTy = dyn_cast<FixedVectorType>(getType())) {
     for (unsigned I = 0, E = VTy->getNumElements(); I != E; ++I) {
-      Constant *Elt = getAggregateElement(I);
-      if (!Elt || !Elt->isNotOneValue())
+      
+      if (Constant *Elt = getAggregateElement(I); !Elt || !Elt->isNotOneValue())
         return false;
     }
     return true;
@@ -212,8 +212,8 @@ bool Constant::isNotMinSignedValue() const {
   // Check that vectors don't contain INT_MIN
   if (auto *VTy = dyn_cast<FixedVectorType>(getType())) {
     for (unsigned I = 0, E = VTy->getNumElements(); I != E; ++I) {
-      Constant *Elt = getAggregateElement(I);
-      if (!Elt || !Elt->isNotMinSignedValue())
+      
+      if (Constant *Elt = getAggregateElement(I); !Elt || !Elt->isNotMinSignedValue())
         return false;
     }
     return true;
@@ -234,8 +234,8 @@ bool Constant::isFiniteNonZeroFP() const {
 
   if (auto *VTy = dyn_cast<FixedVectorType>(getType())) {
     for (unsigned I = 0, E = VTy->getNumElements(); I != E; ++I) {
-      auto *CFP = dyn_cast_or_null<ConstantFP>(getAggregateElement(I));
-      if (!CFP || !CFP->getValueAPF().isFiniteNonZero())
+      
+      if (auto *CFP = dyn_cast_or_null<ConstantFP>(getAggregateElement(I)); !CFP || !CFP->getValueAPF().isFiniteNonZero())
         return false;
     }
     return true;
@@ -255,8 +255,8 @@ bool Constant::isNormalFP() const {
 
   if (auto *VTy = dyn_cast<FixedVectorType>(getType())) {
     for (unsigned I = 0, E = VTy->getNumElements(); I != E; ++I) {
-      auto *CFP = dyn_cast_or_null<ConstantFP>(getAggregateElement(I));
-      if (!CFP || !CFP->getValueAPF().isNormal())
+      
+      if (auto *CFP = dyn_cast_or_null<ConstantFP>(getAggregateElement(I)); !CFP || !CFP->getValueAPF().isNormal())
         return false;
     }
     return true;
@@ -276,8 +276,8 @@ bool Constant::hasExactInverseFP() const {
 
   if (auto *VTy = dyn_cast<FixedVectorType>(getType())) {
     for (unsigned I = 0, E = VTy->getNumElements(); I != E; ++I) {
-      auto *CFP = dyn_cast_or_null<ConstantFP>(getAggregateElement(I));
-      if (!CFP || !CFP->getValueAPF().getExactInverse(nullptr))
+      
+      if (auto *CFP = dyn_cast_or_null<ConstantFP>(getAggregateElement(I)); !CFP || !CFP->getValueAPF().getExactInverse(nullptr))
         return false;
     }
     return true;
@@ -297,8 +297,8 @@ bool Constant::isNaN() const {
 
   if (auto *VTy = dyn_cast<FixedVectorType>(getType())) {
     for (unsigned I = 0, E = VTy->getNumElements(); I != E; ++I) {
-      auto *CFP = dyn_cast_or_null<ConstantFP>(getAggregateElement(I));
-      if (!CFP || !CFP->isNaN())
+      
+      if (auto *CFP = dyn_cast_or_null<ConstantFP>(getAggregateElement(I)); !CFP || !CFP->isNaN())
         return false;
     }
     return true;
@@ -683,8 +683,8 @@ Constant::PossibleRelocationsTy Constant::getRelocationInfo() const {
   if (const ConstantExpr *CE = dyn_cast<ConstantExpr>(this)) {
     if (CE->getOpcode() == Instruction::Sub) {
       ConstantExpr *LHS = dyn_cast<ConstantExpr>(CE->getOperand(0));
-      ConstantExpr *RHS = dyn_cast<ConstantExpr>(CE->getOperand(1));
-      if (LHS && RHS &&
+      
+      if (ConstantExpr *RHS = dyn_cast<ConstantExpr>(CE->getOperand(1)); LHS && RHS &&
           (LHS->getOpcode() == Instruction::PtrToInt ||
            LHS->getOpcode() == Instruction::PtrToAddr) &&
           (RHS->getOpcode() == Instruction::PtrToInt ||
@@ -790,8 +790,8 @@ bool Constant::hasZeroLiveUses() const { return hasNLiveUses(0); }
 bool Constant::hasNLiveUses(unsigned N) const {
   unsigned NumUses = 0;
   for (const Use &U : uses()) {
-    const Constant *User = dyn_cast<Constant>(U.getUser());
-    if (!User || !constantIsDead(User, /* RemoveDeadUsers= */ false)) {
+    
+    if (const Constant *User = dyn_cast<Constant>(U.getUser()); !User || !constantIsDead(User, /* RemoveDeadUsers= */ false)) {
       ++NumUses;
 
       if (NumUses > N)
@@ -1576,8 +1576,8 @@ Constant *ConstantExpr::getWithOperands(ArrayRef<Constant *> Ops, Type *Ty,
   if (Ty == getType() && std::equal(Ops.begin(), Ops.end(), op_begin()))
     return const_cast<ConstantExpr*>(this);
 
-  Type *OnlyIfReducedTy = OnlyIfReduced ? Ty : nullptr;
-  switch (getOpcode()) {
+  
+  switch (Type *OnlyIfReducedTy = OnlyIfReduced ? Ty : nullptr; getOpcode()) {
   case Instruction::Trunc:
   case Instruction::ZExt:
   case Instruction::SExt:
@@ -1747,19 +1747,19 @@ Constant *Constant::getSplatValue(bool AllowPoison) const {
 
   // Check if this is a constant expression splat of the form returned by
   // ConstantVector::getSplat()
-  const auto *Shuf = dyn_cast<ConstantExpr>(this);
-  if (Shuf && Shuf->getOpcode() == Instruction::ShuffleVector &&
+  
+  if (const auto *Shuf = dyn_cast<ConstantExpr>(this); Shuf && Shuf->getOpcode() == Instruction::ShuffleVector &&
       isa<UndefValue>(Shuf->getOperand(1))) {
 
-    const auto *IElt = dyn_cast<ConstantExpr>(Shuf->getOperand(0));
-    if (IElt && IElt->getOpcode() == Instruction::InsertElement &&
+    
+    if (const auto *IElt = dyn_cast<ConstantExpr>(Shuf->getOperand(0)); IElt && IElt->getOpcode() == Instruction::InsertElement &&
         isa<UndefValue>(IElt->getOperand(0))) {
 
       ArrayRef<int> Mask = Shuf->getShuffleMask();
       Constant *SplatVal = IElt->getOperand(1);
-      ConstantInt *Index = dyn_cast<ConstantInt>(IElt->getOperand(2));
+      
 
-      if (Index && Index->getValue() == 0 &&
+      if (ConstantInt *Index = dyn_cast<ConstantInt>(IElt->getOperand(2)); Index && Index->getValue() == 0 &&
           llvm::all_of(Mask, [](int I) { return I == 0; }))
         return SplatVal;
     }
@@ -2005,9 +2005,9 @@ Value *DSOLocalEquivalent::handleOperandChangeImpl(Value *From, Value *To) {
 
   // The replacement is with another global value.
   if (const auto *ToObj = dyn_cast<GlobalValue>(To)) {
-    DSOLocalEquivalent *&NewEquiv =
-        getContext().pImpl->DSOLocalEquivalents[ToObj];
-    if (NewEquiv)
+    
+    if (DSOLocalEquivalent *&NewEquiv =
+        getContext().pImpl->DSOLocalEquivalents[ToObj]; NewEquiv)
       return llvm::ConstantExpr::getBitCast(NewEquiv, getType());
   }
 
@@ -2281,8 +2281,8 @@ Constant *ConstantExpr::getPointerCast(Constant *S, Type *Ty) {
   if (Ty->isIntOrIntVectorTy())
     return getPtrToInt(S, Ty);
 
-  unsigned SrcAS = S->getType()->getPointerAddressSpace();
-  if (Ty->isPtrOrPtrVectorTy() && SrcAS != Ty->getPointerAddressSpace())
+  
+  if (unsigned SrcAS = S->getType()->getPointerAddressSpace(); Ty->isPtrOrPtrVectorTy() && SrcAS != Ty->getPointerAddressSpace())
     return getAddrSpaceCast(S, Ty);
 
   return getBitCast(S, Ty);
@@ -3142,11 +3142,11 @@ Constant *ConstantDataVector::getSplat(unsigned NumElts, Constant *V) {
 uint64_t ConstantDataSequential::getElementAsInteger(uint64_t Elt) const {
   assert(isa<IntegerType>(getElementType()) &&
          "Accessor can only be used when element is an integer");
-  const char *EltPtr = getElementPointer(Elt);
+  
 
   // The data is stored in host byte order, make sure to cast back to the right
   // type to load with the right endianness.
-  switch (getElementType()->getIntegerBitWidth()) {
+  switch (const char *EltPtr = getElementPointer(Elt); getElementType()->getIntegerBitWidth()) {
   default: llvm_unreachable("Invalid bitwidth for CDS");
   case 8:
     return *reinterpret_cast<const uint8_t *>(EltPtr);
@@ -3162,11 +3162,11 @@ uint64_t ConstantDataSequential::getElementAsInteger(uint64_t Elt) const {
 APInt ConstantDataSequential::getElementAsAPInt(uint64_t Elt) const {
   assert(isa<IntegerType>(getElementType()) &&
          "Accessor can only be used when element is an integer");
-  const char *EltPtr = getElementPointer(Elt);
+  
 
   // The data is stored in host byte order, make sure to cast back to the right
   // type to load with the right endianness.
-  switch (getElementType()->getIntegerBitWidth()) {
+  switch (const char *EltPtr = getElementPointer(Elt); getElementType()->getIntegerBitWidth()) {
   default: llvm_unreachable("Invalid bitwidth for CDS");
   case 8: {
     auto EltVal = *reinterpret_cast<const uint8_t *>(EltPtr);
@@ -3188,9 +3188,9 @@ APInt ConstantDataSequential::getElementAsAPInt(uint64_t Elt) const {
 }
 
 APFloat ConstantDataSequential::getElementAsAPFloat(uint64_t Elt) const {
-  const char *EltPtr = getElementPointer(Elt);
+  
 
-  switch (getElementType()->getTypeID()) {
+  switch (const char *EltPtr = getElementPointer(Elt); getElementType()->getTypeID()) {
   default:
     llvm_unreachable("Accessor can only be used when element is float/double!");
   case Type::HalfTyID: {

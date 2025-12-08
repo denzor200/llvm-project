@@ -45,15 +45,15 @@ EmulateInstruction *
 EmulateInstruction::FindPlugin(const ArchSpec &arch,
                                InstructionType supported_inst_type,
                                const char *plugin_name) {
-  EmulateInstructionCreateInstance create_callback = nullptr;
-  if (plugin_name) {
+  
+  if (EmulateInstructionCreateInstance create_callback = nullptr; plugin_name) {
     create_callback =
         PluginManager::GetEmulateInstructionCreateCallbackForPluginName(
             plugin_name);
     if (create_callback) {
-      EmulateInstruction *emulate_insn_ptr =
-          create_callback(arch, supported_inst_type);
-      if (emulate_insn_ptr)
+      
+      if (EmulateInstruction *emulate_insn_ptr =
+          create_callback(arch, supported_inst_type); emulate_insn_ptr)
         return emulate_insn_ptr;
     }
   } else {
@@ -62,9 +62,9 @@ EmulateInstruction::FindPlugin(const ArchSpec &arch,
               PluginManager::GetEmulateInstructionCreateCallbackAtIndex(idx)) !=
          nullptr;
          ++idx) {
-      EmulateInstruction *emulate_insn_ptr =
-          create_callback(arch, supported_inst_type);
-      if (emulate_insn_ptr)
+      
+      if (EmulateInstruction *emulate_insn_ptr =
+          create_callback(arch, supported_inst_type); emulate_insn_ptr)
         return emulate_insn_ptr;
     }
   }
@@ -79,8 +79,8 @@ EmulateInstruction::ReadRegister(const RegisterInfo &reg_info) {
     return {};
 
   RegisterValue reg_value;
-  bool success = m_read_reg_callback(this, m_baton, &reg_info, reg_value);
-  if (success)
+  
+  if (bool success = m_read_reg_callback(this, m_baton, &reg_info, reg_value); success)
     return reg_value;
   return {};
 }
@@ -180,9 +180,9 @@ uint64_t EmulateInstruction::ReadMemoryUnsigned(const Context &context,
   bool success = false;
   if (byte_size <= 8) {
     uint8_t buf[sizeof(uint64_t)];
-    size_t bytes_read =
-        m_read_mem_callback(this, m_baton, context, addr, buf, byte_size);
-    if (bytes_read == byte_size) {
+    
+    if (size_t bytes_read =
+        m_read_mem_callback(this, m_baton, context, addr, buf, byte_size); bytes_read == byte_size) {
       lldb::offset_t offset = 0;
       DataExtractor data(buf, byte_size, GetByteOrder(), GetAddressByteSize());
       uval64 = data.GetMaxU64(&offset, byte_size);

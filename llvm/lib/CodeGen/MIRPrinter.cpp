@@ -730,14 +730,14 @@ void printMBB(raw_ostream &OS, MFPrintState &State,
 
   bool HasLineAttributes = false;
   // Print the successors
-  bool canPredictProbs = MBB.canPredictBranchProbabilities();
+  
   // Even if the list of successors is empty, if we cannot guess it,
   // we need to print it to tell the parser that the list is empty.
   // This is needed, because MI model unreachable as empty blocks
   // with an empty successor list. If the parser would see that
   // without the successor list, it would guess the code would
   // fallthrough.
-  if ((!MBB.succ_empty() && !SimplifyMIR) || !canPredictProbs ||
+  if (bool canPredictProbs = MBB.canPredictBranchProbabilities(); (!MBB.succ_empty() && !SimplifyMIR) || !canPredictProbs ||
       !canPredictSuccessors(MBB)) {
     OS.indent(2) << "successors:";
     if (!MBB.succ_empty())

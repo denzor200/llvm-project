@@ -319,8 +319,8 @@ void MacroToEnumCallbacks::FileChanged(SourceLocation Loc,
 bool MacroToEnumCallbacks::isInitializer(ArrayRef<Token> MacroTokens) {
   IntegralLiteralExpressionMatcher Matcher(MacroTokens, LangOpts.C99 == 0);
   const bool Matched = Matcher.match();
-  const bool IsC = !LangOpts.CPlusPlus;
-  if (IsC && (Matcher.largestLiteralSize() != LiteralSize::Int &&
+  
+  if (const bool IsC = !LangOpts.CPlusPlus; IsC && (Matcher.largestLiteralSize() != LiteralSize::Int &&
               Matcher.largestLiteralSize() != LiteralSize::UnsignedInt))
     return false;
 
@@ -372,10 +372,10 @@ void MacroToEnumCallbacks::MacroUndefined(const Token &MacroNameTok,
     return getTokenName(Macro.Name) == getTokenName(MacroNameTok);
   };
 
-  auto *It = llvm::find_if(Enums, [MatchesToken](const MacroList &MacroList) {
+  
+  if (auto *It = llvm::find_if(Enums, [MatchesToken](const MacroList &MacroList) {
     return llvm::any_of(MacroList, MatchesToken);
-  });
-  if (It != Enums.end())
+  }); It != Enums.end())
     Enums.erase(It);
 
   clearLastMacroLocation();

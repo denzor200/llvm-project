@@ -47,13 +47,13 @@ std::pair<uint8_t, uint8_t> PPCXCOFFObjectWriter::getRelocTypeAndSignSize(
   // based on similar property of IsPCRel. So we will do the same here.
   // TODO: More investigation on how assembler decides to set the sign
   // bit, and we might want to match that.
-  const uint8_t EncodedSignednessIndicator = IsPCRel ? SignBitMask : 0u;
+  
 
   // The magic number we use in SignAndSize has a strong relationship with
   // the corresponding MCFixupKind. In most cases, it's the MCFixupKind
   // number - 1, because SignAndSize encodes the bit length being
   // relocated minus 1.
-  switch ((unsigned)Fixup.getKind()) {
+  switch (const uint8_t EncodedSignednessIndicator = IsPCRel ? SignBitMask : 0u; (unsigned)Fixup.getKind()) {
   default:
     report_fatal_error("Unimplemented fixup kind.");
   case XCOFF::RelocationType::R_REF:

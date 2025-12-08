@@ -594,8 +594,8 @@ void HexagonDAGToDAGISel::SelectSHL(SDNode *N) {
     SDValue Mul_1 = Shl_0.getOperand(1); // Const
     // RHS of mul is const.
     if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Mul_1)) {
-      int32_t ValConst = C->getSExtValue() << ShlConst;
-      if (isInt<9>(ValConst)) {
+      
+      if (int32_t ValConst = C->getSExtValue() << ShlConst; isInt<9>(ValConst)) {
         SDValue Val = CurDAG->getTargetConstant(ValConst, dl, MVT::i32);
         SDNode *Result = CurDAG->getMachineNode(Hexagon::M2_mpysmi, dl,
                                                 MVT::i32, Mul_0, Val);
@@ -615,8 +615,8 @@ void HexagonDAGToDAGISel::SelectSHL(SDNode *N) {
       SDValue Shl2_0 = Sub_1.getOperand(0); // Val
       SDValue Shl2_1 = Sub_1.getOperand(1); // Const
       if (ConstantSDNode *C2 = dyn_cast<ConstantSDNode>(Shl2_1)) {
-        int32_t ValConst = 1 << (ShlConst + C2->getSExtValue());
-        if (isInt<9>(-ValConst)) {
+        
+        if (int32_t ValConst = 1 << (ShlConst + C2->getSExtValue()); isInt<9>(-ValConst)) {
           SDValue Val =
               CurDAG->getSignedTargetConstant(-ValConst, dl, MVT::i32);
           SDNode *Result = CurDAG->getMachineNode(Hexagon::M2_mpysmi, dl,
@@ -806,8 +806,8 @@ void HexagonDAGToDAGISel::SelectVAlign(SDNode *N) {
     return SelectHvxVAlign(N);
 
   const SDLoc &dl(N);
-  unsigned VecLen = ResTy.getSizeInBits();
-  if (VecLen == 32) {
+  
+  if (unsigned VecLen = ResTy.getSizeInBits(); VecLen == 32) {
     SDValue Ops[] = {
       CurDAG->getTargetConstant(Hexagon::DoubleRegsRegClassID, dl, MVT::i32),
       N->getOperand(0),
@@ -1085,8 +1085,8 @@ static bool isMemOPCandidate(SDNode *I, SDNode *U) {
 
   if (!U->hasOneUse())
     return false;
-  unsigned Opc = U->getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = U->getOpcode(); Opc) {
     case ISD::ADD:
     case ISD::SUB:
     case ISD::AND:
@@ -1298,8 +1298,8 @@ void HexagonDAGToDAGISel::ppHoistZextI1(std::vector<SDNode*> &&Nodes) {
   SelectionDAG &DAG = *CurDAG;
 
   for (SDNode *N : Nodes) {
-    unsigned Opc = N->getOpcode();
-    if (Opc != ISD::ZERO_EXTEND)
+    
+    if (unsigned Opc = N->getOpcode(); Opc != ISD::ZERO_EXTEND)
       continue;
     SDValue OpI1 = N->getOperand(0);
     EVT OpVT = OpI1.getValueType();
@@ -1418,8 +1418,8 @@ void HexagonDAGToDAGISel::PreprocessISelDAG() {
 
 void HexagonDAGToDAGISel::emitFunctionEntryCode() {
   auto &HST = MF->getSubtarget<HexagonSubtarget>();
-  auto &HFI = *HST.getFrameLowering();
-  if (!HFI.needsAligna(*MF))
+  
+  if (auto &HFI = *HST.getFrameLowering(); !HFI.needsAligna(*MF))
     return;
 
   MachineFrameInfo &MFI = MF->getFrameInfo();
@@ -1607,16 +1607,16 @@ bool HexagonDAGToDAGISel::DetectUseSxtw(SDValue &N, SDValue &R) {
 
   if (N.getValueType() != MVT::i64)
     return false;
-  unsigned Opc = N.getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = N.getOpcode(); Opc) {
     case ISD::SIGN_EXTEND:
     case ISD::SIGN_EXTEND_INREG: {
       // sext_inreg has the source type as a separate operand.
       EVT T = Opc == ISD::SIGN_EXTEND
                 ? N.getOperand(0).getValueType()
                 : cast<VTSDNode>(N.getOperand(1))->getVT();
-      unsigned SW = T.getSizeInBits();
-      if (SW == 32)
+      
+      if (unsigned SW = T.getSizeInBits(); SW == 32)
         R = N.getOperand(0);
       else if (SW < 32)
         R = N;
@@ -1636,8 +1636,8 @@ bool HexagonDAGToDAGISel::DetectUseSxtw(SDValue &N, SDValue &R) {
       break;
     }
     case ISD::SRA: {
-      auto *S = dyn_cast<ConstantSDNode>(N.getOperand(1));
-      if (!S || S->getZExtValue() != 32)
+      
+      if (auto *S = dyn_cast<ConstantSDNode>(N.getOperand(1)); !S || S->getZExtValue() != 32)
         return false;
       R = N;
       break;
@@ -1674,8 +1674,8 @@ bool HexagonDAGToDAGISel::DetectUseSxtw(SDValue &N, SDValue &R) {
 
 bool HexagonDAGToDAGISel::keepsLowBits(const SDValue &Val, unsigned NumBits,
       SDValue &Src) {
-  unsigned Opc = Val.getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = Val.getOpcode(); Opc) {
   case ISD::SIGN_EXTEND:
   case ISD::ZERO_EXTEND:
   case ISD::ANY_EXTEND: {
@@ -1691,8 +1691,8 @@ bool HexagonDAGToDAGISel::keepsLowBits(const SDValue &Val, unsigned NumBits,
   case ISD::AssertSext:
   case ISD::AssertZext:
     if (Val.getOperand(0).getValueType().isInteger()) {
-      VTSDNode *T = cast<VTSDNode>(Val.getOperand(1));
-      if (T->getVT().getSizeInBits() == NumBits) {
+      
+      if (VTSDNode *T = cast<VTSDNode>(Val.getOperand(1)); T->getVT().getSizeInBits() == NumBits) {
         Src = Val.getOperand(0);
         return true;
       }
@@ -1744,8 +1744,8 @@ bool HexagonDAGToDAGISel::isAlignedMemNode(const MemSDNode *N) const {
 }
 
 bool HexagonDAGToDAGISel::isSmallStackStore(const StoreSDNode *N) const {
-  unsigned StackSize = MF->getFrameInfo().estimateStackSize(*MF);
-  switch (N->getMemoryVT().getStoreSize()) {
+  
+  switch (unsigned StackSize = MF->getFrameInfo().estimateStackSize(*MF); N->getMemoryVT().getStoreSize()) {
     case 1:
       return StackSize <= 56;   // 1*2^6 - 8
     case 2:
@@ -1908,8 +1908,8 @@ WeightedLeaf LeafPrioQueue::findSHL(uint64_t MaxAmount) {
 
   for (int Pos = 0, End = Q.size(); Pos != End; ++Pos) {
     const WeightedLeaf &L = Q[Pos];
-    const SDValue &Val = L.Value;
-    if (Val.getOpcode() != ISD::SHL ||
+    
+    if (const SDValue &Val = L.Value; Val.getOpcode() != ISD::SHL ||
         !isa<ConstantSDNode>(Val.getOperand(1)) ||
         Val.getConstantOperandVal(1) > MaxAmount)
       continue;
@@ -1935,8 +1935,8 @@ WeightedLeaf LeafPrioQueue::findMULbyConst() {
 
   for (int Pos = 0, End = Q.size(); Pos != End; ++Pos) {
     const WeightedLeaf &L = Q[Pos];
-    const SDValue &Val = L.Value;
-    if (Val.getOpcode() != ISD::MUL ||
+    
+    if (const SDValue &Val = L.Value; Val.getOpcode() != ISD::MUL ||
         !isa<ConstantSDNode>(Val.getOperand(1)) ||
         Val.getConstantOperandVal(1) > 127)
       continue;
@@ -2256,9 +2256,9 @@ SDValue HexagonDAGToDAGISel::balanceSubTree(SDNode *N, bool TopLevel) {
       GA.Value.hasOneUse() && N->use_size() < 3) {
     GlobalAddressSDNode *GANode =
       cast<GlobalAddressSDNode>(GA.Value.getOperand(0));
-    ConstantSDNode *Offset = cast<ConstantSDNode>(Leaves.top().Value);
+    
 
-    if (getUsesInFunction(GANode->getGlobal()) == 1 && Offset->hasOneUse() &&
+    if (ConstantSDNode *Offset = cast<ConstantSDNode>(Leaves.top().Value); getUsesInFunction(GANode->getGlobal()) == 1 && Offset->hasOneUse() &&
         getTargetLowering()->isOffsetFoldingLegal(GANode)) {
       LLVM_DEBUG(dbgs() << "--> Combining GA and offset ("
                         << Offset->getSExtValue() << "): ");
@@ -2380,8 +2380,8 @@ SDValue HexagonDAGToDAGISel::balanceSubTree(SDNode *N, bool TopLevel) {
 
   // Restore SHL if we earlier converted it to a MUL
   if (NewRoot.getOpcode() == ISD::MUL) {
-    ConstantSDNode *V1C = dyn_cast<ConstantSDNode>(NewRoot.getOperand(1));
-    if (V1C && V1C->getAPIntValue().isPowerOf2()) {
+    
+    if (ConstantSDNode *V1C = dyn_cast<ConstantSDNode>(NewRoot.getOperand(1)); V1C && V1C->getAPIntValue().isPowerOf2()) {
       EVT VT = NewRoot.getValueType();
       SDValue V0 = NewRoot.getOperand(0);
       NewRoot = CurDAG->getNode(

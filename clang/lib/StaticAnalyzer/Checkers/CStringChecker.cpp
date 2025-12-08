@@ -953,8 +953,8 @@ SVal CStringChecker::getCStringLengthForRegion(CheckerContext &C,
                                                bool hypothetical) {
   if (!hypothetical) {
     // If there's a recorded length, go ahead and return it.
-    const SVal *Recorded = state->get<CStringLength>(MR);
-    if (Recorded)
+    
+    if (const SVal *Recorded = state->get<CStringLength>(MR); Recorded)
       return *Recorded;
   }
 
@@ -2491,8 +2491,8 @@ void CStringChecker::evalStrcmpCommon(CheckerContext &C, const CallEvent &Call,
 
     if (canComputeResult) {
       // Real strcmp stops at null characters.
-      size_t s1Term = LeftStrRef.find('\0');
-      if (s1Term != StringRef::npos)
+      
+      if (size_t s1Term = LeftStrRef.find('\0'); s1Term != StringRef::npos)
         LeftStrRef = LeftStrRef.substr(0, s1Term);
 
       size_t s2Term = RightStrRef.find('\0');

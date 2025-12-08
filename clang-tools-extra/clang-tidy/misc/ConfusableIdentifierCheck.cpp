@@ -64,18 +64,18 @@ static llvm::SmallString<64U> skeleton(StringRef Name) {
     }
 
     const StringRef Key(Prev, Curr - Prev);
-    auto *Where = llvm::lower_bound(ConfusableEntries, CodePoint,
+    
+    if (auto *Where = llvm::lower_bound(ConfusableEntries, CodePoint,
                                     [](decltype(ConfusableEntries[0]) X,
-                                       UTF32 Y) { return X.codepoint < Y; });
-    if (Where == std::end(ConfusableEntries) || CodePoint != Where->codepoint) {
+                                       UTF32 Y) { return X.codepoint < Y; }); Where == std::end(ConfusableEntries) || CodePoint != Where->codepoint) {
       Skeleton.append(Prev, Curr);
     } else {
       UTF8 Buffer[32];
       UTF8 *BufferStart = std::begin(Buffer);
       UTF8 *IBuffer = BufferStart;
       const UTF32 *ValuesStart = std::begin(Where->values);
-      const UTF32 *ValuesEnd = llvm::find(Where->values, '\0');
-      if (ConvertUTF32toUTF8(&ValuesStart, ValuesEnd, &IBuffer,
+      
+      if (const UTF32 *ValuesEnd = llvm::find(Where->values, '\0'); ConvertUTF32toUTF8(&ValuesStart, ValuesEnd, &IBuffer,
                              std::end(Buffer),
                              strictConversion) != conversionOK) {
         errs() << "Unicode conversion issue\n";

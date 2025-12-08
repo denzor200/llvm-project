@@ -384,10 +384,10 @@ void NativeProcessLinux::Manager::SigchldHandler() {
     // vice-versa. This means that if the child event arrives first, it may not
     // be handled by any process (because it doesn't know the thread belongs to
     // it).
-    bool handled = llvm::any_of(m_processes, [&](NativeProcessLinux *process) {
+    
+    if (bool handled = llvm::any_of(m_processes, [&](NativeProcessLinux *process) {
       return process->TryHandleWaitStatus(pid, status);
-    });
-    if (!handled) {
+    }); !handled) {
       if (status.type == WaitStatus::Stop && status.status == SIGSTOP) {
         // Store the thread creation event for later collection.
         m_unowned_threads.insert(pid);
@@ -1012,9 +1012,9 @@ Status NativeProcessLinux::Resume(const ResumeActionList &resume_actions) {
 
   NotifyTracersProcessWillResume();
 
-  bool software_single_step = !SupportHardwareSingleStepping();
+  
 
-  if (software_single_step) {
+  if (bool software_single_step = !SupportHardwareSingleStepping(); software_single_step) {
     for (const auto &thread : m_threads) {
       assert(thread && "thread list should not contain NULL threads");
 
@@ -1400,8 +1400,8 @@ NativeProcessLinux::Syscall(llvm::ArrayRef<uint64_t> args) {
 
   // With software single stepping the syscall insn buffer must also include a
   // trap instruction to stop the process.
-  int req = SupportHardwareSingleStepping() ? PTRACE_SINGLESTEP : PTRACE_CONT;
-  if (llvm::Error Err =
+  
+  if (int req = SupportHardwareSingleStepping() ? PTRACE_SINGLESTEP : PTRACE_CONT; llvm::Error Err =
           PtraceWrapper(req, thread.GetID(), nullptr, nullptr).ToError())
     return std::move(Err);
 

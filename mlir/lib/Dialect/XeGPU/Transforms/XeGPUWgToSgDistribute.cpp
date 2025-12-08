@@ -106,9 +106,9 @@ genOffsetsList(ConversionPatternRewriter &rewriter, OpType op,
   xegpu::RangeAttr sgIdRange = getRangeSpecAttr(op);
   if (sgIdRange) {
     int64_t startOfRange = sgIdRange.getStart().getInt();
-    int64_t endOfRange = sgIdRange.getEnd().getInt();
+    
     // verify the RangeAttr against the layout attribute
-    if (layout.getNumSubgroups() != endOfRange - startOfRange)
+    if (int64_t endOfRange = sgIdRange.getEnd().getInt(); layout.getNumSubgroups() != endOfRange - startOfRange)
       return rewriter.notifyMatchFailure(
           op, "sg_layout size must match the sg_id_range");
     // adjust the sgId if necessary
@@ -457,8 +457,8 @@ struct WgToSgPrefetchNdOp : public OpConversionPattern<xegpu::PrefetchNdOp> {
   matchAndRewrite(xegpu::PrefetchNdOp op, OneToNOpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
 
-    int64_t offsetSize = static_cast<int64_t>(op.getOffsets().size());
-    if ((offsetSize != 0) || op.getConstOffsetsAttr())
+    
+    if (int64_t offsetSize = static_cast<int64_t>(op.getOffsets().size()); (offsetSize != 0) || op.getConstOffsetsAttr())
       return failure();
 
     for (auto src : adaptor.getTensorDesc())
@@ -797,18 +797,18 @@ struct WgToSgArithConstantOp : public OpConversionPattern<arith::ConstantOp> {
           // Check column stride
           if (c > 0 && cols > 1) {
             int64_t prevIdx = r * cols + (c - 1);
-            int64_t diff = cast<IntegerAttr>(values[idx]).getInt() -
-                           cast<IntegerAttr>(values[prevIdx]).getInt();
-            if (diff != colStride)
+            
+            if (int64_t diff = cast<IntegerAttr>(values[idx]).getInt() -
+                           cast<IntegerAttr>(values[prevIdx]).getInt(); diff != colStride)
               return rewriter.notifyMatchFailure(
                   op, "Non-constant column stride in constant op.");
           }
           // Check row stride
           if (r > 0 && rows > 1) {
             int64_t prevIdx = (r - 1) * cols + c;
-            int64_t diff = cast<IntegerAttr>(values[idx]).getInt() -
-                           cast<IntegerAttr>(values[prevIdx]).getInt();
-            if (diff != rowStride)
+            
+            if (int64_t diff = cast<IntegerAttr>(values[idx]).getInt() -
+                           cast<IntegerAttr>(values[prevIdx]).getInt(); diff != rowStride)
               return rewriter.notifyMatchFailure(
                   op, "Non-constant row stride in constant op.");
           }
@@ -1247,8 +1247,8 @@ struct WgToSgVectorTransposeOp
     }
 
     ArrayRef<int64_t> permutation = op.getPermutation();
-    size_t permutationSize = permutation.size();
-    if (sourceSgLayout.size() != permutationSize ||
+    
+    if (size_t permutationSize = permutation.size(); sourceSgLayout.size() != permutationSize ||
         resultSgLayout.size() != permutationSize) {
       return rewriter.notifyMatchFailure(
           op, "Layouts and permutation must have the same rank");

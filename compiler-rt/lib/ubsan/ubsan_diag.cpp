@@ -159,8 +159,8 @@ static void RenderLocation(InternalScopedString *Buffer, Location Loc) {
     Buffer->AppendF("%p", reinterpret_cast<void *>(Loc.getMemoryLocation()));
     return;
   case Location::LK_Symbolized: {
-    const AddressInfo &Info = Loc.getSymbolizedStack()->info;
-    if (Info.file)
+    
+    if (const AddressInfo &Info = Loc.getSymbolizedStack()->info; Info.file)
       StackTracePrinter::GetOrInit()->RenderSourceLocation(
           Buffer, Info.file, Info.line, Info.column,
           common_flags()->symbolize_vs_style,

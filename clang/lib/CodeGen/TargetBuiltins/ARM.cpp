@@ -361,8 +361,8 @@ static llvm::FixedVectorType *GetNeonType(CodeGenFunction *CGF,
                                           bool HasFastHalfType = true,
                                           bool V1Ty = false,
                                           bool AllowBFloatArgsAndRet = true) {
-  int IsQuad = TypeFlags.isQuad();
-  switch (TypeFlags.getEltType()) {
+  
+  switch (int IsQuad = TypeFlags.isQuad(); TypeFlags.getEltType()) {
   case NeonTypeFlags::Int8:
   case NeonTypeFlags::Poly8:
   case NeonTypeFlags::MFloat8:
@@ -400,8 +400,8 @@ static llvm::FixedVectorType *GetNeonType(CodeGenFunction *CGF,
 
 static llvm::VectorType *GetFloatNeonType(CodeGenFunction *CGF,
                                           NeonTypeFlags IntTypeFlags) {
-  int IsQuad = IntTypeFlags.isQuad();
-  switch (IntTypeFlags.getEltType()) {
+  
+  switch (int IsQuad = IntTypeFlags.isQuad(); IntTypeFlags.getEltType()) {
   case NeonTypeFlags::Int16:
     return llvm::FixedVectorType::get(CGF->HalfTy, (4 << IsQuad));
   case NeonTypeFlags::Int32:
@@ -1673,10 +1673,10 @@ findARMVectorIntrinsicInMap(ArrayRef<ARMVectorIntrinsicInfo> IntrinsicMap,
   }
 #endif
 
-  const ARMVectorIntrinsicInfo *Builtin =
-      llvm::lower_bound(IntrinsicMap, BuiltinID);
+  
 
-  if (Builtin != IntrinsicMap.end() && Builtin->BuiltinID == BuiltinID)
+  if (const ARMVectorIntrinsicInfo *Builtin =
+      llvm::lower_bound(IntrinsicMap, BuiltinID); Builtin != IntrinsicMap.end() && Builtin->BuiltinID == BuiltinID)
     return Builtin;
 
   return nullptr;
@@ -2997,11 +2997,11 @@ Value *CodeGenFunction::EmitARMBuiltinExpr(unsigned BuiltinID,
 
   if (CRCIntrinsicID != Intrinsic::not_intrinsic) {
     Value *Arg0 = EmitScalarExpr(E->getArg(0));
-    Value *Arg1 = EmitScalarExpr(E->getArg(1));
+    
 
     // crc32{c,}d intrinsics are implemented as two calls to crc32{c,}w
     // intrinsics, hence we need different codegen for these cases.
-    if (BuiltinID == clang::ARM::BI__builtin_arm_crc32d ||
+    if (Value *Arg1 = EmitScalarExpr(E->getArg(1)); BuiltinID == clang::ARM::BI__builtin_arm_crc32d ||
         BuiltinID == clang::ARM::BI__builtin_arm_crc32cd) {
       Value *C1 = llvm::ConstantInt::get(Int64Ty, 32);
       Value *Arg1a = Builder.CreateTruncOrBitCast(Arg1, Int32Ty);
@@ -3071,10 +3071,10 @@ Value *CodeGenFunction::EmitARMBuiltinExpr(unsigned BuiltinID,
     return Result;
 
   // Some intrinsics are equivalent - if they are use the base intrinsic ID.
-  auto It = llvm::find_if(NEONEquivalentIntrinsicMap, [BuiltinID](auto &P) {
+  
+  if (auto It = llvm::find_if(NEONEquivalentIntrinsicMap, [BuiltinID](auto &P) {
     return P.first == BuiltinID;
-  });
-  if (It != end(NEONEquivalentIntrinsicMap))
+  }); It != end(NEONEquivalentIntrinsicMap))
     BuiltinID = It->second;
 
   // Find out if any arguments are required to be integer constant
@@ -3411,10 +3411,10 @@ static llvm::Value *MVEImmediateShr(CGBuilderTy &Builder, llvm::Value *V,
   // equal to the lane size. In LLVM IR, an LShr with that parameter would be
   // undefined behavior, but in MVE it's legal, so we must convert it to code
   // that is not undefined in IR.
-  unsigned LaneBits = cast<llvm::VectorType>(V->getType())
+  
+  if (unsigned LaneBits = cast<llvm::VectorType>(V->getType())
                           ->getElementType()
-                          ->getPrimitiveSizeInBits();
-  if (Shift == LaneBits) {
+                          ->getPrimitiveSizeInBits(); Shift == LaneBits) {
     // An unsigned shift of the full lane size always generates zero, so we can
     // simply emit a zero vector. A signed shift of the full lane size does the
     // same thing as shifting by one bit fewer.
@@ -4105,8 +4105,8 @@ Value *CodeGenFunction::EmitSVEGatherPrefetch(const SVETypeFlags &TypeFlags,
     } else {
       // Index needs to be passed as scaled offset.
       llvm::Type *MemEltTy = SVEBuiltinMemEltTy(TypeFlags);
-      unsigned BytesPerElt = MemEltTy->getPrimitiveSizeInBits() / 8;
-      if (BytesPerElt > 1)
+      
+      if (unsigned BytesPerElt = MemEltTy->getPrimitiveSizeInBits() / 8; BytesPerElt > 1)
         Ops[2] = Builder.CreateShl(Ops[2], Log2_32(BytesPerElt));
     }
   }
@@ -5169,9 +5169,9 @@ Value *CodeGenFunction::EmitAArch64BuiltinExpr(unsigned BuiltinID,
       BuiltinID == clang::AArch64::BI__builtin_arm_st64bv ||
       BuiltinID == clang::AArch64::BI__builtin_arm_st64bv0) {
     llvm::Value *MemAddr = EmitScalarExpr(E->getArg(0));
-    llvm::Value *ValPtr = EmitScalarExpr(E->getArg(1));
+    
 
-    if (BuiltinID == clang::AArch64::BI__builtin_arm_ld64b) {
+    if (llvm::Value *ValPtr = EmitScalarExpr(E->getArg(1)); BuiltinID == clang::AArch64::BI__builtin_arm_ld64b) {
       // Load from the address via an LLVM intrinsic, receiving a
       // tuple of 8 i64 words, and store each one to ValPtr.
       Function *F = CGM.getIntrinsic(Intrinsic::aarch64_ld64b);
@@ -5779,10 +5779,10 @@ Value *CodeGenFunction::EmitAArch64BuiltinExpr(unsigned BuiltinID,
     return EmitMSVCBuiltinExpr(*MsvcIntId, E);
 
   // Some intrinsics are equivalent - if they are use the base intrinsic ID.
-  auto It = llvm::find_if(NEONEquivalentIntrinsicMap, [BuiltinID](auto &P) {
+  
+  if (auto It = llvm::find_if(NEONEquivalentIntrinsicMap, [BuiltinID](auto &P) {
     return P.first == BuiltinID;
-  });
-  if (It != end(NEONEquivalentIntrinsicMap))
+  }); It != end(NEONEquivalentIntrinsicMap))
     BuiltinID = It->second;
 
   // Find out if any arguments are required to be integer constant
@@ -7833,9 +7833,9 @@ Value *CodeGenFunction::EmitBPFBuiltinExpr(unsigned BuiltinID,
   // A sequence number, injected into IR builtin functions, to
   // prevent CSE given the only difference of the function
   // may just be the debuginfo metadata.
-  static uint32_t BuiltinSeqNum;
+  
 
-  switch (BuiltinID) {
+  switch (static uint32_t BuiltinSeqNum; BuiltinID) {
   default:
     llvm_unreachable("Unexpected BPF builtin");
   case BPF::BI__builtin_preserve_field_info: {

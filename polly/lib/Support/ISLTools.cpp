@@ -214,8 +214,8 @@ isl::union_map polly::reverseDomain(const isl::union_map &UMap) {
 }
 
 isl::set polly::shiftDim(isl::set Set, int Pos, int Amount) {
-  unsigned NumDims = unsignedFromIslSize(Set.tuple_dim());
-  if (Pos < 0)
+  
+  if (unsigned NumDims = unsignedFromIslSize(Set.tuple_dim()); Pos < 0)
     Pos = NumDims + Pos;
   assert(unsigned(Pos) < NumDims && "Dimension index must be in range");
   isl::space Space = Set.get_space();
@@ -235,8 +235,8 @@ isl::union_set polly::shiftDim(isl::union_set USet, int Pos, int Amount) {
 }
 
 isl::map polly::shiftDim(isl::map Map, isl::dim Dim, int Pos, int Amount) {
-  unsigned NumDims = unsignedFromIslSize(Map.dim(Dim));
-  if (Pos < 0)
+  
+  if (unsigned NumDims = unsignedFromIslSize(Map.dim(Dim)); Pos < 0)
     Pos = NumDims + Pos;
   assert(unsigned(Pos) < NumDims && "Dimension index must be in range");
   isl::space Space = Map.get_space();
@@ -264,8 +264,8 @@ isl::map polly::shiftDim(isl::map Map, isl::dim Dim, int Pos, int Amount) {
 }
 
 isl::val polly::getConstant(isl::map Map, isl::dim Dim, int Pos) {
-  unsigned NumDims = unsignedFromIslSize(Map.dim(Dim));
-  if (Pos < 0)
+  
+  if (unsigned NumDims = unsignedFromIslSize(Map.dim(Dim)); Pos < 0)
     Pos = NumDims + Pos;
   assert(unsigned(Pos) < NumDims && "Dimension index must be in range");
   // TODO: The isl_map_plain_get_val_if_fixed function is not robust, since its

@@ -153,8 +153,8 @@ size_t DwarfEHPrepare::pruneUnreachableResumes(
   // Otherwise, insert unreachable instructions and call simplifycfg.
   size_t ResumesLeft = 0;
   for (size_t I = 0, E = Resumes.size(); I < E; ++I) {
-    ResumeInst *RI = Resumes[I];
-    if (ResumeReachable[I]) {
+    
+    if (ResumeInst *RI = Resumes[I]; ResumeReachable[I]) {
       Resumes[ResumesLeft++] = RI;
     } else {
       BasicBlock *BB = RI->getParent();
@@ -252,8 +252,8 @@ bool DwarfEHPrepare::InsertUnwindResumeCalls() {
     // The verifier requires that all calls of debug-info-bearing functions
     // from debug-info-bearing functions have a debug location (for inlining
     // purposes). Assign a dummy location to satisfy the constraint.
-    Function *RewindFn = dyn_cast<Function>(RewindFunction.getCallee());
-    if (RewindFn && RewindFn->getSubprogram())
+    
+    if (Function *RewindFn = dyn_cast<Function>(RewindFunction.getCallee()); RewindFn && RewindFn->getSubprogram())
       if (DISubprogram *SP = F.getSubprogram())
         CI->setDebugLoc(DILocation::get(SP->getContext(), 0, 0, SP));
     CI->setCallingConv(RewindFunctionCallingConv);
@@ -384,10 +384,10 @@ PreservedAnalyses DwarfEHPreparePass::run(Function &F,
       DT = &FAM.getResult<DominatorTreeAnalysis>(F);
     TTI = &FAM.getResult<TargetIRAnalysis>(F);
   }
-  bool Changed =
-      prepareDwarfEH(OptLevel, F, TLI, DT, TTI, TM->getTargetTriple());
+  
 
-  if (!Changed)
+  if (bool Changed =
+      prepareDwarfEH(OptLevel, F, TLI, DT, TTI, TM->getTargetTriple()); !Changed)
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserve<DominatorTreeAnalysis>();

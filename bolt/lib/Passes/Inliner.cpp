@@ -227,8 +227,8 @@ InliningInfo getInliningInfo(const BinaryFunction &BF) {
   if (BF.size() == 1) {
     // For a regular call the last return instruction could be removed
     // (or converted to a branch).
-    const MCInst *LastInst = BF.back().getLastNonPseudoInstr();
-    if (LastInst && BC.MIB->isReturn(*LastInst) &&
+    
+    if (const MCInst *LastInst = BF.back().getLastNonPseudoInstr(); LastInst && BC.MIB->isReturn(*LastInst) &&
         !BC.MIB->isTailCall(*LastInst)) {
       const uint64_t RetInstSize = BC.computeInstructionSize(*LastInst);
       assert(Size >= RetInstSize);

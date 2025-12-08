@@ -150,9 +150,9 @@ Pass *llvm::callDefaultCtor<RegAllocEvictionAdvisorAnalysisLegacy>() {
   case RegAllocEvictionAdvisorAnalysisLegacy::AdvisorMode::Default:
     return new DefaultEvictionAdvisorAnalysisLegacy(/*NotAsRequested=*/false);
   case RegAllocEvictionAdvisorAnalysisLegacy::AdvisorMode::Release: {
-    Pass *Ret = createReleaseModeAdvisorAnalysisLegacy();
+    
     // release mode advisor may not be supported
-    if (Ret)
+    if (Pass *Ret = createReleaseModeAdvisorAnalysisLegacy(); Ret)
       return Ret;
     return new DefaultEvictionAdvisorAnalysisLegacy(/*NotAsRequested=*/true);
   }
@@ -204,11 +204,11 @@ RegAllocEvictionAdvisor::RegAllocEvictionAdvisor(const MachineFunction &MF,
 bool DefaultEvictionAdvisor::shouldEvict(const LiveInterval &A, bool IsHint,
                                          const LiveInterval &B,
                                          bool BreaksHint) const {
-  bool CanSplit = RA.getExtraInfo().getStage(B) < RS_Spill;
+  
 
   // Be fairly aggressive about following hints as long as the evictee can be
   // split.
-  if (CanSplit && IsHint && !BreaksHint)
+  if (bool CanSplit = RA.getExtraInfo().getStage(B) < RS_Spill; CanSplit && IsHint && !BreaksHint)
     return true;
 
   if (A.weight() > B.weight()) {

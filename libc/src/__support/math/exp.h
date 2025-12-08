@@ -189,10 +189,10 @@ LIBC_INLINE static double set_exceptional(double x) {
   FPBits xbits(x);
 
   uint64_t x_u = xbits.uintval();
-  uint64_t x_abs = xbits.abs().uintval();
+  
 
   // |x| <= 2^-53
-  if (x_abs <= 0x3ca0'0000'0000'0000ULL) {
+  if (uint64_t x_abs = xbits.abs().uintval(); x_abs <= 0x3ca0'0000'0000'0000ULL) {
     // exp(x) ~ 1 + x
     return 1 + x;
   }
@@ -219,8 +219,8 @@ LIBC_INLINE static double set_exceptional(double x) {
   // x >= round(log(MAX_NORMAL), D, RU) = 0x1.62e42fefa39fp+9 or +inf/nan
   // x is finite
   if (x_u < 0x7ff0'0000'0000'0000ULL) {
-    int rounding = fputil::quick_get_round();
-    if (rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
+    
+    if (int rounding = fputil::quick_get_round(); rounding == FE_DOWNWARD || rounding == FE_TOWARDZERO)
       return FPBits::max_normal().get_val();
 
     fputil::set_errno_if_required(ERANGE);
@@ -405,9 +405,9 @@ LIBC_INLINE static double exp(double x) {
       return r.value();
   } else {
     double upper = exp_mid.hi + (lo + EXP_ERR_D);
-    double lower = exp_mid.hi + (lo - EXP_ERR_D);
+    
 
-    if (LIBC_LIKELY(upper == lower)) {
+    if (double lower = exp_mid.hi + (lo - EXP_ERR_D); LIBC_LIKELY(upper == lower)) {
       // to multiply by 2^hi, a fast way is to simply add hi to the exponent
       // field.
       int64_t exp_hi = static_cast<int64_t>(hi) << FPBits::FRACTION_LEN;
@@ -425,9 +425,9 @@ LIBC_INLINE static double exp(double x) {
       return r.value();
   } else {
     double upper_dd = r_dd.hi + (r_dd.lo + EXP_ERR_DD);
-    double lower_dd = r_dd.hi + (r_dd.lo - EXP_ERR_DD);
+    
 
-    if (LIBC_LIKELY(upper_dd == lower_dd)) {
+    if (double lower_dd = r_dd.hi + (r_dd.lo - EXP_ERR_DD); LIBC_LIKELY(upper_dd == lower_dd)) {
       int64_t exp_hi = static_cast<int64_t>(hi) << FPBits::FRACTION_LEN;
       double r =
           cpp::bit_cast<double>(exp_hi + cpp::bit_cast<int64_t>(upper_dd));

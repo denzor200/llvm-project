@@ -690,8 +690,8 @@ void StmtPrinter::VisitSEHTryStmt(SEHTryStmt *Node) {
   Indent() << (Node->getIsCXXTry() ? "try " : "__try ");
   PrintRawCompoundStmt(Node->getTryBlock());
   SEHExceptStmt *E = Node->getExceptHandler();
-  SEHFinallyStmt *F = Node->getFinallyHandler();
-  if(E)
+  
+  if(SEHFinallyStmt *F = Node->getFinallyHandler(); E)
     PrintRawSEHExceptHandler(E);
   else {
     assert(F && "Must have a finally block...");
@@ -1774,11 +1774,11 @@ void StmtPrinter::VisitMemberExpr(MemberExpr *Node) {
     PrintExpr(Node->getBase());
 
     auto *ParentMember = dyn_cast<MemberExpr>(Node->getBase());
-    FieldDecl *ParentDecl =
-        ParentMember ? dyn_cast<FieldDecl>(ParentMember->getMemberDecl())
-                     : nullptr;
+    
 
-    if (!ParentDecl || !ParentDecl->isAnonymousStructOrUnion())
+    if (FieldDecl *ParentDecl =
+        ParentMember ? dyn_cast<FieldDecl>(ParentMember->getMemberDecl())
+                     : nullptr; !ParentDecl || !ParentDecl->isAnonymousStructOrUnion())
       OS << (Node->isArrow() ? "->" : ".");
   }
 
@@ -2457,8 +2457,8 @@ void StmtPrinter::VisitCXXNewExpr(CXXNewExpr *E) {
   if (E->isGlobalNew())
     OS << "::";
   OS << "new ";
-  unsigned NumPlace = E->getNumPlacementArgs();
-  if (NumPlace > 0 && !isa<CXXDefaultArgExpr>(E->getPlacementArg(0))) {
+  
+  if (unsigned NumPlace = E->getNumPlacementArgs(); NumPlace > 0 && !isa<CXXDefaultArgExpr>(E->getPlacementArg(0))) {
     OS << "(";
     PrintExpr(E->getPlacementArg(0));
     for (unsigned i = 1; i < NumPlace; ++i) {
@@ -2717,8 +2717,8 @@ void StmtPrinter::VisitRequiresExpr(RequiresExpr *E) {
         OS << " }";
         if (ExprReq->getNoexceptLoc().isValid())
           OS << " noexcept";
-        const auto &RetReq = ExprReq->getReturnTypeRequirement();
-        if (!RetReq.isEmpty()) {
+        
+        if (const auto &RetReq = ExprReq->getReturnTypeRequirement(); !RetReq.isEmpty()) {
           OS << " -> ";
           if (RetReq.isSubstitutionFailure())
             OS << "<<error-type>>";
@@ -2896,8 +2896,8 @@ void StmtPrinter::VisitBlockExpr(BlockExpr *Node) {
       (*AI)->getType().print(OS, Policy, ParamStr);
     }
 
-    const auto *FT = cast<FunctionProtoType>(AFT);
-    if (FT->isVariadic()) {
+    
+    if (const auto *FT = cast<FunctionProtoType>(AFT); FT->isVariadic()) {
       if (!BD->param_empty()) OS << ", ";
       OS << "...";
     }

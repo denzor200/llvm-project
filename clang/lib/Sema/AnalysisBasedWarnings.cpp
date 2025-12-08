@@ -394,8 +394,8 @@ static void checkThrowInNonThrowingFunc(Sema &S, const FunctionDecl *FD,
 }
 
 static bool isNoexcept(const FunctionDecl *FD) {
-  const auto *FPT = FD->getType()->castAs<FunctionProtoType>();
-  if (FPT->isNothrow() || FD->hasAttr<NoThrowAttr>())
+  
+  if (const auto *FPT = FD->getType()->castAs<FunctionProtoType>(); FPT->isNothrow() || FD->hasAttr<NoThrowAttr>())
     return true;
   return false;
 }
@@ -459,8 +459,8 @@ struct TransferFunctions : public StmtVisitor<TransferFunctions> {
   void VisitCallExpr(CallExpr *CE) {
     for (CallExpr::arg_iterator I = CE->arg_begin(), E = CE->arg_end(); I != E;
          ++I) {
-      const Expr *Arg = *I;
-      if (Arg->isGLValue() && !Arg->getType().isConstQualified())
+      
+      if (const Expr *Arg = *I; Arg->isGLValue() && !Arg->getType().isConstQualified())
         if (auto *DRef = dyn_cast<DeclRefExpr>(Arg->IgnoreParenCasts()))
           if (auto VD = dyn_cast<VarDecl>(DRef->getDecl()))
             if (VD->getDefinition() == Var)
@@ -667,8 +667,8 @@ static ControlFlowKind CheckFallThrough(AnalysisDeclContext &AC) {
       continue;
     }
     if (auto *Call = dyn_cast<CallExpr>(S)) {
-      const Expr *Callee = Call->getCallee();
-      if (Callee->getType()->isPointerType())
+      
+      if (const Expr *Callee = Call->getCallee(); Callee->getType()->isPointerType())
         if (auto *DeclRef =
                 dyn_cast<DeclRefExpr>(Callee->IgnoreParenImpCasts()))
           if (auto *VD = dyn_cast<VarDecl>(DeclRef->getDecl()))
@@ -1186,8 +1186,8 @@ static bool DiagnoseUninitializedUse(Sema &S, const VarDecl *VD,
 
     DiagUninitUse(S, VD, Use, false);
   } else {
-    const BlockExpr *BE = cast<BlockExpr>(Use.getUser());
-    if (VD->getType()->isBlockPointerType() && !VD->hasAttr<BlocksAttr>())
+    
+    if (const BlockExpr *BE = cast<BlockExpr>(Use.getUser()); VD->getType()->isBlockPointerType() && !VD->hasAttr<BlocksAttr>())
       S.Diag(BE->getBeginLoc(),
              diag::warn_uninit_byref_blockvar_captured_by_block)
           << VD->getDeclName()
@@ -1269,8 +1269,8 @@ public:
       if (isa_and_nonnull<SwitchStmt>(Term))
         continue; // Switch statement, good.
 
-      const SwitchCase *SW = dyn_cast_or_null<SwitchCase>(P->getLabel());
-      if (SW && SW->getSubStmt() == B.getLabel() && P->begin() == P->end())
+      
+      if (const SwitchCase *SW = dyn_cast_or_null<SwitchCase>(P->getLabel()); SW && SW->getSubStmt() == B.getLabel() && P->begin() == P->end())
         continue; // Previous case label has no statements, good.
 
       const LabelStmt *L = dyn_cast_or_null<LabelStmt>(P->getLabel());
@@ -2140,8 +2140,8 @@ class ThreadSafetyReporter : public clang::threadSafety::ThreadSafetyHandler {
                           ProtectedOperationKind POK, Name LockName,
                           LockKind LK, SourceLocation Loc,
                           Name *PossibleMatch) override {
-    unsigned DiagID = 0;
-    if (PossibleMatch) {
+    
+    if (unsigned DiagID = 0; PossibleMatch) {
       switch (POK) {
         case POK_VarAccess:
           DiagID = diag::warn_variable_requires_lock_precise;
@@ -2485,10 +2485,10 @@ public:
 
           assert(srcType->isPointerType());
 
-          const uint64_t sSize =
-              Ctx.getTypeSize(srcType.getTypePtr()->getPointeeType());
+          
 
-          if (sSize >= dSize)
+          if (const uint64_t sSize =
+              Ctx.getTypeSize(srcType.getTypePtr()->getPointeeType()); sSize >= dSize)
             return;
         }
         if (const auto *CE = dyn_cast<CXXMemberCallExpr>(
@@ -2751,13 +2751,13 @@ static void emitPossiblyUnreachableDiags(Sema &S, AnalysisDeclContext &AC,
         AC.getCFGReachablityAnalysis();
 
     for (auto I = PUDs.first; I != PUDs.second; ++I) {
-      const auto &D = *I;
-      if (llvm::all_of(D.Stmts, [&](const Stmt *St) {
-            const CFGBlock *Block = AC.getBlockForRegisteredExpression(St);
+      
+      if (const auto &D = *I; llvm::all_of(D.Stmts, [&](const Stmt *St) {
+            
             // FIXME: We should be able to assert that block is non-null, but
             // the CFG analysis can skip potentially-evaluated expressions in
             // edge cases; see test/Sema/vla-2.c.
-            if (Block && Analysis)
+            if (const CFGBlock *Block = AC.getBlockForRegisteredExpression(St); Block && Analysis)
               if (!Analysis->isReachable(&AC.getCFG()->getEntry(), Block))
                 return false;
             return true;

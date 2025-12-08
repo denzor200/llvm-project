@@ -88,10 +88,10 @@ protected:
         Result.SourceManager->getSpellingColumnNumber(LParenLoc);
     unsigned RParenLine =
         Result.SourceManager->getSpellingLineNumber(RParenLoc);
-    unsigned RParenColumn =
-        Result.SourceManager->getSpellingColumnNumber(RParenLoc);
+    
 
-    if (LParenLine != ExpectLParenLine || LParenColumn != ExpectLParenColumn ||
+    if (unsigned RParenColumn =
+        Result.SourceManager->getSpellingColumnNumber(RParenLoc); LParenLine != ExpectLParenLine || LParenColumn != ExpectLParenColumn ||
         RParenLine != ExpectRParenLine || RParenColumn != ExpectRParenColumn) {
       std::string MsgStr;
       llvm::raw_string_ostream Msg(MsgStr);

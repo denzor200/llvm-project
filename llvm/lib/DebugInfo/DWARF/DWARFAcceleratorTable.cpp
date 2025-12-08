@@ -1097,8 +1097,8 @@ std::optional<ObjCSelectorNames> llvm::getObjCNamesIfSelector(StringRef Name) {
 
   // "-[Class(Category) selector :withArg ...]"
   if (Ans.ClassName.back() == ')') {
-    size_t OpenParens = Ans.ClassName.find('(');
-    if (OpenParens != StringRef::npos) {
+    
+    if (size_t OpenParens = Ans.ClassName.find('('); OpenParens != StringRef::npos) {
       Ans.ClassNameNoCategory = Ans.ClassName.take_front(OpenParens);
 
       Ans.MethodNameNoCategory = Name.take_front(OpenParens + 2);
@@ -1127,11 +1127,11 @@ std::optional<StringRef> llvm::StripTemplateParameters(StringRef Name) {
   NumLeftAnglesToSkip += Name.count("<=>");
 
   size_t RightAngleCount = Name.count('>');
-  size_t LeftAngleCount = Name.count('<');
+  
 
   // If we have more < than > we have operator< or operator<<
   // we to account for their < as well.
-  if (LeftAngleCount > RightAngleCount)
+  if (size_t LeftAngleCount = Name.count('<'); LeftAngleCount > RightAngleCount)
     NumLeftAnglesToSkip += LeftAngleCount - RightAngleCount;
 
   size_t StartOfTemplate = 0;

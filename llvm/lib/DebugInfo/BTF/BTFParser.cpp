@@ -280,15 +280,15 @@ Error BTFParser::parseBTFExt(ParseContext &Ctx, SectionRef BTFExt) {
 
   if (LineInfoLen > 0 && Ctx.Opts.LoadLines) {
     uint32_t LineInfoStart = HdrLen + LineInfoOff;
-    uint32_t LineInfoEnd = LineInfoStart + LineInfoLen;
-    if (Error E = parseLineInfo(Ctx, Extractor, LineInfoStart, LineInfoEnd))
+    
+    if (uint32_t LineInfoEnd = LineInfoStart + LineInfoLen; Error E = parseLineInfo(Ctx, Extractor, LineInfoStart, LineInfoEnd))
       return E;
   }
 
   if (RelocInfoLen > 0 && Ctx.Opts.LoadRelocs) {
     uint32_t RelocInfoStart = HdrLen + RelocInfoOff;
-    uint32_t RelocInfoEnd = RelocInfoStart + RelocInfoLen;
-    if (Error E = parseRelocInfo(Ctx, Extractor, RelocInfoStart, RelocInfoEnd))
+    
+    if (uint32_t RelocInfoEnd = RelocInfoStart + RelocInfoLen; Error E = parseRelocInfo(Ctx, Extractor, RelocInfoStart, RelocInfoEnd))
       return E;
   }
 

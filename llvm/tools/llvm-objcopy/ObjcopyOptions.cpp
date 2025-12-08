@@ -1440,8 +1440,8 @@ objcopy::parseInstallNameToolOptions(ArrayRef<const char *> ArgsArr) {
       createBinary(Config.InputFilename);
   if (!BinaryOrErr)
     return createFileError(Config.InputFilename, BinaryOrErr.takeError());
-  auto *Binary = (*BinaryOrErr).getBinary();
-  if (!Binary->isMachO() && !Binary->isMachOUniversalBinary())
+  
+  if (auto *Binary = (*BinaryOrErr).getBinary(); !Binary->isMachO() && !Binary->isMachOUniversalBinary())
     return createStringError(errc::invalid_argument,
                              "input file: %s is not a Mach-O file",
                              Config.InputFilename.str().c_str());

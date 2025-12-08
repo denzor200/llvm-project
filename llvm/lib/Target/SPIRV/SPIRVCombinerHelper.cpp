@@ -36,8 +36,8 @@ bool SPIRVCombinerHelper::matchLengthToDistance(MachineInstr &MI) const {
 
   // First operand of MI is `G_INTRINSIC` so start at operand 2.
   Register SubReg = MI.getOperand(2).getReg();
-  MachineInstr *SubInstr = MRI.getVRegDef(SubReg);
-  if (SubInstr->getOpcode() != TargetOpcode::G_FSUB)
+  
+  if (MachineInstr *SubInstr = MRI.getVRegDef(SubReg); SubInstr->getOpcode() != TargetOpcode::G_FSUB)
     return false;
 
   return true;
@@ -95,8 +95,8 @@ bool SPIRVCombinerHelper::matchSelectToFaceForward(MachineInstr &MI) const {
   }
 
   // Check if FCMP is a comparison between a dot product and 0.
-  MachineInstr *DotInstr = MRI.getVRegDef(DotReg);
-  if (DotInstr->getOpcode() != TargetOpcode::G_INTRINSIC ||
+  
+  if (MachineInstr *DotInstr = MRI.getVRegDef(DotReg); DotInstr->getOpcode() != TargetOpcode::G_INTRINSIC ||
       cast<GIntrinsic>(DotInstr)->getIntrinsicID() != Intrinsic::spv_fdot) {
     Register DotOperand1, DotOperand2;
     // Check for scalar dot product.
@@ -126,8 +126,8 @@ bool SPIRVCombinerHelper::matchSelectToFaceForward(MachineInstr &MI) const {
       !mi_match(FalseReg, MRI, m_GFNeg(m_SpecificReg(TrueReg)))) {
     std::optional<FPValueAndVReg> MulConstant;
     MachineInstr *TrueInstr = MRI.getVRegDef(TrueReg);
-    MachineInstr *FalseInstr = MRI.getVRegDef(FalseReg);
-    if (TrueInstr->getOpcode() == TargetOpcode::G_BUILD_VECTOR &&
+    
+    if (MachineInstr *FalseInstr = MRI.getVRegDef(FalseReg); TrueInstr->getOpcode() == TargetOpcode::G_BUILD_VECTOR &&
         FalseInstr->getOpcode() == TargetOpcode::G_BUILD_VECTOR &&
         TrueInstr->getNumOperands() == FalseInstr->getNumOperands()) {
       for (unsigned I = 1; I < TrueInstr->getNumOperands(); ++I)
@@ -174,8 +174,8 @@ void SPIRVCombinerHelper::applySPIRVFaceForward(MachineInstr &MI) const {
   }
   Register TrueReg = MI.getOperand(2).getReg();
   Register FalseReg = MI.getOperand(3).getReg();
-  MachineInstr *TrueInstr = MRI.getVRegDef(TrueReg);
-  if (TrueInstr->getOpcode() == TargetOpcode::G_FNEG ||
+  
+  if (MachineInstr *TrueInstr = MRI.getVRegDef(TrueReg); TrueInstr->getOpcode() == TargetOpcode::G_FNEG ||
       TrueInstr->getOpcode() == TargetOpcode::G_FMUL)
     std::swap(TrueReg, FalseReg);
   MachineInstr *FalseInstr = MRI.getVRegDef(FalseReg);

@@ -416,9 +416,9 @@ void yaml::MappingTraits<minidump::Exception>::mapping(
   for (size_t Index = 0; Index < Exception.MaxParameters; ++Index) {
     SmallString<16> Name("Parameter ");
     Twine(Index).toVector(Name);
-    support::ulittle64_t &Field = Exception.ExceptionInformation[Index];
+    
 
-    if (Index < Exception.NumberParameters)
+    if (support::ulittle64_t &Field = Exception.ExceptionInformation[Index]; Index < Exception.NumberParameters)
       mapRequiredHex(IO, Name.c_str(), Field);
     else
       mapOptionalHex(IO, Name.c_str(), Field, 0);

@@ -281,8 +281,8 @@ void Scheduler::trimSchedule(ArrayRef<Instruction *> Instrs) {
   ReadyList.clear();
   Interval<Instruction> RefillIntvl(DAG.getInterval().top(), LowestI);
   for (Instruction &I : RefillIntvl) {
-    auto *N = DAG.getNode(&I);
-    if (N->ready())
+    
+    if (auto *N = DAG.getNode(&I); N->ready())
       ReadyList.insert(N);
   }
 }
@@ -295,8 +295,8 @@ bool Scheduler::trySchedule(ArrayRef<Instruction *> Instrs) {
          "Instrs not in the same BB, should have been rejected by Legality!");
   // TODO: For now don't cross BBs.
   if (!DAG.getInterval().empty()) {
-    auto *BB = DAG.getInterval().top()->getParent();
-    if (any_of(Instrs, [BB](auto *I) { return I->getParent() != BB; }))
+    
+    if (auto *BB = DAG.getInterval().top()->getParent(); any_of(Instrs, [BB](auto *I) { return I->getParent() != BB; }))
       return false;
   }
   if (ScheduledBB == nullptr)
@@ -332,8 +332,8 @@ bool Scheduler::trySchedule(ArrayRef<Instruction *> Instrs) {
     Interval<Instruction> Extension = DAG.extend(Instrs);
     // Add nodes to ready list.
     for (auto &I : Extension) {
-      auto *N = DAG.getNode(&I);
-      if (N->ready())
+      
+      if (auto *N = DAG.getNode(&I); N->ready())
         ReadyList.insert(N);
     }
     // Try schedule all nodes until we can schedule Instrs back-to-back.

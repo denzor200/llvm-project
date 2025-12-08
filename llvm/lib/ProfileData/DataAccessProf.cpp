@@ -44,8 +44,8 @@ DataAccessProfData::getProfileRecord(const SymbolHandleRef SymbolID) const {
     Key = *NameOrErr;
   }
 
-  auto It = Records.find(Key);
-  if (It != Records.end()) {
+  
+  if (auto It = Records.find(Key); It != Records.end()) {
     return DataAccessProfRecord(Key, It->second.AccessCount,
                                 It->second.Locations);
   }
@@ -75,9 +75,9 @@ Error DataAccessProfData::setDataAccessProfile(SymbolHandleRef Symbol,
         saveStringToMap(StrToIndexMap, Saver, *CanonicalName);
   }
 
-  auto [Iter, Inserted] =
-      Records.try_emplace(Key, RecordID, AccessCount, IsStringLiteral);
-  if (!Inserted)
+  
+  if (auto [Iter, Inserted] =
+      Records.try_emplace(Key, RecordID, AccessCount, IsStringLiteral); !Inserted)
     return make_error<StringError>("Duplicate symbol or string literal added. "
                                    "User of DataAccessProfData should "
                                    "aggregate count for the same symbol. ",
@@ -118,9 +118,9 @@ Error DataAccessProfData::addKnownSymbolWithoutSamples(
 Error DataAccessProfData::deserialize(const unsigned char *&Ptr) {
   uint64_t NumSampledSymbols =
       support::endian::readNext<uint64_t, llvm::endianness::little>(Ptr);
-  uint64_t NumColdKnownSymbols =
-      support::endian::readNext<uint64_t, llvm::endianness::little>(Ptr);
-  if (Error E = deserializeSymbolsAndFilenames(Ptr, NumSampledSymbols,
+  
+  if (uint64_t NumColdKnownSymbols =
+      support::endian::readNext<uint64_t, llvm::endianness::little>(Ptr); Error E = deserializeSymbolsAndFilenames(Ptr, NumSampledSymbols,
                                                NumColdKnownSymbols))
     return E;
 

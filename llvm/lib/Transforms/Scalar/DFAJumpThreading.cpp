@@ -267,9 +267,9 @@ void DFAJumpThreading::unfold(DomTreeUpdater *DTU, LoopInfo *LI,
 
     // Insert the real conditional branch based on the original condition.
     StartBlockTerm->eraseFromParent();
-    auto *BI =
-        BranchInst::Create(EndBlock, NewBlock, SI->getCondition(), StartBlock);
-    if (!ProfcheckDisableMetadataFixes)
+    
+    if (auto *BI =
+        BranchInst::Create(EndBlock, NewBlock, SI->getCondition(), StartBlock); !ProfcheckDisableMetadataFixes)
       BI->setMetadata(LLVMContext::MD_prof,
                       SI->getMetadata(LLVMContext::MD_prof));
     DTU->applyUpdates({{DominatorTree::Insert, StartBlock, NewBlock}});
@@ -305,9 +305,9 @@ void DFAJumpThreading::unfold(DomTreeUpdater *DTU, LoopInfo *LI,
     //  (Use)
     BranchInst::Create(EndBlock, NewBlockF);
     // Insert the real conditional branch based on the original condition.
-    auto *BI =
-        BranchInst::Create(EndBlock, NewBlockF, SI->getCondition(), NewBlockT);
-    if (!ProfcheckDisableMetadataFixes)
+    
+    if (auto *BI =
+        BranchInst::Create(EndBlock, NewBlockF, SI->getCondition(), NewBlockT); !ProfcheckDisableMetadataFixes)
       BI->setMetadata(LLVMContext::MD_prof,
                       SI->getMetadata(LLVMContext::MD_prof));
     DTU->applyUpdates({{DominatorTree::Insert, NewBlockT, NewBlockF},
@@ -549,8 +549,8 @@ private:
 
     // Currently, we can only expand select instructions in basic blocks with
     // one successor.
-    BranchInst *SITerm = dyn_cast<BranchInst>(SIBB->getTerminator());
-    if (!SITerm || !SITerm->isUnconditional())
+    
+    if (BranchInst *SITerm = dyn_cast<BranchInst>(SIBB->getTerminator()); !SITerm || !SITerm->isUnconditional())
       return false;
 
     // Only fold the select coming from directly where it is defined.
@@ -563,8 +563,8 @@ private:
     // If select will not be sunk during unfolding, and it is in the same basic
     // block as another state defining select, then cannot unfold both.
     for (SelectInstToUnfold SIToUnfold : SelectInsts) {
-      SelectInst *PrevSI = SIToUnfold.getInst();
-      if (PrevSI->getTrueValue() != SI && PrevSI->getFalseValue() != SI &&
+      
+      if (SelectInst *PrevSI = SIToUnfold.getInst(); PrevSI->getTrueValue() != SI && PrevSI->getFalseValue() != SI &&
           PrevSI->getParent() == SI->getParent())
         return false;
     }
@@ -1126,8 +1126,8 @@ private:
 
       // We already cloned BB for this NextState, now just update the branch
       // and continue.
-      BasicBlock *NextBB = getClonedBB(BB, NextState, DuplicateMap);
-      if (NextBB) {
+      
+      if (BasicBlock *NextBB = getClonedBB(BB, NextState, DuplicateMap); NextBB) {
         updatePredecessor(PrevBB, BB, NextBB, DTU);
         PrevBB = NextBB;
         continue;
@@ -1160,8 +1160,8 @@ private:
       // Scan all uses of this instruction to see if it is used outside of its
       // block, and if so, record them in UsesToRename.
       for (Use &U : I->uses()) {
-        Instruction *User = cast<Instruction>(U.getUser());
-        if (PHINode *UserPN = dyn_cast<PHINode>(User)) {
+        
+        if (Instruction *User = cast<Instruction>(U.getUser()); PHINode *UserPN = dyn_cast<PHINode>(User)) {
           if (UserPN->getIncomingBlock(U) == BB)
             continue;
         } else if (User->getParent() == BB) {
@@ -1300,8 +1300,8 @@ private:
             Phi.addIncoming(Incoming, ClonedBB);
             continue;
           }
-          Value *ClonedVal = VMap[Incoming];
-          if (ClonedVal)
+          
+          if (Value *ClonedVal = VMap[Incoming]; ClonedVal)
             Phi.addIncoming(ClonedVal, ClonedBB);
           else
             Phi.addIncoming(Incoming, ClonedBB);

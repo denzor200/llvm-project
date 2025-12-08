@@ -181,8 +181,8 @@ AMDGPULowerVGPREncoding::getMSBs(const MachineOperand &MO) const {
     return std::nullopt;
 
   MCRegister Reg = MO.getReg();
-  const TargetRegisterClass *RC = TRI->getPhysRegBaseClass(Reg);
-  if (!RC || !TRI->isVGPRClass(RC))
+  
+  if (const TargetRegisterClass *RC = TRI->getPhysRegBaseClass(Reg); !RC || !TRI->isVGPRClass(RC))
     return std::nullopt;
 
   unsigned Idx = TRI->getHWRegIndex(Reg);

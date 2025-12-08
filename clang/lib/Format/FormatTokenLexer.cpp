@@ -91,8 +91,8 @@ ArrayRef<FormatToken *> FormatTokenLexer::lex() {
   do {
     Tokens.push_back(getNextToken());
     auto &Tok = *Tokens.back();
-    const auto NewlinesBefore = Tok.NewlinesBefore;
-    switch (FormatOff) {
+    
+    switch (const auto NewlinesBefore = Tok.NewlinesBefore; FormatOff) {
     case FO_NextLine:
       if (NewlinesBefore > 1) {
         FormatOff = FO_None;
@@ -143,8 +143,8 @@ ArrayRef<FormatToken *> FormatTokenLexer::lex() {
       FirstInLineIndex = Tokens.size() - 1;
   } while (Tokens.back()->isNot(tok::eof));
   if (Style.InsertNewlineAtEOF) {
-    auto &TokEOF = *Tokens.back();
-    if (TokEOF.NewlinesBefore == 0) {
+    
+    if (auto &TokEOF = *Tokens.back(); TokEOF.NewlinesBefore == 0) {
       TokEOF.NewlinesBefore = 1;
       TokEOF.OriginalColumn = 0;
     }
@@ -428,8 +428,8 @@ bool FormatTokenLexer::tryMergeCSharpStringLiteral() {
     return false;
 
   if (Tokens.size() > 2) {
-    const auto Tok = *(Tokens.end() - 3);
-    if ((Tok->TokenText == "$" && Prefix->is(tok::at)) ||
+    
+    if (const auto Tok = *(Tokens.end() - 3); (Tok->TokenText == "$" && Prefix->is(tok::at)) ||
         (Tok->is(tok::at) && Prefix->TokenText == "$")) {
       // This looks like $@"aaa" or @$"aaa" so we need to combine all 3 tokens.
       Tok->ColumnWidth += Prefix->ColumnWidth;
@@ -544,8 +544,8 @@ bool FormatTokenLexer::tryTransformTryUsageForC() {
     return false;
 
   if (Tokens.size() > 2) {
-    auto &At = *(Tokens.end() - 3);
-    if (At->is(tok::at))
+    
+    if (auto &At = *(Tokens.end() - 3); At->is(tok::at))
       return false;
   }
 
@@ -1359,8 +1359,8 @@ FormatToken *FormatTokenLexer::getNextToken() {
     // Verilog-specific stuff, the hash becomes an identifier.
     if (FormatTok->is(tok::numeric_constant)) {
       // In Verilog the quote is not part of a number.
-      auto Quote = FormatTok->TokenText.find('\'');
-      if (Quote != StringRef::npos)
+      
+      if (auto Quote = FormatTok->TokenText.find('\''); Quote != StringRef::npos)
         truncateToken(Quote);
     } else if (FormatTok->isOneOf(tok::hash, tok::hashhash)) {
       FormatTok->Tok.setKind(tok::raw_identifier);
@@ -1429,8 +1429,8 @@ FormatToken *FormatTokenLexer::getNextToken() {
   // Now FormatTok is the next non-whitespace token.
 
   StringRef Text = FormatTok->TokenText;
-  size_t FirstNewlinePos = Text.find('\n');
-  if (FirstNewlinePos == StringRef::npos) {
+  
+  if (size_t FirstNewlinePos = Text.find('\n'); FirstNewlinePos == StringRef::npos) {
     // FIXME: ColumnWidth actually depends on the start column, we need to
     // take this into account when the token is moved.
     FormatTok->ColumnWidth =
@@ -1452,8 +1452,8 @@ FormatToken *FormatTokenLexer::getNextToken() {
 
   if (IsCpp) {
     auto *Identifier = FormatTok->Tok.getIdentifierInfo();
-    auto it = Macros.find(Identifier);
-    if ((Tokens.empty() || !Tokens.back()->Tok.getIdentifierInfo() ||
+    
+    if (auto it = Macros.find(Identifier); (Tokens.empty() || !Tokens.back()->Tok.getIdentifierInfo() ||
          Tokens.back()->Tok.getIdentifierInfo()->getPPKeywordID() !=
              tok::pp_define) &&
         it != Macros.end()) {

@@ -194,10 +194,10 @@ void Flang::addDebugOptions(const llvm::opt::ArgList &Args, const JobAction &JA,
 
 void Flang::addCodegenOptions(const ArgList &Args,
                               ArgStringList &CmdArgs) const {
-  Arg *stackArrays =
+  
+  if (Arg *stackArrays =
       Args.getLastArg(options::OPT_Ofast, options::OPT_fstack_arrays,
-                      options::OPT_fno_stack_arrays);
-  if (stackArrays &&
+                      options::OPT_fno_stack_arrays); stackArrays &&
       !stackArrays->getOption().matches(options::OPT_fno_stack_arrays))
     CmdArgs.push_back("-fstack-arrays");
 
@@ -280,8 +280,8 @@ void Flang::AddAArch64TargetArgs(const ArgList &Args,
   // Handle -msve_vector_bits=<bits>
   if (Arg *A = Args.getLastArg(options::OPT_msve_vector_bits_EQ)) {
     StringRef Val = A->getValue();
-    const Driver &D = getToolChain().getDriver();
-    if (Val == "128" || Val == "256" || Val == "512" || Val == "1024" ||
+    
+    if (const Driver &D = getToolChain().getDriver(); Val == "128" || Val == "256" || Val == "512" || Val == "1024" ||
         Val == "2048" || Val == "128+" || Val == "256+" || Val == "512+" ||
         Val == "1024+" || Val == "2048+") {
       unsigned Bits = 0;
@@ -306,9 +306,9 @@ void Flang::AddAArch64TargetArgs(const ArgList &Args,
 
 void Flang::AddLoongArch64TargetArgs(const ArgList &Args,
                                      ArgStringList &CmdArgs) const {
-  const Driver &D = getToolChain().getDriver();
+  
   // Currently, flang only support `-mabi=lp64d` in LoongArch64.
-  if (const Arg *A = Args.getLastArg(options::OPT_mabi_EQ)) {
+  if (const Driver &D = getToolChain().getDriver(); const Arg *A = Args.getLastArg(options::OPT_mabi_EQ)) {
     StringRef V = A->getValue();
     if (V != "lp64d") {
       D.Diag(diag::err_drv_argument_not_allowed_with) << "-mabi" << V;
@@ -427,8 +427,8 @@ static void addVSDefines(const ToolChain &TC, const ArgList &Args,
   CmdArgs.push_back(Args.MakeArgString("-D_MSC_FULL_VER=" + Twine(ver)));
   CmdArgs.push_back(Args.MakeArgString("-D_WIN32"));
 
-  const llvm::Triple &triple = TC.getTriple();
-  if (triple.isAArch64()) {
+  
+  if (const llvm::Triple &triple = TC.getTriple(); triple.isAArch64()) {
     CmdArgs.push_back("-D_M_ARM64=1");
   } else if (triple.isX86() && triple.isArch32Bit()) {
     CmdArgs.push_back("-D_M_IX86=600");
@@ -715,8 +715,8 @@ static void addFloatingPointOptions(const Driver &D, const ArgList &Args,
   }
 
   for (const Arg *A : Args) {
-    auto optId = A->getOption().getID();
-    switch (optId) {
+    
+    switch (auto optId = A->getOption().getID(); optId) {
     // if this isn't an FP option, skip the claim below
     default:
       continue;
@@ -869,8 +869,8 @@ static void renderRemarksOptions(const ArgList &Args, ArgStringList &CmdArgs,
 
   CmdArgs.push_back("-opt-record-file");
 
-  const Arg *A = Args.getLastArg(options::OPT_foptimization_record_file_EQ);
-  if (A) {
+  
+  if (const Arg *A = Args.getLastArg(options::OPT_foptimization_record_file_EQ); A) {
     CmdArgs.push_back(A->getValue());
   } else {
     SmallString<128> F;
@@ -973,11 +973,11 @@ void Flang::ConstructJob(Compilation &C, const JobAction &JA,
   // Fortran. However it is only valid free form source if the original is also
   // free form. Ensure this logic does not incorrectly assume fixed-form for
   // cases where it shouldn't, such as `flang -x f95 foo.f90`.
-  bool isAtemporaryPreprocessedFile =
+  
+  if (bool isAtemporaryPreprocessedFile =
       Input.isFilename() &&
       llvm::sys::path::extension(Input.getFilename())
-          .ends_with(types::getTypeTempSuffix(InputType, /*CLStyle=*/false));
-  if (InputType == types::TY_PP_Fortran && isAtemporaryPreprocessedFile &&
+          .ends_with(types::getTypeTempSuffix(InputType, /*CLStyle=*/false)); InputType == types::TY_PP_Fortran && isAtemporaryPreprocessedFile &&
       !Args.getLastArg(options::OPT_ffixed_form, options::OPT_ffree_form))
     CmdArgs.push_back("-ffixed-form");
 

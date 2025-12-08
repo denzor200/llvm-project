@@ -568,8 +568,8 @@ CodeCompleteConsumer::OverloadCandidate::getParamType(unsigned N) const {
   }
 
   if (Kind == CK_Template) {
-    TemplateParameterList *TPL = getTemplate()->getTemplateParameters();
-    if (N < TPL->size())
+    
+    if (TemplateParameterList *TPL = getTemplate()->getTemplateParameters(); N < TPL->size())
       if (const auto *D = dyn_cast<NonTypeTemplateParmDecl>(TPL->getParam(N)))
         return D->getType();
     return QualType();
@@ -597,8 +597,8 @@ CodeCompleteConsumer::OverloadCandidate::getParamDecl(unsigned N) const {
   }
 
   if (Kind == CK_Template) {
-    TemplateParameterList *TPL = getTemplate()->getTemplateParameters();
-    if (N < TPL->size())
+    
+    if (TemplateParameterList *TPL = getTemplate()->getTemplateParameters(); N < TPL->size())
       return TPL->getParam(N);
     return nullptr;
   }
@@ -863,8 +863,8 @@ bool clang::operator<(const CodeCompletionResult &X,
   std::string XSaved, YSaved;
   StringRef XStr = X.getOrderedName(XSaved);
   StringRef YStr = Y.getOrderedName(YSaved);
-  int cmp = XStr.compare_insensitive(YStr);
-  if (cmp)
+  
+  if (int cmp = XStr.compare_insensitive(YStr); cmp)
     return cmp < 0;
 
   // If case-insensitive comparison fails, try case-sensitive comparison.

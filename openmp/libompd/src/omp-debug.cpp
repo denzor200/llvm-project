@@ -264,8 +264,8 @@ ompd_rc_t ompd_get_curr_parallel_handle(
   if (!thread_handle->ah)
     return ompd_rc_stale_handle;
   ompd_address_space_context_t *context = thread_handle->ah->context;
-  ompd_thread_context_t *thread_context = thread_handle->thread_context;
-  if (!context || !thread_context)
+  
+  if (ompd_thread_context_t *thread_context = thread_handle->thread_context; !context || !thread_context)
     return ompd_rc_stale_handle;
 
   if (!callbacks) {

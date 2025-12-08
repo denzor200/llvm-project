@@ -383,8 +383,8 @@ bool formatters::MsvcStlTreeIterSummaryProvider(
   if (!value_sp)
     return false;
 
-  auto *summary = value_sp->GetSummaryAsCString();
-  if (summary)
+  
+  if (auto *summary = value_sp->GetSummaryAsCString(); summary)
     stream << summary;
   return true;
 }

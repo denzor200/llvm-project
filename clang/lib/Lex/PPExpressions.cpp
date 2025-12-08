@@ -184,11 +184,7 @@ static bool EvaluateDefined(PPValue &Result, Token &PeekTok, DefinedTracker &DT,
   // clang and gcc will pick the #if branch while Visual Studio will take the
   // #else branch.  Emit a warning about this undefined behavior.
   if (beginLoc.isMacroID()) {
-    bool IsFunctionTypeMacro =
-        PP.getSourceManager()
-            .getSLocEntry(PP.getSourceManager().getFileID(beginLoc))
-            .getExpansion()
-            .isFunctionMacroExpansion();
+    
     // For object-type macros, it's easy to replace
     //   #define FOO defined(BAR)
     // with
@@ -204,7 +200,11 @@ static bool EvaluateDefined(PPValue &Result, Token &PeekTok, DefinedTracker &DT,
     // in a different way, and compilers seem to agree on how to behave here.
     // So warn by default on object-type macros, but only warn in -pedantic
     // mode on function-type macros.
-    if (IsFunctionTypeMacro)
+    if (bool IsFunctionTypeMacro =
+        PP.getSourceManager()
+            .getSLocEntry(PP.getSourceManager().getFileID(beginLoc))
+            .getExpansion()
+            .isFunctionMacroExpansion(); IsFunctionTypeMacro)
       PP.Diag(beginLoc, diag::warn_defined_in_function_type_macro);
     else
       PP.Diag(beginLoc, diag::warn_defined_in_object_type_macro);
@@ -263,9 +263,9 @@ static bool EvaluateValue(PPValue &Result, Token &PeekTok, DefinedTracker &DT,
                                 : diag::warn_pp_undef_identifier;
           PP.Diag(PeekTok, DiagID) << II;
 
-          const DiagnosticsEngine &DiagEngine = PP.getDiagnostics();
+          
           // If 'Wundef' is enabled, do not emit 'undef-prefix' diagnostics.
-          if (DiagEngine.isIgnored(DiagID, PeekTok.getLocation())) {
+          if (const DiagnosticsEngine &DiagEngine = PP.getDiagnostics(); DiagEngine.isIgnored(DiagID, PeekTok.getLocation())) {
             const std::vector<std::string> UndefPrefixes =
                 DiagEngine.getDiagnosticOptions().UndefPrefixes;
             const StringRef IdentifierName = II->getName();
@@ -487,10 +487,10 @@ static bool EvaluateValue(PPValue &Result, Token &PeekTok, DefinedTracker &DT,
     Result.Val = -Result.Val;
 
     // -MININT is the only thing that overflows.  Unsigned never overflows.
-    bool Overflow = !Result.isUnsigned() && Result.Val.isMinSignedValue();
+    
 
     // If this operator is live and overflowed, report the issue.
-    if (Overflow && ValueLive)
+    if (bool Overflow = !Result.isUnsigned() && Result.Val.isMinSignedValue(); Overflow && ValueLive)
       PP.Diag(Loc, diag::warn_pp_expr_overflow) << Result.getRange();
 
     DT.State = DefinedTracker::Unknown;

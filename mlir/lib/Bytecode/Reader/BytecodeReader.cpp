@@ -1277,8 +1277,8 @@ LogicalResult AttrTypeReader::parseAsmEntry(T &result, EncodingReader &reader,
 
   // Invoke the MLIR assembly parser to parse the entry text.
   size_t numRead = 0;
-  MLIRContext *context = fileLoc->getContext();
-  if constexpr (std::is_same_v<T, Type>)
+  
+  if constexpr (MLIRContext *context = fileLoc->getContext(); std::is_same_v<T, Type>)
     result =
         ::parseType(asmStr, context, &numRead, /*isKnownNullTerminated=*/true);
   else
@@ -1455,10 +1455,10 @@ private:
     // The typical case where this is necessary is the resource blob
     // optimization in `parseAsBlob` where we reference the weights from the
     // provided buffer instead of copying them to a new allocation.
-    const bool isGloballyAligned =
-        ((uintptr_t)buffer.getBufferStart() & (alignment - 1)) == 0;
+    
 
-    if (!isGloballyAligned)
+    if (const bool isGloballyAligned =
+        ((uintptr_t)buffer.getBufferStart() & (alignment - 1)) == 0; !isGloballyAligned)
       return emitError("expected section alignment ")
              << alignment << " but bytecode buffer 0x"
              << Twine::utohexstr((uint64_t)buffer.getBufferStart())
@@ -1791,8 +1791,8 @@ LogicalResult BytecodeReader::Impl::parseVersion(EncodingReader &reader) {
 
   // Validate the bytecode version.
   uint64_t currentVersion = bytecode::kVersion;
-  uint64_t minSupportedVersion = bytecode::kMinSupportedVersion;
-  if (version < minSupportedVersion) {
+  
+  if (uint64_t minSupportedVersion = bytecode::kMinSupportedVersion; version < minSupportedVersion) {
     return reader.emitError("bytecode version ", version,
                             " is older than the current version of ",
                             currentVersion, ", and upgrade is not supported");

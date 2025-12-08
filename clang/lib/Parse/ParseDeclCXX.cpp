@@ -674,9 +674,9 @@ Parser::DeclGroupPtrTy Parser::ParseUsingDeclaration(
       UED = Actions.ActOnUsingEnumDeclaration(
           getCurScope(), AS, UsingLoc, UELoc, IdentLoc, *IdentInfo, Type, SS);
     } else if (Tok.is(tok::annot_template_id)) {
-      TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok);
+      
 
-      if (TemplateId->mightBeType()) {
+      if (TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok); TemplateId->mightBeType()) {
         AnnotateTemplateIdTokenAsType(SS, ImplicitTypenameContext::No,
                                       /*IsClassName=*/true);
 
@@ -752,8 +752,8 @@ Parser::DeclGroupPtrTy Parser::ParseUsingDeclaration(
     ProhibitAttributes(PrefixAttrs);
 
     Decl *DeclFromDeclSpec = nullptr;
-    Scope *CurScope = getCurScope();
-    if (CurScope)
+    
+    if (Scope *CurScope = getCurScope(); CurScope)
       CurScope->setFlags(Scope::ScopeFlags::TypeAliasScope |
                          CurScope->getFlags());
 
@@ -803,10 +803,10 @@ Parser::DeclGroupPtrTy Parser::ParseUsingDeclaration(
         D.TypenameLoc = SourceLocation();
       }
 
-      Decl *UD = Actions.ActOnUsingDeclaration(getCurScope(), AS, UsingLoc,
+      
+      if (Decl *UD = Actions.ActOnUsingDeclaration(getCurScope(), AS, UsingLoc,
                                                D.TypenameLoc, D.SS, D.Name,
-                                               D.EllipsisLoc, Attrs);
-      if (UD)
+                                               D.EllipsisLoc, Attrs); UD)
         DeclsInGroup.push_back(UD);
     }
 
@@ -1114,9 +1114,9 @@ SourceLocation Parser::ParseDecltypeSpecifier(DeclSpec &DS) {
 
   const char *PrevSpec = nullptr;
   unsigned DiagID;
-  const PrintingPolicy &Policy = Actions.getASTContext().getPrintingPolicy();
+  
   // Check for duplicate type specifiers (e.g. "int decltype(a)").
-  if (Result.get() ? DS.SetTypeSpecType(DeclSpec::TST_decltype, StartLoc,
+  if (const PrintingPolicy &Policy = Actions.getASTContext().getPrintingPolicy(); Result.get() ? DS.SetTypeSpecType(DeclSpec::TST_decltype, StartLoc,
                                         PrevSpec, DiagID, Result.get(), Policy)
                    : DS.SetTypeSpecType(DeclSpec::TST_decltype_auto, StartLoc,
                                         PrevSpec, DiagID, Policy)) {
@@ -1323,8 +1323,8 @@ TypeResult Parser::ParseBaseTypeSpecifier(SourceLocation &BaseLoc,
   // FIXME: identifier and annot_template_id handling in ParseUsingDeclaration
   // work very similarly. It should be refactored into a separate function.
   if (Tok.is(tok::annot_template_id)) {
-    TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok);
-    if (TemplateId->mightBeType()) {
+    
+    if (TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok); TemplateId->mightBeType()) {
       AnnotateTemplateIdTokenAsType(SS, ImplicitTypenameContext::No,
                                     /*IsClassName=*/true);
 
@@ -2359,8 +2359,8 @@ void Parser::HandleMemberFunctionDeclDelays(Declarator &DeclaratorInfo,
   if (!NeedLateParse) {
     // Look ahead to see if there are any default args
     for (unsigned ParamIdx = 0; ParamIdx < FTI.NumParams; ++ParamIdx) {
-      const auto *Param = cast<ParmVarDecl>(FTI.Params[ParamIdx].Param);
-      if (Param->hasUnparsedDefaultArg()) {
+      
+      if (const auto *Param = cast<ParmVarDecl>(FTI.Params[ParamIdx].Param); Param->hasUnparsedDefaultArg()) {
         NeedLateParse = true;
         break;
       }
@@ -2650,8 +2650,8 @@ void Parser::MaybeParseAndDiagnoseDeclSpecAfterCXX11VirtSpecifierSeq(
       auto DeclSpecCheck = [&](DeclSpec::TQ TypeQual, StringRef FixItName,
                                SourceLocation SpecLoc) {
         FixItHint Insertion;
-        auto &MQ = Function.getOrCreateMethodQualifiers();
-        if (!(MQ.getTypeQualifiers() & TypeQual)) {
+        
+        if (auto &MQ = Function.getOrCreateMethodQualifiers(); !(MQ.getTypeQualifiers() & TypeQual)) {
           std::string Name(FixItName.data());
           Name += " ";
           Insertion = FixItHint::CreateInsertion(VS.getFirstLocation(), Name);
@@ -2987,8 +2987,8 @@ Parser::DeclGroupPtrTy Parser::ParseCXXClassMemberDeclaration(
         PP.getSpelling(Zero, Buffer) != "0")
       return false;
 
-    auto &After = GetLookAheadToken(2);
-    if (!After.isOneOf(tok::semi, tok::comma) &&
+    
+    if (auto &After = GetLookAheadToken(2); !After.isOneOf(tok::semi, tok::comma) &&
         !(AllowDefinition &&
           After.isOneOf(tok::l_brace, tok::colon, tok::kw_try)))
       return false;
@@ -3037,8 +3037,8 @@ Parser::DeclGroupPtrTy Parser::ParseCXXClassMemberDeclaration(
       if (Tok.isOneOf(tok::l_brace, tok::colon, tok::kw_try)) {
         DefinitionKind = FunctionDefinitionKind::Definition;
       } else if (Tok.is(tok::equal)) {
-        const Token &KW = NextToken();
-        if (KW.is(tok::kw_default))
+        
+        if (const Token &KW = NextToken(); KW.is(tok::kw_default))
           DefinitionKind = FunctionDefinitionKind::Defaulted;
         else if (KW.is(tok::kw_delete))
           DefinitionKind = FunctionDefinitionKind::Deleted;
@@ -3335,8 +3335,8 @@ ExprResult Parser::ParseCXXMemberInitializer(Decl *D, bool IsFunction,
       // expression than as an ill-formed deleted non-function member. An
       // initializer of '= delete p, foo' will never be parsed, because a
       // top-level comma always ends the initializer expression.
-      const Token &Next = NextToken();
-      if (IsFunction || Next.isOneOf(tok::semi, tok::comma, tok::eof)) {
+      
+      if (const Token &Next = NextToken(); IsFunction || Next.isOneOf(tok::semi, tok::comma, tok::eof)) {
         if (IsFunction)
           Diag(ConsumeToken(), diag::err_default_delete_in_multiple_declaration)
               << 1 /* delete */;
@@ -3903,10 +3903,10 @@ MemInitResult Parser::ParseMemInitializer(Decl *ConstructorDecl) {
     // annot_pack_indexing_type by ParseOptionalCXXScopeSpecifier at this point.
     ParsePackIndexingType(DS);
   } else {
-    TemplateIdAnnotation *TemplateId = Tok.is(tok::annot_template_id)
+    
+    if (TemplateIdAnnotation *TemplateId = Tok.is(tok::annot_template_id)
                                            ? takeTemplateIdAnnotation(Tok)
-                                           : nullptr;
-    if (TemplateId && TemplateId->mightBeType()) {
+                                           : nullptr; TemplateId && TemplateId->mightBeType()) {
       AnnotateTemplateIdTokenAsType(SS, ImplicitTypenameContext::No,
                                     /*IsClassName=*/true);
       assert(Tok.is(tok::annot_typename) && "template-id -> type failed");

@@ -220,8 +220,8 @@ void MCPseudoProbeSections::emit(MCObjectStreamer *MCOS) {
            B.first->getSection().getOrdinal();
   });
   for (auto [FuncSym, RootPtr] : Vec) {
-    const auto &Root = *RootPtr;
-    if (auto *S = Ctx.getObjectFileInfo()->getPseudoProbeSection(
+    
+    if (const auto &Root = *RootPtr; auto *S = Ctx.getObjectFileInfo()->getPseudoProbeSection(
             FuncSym->getSection())) {
       // Switch to the .pseudoprobe section or a comdat group.
       MCOS->switchSection(S);
@@ -546,10 +546,10 @@ bool MCPseudoProbeDecoder::countRecords(bool &Discard, uint32_t &ProbeCount,
   auto ErrorOrCurGuid = readUnencodedNumber<uint64_t>();
   if (!ErrorOrCurGuid)
     return false;
-  uint64_t Guid = std::move(*ErrorOrCurGuid);
+  
 
   // Decide if top-level node should be disgarded.
-  if (IsTopLevelFunc) {
+  if (uint64_t Guid = std::move(*ErrorOrCurGuid); IsTopLevelFunc) {
     Discard = !GuidFilter.empty() && !GuidFilter.count(Guid);
     if (!Discard)
       // Allocate an entry for top-level function record.
@@ -677,8 +677,8 @@ void MCPseudoProbeDecoder::printProbeForAddress(raw_ostream &OS,
 void MCPseudoProbeDecoder::printProbesForAllAddresses(raw_ostream &OS) {
   uint64_t PrevAddress = INT64_MAX;
   for (MCDecodedPseudoProbe &Probe : Address2ProbesMap) {
-    uint64_t Address = Probe.getAddress();
-    if (Address != PrevAddress) {
+    
+    if (uint64_t Address = Probe.getAddress(); Address != PrevAddress) {
       PrevAddress = Address;
       OS << "Address:\t" << Address << '\n';
     }

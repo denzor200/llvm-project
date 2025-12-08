@@ -61,9 +61,9 @@ public:
 
 void LanaiAsmPrinter::printOperand(const MachineInstr *MI, int OpNum,
                                    raw_ostream &O) {
-  const MachineOperand &MO = MI->getOperand(OpNum);
+  
 
-  switch (MO.getType()) {
+  switch (const MachineOperand &MO = MI->getOperand(OpNum); MO.getType()) {
   case MachineOperand::MO_Register:
     O << LanaiInstPrinter::getRegisterName(MO.getReg());
     break;

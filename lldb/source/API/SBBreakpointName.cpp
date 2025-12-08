@@ -114,8 +114,8 @@ SBBreakpointName::SBBreakpointName(SBTarget &sb_target, const char *name) {
 
   m_impl_up = std::make_unique<SBBreakpointNameImpl>(sb_target, name);
   // Call FindBreakpointName here to make sure the name is valid, reset if not:
-  BreakpointName *bp_name = GetBreakpointName();
-  if (!bp_name)
+  
+  if (BreakpointName *bp_name = GetBreakpointName(); !bp_name)
     m_impl_up.reset();
 }
 

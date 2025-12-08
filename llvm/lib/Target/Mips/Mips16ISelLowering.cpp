@@ -230,8 +230,8 @@ unsigned int Mips16TargetLowering::getMips16HelperFunctionStubNumber
   (ArgListTy &Args) const {
   unsigned int resultNum = 0;
   if (Args.size() >= 1) {
-    Type *t = Args[0].Ty;
-    if (t->isFloatTy()) {
+    
+    if (Type *t = Args[0].Ty; t->isFloatTy()) {
       resultNum = 1;
     }
     else if (t->isDoubleTy()) {
@@ -240,8 +240,8 @@ unsigned int Mips16TargetLowering::getMips16HelperFunctionStubNumber
   }
   if (resultNum) {
     if (Args.size() >=2) {
-      Type *t = Args[1].Ty;
-      if (t->isFloatTy()) {
+      
+      if (Type *t = Args[1].Ty; t->isFloatTy()) {
         resultNum += 4;
       }
       else if (t->isDoubleTy()) {
@@ -401,9 +401,9 @@ getOpndList(SmallVectorImpl<SDValue> &Ops,
             FuncInfo->setSaveS2();
         }
         // one more look at list of intrinsics
-        const Mips16IntrinsicHelperType *Helper =
-            llvm::lower_bound(Mips16IntrinsicHelper, IntrinsicFind);
-        if (Helper != std::end(Mips16IntrinsicHelper) &&
+        
+        if (const Mips16IntrinsicHelperType *Helper =
+            llvm::lower_bound(Mips16IntrinsicHelper, IntrinsicFind); Helper != std::end(Mips16IntrinsicHelper) &&
             *Helper == IntrinsicFind) {
           Mips16HelperFunction = Helper->Helper;
           NeedMips16Helper = true;

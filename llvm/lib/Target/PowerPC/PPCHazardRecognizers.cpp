@@ -36,8 +36,8 @@ bool PPCDispatchGroupSBHazardRecognizer::isLoadAfterStore(SUnit *SU) {
   // SU is a load; for any predecessors in this dispatch group, that are stores,
   // and with which we have an ordering dependency, return true.
   for (unsigned i = 0, ie = (unsigned) SU->Preds.size(); i != ie; ++i) {
-    const MCInstrDesc *PredMCID = DAG->getInstrDesc(SU->Preds[i].getSUnit());
-    if (!PredMCID || !PredMCID->mayStore())
+    
+    if (const MCInstrDesc *PredMCID = DAG->getInstrDesc(SU->Preds[i].getSUnit()); !PredMCID || !PredMCID->mayStore())
       continue;
 
     if (!SU->Preds[i].isNormalMemory() && !SU->Preds[i].isBarrier())
@@ -62,8 +62,8 @@ bool PPCDispatchGroupSBHazardRecognizer::isBCTRAfterSet(SUnit *SU) {
   // SU is a branch; for any predecessors in this dispatch group, with which we
   // have a data dependence and set the counter register, return true.
   for (unsigned i = 0, ie = (unsigned) SU->Preds.size(); i != ie; ++i) {
-    const MCInstrDesc *PredMCID = DAG->getInstrDesc(SU->Preds[i].getSUnit());
-    if (!PredMCID || PredMCID->getSchedClass() != PPC::Sched::IIC_SprMTSPR)
+    
+    if (const MCInstrDesc *PredMCID = DAG->getInstrDesc(SU->Preds[i].getSUnit()); !PredMCID || PredMCID->getSchedClass() != PPC::Sched::IIC_SprMTSPR)
       continue;
 
     if (SU->Preds[i].isCtrl())
@@ -157,11 +157,11 @@ unsigned PPCDispatchGroupSBHazardRecognizer::PreEmitNoops(SUnit *SU) {
   // only be a second branch, and otherwise the next instruction will start a
   // new group.
   if (isLoadAfterStore(SU) && CurSlots < 6) {
-    unsigned Directive =
-        DAG->MF.getSubtarget<PPCSubtarget>().getCPUDirective();
+    
     // If we're using a special group-terminating nop, then we need only one.
     // FIXME: the same for P9 as previous gen until POWER9 scheduling is ready
-    if (Directive == PPC::DIR_PWR6 || Directive == PPC::DIR_PWR7 ||
+    if (unsigned Directive =
+        DAG->MF.getSubtarget<PPCSubtarget>().getCPUDirective(); Directive == PPC::DIR_PWR6 || Directive == PPC::DIR_PWR7 ||
         Directive == PPC::DIR_PWR8 || Directive == PPC::DIR_PWR9)
       return 1;
 
@@ -172,8 +172,8 @@ unsigned PPCDispatchGroupSBHazardRecognizer::PreEmitNoops(SUnit *SU) {
 }
 
 void PPCDispatchGroupSBHazardRecognizer::EmitInstruction(SUnit *SU) {
-  const MCInstrDesc *MCID = DAG->getInstrDesc(SU);
-  if (MCID) {
+  
+  if (const MCInstrDesc *MCID = DAG->getInstrDesc(SU); MCID) {
     if (CurSlots == 5 || (MCID->isBranch() && CurBranches == 1)) {
       CurGroup.clear();
       CurSlots = CurBranches = 0;
@@ -182,11 +182,11 @@ void PPCDispatchGroupSBHazardRecognizer::EmitInstruction(SUnit *SU) {
       LLVM_DEBUG(DAG->dumpNode(*SU));
 
       unsigned NSlots;
-      bool MustBeFirst = mustComeFirst(MCID, NSlots);
+      
 
       // If this instruction must come first, but does not, then it starts a
       // new group.
-      if (MustBeFirst && CurSlots) {
+      if (bool MustBeFirst = mustComeFirst(MCID, NSlots); MustBeFirst && CurSlots) {
         CurSlots = CurBranches = 0;
         CurGroup.clear();
       }
@@ -217,12 +217,12 @@ void PPCDispatchGroupSBHazardRecognizer::Reset() {
 }
 
 void PPCDispatchGroupSBHazardRecognizer::EmitNoop() {
-  unsigned Directive =
-      DAG->MF.getSubtarget<PPCSubtarget>().getCPUDirective();
+  
   // If the group has now filled all of its slots, or if we're using a special
   // group-terminating nop, the group is complete.
   // FIXME: the same for P9 as previous gen until POWER9 scheduling is ready
-  if (Directive == PPC::DIR_PWR6 || Directive == PPC::DIR_PWR7 ||
+  if (unsigned Directive =
+      DAG->MF.getSubtarget<PPCSubtarget>().getCPUDirective(); Directive == PPC::DIR_PWR6 || Directive == PPC::DIR_PWR7 ||
       Directive == PPC::DIR_PWR8 || Directive == PPC::DIR_PWR9 ||
       CurSlots == 6) {
     CurGroup.clear();
@@ -373,8 +373,8 @@ getHazardType(SUnit *SU, int Stalls) {
   // If this is a load following a store, make sure it's not to the same or
   // overlapping address.
   if (isLoad && NumStores && !MI->memoperands_empty()) {
-    MachineMemOperand *MO = *MI->memoperands_begin();
-    if (MO->getSize().hasValue() &&
+    
+    if (MachineMemOperand *MO = *MI->memoperands_begin(); MO->getSize().hasValue() &&
         isLoadOfStoredAddress(MO->getSize().getValue(), MO->getOffset(),
                               MO->getValue()))
       return NoopHazard;

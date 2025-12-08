@@ -855,8 +855,8 @@ void InstrProfRecord::overlap(InstrProfRecord &Other, OverlapStats &Overlap,
   if (!Mismatch) {
     for (uint32_t Kind = IPVK_First; Kind <= IPVK_Last; ++Kind) {
       uint32_t ThisNumValueSites = getNumValueSites(Kind);
-      uint32_t OtherNumValueSites = Other.getNumValueSites(Kind);
-      if (ThisNumValueSites != OtherNumValueSites) {
+      
+      if (uint32_t OtherNumValueSites = Other.getNumValueSites(Kind); ThisNumValueSites != OtherNumValueSites) {
         Mismatch = true;
         break;
       }
@@ -939,8 +939,8 @@ void InstrProfRecord::mergeValueProfData(
     uint32_t ValueKind, InstrProfRecord &Src, uint64_t Weight,
     function_ref<void(instrprof_error)> Warn) {
   uint32_t ThisNumValueSites = getNumValueSites(ValueKind);
-  uint32_t OtherNumValueSites = Src.getNumValueSites(ValueKind);
-  if (ThisNumValueSites != OtherNumValueSites) {
+  
+  if (uint32_t OtherNumValueSites = Src.getNumValueSites(ValueKind); ThisNumValueSites != OtherNumValueSites) {
     Warn(instrprof_error::value_site_count_mismatch);
     return;
   }

@@ -320,8 +320,8 @@ Error DbiStreamBuilder::finalizeMsfLayout() {
       return EC;
   }
 
-  uint32_t Length = calculateSerializedLength();
-  if (auto EC = Msf.setStreamSize(StreamDBI, Length))
+  
+  if (uint32_t Length = calculateSerializedLength(); auto EC = Msf.setStreamSize(StreamDBI, Length))
     return EC;
   return Error::success();
 }

@@ -1015,8 +1015,8 @@ llvm::SmallString<256> abbreviatedString(DynTypedNode N,
     llvm::raw_svector_ostream OS(Result);
     N.print(OS, PP);
   }
-  auto Pos = Result.find('\n');
-  if (Pos != llvm::StringRef::npos) {
+  
+  if (auto Pos = Result.find('\n'); Pos != llvm::StringRef::npos) {
     bool MoreText = !llvm::all_of(Result.str().drop_front(Pos), llvm::isSpace);
     Result.resize(Pos);
     if (MoreText)

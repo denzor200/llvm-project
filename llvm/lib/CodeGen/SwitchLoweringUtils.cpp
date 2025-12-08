@@ -148,9 +148,9 @@ void SwitchCG::SwitchLowering::findJumpTables(CaseClusterVector &Clusters,
       if (TLI->isSuitableForJumpTable(SI, NumCases, Range, PSI, BFI)) {
         unsigned NumPartitions = 1 + (j == N - 1 ? 0 : MinPartitions[j + 1]);
         unsigned Score = j == N - 1 ? 0 : PartitionsScore[j + 1];
-        int64_t NumEntries = j - i + 1;
+        
 
-        if (NumEntries == 1)
+        if (int64_t NumEntries = j - i + 1; NumEntries == 1)
           Score += PartitionScores::SingleCase;
         else if (NumEntries <= SmallNumberOfEntries)
           Score += PartitionScores::FewCases;
@@ -336,8 +336,8 @@ void SwitchCG::SwitchLowering::findBitTestClusters(CaseClusterVector &Clusters,
         break;
 
       // Check if it's a better partition.
-      unsigned NumPartitions = 1 + (j == N - 1 ? 0 : MinPartitions[j + 1]);
-      if (NumPartitions < MinPartitions[i]) {
+      
+      if (unsigned NumPartitions = 1 + (j == N - 1 ? 0 : MinPartitions[j + 1]); NumPartitions < MinPartitions[i]) {
         // Found a better partition.
         MinPartitions[i] = NumPartitions;
         LastElement[i] = j;
@@ -480,9 +480,9 @@ void SwitchCG::sortAndRangeify(CaseClusterVector &Clusters) {
   for (unsigned SrcIndex = 0; SrcIndex < N; ++SrcIndex) {
     CaseCluster &CC = Clusters[SrcIndex];
     const ConstantInt *CaseVal = CC.Low;
-    MachineBasicBlock *Succ = CC.MBB;
+    
 
-    if (DstIndex != 0 && Clusters[DstIndex - 1].MBB == Succ &&
+    if (MachineBasicBlock *Succ = CC.MBB; DstIndex != 0 && Clusters[DstIndex - 1].MBB == Succ &&
         (CaseVal->getValue() - Clusters[DstIndex - 1].High->getValue()) == 1) {
       // If this case has the same successor and is a neighbour, merge it into
       // the previous cluster.
@@ -546,8 +546,8 @@ SwitchCG::SwitchLowering::computeSplitWorkItemInfo(
         // Consider moving the first cluster on the right to the left side.
         CaseCluster &CC = *FirstRight;
         unsigned RightSideRank = caseClusterRank(CC, FirstRight, W.LastCluster);
-        unsigned LeftSideRank = caseClusterRank(CC, W.FirstCluster, LastLeft);
-        if (LeftSideRank <= RightSideRank) {
+        
+        if (unsigned LeftSideRank = caseClusterRank(CC, W.FirstCluster, LastLeft); LeftSideRank <= RightSideRank) {
           // Moving the cluster to the left does not demote it.
           ++LastLeft;
           ++FirstRight;
@@ -558,8 +558,8 @@ SwitchCG::SwitchLowering::computeSplitWorkItemInfo(
         // Consider moving the last element on the left to the right side.
         CaseCluster &CC = *LastLeft;
         unsigned LeftSideRank = caseClusterRank(CC, W.FirstCluster, LastLeft);
-        unsigned RightSideRank = caseClusterRank(CC, FirstRight, W.LastCluster);
-        if (RightSideRank <= LeftSideRank) {
+        
+        if (unsigned RightSideRank = caseClusterRank(CC, FirstRight, W.LastCluster); RightSideRank <= LeftSideRank) {
           // Moving the cluster to the right does not demot it.
           --LastLeft;
           --FirstRight;

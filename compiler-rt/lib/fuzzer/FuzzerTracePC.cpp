@@ -110,8 +110,8 @@ void TracePC::PrintModuleInfo() {
   if (size_t NumExtraCounters = ExtraCountersEnd() - ExtraCountersBegin())
     Printf("INFO: %zd Extra Counters\n", NumExtraCounters);
 
-  size_t MaxFeatures = CollectFeatures([](uint32_t) {});
-  if (MaxFeatures > std::numeric_limits<uint32_t>::max())
+  
+  if (size_t MaxFeatures = CollectFeatures([](uint32_t) {}); MaxFeatures > std::numeric_limits<uint32_t>::max())
     Printf("WARNING: The coverage PC tables may produce up to %zu features.\n"
            "This exceeds the maximum 32-bit value. Some features may be\n"
            "ignored, and fuzzing may become less precise. If possible,\n"

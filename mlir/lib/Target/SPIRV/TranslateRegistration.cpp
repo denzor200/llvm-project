@@ -91,10 +91,10 @@ serializeModule(spirv::ModuleOp moduleOp, raw_ostream &output,
   output.write(reinterpret_cast<char *>(binary.data()), sizeInBytes);
 
   if (options.saveModuleForValidation) {
-    size_t dirSeparator =
-        options.validationFilePrefix.find(llvm::sys::path::get_separator());
+    
     // If file prefix includes directory check if that directory exists.
-    if (dirSeparator != std::string::npos) {
+    if (size_t dirSeparator =
+        options.validationFilePrefix.find(llvm::sys::path::get_separator()); dirSeparator != std::string::npos) {
       llvm::StringRef parentDir =
           llvm::sys::path::parent_path(options.validationFilePrefix);
       if (!llvm::sys::fs::is_directory(parentDir))

@@ -688,8 +688,8 @@ bool MipsInstrInfo::HasLoadDelaySlot(const MachineInstr &MI) const {
 }
 
 bool MipsInstrInfo::isAsCheapAsAMove(const MachineInstr &MI) const {
-  const unsigned Opcode = MI.getOpcode();
-  switch (Opcode) {
+  
+  switch (const unsigned Opcode = MI.getOpcode(); Opcode) {
   default:
     break;
   case Mips::ADDiu:
@@ -788,8 +788,8 @@ MipsInstrInfo::genInstrWithNewOpc(unsigned NewOpc,
     // add it to the new instruction.
     for (unsigned J = I->getDesc().getNumOperands(), E = I->getNumOperands();
          J < E; ++J) {
-      const MachineOperand &MO = I->getOperand(J);
-      if (MO.isMCSymbol() && (MO.getTargetFlags() & MipsII::MO_JALR))
+      
+      if (const MachineOperand &MO = I->getOperand(J); MO.isMCSymbol() && (MO.getTargetFlags() & MipsII::MO_JALR))
         MIB.addSym(MO.getMCSymbol(), MipsII::MO_JALR);
     }
 
@@ -814,8 +814,8 @@ bool MipsInstrInfo::findCommutedOpIndices(const MachineInstr &MI,
   assert(!MI.isBundle() &&
          "TargetInstrInfo::findCommutedOpIndices() can't handle bundles");
 
-  const MCInstrDesc &MCID = MI.getDesc();
-  if (!MCID.isCommutable())
+  
+  if (const MCInstrDesc &MCID = MI.getDesc(); !MCID.isCommutable())
     return false;
 
   switch (MI.getOpcode()) {
@@ -1006,8 +1006,8 @@ std::optional<RegImmPair> MipsInstrInfo::isAddImmediate(const MachineInstr &MI,
                                                         Register Reg) const {
   // TODO: Handle cases where Reg is a super- or sub-register of the
   // destination register.
-  const MachineOperand &Op0 = MI.getOperand(0);
-  if (!Op0.isReg() || Reg != Op0.getReg())
+  
+  if (const MachineOperand &Op0 = MI.getOperand(0); !Op0.isReg() || Reg != Op0.getReg())
     return std::nullopt;
 
   switch (MI.getOpcode()) {
@@ -1015,10 +1015,10 @@ std::optional<RegImmPair> MipsInstrInfo::isAddImmediate(const MachineInstr &MI,
   case Mips::DADDiu: {
     const MachineOperand &Dop = MI.getOperand(0);
     const MachineOperand &Sop1 = MI.getOperand(1);
-    const MachineOperand &Sop2 = MI.getOperand(2);
+    
     // Value is sum of register and immediate. Immediate value could be
     // global string address which is not supported.
-    if (Dop.isReg() && Sop1.isReg() && Sop2.isImm())
+    if (const MachineOperand &Sop2 = MI.getOperand(2); Dop.isReg() && Sop1.isReg() && Sop2.isImm())
       return RegImmPair{Sop1.getReg(), Sop2.getImm()};
     // TODO: Handle case where Sop1 is a frame-index.
   }

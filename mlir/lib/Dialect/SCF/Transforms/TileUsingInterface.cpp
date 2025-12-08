@@ -801,8 +801,8 @@ getSplitReductionIvs(RewriterBase &rewriter, Location loc,
   AffineExpr s0, s1;
   bindSymbols(rewriter.getContext(), s0, s1);
   AffineExpr divExpr = s0.floorDiv(s1);
-  int ivIndex = 0;
-  if (reductionStrategy ==
+  
+  if (int ivIndex = 0; reductionStrategy ==
       ReductionTilingStrategy::PartialReductionOuterParallel) {
     for (auto [index, reductionDim] : llvm::enumerate(reductionDims)) {
       if (!numThreads.empty()) {
@@ -2052,8 +2052,8 @@ getUntiledConsumerFromSlice(RewriterBase &rewriter,
                             MutableArrayRef<LoopLikeOpInterface> loops) {
   assert(!loops.empty() && "unexpected loops to be empty");
   // 1. Expect slice to be part of the body of the inner most loop.
-  Operation *containingOp = candidateSliceOp->getParentOp();
-  if (containingOp != loops.back()) {
+  
+  if (Operation *containingOp = candidateSliceOp->getParentOp(); containingOp != loops.back()) {
     return rewriter.notifyMatchFailure(
         candidateSliceOp,
         "expected slice to be within body of inner-most loop");

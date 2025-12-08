@@ -264,8 +264,8 @@ void SCFG::renumberInstrs() {
 
 static inline void computeNodeSize(BasicBlock *B,
                                    BasicBlock::TopologyNode BasicBlock::*TN) {
-  BasicBlock::TopologyNode *N = &(B->*TN);
-  if (N->Parent) {
+  
+  if (BasicBlock::TopologyNode *N = &(B->*TN); N->Parent) {
     BasicBlock::TopologyNode *P = &(N->Parent->*TN);
     // Initially set ID relative to the (as yet uncomputed) parent ID
     N->NodeID = P->SizeOfSubTree;
@@ -275,8 +275,8 @@ static inline void computeNodeSize(BasicBlock *B,
 
 static inline void computeNodeID(BasicBlock *B,
                                  BasicBlock::TopologyNode BasicBlock::*TN) {
-  BasicBlock::TopologyNode *N = &(B->*TN);
-  if (N->Parent) {
+  
+  if (BasicBlock::TopologyNode *N = &(B->*TN); N->Parent) {
     BasicBlock::TopologyNode *P = &(N->Parent->*TN);
     N->NodeID += P->NodeID;    // Fix NodeIDs relative to starting node.
   }
@@ -288,8 +288,8 @@ static inline void computeNodeID(BasicBlock *B,
 // 3) Topologically sorting the blocks into the "Blocks" array.
 void SCFG::computeNormalForm() {
   // Topologically sort the blocks starting from the entry block.
-  unsigned NumUnreachableBlocks = Entry->topologicalSort(Blocks, Blocks.size());
-  if (NumUnreachableBlocks > 0) {
+  
+  if (unsigned NumUnreachableBlocks = Entry->topologicalSort(Blocks, Blocks.size()); NumUnreachableBlocks > 0) {
     // If there were unreachable blocks shift everything down, and delete them.
     for (unsigned I = NumUnreachableBlocks, E = Blocks.size(); I < E; ++I) {
       unsigned NI = I - NumUnreachableBlocks;

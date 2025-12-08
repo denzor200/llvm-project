@@ -446,8 +446,8 @@ MemDepResult MemoryDependenceResults::getSimplePointerDependencyFrom(
     if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(Inst)) {
       // If we reach a lifetime begin or end marker, then the query ends here
       // because the value is undefined.
-      Intrinsic::ID ID = II->getIntrinsicID();
-      switch (ID) {
+      
+      switch (Intrinsic::ID ID = II->getIntrinsicID(); ID) {
       case Intrinsic::lifetime_start: {
         MemoryLocation ArgLoc = MemoryLocation::getAfter(II->getArgOperand(0));
         if (BatchAA.isMustAlias(ArgLoc, MemLoc))
@@ -592,8 +592,8 @@ MemDepResult MemoryDependenceResults::getSimplePointerDependencyFrom(
     // looking for a clobber in many cases; that's an alias property and is
     // handled by BasicAA.
     if (isa<AllocaInst>(Inst) || isNoAliasCall(Inst)) {
-      const Value *AccessPtr = getUnderlyingObject(MemLoc.Ptr);
-      if (AccessPtr == Inst || BatchAA.isMustAlias(Inst, AccessPtr))
+      
+      if (const Value *AccessPtr = getUnderlyingObject(MemLoc.Ptr); AccessPtr == Inst || BatchAA.isMustAlias(Inst, AccessPtr))
         return MemDepResult::getDef(Inst);
     }
 

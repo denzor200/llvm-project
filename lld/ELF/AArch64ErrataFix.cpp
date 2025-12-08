@@ -337,8 +337,8 @@ static uint64_t scanCortexA53Errata843419(InputSection *isec, uint64_t &off,
   uint64_t isecAddr = isec->getVA(0);
 
   // Advance Off so that (isecAddr + Off) modulo 0x1000 is at least 0xff8.
-  uint64_t initialPageOff = (isecAddr + off) & 0xfff;
-  if (initialPageOff < 0xff8)
+  
+  if (uint64_t initialPageOff = (isecAddr + off) & 0xfff; initialPageOff < 0xff8)
     off += 0xff8 - initialPageOff;
 
   bool optionalAllowed = limit - off > 12;
@@ -357,8 +357,8 @@ static uint64_t scanCortexA53Errata843419(InputSection *isec, uint64_t &off,
   if (is843419ErratumSequence(instr1, instr2, instr3)) {
     patchOff = off + 8;
   } else if (optionalAllowed && !isBranch(instr3)) {
-    uint32_t instr4 = *instBuf++;
-    if (is843419ErratumSequence(instr1, instr2, instr4))
+    
+    if (uint32_t instr4 = *instBuf++; is843419ErratumSequence(instr1, instr2, instr4))
       patchOff = off + 12;
   }
   if (((isecAddr + off) & 0xfff) == 0xff8)
@@ -594,8 +594,8 @@ AArch64Err843419Patcher::patchInputSectionDescription(
                                                   : (*dataSym)->value;
 
       while (off < limit) {
-        uint64_t startAddr = isec->getVA(off);
-        if (uint64_t patcheeOffset =
+        
+        if (uint64_t startAddr = isec->getVA(off); uint64_t patcheeOffset =
                 scanCortexA53Errata843419(isec, off, limit))
           implementPatch(ctx, startAddr, patcheeOffset, isec, patches);
       }

@@ -164,8 +164,8 @@ public:
   Stmt *getStmtToTraverse(Stmt *StmtNode) {
     Stmt *StmtToTraverse = StmtNode;
     if (auto *ExprNode = dyn_cast_or_null<Expr>(StmtNode)) {
-      auto *LambdaNode = dyn_cast_or_null<LambdaExpr>(StmtNode);
-      if (LambdaNode && Finder->isTraversalIgnoringImplicitNodes())
+      
+      if (auto *LambdaNode = dyn_cast_or_null<LambdaExpr>(StmtNode); LambdaNode && Finder->isTraversalIgnoringImplicitNodes())
         StmtToTraverse = LambdaNode;
       else
         StmtToTraverse =
@@ -1492,8 +1492,8 @@ bool MatchASTVisitor::objcClassIsDerivedFrom(
       return true;
 
     // Check if there are any matching type aliases.
-    const Type *TypeNode = ClassDecl->getTypeForDecl();
-    if (typeHasMatchingAlias(TypeNode, Base, Builder))
+    
+    if (const Type *TypeNode = ClassDecl->getTypeForDecl(); typeHasMatchingAlias(TypeNode, Base, Builder))
       return true;
 
     if (Base.matches(*ClassDecl, this, Builder))

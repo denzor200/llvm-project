@@ -684,12 +684,12 @@ bool RISCVPreRAExpandPseudo::expandAuipcInstPair(
       BuildMI(MBB, MBBI, DL, TII->get(RISCV::AUIPC), ScratchReg).add(Symbol);
   MIAUIPC->setPreInstrSymbol(*MF, AUIPCSymbol);
 
-  MachineInstr *SecondMI =
+  
+
+  if (MachineInstr *SecondMI =
       BuildMI(MBB, MBBI, DL, TII->get(SecondOpcode), DestReg)
           .addReg(ScratchReg)
-          .addSym(AUIPCSymbol, RISCVII::MO_PCREL_LO);
-
-  if (MI.hasOneMemOperand())
+          .addSym(AUIPCSymbol, RISCVII::MO_PCREL_LO); MI.hasOneMemOperand())
     SecondMI->addMemOperand(*MF, *MI.memoperands_begin());
 
   MI.eraseFromParent();

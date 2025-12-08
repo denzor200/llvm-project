@@ -71,8 +71,8 @@ LayoutOverrideSource::LayoutOverrideSource(StringRef Filename) {
     if (ExpectingType) {
       ExpectingType = false;
 
-      StringRef::size_type Pos;
-      if ((Pos = LineStr.find("struct ")) != StringRef::npos)
+      
+      if (StringRef::size_type Pos; (Pos = LineStr.find("struct ")) != StringRef::npos)
         LineStr = LineStr.substr(Pos + strlen("struct "));
       else if ((Pos = LineStr.find("class ")) != StringRef::npos)
         LineStr = LineStr.substr(Pos + strlen("class "));

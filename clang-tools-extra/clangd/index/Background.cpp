@@ -319,8 +319,8 @@ llvm::Error BackgroundIndex::index(tooling::CompileCommand Cmd) {
   // but the leaky "recovery" is pretty scary too in a long-running process.
   // If crashes are a real problem, maybe we should fork a child process.
 
-  const FrontendInputFile &Input = Clang->getFrontendOpts().Inputs.front();
-  if (!Action->BeginSourceFile(*Clang, Input))
+  
+  if (const FrontendInputFile &Input = Clang->getFrontendOpts().Inputs.front(); !Action->BeginSourceFile(*Clang, Input))
     return error("BeginSourceFile() failed");
   if (llvm::Error Err = Action->Execute())
     return Err;

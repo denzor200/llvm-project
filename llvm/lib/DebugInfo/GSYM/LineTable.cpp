@@ -73,8 +73,8 @@ static llvm::Error parse(DataExtractor &Data, uint64_t BaseAddr,
     if (!Data.isValidOffset(Offset))
       return createStringError(std::errc::io_error,
           "0x%8.8" PRIx64 ": EOF found before EndSequence", Offset);
-    uint8_t Op = Data.getU8(&Offset);
-    switch (Op) {
+    
+    switch (uint8_t Op = Data.getU8(&Offset); Op) {
     case EndSequence:
       Done = true;
       break;
@@ -169,8 +169,8 @@ llvm::Error LineTable::encode(FileWriter &Out, uint64_t BaseAddr) const {
       uint32_t CurrCount = 0;
       uint32_t J;
       for (J = I; J < NumDeltaInfos; ++J) {
-        auto LineRange = DeltaInfos[J].Delta - FirstDelta;
-        if (LineRange > MaxLineRange)
+        
+        if (auto LineRange = DeltaInfos[J].Delta - FirstDelta; LineRange > MaxLineRange)
           break;
         CurrCount += DeltaInfos[J].Count;
       }

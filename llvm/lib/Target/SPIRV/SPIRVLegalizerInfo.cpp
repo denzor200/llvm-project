@@ -369,8 +369,8 @@ static Register convertPtrToInt(Register Reg, LLT ConvTy, SPIRVType *SpvType,
 bool SPIRVLegalizerInfo::legalizeCustom(
     LegalizerHelper &Helper, MachineInstr &MI,
     LostDebugLocObserver &LocObserver) const {
-  MachineRegisterInfo &MRI = MI.getMF()->getRegInfo();
-  switch (MI.getOpcode()) {
+  
+  switch (MachineRegisterInfo &MRI = MI.getMF()->getRegInfo(); MI.getOpcode()) {
   default:
     // TODO: implement legalization for other opcodes.
     return true;

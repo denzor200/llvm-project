@@ -102,8 +102,8 @@ void ICFLoopSafetyInfo::removeInstruction(const Instruction *Inst) {
 void LoopSafetyInfo::computeBlockColors(const Loop *CurLoop) {
   // Compute funclet colors if we might sink/hoist in a function with a funclet
   // personality routine.
-  Function *Fn = CurLoop->getHeader()->getParent();
-  if (Fn->hasPersonalityFn())
+  
+  if (Function *Fn = CurLoop->getHeader()->getParent(); Fn->hasPersonalityFn())
     if (Constant *PersonalityFn = Fn->getPersonalityFn())
       if (isScopedEHPersonality(classifyEHPersonality(PersonalityFn)))
         BlockColors = colorEHFunclets(*Fn);
@@ -366,8 +366,8 @@ public:
       return;
 
     const auto &Loops = MustExec.lookup(&V);
-    const auto NumLoops = Loops.size();
-    if (NumLoops > 1)
+    
+    if (const auto NumLoops = Loops.size(); NumLoops > 1)
       OS << " ; (mustexec in " << NumLoops << " loops: ";
     else
       OS << " ; (mustexec in: ";
@@ -431,10 +431,10 @@ MustBeExecutedContextExplorer::findForwardJoinPoint(const BasicBlock *InitBB) {
   // loops under certain circumstances.
   SmallVector<const BasicBlock *, 8> Worklist;
   for (const BasicBlock *SuccBB : successors(InitBB)) {
-    bool IsLatch = SuccBB == HeaderBB;
+    
     // Loop latches are ignored in forward propagation if the loop cannot be
     // endless and may not throw: control has to go somewhere.
-    if (!WillReturnAndNoThrow || !IsLatch)
+    if (bool IsLatch = SuccBB == HeaderBB; !WillReturnAndNoThrow || !IsLatch)
       Worklist.push_back(SuccBB);
   }
   LLVM_DEBUG(dbgs() << "\t\t#Worklist: " << Worklist.size() << "\n");
@@ -460,8 +460,8 @@ MustBeExecutedContextExplorer::findForwardJoinPoint(const BasicBlock *InitBB) {
     const BasicBlock *Succ0 = Worklist[0];
     const BasicBlock *Succ1 = Worklist[1];
     const BasicBlock *Succ0UniqueSucc = Succ0->getUniqueSuccessor();
-    const BasicBlock *Succ1UniqueSucc = Succ1->getUniqueSuccessor();
-    if (Succ0UniqueSucc == InitBB) {
+    
+    if (const BasicBlock *Succ1UniqueSucc = Succ1->getUniqueSuccessor(); Succ0UniqueSucc == InitBB) {
       // InitBB -> Succ0 -> InitBB
       // InitBB -> Succ1  = JoinBB
       JoinBB = Succ1;
@@ -518,9 +518,9 @@ MustBeExecutedContextExplorer::findForwardJoinPoint(const BasicBlock *InitBB) {
           if (!LI)
             return nullptr;
 
-          bool MayContainIrreducibleControl = getOrCreateCachedOptional(
-              &F, IrreducibleControlMap, mayContainIrreducibleControl, F, LI);
-          if (MayContainIrreducibleControl)
+          
+          if (bool MayContainIrreducibleControl = getOrCreateCachedOptional(
+              &F, IrreducibleControlMap, mayContainIrreducibleControl, F, LI); MayContainIrreducibleControl)
             return nullptr;
 
           const Loop *L = LI->getLoopFor(ToBB);
@@ -566,11 +566,11 @@ MustBeExecutedContextExplorer::findBackwardJoinPoint(const BasicBlock *InitBB) {
   // Determine the predecessor blocks but ignore backedges.
   SmallVector<const BasicBlock *, 8> Worklist;
   for (const BasicBlock *PredBB : predecessors(InitBB)) {
-    bool IsBackedge =
-        (PredBB == InitBB) || (HeaderBB == InitBB && L->contains(PredBB));
+    
     // Loop backedges are ignored in backwards propagation: control has to come
     // from somewhere.
-    if (!IsBackedge)
+    if (bool IsBackedge =
+        (PredBB == InitBB) || (HeaderBB == InitBB && L->contains(PredBB)); !IsBackedge)
       Worklist.push_back(PredBB);
   }
 
@@ -587,8 +587,8 @@ MustBeExecutedContextExplorer::findBackwardJoinPoint(const BasicBlock *InitBB) {
     const BasicBlock *Pred0 = Worklist[0];
     const BasicBlock *Pred1 = Worklist[1];
     const BasicBlock *Pred0UniquePred = Pred0->getUniquePredecessor();
-    const BasicBlock *Pred1UniquePred = Pred1->getUniquePredecessor();
-    if (Pred0 == Pred1UniquePred) {
+    
+    if (const BasicBlock *Pred1UniquePred = Pred1->getUniquePredecessor(); Pred0 == Pred1UniquePred) {
       // InitBB <-          Pred0 = JoinBB
       // InitBB <- Pred1 <- Pred0 = JoinBB
       JoinBB = Pred0;
@@ -628,8 +628,8 @@ MustBeExecutedContextExplorer::getMustBeExecutedNextInstruction(
   // If we do not traverse the call graph we check if we can make progress in
   // the current function. First, check if the instruction is guaranteed to
   // transfer execution to the successor.
-  bool TransfersExecution = isGuaranteedToTransferExecutionToSuccessor(PP);
-  if (!TransfersExecution)
+  
+  if (bool TransfersExecution = isGuaranteedToTransferExecutionToSuccessor(PP); !TransfersExecution)
     return nullptr;
 
   // If this is not a terminator we know that there is a single instruction

@@ -280,9 +280,9 @@ public:
     // Emit the serialized Clang AST into its own section.
     assert(Buffer->IsComplete && "serialization did not complete");
     auto &SerializedAST = Buffer->Data;
-    auto Size = SerializedAST.size();
+    
 
-    if (Triple.isOSBinFormatWasm()) {
+    if (auto Size = SerializedAST.size(); Triple.isOSBinFormatWasm()) {
       // Emit __clangast in custom section instead of named data segment
       // to find it while iterating sections.
       // This could be avoided if all data segements (the wasm sense) were

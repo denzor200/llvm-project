@@ -152,10 +152,10 @@ struct CollapseShapeOpInterface
     if (failed(maybeSrcBufferType))
       return failure();
     auto srcBufferType = llvm::cast<MemRefType>(*maybeSrcBufferType);
-    bool canBeCollapsed = memref::CollapseShapeOp::isGuaranteedCollapsible(
-        srcBufferType, collapseShapeOp.getReassociationIndices());
+    
 
-    if (!canBeCollapsed) {
+    if (bool canBeCollapsed = memref::CollapseShapeOp::isGuaranteedCollapsible(
+        srcBufferType, collapseShapeOp.getReassociationIndices()); !canBeCollapsed) {
       // If dims cannot be collapsed, this op bufferizes to a new allocation.
       RankedTensorType tensorResultType = collapseShapeOp.getResultType();
       return cast<BufferLikeType>(
@@ -209,9 +209,9 @@ struct CollapseShapeOpInterface
     // If the dims are not collapsible (due to an incompatible source layout
     // map), force an out-of-place bufferization, i.e., a buffer copy. This
     // newly allocated buffer will have no layout map and thus be collapsible.
-    bool canBeCollapsed = memref::CollapseShapeOp::isGuaranteedCollapsible(
-        bufferType, collapseShapeOp.getReassociationIndices());
-    if (!canBeCollapsed) {
+    
+    if (bool canBeCollapsed = memref::CollapseShapeOp::isGuaranteedCollapsible(
+        bufferType, collapseShapeOp.getReassociationIndices()); !canBeCollapsed) {
       // TODO: Create alloc_tensor ops during TensorCopyInsertion.
       AnalysisState analysisState(options);
       FailureOr<Value> tensorAlloc = allocateTensorForShapedValue(

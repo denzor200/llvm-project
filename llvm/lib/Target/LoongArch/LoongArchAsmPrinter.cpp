@@ -213,8 +213,8 @@ void LoongArchAsmPrinter::LowerSTATEPOINT(const MachineInstr &MI) {
 
 void LoongArchAsmPrinter::LowerPATCHABLE_FUNCTION_ENTER(
     const MachineInstr &MI) {
-  const Function &F = MF->getFunction();
-  if (F.hasFnAttribute("patchable-function-entry")) {
+  
+  if (const Function &F = MF->getFunction(); F.hasFnAttribute("patchable-function-entry")) {
     unsigned Num;
     if (F.getFnAttribute("patchable-function-entry")
             .getValueAsString()

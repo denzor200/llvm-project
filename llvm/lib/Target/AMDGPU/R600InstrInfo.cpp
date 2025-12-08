@@ -290,9 +290,9 @@ R600InstrInfo::getSrcs(MachineInstr &MI) const {
       continue;
     }
     if (Reg == R600::ALU_LITERAL_X) {
-      MachineOperand &Operand =
-          MI.getOperand(getOperandIdx(MI.getOpcode(), R600::OpName::literal));
-      if (Operand.isImm()) {
+      
+      if (MachineOperand &Operand =
+          MI.getOperand(getOperandIdx(MI.getOpcode(), R600::OpName::literal)); Operand.isImm()) {
         Result.push_back(std::pair(&MO, Operand.getImm()));
         continue;
       }
@@ -532,9 +532,9 @@ R600InstrInfo::fitsReadPortLimitations(const std::vector<MachineInstr *> &IG,
   for (R600InstrInfo::BankSwizzle TransBS : TransSwz) {
     if (!isConstCompatible(TransBS, TransOps, ConstCount))
       continue;
-    bool Result = FindSwizzleForVectorSlot(IGSrcs, ValidSwizzle, TransOps,
-        TransBS);
-    if (Result) {
+    
+    if (bool Result = FindSwizzleForVectorSlot(IGSrcs, ValidSwizzle, TransOps,
+        TransBS); Result) {
       ValidSwizzle.push_back(TransBS);
       return true;
     }
@@ -616,8 +616,8 @@ findFirstPredicateSetterFrom(MachineBasicBlock &MBB,
                              MachineBasicBlock::iterator I) {
   while (I != MBB.begin()) {
     --I;
-    MachineInstr &MI = *I;
-    if (isPredicateSetter(MI.getOpcode()))
+    
+    if (MachineInstr &MI = *I; isPredicateSetter(MI.getOpcode()))
       return &MI;
   }
 
@@ -892,8 +892,8 @@ R600InstrInfo::isProfitableToUnpredicate(MachineBasicBlock &TMBB,
 
 bool
 R600InstrInfo::reverseBranchCondition(SmallVectorImpl<MachineOperand> &Cond) const {
-  MachineOperand &MO = Cond[1];
-  switch (MO.getImm()) {
+  
+  switch (MachineOperand &MO = Cond[1]; MO.getImm()) {
   case R600::PRED_SETE_INT:
     MO.setImm(R600::PRED_SETNE_INT);
     break;
@@ -991,9 +991,9 @@ bool R600InstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
     // addr is a custom operand with multiple MI operands, and only the
     // first MI operand is given a name.
     int RegOpIdx = OffsetOpIdx + 1;
-    int ChanOpIdx =
-        R600::getNamedOperandIdx(MI.getOpcode(), R600::OpName::chan);
-    if (isRegisterLoad(MI)) {
+    
+    if (int ChanOpIdx =
+        R600::getNamedOperandIdx(MI.getOpcode(), R600::OpName::chan); isRegisterLoad(MI)) {
       int DstOpIdx =
           R600::getNamedOperandIdx(MI.getOpcode(), R600::OpName::dst);
       unsigned RegIndex = MI.getOperand(RegOpIdx).getImm();
@@ -1365,8 +1365,8 @@ MachineOperand &R600InstrInfo::getFlagOp(MachineInstr &MI, unsigned SrcIdx,
     // function, it means we are want to set a flag on an instruction
     // that uses native encoding.
     assert(HAS_NATIVE_OPERANDS(TargetFlags));
-    bool IsOP3 = (TargetFlags & R600_InstFlag::OP3) == R600_InstFlag::OP3;
-    switch (Flag) {
+    
+    switch (bool IsOP3 = (TargetFlags & R600_InstFlag::OP3) == R600_InstFlag::OP3; Flag) {
     case MO_FLAG_CLAMP:
       FlagIndex = getOperandIdx(MI, R600::OpName::clamp);
       break;
@@ -1428,8 +1428,8 @@ void R600InstrInfo::addFlag(MachineInstr &MI, unsigned SrcIdx,
     return;
   }
   if (HAS_NATIVE_OPERANDS(TargetFlags)) {
-    MachineOperand &FlagOp = getFlagOp(MI, SrcIdx, Flag);
-    if (Flag == MO_FLAG_NOT_LAST) {
+    
+    if (MachineOperand &FlagOp = getFlagOp(MI, SrcIdx, Flag); Flag == MO_FLAG_NOT_LAST) {
       clearFlag(MI, SrcIdx, MO_FLAG_LAST);
     } else if (Flag == MO_FLAG_MASK) {
       clearFlag(MI, SrcIdx, Flag);
@@ -1444,8 +1444,8 @@ void R600InstrInfo::addFlag(MachineInstr &MI, unsigned SrcIdx,
 
 void R600InstrInfo::clearFlag(MachineInstr &MI, unsigned SrcIdx,
                               unsigned Flag) const {
-  unsigned TargetFlags = get(MI.getOpcode()).TSFlags;
-  if (HAS_NATIVE_OPERANDS(TargetFlags)) {
+  
+  if (unsigned TargetFlags = get(MI.getOpcode()).TSFlags; HAS_NATIVE_OPERANDS(TargetFlags)) {
     MachineOperand &FlagOp = getFlagOp(MI, SrcIdx, Flag);
     FlagOp.setImm(0);
   } else {

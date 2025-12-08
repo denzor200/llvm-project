@@ -236,8 +236,8 @@ Error BinaryFunction::parseLSDA(ArrayRef<uint8_t> LSDASectionData,
     auto IE = Instructions.end();
     assert(II != IE && "exception range not pointing to an instruction");
     do {
-      MCInst &Instruction = II->second;
-      if (BC.MIB->isCall(Instruction) &&
+      
+      if (MCInst &Instruction = II->second; BC.MIB->isCall(Instruction) &&
           !BC.MIB->getConditionalTailCall(Instruction)) {
         assert(!BC.MIB->isInvoke(Instruction) &&
                "overlapping exception ranges detected");

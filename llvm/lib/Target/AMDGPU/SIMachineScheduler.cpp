@@ -628,8 +628,8 @@ void SIScheduleBlockCreator::colorHighLatenciesAlone() {
   unsigned DAGSize = DAG->SUnits.size();
 
   for (unsigned i = 0, e = DAGSize; i != e; ++i) {
-    SUnit *SU = &DAG->SUnits[i];
-    if (DAG->IsHighLatencySU[SU->NodeNum]) {
+    
+    if (SUnit *SU = &DAG->SUnits[i]; DAG->IsHighLatencySU[SU->NodeNum]) {
       CurrentColoring[SU->NodeNum] = NextReservedID++;
     }
   }
@@ -654,8 +654,8 @@ void SIScheduleBlockCreator::colorHighLatenciesGroups() {
   std::set<unsigned> FormingGroup;
 
   for (unsigned i = 0, e = DAGSize; i != e; ++i) {
-    SUnit *SU = &DAG->SUnits[i];
-    if (DAG->IsHighLatencySU[SU->NodeNum])
+    
+    if (SUnit *SU = &DAG->SUnits[i]; DAG->IsHighLatencySU[SU->NodeNum])
       ++NumHighLatencies;
   }
 
@@ -1078,8 +1078,8 @@ void SIScheduleBlockCreator::regroupNoUserInstructions() {
       continue;
 
     for (SDep& SuccDep : SU->Succs) {
-       SUnit *Succ = SuccDep.getSUnit();
-      if (SuccDep.isWeak() || Succ->NodeNum >= DAGSize)
+       
+      if (SUnit *Succ = SuccDep.getSUnit(); SuccDep.isWeak() || Succ->NodeNum >= DAGSize)
         continue;
       hasSuccessor = true;
     }
@@ -1103,8 +1103,8 @@ void SIScheduleBlockCreator::colorExports() {
   // register than used in a previous export.
   // If that happens, do not regroup the exports.
   for (unsigned SUNum : DAG->TopDownIndex2SU) {
-    const SUnit &SU = DAG->SUnits[SUNum];
-    if (SIInstrInfo::isEXP(*SU.getInstr())) {
+    
+    if (const SUnit &SU = DAG->SUnits[SUNum]; SIInstrInfo::isEXP(*SU.getInstr())) {
       // SU is an export instruction. Check whether one of its successor
       // dependencies is a non-export, in which case we skip export grouping.
       for (const SDep &SuccDep : SU.Succs) {
@@ -1359,8 +1359,8 @@ void SIScheduleBlockCreator::fillStats() {
 
   for (unsigned i = 0, e = DAGSize; i != e; ++i) {
     int BlockIndice = TopDownIndex2Block[i];
-    SIScheduleBlock *Block = CurrentBlocks[BlockIndice];
-    if (Block->getPreds().empty())
+    
+    if (SIScheduleBlock *Block = CurrentBlocks[BlockIndice]; Block->getPreds().empty())
       Block->Depth = 0;
     else {
       unsigned Depth = 0;
@@ -1374,8 +1374,8 @@ void SIScheduleBlockCreator::fillStats() {
 
   for (unsigned i = 0, e = DAGSize; i != e; ++i) {
     int BlockIndice = BottomUpIndex2Block[i];
-    SIScheduleBlock *Block = CurrentBlocks[BlockIndice];
-    if (Block->getSuccs().empty())
+    
+    if (SIScheduleBlock *Block = CurrentBlocks[BlockIndice]; Block->getSuccs().empty())
       Block->Height = 0;
     else {
       unsigned Height = 0;
@@ -1458,9 +1458,9 @@ SIScheduleBlockScheduler::SIScheduleBlockScheduler(SIScheduleDAGMI *DAG,
       // Do reverse traversal
       int ID = BlocksStruct.TopDownIndex2Block[Blocks.size()-1-i];
       SIScheduleBlock *Block = Blocks[ID];
-      const std::set<Register> &OutRegs = Block->getOutRegs();
+      
 
-      if (!VRegOrUnit.isVirtualReg() ||
+      if (const std::set<Register> &OutRegs = Block->getOutRegs(); !VRegOrUnit.isVirtualReg() ||
           OutRegs.find(VRegOrUnit.asVirtualReg()) == OutRegs.end())
         continue;
 

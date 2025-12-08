@@ -151,8 +151,8 @@ struct cons_header *__kmp_allocate_cons_stack(int gtid) {
 }
 
 void __kmp_free_cons_stack(void *ptr) {
-  struct cons_header *p = (struct cons_header *)ptr;
-  if (p != NULL) {
+  
+  if (struct cons_header *p = (struct cons_header *)ptr; p != NULL) {
     if (p->stack_data != NULL) {
       __kmp_free(p->stack_data);
       p->stack_data = NULL;

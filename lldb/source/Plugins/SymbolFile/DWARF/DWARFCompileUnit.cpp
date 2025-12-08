@@ -62,14 +62,14 @@ void DWARFCompileUnit::BuildAddressRangeTable(
     SymbolContext sc;
     sc.comp_unit = m_dwarf.GetCompUnitForDWARFCompUnit(*this);
     if (sc.comp_unit) {
-      SymbolFileDWARFDebugMap *debug_map_sym_file =
-          m_dwarf.GetDebugMapSymfile();
-      if (debug_map_sym_file) {
-        auto *cu_info =
-            debug_map_sym_file->GetCompileUnitInfo(&GetSymbolFileDWARF());
+      
+      if (SymbolFileDWARFDebugMap *debug_map_sym_file =
+          m_dwarf.GetDebugMapSymfile(); debug_map_sym_file) {
+        
         // If there are extra compile units the OSO entries aren't a reliable
         // source of information.
-        if (cu_info->compile_units_sps.empty())
+        if (auto *cu_info =
+            debug_map_sym_file->GetCompileUnitInfo(&GetSymbolFileDWARF()); cu_info->compile_units_sps.empty())
           debug_map_sym_file->AddOSOARanges(&m_dwarf, debug_aranges);
       }
     }
@@ -103,10 +103,10 @@ DWARFCompileUnit &DWARFCompileUnit::GetNonSkeletonUnit() {
 
 DWARFDIE DWARFCompileUnit::LookupAddress(const dw_addr_t address) {
   if (DIE()) {
-    const DWARFDebugAranges &func_aranges = GetFunctionAranges();
+    
 
     // Re-check the aranges auto pointer contents in case it was created above
-    if (!func_aranges.IsEmpty())
+    if (const DWARFDebugAranges &func_aranges = GetFunctionAranges(); !func_aranges.IsEmpty())
       return GetDIE(func_aranges.FindAddress(address));
   }
   return DWARFDIE();

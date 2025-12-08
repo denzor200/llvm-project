@@ -62,8 +62,8 @@ void addUnsignedStatTesterChecker(AnalysisASTConsumer &AnalysisConsumer,
 static std::optional<unsigned>
 findColumnIndex(llvm::ArrayRef<llvm::StringRef> Header,
                 llvm::StringRef ColumnName) {
-  auto Iter = llvm::find(Header, ColumnName);
-  if (Iter != Header.end())
+  
+  if (auto Iter = llvm::find(Header, ColumnName); Iter != Header.end())
     return std::distance(Header.begin(), Iter);
   return std::nullopt;
 }

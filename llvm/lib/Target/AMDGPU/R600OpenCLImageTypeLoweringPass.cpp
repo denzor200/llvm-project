@@ -79,8 +79,8 @@ GetFunctionFromMDNode(MDNode *Node) {
   if (!Node)
     return nullptr;
 
-  size_t NumOps = Node->getNumOperands();
-  if (NumOps != NumKernelArgMDNodes + 1)
+  
+  if (size_t NumOps = Node->getNumOperands(); NumOps != NumKernelArgMDNodes + 1)
     return nullptr;
 
   auto *F = mdconst::dyn_extract<Function>(Node->getOperand(0));

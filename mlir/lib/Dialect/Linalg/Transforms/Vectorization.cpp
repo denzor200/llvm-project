@@ -545,8 +545,8 @@ VectorizationState::maskOperation(RewriterBase &rewriter, Operation *opToMask,
                   // Skip broadcast dimensions.
                   if (!dimExpr)
                     continue;
-                  unsigned pos = dimExpr.getPosition();
-                  if (xferType.isDynamicDim(pos))
+                  
+                  if (unsigned pos = dimExpr.getPosition(); xferType.isDynamicDim(pos))
                     inBoundsMap[i] = true;
                 }
                 rewriter.modifyOpInPlace(xferOp, [&]() {
@@ -1093,11 +1093,11 @@ getTensorExtractMemoryAccessPattern(tensor::ExtractOp extractOp,
 
   // True for vectors that are effectively 1D, e.g. `vector<1x4x1xi32>`, false
   // otherwise.
-  bool isOutput1DVector =
-      (llvm::count_if(resType.getShape(),
-                      [](int64_t dimSize) { return dimSize > 1; }) == 1);
+  
   // 1. Assume that it's a gather load when reading non-1D vector.
-  if (!isOutput1DVector)
+  if (bool isOutput1DVector =
+      (llvm::count_if(resType.getShape(),
+                      [](int64_t dimSize) { return dimSize > 1; }) == 1); !isOutput1DVector)
     return VectorMemoryAccessKind::Gather;
 
   bool leadingIdxsLoopInvariant = true;
@@ -1376,10 +1376,10 @@ vectorizeOneOp(RewriterBase &rewriter, VectorizationState &state,
   }
   if (!reductionOperands.empty()) {
     assert(reductionOperands.size() == 1);
-    Operation *reduceOp =
+    
+    if (Operation *reduceOp =
         reduceIfNeeded(rewriter, linalgOp, op, reductionOperands[0].first,
-                       reductionOperands[0].second, bvm);
-    if (reduceOp)
+                       reductionOperands[0].second, bvm); reduceOp)
       return VectorizationHookResult{VectorizationHookStatus::NewOp, reduceOp};
   }
 
@@ -2052,8 +2052,8 @@ static LogicalResult reductionPreconditions(LinalgOp op) {
     if (indexingMap.isPermutation())
       continue;
 
-    Operation *reduceOp = matchLinalgReduction(&opOperand);
-    if (!reduceOp || !getCombinerOpKind(reduceOp)) {
+    
+    if (Operation *reduceOp = matchLinalgReduction(&opOperand); !reduceOp || !getCombinerOpKind(reduceOp)) {
       LDBG() << "reduction precondition failed: reduction detection failed";
       return failure();
     }
@@ -2163,10 +2163,10 @@ vectorizeInsertSliceOpPrecondition(tensor::InsertSliceOp sliceOp,
   //
   // When the value is not known and not needed, use 0. Otherwise, bail out.
   Value padValue = getStaticPadVal(sliceOp);
-  bool isOutOfBoundsRead =
-      !sourceType.hasStaticShape() && inputVectorSizes.empty();
+  
 
-  if (!padValue && isOutOfBoundsRead) {
+  if (bool isOutOfBoundsRead =
+      !sourceType.hasStaticShape() && inputVectorSizes.empty(); !padValue && isOutOfBoundsRead) {
     LDBG() << "Failed to get a pad value for out-of-bounds read access";
     return failure();
   }
@@ -2280,10 +2280,10 @@ static bool isCastOfBlockArgument(Operation *op) {
 // must be block arguments or extension of block arguments.
 static std::optional<ConvOperationKind>
 getConvOperationKind(Operation *reduceOp) {
-  int numBlockArguments =
-      llvm::count_if(reduceOp->getOperands(), llvm::IsaPred<BlockArgument>);
+  
 
-  switch (numBlockArguments) {
+  switch (int numBlockArguments =
+      llvm::count_if(reduceOp->getOperands(), llvm::IsaPred<BlockArgument>); numBlockArguments) {
   case 1: {
     // Will be convolution if feeder is a MulOp.
     // A strength reduced version of MulOp for i1 type is AndOp which is also
@@ -4209,17 +4209,17 @@ private:
 
   // Sets oper, poolExtOp and isPoolExt for valid conv/pooling ops.
   void setConvOperationKind(Operation *reduceOp) {
-    int numBlockArguments =
-        llvm::count_if(reduceOp->getOperands(), llvm::IsaPred<BlockArgument>);
-    if (numBlockArguments == 1) {
+    
+    if (int numBlockArguments =
+        llvm::count_if(reduceOp->getOperands(), llvm::IsaPred<BlockArgument>); numBlockArguments == 1) {
       // Will be convolution if feeder is a MulOp.
       // A strength reduced version of MulOp for i1 type is AndOp which is also
       // supported. Otherwise, it can be pooling. This strength reduction logic
       // is in `buildBinaryFn` helper in the Linalg dialect.
       auto feedValIt = llvm::find_if_not(reduceOp->getOperands(),
                                          llvm::IsaPred<BlockArgument>);
-      Operation *feedOp = (*feedValIt).getDefiningOp();
-      if (isCastOfBlockArgument(feedOp)) {
+      
+      if (Operation *feedOp = (*feedValIt).getDefiningOp(); isCastOfBlockArgument(feedOp)) {
         oper = ConvOperationKind::Pool;
         isPoolExt = true;
         poolExtOp = feedOp->getName().getIdentifier();

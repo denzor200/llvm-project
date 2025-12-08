@@ -43,9 +43,9 @@ Status CommandObjectDisassemble::CommandOptions::SetOptionValue(
     ExecutionContext *execution_context) {
   Status error;
 
-  const int short_option = m_getopt_table[option_idx].val;
+  
 
-  switch (short_option) {
+  switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
   case 'm':
     show_mixed = true;
     break;
@@ -187,10 +187,10 @@ void CommandObjectDisassemble::CommandOptions::OptionParsingStarting(
   enable_variable_annotations = false;
   plugin_name.clear();
 
-  Target *target =
-      execution_context ? execution_context->GetTargetPtr() : nullptr;
+  
 
-  if (target) {
+  if (Target *target =
+      execution_context ? execution_context->GetTargetPtr() : nullptr; target) {
     // This is a hack till we get the ability to specify features based on
     // architecture.  For now GetDisassemblyFlavor is really only valid for x86
     // (and for the llvm assembler plugin, but I'm papering over that since that
@@ -282,8 +282,8 @@ CommandObjectDisassemble::GetContainingAddressRanges() {
     }
   };
 
-  Target &target = GetTarget();
-  if (target.HasLoadedSections()) {
+  
+  if (Target &target = GetTarget(); target.HasLoadedSections()) {
     Address symbol_containing_address;
     if (target.ResolveLoadAddress(m_options.symbol_containing_addr,
                                   symbol_containing_address)) {

@@ -282,8 +282,8 @@ addr_t SBFrame::GetPC() const {
     return addr;
   }
 
-  Target *target = exe_ctx->GetTargetPtr();
-  if (StackFrame *frame = exe_ctx->GetFramePtr())
+  
+  if (Target *target = exe_ctx->GetTargetPtr(); StackFrame *frame = exe_ctx->GetFramePtr())
     return frame->GetFrameCodeAddress().GetOpcodeLoadAddress(
         target, AddressClass::eCode);
 
@@ -492,8 +492,8 @@ SBValue SBFrame::FindValue(const char *name, ValueType value_type,
     return value_sp;
   } else {
     Target *target = exe_ctx->GetTargetPtr();
-    Process *process = exe_ctx->GetProcessPtr();
-    if (target && process) { // FIXME: this check is redundant.
+    
+    if (Process *process = exe_ctx->GetProcessPtr(); target && process) { // FIXME: this check is redundant.
       if (StackFrame *frame = exe_ctx->GetFramePtr()) {
         VariableList variable_list;
 
@@ -508,9 +508,9 @@ SBValue SBFrame::FindValue(const char *name, ValueType value_type,
 
           const bool can_create = true;
           const bool get_parent_variables = true;
-          const bool stop_if_block_is_inlined_function = true;
+          
 
-          if (sc.block)
+          if (const bool stop_if_block_is_inlined_function = true; sc.block)
             sc.block->AppendVariables(
                 can_create, get_parent_variables,
                 stop_if_block_is_inlined_function,
@@ -519,9 +519,9 @@ SBValue SBFrame::FindValue(const char *name, ValueType value_type,
           if (value_type == eValueTypeVariableGlobal 
               || value_type == eValueTypeVariableStatic) {
             const bool get_file_globals = true;
-            VariableList *frame_vars = frame->GetVariableList(get_file_globals,
-                                                              nullptr);
-            if (frame_vars)
+            
+            if (VariableList *frame_vars = frame->GetVariableList(get_file_globals,
+                                                              nullptr); frame_vars)
               frame_vars->AppendVariablesIfUnique(variable_list);
           }
           ConstString const_name(name);
@@ -553,8 +553,8 @@ SBValue SBFrame::FindValue(const char *name, ValueType value_type,
           if (reg_ctx) {
             const uint32_t num_sets = reg_ctx->GetRegisterSetCount();
             for (uint32_t set_idx = 0; set_idx < num_sets; ++set_idx) {
-              const RegisterSet *reg_set = reg_ctx->GetRegisterSet(set_idx);
-              if (reg_set &&
+              
+              if (const RegisterSet *reg_set = reg_ctx->GetRegisterSet(set_idx); reg_set &&
                   (llvm::StringRef(reg_set->name).equals_insensitive(name) ||
                    llvm::StringRef(reg_set->short_name)
                        .equals_insensitive(name))) {
@@ -719,8 +719,8 @@ SBValueList SBFrame::GetVariables(const lldb::SBVariablesOptions &options) {
     const lldb::DynamicValueType use_dynamic = options.GetUseDynamic();
 
     std::set<VariableSP> variable_set;
-    Process *process = exe_ctx->GetProcessPtr();
-    if (process) { // FIXME: this check is redundant.
+    
+    if (Process *process = exe_ctx->GetProcessPtr(); process) { // FIXME: this check is redundant.
       if (StackFrame *frame = exe_ctx->GetFramePtr()) {
         Debugger &dbg = process->GetTarget().GetDebugger();
         VariableList *variable_list = nullptr;
@@ -816,8 +816,8 @@ SBValueList SBFrame::GetRegisters() {
     return SBValueList();
   } else {
     Target *target = exe_ctx->GetTargetPtr();
-    Process *process = exe_ctx->GetProcessPtr();
-    if (target && process) { // FIXME: this check is redundant.
+    
+    if (Process *process = exe_ctx->GetProcessPtr(); target && process) { // FIXME: this check is redundant.
       if (StackFrame *frame = exe_ctx->GetFramePtr()) {
         RegisterContextSP reg_ctx(frame->GetRegisterContext());
         if (reg_ctx) {
@@ -846,8 +846,8 @@ SBValue SBFrame::FindRegister(const char *name) {
     return SBValue();
   } else {
     Target *target = exe_ctx->GetTargetPtr();
-    Process *process = exe_ctx->GetProcessPtr();
-    if (target && process) { // FIXME: this check is redundant.
+    
+    if (Process *process = exe_ctx->GetProcessPtr(); target && process) { // FIXME: this check is redundant.
       if (StackFrame *frame = exe_ctx->GetFramePtr()) {
         RegisterContextSP reg_ctx(frame->GetRegisterContext());
         if (reg_ctx) {
@@ -1017,8 +1017,8 @@ lldb::SBValue SBFrame::EvaluateExpression(const char *expr,
     expr_result = CreateProcessIsRunningExprEvalError();
   } else {
     Target *target = exe_ctx->GetTargetPtr();
-    Process *process = exe_ctx->GetProcessPtr();
-    if (target && process) { // FIXME: this check is redundant.
+    
+    if (Process *process = exe_ctx->GetProcessPtr(); target && process) { // FIXME: this check is redundant.
       if (StackFrame *frame = exe_ctx->GetFramePtr()) {
         std::unique_ptr<llvm::PrettyStackTraceFormat> stack_trace;
         if (target->GetDisplayExpressionsInCrashlogs()) {

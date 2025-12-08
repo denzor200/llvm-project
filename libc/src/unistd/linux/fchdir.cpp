@@ -18,8 +18,8 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, fchdir, (int fd)) {
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_fchdir, fd);
-  if (ret < 0) {
+  
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_fchdir, fd); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

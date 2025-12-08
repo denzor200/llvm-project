@@ -34,8 +34,8 @@ static LogicalResult customMultiEntityVariadicConstraint(
 static LogicalResult customValueResultConstraint(PatternRewriter &rewriter,
                                                  PDLResultList &results,
                                                  ArrayRef<PDLValue> args) {
-  auto *op = args[0].cast<Operation *>();
-  if (op->getName().getStringRef() == "test.success_op") {
+  
+  if (auto *op = args[0].cast<Operation *>(); op->getName().getStringRef() == "test.success_op") {
     StringAttr customAttr = rewriter.getStringAttr("test.success");
     results.push_back(customAttr);
     return success();
@@ -47,8 +47,8 @@ static LogicalResult customValueResultConstraint(PatternRewriter &rewriter,
 static LogicalResult customTypeResultConstraint(PatternRewriter &rewriter,
                                                 PDLResultList &results,
                                                 ArrayRef<PDLValue> args) {
-  auto *op = args[0].cast<Operation *>();
-  if (op->getName().getStringRef() == "test.success_op") {
+  
+  if (auto *op = args[0].cast<Operation *>(); op->getName().getStringRef() == "test.success_op") {
     results.push_back(rewriter.getF32Type());
     return success();
   }
@@ -68,9 +68,9 @@ static LogicalResult customTypeRangeResultConstraint(PatternRewriter &rewriter,
                                                      PDLResultList &results,
                                                      ArrayRef<PDLValue> args) {
   auto *op = args[0].cast<Operation *>();
-  int numTypes = cast<IntegerAttr>(args[1].cast<Attribute>()).getInt();
+  
 
-  if (op->getName().getStringRef() == "test.success_op") {
+  if (int numTypes = cast<IntegerAttr>(args[1].cast<Attribute>()).getInt(); op->getName().getStringRef() == "test.success_op") {
     SmallVector<Type> types;
     for (int i = 0; i < numTypes; i++) {
       types.push_back(rewriter.getF32Type());

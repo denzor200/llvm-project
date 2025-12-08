@@ -167,8 +167,8 @@ static void PrintLocation(const ReportLocation *loc) {
   bool print_stack = false;
   Printf("%s", d.Location());
   if (loc->type == ReportLocationGlobal) {
-    const DataInfo &global = loc->global;
-    if (global.size != 0)
+    
+    if (const DataInfo &global = loc->global; global.size != 0)
       Printf("  Location is global '%s' of size %zu at %p (%s+0x%zx)\n\n",
              global.name, global.size, reinterpret_cast<void *>(global.start),
              StripModuleName(global.module), global.module_offset);
@@ -178,8 +178,8 @@ static void PrintLocation(const ReportLocation *loc) {
              StripModuleName(global.module), global.module_offset);
   } else if (loc->type == ReportLocationHeap) {
     char thrbuf[kThreadBufSize];
-    const char *object_type = GetObjectTypeFromTag(loc->external_tag);
-    if (!object_type) {
+    
+    if (const char *object_type = GetObjectTypeFromTag(loc->external_tag); !object_type) {
       Printf("  Location is heap block of size %zu at %p allocated by %s:\n",
              loc->heap_chunk_size,
              reinterpret_cast<void *>(loc->heap_chunk_start),

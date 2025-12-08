@@ -127,9 +127,9 @@ static void InsertSPImmInst(MachineBasicBlock::iterator II,
   MachineInstr &MI = *II;
   MachineBasicBlock &MBB = *MI.getParent();
   DebugLoc dl = MI.getDebugLoc();
-  bool isU6 = isImmU6(Offset);
+  
 
-  switch (MI.getOpcode()) {
+  switch (bool isU6 = isImmU6(Offset); MI.getOpcode()) {
   int NewOpcode;
   case XCore::LDWFI:
     NewOpcode = (isU6) ? XCore::LDWSP_ru6 : XCore::LDWSP_lru6;
@@ -218,8 +218,8 @@ XCoreRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
     XCore::R8, XCore::R9,
     0
   };
-  const XCoreFrameLowering *TFI = getFrameLowering(*MF);
-  if (TFI->hasFP(*MF))
+  
+  if (const XCoreFrameLowering *TFI = getFrameLowering(*MF); TFI->hasFP(*MF))
     return CalleeSavedRegsFP;
   return CalleeSavedRegs;
 }

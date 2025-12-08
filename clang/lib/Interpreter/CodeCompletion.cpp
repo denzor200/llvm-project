@@ -179,8 +179,8 @@ void ReplCompletionConsumer::ProcessCodeCompleteResults(
   };
 
   for (unsigned I = 0; I < NumResults; I++) {
-    auto &Result = InResults[I];
-    switch (Result.Kind) {
+    
+    switch (auto &Result = InResults[I]; Result.Kind) {
     case CodeCompletionResult::RK_Declaration:
       if (Result.Hidden) {
         break;

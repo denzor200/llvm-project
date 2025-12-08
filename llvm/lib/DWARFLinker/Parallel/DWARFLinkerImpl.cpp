@@ -411,8 +411,8 @@ Error DWARFLinkerImpl::LinkContext::loadClangModule(
       // FIXME: Until PR27449 (https://llvm.org/bugs/show_bug.cgi?id=27449) is
       // fixed in clang, only warn about DWO_id mismatches in verbose mode.
       // ASTFileSignatures will change randomly when a module is rebuilt.
-      uint64_t PCMDwoId = getDwoId(ChildCUDie);
-      if (PCMDwoId != DwoId) {
+      
+      if (uint64_t PCMDwoId = getDwoId(ChildCUDie); PCMDwoId != DwoId) {
         if (GlobalData.getOptions().Verbose)
           GlobalData.warn(
               Twine("hash mismatch: this object file was built against a "
@@ -1213,8 +1213,8 @@ void DWARFLinkerImpl::emitAppleAcceleratorSections(const Triple &TargetTriple) {
 
   forEachCompileAndTypeUnit([&](DwarfUnit *CU) {
     CU->forEachAcceleratorRecord([&](const DwarfUnit::AccelInfo &Info) {
-      uint64_t OutOffset = Info.OutOffset;
-      switch (Info.Type) {
+      
+      switch (uint64_t OutOffset = Info.OutOffset; Info.Type) {
       case DwarfUnit::AccelType::None: {
         llvm_unreachable("Unknown accelerator record");
       } break;

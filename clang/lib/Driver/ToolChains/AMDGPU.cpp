@@ -409,8 +409,8 @@ void RocmInstallationDetector::detectDeviceLibrary() {
 
   // Check device library exists at the given path.
   auto CheckDeviceLib = [&](StringRef Path, bool StrictChecking) {
-    bool CheckLibDevice = (!NoBuiltinLibs || StrictChecking);
-    if (CheckLibDevice && !FS.exists(Path))
+    
+    if (bool CheckLibDevice = (!NoBuiltinLibs || StrictChecking); CheckLibDevice && !FS.exists(Path))
       return false;
 
     scanLibDevicePath(Path);
@@ -1091,10 +1091,10 @@ bool AMDGPUToolChain::shouldSkipSanitizeOption(
   auto ProcKind = TC.getTriple().isAMDGCN()
                       ? llvm::AMDGPU::parseArchAMDGCN(Processor)
                       : llvm::AMDGPU::parseArchR600(Processor);
-  auto Features = TC.getTriple().isAMDGCN()
+  
+  if (auto Features = TC.getTriple().isAMDGCN()
                       ? llvm::AMDGPU::getArchAttrAMDGCN(ProcKind)
-                      : llvm::AMDGPU::getArchAttrR600(ProcKind);
-  if (Features & llvm::AMDGPU::FEATURE_XNACK_ALWAYS)
+                      : llvm::AMDGPU::getArchAttrR600(ProcKind); Features & llvm::AMDGPU::FEATURE_XNACK_ALWAYS)
     return false;
 
   // Look for the xnack feature in TargetID

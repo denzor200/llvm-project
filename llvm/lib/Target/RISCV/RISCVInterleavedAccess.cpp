@@ -144,8 +144,8 @@ static bool getMemOperands(unsigned Factor, VectorType *VTy, Type *XLenTy,
     return true;
   }
 
-  auto *II = cast<IntrinsicInst>(I);
-  switch (II->getIntrinsicID()) {
+  
+  switch (auto *II = cast<IntrinsicInst>(I); II->getIntrinsicID()) {
   default:
     llvm_unreachable("Unsupported intrinsic type");
   case Intrinsic::vp_load:

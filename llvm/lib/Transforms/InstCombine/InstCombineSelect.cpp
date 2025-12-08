@@ -363,8 +363,8 @@ Instruction *InstCombinerImpl::foldSelectOpOp(SelectInst &SI, Instruction *TI,
     // but specialized for intrinsic matching and without the restrictive uses
     // clause.
     auto *TII = dyn_cast<IntrinsicInst>(TI);
-    auto *FII = dyn_cast<IntrinsicInst>(FI);
-    if (TII && FII && TII->getIntrinsicID() == FII->getIntrinsicID()) {
+    
+    if (auto *FII = dyn_cast<IntrinsicInst>(FI); TII && FII && TII->getIntrinsicID() == FII->getIntrinsicID()) {
       if (match(TII, m_MaxOrMin(m_Value(), m_Value()))) {
         if (Value *MatchOp = getCommonOp(TI, FI, true)) {
           Value *NewSel =
@@ -382,8 +382,8 @@ Instruction *InstCombinerImpl::foldSelectOpOp(SelectInst &SI, Instruction *TI,
         Value *LdexpVal0 = TII->getArgOperand(0);
         Value *LdexpExp0 = TII->getArgOperand(1);
         Value *LdexpVal1 = FII->getArgOperand(0);
-        Value *LdexpExp1 = FII->getArgOperand(1);
-        if (LdexpExp0->getType() == LdexpExp1->getType()) {
+        
+        if (Value *LdexpExp1 = FII->getArgOperand(1); LdexpExp0->getType() == LdexpExp1->getType()) {
           FPMathOperator *SelectFPOp = cast<FPMathOperator>(&SI);
           FastMathFlags FMF = cast<FPMathOperator>(TII)->getFastMathFlags();
           FMF &= cast<FPMathOperator>(FII)->getFastMathFlags();
@@ -1930,8 +1930,8 @@ static Value *foldSelectInstWithICmpConst(SelectInst &SI, ICmpInst *ICI,
 
   // Match clamp away from min/max value as a max/min operation.
   Value *TVal = SI.getTrueValue();
-  Value *FVal = SI.getFalseValue();
-  if (Pred == ICmpInst::ICMP_EQ && V == FVal) {
+  
+  if (Value *FVal = SI.getFalseValue(); Pred == ICmpInst::ICMP_EQ && V == FVal) {
     // (V == UMIN) ? UMIN+1 : V --> umax(V, UMIN+1)
     if (CmpC->isMinValue() && match(TVal, m_SpecificInt(*CmpC + 1)))
       return Builder.CreateBinaryIntrinsic(Intrinsic::umax, V, TVal);
@@ -2164,8 +2164,8 @@ static Instruction *foldICmpUSubSatWithAndForMostSignificantBitCmp(
     return nullptr;
 
   Value *TrueVal = SI.getTrueValue();
-  Value *FalseVal = SI.getFalseValue();
-  if (!(Pred == ICmpInst::ICMP_EQ &&
+  
+  if (Value *FalseVal = SI.getFalseValue(); !(Pred == ICmpInst::ICMP_EQ &&
         (match(TrueVal, m_Zero()) && match(FalseVal, m_SignMask()))) ||
       (Pred == ICmpInst::ICMP_NE &&
        (match(TrueVal, m_SignMask()) && match(FalseVal, m_Zero()))))
@@ -3681,10 +3681,10 @@ Instruction *InstCombinerImpl::foldSelectOfBools(SelectInst &SI) {
         match(CondVal, m_c_LogicalAnd(m_Specific(C), m_Value(A)))) {
       auto *SelCond = dyn_cast<SelectInst>(CondVal);
       auto *SelFVal = dyn_cast<SelectInst>(FalseVal);
-      bool MayNeedFreeze = SelCond && SelFVal &&
+      
+      if (bool MayNeedFreeze = SelCond && SelFVal &&
                            match(SelFVal->getTrueValue(),
-                                 m_Not(m_Specific(SelCond->getTrueValue())));
-      if (MayNeedFreeze)
+                                 m_Not(m_Specific(SelCond->getTrueValue()))); MayNeedFreeze)
         C = Builder.CreateFreeze(C);
       if (!ProfcheckDisableMetadataFixes) {
         Value *C2 = nullptr, *A2 = nullptr, *B2 = nullptr;
@@ -3712,10 +3712,10 @@ Instruction *InstCombinerImpl::foldSelectOfBools(SelectInst &SI) {
         match(FalseVal, m_c_LogicalAnd(m_Specific(C), m_Value(B)))) {
       auto *SelCond = dyn_cast<SelectInst>(CondVal);
       auto *SelFVal = dyn_cast<SelectInst>(FalseVal);
-      bool MayNeedFreeze = SelCond && SelFVal &&
+      
+      if (bool MayNeedFreeze = SelCond && SelFVal &&
                            match(SelCond->getTrueValue(),
-                                 m_Not(m_Specific(SelFVal->getTrueValue())));
-      if (MayNeedFreeze)
+                                 m_Not(m_Specific(SelFVal->getTrueValue()))); MayNeedFreeze)
         C = Builder.CreateFreeze(C);
       if (!ProfcheckDisableMetadataFixes) {
         Value *C2 = nullptr, *A2 = nullptr, *B2 = nullptr;
@@ -4002,8 +4002,8 @@ Instruction *InstCombinerImpl::foldSelectToCmp(SelectInst &SI) {
         if (ICmpInst::isGT(InnerPred) && InnerTV->isOne() &&
             InnerFV->isAllOnes()) {
           IsSigned = ICmpInst::isSigned(InnerPred);
-          bool CanSubOne = IsSigned ? !C->isMinSignedValue() : !C->isMinValue();
-          if (CanSubOne) {
+          
+          if (bool CanSubOne = IsSigned ? !C->isMinSignedValue() : !C->isMinValue(); CanSubOne) {
             APInt Cminus1 = *C - 1;
             if (match(InnerRHS, m_SpecificInt(Cminus1)))
               Replace = true;
@@ -4014,8 +4014,8 @@ Instruction *InstCombinerImpl::foldSelectToCmp(SelectInst &SI) {
         if (ICmpInst::isLT(InnerPred) && InnerTV->isAllOnes() &&
             InnerFV->isOne()) {
           IsSigned = ICmpInst::isSigned(InnerPred);
-          bool CanAddOne = IsSigned ? !C->isMaxSignedValue() : !C->isMaxValue();
-          if (CanAddOne) {
+          
+          if (bool CanAddOne = IsSigned ? !C->isMaxSignedValue() : !C->isMaxValue(); CanAddOne) {
             APInt Cplus1 = *C + 1;
             if (match(InnerRHS, m_SpecificInt(Cplus1)))
               Replace = true;
@@ -4025,8 +4025,8 @@ Instruction *InstCombinerImpl::foldSelectToCmp(SelectInst &SI) {
     }
   }
 
-  Intrinsic::ID IID = IsSigned ? Intrinsic::scmp : Intrinsic::ucmp;
-  if (Replace)
+  
+  if (Intrinsic::ID IID = IsSigned ? Intrinsic::scmp : Intrinsic::ucmp; Replace)
     return replaceInstUsesWith(
         SI, Builder.CreateIntrinsic(SI.getType(), IID, {LHS, RHS}));
   return nullptr;
@@ -4090,8 +4090,8 @@ static Value *foldSelectIntoAddConstant(SelectInst &SI,
                                         InstCombiner::BuilderTy &Builder) {
   // Do this transformation only when select instruction gives NaN and NSZ
   // guarantee.
-  auto *SIFOp = dyn_cast<FPMathOperator>(&SI);
-  if (!SIFOp || !SIFOp->hasNoSignedZeros() || !SIFOp->hasNoNaNs())
+  
+  if (auto *SIFOp = dyn_cast<FPMathOperator>(&SI); !SIFOp || !SIFOp->hasNoSignedZeros() || !SIFOp->hasNoNaNs())
     return nullptr;
 
   auto TryFoldIntoAddConstant =
@@ -4151,8 +4151,8 @@ static Value *foldSelectBitTest(SelectInst &Sel, Value *CondVal, Value *TrueVal,
                                 InstCombiner::BuilderTy &Builder,
                                 const SimplifyQuery &SQ) {
   // If this is a vector select, we need a vector compare.
-  Type *SelType = Sel.getType();
-  if (SelType->isVectorTy() != CondVal->getType()->isVectorTy())
+  
+  if (Type *SelType = Sel.getType(); SelType->isVectorTy() != CondVal->getType()->isVectorTy())
     return nullptr;
 
   Value *V;
@@ -4349,11 +4349,11 @@ Instruction *InstCombinerImpl::visitSelectInst(SelectInst &SI) {
   if (SIFPOp) {
     // TODO: Try to forward-propagate FMF from select arms to the select.
 
-    auto *FCmp = dyn_cast<FCmpInst>(CondVal);
+    
 
     // Canonicalize select of FP values where NaN and -0.0 are not valid as
     // minnum/maxnum intrinsics.
-    if (SIFPOp->hasNoNaNs() &&
+    if (auto *FCmp = dyn_cast<FCmpInst>(CondVal); SIFPOp->hasNoNaNs() &&
         (SIFPOp->hasNoSignedZeros() ||
          (SIFPOp->hasOneUse() &&
           canIgnoreSignBitOfZero(*SIFPOp->use_begin())))) {
@@ -4474,8 +4474,8 @@ Instruction *InstCombinerImpl::visitSelectInst(SelectInst &SI) {
 
       bool IsCastNeeded = LHS->getType() != SelType;
       Value *CmpLHS = cast<CmpInst>(CondVal)->getOperand(0);
-      Value *CmpRHS = cast<CmpInst>(CondVal)->getOperand(1);
-      if (IsCastNeeded ||
+      
+      if (Value *CmpRHS = cast<CmpInst>(CondVal)->getOperand(1); IsCastNeeded ||
           (LHS->getType()->isFPOrFPVectorTy() &&
            ((CmpLHS != LHS && CmpLHS != RHS) ||
             (CmpRHS != LHS && CmpRHS != RHS)))) {

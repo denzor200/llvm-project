@@ -35,8 +35,8 @@ LogicalResult verifyMatrixInput(Op op) {
     return op->emitOpError(
         "4th operand (base pitch) should be >= 2nd operand (base width)");
 
-  uint32_t elemSize = op.getElemSizeInBits();
-  if (elemSize < 8 || !llvm::isPowerOf2_32(elemSize) || elemSize > 32)
+  
+  if (uint32_t elemSize = op.getElemSizeInBits(); elemSize < 8 || !llvm::isPowerOf2_32(elemSize) || elemSize > 32)
     return op->emitOpError("expecting 'elem_size_in_bits' to be 8, 16, or 32");
 
   uint32_t tileHeight = op.getTileHeight();
@@ -68,13 +68,13 @@ LogicalResult verify2DBlockLoadRestriction(BlockLoad2dOp op) {
     return op.emitOpError("transpose and pack_register are mutually exclusive");
 
   if (!op.getTranspose() && !op.getPackRegister()) {
-    uint32_t tileHeight = op.getTileHeight();
-    if (tileHeight < 1 || tileHeight > 32)
+    
+    if (uint32_t tileHeight = op.getTileHeight(); tileHeight < 1 || tileHeight > 32)
       return op.emitOpError("expecting tile_height to be between 1 and 32");
 
     uint32_t tileWidth = op.getTileWidth();
-    uint32_t vBlocks = op.getVBlocks();
-    switch (op.getElemSizeInBits()) {
+    
+    switch (uint32_t vBlocks = op.getVBlocks(); op.getElemSizeInBits()) {
     case 8:
       if (tileWidth < 4 || tileWidth > 64)
         return op.emitOpError("expecting tile_width to be between 4 and 64");
@@ -122,13 +122,13 @@ LogicalResult verify2DBlockLoadRestriction(BlockLoad2dOp op) {
   if (op.getTranspose()) {
     assert(!op.getPackRegister() && "Expecting pack_register should be false");
 
-    uint32_t vBlocks = op.getVBlocks();
-    if (vBlocks != 1)
+    
+    if (uint32_t vBlocks = op.getVBlocks(); vBlocks != 1)
       return op.emitOpError("expecting v_blocks to be 1");
 
     uint32_t tileHeight = op.getTileHeight();
-    uint32_t tileWidth = op.getTileWidth();
-    switch (op.getElemSizeInBits()) {
+    
+    switch (uint32_t tileWidth = op.getTileWidth(); op.getElemSizeInBits()) {
     case 32:
       if (tileHeight < 1 || tileHeight > 32)
         return op.emitOpError("expecting tile_height to be between 1 and 32");
@@ -159,8 +159,8 @@ LogicalResult verify2DBlockLoadRestriction(BlockLoad2dOp op) {
     return op.emitOpError("expecting v_blocks to be 1, 2, or 4");
 
   uint32_t tileHeight = op.getTileHeight();
-  uint32_t tileWidth = op.getTileWidth();
-  switch (op.getElemSizeInBits()) {
+  
+  switch (uint32_t tileWidth = op.getTileWidth(); op.getElemSizeInBits()) {
   case 8:
     if (tileHeight < 4 || tileHeight > 32)
       return op.emitOpError("expecting tile_height to be between 4 and 32");
@@ -186,12 +186,12 @@ LogicalResult verify2DBlockLoadRestriction(BlockLoad2dOp op) {
 }
 
 static LogicalResult verify2DBlockStoreRestriction(BlockStore2dOp op) {
-  uint32_t tileHeight = op.getTileHeight();
-  if (tileHeight < 1 || tileHeight > 8)
+  
+  if (uint32_t tileHeight = op.getTileHeight(); tileHeight < 1 || tileHeight > 8)
     return op.emitOpError("expecting tile_height to be between 1 and 8");
 
-  uint32_t tileWidth = op.getTileWidth();
-  switch (op.getElemSizeInBits()) {
+  
+  switch (uint32_t tileWidth = op.getTileWidth(); op.getElemSizeInBits()) {
   case 8:
     if (tileWidth < 4 || tileWidth > 64)
       return op.emitOpError("expecting tile_width to be between 4 and 64");
@@ -230,8 +230,8 @@ LogicalResult BlockLoad2dOp::verify() {
   VectorType resTy = getRes().getType();
   if (!resTy.getElementType().isIntOrFloat())
     return emitOpError() << "expecting result element type to be int of float";
-  unsigned resElemTySize = resTy.getElementType().getIntOrFloatBitWidth();
-  if (getElemSizeInBits() == 32 || getPackRegister()) {
+  
+  if (unsigned resElemTySize = resTy.getElementType().getIntOrFloatBitWidth(); getElemSizeInBits() == 32 || getPackRegister()) {
     if (resElemTySize != 32)
       return emitOpError() << "expecting result element type to be 32 bits";
   }
@@ -255,8 +255,8 @@ LogicalResult BlockStore2dOp::verify() {
   if (verifyMatrixInput(*this).failed())
     return failure();
 
-  uint32_t tileWidth = getTileWidth();
-  switch (getElemSizeInBits()) {
+  
+  switch (uint32_t tileWidth = getTileWidth(); getElemSizeInBits()) {
   case 8:
     if (tileWidth != 16 && tileWidth != 32)
       return emitOpError("tile_width for 8 bit elements should be equal to "
@@ -283,8 +283,8 @@ LogicalResult BlockPrefetch2dOp::verify() {
   if (verifyMatrixInput(*this).failed())
     return failure();
 
-  uint32_t tileWidth = getTileWidth();
-  switch (getElemSizeInBits()) {
+  
+  switch (uint32_t tileWidth = getTileWidth(); getElemSizeInBits()) {
   case 8:
     if (tileWidth != 16 && tileWidth != 32)
       return emitOpError("tile_width for 8 bit elements should be equal to "
@@ -319,8 +319,8 @@ LogicalResult verify1DBlockArg(OpType op) {
   // scalar case is always valid
   if (!vTy)
     return success();
-  int elemTySize = vTy.getElementType().getIntOrFloatBitWidth() / 8;
-  if (elemTySize == 1) {
+  
+  if (int elemTySize = vTy.getElementType().getIntOrFloatBitWidth() / 8; elemTySize == 1) {
     llvm::SmallSet<int, 4> validSizes{2, 4, 8, 16};
     if (validSizes.contains(vTy.getNumElements()))
       return success();

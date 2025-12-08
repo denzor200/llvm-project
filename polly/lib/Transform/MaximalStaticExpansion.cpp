@@ -87,10 +87,10 @@ class MaximalStaticExpansionImpl {
       auto TmpMapDomainId =
           Map.get_space().domain().unwrap().range().get_tuple_id(isl::dim::set);
 
-      ScopArrayInfo *UserSAI =
-          static_cast<ScopArrayInfo *>(TmpMapDomainId.get_user());
+      
 
-      if (SAI != UserSAI)
+      if (ScopArrayInfo *UserSAI =
+          static_cast<ScopArrayInfo *>(TmpMapDomainId.get_user()); SAI != UserSAI)
         continue;
 
       // Get the correct S1[] -> S2[] dependence.

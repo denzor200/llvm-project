@@ -246,9 +246,9 @@ struct SimplifyAllocConst : public OpRewritePattern<AllocLikeOp> {
 
     unsigned dynamicDimPos = 0;
     for (unsigned dim = 0, e = memrefType.getRank(); dim < e; ++dim) {
-      int64_t dimSize = memrefType.getDimSize(dim);
+      
       // If this is already static dimension, keep it.
-      if (ShapedType::isStatic(dimSize)) {
+      if (int64_t dimSize = memrefType.getDimSize(dim); ShapedType::isStatic(dimSize)) {
         newShapeConstants.push_back(dimSize);
         continue;
       }
@@ -469,7 +469,11 @@ struct AllocaScopeInliner : public OpRewritePattern<AllocaScopeOp> {
 
   LogicalResult matchAndRewrite(AllocaScopeOp op,
                                 PatternRewriter &rewriter) const override {
-    bool hasPotentialAlloca =
+    
+
+    // If this contains no potential allocation, it is always legal to
+    // inline. Otherwise, consider two conditions:
+    if (bool hasPotentialAlloca =
         op->walk<WalkOrder::PreOrder>([&](Operation *alloc) {
             if (alloc == op)
               return WalkResult::advance();
@@ -478,11 +482,7 @@ struct AllocaScopeInliner : public OpRewritePattern<AllocaScopeOp> {
             if (alloc->hasTrait<OpTrait::AutomaticAllocationScope>())
               return WalkResult::skip();
             return WalkResult::advance();
-          }).wasInterrupted();
-
-    // If this contains no potential allocation, it is always legal to
-    // inline. Otherwise, consider two conditions:
-    if (hasPotentialAlloca) {
+          }).wasInterrupted(); hasPotentialAlloca) {
       // If the parent isn't an allocation scope, or we are not the last
       // non-terminator op in the parent, we will extend the lifetime.
       if (!op->getParentOp()->hasTrait<OpTrait::AutomaticAllocationScope>())
@@ -700,8 +700,8 @@ bool CastOp::canFoldIntoConsumerOp(CastOp castOp) {
 
   // If cast is towards more static sizes along any dimension, don't fold.
   for (auto it : llvm::zip(sourceType.getShape(), resultType.getShape())) {
-    auto ss = std::get<0>(it), st = std::get<1>(it);
-    if (ss != st)
+    
+    if (auto ss = std::get<0>(it), st = std::get<1>(it); ss != st)
       if (ShapedType::isDynamic(ss) && ShapedType::isStatic(st))
         return false;
   }
@@ -714,8 +714,8 @@ bool CastOp::canFoldIntoConsumerOp(CastOp castOp) {
 
   // If cast is towards more static strides along any dimension, don't fold.
   for (auto it : llvm::zip(sourceStrides, resultStrides)) {
-    auto ss = std::get<0>(it), st = std::get<1>(it);
-    if (ss != st)
+    
+    if (auto ss = std::get<0>(it), st = std::get<1>(it); ss != st)
       if (ShapedType::isDynamic(ss) && ShapedType::isStatic(st))
         return false;
   }
@@ -765,8 +765,8 @@ bool CastOp::areCastCompatible(TypeRange inputs, TypeRange outputs) {
       return false;
 
     for (unsigned i = 0, e = aT.getRank(); i != e; ++i) {
-      int64_t aDim = aT.getDimSize(i), bDim = bT.getDimSize(i);
-      if (ShapedType::isStatic(aDim) && ShapedType::isStatic(bDim) &&
+      
+      if (int64_t aDim = aT.getDimSize(i), bDim = bT.getDimSize(i); ShapedType::isStatic(aDim) && ShapedType::isStatic(bDim) &&
           aDim != bDim)
         return false;
     }
@@ -1027,8 +1027,8 @@ OpFoldResult DimOp::fold(FoldAdaptor adaptor) {
 
   // Out of bound indices produce undefined behavior but are still valid IR.
   // Don't choke on them.
-  int64_t indexVal = index.getInt();
-  if (indexVal < 0 || indexVal >= memrefType.getRank())
+  
+  if (int64_t indexVal = index.getInt(); indexVal < 0 || indexVal >= memrefType.getRank())
     return {};
 
   // Fold if the shape extent along the given index is known.
@@ -1528,8 +1528,8 @@ ParseResult GenericAtomicRMWOp::parse(OpAsmParser &parser,
       parser.resolveOperands(ivs, indexType, result.operands))
     return failure();
 
-  Region *body = result.addRegion();
-  if (parser.parseRegion(*body, {}) ||
+  
+  if (Region *body = result.addRegion(); parser.parseRegion(*body, {}) ||
       parser.parseOptionalAttrDict(result.attributes))
     return failure();
   result.types.push_back(llvm::cast<MemRefType>(memrefType).getElementType());
@@ -1958,8 +1958,8 @@ LogicalResult ReinterpretCastOp::verify() {
            << resultType;
 
   // Match offset in result memref type and in static_offsets attribute.
-  int64_t expectedOffset = getStaticOffsets().front();
-  if (ShapedType::isStatic(resultOffset) && resultOffset != expectedOffset)
+  
+  if (int64_t expectedOffset = getStaticOffsets().front(); ShapedType::isStatic(resultOffset) && resultOffset != expectedOffset)
     return emitError("expected result type with offset = ")
            << (ShapedType::isDynamic(expectedOffset)
                    ? std::string("dynamic")
@@ -3457,8 +3457,8 @@ OpFoldResult SubViewOp::fold(FoldAdaptor adaptor) {
     bool allOffsetsZero = llvm::all_of(offsets, isZeroInteger);
     auto strides = getMixedStrides();
     bool allStridesOne = llvm::all_of(strides, isOneInteger);
-    bool allSizesSame = llvm::equal(sizes, srcSizes);
-    if (allOffsetsZero && allStridesOne && allSizesSame &&
+    
+    if (bool allSizesSame = llvm::equal(sizes, srcSizes); allOffsetsZero && allStridesOne && allSizesSame &&
         resultMemrefType == sourceMemrefType)
       return getViewSource();
   }
@@ -3662,8 +3662,8 @@ LogicalResult ViewOp::verify() {
            << baseType << " and view memref type " << viewType;
 
   // Verify that we have the correct number of sizes for the result type.
-  unsigned numDynamicDims = viewType.getNumDynamicDims();
-  if (getSizes().size() != numDynamicDims)
+  
+  if (unsigned numDynamicDims = viewType.getNumDynamicDims(); getSizes().size() != numDynamicDims)
     return emitError("incorrect number of size operands for type ") << viewType;
 
   return success();

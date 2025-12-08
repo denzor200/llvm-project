@@ -133,9 +133,9 @@ void AliasSet::addUnknownInst(Instruction *I, BatchAAResults &AA) {
   // Guards are marked as modifying memory for control flow modelling purposes,
   // but don't actually modify any specific memory location.
   using namespace PatternMatch;
-  bool MayWriteMemory = I->mayWriteToMemory() && !isGuard(I) &&
-    !(I->use_empty() && match(I, m_Intrinsic<Intrinsic::invariant_start>()));
-  if (!MayWriteMemory) {
+  
+  if (bool MayWriteMemory = I->mayWriteToMemory() && !isGuard(I) &&
+    !(I->use_empty() && match(I, m_Intrinsic<Intrinsic::invariant_start>())); !MayWriteMemory) {
     Alias = SetMayAlias;
     Access |= RefAccess;
     return;
@@ -181,8 +181,8 @@ ModRefInfo AliasSet::aliasesUnknownInst(const Instruction *Inst,
 
   for (Instruction *UnknownInst : UnknownInsts) {
     const auto *C1 = dyn_cast<CallBase>(UnknownInst);
-    const auto *C2 = dyn_cast<CallBase>(Inst);
-    if (!C1 || !C2 || isModOrRefSet(AA.getModRefInfo(C1, C2)) ||
+    
+    if (const auto *C2 = dyn_cast<CallBase>(Inst); !C1 || !C2 || isModOrRefSet(AA.getModRefInfo(C1, C2)) ||
         isModOrRefSet(AA.getModRefInfo(C2, C1))) {
       // TODO: Could be more precise, but not really useful right now.
       return ModRefInfo::ModRef;
@@ -409,8 +409,8 @@ void AliasSetTracker::add(Instruction *I) {
 
       for (auto IdxArgPair : enumerate(Call->args())) {
         int ArgIdx = IdxArgPair.index();
-        const Value *Arg = IdxArgPair.value();
-        if (!Arg->getType()->isPointerTy())
+        
+        if (const Value *Arg = IdxArgPair.value(); !Arg->getType()->isPointerTy())
           continue;
         MemoryLocation ArgLoc =
             MemoryLocation::getForArgument(Call, ArgIdx, nullptr);
@@ -473,8 +473,8 @@ AliasSet &AliasSetTracker::mergeAllAliasSets() {
 
   for (auto *Cur : ASVector) {
     // If Cur was already forwarding, just forward to the new AS instead.
-    AliasSet *FwdTo = Cur->Forward;
-    if (FwdTo) {
+    
+    if (AliasSet *FwdTo = Cur->Forward; FwdTo) {
       Cur->Forward = AliasAnyAS;
       AliasAnyAS->addRef();
       FwdTo->dropRef(*this);

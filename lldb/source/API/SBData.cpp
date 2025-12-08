@@ -316,9 +316,9 @@ bool SBData::GetDescription(lldb::SBStream &description,
                             lldb::addr_t base_addr) {
   LLDB_INSTRUMENT_VA(this, description, base_addr);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_sp) {
+  if (Stream &strm = description.ref(); m_opaque_sp) {
     DumpDataExtractor(*m_opaque_sp, &strm, 0, lldb::eFormatBytesWithASCII, 1,
                       m_opaque_sp->GetByteSize(), 16, base_addr, 0, 0);
   } else

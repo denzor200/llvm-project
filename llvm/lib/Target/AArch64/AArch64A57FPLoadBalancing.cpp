@@ -680,9 +680,9 @@ maybeKillChain(MachineOperand &MO, unsigned Idx,
                std::map<unsigned, Chain*> &ActiveChains) {
   // Given an operand and the set of active chains (keyed by register),
   // determine if a chain should be ended and remove from ActiveChains.
-  MachineInstr *MI = MO.getParent();
+  
 
-  if (MO.isReg()) {
+  if (MachineInstr *MI = MO.getParent(); MO.isReg()) {
 
     // If this is a KILL of a current chain, record it.
     if (MO.isKill() && ActiveChains.find(MO.getReg()) != ActiveChains.end()) {

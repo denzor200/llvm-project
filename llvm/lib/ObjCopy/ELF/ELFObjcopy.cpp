@@ -913,9 +913,9 @@ static Error handleArgs(const CommonConfig &Config, const ELFConfig &ELFConfig,
 
   for (const NewSectionInfo &AddedSection : Config.AddSection) {
     auto AddSection = [&](StringRef Name, ArrayRef<uint8_t> Data) -> Error {
-      OwnedDataSection &NewSection =
-          Obj.addSection<OwnedDataSection>(Name, Data);
-      if (Name.starts_with(".note") && Name != ".note.GNU-stack") {
+      
+      if (OwnedDataSection &NewSection =
+          Obj.addSection<OwnedDataSection>(Name, Data); Name.starts_with(".note") && Name != ".note.GNU-stack") {
         NewSection.Type = SHT_NOTE;
         if (ELFConfig.VerifyNoteSections)
           return verifyNoteSection(Name, E, Data);
@@ -952,8 +952,8 @@ static Error handleArgs(const CommonConfig &Config, const ELFConfig &ELFConfig,
     for (auto &Sec : Obj.sections()) {
       const auto Iter = Config.SetSectionFlags.find(Sec.Name);
       if (Iter != Config.SetSectionFlags.end()) {
-        const SectionFlagsUpdate &SFU = Iter->second;
-        if (Error E = setSectionFlagsAndType(Sec, SFU.NewFlags, Obj.Machine))
+        
+        if (const SectionFlagsUpdate &SFU = Iter->second; Error E = setSectionFlagsAndType(Sec, SFU.NewFlags, Obj.Machine))
           return createFileError(Config.InputFilename, std::move(E));
       }
       auto It2 = Config.SetSectionType.find(Sec.Name);
@@ -1011,8 +1011,8 @@ static Error handleArgs(const CommonConfig &Config, const ELFConfig &ELFConfig,
         // Dynamic relocation sections (SHT_REL[A] with SHF_ALLOC) are handled
         // above, e.g., .rela.plt is renamed to .prefix.rela.plt, not
         // .rela.prefix.plt since GNU objcopy does so.
-        const SectionBase *TargetSec = RelocSec->getSection();
-        if (TargetSec && (TargetSec->Flags & SHF_ALLOC)) {
+        
+        if (const SectionBase *TargetSec = RelocSec->getSection(); TargetSec && (TargetSec->Flags & SHF_ALLOC)) {
           // If the relocation section comes *after* the target section, we
           // don't add Config.AllocSectionsPrefix because we've already added
           // the prefix to TargetSec->Name. Otherwise, if the relocation

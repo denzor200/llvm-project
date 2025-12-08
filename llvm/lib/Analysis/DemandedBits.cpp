@@ -198,8 +198,8 @@ void DemandedBits::determineLiveOperandBits(
 
         // If the shift is nuw/nsw, then the high bits are not dead
         // (because we've promised that they *must* be zero).
-        const auto *S = cast<ShlOperator>(UserI);
-        if (S->hasNoSignedWrap())
+        
+        if (const auto *S = cast<ShlOperator>(UserI); S->hasNoSignedWrap())
           AB |= APInt::getHighBitsSet(BitWidth, ShiftAmt+1);
         else if (S->hasNoUnsignedWrap())
           AB |= APInt::getHighBitsSet(BitWidth, ShiftAmt);
@@ -209,8 +209,8 @@ void DemandedBits::determineLiveOperandBits(
         uint64_t Max = Known.getMaxValue().getLimitedValue(BitWidth - 1);
         // similar to Lshr case
         GetShiftedRange(Min, Max, /*ShiftLeft=*/false);
-        const auto *S = cast<ShlOperator>(UserI);
-        if (S->hasNoSignedWrap())
+        
+        if (const auto *S = cast<ShlOperator>(UserI); S->hasNoSignedWrap())
           AB |= APInt::getHighBitsSet(BitWidth, Max + 1);
         else if (S->hasNoUnsignedWrap())
           AB |= APInt::getHighBitsSet(BitWidth, Max);
@@ -373,8 +373,8 @@ void DemandedBits::performAnalysis() {
     // bits and add the instruction to the work list. For other instructions
     // add their operands to the work list (for integer values operands, mark
     // all bits as live).
-    Type *T = I.getType();
-    if (T->isIntOrIntVectorTy()) {
+    
+    if (Type *T = I.getType(); T->isIntOrIntVectorTy()) {
       if (AliveBits.try_emplace(&I, T->getScalarSizeInBits(), 0).second)
         Worklist.insert(&I);
 
@@ -384,8 +384,8 @@ void DemandedBits::performAnalysis() {
     // Non-integer-typed instructions...
     for (Use &OI : I.operands()) {
       if (auto *J = dyn_cast<Instruction>(OI)) {
-        Type *T = J->getType();
-        if (T->isIntOrIntVectorTy())
+        
+        if (Type *T = J->getType(); T->isIntOrIntVectorTy())
           AliveBits[J] = APInt::getAllOnes(T->getScalarSizeInBits());
         else
           Visited.insert(J);

@@ -36,8 +36,8 @@ AVRELFObjectWriter::AVRELFObjectWriter(uint8_t OSABI)
 unsigned AVRELFObjectWriter::getRelocType(const MCFixup &Fixup,
                                           const MCValue &Target,
                                           bool IsPCRel) const {
-  auto Spec = Target.getSpecifier();
-  switch ((unsigned)Fixup.getKind()) {
+  
+  switch (auto Spec = Target.getSpecifier(); (unsigned)Fixup.getKind()) {
   case FK_Data_1:
     switch (Spec) {
     default:

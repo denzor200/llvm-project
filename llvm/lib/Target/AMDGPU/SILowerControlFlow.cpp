@@ -537,9 +537,9 @@ MachineBasicBlock *SILowerControlFlow::emitEndCf(MachineInstr &MI) {
 
       for (unsigned i = 0, e = MRI->getNumVirtRegs(); i != e; ++i) {
         Register Reg = Register::index2VirtReg(i);
-        LiveVariables::VarInfo &VI = LV->getVarInfo(Reg);
+        
 
-        if (VI.AliveBlocks.test(MBB.getNumber()))
+        if (LiveVariables::VarInfo &VI = LV->getVarInfo(Reg); VI.AliveBlocks.test(MBB.getNumber()))
           VI.AliveBlocks.set(SplitBB->getNumber());
         else {
           for (MachineInstr *Kill : VI.Kills) {
@@ -636,8 +636,8 @@ void SILowerControlFlow::optimizeEndCf() {
       = TII->getNamedOperand(*Next, AMDGPU::OpName::src1)->getReg();
     assert(SavedExec.isVirtual() && "Expected saved exec to be src1!");
 
-    const MachineInstr *Def = MRI->getUniqueVRegDef(SavedExec);
-    if (Def && LoweredIf.count(SavedExec)) {
+    
+    if (const MachineInstr *Def = MRI->getUniqueVRegDef(SavedExec); Def && LoweredIf.count(SavedExec)) {
       LLVM_DEBUG(dbgs() << "Skip redundant "; MI->dump());
       if (LIS)
         LIS->RemoveMachineInstrFromMaps(*MI);
@@ -692,8 +692,8 @@ MachineBasicBlock *SILowerControlFlow::process(MachineInstr &MI) {
   MachineBasicBlock::iterator Next;
   for (I = Prev ? Prev->getIterator() : MBB.begin(); I != MBB.end(); I = Next) {
     Next = std::next(I);
-    MachineInstr &MaskMI = *I;
-    switch (MaskMI.getOpcode()) {
+    
+    switch (MachineInstr &MaskMI = *I; MaskMI.getOpcode()) {
     case AMDGPU::S_AND_B64:
     case AMDGPU::S_OR_B64:
     case AMDGPU::S_AND_B32:
@@ -747,10 +747,10 @@ bool SILowerControlFlow::removeMBBifRedundant(MachineBasicBlock &MBB) {
   if (FallThrough && !FallThrough->isLayoutSuccessor(Succ)) {
     // Note: we cannot update block layout and preserve live intervals;
     // hence we must insert a branch.
-    MachineInstr *BranchMI = BuildMI(*FallThrough, FallThrough->end(),
+    
+    if (MachineInstr *BranchMI = BuildMI(*FallThrough, FallThrough->end(),
             FallThrough->findBranchDebugLoc(), TII->get(AMDGPU::S_BRANCH))
-        .addMBB(Succ);
-    if (LIS)
+        .addMBB(Succ); LIS)
       LIS->InsertMachineInstrInMaps(*BranchMI);
   }
 
@@ -870,8 +870,8 @@ SILowerControlFlowPass::run(MachineFunction &MF,
   MachinePostDominatorTree *PDT =
       MFAM.getCachedResult<MachinePostDominatorTreeAnalysis>(MF);
 
-  bool Changed = SILowerControlFlow(ST, LIS, LV, MDT, PDT).run(MF);
-  if (!Changed)
+  
+  if (bool Changed = SILowerControlFlow(ST, LIS, LV, MDT, PDT).run(MF); !Changed)
     return PreservedAnalyses::all();
 
   auto PA = getMachineFunctionPassPreservedAnalyses();

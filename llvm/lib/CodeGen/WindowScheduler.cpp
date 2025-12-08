@@ -548,9 +548,9 @@ void WindowScheduler::schedulePhi(int Offset, unsigned &II) {
     }
     // The anti-dependency of phi need to be handled separately in the same way.
     if (Register AntiReg = getAntiRegister(&Phi)) {
-      auto *AntiMI = MRI->getVRegDef(AntiReg);
+      
       // AntiReg may be defined outside the kernel MBB.
-      if (AntiMI->getParent() == MBB) {
+      if (auto *AntiMI = MRI->getVRegDef(AntiReg); AntiMI->getParent() == MBB) {
         auto AntiCycle = getOriCycle(AntiMI);
         if (getOriStage(getOriMI(AntiMI), Offset) == 0)
           LateCycle = std::min(LateCycle, AntiCycle);

@@ -149,8 +149,8 @@ bool VPlanVerifier::verifyEVLRecipe(const VPInstruction &EVL) const {
   auto VerifyEVLUse = [&](const VPRecipeBase &R,
                           const unsigned ExpectedIdx) -> bool {
     SmallVector<const VPValue *> Ops(R.operands());
-    unsigned UseCount = count(Ops, &EVL);
-    if (UseCount != 1 || Ops[ExpectedIdx] != &EVL) {
+    
+    if (unsigned UseCount = count(Ops, &EVL); UseCount != 1 || Ops[ExpectedIdx] != &EVL) {
       errs() << "EVL is used as non-last operand in EVL-based recipe\n";
       return false;
     }
@@ -419,8 +419,8 @@ bool VPlanVerifier::verifyBlock(const VPBlockBase *VPB) {
 
   for (const VPBlockBase *Succ : Successors) {
     // There must be a bi-directional link between block and successor.
-    const auto &SuccPreds = Succ->getPredecessors();
-    if (!is_contained(SuccPreds, VPB)) {
+    
+    if (const auto &SuccPreds = Succ->getPredecessors(); !is_contained(SuccPreds, VPB)) {
       errs() << "Missing predecessor link.\n";
       return false;
     }
@@ -444,8 +444,8 @@ bool VPlanVerifier::verifyBlock(const VPBlockBase *VPB) {
     }
 
     // There must be a bi-directional link between block and predecessor.
-    const auto &PredSuccs = Pred->getSuccessors();
-    if (!is_contained(PredSuccs, VPB)) {
+    
+    if (const auto &PredSuccs = Pred->getSuccessors(); !is_contained(PredSuccs, VPB)) {
       errs() << "Missing successor link.\n";
       return false;
     }

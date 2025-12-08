@@ -117,8 +117,8 @@ bool PlatformDarwinDevice::UpdateSDKDirectoryInfosIfNeeded() {
         }
       }
 
-      const char *addtional_platform_dirs = getenv("PLATFORM_SDK_DIRECTORY");
-      if (addtional_platform_dirs) {
+      
+      if (const char *addtional_platform_dirs = getenv("PLATFORM_SDK_DIRECTORY"); addtional_platform_dirs) {
         SDKDirectoryInfoCollection env_var_sdk_directory_infos;
         FileSystem::Instance().EnumerateDirectory(
             addtional_platform_dirs, find_directories, find_files, find_other,
@@ -146,8 +146,8 @@ bool PlatformDarwinDevice::UpdateSDKDirectoryInfosIfNeeded() {
 
 const PlatformDarwinDevice::SDKDirectoryInfo *
 PlatformDarwinDevice::GetSDKDirectoryForCurrentOSVersion() {
-  uint32_t i;
-  if (UpdateSDKDirectoryInfosIfNeeded()) {
+  
+  if (uint32_t i; UpdateSDKDirectoryInfosIfNeeded()) {
     const uint32_t num_sdk_infos = m_sdk_directory_infos.size();
     std::vector<bool> check_sdk_info(num_sdk_infos, true);
 

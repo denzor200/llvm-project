@@ -187,8 +187,8 @@ void Writer::createRelocSections() {
     OutputSection *sec = outputSections[i];
 
     // Count the number of needed sections.
-    uint32_t count = sec->getNumRelocations();
-    if (!count)
+    
+    if (uint32_t count = sec->getNumRelocations(); !count)
       continue;
 
     StringRef name;
@@ -447,8 +447,8 @@ void Writer::layoutMemory() {
 
   if (ctx.arg.initialHeap != 0) {
     checkPageAligned("initial heap", ctx.arg.initialHeap);
-    uint64_t maxInitialHeap = maxMemorySetting - memoryPtr;
-    if (ctx.arg.initialHeap > maxInitialHeap)
+    
+    if (uint64_t maxInitialHeap = maxMemorySetting - memoryPtr; ctx.arg.initialHeap > maxInitialHeap)
       error("initial heap too large, cannot be greater than " +
             Twine(maxInitialHeap));
     memoryPtr += ctx.arg.initialHeap;
@@ -1732,16 +1732,16 @@ void Writer::run() {
   }
 
   for (auto &pair : ctx.arg.exportedSymbols) {
-    Symbol *sym = symtab->find(pair.first());
-    if (sym && sym->isDefined())
+    
+    if (Symbol *sym = symtab->find(pair.first()); sym && sym->isDefined())
       sym->forceExport = true;
   }
 
   // Delay reporting errors about explicit exports until after
   // addStartStopSymbols which can create optional symbols.
   for (auto &name : ctx.arg.requiredExports) {
-    Symbol *sym = symtab->find(name);
-    if (!sym || !sym->isDefined()) {
+    
+    if (Symbol *sym = symtab->find(name); !sym || !sym->isDefined()) {
       if (ctx.arg.unresolvedSymbols == UnresolvedPolicy::ReportError)
         error(Twine("symbol exported via --export not found: ") + name);
       if (ctx.arg.unresolvedSymbols == UnresolvedPolicy::Warn)

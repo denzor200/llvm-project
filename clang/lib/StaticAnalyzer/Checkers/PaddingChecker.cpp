@@ -281,8 +281,8 @@ public:
       // of the vector. We won't find a middle element unless
       // we started on a poorly aligned address or have an overly
       // aligned field.
-      auto Iter = llvm::upper_bound(Fields, InsertPoint);
-      if (Iter != Fields.begin()) {
+      
+      if (auto Iter = llvm::upper_bound(Fields, InsertPoint); Iter != Fields.begin()) {
         // We found a field that we can layout with the current alignment.
         --Iter;
         NewOffset += Iter->Size;

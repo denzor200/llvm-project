@@ -42,13 +42,13 @@ ScheduleHazardRecognizer::HazardType
 ARMHazardRecognizerFPMLx::getHazardType(SUnit *SU, int Stalls) {
   assert(Stalls == 0 && "ARM hazards don't support scoreboard lookahead");
 
-  MachineInstr *MI = SU->getInstr();
+  
 
-  if (!MI->isDebugInstr()) {
+  if (MachineInstr *MI = SU->getInstr(); !MI->isDebugInstr()) {
     // Look for special VMLA / VMLS hazards. A VMUL / VADD / VSUB following
     // a VMLA / VMLS will cause 4 cycle stall.
-    const MCInstrDesc &MCID = MI->getDesc();
-    if (LastMI && (MCID.TSFlags & ARMII::DomainMask) != ARMII::DomainGeneral) {
+    
+    if (const MCInstrDesc &MCID = MI->getDesc(); LastMI && (MCID.TSFlags & ARMII::DomainMask) != ARMII::DomainGeneral) {
       MachineInstr *DefMI = LastMI;
       const MCInstrDesc &LastMCID = LastMI->getDesc();
       const MachineFunction *MF = MI->getParent()->getParent();
@@ -85,8 +85,8 @@ void ARMHazardRecognizerFPMLx::Reset() {
 }
 
 void ARMHazardRecognizerFPMLx::EmitInstruction(SUnit *SU) {
-  MachineInstr *MI = SU->getInstr();
-  if (!MI->isDebugInstr()) {
+  
+  if (MachineInstr *MI = SU->getInstr(); !MI->isDebugInstr()) {
     LastMI = MI;
     FpMLxStalls = 0;
   }
@@ -109,13 +109,13 @@ static bool getBaseOffset(const MachineInstr &MI, const MachineOperand *&BaseOp,
 
   uint64_t TSFlags = MI.getDesc().TSFlags;
   unsigned AddrMode = (TSFlags & ARMII::AddrModeMask);
-  unsigned IndexMode =
-      (TSFlags & ARMII::IndexModeMask) >> ARMII::IndexModeShift;
+  
 
   // Address mode tells us what we want to know about operands for T2
   // instructions (but not size).  It tells us size (but not about operands)
   // for T1 instructions.
-  switch (AddrMode) {
+  switch (unsigned IndexMode =
+      (TSFlags & ARMII::IndexModeMask) >> ARMII::IndexModeShift; AddrMode) {
   default:
     return false;
   case ARMII::AddrModeT2_i8:

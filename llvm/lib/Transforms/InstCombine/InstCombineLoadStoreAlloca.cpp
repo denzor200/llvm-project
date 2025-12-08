@@ -97,10 +97,10 @@ isOnlyCopiedFromConstantMemory(AAResults *AA, AllocaInst *V,
           continue;
 
         unsigned DataOpNo = Call->getDataOperandNo(&U);
-        bool IsArgOperand = Call->isArgOperand(&U);
+        
 
         // Inalloca arguments are clobbered by the call.
-        if (IsArgOperand && Call->isInAllocaArgument(DataOpNo))
+        if (bool IsArgOperand = Call->isArgOperand(&U); IsArgOperand && Call->isInAllocaArgument(DataOpNo))
           return false;
 
         // If this call site doesn't modify the memory, then we know it is just
@@ -213,8 +213,8 @@ static Instruction *simplifyAllocaArraySize(InstCombinerImpl &IC,
   // Ensure that the alloca array size argument has type equal to the offset
   // size of the alloca() pointer, which, in the tyical case, is intptr_t,
   // so that any casting is exposed early.
-  Type *PtrIdxTy = IC.getDataLayout().getIndexType(AI.getType());
-  if (AI.getArraySize()->getType() != PtrIdxTy) {
+  
+  if (Type *PtrIdxTy = IC.getDataLayout().getIndexType(AI.getType()); AI.getArraySize()->getType() != PtrIdxTy) {
     Value *V = IC.Builder.CreateIntCast(AI.getArraySize(), PtrIdxTy, false);
     return IC.replaceOperand(AI, 0, V);
   }
@@ -627,7 +627,7 @@ static StoreInst *combineStoreToNewValue(InstCombinerImpl &IC, StoreInst &SI,
   NewStore->setAtomic(SI.getOrdering(), SI.getSyncScopeID());
   for (const auto &MDPair : MD) {
     unsigned ID = MDPair.first;
-    MDNode *N = MDPair.second;
+    
     // Note, essentially every kind of metadata should be preserved here! This
     // routine is supposed to clone a store instruction changing *only its
     // type*. The only metadata it makes sense to drop is metadata which is
@@ -636,7 +636,7 @@ static StoreInst *combineStoreToNewValue(InstCombinerImpl &IC, StoreInst &SI,
     // metadata to be conservatively correct. If you are adding metadata to
     // LLVM which pertains to stores, you almost certainly want to add it
     // here.
-    switch (ID) {
+    switch (MDNode *N = MDPair.second; ID) {
     case LLVMContext::MD_dbg:
     case LLVMContext::MD_DIAssignID:
     case LLVMContext::MD_tbaa:
@@ -711,8 +711,8 @@ static Instruction *combineLoadToOperationType(InstCombinerImpl &IC,
     }
 
     if (auto *CastUser = dyn_cast<CastInst>(Load.user_back())) {
-      Type *DestTy = CastUser->getDestTy();
-      if (CastUser->isNoopCast(IC.getDataLayout()) &&
+      
+      if (Type *DestTy = CastUser->getDestTy(); CastUser->isNoopCast(IC.getDataLayout()) &&
           LoadTy->isPtrOrPtrVectorTy() == DestTy->isPtrOrPtrVectorTy() &&
           (!Load.isAtomic() || isSupportedAtomicType(DestTy))) {
         LoadInst *NewLoad = IC.combineLoadToNewType(Load, DestTy);
@@ -895,8 +895,8 @@ static bool isObjectSizeLessThanOrEq(Value *V, uint64_t MaxSize,
       if (!GV->hasDefinitiveInitializer() || !GV->isConstant())
         return false;
 
-      uint64_t InitSize = DL.getTypeAllocSize(GV->getValueType());
-      if (InitSize > MaxSize)
+      
+      if (uint64_t InitSize = DL.getTypeAllocSize(GV->getValueType()); InitSize > MaxSize)
         return false;
       continue;
     }
@@ -933,8 +933,8 @@ static bool canReplaceGEPIdxWithZero(InstCombinerImpl &IC,
   auto FirstNZIdx = [](const GetElementPtrInst *GEPI) {
     unsigned I = 1;
     for (unsigned IE = GEPI->getNumOperands(); I != IE; ++I) {
-      Value *V = GEPI->getOperand(I);
-      if (const ConstantInt *CI = dyn_cast<ConstantInt>(V))
+      
+      if (Value *V = GEPI->getOperand(I); const ConstantInt *CI = dyn_cast<ConstantInt>(V))
         if (CI->isZero())
           continue;
 
@@ -1208,8 +1208,8 @@ static Value *likeBitCastFromVector(InstCombinerImpl &IC, Value *V) {
   auto *UT = cast<VectorType>(U->getType());
   auto *VT = V->getType();
   // Check that types UT and VT are bitwise isomorphic.
-  const auto &DL = IC.getDataLayout();
-  if (DL.getTypeStoreSizeInBits(UT) != DL.getTypeStoreSizeInBits(VT)) {
+  
+  if (const auto &DL = IC.getDataLayout(); DL.getTypeStoreSizeInBits(UT) != DL.getTypeStoreSizeInBits(VT)) {
     return nullptr;
   }
   if (auto *AT = dyn_cast<ArrayType>(VT)) {

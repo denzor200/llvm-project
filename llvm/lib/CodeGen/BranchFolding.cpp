@@ -493,8 +493,8 @@ static void FixTail(MachineBasicBlock *CurMBB, MachineBasicBlock *SuccBB,
   if (!dl)
     dl = BranchDL;
   if (I != MF->end() && !TII->analyzeBranch(*CurMBB, TBB, FBB, Cond, true)) {
-    MachineBasicBlock *NextBB = &*I;
-    if (TBB == NextBB && !Cond.empty() && !FBB) {
+    
+    if (MachineBasicBlock *NextBB = &*I; TBB == NextBB && !Cond.empty() && !FBB) {
       if (!TII->reverseBranchCondition(Cond)) {
         TII->removeBranch(*CurMBB);
         TII->insertBranch(*CurMBB, SuccBB, nullptr, Cond, dl);
@@ -611,8 +611,8 @@ ProfitableToMerge(MachineBasicBlock *MBB1, MachineBasicBlock *MBB2,
   if ((MBB1 == PredBB || MBB2 == PredBB) &&
       (!AfterPlacement || MBB1->succ_size() == 1)) {
     MachineBasicBlock::iterator I;
-    unsigned NumTerms = CountTerminators(MBB1 == PredBB ? MBB2 : MBB1, I);
-    if (CommonTailLen > NumTerms)
+    
+    if (unsigned NumTerms = CountTerminators(MBB1 == PredBB ? MBB2 : MBB1, I); CommonTailLen > NumTerms)
       return true;
   }
 
@@ -721,8 +721,8 @@ void BranchFolder::RemoveBlocksWithHash(unsigned CurHash,
       B = MergePotentials.begin();
        CurMPIter->getHash() == CurHash; --CurMPIter) {
     // Put the unconditional branch back, if we need one.
-    MachineBasicBlock *CurMBB = CurMPIter->getBlock();
-    if (SuccBB && CurMBB != PredBB)
+    
+    if (MachineBasicBlock *CurMBB = CurMPIter->getBlock(); SuccBB && CurMBB != PredBB)
       FixTail(CurMBB, SuccBB, TII, BranchDL);
     if (CurMPIter == B)
       break;
@@ -746,9 +746,9 @@ bool BranchFolder::CreateCommonTailOnlyBlock(MachineBasicBlock *&PredBB,
     }
     // Otherwise, make a (fairly bogus) choice based on estimate of
     // how long it will take the various blocks to execute.
-    unsigned t = EstimateRuntime(SameTails[i].getBlock()->begin(),
-                                 SameTails[i].getTailStartPos());
-    if (t <= TimeEstimate) {
+    
+    if (unsigned t = EstimateRuntime(SameTails[i].getBlock()->begin(),
+                                 SameTails[i].getTailStartPos()); t <= TimeEstimate) {
       TimeEstimate = t;
       commonTailIndex = i;
     }
@@ -819,10 +819,10 @@ mergeOperations(MachineBasicBlock::iterator MBBIStartPos,
       MBBICommon->cloneMergedMemRefs(*MBB->getParent(), {&*MBBICommon, &*MBBI});
     // Drop undef flags if they aren't present in all merged instructions.
     for (unsigned I = 0, E = MBBICommon->getNumOperands(); I != E; ++I) {
-      MachineOperand &MO = MBBICommon->getOperand(I);
-      if (MO.isReg() && MO.isUndef()) {
-        const MachineOperand &OtherMO = MBBI->getOperand(I);
-        if (!OtherMO.isUndef())
+      
+      if (MachineOperand &MO = MBBICommon->getOperand(I); MO.isReg() && MO.isUndef()) {
+        
+        if (const MachineOperand &OtherMO = MBBI->getOperand(I); !OtherMO.isUndef())
           MO.setIsUndef(false);
       }
     }
@@ -1221,9 +1221,9 @@ void BranchFolder::setCommonTailEdgeWeights(MachineBasicBlock &TailMBB) {
   auto SumEdgeFreq =
       std::accumulate(EdgeFreqLs.begin(), EdgeFreqLs.end(), BlockFrequency(0))
           .getFrequency();
-  auto EdgeFreq = EdgeFreqLs.begin();
+  
 
-  if (SumEdgeFreq > 0) {
+  if (auto EdgeFreq = EdgeFreqLs.begin(); SumEdgeFreq > 0) {
     for (auto SuccI = TailMBB.succ_begin(), SuccE = TailMBB.succ_end();
          SuccI != SuccE; ++SuccI, ++EdgeFreq) {
       auto Prob = BranchProbability::getBranchProbability(
@@ -1556,11 +1556,11 @@ ReoptimizeBlock:
       for (auto &Pred : MBB->predecessors()) {
         MachineBasicBlock *PredTBB = nullptr, *PredFBB = nullptr;
         SmallVector<MachineOperand, 4> PredCond;
-        bool PredAnalyzable =
-            !TII->analyzeBranch(*Pred, PredTBB, PredFBB, PredCond, true);
+        
 
         // Only eliminate if MBB == TBB (Taken Basic Block)
-        if (PredAnalyzable && !PredCond.empty() && PredTBB == MBB &&
+        if (bool PredAnalyzable =
+            !TII->analyzeBranch(*Pred, PredTBB, PredFBB, PredCond, true); PredAnalyzable && !PredCond.empty() && PredTBB == MBB &&
             PredTBB != PredFBB) {
           // The predecessor has a conditional branch to this block which
           // consists of only a tail call. Try to fold the tail call into the
@@ -1631,8 +1631,8 @@ ReoptimizeBlock:
       // falls through into MBB and we can't understand the prior block's branch
       // condition.
       if (MBB->empty()) {
-        bool PredHasNoFallThrough = !PrevBB.canFallThrough();
-        if (PredHasNoFallThrough || !PriorUnAnalyzable ||
+        
+        if (bool PredHasNoFallThrough = !PrevBB.canFallThrough(); PredHasNoFallThrough || !PriorUnAnalyzable ||
             !PrevBB.isSuccessor(MBB)) {
           // If the prior block falls through into us, turn it into an
           // explicit branch to us to make updates simpler.
@@ -1656,8 +1656,8 @@ ReoptimizeBlock:
           bool DidChange = false;
           bool HasBranchToSelf = false;
           while(PI != MBB->pred_size()) {
-            MachineBasicBlock *PMBB = *(MBB->pred_begin() + PI);
-            if (PMBB == MBB) {
+            
+            if (MachineBasicBlock *PMBB = *(MBB->pred_begin() + PI); PMBB == MBB) {
               // If this block has an uncond branch to itself, leave it.
               ++PI;
               HasBranchToSelf = true;
@@ -1678,9 +1678,9 @@ ReoptimizeBlock:
               // change this to an unconditional branch.
               MachineBasicBlock *NewCurTBB = nullptr, *NewCurFBB = nullptr;
               SmallVector<MachineOperand, 4> NewCurCond;
-              bool NewCurUnAnalyzable = TII->analyzeBranch(
-                  *PMBB, NewCurTBB, NewCurFBB, NewCurCond, true);
-              if (!NewCurUnAnalyzable && NewCurTBB && NewCurTBB == NewCurFBB) {
+              
+              if (bool NewCurUnAnalyzable = TII->analyzeBranch(
+                  *PMBB, NewCurTBB, NewCurFBB, NewCurCond, true); !NewCurUnAnalyzable && NewCurTBB && NewCurTBB == NewCurFBB) {
                 DebugLoc PrevDl = PMBB->findBranchDebugLoc();
                 TII->removeBranch(*PMBB);
                 NewCurCond.clear();

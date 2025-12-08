@@ -194,8 +194,8 @@ MATCHER_P(MemprofMetadataEquals, ExpectedVals, "Matching !memprof contents") {
     if (StackMD->getNumOperands() != ExpectedStackIds.size())
       return PrintAndFail();
     for (size_t J = 0; J < ExpectedStackIds.size(); J++) {
-      auto *StackId = mdconst::dyn_extract<ConstantInt>(StackMD->getOperand(J));
-      if (StackId->getZExtValue() != ExpectedStackIds[J])
+      
+      if (auto *StackId = mdconst::dyn_extract<ConstantInt>(StackMD->getOperand(J)); StackId->getZExtValue() != ExpectedStackIds[J])
         return PrintAndFail();
     }
   }

@@ -87,8 +87,8 @@ FunctionPass *llvm::createLowerInvokePass() {
 
 PreservedAnalyses LowerInvokePass::run(Function &F,
                                        FunctionAnalysisManager &AM) {
-  bool Changed = runImpl(F);
-  if (!Changed)
+  
+  if (bool Changed = runImpl(F); !Changed)
     return PreservedAnalyses::all();
 
   return PreservedAnalyses::none();

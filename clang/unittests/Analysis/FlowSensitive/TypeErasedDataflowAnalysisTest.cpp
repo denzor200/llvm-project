@@ -518,8 +518,8 @@ public:
     auto CS = Elt.getAs<CFGStmt>();
     if (!CS)
       return;
-    const auto *S = CS->getStmt();
-    if (auto *C = dyn_cast<CallExpr>(S)) {
+    
+    if (const auto *S = CS->getStmt(); auto *C = dyn_cast<CallExpr>(S)) {
       if (auto *F = dyn_cast<FunctionDecl>(C->getCalleeDecl())) {
         E.CalledFunctions.insert(F->getNameInfo().getAsString());
       }

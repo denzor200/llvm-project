@@ -169,8 +169,8 @@ void llvm::LowerARMMachineInstrToMCInst(const MachineInstr *MI, MCInst &OutMI,
     MCOperand MCOp;
     if (AP.lowerOperand(MO, MCOp)) {
       if (MCOp.isImm() && EncodeImms) {
-        int32_t Enc = ARM_AM::getSOImmVal(MCOp.getImm());
-        if (Enc != -1)
+        
+        if (int32_t Enc = ARM_AM::getSOImmVal(MCOp.getImm()); Enc != -1)
           MCOp.setImm(Enc);
       }
       OutMI.addOperand(MCOp);
@@ -180,8 +180,8 @@ void llvm::LowerARMMachineInstrToMCInst(const MachineInstr *MI, MCInst &OutMI,
 
 void ARMAsmPrinter::EmitSled(const MachineInstr &MI, SledKind Kind)
 {
-  const MachineFunction *MF = MI.getParent()->getParent();
-  if (MF->getInfo<ARMFunctionInfo>()->isThumbFunction()) {
+  
+  if (const MachineFunction *MF = MI.getParent()->getParent(); MF->getInfo<ARMFunctionInfo>()->isThumbFunction()) {
     const Function &Fn = MF->getFunction();
     Fn.getContext().diagnose(DiagnosticInfoUnsupported(
         Fn,

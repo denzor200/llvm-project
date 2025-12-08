@@ -496,8 +496,8 @@ static size_t ParseFunctionBlocksForPDBSymbol(
 
     auto &raw_sym = pdb_symbol->getRawSymbol();
     assert(llvm::isa<PDBSymbolBlock>(pdb_symbol));
-    auto uid = pdb_symbol->getSymIndexId();
-    if (parent_block->FindBlockByID(uid))
+    
+    if (auto uid = pdb_symbol->getSymIndexId(); parent_block->FindBlockByID(uid))
       return num_added;
     if (raw_sym.getVirtualAddress() < func_file_vm_addr)
       return num_added;
@@ -575,8 +575,8 @@ size_t SymbolFilePDB::ParseTypes(CompileUnit &comp_unit) {
   // Also parse global types particularly coming from this compiland.
   // Unfortunately, PDB has no compiland information for each global type. We
   // have to parse them all. But ensure we only do this once.
-  static bool parse_all_global_types = false;
-  if (!parse_all_global_types) {
+  
+  if (static bool parse_all_global_types = false; !parse_all_global_types) {
     ParseTypesByTagFn(*m_global_scope_up);
     parse_all_global_types = true;
   }
@@ -879,8 +879,8 @@ uint32_t SymbolFilePDB::ResolveSymbolContext(
   std::lock_guard<std::recursive_mutex> guard(GetModuleMutex());
   const size_t old_size = sc_list.GetSize();
   const FileSpec &file_spec = src_location_spec.GetFileSpec();
-  const uint32_t line = src_location_spec.GetLine().value_or(0);
-  if (resolve_scope & lldb::eSymbolContextCompUnit) {
+  
+  if (const uint32_t line = src_location_spec.GetLine().value_or(0); resolve_scope & lldb::eSymbolContextCompUnit) {
     // Locate all compilation units with line numbers referencing the specified
     // file.  For example, if `file_spec` is <vector>, then this should return
     // all source files and header files that reference <vector>, either
@@ -903,8 +903,8 @@ uint32_t SymbolFilePDB::ResolveSymbolContext(
         if (source_file.empty())
           continue;
         FileSpec this_spec(source_file, FileSpec::Style::windows);
-        bool need_full_match = !file_spec.GetDirectory().IsEmpty();
-        if (FileSpec::Compare(file_spec, this_spec, need_full_match) != 0)
+        
+        if (bool need_full_match = !file_spec.GetDirectory().IsEmpty(); FileSpec::Compare(file_spec, this_spec, need_full_match) != 0)
           continue;
       }
 
@@ -1152,9 +1152,9 @@ SymbolFilePDB::ParseVariables(const lldb_private::SymbolContext &sc,
         case PDB_SymType::Block:
         case PDB_SymType::Function: {
           if (sc.function) {
-            Block *block = sc.function->GetBlock(true).FindBlockByID(
-                lexical_parent->getSymIndexId());
-            if (block) {
+            
+            if (Block *block = sc.function->GetBlock(true).FindBlockByID(
+                lexical_parent->getSymIndexId()); block) {
               local_variable_list_sp = block->GetBlockVariableList(false);
               if (!local_variable_list_sp) {
                 local_variable_list_sp = std::make_shared<VariableList>();
@@ -1174,8 +1174,8 @@ SymbolFilePDB::ParseVariables(const lldb_private::SymbolContext &sc,
           if (variable_list)
             variable_list->AddVariableIfUnique(var_sp);
           ++num_added;
-          PDBASTParser *ast = GetPDBAstParser();
-          if (ast)
+          
+          if (PDBASTParser *ast = GetPDBAstParser(); ast)
             ast->GetDeclForSymbol(*pdb_data);
         }
       }
@@ -1697,9 +1697,9 @@ void SymbolFilePDB::GetTypes(lldb_private::SymbolContextScope *sc_scope,
                              lldb_private::TypeList &type_list) {
   std::lock_guard<std::recursive_mutex> guard(GetModuleMutex());
   TypeCollection type_collection;
-  CompileUnit *cu =
-      sc_scope ? sc_scope->CalculateSymbolContextCompileUnit() : nullptr;
-  if (cu) {
+  
+  if (CompileUnit *cu =
+      sc_scope ? sc_scope->CalculateSymbolContextCompileUnit() : nullptr; cu) {
     auto compiland_up = GetPDBCompilandByUID(cu->GetID());
     if (!compiland_up)
       return;
@@ -1875,12 +1875,12 @@ bool SymbolFilePDB::ParseCompileUnitLineTable(CompileUnit &comp_unit,
 
       // There was a gap between the current entry and the previous entry if
       // the addresses don't perfectly line up.
-      bool is_gap = (i > 0) && (prev_addr + prev_length < addr);
+      
 
       // Before inserting the current entry, insert a terminal entry at the end
       // of the previous entry's address range if the current entry resulted in
       // a gap from the previous entry.
-      if (is_gap && ShouldAddLine(match_line, prev_line, prev_length)) {
+      if (bool is_gap = (i > 0) && (prev_addr + prev_length < addr); is_gap && ShouldAddLine(match_line, prev_line, prev_length)) {
         line_table->AppendLineEntryToSequence(sequence, prev_addr + prev_length,
                                               prev_line, 0, prev_source_idx,
                                               false, false, false, false, true);
@@ -1967,8 +1967,8 @@ lldb::CompUnitSP SymbolFilePDB::GetCompileUnitContainsAddress(
   // Otherwise we resort to section contributions.
   if (auto sec_contribs = m_session_up->getSectionContribs()) {
     while (auto section = sec_contribs->getNext()) {
-      auto va = section->getVirtualAddress();
-      if (file_vm_addr >= va && file_vm_addr < va + section->getLength())
+      
+      if (auto va = section->getVirtualAddress(); file_vm_addr >= va && file_vm_addr < va + section->getLength())
         return ParseCompileUnitForUID(section->getCompilandId());
     }
   }

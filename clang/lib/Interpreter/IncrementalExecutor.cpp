@@ -231,8 +231,8 @@ IncrementalExecutor::launchExecutor(llvm::StringRef ExecutablePath,
     }
 
     char *const Args[] = {ExecutorPath.get(), FDSpecifier.get(), nullptr};
-    int RC = execvp(ExecutorPath.get(), Args);
-    if (RC != 0) {
+    
+    if (int RC = execvp(ExecutorPath.get(), Args); RC != 0) {
       llvm::errs() << "unable to launch out-of-process executor \""
                    << ExecutorPath.get() << "\"\n";
       exit(1);

@@ -139,8 +139,8 @@ void Value::deleteValue() {
 }
 
 void Value::destroyValueName() {
-  ValueName *Name = getValueName();
-  if (Name) {
+  
+  if (ValueName *Name = getValueName(); Name) {
     MallocAllocator Allocator;
     Name->Destroy(Allocator);
   }
@@ -225,8 +225,8 @@ void Value::dropDroppableUsesIn(User &Usr) {
 
 void Value::dropDroppableUse(Use &U) {
   if (auto *Assume = dyn_cast<AssumeInst>(U.getUser())) {
-    unsigned OpNo = U.getOperandNo();
-    if (OpNo == 0)
+    
+    if (unsigned OpNo = U.getOperandNo(); OpNo == 0)
       U.set(ConstantInt::getTrue(Assume->getContext()));
     else {
       U.set(PoisonValue::get(U.get()->getType()));
@@ -255,8 +255,8 @@ bool Value::isUsedInBasicBlock(const BasicBlock *BB) const {
     if (is_contained(BI->operands(), this))
       return true;
     // Scan use list: Check if the use at UI is in BB.
-    const auto *User = dyn_cast<Instruction>(*UI);
-    if (User && User->getParent() == BB)
+    
+    if (const auto *User = dyn_cast<Instruction>(*UI); User && User->getParent() == BB)
       return true;
   }
   return false;
@@ -588,8 +588,8 @@ static void replaceDbgUsesOutsideBlock(Value *V, Value *New, BasicBlock *BB) {
   SmallVector<DbgVariableRecord *> DPUsers;
   findDbgUsers(V, DPUsers);
   for (auto *DVR : DPUsers) {
-    DbgMarker *Marker = DVR->getMarker();
-    if (Marker->getParent() != BB)
+    
+    if (DbgMarker *Marker = DVR->getMarker(); Marker->getParent() != BB)
       DVR->replaceVariableLocationOp(V, New);
   }
 }
@@ -831,8 +831,8 @@ bool Value::canBeFreed() const {
     // of the function.  Note that this logic is restricted to memory
     // allocations in existance before the call; a nofree function *is* allowed
     // to free memory it allocated.
-    const Function *F = A->getParent();
-    if (F->doesNotFreeMemory() && F->hasNoSync())
+    
+    if (const Function *F = A->getParent(); F->doesNotFreeMemory() && F->hasNoSync())
       return false;
   }
 
@@ -859,8 +859,8 @@ bool Value::canBeFreed() const {
 
   const auto &GCName = F->getGC();
   if (GCName == "statepoint-example") {
-    auto *PT = cast<PointerType>(this->getType());
-    if (PT->getAddressSpace() != 1)
+    
+    if (auto *PT = cast<PointerType>(this->getType()); PT->getAddressSpace() != 1)
       // For the sake of this example GC, we arbitrarily pick addrspace(1) as
       // our GC managed heap.  This must match the same check in
       // RewriteStatepointsForGC (and probably needs better factored.)
@@ -967,8 +967,8 @@ Align Value::getPointerAlignment(const DataLayout &DL) const {
   } else if (auto *GVar = dyn_cast<GlobalVariable>(this)) {
     const MaybeAlign Alignment(GVar->getAlign());
     if (!Alignment) {
-      Type *ObjectType = GVar->getValueType();
-      if (ObjectType->isSized()) {
+      
+      if (Type *ObjectType = GVar->getValueType(); ObjectType->isSized()) {
         // If the object is defined in the current Module, we'll be giving
         // it the preferred alignment. Otherwise, we have to assume that it
         // may only have the minimum ABI alignment.
@@ -983,8 +983,8 @@ Align Value::getPointerAlignment(const DataLayout &DL) const {
     const MaybeAlign Alignment = A->getParamAlign();
     if (!Alignment && A->hasStructRetAttr()) {
       // An sret parameter has at least the ABI alignment of the return type.
-      Type *EltTy = A->getParamStructRetType();
-      if (EltTy->isSized())
+      
+      if (Type *EltTy = A->getParamStructRetType(); EltTy->isSized())
         return DL.getABITypeAlign(EltTy);
     }
     return Alignment.valueOrOne();
@@ -1090,8 +1090,8 @@ std::optional<int64_t> Value::getPointerOffsetFrom(const Value *Other,
 
 const Value *Value::DoPHITranslation(const BasicBlock *CurBB,
                                      const BasicBlock *PredBB) const {
-  auto *PN = dyn_cast<PHINode>(this);
-  if (PN && PN->getParent() == CurBB)
+  
+  if (auto *PN = dyn_cast<PHINode>(this); PN && PN->getParent() == CurBB)
     return PN->getIncomingValueForBlock(PredBB);
   return this;
 }
@@ -1118,8 +1118,8 @@ void Value::reverseUseList() {
 }
 
 bool Value::isSwiftError() const {
-  auto *Arg = dyn_cast<Argument>(this);
-  if (Arg)
+  
+  if (auto *Arg = dyn_cast<Argument>(this); Arg)
     return Arg->hasSwiftErrorAttr();
   auto *Alloca = dyn_cast<AllocaInst>(this);
   if (!Alloca)
@@ -1216,8 +1216,8 @@ void ValueHandleBase::RemoveFromUseList() {
   // ValueHandle watching VP.  If so, delete its entry from the ValueHandles
   // map.
   LLVMContextImpl *pImpl = getValPtr()->getContext().pImpl;
-  DenseMap<Value*, ValueHandleBase*> &Handles = pImpl->ValueHandles;
-  if (Handles.isPointerIntoBucketsArray(PrevPtr)) {
+  
+  if (DenseMap<Value*, ValueHandleBase*> &Handles = pImpl->ValueHandles; Handles.isPointerIntoBucketsArray(PrevPtr)) {
     Handles.erase(getValPtr());
     getValPtr()->HasValueHandle = false;
   }

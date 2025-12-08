@@ -438,8 +438,8 @@ Value mlir::LLVM::composeValue(OpBuilder &builder, Location loc, ValueRange src,
       return res;
 
     unsigned srcBitWidth = getBitWidth(res.getType());
-    unsigned dstBitWidth = getBitWidth(dstType);
-    if (dstBitWidth < srcBitWidth) {
+    
+    if (unsigned dstBitWidth = getBitWidth(dstType); dstBitWidth < srcBitWidth) {
       auto largerInt = builder.getIntegerType(srcBitWidth);
       if (res.getType() != largerInt)
         res = LLVM::BitcastOp::create(builder, loc, largerInt, res);

@@ -791,8 +791,8 @@ static SDValue performCMovFPCombine(SDNode *N, SelectionDAG &DAG,
 
   SDValue ValueIfTrue = N->getOperand(0), ValueIfFalse = N->getOperand(2);
 
-  ConstantSDNode *FalseC = dyn_cast<ConstantSDNode>(ValueIfFalse);
-  if (!FalseC || FalseC->getZExtValue())
+  
+  if (ConstantSDNode *FalseC = dyn_cast<ConstantSDNode>(ValueIfFalse); !FalseC || FalseC->getZExtValue())
     return SDValue();
 
   // Since RHS (False) is 0, we swap the order of the True/False operands
@@ -1269,9 +1269,9 @@ static SDValue performSignExtendCombine(SDNode *N, SelectionDAG &DAG,
 SDValue  MipsTargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
   const {
   SelectionDAG &DAG = DCI.DAG;
-  unsigned Opc = N->getOpcode();
+  
 
-  switch (Opc) {
+  switch (unsigned Opc = N->getOpcode(); Opc) {
   default: break;
   case ISD::SDIVREM:
   case ISD::UDIVREM:
@@ -2280,8 +2280,8 @@ SDValue MipsTargetLowering::lowerGlobalAddress(SDValue Op,
     const MipsTargetObjectFile *TLOF =
         static_cast<const MipsTargetObjectFile *>(
             getTargetMachine().getObjFileLowering());
-    const GlobalObject *GO = GV->getAliaseeObject();
-    if (GO && TLOF->IsGlobalInSmallSection(GO, getTargetMachine()))
+    
+    if (const GlobalObject *GO = GV->getAliaseeObject(); GO && TLOF->IsGlobalInSmallSection(GO, getTargetMachine()))
       // %gp_rel relocation
       return getAddrGPRel(N, SDLoc(N), Ty, DAG, ABI.IsN64());
 
@@ -2428,11 +2428,11 @@ lowerConstantPool(SDValue Op, SelectionDAG &DAG) const
   EVT Ty = Op.getValueType();
 
   if (!isPositionIndependent()) {
-    const MipsTargetObjectFile *TLOF =
-        static_cast<const MipsTargetObjectFile *>(
-            getTargetMachine().getObjFileLowering());
+    
 
-    if (TLOF->IsConstantInSmallSection(DAG.getDataLayout(), N->getConstVal(),
+    if (const MipsTargetObjectFile *TLOF =
+        static_cast<const MipsTargetObjectFile *>(
+            getTargetMachine().getObjFileLowering()); TLOF->IsConstantInSmallSection(DAG.getDataLayout(), N->getConstVal(),
                                        getTargetMachine()))
       // %gp_rel relocation
       return getAddrGPRel(N, SDLoc(N), Ty, DAG, ABI.IsN64());
@@ -3134,10 +3134,10 @@ static bool CC_MipsO32(unsigned ValNo, MVT ValVT, MVT LocVT,
                                 State.getFirstUnallocated(F32Regs) != ValNo;
   Align OrigAlign = ArgFlags.getNonZeroOrigAlign();
   bool isI64 = (ValVT == MVT::i32 && OrigAlign == Align(8));
-  bool isVectorFloat = OrigTy->isVectorTy() && OrigTy->isFPOrFPVectorTy();
+  
 
   // The MIPS vector ABI for floats passes them in a pair of registers
-  if (ValVT == MVT::i32 && isVectorFloat) {
+  if (bool isVectorFloat = OrigTy->isVectorTy() && OrigTy->isFPOrFPVectorTy(); ValVT == MVT::i32 && isVectorFloat) {
     // This is the start of an vector that was scalarized into an unknown number
     // of components. It doesn't matter how many there are. Allocate one of the
     // notional 8 byte aligned registers which map onto the argument stack, and
@@ -3307,8 +3307,8 @@ getOpndList(SmallVectorImpl<SDValue> &Ops,
   if (Subtarget.inMips16HardFloat()) {
     if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(CLI.Callee)) {
       StringRef Sym = G->getGlobal()->getName();
-      Function *F = G->getGlobal()->getParent()->getFunction(Sym);
-      if (F && F->hasFnAttribute("__Mips16RetHelper")) {
+      
+      if (Function *F = G->getGlobal()->getParent()->getFunction(Sym); F && F->hasFnAttribute("__Mips16RetHelper")) {
         Mask = MipsRegisterInfo::getMips16RetHelperMask();
       }
     }
@@ -3587,8 +3587,8 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
         continue;
 
       // Collect CSInfo about which register passes which parameter.
-      const TargetOptions &Options = DAG.getTarget().Options;
-      if (Options.EmitCallSiteInfo)
+      
+      if (const TargetOptions &Options = DAG.getTarget().Options; Options.EmitCallSiteInfo)
         CSInfo.ArgRegPairs.emplace_back(VA.getLocReg(), i);
 
       continue;
@@ -3675,9 +3675,9 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     GlobalOrExternal = true;
   }
   else if (ExternalSymbolSDNode *S = dyn_cast<ExternalSymbolSDNode>(Callee)) {
-    const char *Sym = S->getSymbol();
+    
 
-    if (!IsPIC) // static
+    if (const char *Sym = S->getSymbol(); !IsPIC) // static
       Callee = DAG.getTargetExternalSymbol(
           Sym, getPointerTy(DAG.getDataLayout()), MipsII::MO_NO_FLAG);
     else if (Subtarget.useXGOT()) {
@@ -4193,9 +4193,9 @@ MipsTargetLowering::getSingleConstraintMatchWeight(
     // but allow it at the lowest weight.
   if (!CallOperandVal)
     return CW_Default;
-  Type *type = CallOperandVal->getType();
+  
   // Look at the constraint type.
-  switch (*constraint) {
+  switch (Type *type = CallOperandVal->getType(); *constraint) {
   default:
     weight = TargetLowering::getSingleConstraintMatchWeight(info, constraint);
     break;
@@ -4435,15 +4435,15 @@ void MipsTargetLowering::LowerAsmOperandForConstraint(SDValue Op,
   if (Constraint.size() > 1)
     return;
 
-  char ConstraintLetter = Constraint[0];
-  switch (ConstraintLetter) {
+  
+  switch (char ConstraintLetter = Constraint[0]; ConstraintLetter) {
   default: break; // This will fall through to the generic implementation
   case 'I': // Signed 16 bit constant
     // If this fails, the parent routine will give an error
     if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
       EVT Type = Op.getValueType();
-      int64_t Val = C->getSExtValue();
-      if (isInt<16>(Val)) {
+      
+      if (int64_t Val = C->getSExtValue(); isInt<16>(Val)) {
         Result = DAG.getSignedTargetConstant(Val, DL, Type);
         break;
       }
@@ -4452,8 +4452,8 @@ void MipsTargetLowering::LowerAsmOperandForConstraint(SDValue Op,
   case 'J': // integer zero
     if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
       EVT Type = Op.getValueType();
-      int64_t Val = C->getZExtValue();
-      if (Val == 0) {
+      
+      if (int64_t Val = C->getZExtValue(); Val == 0) {
         Result = DAG.getTargetConstant(0, DL, Type);
         break;
       }
@@ -4462,8 +4462,8 @@ void MipsTargetLowering::LowerAsmOperandForConstraint(SDValue Op,
   case 'K': // unsigned 16 bit immediate
     if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
       EVT Type = Op.getValueType();
-      uint64_t Val = C->getZExtValue();
-      if (isUInt<16>(Val)) {
+      
+      if (uint64_t Val = C->getZExtValue(); isUInt<16>(Val)) {
         Result = DAG.getTargetConstant(Val, DL, Type);
         break;
       }
@@ -4472,8 +4472,8 @@ void MipsTargetLowering::LowerAsmOperandForConstraint(SDValue Op,
   case 'L': // signed 32 bit immediate where lower 16 bits are 0
     if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
       EVT Type = Op.getValueType();
-      int64_t Val = C->getSExtValue();
-      if ((isInt<32>(Val)) && ((Val & 0xffff) == 0)){
+      
+      if (int64_t Val = C->getSExtValue(); (isInt<32>(Val)) && ((Val & 0xffff) == 0)){
         Result = DAG.getSignedTargetConstant(Val, DL, Type);
         break;
       }
@@ -4482,8 +4482,8 @@ void MipsTargetLowering::LowerAsmOperandForConstraint(SDValue Op,
   case 'N': // immediate in the range of -65535 to -1 (inclusive)
     if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
       EVT Type = Op.getValueType();
-      int64_t Val = C->getSExtValue();
-      if ((Val >= -65535) && (Val <= -1)) {
+      
+      if (int64_t Val = C->getSExtValue(); (Val >= -65535) && (Val <= -1)) {
         Result = DAG.getSignedTargetConstant(Val, DL, Type);
         break;
       }
@@ -4492,8 +4492,8 @@ void MipsTargetLowering::LowerAsmOperandForConstraint(SDValue Op,
   case 'O': // signed 15 bit immediate
     if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
       EVT Type = Op.getValueType();
-      int64_t Val = C->getSExtValue();
-      if ((isInt<15>(Val))) {
+      
+      if (int64_t Val = C->getSExtValue(); (isInt<15>(Val))) {
         Result = DAG.getSignedTargetConstant(Val, DL, Type);
         break;
       }
@@ -4502,8 +4502,8 @@ void MipsTargetLowering::LowerAsmOperandForConstraint(SDValue Op,
   case 'P': // immediate in the range of 1 to 65535 (inclusive)
     if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
       EVT Type = Op.getValueType();
-      int64_t Val = C->getSExtValue();
-      if ((Val <= 65535) && (Val >= 1)) {
+      
+      if (int64_t Val = C->getSExtValue(); (Val <= 65535) && (Val >= 1)) {
         Result = DAG.getTargetConstant(Val, DL, Type);
         break;
       }
@@ -4659,9 +4659,9 @@ void MipsTargetLowering::passByValArg(
       std::min(Flags.getNonZeroByValAlign(), Align(RegSizeInBytes));
   EVT PtrTy = getPointerTy(DAG.getDataLayout()),
       RegTy = MVT::getIntegerVT(RegSizeInBytes * 8);
-  unsigned NumRegs = LastReg - FirstReg;
+  
 
-  if (NumRegs) {
+  if (unsigned NumRegs = LastReg - FirstReg; NumRegs) {
     ArrayRef<MCPhysReg> ArgRegs = ABI.GetByValArgRegs();
     bool LeftoverBytes = (NumRegs * RegSizeInBytes > ByValSizeInBytes);
     unsigned I = 0;
@@ -4687,9 +4687,9 @@ void MipsTargetLowering::passByValArg(
 
       for (unsigned LoadSizeInBytes = RegSizeInBytes / 2, TotalBytesLoaded = 0;
            OffsetInBytes < ByValSizeInBytes; LoadSizeInBytes /= 2) {
-        unsigned RemainingSizeInBytes = ByValSizeInBytes - OffsetInBytes;
+        
 
-        if (RemainingSizeInBytes < LoadSizeInBytes)
+        if (unsigned RemainingSizeInBytes = ByValSizeInBytes - OffsetInBytes; RemainingSizeInBytes < LoadSizeInBytes)
           continue;
 
         // Load subword.

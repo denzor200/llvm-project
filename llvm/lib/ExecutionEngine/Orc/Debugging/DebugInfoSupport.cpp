@@ -38,8 +38,8 @@ static void preserveDWARFSection(LinkGraph &G, Section &Sec) {
       It->second = Sym;
   }
   for (auto Block : Sec.blocks()) {
-    auto &PSym = Preserved[Block];
-    if (!PSym)
+    
+    if (auto &PSym = Preserved[Block]; !PSym)
       PSym = &G.addAnonymousSymbol(*Block, 0, 0, false, true);
     else if (!PSym->isLive())
       PSym->setLive(true);

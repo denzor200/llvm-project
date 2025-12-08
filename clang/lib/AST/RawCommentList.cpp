@@ -23,8 +23,8 @@ namespace {
 /// Get comment kind and bool describing if it is a trailing comment.
 std::pair<RawComment::CommentKind, bool> getCommentKind(StringRef Comment,
                                                         bool ParseAllComments) {
-  const size_t MinCommentLength = ParseAllComments ? 2 : 3;
-  if ((Comment.size() < MinCommentLength) || Comment[0] != '/')
+  
+  if (const size_t MinCommentLength = ParseAllComments ? 2 : 3; (Comment.size() < MinCommentLength) || Comment[0] != '/')
     return std::make_pair(RawComment::RCK_Invalid, false);
 
   RawComment::CommentKind K;
@@ -70,8 +70,8 @@ bool commentsStartOnSameColumn(const SourceManager &SM, const RawComment &R1,
   SourceLocation L1 = R1.getBeginLoc();
   SourceLocation L2 = R2.getBeginLoc();
   bool Invalid = false;
-  unsigned C1 = SM.getPresumedColumnNumber(L1, &Invalid);
-  if (!Invalid) {
+  
+  if (unsigned C1 = SM.getPresumedColumnNumber(L1, &Invalid); !Invalid) {
     unsigned C2 = SM.getPresumedColumnNumber(L2, &Invalid);
     return !Invalid && (C1 == C2);
   }

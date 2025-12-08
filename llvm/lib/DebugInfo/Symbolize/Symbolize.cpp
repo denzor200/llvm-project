@@ -636,9 +636,9 @@ Expected<SymbolizableModule *>
 LLVMSymbolizer::getOrCreateModuleInfo(StringRef ModuleName) {
   StringRef BinaryName = ModuleName;
   StringRef ArchName = Opts.DefaultArch;
-  size_t ColonPos = ModuleName.find_last_of(':');
+  
   // Verify that substring after colon form a valid arch name.
-  if (ColonPos != std::string::npos) {
+  if (size_t ColonPos = ModuleName.find_last_of(':'); ColonPos != std::string::npos) {
     StringRef ArchStr = ModuleName.substr(ColonPos + 1);
     if (Triple(ArchStr).getArch() != Triple::UnknownArch) {
       BinaryName = ModuleName.substr(0, ColonPos);
@@ -686,13 +686,13 @@ LLVMSymbolizer::getOrCreateModuleInfo(StringRef ModuleName) {
       StringRef PDBFileName;
       auto EC = CoffObject->getDebugPDBInfo(DebugInfo, PDBFileName);
       // Use DWARF if there're DWARF sections.
-      bool HasDwarf = llvm::any_of(
+      
+      if (bool HasDwarf = llvm::any_of(
           Objects.first->sections(), [](SectionRef Section) -> bool {
             if (Expected<StringRef> SectionName = Section.getName())
               return SectionName.get() == ".debug_info";
             return false;
-          });
-      if (!EC && !HasDwarf && DebugInfo != nullptr && !PDBFileName.empty()) {
+          }); !EC && !HasDwarf && DebugInfo != nullptr && !PDBFileName.empty()) {
         using namespace pdb;
         std::unique_ptr<IPDBSession> Session;
 
@@ -770,8 +770,8 @@ StringRef demanglePE32ExternCFunc(StringRef SymbolName) {
   // Remove any '@[0-9]+' suffix.
   bool HasAtNumSuffix = false;
   if (Front != '?') {
-    size_t AtPos = SymbolName.rfind('@');
-    if (AtPos != StringRef::npos &&
+    
+    if (size_t AtPos = SymbolName.rfind('@'); AtPos != StringRef::npos &&
         all_of(drop_begin(SymbolName, AtPos + 1), isDigit)) {
       SymbolName = SymbolName.substr(0, AtPos);
       HasAtNumSuffix = true;

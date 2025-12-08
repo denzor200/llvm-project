@@ -116,10 +116,10 @@ bool GCNRegPressure::less(const MachineFunction &MF, const GCNRegPressure &O,
                                            DynamicVGPRBlockSize));
 
   const auto Occ = std::min(SGPROcc, VGPROcc);
-  const auto OtherOcc = std::min(OtherSGPROcc, OtherVGPROcc);
+  
 
   // Give first precedence to the better occupancy.
-  if (Occ != OtherOcc)
+  if (const auto OtherOcc = std::min(OtherSGPROcc, OtherVGPROcc); Occ != OtherOcc)
     return Occ > OtherOcc;
 
   unsigned MaxVGPRs = ST.getMaxNumVGPRs(MF);
@@ -188,16 +188,16 @@ bool GCNRegPressure::less(const MachineFunction &MF, const GCNRegPressure &O,
           std::max(static_cast<int>(getVGPRNum(ST.hasGFX90AInsts()) - MaxVGPRs),
                    0) +
           std::max(static_cast<int>(getVGPRNum(false) - MaxArchVGPRs), 0);
-      unsigned OtherPureExcessVGPR =
-          std::max(
-              static_cast<int>(O.getVGPRNum(ST.hasGFX90AInsts()) - MaxVGPRs),
-              0) +
-          std::max(static_cast<int>(O.getVGPRNum(false) - MaxArchVGPRs), 0);
+      
 
       // If we have a special case where there is a tie in excess VGPR, but one
       // of the pressures has VGPR usage from SGPR spills, prefer the pressure
       // with SGPR spills.
-      if (PureExcessVGPR != OtherPureExcessVGPR)
+      if (unsigned OtherPureExcessVGPR =
+          std::max(
+              static_cast<int>(O.getVGPRNum(ST.hasGFX90AInsts()) - MaxVGPRs),
+              0) +
+          std::max(static_cast<int>(O.getVGPRNum(false) - MaxArchVGPRs), 0); PureExcessVGPR != OtherPureExcessVGPR)
         return SGPRDiff < 0;
       // If both pressures have the same excess pressure before and after
       // accounting for SGPR spills, prefer fewer SGPR spills.
@@ -218,13 +218,13 @@ bool GCNRegPressure::less(const MachineFunction &MF, const GCNRegPressure &O,
   for (int I = 2; I > 0; --I, SGPRFirst = !SGPRFirst) {
     if (SGPRFirst) {
       auto SW = getSGPRTuplesWeight();
-      auto OtherSW = O.getSGPRTuplesWeight();
-      if (SW != OtherSW)
+      
+      if (auto OtherSW = O.getSGPRTuplesWeight(); SW != OtherSW)
         return SW < OtherSW;
     } else {
       auto VW = getVGPRTuplesWeight();
-      auto OtherVW = O.getVGPRTuplesWeight();
-      if (VW != OtherVW)
+      
+      if (auto OtherVW = O.getVGPRTuplesWeight(); VW != OtherVW)
         return VW < OtherVW;
     }
   }
@@ -346,9 +346,9 @@ static LaneBitmask findUseBetween(unsigned Reg, LaneBitmask LastUseMask,
       continue;
     const MachineInstr *MI = MO.getParent();
     SlotIndex InstSlot = LIS->getInstructionIndex(*MI).getRegSlot();
-    bool InRange = Upward ? (InstSlot > PriorUseIdx && InstSlot <= NextUseIdx)
-                          : (InstSlot >= PriorUseIdx && InstSlot < NextUseIdx);
-    if (!InRange)
+    
+    if (bool InRange = Upward ? (InstSlot > PriorUseIdx && InstSlot <= NextUseIdx)
+                          : (InstSlot >= PriorUseIdx && InstSlot < NextUseIdx); !InRange)
       continue;
 
     unsigned SubRegIdx = MO.getSubReg();
@@ -617,8 +617,8 @@ bool GCNDownwardRPTracker::advanceBeforeNext(MachineInstr *MI,
       continue;
     if (!SeenRegs.insert(MO.getReg()).second)
       continue;
-    const LiveInterval &LI = LIS.getInterval(MO.getReg());
-    if (LI.hasSubRanges()) {
+    
+    if (const LiveInterval &LI = LIS.getInterval(MO.getReg()); LI.hasSubRanges()) {
       auto It = LiveRegs.end();
       for (const auto &S : LI.subranges()) {
         if (!S.liveAt(SI)) {
@@ -790,9 +790,9 @@ GCNDownwardRPTracker::bumpDownwardPressure(const MachineInstr *MI,
 bool GCNUpwardRPTracker::isValid() const {
   const auto &SI = LIS.getInstructionIndex(*LastTrackedMI).getBaseIndex();
   const auto LISLR = llvm::getLiveRegs(SI, LIS, *MRI);
-  const auto &TrackedLR = LiveRegs;
+  
 
-  if (!isEqual(LISLR, TrackedLR)) {
+  if (const auto &TrackedLR = LiveRegs; !isEqual(LISLR, TrackedLR)) {
     dbgs() << "\nGCNUpwardRPTracker error: Tracked and"
               " LIS reported livesets mismatch:\n"
            << print(LISLR, *MRI);
@@ -848,8 +848,8 @@ getRegLiveThroughMask(const MachineRegisterInfo &MRI, const LiveIntervals &LIS,
   };
 
   LaneBitmask LiveThroughMask;
-  const LiveInterval &LI = LIS.getInterval(Reg);
-  if (LI.hasSubRanges()) {
+  
+  if (const LiveInterval &LI = LIS.getInterval(Reg); LI.hasSubRanges()) {
     for (auto &SR : LI.subranges()) {
       if ((SR.LaneMask & Mask) == SR.LaneMask && IsInOneSegment(SR))
         LiveThroughMask |= SR.LaneMask;

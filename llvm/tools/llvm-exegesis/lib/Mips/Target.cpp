@@ -98,8 +98,8 @@ static std::vector<MCInst> loadImmediate(MCRegister Reg, bool IsGPR32,
 
   std::vector<MCInst> Instructions;
   if (Value.isIntN(32)) {
-    const uint16_t HiBits = Value.getHiBits(16).getZExtValue();
-    if (!IsGPR32 && Value.getActiveBits() == 32) {
+    
+    if (const uint16_t HiBits = Value.getHiBits(16).getZExtValue(); !IsGPR32 && Value.getActiveBits() == 32) {
       // Expand to an ORi instead of a LUi to avoid sign-extending into the
       // upper 32 bits.
       Instructions.push_back(

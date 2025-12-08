@@ -124,10 +124,10 @@ void IntegerTypesCheck::check(const MatchFinder::MatchResult &Result) {
 
   bool IsSigned = false;
   unsigned Width = 0;
-  const TargetInfo &TargetInfo = Result.Context->getTargetInfo();
+  
 
   // Look for uses of short, long, long long and their unsigned versions.
-  switch (BuiltinLoc.getTypePtr()->getKind()) {
+  switch (const TargetInfo &TargetInfo = Result.Context->getTargetInfo(); BuiltinLoc.getTypePtr()->getKind()) {
   case BuiltinType::Short:
     Width = TargetInfo.getShortWidth();
     IsSigned = true;
@@ -159,8 +159,8 @@ void IntegerTypesCheck::check(const MatchFinder::MatchResult &Result) {
   // We allow "unsigned short port" as that's reasonably common and required by
   // the sockets API.
   const StringRef Port = "unsigned short port";
-  const char *Data = Result.SourceManager->getCharacterData(Loc);
-  if (!std::strncmp(Data, Port.data(), Port.size()) &&
+  
+  if (const char *Data = Result.SourceManager->getCharacterData(Loc); !std::strncmp(Data, Port.data(), Port.size()) &&
       !isAsciiIdentifierContinue(Data[Port.size()]))
     return;
 

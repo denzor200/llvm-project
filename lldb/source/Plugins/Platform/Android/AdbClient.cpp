@@ -349,10 +349,10 @@ Status AdbClient::ReadMessageStream(std::vector<char> &message,
     if (elapsed >= timeout)
       return Status::FromErrorString("Timed out");
 
-    size_t n = m_conn->Read(buffer, sizeof(buffer),
+    
+    if (size_t n = m_conn->Read(buffer, sizeof(buffer),
                             duration_cast<microseconds>(timeout - elapsed),
-                            status, &error);
-    if (n > 0)
+                            status, &error); n > 0)
       message.insert(message.end(), &buffer[0], &buffer[n]);
   }
   return error;
@@ -383,8 +383,8 @@ Status AdbClient::internalShell(const char *command, milliseconds timeout,
 
   // ADB doesn't propagate return code of shell execution - if
   // output starts with /system/bin/sh: most likely command failed.
-  static const char *kShellPrefix = "/system/bin/sh:";
-  if (output_buf.size() > strlen(kShellPrefix)) {
+  
+  if (static const char *kShellPrefix = "/system/bin/sh:"; output_buf.size() > strlen(kShellPrefix)) {
     if (!memcmp(&output_buf[0], kShellPrefix, strlen(kShellPrefix)))
       return Status::FromErrorStringWithFormat(
           "Shell command %s failed: %s", command,

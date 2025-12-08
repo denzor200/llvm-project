@@ -682,10 +682,10 @@ InstrumentationRuntimeTSan::GenerateSummary(StructuredData::ObjectSP report) {
         summary = summary + " at " + Sprintf("0x%llx", addr);
       }
     } else {
-      int fd = loc->GetAsDictionary()
+      
+      if (int fd = loc->GetAsDictionary()
                    ->GetValueForKey("file_descriptor")
-                   ->GetSignedIntegerValue();
-      if (fd != 0) {
+                   ->GetSignedIntegerValue(); fd != 0) {
         summary = summary + " on file descriptor " + Sprintf("%d", fd);
       }
     }
@@ -700,9 +700,9 @@ addr_t InstrumentationRuntimeTSan::GetMainRacyAddress(
 
   report->GetObjectForDotSeparatedPath("mops")->GetAsArray()->ForEach(
       [&result](StructuredData::Object *o) -> bool {
-        addr_t addr = o->GetObjectForDotSeparatedPath("address")
-                          ->GetUnsignedIntegerValue();
-        if (addr < result)
+        
+        if (addr_t addr = o->GetObjectForDotSeparatedPath("address")
+                          ->GetUnsignedIntegerValue(); addr < result)
           result = addr;
         return true;
       });
@@ -845,9 +845,9 @@ bool InstrumentationRuntimeTSan::NotifyBreakpointHit(
     report->GetObjectForDotSeparatedPath("mops")->GetAsArray()->ForEach(
         [&all_addresses_are_same,
          main_address](StructuredData::Object *o) -> bool {
-          addr_t addr = o->GetObjectForDotSeparatedPath("address")
-                            ->GetUnsignedIntegerValue();
-          if (main_address != addr)
+          
+          if (addr_t addr = o->GetObjectForDotSeparatedPath("address")
+                            ->GetUnsignedIntegerValue(); main_address != addr)
             all_addresses_are_same = false;
           return true;
         });
@@ -987,9 +987,9 @@ static std::string GenerateThreadName(const std::string &path,
         o->GetAsDictionary()->GetValueForKey("type")->GetStringValue());
     lldb::tid_t thread_id =
         o->GetObjectForDotSeparatedPath("thread_id")->GetUnsignedIntegerValue();
-    int fd = o->GetObjectForDotSeparatedPath("file_descriptor")
-                 ->GetSignedIntegerValue();
-    if (type == "heap") {
+    
+    if (int fd = o->GetObjectForDotSeparatedPath("file_descriptor")
+                 ->GetSignedIntegerValue(); type == "heap") {
       result = Sprintf("Heap block allocated by thread %" PRIu64, thread_id);
     } else if (type == "fd") {
       result = Sprintf("File descriptor %d created by thread %" PRIu64, fd,

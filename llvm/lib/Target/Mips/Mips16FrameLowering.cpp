@@ -106,9 +106,9 @@ bool Mips16FrameLowering::spillCalleeSavedRegisters(
     // It's killed at the spill, unless the register is RA and return address
     // is taken.
     MCRegister Reg = I.getReg();
-    bool IsRAAndRetAddrIsTaken = (Reg == Mips::RA)
-      && MF->getFrameInfo().isReturnAddressTaken();
-    if (!IsRAAndRetAddrIsTaken)
+    
+    if (bool IsRAAndRetAddrIsTaken = (Reg == Mips::RA)
+      && MF->getFrameInfo().isReturnAddressTaken(); !IsRAAndRetAddrIsTaken)
       MBB.addLiveIn(Reg);
   }
 
@@ -144,8 +144,8 @@ void Mips16FrameLowering::determineCalleeSaves(MachineFunction &MF,
       *static_cast<const Mips16InstrInfo *>(STI.getInstrInfo());
   const MipsRegisterInfo &RI = TII.getRegisterInfo();
   const BitVector Reserved = RI.getReservedRegs(MF);
-  bool SaveS2 = Reserved[Mips::S2];
-  if (SaveS2)
+  
+  if (bool SaveS2 = Reserved[Mips::S2]; SaveS2)
     SavedRegs.set(Mips::S2);
   if (hasFP(MF))
     SavedRegs.set(Mips::S0);

@@ -395,8 +395,8 @@ CGHLSLOffsetInfo CGHLSLOffsetInfo::fromDecl(const HLSLBufferDecl &BufDecl) {
         Offset = POA->getOffsetInBytes();
         break;
       }
-      auto *RBA = dyn_cast<HLSLResourceBindingAttr>(Attr);
-      if (RBA &&
+      
+      if (auto *RBA = dyn_cast<HLSLResourceBindingAttr>(Attr); RBA &&
           RBA->getRegisterType() == HLSLResourceBindingAttr::RegisterType::C) {
         Offset = RBA->getSlotNumber() * CBufferRowSizeInBytes;
         break;
@@ -1107,10 +1107,10 @@ void CGHLSLRuntime::initializeBufferFromBinding(const HLSLBufferDecl *BufDecl,
   auto *Index = llvm::ConstantInt::get(CGM.IntTy, 0);
   auto *RangeSize = llvm::ConstantInt::get(CGM.IntTy, 1);
   auto *Space = llvm::ConstantInt::get(CGM.IntTy, Binding.getSpace());
-  Value *Name = buildNameForResource(BufDecl->getName(), CGM);
+  
 
   // buffer with explicit binding
-  if (Binding.isExplicit()) {
+  if (Value *Name = buildNameForResource(BufDecl->getName(), CGM); Binding.isExplicit()) {
     llvm::Intrinsic::ID IntrinsicID =
         CGM.getHLSLRuntime().getCreateHandleFromBindingIntrinsic();
     auto *RegSlot = llvm::ConstantInt::get(CGM.IntTy, Binding.getSlot());
@@ -1139,8 +1139,8 @@ llvm::Instruction *CGHLSLRuntime::getConvergenceToken(BasicBlock &BB) {
 
   auto E = BB.end();
   for (auto I = BB.begin(); I != E; ++I) {
-    auto *II = dyn_cast<llvm::IntrinsicInst>(&*I);
-    if (II && llvm::isConvergenceControlIntrinsic(II->getIntrinsicID())) {
+    
+    if (auto *II = dyn_cast<llvm::IntrinsicInst>(&*I); II && llvm::isConvergenceControlIntrinsic(II->getIntrinsicID())) {
       return II;
     }
   }
@@ -1313,8 +1313,8 @@ std::optional<LValue> CGHLSLRuntime::emitBufferArraySubscriptExpr(
 
   // If the layout type doesn't introduce any padding, we don't need to do
   // anything special.
-  llvm::Type *OrigTy = CGF.CGM.getTypes().ConvertTypeForMem(E->getType());
-  if (LayoutTy == OrigTy)
+  
+  if (llvm::Type *OrigTy = CGF.CGM.getTypes().ConvertTypeForMem(E->getType()); LayoutTy == OrigTy)
     return std::nullopt;
 
   LValueBaseInfo EltBaseInfo;
@@ -1450,8 +1450,8 @@ class HLSLBufferCopyEmitter {
     // Copy the struct field by field, but skip any explicit padding.
     unsigned Skipped = 0;
     for (unsigned I = 0, E = ST->getNumElements(); I < E; ++I) {
-      llvm::Type *ElementTy = ST->getElementType(I);
-      if (CGF.CGM.getTargetCodeGenInfo().isHLSLPadding(ElementTy))
+      
+      if (llvm::Type *ElementTy = ST->getElementType(I); CGF.CGM.getTargetCodeGenInfo().isHLSLPadding(ElementTy))
         ++Skipped;
       else
         emitCopyAtIndices(ElementTy, llvm::ConstantInt::get(CGF.Int32Ty, I),

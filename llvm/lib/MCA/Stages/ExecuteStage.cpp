@@ -129,8 +129,8 @@ Error ExecuteStage::cycleEnd() {
     return ErrorSuccess();
 
   SmallVector<InstRef, 8> Insts;
-  uint64_t Mask = HWS.analyzeResourcePressure(Insts);
-  if (Mask) {
+  
+  if (uint64_t Mask = HWS.analyzeResourcePressure(Insts); Mask) {
     LLVM_DEBUG(dbgs() << "[E] Backpressure increased because of unavailable "
                          "pipeline resources: "
                       << format_hex(Mask, 16) << '\n');

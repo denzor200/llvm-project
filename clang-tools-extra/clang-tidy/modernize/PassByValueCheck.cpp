@@ -178,12 +178,12 @@ static bool hasRValueOverload(const CXXConstructorDecl *Ctor,
           C->parameters()[I]->getType().getCanonicalType();
       const clang::QualType CtorParamType =
           Ctor->parameters()[I]->getType().getCanonicalType();
-      const bool IsLValueRValuePair =
+      
+      if (const bool IsLValueRValuePair =
           CtorParamType->isLValueReferenceType() &&
           CandidateParamType->isRValueReferenceType() &&
           CandidateParamType->getPointeeType()->getUnqualifiedDesugaredType() ==
-              CtorParamType->getPointeeType()->getUnqualifiedDesugaredType();
-      if (I == ParamIdx) {
+              CtorParamType->getPointeeType()->getUnqualifiedDesugaredType(); I == ParamIdx) {
         // The parameter of interest must be paired.
         if (!IsLValueRValuePair)
           return false;

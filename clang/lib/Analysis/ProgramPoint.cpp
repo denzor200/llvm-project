@@ -237,8 +237,8 @@ void ProgramPoint::printJson(llvm::raw_ostream &Out, const char *NL) const {
 
   case ProgramPoint::PostInitializerKind: {
     Out << "PostInitializer\", ";
-    const CXXCtorInitializer *Init = castAs<PostInitializer>().getInitializer();
-    if (const FieldDecl *FD = Init->getAnyMember()) {
+    
+    if (const CXXCtorInitializer *Init = castAs<PostInitializer>().getInitializer(); const FieldDecl *FD = Init->getAnyMember()) {
       Out << "\"field_decl\": \"" << *FD << '\"';
     } else {
       Out << "\"type\": \"";

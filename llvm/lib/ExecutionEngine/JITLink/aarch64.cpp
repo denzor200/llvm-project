@@ -350,9 +350,9 @@ Error lowerPointer64AuthEdgesToSigningFunction(LinkGraph &G) {
         uint32_t InitialDiscriminator = (EncodedInfo >> 32) & 0xffff;
         bool AddressDiversify = (EncodedInfo >> 48) & 0x1;
         uint32_t Key = (EncodedInfo >> 49) & 0x3;
-        uint32_t HighBits = EncodedInfo >> 51;
+        
 
-        if (HighBits != 0x1000)
+        if (uint32_t HighBits = EncodedInfo >> 51; HighBits != 0x1000)
           return make_error<JITLinkError>(
               "Pointer64Auth edge at " +
               formatv("{0:x}", B->getFixupAddress(E).getValue()) +

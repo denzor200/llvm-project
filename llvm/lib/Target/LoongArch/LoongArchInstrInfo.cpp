@@ -231,9 +231,9 @@ void LoongArchInstrInfo::movImm(MachineBasicBlock &MBB,
 }
 
 unsigned LoongArchInstrInfo::getInstSizeInBytes(const MachineInstr &MI) const {
-  unsigned Opcode = MI.getOpcode();
+  
 
-  if (Opcode == TargetOpcode::INLINEASM ||
+  if (unsigned Opcode = MI.getOpcode(); Opcode == TargetOpcode::INLINEASM ||
       Opcode == TargetOpcode::INLINEASM_BR) {
     const MachineFunction *MF = MI.getParent()->getParent();
     const MCAsmInfo *MAI = MF->getTarget().getMCAsmInfo();
@@ -241,12 +241,12 @@ unsigned LoongArchInstrInfo::getInstSizeInBytes(const MachineInstr &MI) const {
   }
 
   unsigned NumBytes = 0;
-  const MCInstrDesc &Desc = MI.getDesc();
+  
 
   // Size should be preferably set in
   // llvm/lib/Target/LoongArch/LoongArch*InstrInfo.td (default case).
   // Specific cases handle instructions of variable sizes.
-  switch (Desc.getOpcode()) {
+  switch (const MCInstrDesc &Desc = MI.getDesc(); Desc.getOpcode()) {
   default:
     return Desc.getSize();
   case TargetOpcode::STATEPOINT:
@@ -261,8 +261,8 @@ unsigned LoongArchInstrInfo::getInstSizeInBytes(const MachineInstr &MI) const {
 }
 
 bool LoongArchInstrInfo::isAsCheapAsAMove(const MachineInstr &MI) const {
-  const unsigned Opcode = MI.getOpcode();
-  switch (Opcode) {
+  
+  switch (const unsigned Opcode = MI.getOpcode(); Opcode) {
   default:
     break;
   case LoongArch::ADDI_D:
@@ -441,8 +441,8 @@ bool LoongArchInstrInfo::isSafeToMove(const MachineInstr &MI,
     break;
   }
   case LoongArch::LU52I_D: {
-    auto MO = MI.getOperand(2).getTargetFlags();
-    if (MO == LoongArchII::MO_PCREL64_HI || MO == LoongArchII::MO_GOT_PC64_HI ||
+    
+    if (auto MO = MI.getOperand(2).getTargetFlags(); MO == LoongArchII::MO_PCREL64_HI || MO == LoongArchII::MO_GOT_PC64_HI ||
         MO == LoongArchII::MO_IE_PC64_HI || MO == LoongArchII::MO_DESC64_PC_HI)
       return false;
     break;
@@ -451,8 +451,8 @@ bool LoongArchInstrInfo::isSafeToMove(const MachineInstr &MI,
     break;
   }
 
-  const auto &STI = MF.getSubtarget<LoongArchSubtarget>();
-  if (STI.hasFeature(LoongArch::FeatureRelax)) {
+  
+  if (const auto &STI = MF.getSubtarget<LoongArchSubtarget>(); STI.hasFeature(LoongArch::FeatureRelax)) {
     // When linker relaxation enabled, the following instruction patterns are
     // prohibited from being reordered:
     //
@@ -470,8 +470,8 @@ bool LoongArchInstrInfo::isSafeToMove(const MachineInstr &MI,
     //   ld.w/d    $ra, $a0, %desc_ld(s)
     //   jirl      $ra, $ra, %desc_call(s)
     unsigned AddiOp = STI.is64Bit() ? LoongArch::ADDI_D : LoongArch::ADDI_W;
-    unsigned LdOp = STI.is64Bit() ? LoongArch::LD_D : LoongArch::LD_W;
-    switch (MI.getOpcode()) {
+    
+    switch (unsigned LdOp = STI.is64Bit() ? LoongArch::LD_D : LoongArch::LD_W; MI.getOpcode()) {
     case LoongArch::PCALAU12I: {
       auto MO0 = LoongArchII::getDirectFlags(MI.getOperand(1));
       auto SecondOp = std::next(MII);
@@ -482,8 +482,8 @@ bool LoongArchInstrInfo::isSafeToMove(const MachineInstr &MI,
         if (Ld == MIE || Ld->getOpcode() != LdOp)
           break;
         auto MO1 = LoongArchII::getDirectFlags(SecondOp->getOperand(2));
-        auto MO2 = LoongArchII::getDirectFlags(Ld->getOperand(2));
-        if (MO1 == LoongArchII::MO_DESC_PC_LO && MO2 == LoongArchII::MO_DESC_LD)
+        
+        if (auto MO2 = LoongArchII::getDirectFlags(Ld->getOperand(2)); MO1 == LoongArchII::MO_DESC_PC_LO && MO2 == LoongArchII::MO_DESC_LD)
           return false;
         break;
       }
@@ -505,21 +505,21 @@ bool LoongArchInstrInfo::isSafeToMove(const MachineInstr &MI,
     }
     case LoongArch::ADDI_W:
     case LoongArch::ADDI_D: {
-      auto MO = LoongArchII::getDirectFlags(MI.getOperand(2));
-      if (MO == LoongArchII::MO_PCREL_LO || MO == LoongArchII::MO_GOT_PC_LO)
+      
+      if (auto MO = LoongArchII::getDirectFlags(MI.getOperand(2)); MO == LoongArchII::MO_PCREL_LO || MO == LoongArchII::MO_GOT_PC_LO)
         return false;
       break;
     }
     case LoongArch::LD_W:
     case LoongArch::LD_D: {
-      auto MO = LoongArchII::getDirectFlags(MI.getOperand(2));
-      if (MO == LoongArchII::MO_GOT_PC_LO)
+      
+      if (auto MO = LoongArchII::getDirectFlags(MI.getOperand(2)); MO == LoongArchII::MO_GOT_PC_LO)
         return false;
       break;
     }
     case LoongArch::PseudoDESC_CALL: {
-      auto MO = LoongArchII::getDirectFlags(MI.getOperand(2));
-      if (MO == LoongArchII::MO_DESC_CALL)
+      
+      if (auto MO = LoongArchII::getDirectFlags(MI.getOperand(2)); MO == LoongArchII::MO_DESC_CALL)
         return false;
       break;
     }
@@ -886,8 +886,8 @@ LoongArchInstrInfo::emitLdStWithAddr(MachineInstr &MemI,
   assert(AM.ScaledReg == 0 && AM.Scale == 0 &&
          "Addressing mode not supported for folding");
 
-  unsigned MemIOp = MemI.getOpcode();
-  switch (MemIOp) {
+  
+  switch (unsigned MemIOp = MemI.getOpcode(); MemIOp) {
   default:
     return BuildMI(MBB, MemI, DL, get(MemIOp))
         .addReg(MemI.getOperand(0).getReg(),

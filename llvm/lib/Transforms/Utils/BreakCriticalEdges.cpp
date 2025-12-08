@@ -304,9 +304,9 @@ llvm::SplitKnownCriticalEdge(Instruction *TI, unsigned SuccNum,
 
         if (!LoopPreds.empty()) {
           assert(!DestBB->isEHPad() && "We don't split edges to EH pads!");
-          BasicBlock *NewExitBB = SplitBlockPredecessors(
-              DestBB, LoopPreds, "split", DT, LI, MSSAU, Options.PreserveLCSSA);
-          if (Options.PreserveLCSSA)
+          
+          if (BasicBlock *NewExitBB = SplitBlockPredecessors(
+              DestBB, LoopPreds, "split", DT, LI, MSSAU, Options.PreserveLCSSA); Options.PreserveLCSSA)
             createPHIsForSplitLoopExit(LoopPreds, NewExitBB, DestBB);
         }
       }
@@ -327,8 +327,8 @@ findIBRPredecessor(BasicBlock *BB, SmallVectorImpl<BasicBlock *> &OtherPreds) {
   // terminator (that is, not a switch or a br).
   BasicBlock *IBB = nullptr;
   for (BasicBlock *PredBB : predecessors(BB)) {
-    Instruction *PredTerm = PredBB->getTerminator();
-    switch (PredTerm->getOpcode()) {
+    
+    switch (Instruction *PredTerm = PredBB->getTerminator(); PredTerm->getOpcode()) {
     case Instruction::IndirectBr:
       if (IBB)
         return nullptr;

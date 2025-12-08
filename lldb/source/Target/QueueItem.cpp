@@ -97,8 +97,8 @@ void QueueItem::FetchEntireItem() {
     return;
   ProcessSP process_sp = m_process_wp.lock();
   if (process_sp) {
-    SystemRuntime *runtime = process_sp->GetSystemRuntime();
-    if (runtime) {
+    
+    if (SystemRuntime *runtime = process_sp->GetSystemRuntime(); runtime) {
       runtime->CompleteQueueItem(this, m_item_ref);
       m_have_fetched_entire_item = true;
     }

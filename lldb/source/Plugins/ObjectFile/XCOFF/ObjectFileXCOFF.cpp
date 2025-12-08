@@ -258,8 +258,8 @@ void ObjectFileXCOFF::ParseSymtab(Symtab &lldb_symtab) {
 
     int16_t sectionNumber = xcoff_sym_ref.getSectionNumber();
     // Note that XCOFF section headers are numbered from 1 and not 0.
-    size_t sectionIndex = static_cast<size_t>(sectionNumber - 1);
-    if (sectionNumber > 0) {
+    
+    if (size_t sectionIndex = static_cast<size_t>(sectionNumber - 1); sectionNumber > 0) {
       if (sectionIndex < sectionList->GetSize()) {
 
         lldb::SectionSP section_sp =

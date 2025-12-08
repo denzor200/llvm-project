@@ -428,8 +428,8 @@ DeadArgumentEliminationPass::surveyUse(const Use *U, UseVector &MaybeLiveUses,
   }
 
   if (const auto *CB = dyn_cast<CallBase>(V)) {
-    const Function *F = CB->getCalledFunction();
-    if (F) {
+    
+    if (const Function *F = CB->getCalledFunction(); F) {
       // Used in a direct call.
 
       // The function argument is live if it is used as a bundle operand.
@@ -567,8 +567,8 @@ void DeadArgumentEliminationPass::surveyFunction(const Function &F) {
       if (ExtractValueInst *Ext = dyn_cast<ExtractValueInst>(UU.getUser())) {
         // This use uses a part of our return value, survey the uses of
         // that part and store the results for this index only.
-        unsigned Idx = *Ext->idx_begin();
-        if (RetValLiveness[Idx] != Live) {
+        
+        if (unsigned Idx = *Ext->idx_begin(); RetValLiveness[Idx] != Live) {
           RetValLiveness[Idx] = surveyUses(Ext, MaybeLiveRetUses[Idx]);
           if (RetValLiveness[Idx] == Live)
             NumLiveRetVals++;
@@ -1056,9 +1056,9 @@ bool DeadArgumentEliminationPass::removeDeadStuffFromFunction(Function *F) {
           RetVal = PoisonValue::get(NRetTy);
           for (unsigned RetI = 0; RetI != RetCount; ++RetI)
             if (NewRetIdxs[RetI] != -1) {
-              Value *EV = IRB.CreateExtractValue(OldRet, RetI, "oldret");
+              
 
-              if (RetTypes.size() > 1) {
+              if (Value *EV = IRB.CreateExtractValue(OldRet, RetI, "oldret"); RetTypes.size() > 1) {
                 // We're still returning a struct, so reinsert the value into
                 // our new return value at the new index
 

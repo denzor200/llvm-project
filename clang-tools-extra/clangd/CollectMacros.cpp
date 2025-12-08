@@ -39,8 +39,8 @@ void CollectMainFileMacros::add(const Token &MacroNameTok, const MacroInfo *MI,
   auto Name = MacroNameTok.getIdentifierInfo()->getName();
   Out.Names.insert(Name);
   size_t Start = SM.getFileOffset(Loc);
-  size_t End = SM.getFileOffset(MacroNameTok.getEndLoc());
-  if (auto SID = getSymbolID(Name, MI, SM))
+  
+  if (size_t End = SM.getFileOffset(MacroNameTok.getEndLoc()); auto SID = getSymbolID(Name, MI, SM))
     Out.MacroRefs[SID].push_back({Start, End, IsDefinition, InIfCondition});
   else
     Out.UnknownMacros.push_back({Start, End, IsDefinition, InIfCondition});

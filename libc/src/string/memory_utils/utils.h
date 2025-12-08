@@ -231,11 +231,11 @@ template <typename T> LIBC_INLINE void store(Ptr ptr, T value) {
 template <typename ValueType, typename T, typename... TS>
 LIBC_INLINE ValueType load_aligned(CPtr src) {
   static_assert(sizeof(ValueType) >= (sizeof(T) + ... + sizeof(TS)));
-  const ValueType value = load<T>(assume_aligned<sizeof(T)>(src));
-  if constexpr (sizeof...(TS) > 0) {
+  
+  if constexpr (const ValueType value = load<T>(assume_aligned<sizeof(T)>(src)); sizeof...(TS) > 0) {
     constexpr size_t SHIFT = sizeof(T) * 8;
-    const ValueType next = load_aligned<ValueType, TS...>(src + sizeof(T));
-    if constexpr (Endian::IS_LITTLE)
+    
+    if constexpr (const ValueType next = load_aligned<ValueType, TS...>(src + sizeof(T)); Endian::IS_LITTLE)
       return value | (next << SHIFT);
     else if constexpr (Endian::IS_BIG)
       return (value << SHIFT) | next;
@@ -266,8 +266,8 @@ LIBC_INLINE auto load64_aligned(CPtr src, size_t offset) {
 template <typename ValueType, typename T, typename... TS>
 LIBC_INLINE void store_aligned(ValueType value, Ptr dst) {
   static_assert(sizeof(ValueType) >= (sizeof(T) + ... + sizeof(TS)));
-  constexpr size_t SHIFT = sizeof(T) * 8;
-  if constexpr (Endian::IS_LITTLE) {
+  
+  if constexpr (constexpr size_t SHIFT = sizeof(T) * 8; Endian::IS_LITTLE) {
     store<T>(assume_aligned<sizeof(T)>(dst), T(value & T(~0)));
     if constexpr (sizeof...(TS) > 0)
       store_aligned<ValueType, TS...>(value >> SHIFT, dst + sizeof(T));

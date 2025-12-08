@@ -80,9 +80,9 @@ getCommentSplit(StringRef Text, unsigned ContentStartColumn,
   // these comments will fail to understand the comment if followed by a line
   // break. So avoid ever breaking before a {.
   if (Style.isJavaScript()) {
-    StringRef::size_type SpaceOffset =
-        Text.find_first_of(Blanks, MaxSplitBytes);
-    if (SpaceOffset != StringRef::npos && SpaceOffset + 1 < Text.size() &&
+    
+    if (StringRef::size_type SpaceOffset =
+        Text.find_first_of(Blanks, MaxSplitBytes); SpaceOffset != StringRef::npos && SpaceOffset + 1 < Text.size() &&
         Text[SpaceOffset + 1] == '{') {
       MaxSplitBytes = SpaceOffset + 1;
     }
@@ -99,9 +99,9 @@ getCommentSplit(StringRef Text, unsigned ContentStartColumn,
     // Avoid introducing multiline comments by not allowing a break right
     // after '\'.
     if (Style.isCpp()) {
-      StringRef::size_type LastNonBlank =
-          Text.find_last_not_of(Blanks, SpaceOffset);
-      if (LastNonBlank != StringRef::npos && Text[LastNonBlank] == '\\') {
+      
+      if (StringRef::size_type LastNonBlank =
+          Text.find_last_not_of(Blanks, SpaceOffset); LastNonBlank != StringRef::npos && Text[LastNonBlank] == '\\') {
         SpaceOffset = Text.find_last_of(Blanks, LastNonBlank);
         continue;
       }
@@ -659,10 +659,10 @@ unsigned BreakableBlockComment::getRemainingLength(unsigned LineIndex,
   if (LineIndex + 1 == Lines.size()) {
     LineLength += 2;
     // We never need a decoration when breaking just the trailing "*/" postfix.
-    bool HasRemainingText = Offset < Content[LineIndex].size();
-    if (!HasRemainingText) {
-      bool HasDecoration = Lines[LineIndex].ltrim().starts_with(Decoration);
-      if (HasDecoration)
+    
+    if (bool HasRemainingText = Offset < Content[LineIndex].size(); !HasRemainingText) {
+      
+      if (bool HasDecoration = Lines[LineIndex].ltrim().starts_with(Decoration); HasDecoration)
         LineLength -= Decoration.size();
     }
   }
@@ -738,8 +738,8 @@ BreakableToken::Split BreakableBlockComment::getReflowSplit(
   // line if its starting whitespace matches the content indent.
   size_t Trimmed = Content[LineIndex].find_first_not_of(Blanks);
   if (LineIndex) {
-    unsigned PreviousContentIndent = getContentIndent(LineIndex - 1);
-    if (PreviousContentIndent && Trimmed != StringRef::npos &&
+    
+    if (unsigned PreviousContentIndent = getContentIndent(LineIndex - 1); PreviousContentIndent && Trimmed != StringRef::npos &&
         Trimmed != PreviousContentIndent) {
       return Split(StringRef::npos, 0);
     }
@@ -887,9 +887,9 @@ BreakableLineCommentSection::BreakableLineCommentSection(
       const auto NoSpaceBeforeFirstCommentChar = [&]() {
         assert(Lines[i].size() > IndentPrefix.size());
         const char FirstCommentChar = Lines[i][IndentPrefix.size()];
-        const unsigned FirstCharByteSize =
-            encoding::getCodePointNumBytes(FirstCommentChar, Encoding);
-        if (encoding::columnWidth(
+        
+        if (const unsigned FirstCharByteSize =
+            encoding::getCodePointNumBytes(FirstCommentChar, Encoding); encoding::columnWidth(
                 Lines[i].substr(IndentPrefix.size(), FirstCharByteSize),
                 Encoding) != 1) {
           return false;
@@ -940,11 +940,11 @@ BreakableLineCommentSection::BreakableLineCommentSection(
         const bool LineRequiresLeadingSpace =
             !NoSpaceBeforeFirstCommentChar() ||
             (FirstNonSpace == '}' && FirstLineSpaceChange != 0);
-        const bool AllowsSpaceChange =
-            !IsFormatComment &&
-            (SpacesInPrefix != 0 || LineRequiresLeadingSpace);
+        
 
-        if (PrefixSpaceChange[i] > 0 && AllowsSpaceChange) {
+        if (const bool AllowsSpaceChange =
+            !IsFormatComment &&
+            (SpacesInPrefix != 0 || LineRequiresLeadingSpace); PrefixSpaceChange[i] > 0 && AllowsSpaceChange) {
           Prefix[i] = IndentPrefix.str();
           Prefix[i].append(PrefixSpaceChange[i], ' ');
         } else if (PrefixSpaceChange[i] < 0 && AllowsSpaceChange) {

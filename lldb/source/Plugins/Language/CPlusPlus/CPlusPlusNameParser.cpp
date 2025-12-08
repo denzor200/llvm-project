@@ -585,8 +585,8 @@ CPlusPlusNameParser::ParseFullNameImpl() {
   std::optional<size_t> last_coloncolon_position;
 
   while (continue_parsing && HasMoreTokens()) {
-    const auto &token = Peek();
-    switch (token.getKind()) {
+    
+    switch (const auto &token = Peek(); token.getKind()) {
     case tok::raw_identifier: // Just a name.
       if (state != State::Beginning && state != State::AfterTwoColons) {
         continue_parsing = false;
@@ -603,9 +603,9 @@ CPlusPlusNameParser::ParseFullNameImpl() {
       //   func[abi:tag1][abi:tag2]()
 
       // ABI tags only appear after a method or type name
-      const bool valid_state =
-          state == State::AfterIdentifier || state == State::AfterOperator;
-      if (!valid_state || !ConsumeAbiTag()) {
+      
+      if (const bool valid_state =
+          state == State::AfterIdentifier || state == State::AfterOperator; !valid_state || !ConsumeAbiTag()) {
         continue_parsing = false;
       }
 

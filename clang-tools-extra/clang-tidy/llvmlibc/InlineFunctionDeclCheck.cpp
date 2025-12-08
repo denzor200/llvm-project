@@ -22,10 +22,10 @@ getLastTemplateParameterList(const FunctionDecl *FuncDecl) {
       FuncDecl->getDescribedTemplateParams();
 
   if (!ReturnList) {
-    const unsigned NumberOfTemplateParameterLists =
-        FuncDecl->getNumTemplateParameterLists();
+    
 
-    if (NumberOfTemplateParameterLists > 0)
+    if (const unsigned NumberOfTemplateParameterLists =
+        FuncDecl->getNumTemplateParameterLists(); NumberOfTemplateParameterLists > 0)
       ReturnList = FuncDecl->getTemplateParameterList(
           NumberOfTemplateParameterLists - 1);
   }

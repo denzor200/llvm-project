@@ -159,9 +159,9 @@ MCSymbolWasm *WebAssemblyAsmPrinter::getMCSymbolForFunction(
     const Function *F, wasm::WasmSignature *Sig, bool &InvokeDetected) {
   MCSymbolWasm *WasmSym = nullptr;
 
-  const bool EnableEmEH =
-      WebAssembly::WasmEnableEmEH || WebAssembly::WasmEnableEmSjLj;
-  if (EnableEmEH && isEmscriptenInvokeName(F->getName())) {
+  
+  if (const bool EnableEmEH =
+      WebAssembly::WasmEnableEmEH || WebAssembly::WasmEnableEmSjLj; EnableEmEH && isEmscriptenInvokeName(F->getName())) {
     assert(Sig);
     InvokeDetected = true;
     if (Sig->Returns.size() > 1) {
@@ -302,8 +302,8 @@ void WebAssemblyAsmPrinter::emitDecls(const Module &M) {
   // not be found here.
   MachineModuleInfoWasm &MMIW = MMI->getObjFileInfo<MachineModuleInfoWasm>();
   for (StringRef Name : MMIW.MachineSymbolsUsed) {
-    auto *WasmSym = static_cast<MCSymbolWasm *>(getOrCreateWasmSymbol(Name));
-    if (WasmSym->isFunction()) {
+    
+    if (auto *WasmSym = static_cast<MCSymbolWasm *>(getOrCreateWasmSymbol(Name)); WasmSym->isFunction()) {
       // TODO(wvo): is there any case where this overlaps with the call to
       // emitFunctionType in the loop below?
       getTargetStreamer()->emitFunctionType(WasmSym);
@@ -314,8 +314,8 @@ void WebAssemblyAsmPrinter::emitDecls(const Module &M) {
     // Emit .globaltype, .tagtype, or .tabletype declarations for extern
     // declarations, i.e. those that have only been declared (but not defined)
     // in the current module
-    auto Sym = static_cast<MCSymbolWasm *>(It.getValue().Symbol);
-    if (Sym && !Sym->isDefined())
+    
+    if (auto Sym = static_cast<MCSymbolWasm *>(It.getValue().Symbol); Sym && !Sym->isDefined())
       emitSymbolType(Sym);
   }
 
@@ -463,8 +463,8 @@ void WebAssemblyAsmPrinter::EmitProducerInfo(Module &M) {
     }
   }
 
-  int FieldCount = int(!Languages.empty()) + int(!Tools.empty());
-  if (FieldCount != 0) {
+  
+  if (int FieldCount = int(!Languages.empty()) + int(!Tools.empty()); FieldCount != 0) {
     MCSectionWasm *Producers = OutContext.getWasmSection(
         ".custom_section.producers", SectionKind::getMetadata());
     OutStreamer->pushSection();
@@ -705,8 +705,8 @@ bool WebAssemblyAsmPrinter::PrintAsmOperand(const MachineInstr *MI,
     return false;
 
   if (!ExtraCode) {
-    const MachineOperand &MO = MI->getOperand(OpNo);
-    switch (MO.getType()) {
+    
+    switch (const MachineOperand &MO = MI->getOperand(OpNo); MO.getType()) {
     case MachineOperand::MO_Immediate:
       OS << MO.getImm();
       return false;

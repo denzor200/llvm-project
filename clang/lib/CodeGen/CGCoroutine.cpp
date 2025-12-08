@@ -160,8 +160,8 @@ static bool StmtCanThrow(const Stmt *S) {
     // temporary is not part of `children()` as covered in the fall through.
     // We need to mark entire statement as throwing if the destructor of the
     // temporary throws.
-    const auto *Dtor = TE->getTemporary()->getDestructor();
-    if (FunctionCanThrow(Dtor))
+    
+    if (const auto *Dtor = TE->getTemporary()->getDestructor(); FunctionCanThrow(Dtor))
       return true;
 
     // Fall through to visit the children.
@@ -774,8 +774,8 @@ struct GetReturnObjectManager {
 static void emitBodyAndFallthrough(CodeGenFunction &CGF,
                                    const CoroutineBodyStmt &S, Stmt *Body) {
   CGF.EmitStmt(Body);
-  const bool CanFallthrough = CGF.Builder.GetInsertBlock();
-  if (CanFallthrough)
+  
+  if (const bool CanFallthrough = CGF.Builder.GetInsertBlock(); CanFallthrough)
     if (Stmt *OnFallthrough = S.getFallthroughHandler())
       CGF.EmitStmt(OnFallthrough);
 }
@@ -941,8 +941,8 @@ void CodeGenFunction::EmitCoroutineBody(const CoroutineBodyStmt &S) {
 
     // See if we need to generate final suspend.
     const bool CanFallthrough = Builder.GetInsertBlock();
-    const bool HasCoreturns = CurCoro.Data->CoreturnCount > 0;
-    if (CanFallthrough || HasCoreturns) {
+    
+    if (const bool HasCoreturns = CurCoro.Data->CoreturnCount > 0; CanFallthrough || HasCoreturns) {
       EmitBlock(FinalBB);
       CurCoro.Data->CurrentAwaitKind = AwaitKind::Final;
       EmitStmt(S.getFinalSuspendStmt());

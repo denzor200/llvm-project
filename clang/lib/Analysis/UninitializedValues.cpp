@@ -306,8 +306,8 @@ public:
     if (I != Classification.end())
       return I->second;
 
-    const auto *VD = dyn_cast<VarDecl>(DRE->getDecl());
-    if (!VD || !isTrackedVar(VD))
+    
+    if (const auto *VD = dyn_cast<VarDecl>(DRE->getDecl()); !VD || !isTrackedVar(VD))
       return Ignore;
 
     return Init;
@@ -320,9 +320,9 @@ static const DeclRefExpr *getSelfInitExpr(VarDecl *VD) {
   if (VD->getType()->isRecordType())
     return nullptr;
   if (Expr *Init = VD->getInit()) {
-    const auto *DRE =
-        dyn_cast<DeclRefExpr>(stripCasts(VD->getASTContext(), Init));
-    if (DRE && DRE->getDecl() == VD)
+    
+    if (const auto *DRE =
+        dyn_cast<DeclRefExpr>(stripCasts(VD->getASTContext(), Init)); DRE && DRE->getDecl() == VD)
       return DRE;
   }
   return nullptr;
@@ -378,8 +378,8 @@ void ClassifyRefs::classify(const Expr *E, Class C) {
 
 void ClassifyRefs::VisitDeclStmt(DeclStmt *DS) {
   for (auto *DI : DS->decls()) {
-    auto *VD = dyn_cast<VarDecl>(DI);
-    if (VD && isTrackedVar(VD))
+    
+    if (auto *VD = dyn_cast<VarDecl>(DI); VD && isTrackedVar(VD))
       if (const DeclRefExpr *DRE = getSelfInitExpr(VD))
         Classification[DRE] = SelfInit;
   }
@@ -443,8 +443,8 @@ void ClassifyRefs::VisitCallExpr(CallExpr *CE) {
         classify((*I), isTrivialBody ? Ignore : ConstRefUse);
     } else if (isPointerToConst((*I)->getType())) {
       const Expr *Ex = stripCasts(DC->getParentASTContext(), *I);
-      const auto *UO = dyn_cast<UnaryOperator>(Ex);
-      if (UO && UO->getOpcode() == UO_AddrOf)
+      
+      if (const auto *UO = dyn_cast<UnaryOperator>(Ex); UO && UO->getOpcode() == UO_AddrOf)
         classify(UO->getSubExpr(), isTrivialBody ? Ignore : ConstPtrUse);
     }
   }
@@ -629,8 +629,8 @@ public:
         // edge, we have found a bug.
         for (CFGBlock::const_succ_iterator I = Block->succ_begin(),
              E = Block->succ_end(); I != E; ++I) {
-          const CFGBlock *Succ = *I;
-          if (Succ && SuccsVisited[Succ->getBlockID()] >= Succ->succ_size()) {
+          
+          if (const CFGBlock *Succ = *I; Succ && SuccsVisited[Succ->getBlockID()] >= Succ->succ_size()) {
             // Switch cases are a special case: report the label to the caller
             // as the 'terminator', not the switch statement itself. Suppress
             // situations where no label matched: we can't be sure that's
@@ -688,8 +688,8 @@ void TransferFunctions::reportConstPtrUse(const Expr *ex, const VarDecl *vd) {
 void TransferFunctions::VisitObjCForCollectionStmt(ObjCForCollectionStmt *FS) {
   // This represents an initialization of the 'element' value.
   if (const auto *DS = dyn_cast<DeclStmt>(FS->getElement())) {
-    const auto *VD = cast<VarDecl>(DS->getSingleDecl());
-    if (isTrackedVar(VD))
+    
+    if (const auto *VD = cast<VarDecl>(DS->getSingleDecl()); isTrackedVar(VD))
       vals[VD] = Initialized;
   }
 }
@@ -773,8 +773,8 @@ void TransferFunctions::VisitBinaryOperator(BinaryOperator *BO) {
 
 void TransferFunctions::VisitDeclStmt(DeclStmt *DS) {
   for (auto *DI : DS->decls()) {
-    auto *VD = dyn_cast<VarDecl>(DI);
-    if (VD && isTrackedVar(VD)) {
+    
+    if (auto *VD = dyn_cast<VarDecl>(DI); VD && isTrackedVar(VD)) {
       if (getSelfInitExpr(VD)) {
         // If the initializer consists solely of a reference to itself, we
         // explicitly mark the variable as uninitialized. This allows code

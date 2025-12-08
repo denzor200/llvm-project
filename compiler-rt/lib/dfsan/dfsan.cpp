@@ -178,9 +178,9 @@ static uptr OriginAlignDown(uptr u) { return u & kOriginAlignMask; }
 // addr.
 static dfsan_origin GetOriginIfTainted(uptr addr, uptr size) {
   for (uptr i = 0; i < size; ++i, ++addr) {
-    dfsan_label *s = shadow_for((void *)addr);
+    
 
-    if (*s) {
+    if (dfsan_label *s = shadow_for((void *)addr); *s) {
       // Validate address region.
       CHECK(MEM_IS_SHADOW(s));
       return *(dfsan_origin *)origin_for((void *)addr);
@@ -210,8 +210,8 @@ static dfsan_origin GetOriginIfTainted(uptr addr, uptr size) {
 static u32 ChainOrigin(u32 id, StackTrace *stack, bool from_init = false) {
   // StackDepot is not async signal safe. Do not create new chains in a signal
   // handler.
-  DFsanThread *t = GetCurrentThread();
-  if (t && t->InSignalHandler())
+  
+  if (DFsanThread *t = GetCurrentThread(); t && t->InSignalHandler())
     return id;
 
   // As an optimization the origin of an application byte is updated only when
@@ -232,8 +232,8 @@ static u32 ChainOrigin(u32 id, StackTrace *stack, bool from_init = false) {
 
 static void ChainAndWriteOriginIfTainted(uptr src, uptr size, uptr dst,
                                          StackTrace *stack) {
-  dfsan_origin o = GetOriginIfTainted(src, size);
-  if (o) {
+  
+  if (dfsan_origin o = GetOriginIfTainted(src, size); o) {
     o = ChainOrigin(o, stack);
     *(dfsan_origin *)origin_for((void *)dst) = o;
   }
@@ -347,8 +347,8 @@ static void MoveOrigin(const void *dst, const void *src, uptr size,
   // orders of how memcpy and memmove transfer user data.
   uptr src_aligned_beg = OriginAlignDown((uptr)src);
   uptr src_aligned_end = OriginAlignDown((uptr)src + size);
-  uptr dst_aligned_beg = OriginAlignDown((uptr)dst);
-  if (dst_aligned_beg < src_aligned_end && dst_aligned_beg >= src_aligned_beg)
+  
+  if (uptr dst_aligned_beg = OriginAlignDown((uptr)dst); dst_aligned_beg < src_aligned_end && dst_aligned_beg >= src_aligned_beg)
     return ReverseCopyOrigin(dst, src, size, stack);
   return CopyOrigin(dst, src, size, stack);
 }
@@ -682,10 +682,10 @@ static void ConditionalCallback(dfsan_label label, dfsan_origin origin) {
   // This initial ConditionalCallback handler needs to be in here in dfsan
   // runtime (rather than being an entirely user implemented hook) so that it
   // has access to dfsan thread information.
-  DFsanThread *t = GetCurrentThread();
+  
   // A callback operation which does useful work (like record the flow) will
   // likely be too long executed in a signal handler.
-  if (t && t->InSignalHandler()) {
+  if (DFsanThread *t = GetCurrentThread(); t && t->InSignalHandler()) {
     // Record set of labels used in signal handler for completeness.
     labels_in_signal_conditional |= label;
     return;
@@ -738,10 +738,10 @@ static void ReachesFunctionCallback(dfsan_label label, dfsan_origin origin,
   // This initial ReachesFunctionCallback handler needs to be in here in dfsan
   // runtime (rather than being an entirely user implemented hook) so that it
   // has access to dfsan thread information.
-  DFsanThread *t = GetCurrentThread();
+  
   // A callback operation which does useful work (like record the flow) will
   // likely be too long executed in a signal handler.
-  if (t && t->InSignalHandler()) {
+  if (DFsanThread *t = GetCurrentThread(); t && t->InSignalHandler()) {
     // Record set of labels used in signal handler for completeness.
     labels_in_signal_reaches_function |= label;
     return;
@@ -939,9 +939,9 @@ extern "C" SANITIZER_INTERFACE_ATTRIBUTE uptr dfsan_sprint_origin_id_trace(
   Origin o = Origin::FromRawId(origin);
 
   InternalScopedString trace;
-  bool success = PrintOriginTraceFramesToStr(o, &trace);
+  
 
-  if (!success) {
+  if (bool success = PrintOriginTraceFramesToStr(o, &trace); !success) {
     PrintInvalidOriginIdWarning(origin);
     return 0;
   }
@@ -959,8 +959,8 @@ dfsan_get_init_origin(const void *addr) {
   if (!dfsan_get_track_origins())
     return 0;
 
-  const dfsan_label label = *__dfsan::shadow_for(addr);
-  if (!label)
+  
+  if (const dfsan_label label = *__dfsan::shadow_for(addr); !label)
     return 0;
 
   const dfsan_origin origin = *__dfsan::origin_for(addr);
@@ -1125,8 +1125,8 @@ static void CheckMemoryLayoutSanity() {
 // Consider refactoring these into a shared implementation.
 static bool CheckMemoryRangeAvailability(uptr beg, uptr size, bool verbose) {
   if (size > 0) {
-    uptr end = beg + size - 1;
-    if (!MemoryRangeIsAvailable(beg, end)) {
+    
+    if (uptr end = beg + size - 1; !MemoryRangeIsAvailable(beg, end)) {
       if (verbose)
         Printf("FATAL: Memory range %p - %p is not available.\n", (void*)beg,
                (void*)end);

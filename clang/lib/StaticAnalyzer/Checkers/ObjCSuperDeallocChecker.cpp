@@ -247,13 +247,13 @@ SuperDeallocBRVisitor::VisitNode(const ExplodedNode *Succ,
 
   bool CalledNow =
       Succ->getState()->contains<CalledSuperDealloc>(ReceiverSymbol);
-  bool CalledBefore =
-      Succ->getFirstPred()->getState()->contains<CalledSuperDealloc>(
-          ReceiverSymbol);
+  
 
   // Is Succ the node on which the analyzer noted that [super dealloc] was
   // called on ReceiverSymbol?
-  if (CalledNow && !CalledBefore) {
+  if (bool CalledBefore =
+      Succ->getFirstPred()->getState()->contains<CalledSuperDealloc>(
+          ReceiverSymbol); CalledNow && !CalledBefore) {
     Satisfied = true;
 
     ProgramPoint P = Succ->getLocation();

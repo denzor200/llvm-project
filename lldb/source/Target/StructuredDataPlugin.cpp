@@ -44,8 +44,8 @@ ProcessSP StructuredDataPlugin::GetProcess() const {
 
 void StructuredDataPlugin::InitializeBasePluginForDebugger(Debugger &debugger) {
   // Create our multiword command anchor if it doesn't already exist.
-  auto &interpreter = debugger.GetCommandInterpreter();
-  if (!interpreter.GetCommandObject("plugin structured-data")) {
+  
+  if (auto &interpreter = debugger.GetCommandInterpreter(); !interpreter.GetCommandObject("plugin structured-data")) {
     // Find the parent command.
     auto parent_command =
         debugger.GetCommandInterpreter().GetCommandObject("plugin");

@@ -247,10 +247,10 @@ LTOModule::makeBuffer(const void *mem, size_t length, StringRef name) {
 bool
 LTOModule::objcClassNameFromExpression(const Constant *c, std::string &name) {
   if (const ConstantExpr *ce = dyn_cast<ConstantExpr>(c)) {
-    Constant *op = ce->getOperand(0);
-    if (GlobalVariable *gvn = dyn_cast<GlobalVariable>(op)) {
-      Constant *cn = gvn->getInitializer();
-      if (ConstantDataArray *ca = dyn_cast<ConstantDataArray>(cn)) {
+    
+    if (Constant *op = ce->getOperand(0); GlobalVariable *gvn = dyn_cast<GlobalVariable>(op)) {
+      
+      if (Constant *cn = gvn->getInitializer(); ConstantDataArray *ca = dyn_cast<ConstantDataArray>(cn)) {
         if (ca->isCString()) {
           name = (".objc_class_name_" + ca->getAsCString()).str();
           return true;
@@ -426,8 +426,8 @@ void LTOModule::addDefinedSymbol(StringRef Name, const GlobalValue *def,
   if (isFunction) {
     attr |= LTO_SYMBOL_PERMISSIONS_CODE;
   } else {
-    const GlobalVariable *gv = dyn_cast<GlobalVariable>(def);
-    if (gv && gv->isConstant())
+    
+    if (const GlobalVariable *gv = dyn_cast<GlobalVariable>(def); gv && gv->isConstant())
       attr |= LTO_SYMBOL_PERMISSIONS_RODATA;
     else
       attr |= LTO_SYMBOL_PERMISSIONS_DATA;

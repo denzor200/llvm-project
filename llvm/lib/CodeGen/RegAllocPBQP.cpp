@@ -447,9 +447,9 @@ public:
         Register DstReg = CP.getDstReg();
         Register SrcReg = CP.getSrcReg();
 
-        PBQP::PBQPNum CBenefit = MBFI.getBlockFreqRelativeToEntryBlock(&MBB);
+        
 
-        if (CP.isPhys()) {
+        if (PBQP::PBQPNum CBenefit = MBFI.getBlockFreqRelativeToEntryBlock(&MBB); CP.isPhys()) {
           if (!MF.getRegInfo().isAllocatable(DstReg))
             continue;
 
@@ -475,8 +475,8 @@ public:
           const PBQPRAGraph::NodeMetadata::AllowedRegVector *Allowed2 =
             &G.getNodeMetadata(N2Id).getAllowedRegs();
 
-          PBQPRAGraph::EdgeId EId = G.findEdge(N1Id, N2Id);
-          if (EId == G.invalidEdgeId()) {
+          
+          if (PBQPRAGraph::EdgeId EId = G.findEdge(N1Id, N2Id); EId == G.invalidEdgeId()) {
             PBQPRAGraph::RawMatrix Costs(Allowed1->size() + 1,
                                          Allowed2->size() + 1, 0);
             addVirtRegCoalesce(Costs, *Allowed1, *Allowed2, CBenefit);
@@ -729,9 +729,9 @@ bool RegAllocPBQP::mapPBQPToRegAlloc(const PBQPRAGraph &G,
   // assignment.
   for (auto NId : G.nodeIds()) {
     Register VReg = G.getNodeMetadata(NId).getVReg();
-    unsigned AllocOpt = Solution.getSelection(NId);
+    
 
-    if (AllocOpt != PBQP::RegAlloc::getSpillOptionIdx()) {
+    if (unsigned AllocOpt = Solution.getSelection(NId); AllocOpt != PBQP::RegAlloc::getSpillOptionIdx()) {
       MCRegister PReg = G.getNodeMetadata(NId).getAllowedRegs()[AllocOpt - 1];
       LLVM_DEBUG(dbgs() << "VREG " << printReg(VReg, &TRI) << " -> "
                         << TRI.getName(PReg) << "\n");

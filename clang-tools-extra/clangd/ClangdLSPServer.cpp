@@ -1491,9 +1491,9 @@ void ClangdLSPServer::onReference(
                            std::vector<ReferenceLocation> Result;
                            Result.reserve(Refs->References.size());
                            for (auto &Ref : Refs->References) {
-                             bool IsDecl =
-                                 Ref.Attributes & ReferencesResult::Declaration;
-                             if (IncludeDecl || !IsDecl)
+                             
+                             if (bool IsDecl =
+                                 Ref.Attributes & ReferencesResult::Declaration; IncludeDecl || !IsDecl)
                                Result.push_back(std::move(Ref.Loc));
                            }
                            return Reply(std::move(Result));

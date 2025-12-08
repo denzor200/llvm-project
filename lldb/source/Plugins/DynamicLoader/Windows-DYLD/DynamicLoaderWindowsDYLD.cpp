@@ -47,9 +47,9 @@ DynamicLoader *DynamicLoaderWindowsDYLD::CreateInstance(Process *process,
                                                         bool force) {
   bool should_create = force;
   if (!should_create) {
-    const llvm::Triple &triple_ref =
-        process->GetTarget().GetArchitecture().GetTriple();
-    if (triple_ref.getOS() == llvm::Triple::Win32)
+    
+    if (const llvm::Triple &triple_ref =
+        process->GetTarget().GetArchitecture().GetTriple(); triple_ref.getOS() == llvm::Triple::Win32)
       should_create = true;
   }
 
@@ -155,8 +155,8 @@ void DynamicLoaderWindowsDYLD::DidLaunch() {
   if (!executable.get())
     return;
 
-  lldb::addr_t load_addr = GetLoadAddress(executable);
-  if (load_addr != LLDB_INVALID_ADDRESS) {
+  
+  if (lldb::addr_t load_addr = GetLoadAddress(executable); load_addr != LLDB_INVALID_ADDRESS) {
     // Update the loaded sections so that the breakpoints can be resolved.
     UpdateLoadedSections(executable, LLDB_INVALID_ADDRESS, load_addr, false);
 

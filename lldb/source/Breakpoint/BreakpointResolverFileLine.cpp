@@ -141,8 +141,8 @@ void BreakpointResolverFileLine::FilterContexts(SymbolContextList &sc_list) {
 
     SupportFileNSP file_sp = std::make_shared<SupportFile>();
     uint32_t line;
-    const Block *inline_block = sc.block->GetContainingInlinedBlock();
-    if (inline_block) {
+    
+    if (const Block *inline_block = sc.block->GetContainingInlinedBlock(); inline_block) {
       const Declaration &inline_declaration = inline_block->GetInlinedFunctionInfo()->GetDeclaration();
       if (!inline_declaration.IsValid())
         continue;

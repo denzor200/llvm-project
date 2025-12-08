@@ -495,9 +495,9 @@ static bool isArgUnmodifiedByAllCalls(Argument *Arg,
     MemoryLocation Loc =
         MemoryLocation::getForArgument(Call, Arg->getArgNo(), nullptr);
 
-    AAResults &AAR = FAM.getResult<AAManager>(*Call->getFunction());
+    
     // Bail as soon as we find a Call where Arg may be modified.
-    if (isModSet(AAR.getModRefInfo(Call, Loc)))
+    if (AAResults &AAR = FAM.getResult<AAManager>(*Call->getFunction()); isModSet(AAR.getModRefInfo(Call, Loc)))
       return false;
   }
 
@@ -680,8 +680,8 @@ static bool findArgParts(Argument *Arg, const DataLayout &DL, AAResults &AAR,
         return false;
       }
 
-      unsigned int ArgNo = Arg->getArgNo();
-      if (U->getOperandNo() != ArgNo) {
+      
+      if (unsigned int ArgNo = Arg->getArgNo(); U->getOperandNo() != ArgNo) {
         LLVM_DEBUG(dbgs() << "ArgPromotion of " << *Arg << " failed: "
                           << "arg position is different in callee\n");
         return false;

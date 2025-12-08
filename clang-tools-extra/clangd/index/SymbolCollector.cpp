@@ -69,8 +69,8 @@ const NamedDecl &getTemplateOrThis(const NamedDecl &ND) {
 // FIXME: make filtering extensible when there are more use cases for symbol
 // filters.
 bool isPrivateProtoDecl(const NamedDecl &ND) {
-  const auto &SM = ND.getASTContext().getSourceManager();
-  if (!isProtoFile(nameLocation(ND, SM), SM))
+  
+  if (const auto &SM = ND.getASTContext().getSourceManager(); !isProtoFile(nameLocation(ND, SM), SM))
     return false;
 
   // ND without identifier can be operators.
@@ -183,8 +183,8 @@ getTokenRange(SourceLocation TokLoc, const SourceManager &SM,
 //
 // Example: preferring a class declaration over its forward declaration.
 bool isPreferredDeclaration(const NamedDecl &ND, index::SymbolRoleSet Roles) {
-  const auto &SM = ND.getASTContext().getSourceManager();
-  if (isa<TagDecl>(ND))
+  
+  if (const auto &SM = ND.getASTContext().getSourceManager(); isa<TagDecl>(ND))
     return (Roles & static_cast<unsigned>(index::SymbolRole::Definition)) &&
            !isInsideMainFile(ND.getLocation(), SM);
   if (const auto *ID = dyn_cast<ObjCInterfaceDecl>(&ND))
@@ -455,8 +455,8 @@ private:
 
     // Framework headers are spelled as <FrameworkName/Foo.h>, not
     // "path/FrameworkName.framework/Headers/Foo.h".
-    auto &HS = PP->getHeaderSearchInfo();
-    if (auto Spelling = getFrameworkHeaderIncludeSpelling(*FE, HS))
+    
+    if (auto &HS = PP->getHeaderSearchInfo(); auto Spelling = getFrameworkHeaderIncludeSpelling(*FE, HS))
       return *Spelling;
 
     if (!tooling::isSelfContainedHeader(*FE, PP->getSourceManager(),
@@ -567,8 +567,8 @@ const Decl *
 SymbolCollector::getRefContainer(const Decl *Enclosing,
                                  const SymbolCollector::Options &Opts) {
   while (Enclosing) {
-    const auto *ND = dyn_cast<NamedDecl>(Enclosing);
-    if (ND && shouldCollectSymbol(*ND, ND->getASTContext(), Opts, true)) {
+    
+    if (const auto *ND = dyn_cast<NamedDecl>(Enclosing); ND && shouldCollectSymbol(*ND, ND->getASTContext(), Opts, true)) {
       break;
     }
     Enclosing = dyn_cast_or_null<Decl>(Enclosing->getDeclContext());
@@ -1002,8 +1002,8 @@ void SymbolCollector::finish() {
     const auto &H = *OptionalProvider;
     const auto [SpellingIt, Inserted] = HeaderSpelling.try_emplace(H);
     if (Inserted) {
-      auto &SM = ASTCtx->getSourceManager();
-      if (H.kind() == include_cleaner::Header::Kind::Physical) {
+      
+      if (auto &SM = ASTCtx->getSourceManager(); H.kind() == include_cleaner::Header::Kind::Physical) {
         // FIXME: Get rid of this once include-cleaner has support for system
         // headers.
         if (auto Canonical =

@@ -1417,8 +1417,8 @@ bool Scanner::scanFlowScalar(bool IsDoubleQuoted) {
         continue;
       } else if (*Current == '\'')
         break;
-      StringRef::iterator i = skip_nb_char(Current);
-      if (i == Current) {
+      
+      if (StringRef::iterator i = skip_nb_char(Current); i == Current) {
         i = skip_b_break(Current);
         if (i == Current)
           break;
@@ -1480,8 +1480,8 @@ bool Scanner::scanPlainScalar() {
     // Eat blanks.
     StringRef::iterator Tmp = Current;
     while (isBlankOrBreak(Tmp)) {
-      StringRef::iterator i = skip_s_white(Tmp);
-      if (i != Tmp) {
+      
+      if (StringRef::iterator i = skip_s_white(Tmp); i != Tmp) {
         if (LeadingBlanks && (Column < indent) && *Tmp == '\t') {
           setError("Found invalid tab character in indentation", Tmp);
           return false;
@@ -2271,8 +2271,8 @@ Node *KeyValueNode::getKey() {
   }
 
   // Handle explicit null keys.
-  Token &t = peekNext();
-  if (t.Kind == Token::TK_BlockEnd || t.Kind == Token::TK_Value) {
+  
+  if (Token &t = peekNext(); t.Kind == Token::TK_BlockEnd || t.Kind == Token::TK_Value) {
     return Key = new (getAllocator()) NullNode(Doc);
   }
 
@@ -2313,8 +2313,8 @@ Node *KeyValueNode::getValue() {
   }
 
   // Handle explicit null values.
-  Token &t = peekNext();
-  if (t.Kind == Token::TK_BlockEnd || t.Kind == Token::TK_Key) {
+  
+  if (Token &t = peekNext(); t.Kind == Token::TK_BlockEnd || t.Kind == Token::TK_Key) {
     return Value = new (getAllocator()) NullNode(Doc);
   }
 
@@ -2473,8 +2473,8 @@ Document::Document(Stream &S) : stream(S), Root(nullptr) {
 
   if (parseDirectives())
     expectToken(Token::TK_DocumentStart);
-  Token &T = peekNext();
-  if (T.Kind == Token::TK_DocumentStart)
+  
+  if (Token &T = peekNext(); T.Kind == Token::TK_DocumentStart)
     getNext();
 }
 

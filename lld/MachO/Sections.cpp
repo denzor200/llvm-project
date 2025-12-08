@@ -17,8 +17,8 @@ using namespace llvm::MachO;
 
 namespace lld::macho::sections {
 bool isCodeSection(StringRef name, StringRef segName, uint32_t flags) {
-  uint32_t type = sectionType(flags);
-  if (type != S_REGULAR && type != S_COALESCED)
+  
+  if (uint32_t type = sectionType(flags); type != S_REGULAR && type != S_COALESCED)
     return false;
 
   uint32_t attr = flags & SECTION_ATTRIBUTES_USR;

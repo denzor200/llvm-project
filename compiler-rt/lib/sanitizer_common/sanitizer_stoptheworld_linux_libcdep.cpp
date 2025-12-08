@@ -257,8 +257,8 @@ static void TracerThreadDieCallback() {
   // point. So we correctly handle calls to Die() from within the callback, but
   // not those that happen before or after the callback. Hopefully there aren't
   // a lot of opportunities for that to happen...
-  ThreadSuspender *inst = thread_suspender_instance;
-  if (inst && stoptheworld_tracer_pid == internal_getpid()) {
+  
+  if (ThreadSuspender *inst = thread_suspender_instance; inst && stoptheworld_tracer_pid == internal_getpid()) {
     inst->KillAllThreads();
     thread_suspender_instance = nullptr;
   }
@@ -270,8 +270,8 @@ static void TracerThreadSignalHandler(int signum, __sanitizer_siginfo *siginfo,
   SignalContext ctx(siginfo, uctx);
   Printf("Tracer caught signal %d: addr=%p pc=%p sp=%p\n", signum,
          (void *)ctx.addr, (void *)ctx.pc, (void *)ctx.sp);
-  ThreadSuspender *inst = thread_suspender_instance;
-  if (inst) {
+  
+  if (ThreadSuspender *inst = thread_suspender_instance; inst) {
     if (signum == SIGABRT)
       inst->KillAllThreads();
     else
@@ -540,8 +540,8 @@ void StopTheWorld(StopTheWorldCallback callback, void *argument) {
     // Now the tracer thread is about to exit and does not touch errno,
     // wait for it.
     for (;;) {
-      uptr waitpid_status = internal_waitpid(tracer_pid, nullptr, __WALL);
-      if (!internal_iserror(waitpid_status, &local_errno))
+      
+      if (uptr waitpid_status = internal_waitpid(tracer_pid, nullptr, __WALL); !internal_iserror(waitpid_status, &local_errno))
         break;
       if (local_errno == EINTR)
         continue;
@@ -654,11 +654,11 @@ PtraceRegistersStatus SuspendedThreadsListLinux::GetRegistersAndSP(
       uptr available_bytes = (buffer->size() - size_up) * uptr_sz;
       regset_io.iov_base = buffer->data() + size_up;
       regset_io.iov_len = available_bytes;
-      bool fail =
+      
+      if (bool fail =
           internal_iserror(internal_ptrace(PTRACE_GETREGSET, tid,
                                            (void *)regset, (void *)&regset_io),
-                           &pterrno);
-      if (fail) {
+                           &pterrno); fail) {
         VReport(1, "Could not get regset %p from thread %d (errno %d).\n",
                 (void *)regset, tid, pterrno);
         buffer->resize(size);

@@ -563,8 +563,8 @@ void MappingTraits<DXContainerYAML::ResourceBindInfo>::mapping(
   IO.mapRequired("LowerBound", Res.LowerBound);
   IO.mapRequired("UpperBound", Res.UpperBound);
 
-  const uint32_t *PSVVersion = static_cast<uint32_t *>(IO.getContext());
-  if (*PSVVersion < 2)
+  
+  if (const uint32_t *PSVVersion = static_cast<uint32_t *>(IO.getContext()); *PSVVersion < 2)
     return;
 
   IO.mapRequired("Kind", Res.Kind);

@@ -44,9 +44,9 @@ bool Parser::isCXXDeclarationStatement(
       switch (Tok.getKind()) {
       case tok::identifier: {
         IdentifierInfo *II = Tok.getIdentifierInfo();
-        bool isDeductionGuide = Actions.isDeductionGuideName(
-            getCurScope(), *II, Tok.getLocation(), SS, /*Template=*/nullptr);
-        if (Actions.isCurrentClassName(*II, getCurScope(), &SS) ||
+        
+        if (bool isDeductionGuide = Actions.isDeductionGuideName(
+            getCurScope(), *II, Tok.getLocation(), SS, /*Template=*/nullptr); Actions.isCurrentClassName(*II, getCurScope(), &SS) ||
             isDeductionGuide) {
           if (isConstructorDeclarator(
                   /*Unqualified=*/SS.isEmpty(), isDeductionGuide,
@@ -1134,8 +1134,8 @@ Parser::isCXXDeclarationSpecifier(ImplicitTypenameContext AllowImplicitTypename,
   }
 
   case tok::coloncolon: {    // ::foo::bar
-    const Token &Next = NextToken();
-    if (Next.isOneOf(tok::kw_new,       // ::new
+    
+    if (const Token &Next = NextToken(); Next.isOneOf(tok::kw_new,       // ::new
                      tok::kw_delete))   // ::delete
       return TPResult::False;
     [[fallthrough]];
@@ -1678,8 +1678,8 @@ bool Parser::isCXXFunctionDeclarator(
     if (Tok.isNot(tok::r_paren))
       TPR = TPResult::False;
     else {
-      const Token &Next = NextToken();
-      if (Next.isOneOf(tok::amp, tok::ampamp, tok::kw_const, tok::kw_volatile,
+      
+      if (const Token &Next = NextToken(); Next.isOneOf(tok::amp, tok::ampamp, tok::kw_const, tok::kw_volatile,
                        tok::kw_throw, tok::kw_noexcept, tok::l_square,
                        tok::l_brace, tok::kw_try, tok::equal, tok::arrow) ||
           isCXX11VirtSpecifier(Next))

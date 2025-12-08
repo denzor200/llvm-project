@@ -319,8 +319,8 @@ bool SearchableTableEmitter::compareBy(const Record *LHS, const Record *RHS,
 
   for (const GenericField &Field : Index.Fields) {
     const Init *LHSI = LHS->getValueInit(Field.Name);
-    const Init *RHSI = RHS->getValueInit(Field.Name);
-    if (int Cmp = CmpLTField(LHSI, RHSI, Field))
+    
+    if (const Init *RHSI = RHS->getValueInit(Field.Name); int Cmp = CmpLTField(LHSI, RHSI, Field))
       return Cmp < 0;
   }
   return false;
@@ -737,10 +737,10 @@ void SearchableTableEmitter::run(raw_ostream &OS) {
   // Emit tables in a deterministic order to avoid needless rebuilds.
   SmallVector<std::unique_ptr<GenericTable>, 4> Tables;
   DenseMap<const Record *, GenericTable *> TableMap;
-  bool NeedsTarget =
+  
+  if (bool NeedsTarget =
       !Records.getAllDerivedDefinitionsIfDefined("Instruction").empty() ||
-      !Records.getAllDerivedDefinitionsIfDefined("Intrinsic").empty();
-  if (NeedsTarget)
+      !Records.getAllDerivedDefinitionsIfDefined("Intrinsic").empty(); NeedsTarget)
     Target = std::make_unique<CodeGenTarget>(Records);
 
   // Collect all definitions first.

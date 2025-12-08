@@ -116,10 +116,10 @@ void ArchitectureArm::OverrideStopInfo(Thread &thread) const {
 #endif
   } else if (ISETSTATE == 1) {
     // Thumb mode
-    const uint32_t ITSTATE = Bits32(cpsr, 15, 10) << 2 | Bits32(cpsr, 26, 25);
-    if (ITSTATE != 0) {
-      const uint32_t condition = Bits32(ITSTATE, 7, 4);
-      if (!ARMConditionPassed(condition, cpsr)) {
+    
+    if (const uint32_t ITSTATE = Bits32(cpsr, 15, 10) << 2 | Bits32(cpsr, 26, 25); ITSTATE != 0) {
+      
+      if (const uint32_t condition = Bits32(ITSTATE, 7, 4); !ARMConditionPassed(condition, cpsr)) {
         // We ARE stopped in a Thumb IT instruction on an instruction whose
         // condition doesn't pass so this instruction won't get executed.
         // Regardless of why it stopped, we need to clear the stop info
@@ -203,8 +203,8 @@ UnwindPlanSP ArchitectureArm::GetArchitectureUnwindPlan(
   } else {
     RegisterNumber pc_regnum(thread, eRegisterKindGeneric,
                              LLDB_REGNUM_GENERIC_PC);
-    uint32_t pc_regnum_lldb = pc_regnum.GetAsKind(eRegisterKindLLDB);
-    if (regctx->SavedLocationForRegister(pc_regnum_lldb, regloc) ==
+    
+    if (uint32_t pc_regnum_lldb = pc_regnum.GetAsKind(eRegisterKindLLDB); regctx->SavedLocationForRegister(pc_regnum_lldb, regloc) ==
         UnwindLLDB::RegisterSearchResult::eRegisterFound)
       got_concrete_location = true;
   }

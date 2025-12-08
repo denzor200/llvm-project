@@ -1392,9 +1392,9 @@ TEST(InstructionsTest, ShuffleMaskIsReplicationMask_Exhaustive_Correctness) {
 
     G.generate([&](ArrayRef<int> Mask) -> bool {
       int GuessedReplicationFactor = -1, GuessedVF = -1;
-      bool Match = ShuffleVectorInst::isReplicationMask(
-          Mask, GuessedReplicationFactor, GuessedVF);
-      if (!Match)
+      
+      if (bool Match = ShuffleVectorInst::isReplicationMask(
+          Mask, GuessedReplicationFactor, GuessedVF); !Match)
         return /*Abort=*/false;
 
       const auto ActualMask =

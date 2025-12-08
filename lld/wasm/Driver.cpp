@@ -565,9 +565,9 @@ static void readConfigs(opt::InputArgList &args) {
   ctx.arg.ltoo = args::getInteger(args, OPT_lto_O, 2);
   if (ctx.arg.ltoo > 3)
     error("invalid optimization level for LTO: " + Twine(ctx.arg.ltoo));
-  unsigned ltoCgo =
-      args::getInteger(args, OPT_lto_CGO, args::getCGOptLevel(ctx.arg.ltoo));
-  if (auto level = CodeGenOpt::getLevel(ltoCgo))
+  
+  if (unsigned ltoCgo =
+      args::getInteger(args, OPT_lto_CGO, args::getCGOptLevel(ctx.arg.ltoo)); auto level = CodeGenOpt::getLevel(ltoCgo))
     ctx.arg.ltoCgo = *level;
   else
     error("invalid codegen optimization level for LTO: " + Twine(ltoCgo));
@@ -855,8 +855,8 @@ static Symbol *handleUndefined(StringRef name, const char *option) {
 }
 
 static void handleLibcall(StringRef name) {
-  Symbol *sym = symtab->find(name);
-  if (sym && sym->isLazy() && isa<BitcodeFile>(sym->getFile())) {
+  
+  if (Symbol *sym = symtab->find(name); sym && sym->isLazy() && isa<BitcodeFile>(sym->getFile())) {
     if (!ctx.arg.whyExtract.empty())
       ctx.whyExtractRecords.emplace_back("<libcall>", sym->getFile(), *sym);
     cast<LazySymbol>(sym)->extract();
@@ -1024,14 +1024,14 @@ static void processStubLibrariesPreLTO() {
     LLVM_DEBUG(llvm::dbgs()
                << "processing stub file: " << stub_file->getName() << "\n");
     for (auto [name, deps]: stub_file->symbolDependencies) {
-      auto* sym = symtab->find(name);
+      
       // If the symbol is not present at all (yet), or if it is present but
       // undefined, then mark the dependent symbols as used by a regular
       // object so they will be preserved and exported by the LTO process.
-      if (!sym || sym->isUndefined()) {
+      if (auto* sym = symtab->find(name); !sym || sym->isUndefined()) {
         for (const auto dep : deps) {
-          auto* needed = symtab->find(dep);
-          if (needed ) {
+          
+          if (auto* needed = symtab->find(dep); needed ) {
             needed->isUsedInRegularObj = true;
             // Like with handleLibcall we have to extract any LTO archive
             // members that might need to be exported due to stub library
@@ -1065,8 +1065,8 @@ static bool addStubSymbolDeps(const StubFile *stub_file, Symbol *sym,
                             << sym->getName() << "\n");
   bool depsAdded = false;
   for (const auto dep : deps) {
-    auto *needed = symtab->find(dep);
-    if (!needed) {
+    
+    if (auto *needed = symtab->find(dep); !needed) {
       error(toString(stub_file) + ": undefined symbol: " + dep +
             ". Required by " + toString(*sym));
     } else if (needed->isUndefined()) {
@@ -1104,8 +1104,8 @@ static void processStubLibraries() {
       // First look for any imported symbols that directly match
       // the names of the stub imports
       for (auto [name, deps]: stub_file->symbolDependencies) {
-        auto* sym = symtab->find(name);
-        if (sym && sym->isUndefined()) {
+        
+        if (auto* sym = symtab->find(name); sym && sym->isUndefined()) {
           depsAdded |= addStubSymbolDeps(stub_file, sym, deps);
         } else {
           if (sym && sym->traced)
@@ -1468,8 +1468,8 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
     wrapSymbols(wrapped);
 
   for (auto &iter : ctx.arg.exportedSymbols) {
-    Symbol *sym = symtab->find(iter.first());
-    if (sym && sym->isDefined())
+    
+    if (Symbol *sym = symtab->find(iter.first()); sym && sym->isDefined())
       sym->forceExport = true;
   }
 

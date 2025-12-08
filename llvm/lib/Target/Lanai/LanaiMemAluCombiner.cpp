@@ -148,11 +148,11 @@ bool isNonVolatileMemoryOp(const MachineInstr &MI) {
   if (mergedOpcode(MI.getOpcode(), false) == 0)
     return false;
 
-  const MachineMemOperand *MemOperand = *MI.memoperands_begin();
+  
 
   // Don't move volatile memory accesses
   // TODO: unclear if we need to be as conservative about atomics
-  if (MemOperand->isVolatile() || MemOperand->isAtomic())
+  if (const MachineMemOperand *MemOperand = *MI.memoperands_begin(); MemOperand->isVolatile() || MemOperand->isAtomic())
     return false;
 
   return true;
@@ -359,9 +359,9 @@ bool LanaiMemAluCombiner::combineMemAluInBasicBlock(MachineBasicBlock *BB) {
 
   MbbIterator MBBIter = BB->begin(), End = BB->end();
   while (MBBIter != End) {
-    bool IsMemOp = isNonVolatileMemoryOp(*MBBIter);
+    
 
-    if (IsMemOp) {
+    if (bool IsMemOp = isNonVolatileMemoryOp(*MBBIter); IsMemOp) {
       MachineOperand AluOperand = MBBIter->getOperand(3);
       unsigned int DestReg = MBBIter->getOperand(0).getReg(),
                    BaseReg = MBBIter->getOperand(1).getReg();

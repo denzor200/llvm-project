@@ -262,13 +262,13 @@ SDNodeInfoEmitter::emitTypeConstraints(raw_ostream &OS) const {
   for (const auto &[EnumName, Nodes] : NodesByName) {
     ArrayRef<SDTypeConstraint> Constraints = Nodes.front().getTypeConstraints();
 
-    bool IsAmbiguous = any_of(drop_begin(Nodes), [&](const SDNodeInfo &Other) {
-      return ArrayRef(Other.getTypeConstraints()) != Constraints;
-    });
+    
 
     // If nodes with the same enum name have different constraints,
     // treat them as if they had no constraints at all.
-    if (IsAmbiguous) {
+    if (bool IsAmbiguous = any_of(drop_begin(Nodes), [&](const SDNodeInfo &Other) {
+      return ArrayRef(Other.getTypeConstraints()) != Constraints;
+    }); IsAmbiguous) {
       SkippedNodes.push_back(EnumName);
       continue;
     }

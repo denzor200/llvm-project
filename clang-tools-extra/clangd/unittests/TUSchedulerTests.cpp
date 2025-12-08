@@ -804,8 +804,8 @@ TEST_F(TUSchedulerTests, NoopOnEmptyChanges) {
     Updated = false;
     updateWithDiags(S, Source, Contents, WantDiagnostics::Yes,
                     [&Updated](std::vector<Diag>) { Updated = true; });
-    bool UpdateFinished = S.blockUntilIdle(timeoutSeconds(60));
-    if (!UpdateFinished)
+    
+    if (bool UpdateFinished = S.blockUntilIdle(timeoutSeconds(60)); !UpdateFinished)
       ADD_FAILURE() << "Updated has not finished in one second. Threading bug?";
     return Updated;
   };
@@ -1256,10 +1256,10 @@ TEST_F(TUSchedulerTests, PublishWithStalePreamble) {
       // we're waiting for it.
       S.update(File, std::move(PI), WantDiagnostics::Auto);
       size_t OldSize = DiagVersions.size();
-      bool ReceivedDiags = DiagsReceived.wait_for(
+      
+      if (bool ReceivedDiags = DiagsReceived.wait_for(
           Lock, std::chrono::seconds(5),
-          [this, OldSize] { return OldSize + 1 == DiagVersions.size(); });
-      if (!ReceivedDiags) {
+          [this, OldSize] { return OldSize + 1 == DiagVersions.size(); }); !ReceivedDiags) {
         ADD_FAILURE() << "Timed out waiting for diags";
         return {"invalid", "version"};
       }

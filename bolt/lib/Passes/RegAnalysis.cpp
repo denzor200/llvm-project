@@ -81,8 +81,8 @@ RegAnalysis::RegAnalysis(BinaryContext &BC,
     assert(Iter != RegsKilledMap.end() &&
            "Failed to compute all clobbers list");
     if (Iter->second.all()) {
-      uint64_t Count = Func->getExecutionCount();
-      if (Count != BinaryFunction::COUNT_NO_PROFILE)
+      
+      if (uint64_t Count = Func->getExecutionCount(); Count != BinaryFunction::COUNT_NO_PROFILE)
         CountFunctionsAllClobber += Count;
       ++NumFunctionsAllClobber;
     }

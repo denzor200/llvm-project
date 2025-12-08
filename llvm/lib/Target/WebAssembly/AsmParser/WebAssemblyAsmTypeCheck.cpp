@@ -258,8 +258,8 @@ bool WebAssemblyAsmTypeCheck::getGlobal(SMLoc ErrorLoc,
   const MCSymbolRefExpr *SymRef;
   if (getSymRef(ErrorLoc, GlobalOp, SymRef))
     return true;
-  auto *WasmSym = static_cast<const MCSymbolWasm *>(&SymRef->getSymbol());
-  switch (WasmSym->getType().value_or(wasm::WASM_SYMBOL_TYPE_DATA)) {
+  
+  switch (auto *WasmSym = static_cast<const MCSymbolWasm *>(&SymRef->getSymbol()); WasmSym->getType().value_or(wasm::WASM_SYMBOL_TYPE_DATA)) {
   case wasm::WASM_SYMBOL_TYPE_GLOBAL:
     Type = static_cast<wasm::ValType>(WasmSym->getGlobalType().Type);
     break;
@@ -366,8 +366,8 @@ bool WebAssemblyAsmTypeCheck::checkTryTable(SMLoc ErrorLoc,
       SentTypes.push_back(wasm::ValType::EXNREF);
     }
 
-    unsigned Level = Inst.getOperand(OpIdx++).getImm();
-    if (Level < BlockInfoStack.size()) {
+    
+    if (unsigned Level = Inst.getOperand(OpIdx++).getImm(); Level < BlockInfoStack.size()) {
       const auto &DestBlockInfo =
           BlockInfoStack[BlockInfoStack.size() - Level - 1];
       ArrayRef<wasm::ValType> DestTypes;
@@ -441,8 +441,8 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
   }
 
   if (Name == "table.get") {
-    bool Error = popType(ErrorLoc, wasm::ValType::I32);
-    if (!getTable(Operands[1]->getStartLoc(), Inst.getOperand(0), Type)) {
+    
+    if (bool Error = popType(ErrorLoc, wasm::ValType::I32); !getTable(Operands[1]->getStartLoc(), Inst.getOperand(0), Type)) {
       pushType(Type);
       return Error;
     }
@@ -581,11 +581,11 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
       Error |= popType(ErrorLoc, wasm::ValType::I32); // cond
     const MCOperand &Operand = Inst.getOperand(0);
     if (Operand.isImm()) {
-      unsigned Level = Operand.getImm();
-      if (Level < BlockInfoStack.size()) {
-        const auto &DestBlockInfo =
-            BlockInfoStack[BlockInfoStack.size() - Level - 1];
-        if (DestBlockInfo.IsLoop)
+      
+      if (unsigned Level = Operand.getImm(); Level < BlockInfoStack.size()) {
+        
+        if (const auto &DestBlockInfo =
+            BlockInfoStack[BlockInfoStack.size() - Level - 1]; DestBlockInfo.IsLoop)
           Error |= checkTypes(ErrorLoc, DestBlockInfo.Sig.Params, false);
         else
           Error |= checkTypes(ErrorLoc, DestBlockInfo.Sig.Returns, false);

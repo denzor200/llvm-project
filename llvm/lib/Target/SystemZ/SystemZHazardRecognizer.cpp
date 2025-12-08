@@ -118,8 +118,8 @@ bool SystemZHazardRecognizer::has4RegOps(const MachineInstr *MI) const {
   const MCInstrDesc &MID = MI->getDesc();
   unsigned Count = 0;
   for (unsigned OpIdx = 0; OpIdx < MID.getNumOperands(); OpIdx++) {
-    const TargetRegisterClass *RC = TII->getRegClass(MID, OpIdx);
-    if (RC == nullptr)
+    
+    if (const TargetRegisterClass *RC = TII->getRegClass(MID, OpIdx); RC == nullptr)
       continue;
     if (OpIdx >= MID.getNumDefs() &&
         MID.getOperandConstraint(OpIdx, MCOI::TIED_TO) != -1)
@@ -351,8 +351,8 @@ int SystemZHazardRecognizer::groupingCost(SUnit *SU) const {
   // Similarly, a group-ending SU may either fit well (last in group), or
   // end the group prematurely.
   if (SC->EndGroup) {
-    unsigned ResultingGroupSize = (CurrGroupSize + getNumDecoderSlots(SU));
-    if (ResultingGroupSize < 3)
+    
+    if (unsigned ResultingGroupSize = (CurrGroupSize + getNumDecoderSlots(SU)); ResultingGroupSize < 3)
       return (3 - ResultingGroupSize);
     return -1;
   }

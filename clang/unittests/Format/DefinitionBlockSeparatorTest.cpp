@@ -73,8 +73,8 @@ protected:
     std::string Result = "";
     for (auto Char : Code.str()) {
       if (Result.size()) {
-        auto LastChar = Result.back();
-        if ((Char == '\n' && LastChar == '\n') ||
+        
+        if (auto LastChar = Result.back(); (Char == '\n' && LastChar == '\n') ||
             (Char == '\r' && (LastChar == '\r' || LastChar == '\n'))) {
           continue;
         }

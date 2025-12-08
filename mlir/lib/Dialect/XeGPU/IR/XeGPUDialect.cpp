@@ -196,8 +196,8 @@ ScatterTensorDescAttr::get(mlir::MLIRContext *context,
 LogicalResult ScatterTensorDescAttr::verify(
     llvm::function_ref<mlir::InFlightDiagnostic()> emitError,
     MemorySpaceAttr memory_space, IntegerAttr chunk_size) {
-  int64_t chunkSize = chunk_size.getInt();
-  if (chunkSize <= 0)
+  
+  if (int64_t chunkSize = chunk_size.getInt(); chunkSize <= 0)
     return emitError() << "invalid chunk size";
 
   return success();
@@ -676,8 +676,8 @@ TensorDescType::verify(llvm::function_ref<InFlightDiagnostic()> emitError,
       // Validate subgroup mapping rules for scattered tensors.
       // if chunkSize > 1, the last dimension of the tensor should
       // be distributed in the units divisible by chunkAlignmentFactor.
-      int64_t chunkSize = scatterAttr.getChunkSizeAsInt();
-      if (chunkSize > 1 && laneData[rank - 1] % chunkAlignmentFactor)
+      
+      if (int64_t chunkSize = scatterAttr.getChunkSizeAsInt(); chunkSize > 1 && laneData[rank - 1] % chunkAlignmentFactor)
         return emitError()
                << "expected last dim of lane_data to be a multiple of: "
                << chunkAlignmentFactor;

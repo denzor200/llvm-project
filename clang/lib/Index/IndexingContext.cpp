@@ -220,8 +220,8 @@ getDeclContextForTemplateInstationPattern(const Decl *D) {
 static const Decl *adjustTemplateImplicitInstantiation(const Decl *D) {
   if (const ClassTemplateSpecializationDecl *
       SD = dyn_cast<ClassTemplateSpecializationDecl>(D)) {
-    const auto *Template = SD->getTemplateInstantiationPattern();
-    if (Template)
+    
+    if (const auto *Template = SD->getTemplateInstantiationPattern(); Template)
       return Template;
     // Fallback to primary template if no instantiation is available yet (e.g.
     // the type doesn't need to be complete).
@@ -235,8 +235,8 @@ static const Decl *adjustTemplateImplicitInstantiation(const Decl *D) {
   } else if (const auto *ED = dyn_cast<EnumDecl>(D)) {
     return ED->getInstantiatedFromMemberEnum();
   } else if (isa<FieldDecl>(D) || isa<TypedefNameDecl>(D)) {
-    const auto *ND = cast<NamedDecl>(D);
-    if (const CXXRecordDecl *Pattern =
+    
+    if (const auto *ND = cast<NamedDecl>(D); const CXXRecordDecl *Pattern =
             getDeclContextForTemplateInstationPattern(ND)) {
       for (const NamedDecl *BaseND : Pattern->lookup(ND->getDeclName())) {
         if (BaseND->isImplicit())
@@ -427,10 +427,10 @@ bool IndexingContext::handleDeclOccurrence(const Decl *D, SourceLocation Loc,
   FinalRelations.reserve(Relations.size()+1);
 
   auto addRelation = [&](SymbolRelation Rel) {
-    auto It = llvm::find_if(FinalRelations, [&](SymbolRelation Elem) -> bool {
+    
+    if (auto It = llvm::find_if(FinalRelations, [&](SymbolRelation Elem) -> bool {
       return Elem.RelatedSymbol == Rel.RelatedSymbol;
-    });
-    if (It != FinalRelations.end()) {
+    }); It != FinalRelations.end()) {
       It->Roles |= Rel.Roles;
     } else {
       FinalRelations.push_back(Rel);

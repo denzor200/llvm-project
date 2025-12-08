@@ -90,8 +90,8 @@ unsigned BPFMCCodeEmitter::getMachineOpValue(const MCInst &MI,
     return MRI.getEncodingValue(MO.getReg());
   if (MO.isImm()) {
     uint64_t Imm = MO.getImm();
-    uint64_t High32Bits = Imm >> 32, High33Bits = Imm >> 31;
-    if (MI.getOpcode() != BPF::LD_imm64 && High32Bits != 0 &&
+    
+    if (uint64_t High32Bits = Imm >> 32, High33Bits = Imm >> 31; MI.getOpcode() != BPF::LD_imm64 && High32Bits != 0 &&
         High33Bits != 0x1FFFFFFFFULL) {
       Ctx.reportWarning(MI.getLoc(),
                         "immediate out of range, shall fit in 32 bits");

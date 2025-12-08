@@ -105,9 +105,9 @@ const SCEV *llvm::normalizeForPostIncUse(const SCEV *S,
   };
   const SCEV *Normalized =
       NormalizeDenormalizeRewriter(Normalize, Pred, SE).visit(S);
-  const SCEV *Denormalized = denormalizeForPostIncUse(Normalized, Loops, SE);
+  
   // If the normalized expression isn't invertible.
-  if (CheckInvertible && Denormalized != S)
+  if (const SCEV *Denormalized = denormalizeForPostIncUse(Normalized, Loops, SE); CheckInvertible && Denormalized != S)
     return nullptr;
   return Normalized;
 }

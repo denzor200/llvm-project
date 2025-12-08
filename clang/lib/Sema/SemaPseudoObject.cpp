@@ -510,10 +510,10 @@ PseudoOpBuilder::buildIncDecOperation(Scope *Sc, SourceLocation opcLoc,
 
   // Add or subtract a literal 1.
   llvm::APInt oneV(S.Context.getTypeSize(S.Context.IntTy), 1);
-  Expr *one = IntegerLiteral::Create(S.Context, oneV, S.Context.IntTy,
-                                     GenericLoc);
+  
 
-  if (UnaryOperator::isIncrementOp(opcode)) {
+  if (Expr *one = IntegerLiteral::Create(S.Context, oneV, S.Context.IntTy,
+                                     GenericLoc); UnaryOperator::isIncrementOp(opcode)) {
     result = S.BuildBinOp(Sc, opcLoc, BO_Add, result.get(), one);
   } else {
     result = S.BuildBinOp(Sc, opcLoc, BO_Sub, result.get(), one);
@@ -668,9 +668,9 @@ bool ObjCPropertyOpBuilder::findSetter(bool warn) {
         front = isLowercase(front) ? toUppercase(front) : toLowercase(front);
         SmallString<100> PropertyName = thisPropertyName;
         PropertyName[0] = front;
-        const IdentifierInfo *AltMember =
-            &S.PP.getIdentifierTable().get(PropertyName);
-        if (ObjCPropertyDecl *prop1 = IFace->FindPropertyDeclaration(
+        
+        if (const IdentifierInfo *AltMember =
+            &S.PP.getIdentifierTable().get(PropertyName); ObjCPropertyDecl *prop1 = IFace->FindPropertyDeclaration(
                 AltMember, prop->getQueryKind()))
           if (prop != prop1 && (prop1->getSetterMethodDecl() == setter)) {
             S.Diag(RefExpr->getExprLoc(), diag::err_property_setter_ambiguous_use)
@@ -814,8 +814,8 @@ ExprResult ObjCPropertyOpBuilder::buildSet(Expr *op, SourceLocation opcLoc,
   if (!msg.isInvalid() && captureSetValueAsResult) {
     ObjCMessageExpr *msgExpr =
       cast<ObjCMessageExpr>(msg.get()->IgnoreImplicit());
-    Expr *arg = msgExpr->getArg(0);
-    if (CanCaptureValue(arg))
+    
+    if (Expr *arg = msgExpr->getArg(0); CanCaptureValue(arg))
       msgExpr->setArg(0, captureValueAsResult(arg));
   }
 
@@ -1341,8 +1341,8 @@ ExprResult ObjCSubscriptOpBuilder::buildSet(Expr *op, SourceLocation opcLoc,
   if (!msg.isInvalid() && captureSetValueAsResult) {
     ObjCMessageExpr *msgExpr =
       cast<ObjCMessageExpr>(msg.get()->IgnoreImplicit());
-    Expr *arg = msgExpr->getArg(0);
-    if (CanCaptureValue(arg))
+    
+    if (Expr *arg = msgExpr->getArg(0); CanCaptureValue(arg))
       msgExpr->setArg(0, captureValueAsResult(arg));
   }
 
@@ -1446,8 +1446,8 @@ ExprResult MSPropertyOpBuilder::buildSet(Expr *op, SourceLocation sl,
 //===----------------------------------------------------------------------===//
 
 ExprResult SemaPseudoObject::checkRValue(Expr *E) {
-  Expr *opaqueRef = E->IgnoreParens();
-  if (ObjCPropertyRefExpr *refExpr
+  
+  if (Expr *opaqueRef = E->IgnoreParens(); ObjCPropertyRefExpr *refExpr
         = dyn_cast<ObjCPropertyRefExpr>(opaqueRef)) {
     ObjCPropertyOpBuilder builder(SemaRef, refExpr, true);
     return builder.buildRValueOperation(E);
@@ -1517,8 +1517,8 @@ ExprResult SemaPseudoObject::checkAssignment(Scope *S, SourceLocation opcLoc,
   }
 
   bool IsSimpleAssign = opcode == BO_Assign;
-  Expr *opaqueRef = LHS->IgnoreParens();
-  if (ObjCPropertyRefExpr *refExpr
+  
+  if (Expr *opaqueRef = LHS->IgnoreParens(); ObjCPropertyRefExpr *refExpr
         = dyn_cast<ObjCPropertyRefExpr>(opaqueRef)) {
     ObjCPropertyOpBuilder builder(SemaRef, refExpr, IsSimpleAssign);
     return builder.buildAssignmentOperation(S, opcLoc, opcode, LHS, RHS);

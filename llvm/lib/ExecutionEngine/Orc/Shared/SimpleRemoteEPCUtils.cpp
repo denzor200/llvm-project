@@ -142,8 +142,8 @@ Error FDSimpleRemoteEPCTransport::readBytes(char *Dst, size_t Size,
   while (Completed < static_cast<ssize_t>(Size)) {
     ssize_t Read = ::read(InFD, Dst + Completed, Size - Completed);
     if (Read <= 0) {
-      auto ErrNo = errno;
-      if (Read == 0) {
+      
+      if (auto ErrNo = errno; Read == 0) {
         if (Completed == 0 && IsEOF) {
           *IsEOF = true;
           return Error::success();
@@ -172,8 +172,8 @@ int FDSimpleRemoteEPCTransport::writeBytes(const char *Src, size_t Size) {
   while (Completed < static_cast<ssize_t>(Size)) {
     ssize_t Written = ::write(OutFD, Src + Completed, Size - Completed);
     if (Written < 0) {
-      auto ErrNo = errno;
-      if (ErrNo == EAGAIN || ErrNo == EINTR)
+      
+      if (auto ErrNo = errno; ErrNo == EAGAIN || ErrNo == EINTR)
         continue;
       else
         return ErrNo;

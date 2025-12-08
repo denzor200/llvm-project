@@ -267,8 +267,8 @@ void LoongArchMergeBaseOffsetOpt::foldOffset(
 
   // For tls-le, offset of the second PseudoAddTPRel instr should also be
   // updated.
-  MachineInstr *Add = &*MRI->use_instr_begin(Hi20.getOperand(0).getReg());
-  if (Hi20.getOpcode() == LoongArch::LU12I_W)
+  
+  if (MachineInstr *Add = &*MRI->use_instr_begin(Hi20.getOperand(0).getReg()); Hi20.getOpcode() == LoongArch::LU12I_W)
     Add->getOperand(3).setOffset(Offset);
 
   // Delete the tail instruction.
@@ -658,8 +658,8 @@ bool LoongArchMergeBaseOffsetOpt::foldIntoMemoryOps(MachineInstr &Hi20,
           // If the register is used by something other than a memory contraint,
           // we should not fold.
           for (unsigned J = 0; J < NumOps; ++J) {
-            const MachineOperand &MO = UseMI.getOperand(I + 1 + J);
-            if (MO.isReg() && MO.getReg() == DestReg)
+            
+            if (const MachineOperand &MO = UseMI.getOperand(I + 1 + J); MO.isReg() && MO.getReg() == DestReg)
               return false;
           }
           continue;
@@ -744,8 +744,8 @@ bool LoongArchMergeBaseOffsetOpt::foldIntoMemoryOps(MachineInstr &Hi20,
         UseMI.getOpcode() == LoongArch::INLINEASM_BR) {
       auto &InlineAsmMemoryOpIndexes = InlineAsmMemoryOpIndexesMap[&UseMI];
       for (unsigned I : InlineAsmMemoryOpIndexes) {
-        MachineOperand &MO = UseMI.getOperand(I + 1);
-        switch (ImmOp.getType()) {
+        
+        switch (MachineOperand &MO = UseMI.getOperand(I + 1); ImmOp.getType()) {
         case MachineOperand::MO_GlobalAddress:
           MO.ChangeToGA(ImmOp.getGlobal(), ImmOp.getOffset(),
                         LoongArchII::getDirectFlags(ImmOp));

@@ -28,10 +28,10 @@ class ParamRegionTestConsumer : public ExprEngineConsumer {
   void performTest(const Decl *D) {
     StoreManager &StMgr = Eng.getStoreManager();
     MemRegionManager &MRMgr = StMgr.getRegionManager();
-    const StackFrameContext *SFC =
-        Eng.getAnalysisDeclContextManager().getStackFrame(D);
+    
 
-    if (const auto *FD = dyn_cast<FunctionDecl>(D)) {
+    if (const StackFrameContext *SFC =
+        Eng.getAnalysisDeclContextManager().getStackFrame(D); const auto *FD = dyn_cast<FunctionDecl>(D)) {
       for (const auto *P : FD->parameters()) {
         if (SFC->inTopFrame())
           assert(isa<NonParamVarRegion>(MRMgr.getVarRegion(P, SFC)));

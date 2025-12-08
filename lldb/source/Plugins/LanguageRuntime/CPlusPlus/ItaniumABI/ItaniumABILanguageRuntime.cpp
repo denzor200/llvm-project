@@ -560,12 +560,12 @@ void ItaniumABILanguageRuntime::SetExceptionBreakpoints() {
   const bool catch_bp = false;
   const bool throw_bp = true;
   const bool is_internal = true;
-  const bool for_expressions = true;
+  
 
   // For the exception breakpoints set by the Expression parser, we'll be a
   // little more aggressive and stop at exception allocation as well.
 
-  if (m_cxx_exception_bp_sp) {
+  if (const bool for_expressions = true; m_cxx_exception_bp_sp) {
     m_cxx_exception_bp_sp->SetEnabled(true);
   } else {
     m_cxx_exception_bp_sp = CreateExceptionBreakpoint(

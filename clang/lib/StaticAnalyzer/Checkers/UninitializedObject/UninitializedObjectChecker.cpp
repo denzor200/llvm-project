@@ -351,13 +351,13 @@ bool FindUninitializedFields::isNonUnionUninit(const TypedValueRegion *R,
     return ContainsUninitField;
 
   for (const CXXBaseSpecifier &BaseSpec : CXXRD->bases()) {
-    const auto *BaseRegion = State->getLValue(BaseSpec, R)
-                                 .castAs<loc::MemRegionVal>()
-                                 .getRegionAs<TypedValueRegion>();
+    
 
     // If the head of the list is also a BaseClass, we'll overwrite it to avoid
     // note messages like 'this->A::B::x'.
-    if (!LocalChain.isEmpty() && LocalChain.getHead().isBase()) {
+    if (const auto *BaseRegion = State->getLValue(BaseSpec, R)
+                                 .castAs<loc::MemRegionVal>()
+                                 .getRegionAs<TypedValueRegion>(); !LocalChain.isEmpty() && LocalChain.getHead().isBase()) {
       if (isNonUnionUninit(BaseRegion, LocalChain.replaceHead(
                                            BaseClass(BaseSpec.getType()))))
         ContainsUninitField = true;
@@ -579,9 +579,9 @@ std::string clang::ento::getVariableName(const FieldDecl *Field) {
   // If Field is a captured lambda variable, Field->getName() will return with
   // an empty string. We can however acquire it's name from the lambda's
   // captures.
-  const auto *CXXParent = dyn_cast<CXXRecordDecl>(Field->getParent());
+  
 
-  if (CXXParent && CXXParent->isLambda()) {
+  if (const auto *CXXParent = dyn_cast<CXXRecordDecl>(Field->getParent()); CXXParent && CXXParent->isLambda()) {
     assert(CXXParent->captures_begin());
     auto It = CXXParent->captures_begin() + Field->getFieldIndex();
 

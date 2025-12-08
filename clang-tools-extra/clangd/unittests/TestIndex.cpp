@@ -17,8 +17,8 @@ namespace clangd {
 Symbol symbol(llvm::StringRef QName) {
   Symbol Sym;
   Sym.ID = SymbolID(QName.str());
-  size_t Pos = QName.rfind("::");
-  if (Pos == llvm::StringRef::npos) {
+  
+  if (size_t Pos = QName.rfind("::"); Pos == llvm::StringRef::npos) {
     Sym.Name = QName;
     Sym.Scope = "";
   } else {
@@ -41,8 +41,8 @@ Symbol sym(llvm::StringRef QName, index::SymbolKind Kind,
            llvm::StringRef USRFormat, llvm::StringRef Signature) {
   Symbol Sym;
   std::string USR = "c:"; // We synthesize a few simple cases of USRs by hand!
-  size_t Pos = QName.rfind("::");
-  if (Pos == llvm::StringRef::npos) {
+  
+  if (size_t Pos = QName.rfind("::"); Pos == llvm::StringRef::npos) {
     Sym.Name = QName;
     Sym.Scope = "";
   } else {
@@ -139,10 +139,10 @@ std::string getQualifiedName(const Symbol &Sym) {
 std::vector<std::string> match(const SymbolIndex &I,
                                const FuzzyFindRequest &Req, bool *Incomplete) {
   std::vector<std::string> Matches;
-  bool IsIncomplete = I.fuzzyFind(Req, [&](const Symbol &Sym) {
+  
+  if (bool IsIncomplete = I.fuzzyFind(Req, [&](const Symbol &Sym) {
     Matches.push_back(clang::clangd::getQualifiedName(Sym));
-  });
-  if (Incomplete)
+  }); Incomplete)
     *Incomplete = IsIncomplete;
   return Matches;
 }

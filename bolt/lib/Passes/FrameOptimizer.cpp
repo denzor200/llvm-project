@@ -376,8 +376,8 @@ Error FrameOptimizerPass::performShrinkWrapping(const RegAnalysis &RA,
           SWError = joinErrors(std::move(SWError), Error(std::move(E)));
           return;
         }
-        const bool Changed = *ChangedOrErr;
-        if (Changed) {
+        
+        if (const bool Changed = *ChangedOrErr; Changed) {
           std::lock_guard<std::mutex> Lock(FuncsChangedMutex);
           FuncsChanged.insert(&BF);
           LLVM_DEBUG(LogFunc(BF));

@@ -43,8 +43,8 @@ TransformerImpl::convertToAtomicChanges(
                     .emplace(ID, AtomicChange(*Result.SourceManager,
                                               T.Range.getBegin(), T.Metadata))
                     .first;
-    auto &AC = Iter->second;
-    switch (T.Kind) {
+    
+    switch (auto &AC = Iter->second; T.Kind) {
     case transformer::EditKind::Range:
       if (auto Err =
               AC.replace(*Result.SourceManager, T.Range, T.Replacement)) {

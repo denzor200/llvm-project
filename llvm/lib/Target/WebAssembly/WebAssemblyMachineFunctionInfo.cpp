@@ -141,8 +141,8 @@ yaml::WebAssemblyFunctionInfo::WebAssemblyFunctionInfo(
       MBBs.insert(&MBB);
     for (auto KV : EHInfo->SrcToUnwindDest) {
       auto *SrcBB = cast<MachineBasicBlock *>(KV.first);
-      auto *DestBB = cast<MachineBasicBlock *>(KV.second);
-      if (MBBs.count(SrcBB) && MBBs.count(DestBB))
+      
+      if (auto *DestBB = cast<MachineBasicBlock *>(KV.second); MBBs.count(SrcBB) && MBBs.count(DestBB))
         SrcToUnwindDest[SrcBB->getNumber()] = DestBB->getNumber();
     }
   }

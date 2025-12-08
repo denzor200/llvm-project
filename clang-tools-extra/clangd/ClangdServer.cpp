@@ -83,8 +83,8 @@ struct UpdateIndexCallbacks : public ParsingCallbacks {
       return;
 
     auto &PP = ASTCtx.getPreprocessor();
-    auto &CI = ASTCtx.getCompilerInvocation();
-    if (auto Loc = Stdlib->add(CI.getLangOpts(), PP.getHeaderSearchInfo()))
+    
+    if (auto &CI = ASTCtx.getCompilerInvocation(); auto Loc = Stdlib->add(CI.getLangOpts(), PP.getHeaderSearchInfo()))
       indexStdlib(CI, std::move(*Loc));
 
     // FIndex outlives the UpdateIndexCallbacks.
@@ -313,9 +313,9 @@ void ClangdServer::addDocument(PathRef File, llvm::StringRef Contents,
   Inputs.ClangTidyProvider = ClangTidyProvider;
   Inputs.FeatureModules = FeatureModules;
   Inputs.ModulesManager = ModulesManager;
-  bool NewFile = WorkScheduler->update(File, Inputs, WantDiags);
+  
   // If we loaded Foo.h, we want to make sure Foo.cpp is indexed.
-  if (NewFile && BackgroundIdx)
+  if (bool NewFile = WorkScheduler->update(File, Inputs, WantDiags); NewFile && BackgroundIdx)
     BackgroundIdx->boostRelated(File);
 }
 
@@ -673,10 +673,10 @@ tweakSelection(const Range &Sel, const InputsAndAST &AST,
 // results.
 std::optional<ClangdServer::CodeActionResult::Rename>
 tryConvertToRename(const Diag *Diag, const Fix &Fix) {
-  bool IsClangTidyRename = Diag->Source == Diag::ClangTidy &&
+  
+  if (bool IsClangTidyRename = Diag->Source == Diag::ClangTidy &&
                            Diag->Name == "readability-identifier-naming" &&
-                           !Fix.Edits.empty();
-  if (IsClangTidyRename && Diag->InsideMainFile) {
+                           !Fix.Edits.empty(); IsClangTidyRename && Diag->InsideMainFile) {
     ClangdServer::CodeActionResult::Rename R;
     R.NewName = Fix.Edits.front().newText;
     R.FixMessage = Fix.Message;

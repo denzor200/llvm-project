@@ -79,8 +79,8 @@ public:
     }
 
     if (auto *FD = dyn_cast_or_null<FunctionDecl>(D)) {
-      llvm::Function *Fn = cast<llvm::Function>(GV);
-      if (!FD->doesThisDeclarationHaveABody() && !FD->hasPrototype())
+      
+      if (llvm::Function *Fn = cast<llvm::Function>(GV); !FD->doesThisDeclarationHaveABody() && !FD->hasPrototype())
         Fn->addFnAttr("no-prototype");
     }
   }

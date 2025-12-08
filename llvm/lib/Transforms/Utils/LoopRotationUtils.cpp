@@ -262,8 +262,8 @@ static void updateBranchWeights(BranchInst &PreHeaderBI, BranchInst &LoopBI,
         // for the `ExitWeight0`:`ExitWeight1` (aka `x0`:`x1` ratio`) ratio.
         while (OrigLoopExitWeight < ZeroTripCountWeights[1] + ExitWeight0) {
           // ... but don't overflow.
-          uint32_t const HighBit = uint32_t{1} << (sizeof(uint32_t) * 8 - 1);
-          if ((OrigLoopBackedgeWeight & HighBit) != 0 ||
+          
+          if (uint32_t const HighBit = uint32_t{1} << (sizeof(uint32_t) * 8 - 1); (OrigLoopBackedgeWeight & HighBit) != 0 ||
               (OrigLoopExitWeight & HighBit) != 0)
             break;
           OrigLoopBackedgeWeight <<= 1;
@@ -770,8 +770,8 @@ bool LoopRotate::rotateLoop(Loop *L, bool SimplifiedLatch) {
     bool SplitLatchEdge = false;
     for (BasicBlock *ExitPred : ExitPreds) {
       // We only need to split loop exit edges.
-      Loop *PredLoop = LI->getLoopFor(ExitPred);
-      if (!PredLoop || PredLoop->contains(Exit) ||
+      
+      if (Loop *PredLoop = LI->getLoopFor(ExitPred); !PredLoop || PredLoop->contains(Exit) ||
           isa<IndirectBrInst>(ExitPred->getTerminator()))
         continue;
       SplitLatchEdge |= L->getLoopLatch() == ExitPred;
@@ -869,8 +869,8 @@ static bool shouldSpeculateInstrs(BasicBlock::iterator Begin,
       // could cause extra live range interference.
       if (MultiExitLoop) {
         for (User *UseI : IVOpnd->users()) {
-          auto *UserInst = cast<Instruction>(UseI);
-          if (!L->contains(UserInst))
+          
+          if (auto *UserInst = cast<Instruction>(UseI); !L->contains(UserInst))
             return false;
         }
       }

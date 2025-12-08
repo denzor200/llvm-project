@@ -105,9 +105,9 @@ LibcxxVariantGetIndexValidity(ValueObjectSP &impl_sp) {
       return LibcxxVariantIndexValidity::Invalid;
   }
   uint64_t npos_value = VariantNposValue(*index_type_bytes);
-  uint64_t index_value = index_sp->GetValueAsUnsigned(0);
+  
 
-  if (index_value == npos_value)
+  if (uint64_t index_value = index_sp->GetValueAsUnsigned(0); index_value == npos_value)
     return LibcxxVariantIndexValidity::NPos;
 
   return LibcxxVariantIndexValidity::Valid;

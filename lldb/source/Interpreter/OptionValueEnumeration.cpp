@@ -69,16 +69,16 @@ Status OptionValueEnumeration::SetValueFromString(llvm::StringRef value,
   case eVarSetOperationReplace:
   case eVarSetOperationAssign: {
     ConstString const_enumerator_name(value.trim());
-    const EnumerationMapEntry *enumerator_entry =
-        m_enumerations.FindFirstValueForName(const_enumerator_name);
-    if (enumerator_entry) {
+    
+    if (const EnumerationMapEntry *enumerator_entry =
+        m_enumerations.FindFirstValueForName(const_enumerator_name); enumerator_entry) {
       m_current_value = enumerator_entry->value.value;
       NotifyValueChanged();
     } else {
       StreamString error_strm;
       error_strm.Printf("invalid enumeration value '%s'", value.str().c_str());
-      const size_t count = m_enumerations.GetSize();
-      if (count) {
+      
+      if (const size_t count = m_enumerations.GetSize(); count) {
         error_strm.Printf(", valid values are: %s",
                           m_enumerations.GetCStringAtIndex(0).GetCString());
         for (size_t i = 1; i < count; ++i) {

@@ -227,8 +227,8 @@ lowerLongBranchLUi(const MachineInstr *MI, MCInst &OutMI) const {
   OutMI.addOperand(LowerOperand(MI->getOperand(0)));
 
   Mips::Specifier Spec;
-  unsigned TargetFlags = MI->getOperand(1).getTargetFlags();
-  switch (TargetFlags) {
+  
+  switch (unsigned TargetFlags = MI->getOperand(1).getTargetFlags(); TargetFlags) {
   case MipsII::MO_HIGHEST:
     Spec = Mips::S_HIGHEST;
     break;
@@ -262,8 +262,8 @@ void MipsMCInstLower::lowerLongBranchADDiu(const MachineInstr *MI,
   OutMI.setOpcode(Opcode);
 
   Mips::Specifier Spec;
-  unsigned TargetFlags = MI->getOperand(2).getTargetFlags();
-  switch (TargetFlags) {
+  
+  switch (unsigned TargetFlags = MI->getOperand(2).getTargetFlags(); TargetFlags) {
   case MipsII::MO_HIGHEST:
     Spec = Mips::S_HIGHEST;
     break;

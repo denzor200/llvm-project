@@ -148,8 +148,8 @@ uint64_t MachineFrameInfo::estimateStackSize(const MachineFunction &MF) const {
     // Only estimate stack size of default stack.
     if (getStackID(i) != TargetStackID::Default)
       continue;
-    int64_t FixedOff = -getObjectOffset(i);
-    if (FixedOff > Offset) Offset = FixedOff;
+    
+    if (int64_t FixedOff = -getObjectOffset(i); FixedOff > Offset) Offset = FixedOff;
   }
   for (unsigned i = 0, e = getObjectIndexEnd(); i != e; ++i) {
     // Only estimate stack size of live objects on default stack.
@@ -195,8 +195,8 @@ void MachineFrameInfo::computeMaxCallFrameSize(
   MaxCallFrameSize = 0;
   for (MachineBasicBlock &MBB : MF) {
     for (MachineInstr &MI : MBB) {
-      unsigned Opcode = MI.getOpcode();
-      if (Opcode == FrameSetupOpcode || Opcode == FrameDestroyOpcode) {
+      
+      if (unsigned Opcode = MI.getOpcode(); Opcode == FrameSetupOpcode || Opcode == FrameDestroyOpcode) {
         uint64_t Size = TII.getFrameSize(MI);
         MaxCallFrameSize = std::max(MaxCallFrameSize, Size);
         if (FrameSDOps != nullptr)

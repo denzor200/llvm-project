@@ -48,8 +48,8 @@ Status OptionValueBoolean::SetValueFromString(llvm::StringRef value_str,
   case eVarSetOperationReplace:
   case eVarSetOperationAssign: {
     bool success = false;
-    bool value = OptionArgParser::ToBoolean(value_str, false, &success);
-    if (success) {
+    
+    if (bool value = OptionArgParser::ToBoolean(value_str, false, &success); success) {
       m_value_was_set = true;
       m_current_value = value;
       NotifyValueChanged();

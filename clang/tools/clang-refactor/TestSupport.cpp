@@ -142,8 +142,8 @@ private:
 
   void handleResult(Expected<tooling::AtomicChanges> Result) {
     Results.back().push_back(std::move(Result));
-    size_t GroupIndex = Results.size() - 1;
-    if (Results.back().size() >=
+    
+    if (size_t GroupIndex = Results.size() - 1; Results.back().size() >=
         TestRanges.GroupedRanges[GroupIndex].Ranges.size()) {
       ++GroupIndex;
       if (GroupIndex >= TestRanges.GroupedRanges.size()) {
@@ -241,8 +241,8 @@ bool TestRefactoringResultConsumer::handleAllResults() {
     }
 
     // Dump the results:
-    const auto &TestGroup = TestRanges.GroupedRanges[Group.index()];
-    if (!CanonicalResult) {
+    
+    if (const auto &TestGroup = TestRanges.GroupedRanges[Group.index()]; !CanonicalResult) {
       llvm::outs() << TestGroup.Ranges.size() << " '" << TestGroup.Name
                    << "' results:\n";
       llvm::outs() << *CanonicalErrorMessage << "\n";

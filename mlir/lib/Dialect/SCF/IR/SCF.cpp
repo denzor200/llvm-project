@@ -164,8 +164,8 @@ ParseResult ExecuteRegionOp::parse(OpAsmParser &parser,
     result.addAttribute("no_inline", parser.getBuilder().getUnitAttr());
 
   // Introduce the body region and parse it.
-  Region *body = result.addRegion();
-  if (parser.parseRegion(*body, /*arguments=*/{}, /*argTypes=*/{}) ||
+  
+  if (Region *body = result.addRegion(); parser.parseRegion(*body, /*arguments=*/{}, /*argTypes=*/{}) ||
       parser.parseOptionalAttrDict(result.attributes))
     return failure();
 
@@ -1033,9 +1033,9 @@ struct ForOpIterArgsFolder : public OpRewritePattern<scf::ForOp> {
       // 2) The region `iter` argument the corresponding input is yielded.
       // 3) The region `iter` argument has no use, and the corresponding op
       // result has no use.
-      bool forwarded = (arg == yielded) || (init == yielded) ||
-                       (arg.use_empty() && result.use_empty());
-      if (forwarded) {
+      
+      if (bool forwarded = (arg == yielded) || (init == yielded) ||
+                       (arg.use_empty() && result.use_empty()); forwarded) {
         canonicalize = true;
         keepMask.push_back(false);
         newBlockTransferArgs.push_back(init);
@@ -1160,8 +1160,8 @@ struct SimplifyTrivialLoops : public OpRewritePattern<ForOp> {
     }
 
     // Now we are left with loops that have more than 1 iterations.
-    Block &block = op.getRegion().front();
-    if (!llvm::hasSingleElement(block))
+    
+    if (Block &block = op.getRegion().front(); !llvm::hasSingleElement(block))
       return failure();
     // The loop is empty and iterates at least once, if it only returns values
     // defined outside of the loop, remove it and replace it with yield values.
@@ -2204,8 +2204,8 @@ void IfOp::build(OpBuilder &builder, OperationState &result,
 
   // Add regions and blocks.
   OpBuilder::InsertionGuard guard(builder);
-  Region *thenRegion = result.addRegion();
-  if (addThenBlock)
+  
+  if (Region *thenRegion = result.addRegion(); addThenBlock)
     builder.createBlock(thenRegion);
   Region *elseRegion = result.addRegion();
   if (addElseBlock)
@@ -2230,8 +2230,8 @@ void IfOp::build(OpBuilder &builder, OperationState &result,
     IfOp::ensureTerminator(*thenRegion, builder, result.location);
 
   // Build else region.
-  Region *elseRegion = result.addRegion();
-  if (withElseRegion) {
+  
+  if (Region *elseRegion = result.addRegion(); withElseRegion) {
     builder.createBlock(elseRegion);
     if (resultTypes.empty())
       IfOp::ensureTerminator(*elseRegion, builder, result.location);
@@ -2251,8 +2251,8 @@ void IfOp::build(OpBuilder &builder, OperationState &result, Value cond,
   thenBuilder(builder, result.location);
 
   // Build else region.
-  Region *elseRegion = result.addRegion();
-  if (elseBuilder) {
+  
+  if (Region *elseRegion = result.addRegion(); elseBuilder) {
     builder.createBlock(elseRegion);
     elseBuilder(builder, result.location);
   }
@@ -2322,8 +2322,8 @@ void IfOp::print(OpAsmPrinter &p) {
                 /*printBlockTerminators=*/printBlockTerminators);
 
   // Print the 'else' regions if it exists and has a block.
-  auto &elseRegion = getElseRegion();
-  if (!elseRegion.empty()) {
+  
+  if (auto &elseRegion = getElseRegion(); !elseRegion.empty()) {
     p << " else ";
     p.printRegion(elseRegion,
                   /*printEntryBlockArgs=*/false,
@@ -2345,8 +2345,8 @@ void IfOp::getSuccessorRegions(RegionBranchPoint point,
   regions.push_back(RegionSuccessor(&getThenRegion()));
 
   // Don't consider the else region if it is empty.
-  Region *elseRegion = &this->getElseRegion();
-  if (elseRegion->empty())
+  
+  if (Region *elseRegion = &this->getElseRegion(); elseRegion->empty())
     regions.push_back(
         RegionSuccessor(getOperation(), getOperation()->getResults()));
   else
@@ -2772,8 +2772,8 @@ struct CombineIfs : public OpRewritePattern<IfOp> {
 
   LogicalResult matchAndRewrite(IfOp nextIf,
                                 PatternRewriter &rewriter) const override {
-    Block *parent = nextIf->getBlock();
-    if (nextIf == &parent->front())
+    
+    if (Block *parent = nextIf->getBlock(); nextIf == &parent->front())
       return failure();
 
     auto prevIf = dyn_cast<IfOp>(nextIf->getPrevNode());
@@ -2907,8 +2907,8 @@ struct RemoveEmptyElseBranch : public OpRewritePattern<IfOp> {
     // Cannot remove else region when there are operation results.
     if (ifOp.getNumResults())
       return failure();
-    Block *elseBlock = ifOp.elseBlock();
-    if (!elseBlock || !llvm::hasSingleElement(*elseBlock))
+    
+    if (Block *elseBlock = ifOp.elseBlock(); !elseBlock || !llvm::hasSingleElement(*elseBlock))
       return failure();
     auto newIfOp = rewriter.cloneWithoutRegions(ifOp);
     rewriter.inlineRegionBefore(ifOp.getThenRegion(), newIfOp.getThenRegion(),
@@ -3073,9 +3073,9 @@ void ParallelOp::build(
   SmallVector<Type, 8> argTypes(numIVs, builder.getIndexType());
   SmallVector<Location, 8> argLocs(numIVs, result.location);
   Region *bodyRegion = result.addRegion();
-  Block *bodyBlock = builder.createBlock(bodyRegion, {}, argTypes, argLocs);
+  
 
-  if (bodyBuilderFn) {
+  if (Block *bodyBlock = builder.createBlock(bodyRegion, {}, argTypes, argLocs); bodyBuilderFn) {
     builder.setInsertionPointToStart(bodyBlock);
     bodyBuilderFn(builder, result.location,
                   bodyBlock->getArguments().take_front(numIVs),
@@ -3520,9 +3520,9 @@ void WhileOp::build(::mlir::OpBuilder &odsBuilder,
   }
 
   Region *beforeRegion = odsState.addRegion();
-  Block *beforeBlock = odsBuilder.createBlock(beforeRegion, /*insertPt=*/{},
-                                              inits.getTypes(), beforeArgLocs);
-  if (beforeBuilder)
+  
+  if (Block *beforeBlock = odsBuilder.createBlock(beforeRegion, /*insertPt=*/{},
+                                              inits.getTypes(), beforeArgLocs); beforeBuilder)
     beforeBuilder(odsBuilder, odsState.location, beforeBlock->getArguments());
 
   // Build after region.
@@ -4534,8 +4534,8 @@ void IndexSwitchOp::getRegionInvocationBounds(
   }
 
   unsigned liveIndex = getNumRegions() - 1;
-  const auto *it = llvm::find(getCases(), operandValue.getInt());
-  if (it != getCases().end())
+  
+  if (const auto *it = llvm::find(getCases(), operandValue.getInt()); it != getCases().end())
     liveIndex = std::distance(getCases().begin(), it);
   for (unsigned i = 0, e = getNumRegions(); i < e; ++i)
     bounds.emplace_back(/*lb=*/0, /*ub=*/i == liveIndex);

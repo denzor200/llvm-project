@@ -158,8 +158,8 @@ void FunctionElideInfo::collectPostSplitCoroIds() {
     // and collect the SwitchInsts which are used by escape analysis later.
     if (auto *CSI = dyn_cast<CoroSuspendInst>(&I))
       if (CSI->hasOneUse() && isa<SwitchInst>(CSI->use_begin()->getUser())) {
-        SwitchInst *SWI = cast<SwitchInst>(CSI->use_begin()->getUser());
-        if (SWI->getNumCases() == 2)
+        
+        if (SwitchInst *SWI = cast<SwitchInst>(CSI->use_begin()->getUser()); SWI->getNumCases() == 2)
           CoroSuspendSwitches.insert(SWI);
       }
   }
@@ -449,8 +449,8 @@ bool CoroIdElider::attemptElide() {
 }
 
 PreservedAnalyses CoroElidePass::run(Function &F, FunctionAnalysisManager &AM) {
-  auto &M = *F.getParent();
-  if (!coro::declaresIntrinsics(M, Intrinsic::coro_id))
+  
+  if (auto &M = *F.getParent(); !coro::declaresIntrinsics(M, Intrinsic::coro_id))
     return PreservedAnalyses::all();
 
   FunctionElideInfo FEI{&F};

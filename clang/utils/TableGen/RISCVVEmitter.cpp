@@ -165,9 +165,9 @@ static unsigned getIndexedLoadStorePtrIdx(const RVVIntrinsic *RVVI) {
   // encoded in the intrinsic name itself.
   const StringRef IRName = RVVI->getIRName();
   constexpr unsigned RVV_VTA = 0x1;
-  constexpr unsigned RVV_VMA = 0x2;
+  
 
-  if (IRName.starts_with("vloxseg") || IRName.starts_with("vluxseg")) {
+  if (constexpr unsigned RVV_VMA = 0x2; IRName.starts_with("vloxseg") || IRName.starts_with("vluxseg")) {
     bool NoPassthru =
         (RVVI->isMasked() && (RVVI->getPolicyAttrsBits() & RVV_VTA) &&
          (RVVI->getPolicyAttrsBits() & RVV_VMA)) ||
@@ -245,8 +245,8 @@ void emitCodeGenSwitchBody(const RVVIntrinsic *RVVI, raw_ostream &OS) {
     OS << "  TWiden = " << RVVI->getTWiden() << ";\n";
 
   OS << "  PolicyAttrs = " << RVVI->getPolicyAttrsBits() << ";\n";
-  unsigned IndexedLoadStorePtrIdx = getIndexedLoadStorePtrIdx(RVVI);
-  if (IndexedLoadStorePtrIdx != UnknownIndex) {
+  
+  if (unsigned IndexedLoadStorePtrIdx = getIndexedLoadStorePtrIdx(RVVI); IndexedLoadStorePtrIdx != UnknownIndex) {
     OS << "  {\n";
     OS << "    auto PointeeType = E->getArg(" << IndexedLoadStorePtrIdx
        << ")->getType()->getPointeeType();\n";

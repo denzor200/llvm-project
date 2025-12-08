@@ -319,8 +319,8 @@ void SwiftErrorValueTracking::preassignVRegs(
 
       // A return in a swiferror returning function is a use.
     } else if (const ReturnInst *R = dyn_cast<const ReturnInst>(&*It)) {
-      const Function *F = R->getParent()->getParent();
-      if (!F->getAttributes().hasAttrSomewhere(Attribute::SwiftError))
+      
+      if (const Function *F = R->getParent()->getParent(); !F->getAttributes().hasAttrSomewhere(Attribute::SwiftError))
         continue;
 
       getOrCreateVRegUseAt(R, MBB, SwiftErrorArg);

@@ -85,12 +85,12 @@ public:
     // try and grab the setting from the current thread if there is one. Else
     // we just use the one from this instance.
     if (exe_ctx) {
-      Thread *thread = exe_ctx->GetThreadPtr();
-      if (thread) {
-        ThreadOptionValueProperties *instance_properties =
+      
+      if (Thread *thread = exe_ctx->GetThreadPtr(); thread) {
+        
+        if (ThreadOptionValueProperties *instance_properties =
             static_cast<ThreadOptionValueProperties *>(
-                thread->GetValueProperties().get());
-        if (this != instance_properties)
+                thread->GetValueProperties().get()); this != instance_properties)
           return instance_properties->ProtectedGetPropertyAtIndex(idx);
       }
     }
@@ -171,8 +171,8 @@ void Thread::ThreadEventData::Dump(Stream *s) const {}
 const Thread::ThreadEventData *
 Thread::ThreadEventData::GetEventDataFromEvent(const Event *event_ptr) {
   if (event_ptr) {
-    const EventData *event_data = event_ptr->GetData();
-    if (event_data &&
+    
+    if (const EventData *event_data = event_ptr->GetData(); event_data &&
         event_data->GetFlavor() == ThreadEventData::GetFlavorString())
       return static_cast<const ThreadEventData *>(event_ptr->GetData());
   }
@@ -181,16 +181,16 @@ Thread::ThreadEventData::GetEventDataFromEvent(const Event *event_ptr) {
 
 ThreadSP Thread::ThreadEventData::GetThreadFromEvent(const Event *event_ptr) {
   ThreadSP thread_sp;
-  const ThreadEventData *event_data = GetEventDataFromEvent(event_ptr);
-  if (event_data)
+  
+  if (const ThreadEventData *event_data = GetEventDataFromEvent(event_ptr); event_data)
     thread_sp = event_data->GetThread();
   return thread_sp;
 }
 
 StackID Thread::ThreadEventData::GetStackIDFromEvent(const Event *event_ptr) {
   StackID stack_id;
-  const ThreadEventData *event_data = GetEventDataFromEvent(event_ptr);
-  if (event_data)
+  
+  if (const ThreadEventData *event_data = GetEventDataFromEvent(event_ptr); event_data)
     stack_id = event_data->GetStackID();
   return stack_id;
 }
@@ -301,8 +301,8 @@ bool Thread::SetSelectedFrameByIndex(uint32_t frame_idx, bool broadcast) {
 bool Thread::SetSelectedFrameByIndexNoisily(uint32_t frame_idx,
                                             Stream &output_stream) {
   const bool broadcast = true;
-  bool success = SetSelectedFrameByIndex(frame_idx, broadcast);
-  if (success) {
+  
+  if (bool success = SetSelectedFrameByIndex(frame_idx, broadcast); success) {
     StackFrameSP frame_sp = GetSelectedFrame(DoNoSelectMostRelevantFrame);
     if (frame_sp) {
       bool already_shown = false;
@@ -363,11 +363,11 @@ lldb::StopInfoSP Thread::GetStopInfo() {
       m_stop_info_stop_id == stop_id;
   bool have_valid_completed_plan = completed_plan_sp && completed_plan_sp->PlanSucceeded();
   bool plan_failed = completed_plan_sp && !completed_plan_sp->PlanSucceeded();
-  bool plan_overrides_trace =
-    have_valid_stop_info && have_valid_completed_plan
-    && (m_stop_info_sp->GetStopReason() == eStopReasonTrace);
+  
 
-  if (have_valid_stop_info && !plan_overrides_trace && !plan_failed) {
+  if (bool plan_overrides_trace =
+    have_valid_stop_info && have_valid_completed_plan
+    && (m_stop_info_sp->GetStopReason() == eStopReasonTrace); have_valid_stop_info && !plan_overrides_trace && !plan_failed) {
     return m_stop_info_sp;
   } else if (completed_plan_sp) {
     return StopInfo::CreateStopReasonWithPlan(
@@ -656,9 +656,9 @@ bool Thread::SetupToStepOverBreakpointIfNeeded(RunDirection direction) {
 
         bool push_step_over_bp_plan = false;
         if (cur_plan->GetKind() == ThreadPlan::eKindStepOverBreakpoint) {
-          ThreadPlanStepOverBreakpoint *bp_plan =
-              (ThreadPlanStepOverBreakpoint *)cur_plan;
-          if (bp_plan->GetBreakpointLoadAddress() != thread_pc)
+          
+          if (ThreadPlanStepOverBreakpoint *bp_plan =
+              (ThreadPlanStepOverBreakpoint *)cur_plan; bp_plan->GetBreakpointLoadAddress() != thread_pc)
             push_step_over_bp_plan = true;
         } else
           push_step_over_bp_plan = true;
@@ -707,8 +707,8 @@ bool Thread::ShouldResume(StateType resume_state) {
   // So assume that if we got to the point where we're about to resume, and we
   // haven't yet had to fetch the stop reason, then it doesn't need to know
   // about the fact that we are resuming...
-  const uint32_t process_stop_id = GetProcess()->GetStopID();
-  if (m_stop_info_stop_id == process_stop_id &&
+  
+  if (const uint32_t process_stop_id = GetProcess()->GetStopID(); m_stop_info_stop_id == process_stop_id &&
       (m_stop_info_sp && m_stop_info_sp->IsValid())) {
     if (StopInfoSP stop_info_sp = GetPrivateStopInfo())
       stop_info_sp->WillResume(resume_state);
@@ -881,8 +881,8 @@ bool Thread::ShouldStop(Event *event_ptr) {
             done_processing_current_plan =
                 (plan_ptr->IsControllingPlan() && !plan_ptr->OkayToDiscard());
           } else {
-            bool should_force_run = plan_ptr->ShouldRunBeforePublicStop();
-            if (should_force_run) {
+            
+            if (bool should_force_run = plan_ptr->ShouldRunBeforePublicStop(); should_force_run) {
               SetShouldRunBeforePublicStop(true);
               should_stop = false;
             }
@@ -1061,8 +1061,8 @@ Vote Thread::ShouldReportRun(Event *event_ptr) {
     return eVoteNoOpinion;
   }
 
-  Log *log = GetLog(LLDBLog::Step);
-  if (GetPlans().AnyCompletedPlans()) {
+  
+  if (Log *log = GetLog(LLDBLog::Step); GetPlans().AnyCompletedPlans()) {
     // Pass skip_private = false to GetCompletedPlan, since we want to ask
     // the last plan, regardless of whether it is private or not.
     LLDB_LOGF(log,
@@ -1090,8 +1090,8 @@ bool Thread::MatchesSpec(const ThreadSpec *spec) {
 }
 
 ThreadPlanStack &Thread::GetPlans() const {
-  ThreadPlanStack *plans = GetProcess()->FindThreadPlans(GetID());
-  if (plans)
+  
+  if (ThreadPlanStack *plans = GetProcess()->FindThreadPlans(GetID()); plans)
     return *plans;
 
   // History threads don't have a thread plan, but they do ask get asked to
@@ -1108,8 +1108,8 @@ ThreadPlanStack &Thread::GetPlans() const {
 void Thread::PushPlan(ThreadPlanSP thread_plan_sp) {
   assert(thread_plan_sp && "Don't push an empty thread plan.");
 
-  Log *log = GetLog(LLDBLog::Step);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Step); log) {
     StreamString s;
     thread_plan_sp->GetDescription(&s, lldb::eDescriptionLevelFull);
     LLDB_LOGF(log, "Thread::PushPlan(0x%p): \"%s\", tid = 0x%4.4" PRIx64 ".",
@@ -1240,8 +1240,8 @@ void Thread::DiscardThreadPlansUpToPlan(ThreadPlan *up_to_plan_ptr) {
 }
 
 void Thread::DiscardThreadPlans(bool force) {
-  Log *log = GetLog(LLDBLog::Step);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Step); log) {
     LLDB_LOGF(log,
               "Discarding thread plans for thread (tid = 0x%4.4" PRIx64
               ", force %d)",
@@ -1520,8 +1520,8 @@ Status Thread::ReturnFromFrame(lldb::StackFrameSP frame_sp,
     // for scalars.
     // Turn that back on when that works.
     if (/* DISABLES CODE */ (false) && sc.function != nullptr) {
-      Type *function_type = sc.function->GetType();
-      if (function_type) {
+      
+      if (Type *function_type = sc.function->GetType(); function_type) {
         CompilerType return_type =
             sc.function->GetCompilerType().GetFunctionReturnType();
         if (return_type) {
@@ -1549,9 +1549,9 @@ Status Thread::ReturnFromFrame(lldb::StackFrameSP frame_sp,
   if (youngest_frame_sp) {
     lldb::RegisterContextSP reg_ctx_sp(youngest_frame_sp->GetRegisterContext());
     if (reg_ctx_sp) {
-      bool copy_success = reg_ctx_sp->CopyFromRegisterContext(
-          older_frame_sp->GetRegisterContext());
-      if (copy_success) {
+      
+      if (bool copy_success = reg_ctx_sp->CopyFromRegisterContext(
+          older_frame_sp->GetRegisterContext()); copy_success) {
         thread->DiscardThreadPlans(true);
         thread->ClearStackFrames();
         if (broadcast && EventTypeHasListeners(eBroadcastBitStackChanged)) {
@@ -1644,8 +1644,8 @@ Status Thread::JumpToLine(const FileSpec &file, uint32_t line,
 bool Thread::DumpUsingFormat(Stream &strm, uint32_t frame_idx,
                              const FormatEntity::Entry *format) {
   ExecutionContext exe_ctx(shared_from_this());
-  Process *process = exe_ctx.GetProcessPtr();
-  if (!process || !format)
+  
+  if (Process *process = exe_ctx.GetProcessPtr(); !process || !format)
     return false;
 
   StackFrameSP frame_sp;
@@ -1695,8 +1695,8 @@ addr_t Thread::GetThreadLocalData(const ModuleSP module,
                                   lldb::addr_t tls_file_addr) {
   // The default implementation is to ask the dynamic loader for it. This can
   // be overridden for specific platforms.
-  DynamicLoader *loader = GetProcess()->GetDynamicLoader();
-  if (loader)
+  
+  if (DynamicLoader *loader = GetProcess()->GetDynamicLoader(); loader)
     return loader->GetThreadLocalData(module, shared_from_this(),
                                       tls_file_addr);
   else
@@ -1704,10 +1704,10 @@ addr_t Thread::GetThreadLocalData(const ModuleSP module,
 }
 
 bool Thread::SafeToCallFunctions() {
-  Process *process = GetProcess().get();
-  if (process) {
-    DynamicLoader *loader = GetProcess()->GetDynamicLoader();
-    if (loader && loader->IsFullyInitialized() == false)
+  
+  if (Process *process = GetProcess().get(); process) {
+    
+    if (DynamicLoader *loader = GetProcess()->GetDynamicLoader(); loader && loader->IsFullyInitialized() == false)
       return false;
 
     SystemRuntime *runtime = process->GetSystemRuntime();
@@ -1899,8 +1899,8 @@ bool Thread::GetDescription(Stream &strm, lldb::DescriptionLevel level,
       if (printed_breadcrumb)
         strm.Printf("\n");
       StructuredData::Array *messages_array = messages->GetAsArray();
-      const size_t msg_count = messages_array->GetSize();
-      if (msg_count > 0) {
+      
+      if (const size_t msg_count = messages_array->GetSize(); msg_count > 0) {
         strm.Printf("  %zu trace messages:\n", msg_count);
         for (size_t i = 0; i < msg_count; i++) {
           StructuredData::ObjectSP message = messages_array->GetItemAtIndex(i);
@@ -1970,14 +1970,14 @@ Status Thread::StepIn(bool source_step,
 
 {
   Status error;
-  Process *process = GetProcess().get();
-  if (StateIsStoppedState(process->GetState(), true)) {
+  
+  if (Process *process = GetProcess().get(); StateIsStoppedState(process->GetState(), true)) {
     StackFrameSP frame_sp = GetStackFrameAtIndex(0);
     ThreadPlanSP new_plan_sp;
     const lldb::RunMode run_mode = eOnlyThisThread;
-    const bool abort_other_plans = false;
+    
 
-    if (source_step && frame_sp && frame_sp->HasDebugInformation()) {
+    if (const bool abort_other_plans = false; source_step && frame_sp && frame_sp->HasDebugInformation()) {
       SymbolContext sc(frame_sp->GetSymbolContext(eSymbolContextEverything));
       new_plan_sp = QueueThreadPlanForStepInRange(
           abort_other_plans, sc.line_entry, sc, nullptr, run_mode, error,
@@ -2003,15 +2003,15 @@ Status Thread::StepIn(bool source_step,
 Status Thread::StepOver(bool source_step,
                         LazyBool step_out_avoids_code_without_debug_info) {
   Status error;
-  Process *process = GetProcess().get();
-  if (StateIsStoppedState(process->GetState(), true)) {
+  
+  if (Process *process = GetProcess().get(); StateIsStoppedState(process->GetState(), true)) {
     StackFrameSP frame_sp = GetStackFrameAtIndex(0);
     ThreadPlanSP new_plan_sp;
 
     const lldb::RunMode run_mode = eOnlyThisThread;
-    const bool abort_other_plans = false;
+    
 
-    if (source_step && frame_sp && frame_sp->HasDebugInformation()) {
+    if (const bool abort_other_plans = false; source_step && frame_sp && frame_sp->HasDebugInformation()) {
       SymbolContext sc(frame_sp->GetSymbolContext(eSymbolContextEverything));
       new_plan_sp = QueueThreadPlanForStepOverRange(
           abort_other_plans, sc.line_entry, sc, run_mode, error,
@@ -2035,8 +2035,8 @@ Status Thread::StepOver(bool source_step,
 
 Status Thread::StepOut(uint32_t frame_idx) {
   Status error;
-  Process *process = GetProcess().get();
-  if (StateIsStoppedState(process->GetState(), true)) {
+  
+  if (Process *process = GetProcess().get(); StateIsStoppedState(process->GetState(), true)) {
     const bool first_instruction = false;
     const bool stop_other_threads = false;
     const bool abort_other_plans = false;

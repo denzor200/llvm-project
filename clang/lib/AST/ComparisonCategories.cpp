@@ -48,8 +48,8 @@ bool ComparisonCategoryInfo::ValueInfo::hasValidIntValue() const {
 
   // Before we attempt to get the value of the first field, ensure that we
   // actually have one (and only one) field.
-  const auto *Record = VD->getType()->getAsCXXRecordDecl();
-  if (std::distance(Record->field_begin(), Record->field_end()) != 1 ||
+  
+  if (const auto *Record = VD->getType()->getAsCXXRecordDecl(); std::distance(Record->field_begin(), Record->field_end()) != 1 ||
       !Record->field_begin()->getType()->isIntegralOrEnumerationType())
     return false;
 
@@ -72,9 +72,9 @@ llvm::APSInt ComparisonCategoryInfo::ValueInfo::getIntValue() const {
 ComparisonCategoryInfo::ValueInfo *ComparisonCategoryInfo::lookupValueInfo(
     ComparisonCategoryResult ValueKind) const {
   // Check if we already have a cache entry for this value.
-  auto It = llvm::find_if(
-      Objects, [&](ValueInfo const &Info) { return Info.Kind == ValueKind; });
-  if (It != Objects.end())
+  
+  if (auto It = llvm::find_if(
+      Objects, [&](ValueInfo const &Info) { return Info.Kind == ValueKind; }); It != Objects.end())
     return &(*It);
 
   // We don't have a cached result. Lookup the variable declaration and create
@@ -133,8 +133,8 @@ ComparisonCategories::lookupInfoForType(QualType Ty) const {
   // Check to see if we have information for the specified type cached.
   const auto *CanonRD = RD->getCanonicalDecl();
   for (const auto &KV : Data) {
-    const ComparisonCategoryInfo &Info = KV.second;
-    if (CanonRD == Info.Record->getCanonicalDecl())
+    
+    if (const ComparisonCategoryInfo &Info = KV.second; CanonRD == Info.Record->getCanonicalDecl())
       return &Info;
   }
 

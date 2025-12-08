@@ -193,8 +193,8 @@ static SmallVector<Value> inferDynamicDimsForConv(
 
   for (uint32_t i = 0, s = inputSizeDims.size(); i < s; ++i) {
     int64_t inputDim = inputSizeDims[i];
-    int64_t kernelDim = kernelSizeDims[i];
-    if (resultTy.isDynamicDim(inputDim)) {
+    
+    if (int64_t kernelDim = kernelSizeDims[i]; resultTy.isDynamicDim(inputDim)) {
       auto padTop = padAttr[i * 2];
       auto padBottom = padAttr[i * 2 + 1];
       auto stride = strideAttr[i];
@@ -312,11 +312,11 @@ public:
       int64_t intMin =
           APInt::getSignedMinValue(inputETy.getIntOrFloatBitWidth())
               .getSExtValue();
-      int64_t intMax =
-          APInt::getSignedMaxValue(inputETy.getIntOrFloatBitWidth())
-              .getSExtValue();
+      
 
-      if (inputZpVal < intMin || inputZpVal > intMax)
+      if (int64_t intMax =
+          APInt::getSignedMaxValue(inputETy.getIntOrFloatBitWidth())
+              .getSExtValue(); inputZpVal < intMin || inputZpVal > intMax)
         return rewriter.notifyMatchFailure(
             op, "tosa.conv op quantization has zp outside of input range");
 
@@ -332,10 +332,10 @@ public:
     if (4 == inputTy.getRank()) {
       // For 2D convolutions, we need to check if the target convolution op
       // wants a HWCF kernel layout.
-      bool wantHwcf =
+      
+      if (bool wantHwcf =
           hasZp ? std::is_same_v<LinalgConvQOp, linalg::Conv2DNhwcHwcfQOp>
-                : std::is_same_v<LinalgConvOp, linalg::Conv2DNhwcHwcfOp>;
-      if (wantHwcf) {
+                : std::is_same_v<LinalgConvOp, linalg::Conv2DNhwcHwcfOp>; wantHwcf) {
         // Transpose the kernel to match dimension ordering of the linalg
         // convolution operation.
         // TODO(suderman): See if this can be efficiently folded - check whether
@@ -493,11 +493,11 @@ public:
       int64_t intMin =
           APInt::getSignedMinValue(inputETy.getIntOrFloatBitWidth())
               .getSExtValue();
-      int64_t intMax =
-          APInt::getSignedMaxValue(inputETy.getIntOrFloatBitWidth())
-              .getSExtValue();
+      
 
-      if (inputZpVal < intMin || inputZpVal > intMax)
+      if (int64_t intMax =
+          APInt::getSignedMaxValue(inputETy.getIntOrFloatBitWidth())
+              .getSExtValue(); inputZpVal < intMin || inputZpVal > intMax)
         return rewriter.notifyMatchFailure(
             op, "tosa.depthwise_conv op quantization has zp outside of input "
                 "range");

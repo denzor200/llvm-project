@@ -159,8 +159,8 @@ void BasicBlockFiller::addInstruction(const MCInst &Inst, const DebugLoc &DL) {
   MachineInstrBuilder Builder = BuildMI(MBB, DL, MCID);
   for (unsigned OpIndex = 0, E = Inst.getNumOperands(); OpIndex < E;
        ++OpIndex) {
-    const MCOperand &Op = Inst.getOperand(OpIndex);
-    if (Op.isReg()) {
+    
+    if (const MCOperand &Op = Inst.getOperand(OpIndex); Op.isReg()) {
       const bool IsDef = OpIndex < MCID.getNumDefs();
       unsigned Flags = 0;
       const MCOperandInfo &OpInfo = MCID.operands().begin()[OpIndex];
@@ -195,8 +195,8 @@ void BasicBlockFiller::addReturn(const ExegesisTarget &ET,
 #endif // __linux__
   }
   // Insert the return code.
-  const TargetInstrInfo *TII = MF.getSubtarget().getInstrInfo();
-  if (TII->getReturnOpcode() < TII->getNumOpcodes()) {
+  
+  if (const TargetInstrInfo *TII = MF.getSubtarget().getInstrInfo(); TII->getReturnOpcode() < TII->getNumOpcodes()) {
     BuildMI(MBB, DL, TII->get(TII->getReturnOpcode()));
   } else {
     MachineIRBuilder MIB(MF);
@@ -291,13 +291,13 @@ Error assembleToStream(const ExegesisTarget &ET,
       Entry.MBB->addLiveIn(Reg);
   }
 
-  const bool IsSnippetSetupComplete = generateSnippetSetupCode(
-      ET, TM->getMCSubtargetInfo(), Entry, Key, GenerateMemoryInstructions);
+  
 
   // If the snippet setup is not complete, we disable liveliness tracking. This
   // means that we won't know what values are in the registers.
   // FIXME: this should probably be an assertion.
-  if (!IsSnippetSetupComplete)
+  if (const bool IsSnippetSetupComplete = generateSnippetSetupCode(
+      ET, TM->getMCSubtargetInfo(), Entry, Key, GenerateMemoryInstructions); !IsSnippetSetupComplete)
     Properties.resetTracksLiveness();
 
   Fill(Sink);

@@ -1522,13 +1522,13 @@ bool Preprocessor::isSafeBufferOptOut(const SourceManager &SourceMgr,
   auto TestInMap = [&SourceMgr](const SafeBufferOptOutRegionsTy &Map,
                                 const SourceLocation &Loc) -> bool {
     // Try to find a region in `SafeBufferOptOutMap` where `Loc` is in:
-    auto FirstRegionEndingAfterLoc = llvm::partition_point(
+    
+
+    if (auto FirstRegionEndingAfterLoc = llvm::partition_point(
         Map, [&SourceMgr,
               &Loc](const std::pair<SourceLocation, SourceLocation> &Region) {
           return SourceMgr.isBeforeInTranslationUnit(Region.second, Loc);
-        });
-
-    if (FirstRegionEndingAfterLoc != Map.end()) {
+        }); FirstRegionEndingAfterLoc != Map.end()) {
       // To test if the start location of the found region precedes `Loc`:
       return SourceMgr.isBeforeInTranslationUnit(
           FirstRegionEndingAfterLoc->first, Loc);
@@ -1561,10 +1561,10 @@ bool Preprocessor::isSafeBufferOptOut(const SourceManager &SourceMgr,
   if (SourceMgr.isLocalSourceLocation(Loc))
     return TestInMap(SafeBufferOptOutMap, Loc);
 
-  const SafeBufferOptOutRegionsTy *LoadedRegions =
-      LoadedSafeBufferOptOutMap.lookupLoadedOptOutMap(Loc, SourceMgr);
+  
 
-  if (LoadedRegions)
+  if (const SafeBufferOptOutRegionsTy *LoadedRegions =
+      LoadedSafeBufferOptOutMap.lookupLoadedOptOutMap(Loc, SourceMgr); LoadedRegions)
     return TestInMap(*LoadedRegions, Loc);
   return false;
 }

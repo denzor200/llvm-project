@@ -398,8 +398,8 @@ ComplexPattern::ComplexPattern(const Record *R) {
   // maps a sub-dag to a complex pattern. e.g. favors LEA over ADD. To get best
   // possible pattern match we'll need to dynamically calculate the complexity
   // of all patterns a dag can potentially map to.
-  int64_t RawComplexity = R->getValueAsInt("Complexity");
-  if (RawComplexity == -1)
+  
+  if (int64_t RawComplexity = R->getValueAsInt("Complexity"); RawComplexity == -1)
     Complexity = NumOperands * 3;
   else
     Complexity = RawComplexity;

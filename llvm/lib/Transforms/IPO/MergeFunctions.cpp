@@ -472,8 +472,8 @@ template <typename FuncContainer> bool MergeFunctions::run(FuncContainer &M) {
     for (WeakTrackingVH &I : Worklist) {
       if (!I)
         continue;
-      Function *F = cast<Function>(I);
-      if (!F->isDeclaration() && !F->hasAvailableExternallyLinkage()) {
+      
+      if (Function *F = cast<Function>(I); !F->isDeclaration() && !F->hasAvailableExternallyLinkage()) {
         Changed |= insert(F);
       }
     }
@@ -498,8 +498,8 @@ MergeFunctions::runOnFunctions(ArrayRef<Function *> F) {
 // Replace direct callers of Old with New.
 void MergeFunctions::replaceDirectCallers(Function *Old, Function *New) {
   for (Use &U : make_early_inc_range(Old->uses())) {
-    CallBase *CB = dyn_cast<CallBase>(U.getUser());
-    if (CB && CB->isCallee(&U)) {
+    
+    if (CallBase *CB = dyn_cast<CallBase>(U.getUser()); CB && CB->isCallee(&U)) {
       // Do not copy attributes from the called function to the call-site.
       // Function comparison ensures that the attributes are the same up to
       // type congruences in byval(), in which case we need to keep the byval
@@ -576,8 +576,8 @@ void MergeFunctions::filterInstsUnrelatedToPDI(
     LLVM_DEBUG(dbgs() << " Deciding: ");
     LLVM_DEBUG(DbgVal->print(dbgs()));
     LLVM_DEBUG(dbgs() << "\n");
-    DILocalVariable *DILocVar = DbgVal->getVariable();
-    if (DILocVar->isParameter()) {
+    
+    if (DILocalVariable *DILocVar = DbgVal->getVariable(); DILocVar->isParameter()) {
       LLVM_DEBUG(dbgs() << "  Include (parameter): ");
       LLVM_DEBUG(DbgVal->print(dbgs()));
       LLVM_DEBUG(dbgs() << "\n");
@@ -594,8 +594,8 @@ void MergeFunctions::filterInstsUnrelatedToPDI(
     LLVM_DEBUG(dbgs() << " Deciding: ");
     LLVM_DEBUG(DbgDecl->print(dbgs()));
     LLVM_DEBUG(dbgs() << "\n");
-    DILocalVariable *DILocVar = DbgDecl->getVariable();
-    if (DILocVar->isParameter()) {
+    
+    if (DILocalVariable *DILocVar = DbgDecl->getVariable(); DILocVar->isParameter()) {
       LLVM_DEBUG(dbgs() << "  Parameter: ");
       LLVM_DEBUG(DILocVar->print(dbgs()));
       AllocaInst *AI = dyn_cast_or_null<AllocaInst>(DbgDecl->getAddress());
@@ -776,8 +776,8 @@ void MergeFunctions::writeThunk(Function *F, Function *G) {
   }
 
   if (MergeFunctionsPDI) {
-    DISubprogram *DIS = G->getSubprogram();
-    if (DIS) {
+    
+    if (DISubprogram *DIS = G->getSubprogram(); DIS) {
       DebugLoc CIDbgLoc =
           DILocation::get(DIS->getContext(), DIS->getScopeLine(), 0, DIS);
       DebugLoc RIDbgLoc =

@@ -141,9 +141,9 @@ public:
     // to shrink (even if we don't delete the callee).
     bool P1ReducesCallerSize =
         P1.Cost + P1.StaticBonusApplied < ModuleInlinerTopPriorityThreshold;
-    bool P2ReducesCallerSize =
-        P2.Cost + P2.StaticBonusApplied < ModuleInlinerTopPriorityThreshold;
-    if (P1ReducesCallerSize || P2ReducesCallerSize) {
+    
+    if (bool P2ReducesCallerSize =
+        P2.Cost + P2.StaticBonusApplied < ModuleInlinerTopPriorityThreshold; P1ReducesCallerSize || P2ReducesCallerSize) {
       // If one reduces the caller size while the other doesn't, then return
       // true iff P1 reduces the caller size.
       if (P1ReducesCallerSize != P2ReducesCallerSize)

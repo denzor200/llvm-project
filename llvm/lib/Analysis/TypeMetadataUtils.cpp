@@ -123,8 +123,8 @@ void llvm::findDevirtualizableCallsForTypeCheckedLoad(
   }
 
   for (const Use &U : CI->uses()) {
-    auto CIU = U.getUser();
-    if (auto EVI = dyn_cast<ExtractValueInst>(CIU)) {
+    
+    if (auto CIU = U.getUser(); auto EVI = dyn_cast<ExtractValueInst>(CIU)) {
       if (EVI->getNumIndices() == 1 && EVI->getIndices()[0] == 0) {
         LoadedPtrs.push_back(EVI);
         continue;
@@ -204,11 +204,11 @@ Constant *llvm::getPointerAtOffset(Constant *I, uint64_t Offset, Module &M,
           return C;
         return CE->getOperand(0);
       };
-      auto *Operand1TargetGlobal = StripGEP(getPointerAtOffset(Operand1, 0, M));
+      
 
       // Check that in the "sub (@a, @b)" expression, @b points back to the top
       // level global (or a GEP thereof) that we're processing. Otherwise bail.
-      if (Operand1TargetGlobal != TopLevelGlobal)
+      if (auto *Operand1TargetGlobal = StripGEP(getPointerAtOffset(Operand1, 0, M)); Operand1TargetGlobal != TopLevelGlobal)
         return nullptr;
 
       return getPointerAtOffset(Operand0, Offset, M, TopLevelGlobal);

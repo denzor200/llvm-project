@@ -46,8 +46,8 @@ class CommandObjectSourceInfo : public CommandObjectParsed {
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = GetDefinitions()[option_idx].short_option;
-      switch (short_option) {
+      
+      switch (const int short_option = GetDefinitions()[option_idx].short_option; short_option) {
       case 'l':
         if (option_arg.getAsInteger(0, start_line))
           error = Status::FromErrorStringWithFormat("invalid line number: '%s'",
@@ -205,8 +205,8 @@ protected:
       assert(file_spec.GetFilename().AsCString());
       bool has_path = (file_spec.GetDirectory().AsCString() != nullptr);
       const SupportFileList &cu_file_list = cu->GetSupportFiles();
-      size_t file_idx = cu_file_list.FindFileIndex(0, file_spec, has_path);
-      if (file_idx != UINT32_MAX) {
+      
+      if (size_t file_idx = cu_file_list.FindFileIndex(0, file_spec, has_path); file_idx != UINT32_MAX) {
         // Update the file to how it appears in the CU.
         const FileSpec &cu_file_spec =
             cu_file_list.GetFileSpecAtIndex(file_idx);
@@ -301,8 +301,8 @@ protected:
     Address so_addr;
     size_t num_matches = 0;
     assert(module_list.GetSize() > 0);
-    Target &target = GetTarget();
-    if (!target.HasLoadedSections()) {
+    
+    if (Target &target = GetTarget(); !target.HasLoadedSections()) {
       // The target isn't loaded yet, we need to lookup the file address in all
       // modules.  Note: the module list option does not apply to addresses.
       const size_t num_modules = module_list.GetSize();
@@ -394,8 +394,8 @@ protected:
       for (const SymbolContext &sc : sc_list_symbols) {
         if (sc.symbol && sc.symbol->ValueIsAddress()) {
           const Address &base_address = sc.symbol->GetAddressRef();
-          Function *function = base_address.CalculateSymbolContextFunction();
-          if (function) {
+          
+          if (Function *function = base_address.CalculateSymbolContextFunction(); function) {
             sc_list_funcs.Append(SymbolContext(function));
             num_matches++;
           }
@@ -507,8 +507,8 @@ protected:
 
   // Dump the line entries for the current frame.
   bool DumpLinesForFrame(CommandReturnObject &result) {
-    StackFrame *cur_frame = m_exe_ctx.GetFramePtr();
-    if (cur_frame == nullptr) {
+    
+    if (StackFrame *cur_frame = m_exe_ctx.GetFramePtr(); cur_frame == nullptr) {
       result.AppendError(
           "No selected frame to use to find the default source.");
       return false;
@@ -608,8 +608,8 @@ class CommandObjectSourceList : public CommandObjectParsed {
     Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
                           ExecutionContext *execution_context) override {
       Status error;
-      const int short_option = GetDefinitions()[option_idx].short_option;
-      switch (short_option) {
+      
+      switch (const int short_option = GetDefinitions()[option_idx].short_option; short_option) {
       case 'l':
         if (option_arg.getAsInteger(0, start_line))
           error = Status::FromErrorStringWithFormat("invalid line number: '%s'",
@@ -864,8 +864,8 @@ protected:
     function_options.include_symbols = true;
     function_options.include_inlines = false;
 
-    const size_t num_modules = m_options.modules.size();
-    if (num_modules > 0) {
+    
+    if (const size_t num_modules = m_options.modules.size(); num_modules > 0) {
       ModuleList matching_modules;
       for (size_t i = 0; i < num_modules; ++i) {
         FileSpec module_file_spec(m_options.modules[i]);
@@ -886,8 +886,8 @@ protected:
 
   void FindMatchingFunctionSymbols(Target &target, ConstString name,
                                    SymbolContextList &sc_list) {
-    const size_t num_modules = m_options.modules.size();
-    if (num_modules > 0) {
+    
+    if (const size_t num_modules = m_options.modules.size(); num_modules > 0) {
       ModuleList matching_modules;
       for (size_t i = 0; i < num_modules; ++i) {
         FileSpec module_file_spec(m_options.modules[i]);
@@ -906,9 +906,9 @@ protected:
   }
 
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    Target &target = GetTarget();
+    
 
-    if (!m_options.symbol_name.empty()) {
+    if (Target &target = GetTarget(); !m_options.symbol_name.empty()) {
       SymbolContextList sc_list;
       ConstString name(m_options.symbol_name.c_str());
 
@@ -922,8 +922,8 @@ protected:
         for (const SymbolContext &sc : sc_list_symbols) {
           if (sc.symbol && sc.symbol->ValueIsAddress()) {
             const Address &base_address = sc.symbol->GetAddressRef();
-            Function *function = base_address.CalculateSymbolContextFunction();
-            if (function) {
+            
+            if (Function *function = base_address.CalculateSymbolContextFunction(); function) {
               sc_list.Append(SymbolContext(function));
               break;
             }
@@ -1095,8 +1095,8 @@ protected:
         } else
           m_breakpoint_locations.Clear();
 
-        const uint32_t column = 0;
-        if (target.GetSourceManager()
+        
+        if (const uint32_t column = 0; target.GetSourceManager()
                 .DisplaySourceLinesWithLineNumbersUsingLastFile(
                     m_options.start_line, // Line to display
                     m_options.num_lines,  // Lines after line to

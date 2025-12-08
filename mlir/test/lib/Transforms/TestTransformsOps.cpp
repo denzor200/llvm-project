@@ -32,8 +32,8 @@ transform::TestMoveOperandDeps::apply(TransformRewriter &rewriter,
                                       TransformResults &TransformResults,
                                       TransformState &state) {
   Operation *op = *state.getPayloadOps(getOp()).begin();
-  Operation *moveBefore = *state.getPayloadOps(getInsertionPoint()).begin();
-  if (failed(moveOperationDependencies(rewriter, op, moveBefore))) {
+  
+  if (Operation *moveBefore = *state.getPayloadOps(getInsertionPoint()).begin(); failed(moveOperationDependencies(rewriter, op, moveBefore))) {
     auto *listener =
         cast<ErrorCheckingTrackingListener>(rewriter.getListener());
     std::string errorMsg = listener->getLatestMatchFailureMessage();
@@ -50,8 +50,8 @@ transform::TestMoveValueDefns::apply(TransformRewriter &rewriter,
   for (auto tdValue : getValues()) {
     values.push_back(*state.getPayloadValues(tdValue).begin());
   }
-  Operation *moveBefore = *state.getPayloadOps(getInsertionPoint()).begin();
-  if (failed(moveValueDefinitions(rewriter, values, moveBefore))) {
+  
+  if (Operation *moveBefore = *state.getPayloadOps(getInsertionPoint()).begin(); failed(moveValueDefinitions(rewriter, values, moveBefore))) {
     auto *listener =
         cast<ErrorCheckingTrackingListener>(rewriter.getListener());
     std::string errorMsg = listener->getLatestMatchFailureMessage();

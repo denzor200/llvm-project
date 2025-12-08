@@ -67,9 +67,9 @@ struct AMDGPUOutgoingValueHandler : public CallLowering::OutgoingValueHandler {
     // If this is a scalar return, insert a readfirstlane just in case the value
     // ends up in a VGPR.
     // FIXME: Assert this is a shader return.
-    const SIRegisterInfo *TRI
-      = static_cast<const SIRegisterInfo *>(MRI.getTargetRegisterInfo());
-    if (TRI->isSGPRReg(MRI, PhysReg)) {
+    
+    if (const SIRegisterInfo *TRI
+      = static_cast<const SIRegisterInfo *>(MRI.getTargetRegisterInfo()); TRI->isSGPRReg(MRI, PhysReg)) {
       LLT Ty = MRI.getType(ExtReg);
       LLT S32 = LLT::scalar(32);
       if (Ty != S32) {
@@ -205,11 +205,11 @@ struct AMDGPUOutgoingArgHandler : public AMDGPUOutgoingValueHandler {
       return FIReg.getReg(0);
     }
 
-    const SIMachineFunctionInfo *MFI = MF.getInfo<SIMachineFunctionInfo>();
+    
 
-    if (!SPReg) {
-      const GCNSubtarget &ST = MIRBuilder.getMF().getSubtarget<GCNSubtarget>();
-      if (ST.enableFlatScratch()) {
+    if (const SIMachineFunctionInfo *MFI = MF.getInfo<SIMachineFunctionInfo>(); !SPReg) {
+      
+      if (const GCNSubtarget &ST = MIRBuilder.getMF().getSubtarget<GCNSubtarget>(); ST.enableFlatScratch()) {
         // The stack is accessed unswizzled, so we can use a regular copy.
         SPReg = MIRBuilder.buildCopy(PtrTy,
                                      MFI->getStackPtrOffsetReg()).getReg(0);
@@ -366,9 +366,9 @@ bool AMDGPUCallLowering::lowerReturn(MachineIRBuilder &B, const Value *Val,
 
   CallingConv::ID CC = B.getMF().getFunction().getCallingConv();
   const bool IsShader = AMDGPU::isShader(CC);
-  const bool IsWaveEnd =
-      (IsShader && MFI->returnsVoid()) || AMDGPU::isKernel(CC);
-  if (IsWaveEnd) {
+  
+  if (const bool IsWaveEnd =
+      (IsShader && MFI->returnsVoid()) || AMDGPU::isKernel(CC); IsWaveEnd) {
     B.buildInstr(AMDGPU::S_ENDPGM)
       .addImm(0);
     return true;
@@ -719,8 +719,8 @@ bool AMDGPUCallLowering::lowerFormalArguments(
       // set up an input arg for a particular interpolation mode, but nothing
       // uses that input arg. Really we should have an earlier pass that removes
       // such an arg.)
-      unsigned PsInputBits = Info->getPSInputAddr() & Info->getPSInputEnable();
-      if ((PsInputBits & 0x7F) == 0 ||
+      
+      if (unsigned PsInputBits = Info->getPSInputAddr() & Info->getPSInputEnable(); (PsInputBits & 0x7F) == 0 ||
           ((PsInputBits & 0xF) == 0 &&
            (PsInputBits >> 11 & 1)))
         Info->markPSInputEnabled(llvm::countr_zero(Info->getPSInputAddr()));
@@ -1112,8 +1112,8 @@ bool AMDGPUCallLowering::areCalleeOutgoingArgsTailCallable(
   }
 
   // Make sure that they can fit on the caller's stack.
-  const SIMachineFunctionInfo *FuncInfo = MF.getInfo<SIMachineFunctionInfo>();
-  if (OutInfo.getStackSize() > FuncInfo->getBytesInStackArgArea()) {
+  
+  if (const SIMachineFunctionInfo *FuncInfo = MF.getInfo<SIMachineFunctionInfo>(); OutInfo.getStackSize() > FuncInfo->getBytesInStackArgArea()) {
     LLVM_DEBUG(dbgs() << "... Cannot fit call operands on caller's stack.\n");
     return false;
   }
@@ -1144,10 +1144,10 @@ bool AMDGPUCallLowering::isEligibleForTailCallOptimization(
   CallingConv::ID CallerCC = CallerF.getCallingConv();
 
   const SIRegisterInfo *TRI = MF.getSubtarget<GCNSubtarget>().getRegisterInfo();
-  const uint32_t *CallerPreserved = TRI->getCallPreservedMask(MF, CallerCC);
+  
   // Kernels aren't callable, and don't have a live in return address so it
   // doesn't make sense to do a tail call with entry functions.
-  if (!CallerPreserved)
+  if (const uint32_t *CallerPreserved = TRI->getCallPreservedMask(MF, CallerCC); !CallerPreserved)
     return false;
 
   if (!AMDGPU::mayTailCallThisCC(CalleeCC)) {
@@ -1258,8 +1258,8 @@ bool AMDGPUCallLowering::lowerTailCall(
 
   if (IsChainCall) {
     ArgInfo FlagsArg = Info.OrigArgs[ChainCallArgIdx::Flags];
-    const APInt &FlagsValue = cast<ConstantInt>(FlagsArg.OrigValue)->getValue();
-    if (FlagsValue.isZero()) {
+    
+    if (const APInt &FlagsValue = cast<ConstantInt>(FlagsArg.OrigValue)->getValue(); FlagsValue.isZero()) {
       if (Info.OrigArgs.size() != 5) {
         LLVM_DEBUG(dbgs() << "No additional args allowed if flags == 0\n");
         return false;
@@ -1466,8 +1466,8 @@ bool AMDGPUCallLowering::lowerChainCall(MachineIRBuilder &MIRBuilder,
 
   // The function to jump to is actually the first argument, so we'll change the
   // Callee and other info to match that before using our existing helper.
-  const Value *CalleeV = Callee.OrigValue->stripPointerCasts();
-  if (const Function *F = dyn_cast<Function>(CalleeV)) {
+  
+  if (const Value *CalleeV = Callee.OrigValue->stripPointerCasts(); const Function *F = dyn_cast<Function>(CalleeV)) {
     Info.Callee = MachineOperand::CreateGA(F, 0);
     Info.CallConv = F->getCallingConv();
   } else {

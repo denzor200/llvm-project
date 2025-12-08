@@ -98,9 +98,9 @@ void RvalueReferenceParamNotMovedCheck::check(
   if (TemplateType) {
     if (const FunctionTemplateDecl *FuncTemplate =
             Function->getDescribedFunctionTemplate()) {
-      const TemplateParameterList *Params =
-          FuncTemplate->getTemplateParameters();
-      if (llvm::is_contained(*Params, TemplateType)) {
+      
+      if (const TemplateParameterList *Params =
+          FuncTemplate->getTemplateParameters(); llvm::is_contained(*Params, TemplateType)) {
         // Ignore forwarding reference
         return;
       }

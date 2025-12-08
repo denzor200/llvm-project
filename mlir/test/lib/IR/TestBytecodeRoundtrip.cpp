@@ -143,9 +143,9 @@ private:
           auto versionOr = writer.getDialectVersion<test::TestDialect>();
           assert(succeeded(versionOr) && "expected reader to be able to access "
                                          "the version for test dialect");
-          const auto *version =
-              reinterpret_cast<const test::TestDialectVersion *>(*versionOr);
-          if (version->major_ >= 2)
+          
+          if (const auto *version =
+              reinterpret_cast<const test::TestDialectVersion *>(*versionOr); version->major_ >= 2)
             return failure();
 
           // For version less than 2.0, override the encoding of IntegerType.
@@ -168,9 +168,9 @@ private:
           auto versionOr = reader.getDialectVersion<test::TestDialect>();
           assert(succeeded(versionOr) && "expected reader to be able to access "
                                          "the version for test dialect");
-          const auto *version =
-              reinterpret_cast<const test::TestDialectVersion *>(*versionOr);
-          if (version->major_ >= 2)
+          
+          if (const auto *version =
+              reinterpret_cast<const test::TestDialectVersion *>(*versionOr); version->major_ >= 2)
             return success();
 
           // `dialectName` is the name of the group we have the opportunity to
@@ -381,8 +381,8 @@ private:
     // "dimensions". We need to check that the modifier is false, otherwise we
     // can't do the downgrade.
     auto status = op->walk([&](test::TestVersionedOpA op) {
-      auto &prop = op.getProperties();
-      if (prop.modifier.getValue()) {
+      
+      if (auto &prop = op.getProperties(); prop.modifier.getValue()) {
         op->emitOpError() << "cannot downgrade to version " << version.major_
                           << "." << version.minor_
                           << " since the modifier is not compatible";

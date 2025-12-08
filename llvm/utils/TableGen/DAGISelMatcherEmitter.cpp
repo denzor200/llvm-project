@@ -910,8 +910,8 @@ unsigned MatcherTableEmitter::EmitMatcher(const Matcher *N,
     const auto *C2RMatcher = cast<EmitCopyToRegMatcher>(N);
     int Bytes = 3;
     const CodeGenRegister *Reg = C2RMatcher->getDestPhysReg();
-    unsigned Slot = C2RMatcher->getSrcSlot();
-    if (Reg->EnumValue > 255) {
+    
+    if (unsigned Slot = C2RMatcher->getSrcSlot(); Reg->EnumValue > 255) {
       assert(isUInt<16>(Reg->EnumValue) && "not handled");
       OS << "OPC_EmitCopyToRegTwoByte, " << Slot << ", "
          << "TARGET_VAL(" << getQualifiedName(Reg->TheDef) << "),\n";

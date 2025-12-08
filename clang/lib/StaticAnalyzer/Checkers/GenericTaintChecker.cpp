@@ -1090,8 +1090,8 @@ static bool getPrintfFormatArgumentNum(const CallEvent &Call,
     // FIXME: Apparently the implementation of the format attribute doesn't
     // support methods with an explicit object parameter, so we cannot
     // implement proper support for that rare case either.
-    const CXXMethodDecl *MDecl = dyn_cast<CXXMethodDecl>(FDecl);
-    if (MDecl && !MDecl->isStatic())
+    
+    if (const CXXMethodDecl *MDecl = dyn_cast<CXXMethodDecl>(FDecl); MDecl && !MDecl->isStatic())
       ArgNum--;
 
     if ((Format->getType()->getName() == "printf") && CallNumArgs > ArgNum)

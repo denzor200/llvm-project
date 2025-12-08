@@ -35,8 +35,8 @@ bool X86::optimizeInstFromVEX3ToVEX2(MCInst &MI, const MCInstrDesc &Desc) {
   default: {
     // If the instruction is a commutable arithmetic instruction we might be
     // able to commute the operands to get a 2 byte VEX prefix.
-    uint64_t TSFlags = Desc.TSFlags;
-    if (!Desc.isCommutable() || (TSFlags & X86II::EncodingMask) != X86II::VEX ||
+    
+    if (uint64_t TSFlags = Desc.TSFlags; !Desc.isCommutable() || (TSFlags & X86II::EncodingMask) != X86II::VEX ||
         (TSFlags & X86II::OpMapMask) != X86II::TB ||
         (TSFlags & X86II::FormMask) != X86II::MRMSrcReg ||
         (TSFlags & X86II::REX_W) || !(TSFlags & X86II::VEX_4V) ||
@@ -373,8 +373,8 @@ bool X86::optimizeMOV(MCInst &MI, bool In64BitMode) {
   // to do this here.
   bool Absolute = true;
   if (MI.getOperand(AddrOp).isExpr()) {
-    const MCExpr *MCE = MI.getOperand(AddrOp).getExpr();
-    if (const MCSymbolRefExpr *SRE = dyn_cast<MCSymbolRefExpr>(MCE))
+    
+    if (const MCExpr *MCE = MI.getOperand(AddrOp).getExpr(); const MCSymbolRefExpr *SRE = dyn_cast<MCSymbolRefExpr>(MCE))
       if (SRE->getSpecifier() == X86::S_TLVP)
         Absolute = false;
   }
@@ -483,10 +483,10 @@ static bool optimizeToShortImmediateForm(MCInst &MI) {
 #include "X86EncodingOptimizationForImmediate.def"
   }
   unsigned SkipOperands = X86::isCCMPCC(MI.getOpcode()) ? 2 : 0;
-  MCOperand &LastOp = MI.getOperand(MI.getNumOperands() - 1 - SkipOperands);
-  if (LastOp.isExpr()) {
-    const MCSymbolRefExpr *SRE = dyn_cast<MCSymbolRefExpr>(LastOp.getExpr());
-    if (!SRE || SRE->getSpecifier() != X86::S_ABS8)
+  
+  if (MCOperand &LastOp = MI.getOperand(MI.getNumOperands() - 1 - SkipOperands); LastOp.isExpr()) {
+    
+    if (const MCSymbolRefExpr *SRE = dyn_cast<MCSymbolRefExpr>(LastOp.getExpr()); !SRE || SRE->getSpecifier() != X86::S_ABS8)
       return false;
   } else if (LastOp.isImm()) {
     if (!isInt<8>(LastOp.getImm()))

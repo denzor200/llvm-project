@@ -261,8 +261,8 @@ struct NMSymbol {
     bool Undefined = SymFlags & SymbolRef::SF_Undefined;
     bool Global = SymFlags & SymbolRef::SF_Global;
     bool Weak = SymFlags & SymbolRef::SF_Weak;
-    bool FormatSpecific = SymFlags & SymbolRef::SF_FormatSpecific;
-    if ((!Undefined && UndefinedOnly) || (Undefined && DefinedOnly) ||
+    
+    if (bool FormatSpecific = SymFlags & SymbolRef::SF_FormatSpecific; (!Undefined && UndefinedOnly) || (Undefined && DefinedOnly) ||
         (!Global && ExternalOnly) || (Weak && NoWeakSymbols) ||
         (FormatSpecific && !(SpecialSyms || DebugSyms)))
       return false;
@@ -539,8 +539,8 @@ static void darwinPrintSymbol(SymbolicFile &Obj, const NMSymbol &S,
   if ((Flags & MachO::MH_TWOLEVEL) == MachO::MH_TWOLEVEL &&
       (((NType & MachO::N_TYPE) == MachO::N_UNDF && NValue == 0) ||
        (NType & MachO::N_TYPE) == MachO::N_PBUD)) {
-    uint32_t LibraryOrdinal = MachO::GET_LIBRARY_ORDINAL(NDesc);
-    if (LibraryOrdinal != 0) {
+    
+    if (uint32_t LibraryOrdinal = MachO::GET_LIBRARY_ORDINAL(NDesc); LibraryOrdinal != 0) {
       if (LibraryOrdinal == MachO::EXECUTABLE_ORDINAL)
         outs() << " (from executable)";
       else if (LibraryOrdinal == MachO::DYNAMIC_LOOKUP_ORDINAL)
@@ -922,12 +922,12 @@ static char getSymbolNMTypeChar(COFFObjectFile &Obj, symbol_iterator I) {
     return '?';
   }
 
-  char Ret = StringSwitch<char>(*Name)
+  
+
+  if (char Ret = StringSwitch<char>(*Name)
                  .StartsWith(".debug", 'N')
                  .StartsWith(".sxdata", 'N')
-                 .Default('?');
-
-  if (Ret != '?')
+                 .Default('?'); Ret != '?')
     return Ret;
 
   uint32_t Characteristics = 0;
@@ -975,9 +975,9 @@ static char getSymbolNMTypeChar(XCOFFObjectFile &Obj, symbol_iterator I) {
     return '?';
   }
 
-  uint32_t SymType = *TypeOrErr;
+  
 
-  if (SymType == SymbolRef::ST_File)
+  if (uint32_t SymType = *TypeOrErr; SymType == SymbolRef::ST_File)
     return 'f';
 
   // If the I->getSection() call would return an error, the earlier I->getType()
@@ -1072,17 +1072,17 @@ static char getSymbolNMTypeChar(TapiFile &Obj, basic_symbol_iterator I) {
 }
 
 static char getSymbolNMTypeChar(WasmObjectFile &Obj, basic_symbol_iterator I) {
-  uint32_t Flags = cantFail(I->getFlags());
-  if (Flags & SymbolRef::SF_Executable)
+  
+  if (uint32_t Flags = cantFail(I->getFlags()); Flags & SymbolRef::SF_Executable)
     return 't';
   return 'd';
 }
 
 static char getSymbolNMTypeChar(IRObjectFile &Obj, basic_symbol_iterator I) {
-  uint32_t Flags = cantFail(I->getFlags());
+  
   // FIXME: should we print 'b'? At the IR level we cannot be sure if this
   // will be in bss or not, but we could approximate.
-  if (Flags & SymbolRef::SF_Executable)
+  if (uint32_t Flags = cantFail(I->getFlags()); Flags & SymbolRef::SF_Executable)
     return 't';
   else if (Triple(Obj.getTargetTriple()).isOSDarwin() &&
            (Flags & SymbolRef::SF_Const))
@@ -1295,8 +1295,8 @@ static void dumpSymbolsFromDLInfoMachO(MachOObjectFile &MachO,
                     MachO::EXPORT_SYMBOL_FLAGS_KIND_ABSOLUTE);
         bool Resolver = (EFlags & MachO::EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER);
         ReExport = (EFlags & MachO::EXPORT_SYMBOL_FLAGS_REEXPORT);
-        bool WeakDef = (EFlags & MachO::EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION);
-        if (WeakDef)
+        
+        if (bool WeakDef = (EFlags & MachO::EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION); WeakDef)
           S.NDesc |= MachO::N_WEAK_DEF;
         if (Abs) {
           S.NType = MachO::N_EXT | MachO::N_ABS;
@@ -1768,8 +1768,8 @@ static void getXCOFFExports(XCOFFObjectFile *XCOFFObj,
 
     if (HasVisibilityAttr) {
       XCOFFSymbolRef XCOFFSym = XCOFFObj->toSymbolRef(Sym.getRawDataRefImpl());
-      uint16_t SymType = XCOFFSym.getSymbolType();
-      if ((SymType & XCOFF::VISIBILITY_MASK) == XCOFF::SYM_V_PROTECTED)
+      
+      if (uint16_t SymType = XCOFFSym.getSymbolType(); (SymType & XCOFF::VISIBILITY_MASK) == XCOFF::SYM_V_PROTECTED)
         S.Visibility = "protected";
       else if ((SymType & XCOFF::VISIBILITY_MASK) == XCOFF::SYM_V_EXPORTED)
         S.Visibility = "export";
@@ -1836,11 +1836,11 @@ static bool getSymbolNamesFromObject(SymbolicFile &Obj,
       // are used to repesent mapping symbols and needed to honor the
       // --special-syms option.
       auto *ELFObj = dyn_cast<ELFObjectFileBase>(&Obj);
-      bool HasMappingSymbol =
+      
+      if (bool HasMappingSymbol =
           ELFObj && llvm::is_contained({ELF::EM_ARM, ELF::EM_AARCH64,
                                         ELF::EM_CSKY, ELF::EM_RISCV},
-                                       ELFObj->getEMachine());
-      if (!HasMappingSymbol && !DebugSyms &&
+                                       ELFObj->getEMachine()); !HasMappingSymbol && !DebugSyms &&
           (*SymFlagsOrErr & SymbolRef::SF_FormatSpecific))
         continue;
       if (WithoutAliases && (*SymFlagsOrErr & SymbolRef::SF_Indirect))
@@ -2324,9 +2324,9 @@ static void dumpTapiUniversal(TapiUniversal *TU,
                               StringRef Filename) {
   for (const TapiUniversal::ObjectForArch &I : TU->objects()) {
     StringRef ArchName = I.getArchFlagName();
-    const bool ShowArch =
-        ArchFlags.empty() || llvm::is_contained(ArchFlags, ArchName);
-    if (!ShowArch)
+    
+    if (const bool ShowArch =
+        ArchFlags.empty() || llvm::is_contained(ArchFlags, ArchName); !ShowArch)
       continue;
     if (!AddInlinedInfo && !I.isTopLevelLib())
       continue;
@@ -2364,8 +2364,8 @@ static std::vector<NMSymbol> dumpSymbolNamesFromFile(StringRef Filename) {
   // Ignore AIX linker import files (these files start with "#!"), when
   // exporting symbols.
   const char *BuffStart = (*BufferOrErr)->getBufferStart();
-  size_t BufferSize = (*BufferOrErr)->getBufferSize();
-  if (ExportSymbols && BufferSize >= 2 && BuffStart[0] == '#' &&
+  
+  if (size_t BufferSize = (*BufferOrErr)->getBufferSize(); ExportSymbols && BufferSize >= 2 && BuffStart[0] == '#' &&
       BuffStart[1] == '!')
     return SymbolList;
 

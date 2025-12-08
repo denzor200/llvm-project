@@ -99,8 +99,8 @@ void arm::getARMArchCPUFromArgs(const ArgList &Args, llvm::StringRef &Arch,
 static void getARMHWDivFeatures(const Driver &D, const Arg *A,
                                 const ArgList &Args, StringRef HWDiv,
                                 std::vector<StringRef> &Features) {
-  uint64_t HWDivID = llvm::ARM::parseHWDiv(HWDiv);
-  if (!llvm::ARM::getHWDivFeatures(HWDivID, Features))
+  
+  if (uint64_t HWDivID = llvm::ARM::parseHWDiv(HWDiv); !llvm::ARM::getHWDivFeatures(HWDivID, Features))
     D.Diag(clang::diag::err_drv_clang_unsupported) << A->getAsString(Args);
 }
 
@@ -183,10 +183,10 @@ static void checkARMFloatABI(const Driver &D, const ArgList &Args,
                              bool HasFPRegs) {
   if (HasFPRegs)
     return;
-  const Arg *A =
+  
+  if (const Arg *A =
       Args.getLastArg(options::OPT_msoft_float, options::OPT_mhard_float,
-                      options::OPT_mfloat_abi_EQ);
-  if (A && (A->getOption().matches(options::OPT_mhard_float) ||
+                      options::OPT_mfloat_abi_EQ); A && (A->getOption().matches(options::OPT_mhard_float) ||
             (A->getOption().matches(options::OPT_mfloat_abi_EQ) &&
              A->getValue() == StringRef("hard"))))
     D.Diag(clang::diag::warn_drv_no_floating_point_registers)
@@ -226,8 +226,8 @@ static bool supportsThumb2Encoding(const llvm::Triple &Triple) {
 // Select mode for reading thread pointer (-mtp=soft/cp15).
 arm::ReadTPMode arm::getReadTPMode(const Driver &D, const ArgList &Args,
                                    const llvm::Triple &Triple, bool ForAS) {
-  Arg *A = Args.getLastArg(options::OPT_mtp_mode_EQ);
-  if (A && A->getValue() != StringRef("auto")) {
+  
+  if (Arg *A = Args.getLastArg(options::OPT_mtp_mode_EQ); A && A->getValue() != StringRef("auto")) {
     arm::ReadTPMode ThreadPointer =
         llvm::StringSwitch<arm::ReadTPMode>(A->getValue())
             .Case("cp15", ReadTPMode::TPIDRURO)
@@ -358,10 +358,10 @@ void arm::setFloatABIInTriple(const Driver &D, const ArgList &Args,
     return;
   }
 
-  bool isHardFloat =
-      (arm::getARMFloatABI(D, Triple, Args) == arm::FloatABI::Hard);
+  
 
-  switch (Triple.getEnvironment()) {
+  switch (bool isHardFloat =
+      (arm::getARMFloatABI(D, Triple, Args) == arm::FloatABI::Hard); Triple.getEnvironment()) {
   case llvm::Triple::GNUEABI:
   case llvm::Triple::GNUEABIHF:
     Triple.setEnvironment(isHardFloat ? llvm::Triple::GNUEABIHF
@@ -405,8 +405,8 @@ arm::FloatABI arm::getARMFloatABI(const ToolChain &TC, const ArgList &Args) {
 }
 
 arm::FloatABI arm::getDefaultFloatABI(const llvm::Triple &Triple) {
-  auto SubArch = getARMSubArchVersionNumber(Triple);
-  switch (Triple.getOS()) {
+  
+  switch (auto SubArch = getARMSubArchVersionNumber(Triple); Triple.getOS()) {
   case llvm::Triple::Darwin:
   case llvm::Triple::MacOSX:
   case llvm::Triple::IOS:
@@ -663,8 +663,8 @@ llvm::ARM::FPUKind arm::getARMTargetFeatures(const Driver &D,
 
   // Honor -mfpu=. ClangAs gives preference to -Wa,-mfpu=.
   llvm::ARM::FPUKind FPUKind = llvm::ARM::FK_INVALID;
-  const Arg *FPUArg = Args.getLastArg(options::OPT_mfpu_EQ);
-  if (WaFPU) {
+  
+  if (const Arg *FPUArg = Args.getLastArg(options::OPT_mfpu_EQ); WaFPU) {
     if (FPUArg)
       D.Diag(clang::diag::warn_drv_unused_argument)
           << FPUArg->getAsString(Args);
@@ -684,8 +684,8 @@ llvm::ARM::FPUKind arm::getARMTargetFeatures(const Driver &D,
     (void)llvm::ARM::getFPUFeatures(FPUKind, Features);
   } else {
     std::string CPU = arm::getARMTargetCPU(CPUName, ArchName, Triple);
-    bool Generic = CPU == "generic";
-    if (Generic && (Triple.isOSWindows() || Triple.isOSDarwin()) &&
+    
+    if (bool Generic = CPU == "generic"; Generic && (Triple.isOSWindows() || Triple.isOSDarwin()) &&
         getARMSubArchVersionNumber(Triple) >= 7) {
       FPUKind = llvm::ARM::parseFPU("neon");
     } else {
@@ -995,8 +995,8 @@ fp16_fml_fallthrough:
     // versions of GCC and Clang.
     //
     // Users can change the default behavior via -m[no-]unaliged-access.
-    int VersionNum = getARMSubArchVersionNumber(Triple);
-    if (Triple.isOSDarwin() || Triple.isOSNetBSD()) {
+    
+    if (int VersionNum = getARMSubArchVersionNumber(Triple); Triple.isOSDarwin() || Triple.isOSNetBSD()) {
       if (VersionNum < 6 ||
           Triple.getSubArch() == llvm::Triple::SubArchType::ARMSubArch_v6m)
         Features.push_back("+strict-align");

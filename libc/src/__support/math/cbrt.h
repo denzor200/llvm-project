@@ -263,8 +263,8 @@ LIBC_INLINE static constexpr double cbrt(double x) {
     // Check if lower (52 - 17 = 35) bits are 0's.
     if (LIBC_UNLIKELY((FPBits(r1_lower).uintval() & 0x0000'0007'FFFF'FFFF) ==
                       0)) {
-      double r1_err = (r1_lower - r1.hi) - r1.lo;
-      if (FPBits(r1_err).abs().get_val() < 0x1.0p69)
+      
+      if (double r1_err = (r1_lower - r1.hi) - r1.lo; FPBits(r1_err).abs().get_val() < 0x1.0p69)
         fputil::clear_except_if_required(FE_INEXACT);
     }
 

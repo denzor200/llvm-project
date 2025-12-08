@@ -348,9 +348,9 @@ void enhanceLocatedSymbolsFromIndex(llvm::MutableArrayRef<LocatedSymbol> Result,
     return;
   std::string Scratch;
   Index->lookup(QueryRequest, [&](const Symbol &Sym) {
-    auto &R = Result[ResultIndex.lookup(Sym.ID)];
+    
 
-    if (R.Definition) { // from AST
+    if (auto &R = Result[ResultIndex.lookup(Sym.ID)]; R.Definition) { // from AST
       // Special case: if the AST yielded a definition, then it may not be
       // the right *declaration*. Prefer the one from the index.
       if (auto Loc = toLSPLocation(Sym.CanonicalDeclaration, MainFilePath))

@@ -207,9 +207,9 @@ QualType ParamVarRegion::getValueType() const {
 }
 
 const ParmVarDecl *ParamVarRegion::getDecl() const {
-  const Decl *D = getStackFrame()->getDecl();
+  
 
-  if (const auto *FD = dyn_cast<FunctionDecl>(D)) {
+  if (const Decl *D = getStackFrame()->getDecl(); const auto *FD = dyn_cast<FunctionDecl>(D)) {
     assert(Index < FD->param_size());
     return FD->parameters()[Index];
   } else if (const auto *BD = dyn_cast<BlockDecl>(D)) {
@@ -807,9 +807,9 @@ SourceRange MemRegion::sourceRange() const {
 DefinedOrUnknownSVal MemRegionManager::getStaticSize(const MemRegion *MR,
                                                      SValBuilder &SVB) const {
   const auto *SR = cast<SubRegion>(MR);
-  SymbolManager &SymMgr = SVB.getSymbolManager();
+  
 
-  switch (SR->getKind()) {
+  switch (SymbolManager &SymMgr = SVB.getSymbolManager(); SR->getKind()) {
   case MemRegion::AllocaRegionKind:
   case MemRegion::SymbolicRegionKind:
     return nonloc::SymbolVal(SymMgr.acquire<SymbolExtent>(SR));
@@ -1009,8 +1009,8 @@ getStackOrCaptureRegionForDeclContext(const LocationContext *LC,
       const auto *BR = static_cast<const BlockDataRegion *>(BC->getData());
       // FIXME: This can be made more efficient.
       for (auto Var : BR->referenced_vars()) {
-        const TypedValueRegion *OrigR = Var.getOriginalRegion();
-        if (const auto *VR = dyn_cast<VarRegion>(OrigR)) {
+        
+        if (const TypedValueRegion *OrigR = Var.getOriginalRegion(); const auto *VR = dyn_cast<VarRegion>(OrigR)) {
           if (VR->getDecl() == VD)
             return cast<VarRegion>(Var.getCapturedRegion());
         }
@@ -1040,14 +1040,14 @@ static bool isStdStreamVar(const VarDecl *D) {
 
 const VarRegion *MemRegionManager::getVarRegion(const VarDecl *D,
                                                 const LocationContext *LC) {
-  const auto *PVD = dyn_cast<ParmVarDecl>(D);
-  if (PVD) {
+  
+  if (const auto *PVD = dyn_cast<ParmVarDecl>(D); PVD) {
     unsigned Index = PVD->getFunctionScopeIndex();
     const StackFrameContext *SFC = LC->getStackFrame();
-    const Stmt *CallSite = SFC->getCallSite();
-    if (CallSite) {
-      const Decl *D = SFC->getDecl();
-      if (const auto *FD = dyn_cast<FunctionDecl>(D)) {
+    
+    if (const Stmt *CallSite = SFC->getCallSite(); CallSite) {
+      
+      if (const Decl *D = SFC->getDecl(); const auto *FD = dyn_cast<FunctionDecl>(D)) {
         if (Index < FD->param_size() && FD->parameters()[Index] == PVD)
           return getSubRegion<ParamVarRegion>(cast<Expr>(CallSite), Index,
                                               getStackArgumentsRegion(SFC));
@@ -1095,9 +1095,9 @@ const VarRegion *MemRegionManager::getVarRegion(const VarDecl *D,
     if (const auto *VR = dyn_cast_if_present<const VarRegion *>(V))
       return VR;
 
-    const auto *STC = cast<const StackFrameContext *>(V);
+    
 
-    if (!STC) {
+    if (const auto *STC = cast<const StackFrameContext *>(V); !STC) {
       // FIXME: Assign a more sensible memory space to static locals
       // we see from within blocks that we analyze as top-level declarations.
       sReg = getUnknownRegion();
@@ -1170,18 +1170,18 @@ MemRegionManager::getBlockDataRegion(const BlockCodeRegion *BC,
                                      const LocationContext *LC,
                                      unsigned blockCount) {
   const MemSpaceRegion *sReg = nullptr;
-  const BlockDecl *BD = BC->getDecl();
-  if (!BD->hasCaptures()) {
+  
+  if (const BlockDecl *BD = BC->getDecl(); !BD->hasCaptures()) {
     // This handles 'static' blocks.
     sReg = getGlobalsRegion(MemRegion::GlobalImmutableSpaceRegionKind);
   }
   else {
-    bool IsArcManagedBlock = Ctx.getLangOpts().ObjCAutoRefCount;
+    
 
     // ARC managed blocks can be initialized on stack or directly in heap
     // depending on the implementations.  So we initialize them with
     // UnknownRegion.
-    if (!IsArcManagedBlock && LC) {
+    if (bool IsArcManagedBlock = Ctx.getLangOpts().ObjCAutoRefCount; !IsArcManagedBlock && LC) {
       // FIXME: Once we implement scope handling, we want the parent region
       // to be the scope.
       const StackFrameContext *STC = LC->getStackFrame();
@@ -1512,8 +1512,8 @@ RegionRawOffset ElementRegion::getAsArrayOffset() const {
           break;
         }
 
-        int64_t size = C.getTypeSizeInChars(elemType).getQuantity();
-        if (auto NewOffset = llvm::checkedMulAdd(i, size, offset)) {
+        
+        if (int64_t size = C.getTypeSizeInChars(elemType).getQuantity(); auto NewOffset = llvm::checkedMulAdd(i, size, offset)) {
           offset = *NewOffset;
         } else {
           LLVM_DEBUG(llvm::dbgs() << "MemRegion::getAsArrayOffset: "

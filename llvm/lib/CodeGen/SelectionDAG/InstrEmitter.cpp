@@ -134,11 +134,11 @@ void InstrEmitter::EmitCopyFromReg(SDValue Op, bool IsClone, Register SrcReg,
           if (!UseRC)
             UseRC = RC;
           else if (RC) {
-            const TargetRegisterClass *ComRC =
-                TRI->getCommonSubClass(UseRC, RC);
+            
             // If multiple uses expect disjoint register classes, we emit
             // copies in AddRegisterOperand.
-            if (ComRC)
+            if (const TargetRegisterClass *ComRC =
+                TRI->getCommonSubClass(UseRC, RC); ComRC)
               UseRC = ComRC;
           }
         }
@@ -230,8 +230,8 @@ void InstrEmitter::CreateVirtualRegisters(SDNode *Node,
             User->getOperand(2).getResNo() == i) {
           Register Reg = cast<RegisterSDNode>(User->getOperand(1))->getReg();
           if (Reg.isVirtual()) {
-            const TargetRegisterClass *RegRC = MRI->getRegClass(Reg);
-            if (RegRC == RC) {
+            
+            if (const TargetRegisterClass *RegRC = MRI->getRegClass(Reg); RegRC == RC) {
               VRBase = Reg;
               MIB.addReg(VRBase, RegState::Define);
               break;
@@ -381,8 +381,8 @@ InstrEmitter::AddRegisterOperand(MachineInstrBuilder &MIB,
            MIB->getOperand(Idx-1).isReg() &&
            MIB->getOperand(Idx-1).isImplicit())
       --Idx;
-    bool isTied = MCID.getOperandConstraint(Idx, MCOI::TIED_TO) != -1;
-    if (isTied)
+    
+    if (bool isTied = MCID.getOperandConstraint(Idx, MCOI::TIED_TO) != -1; isTied)
       isKill = false;
   }
 
@@ -414,14 +414,14 @@ void InstrEmitter::AddOperand(MachineInstrBuilder &MIB, SDValue Op,
     MVT OpVT = Op.getSimpleValueType();
     const TargetRegisterClass *IIRC =
         II ? TRI->getAllocatableClass(TII->getRegClass(*II, IIOpNum)) : nullptr;
-    const TargetRegisterClass *OpRC =
+    
+
+    if (const TargetRegisterClass *OpRC =
         TLI->isTypeLegal(OpVT)
             ? TLI->getRegClassFor(OpVT,
                                   Op.getNode()->isDivergent() ||
                                       (IIRC && TRI->isDivergentRegClass(IIRC)))
-            : nullptr;
-
-    if (OpRC && IIRC && OpRC != IIRC && VReg.isVirtual()) {
+            : nullptr; OpRC && IIRC && OpRC != IIRC && VReg.isVirtual()) {
       Register NewVReg = MRI->createVirtualRegister(IIRC);
       BuildMI(*MBB, InsertPos, Op.getNode()->getDebugLoc(),
                TII->get(TargetOpcode::COPY), NewVReg).addReg(VReg);
@@ -448,8 +448,8 @@ void InstrEmitter::AddOperand(MachineInstrBuilder &MIB, SDValue Op,
     Align Alignment = CP->getAlign();
 
     unsigned Idx;
-    MachineConstantPool *MCP = MF->getConstantPool();
-    if (CP->isMachineConstantPoolEntry())
+    
+    if (MachineConstantPool *MCP = MF->getConstantPool(); CP->isMachineConstantPoolEntry())
       Idx = MCP->getConstantPoolIndex(CP->getMachineCPVal(), Alignment);
     else
       Idx = MCP->getConstantPoolIndex(CP->getConstVal(), Alignment);
@@ -527,8 +527,8 @@ void InstrEmitter::EmitSubregNode(SDNode *Node, VRBaseMapType &VRBaseMap,
 
     Register Reg;
     MachineInstr *DefMI;
-    RegisterSDNode *R = dyn_cast<RegisterSDNode>(Node->getOperand(0));
-    if (R && R->getReg().isPhysical()) {
+    
+    if (RegisterSDNode *R = dyn_cast<RegisterSDNode>(Node->getOperand(0)); R && R->getReg().isPhysical()) {
       Reg = R->getReg();
       DefMI = nullptr;
     } else {
@@ -672,16 +672,16 @@ void InstrEmitter::EmitRegSequence(SDNode *Node, VRBaseMapType &VRBaseMap,
   for (unsigned i = 1; i != NumOps; ++i) {
     SDValue Op = Node->getOperand(i);
     if ((i & 1) == 0) {
-      RegisterSDNode *R = dyn_cast<RegisterSDNode>(Node->getOperand(i-1));
+      
       // Skip physical registers as they don't have a vreg to get and we'll
       // insert copies for them in TwoAddressInstructionPass anyway.
-      if (!R || !R->getReg().isPhysical()) {
+      if (RegisterSDNode *R = dyn_cast<RegisterSDNode>(Node->getOperand(i-1)); !R || !R->getReg().isPhysical()) {
         unsigned SubIdx = Op->getAsZExtVal();
         Register SubReg = getVR(Node->getOperand(i - 1), VRBaseMap);
         const TargetRegisterClass *TRC = MRI->getRegClass(SubReg);
-        const TargetRegisterClass *SRC =
-        TRI->getMatchingSuperRegClass(RC, TRC, SubIdx);
-        if (SRC && SRC != RC) {
+        
+        if (const TargetRegisterClass *SRC =
+        TRI->getMatchingSuperRegClass(RC, TRC, SubIdx); SRC && SRC != RC) {
           MRI->setRegClass(NewVReg, SRC);
           RC = SRC;
         }
@@ -958,8 +958,8 @@ InstrEmitter::EmitDbgValueFromSingleOp(SDDbgValue *SD,
   // Copy the location operand in case we replace it.
   SmallVector<SDDbgOperand, 1> LocationOps(1, SD->getLocationOps()[0]);
   if (Expr && LocationOps[0].getKind() == SDDbgOperand::CONST) {
-    const Value *V = LocationOps[0].getConst();
-    if (auto *C = dyn_cast<ConstantInt>(V)) {
+    
+    if (const Value *V = LocationOps[0].getConst(); auto *C = dyn_cast<ConstantInt>(V)) {
       std::tie(Expr, C) = Expr->constantFold(C);
       LocationOps[0] = SDDbgOperand::fromConst(C);
     }

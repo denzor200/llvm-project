@@ -250,9 +250,9 @@ ExceptionSpecAnalyzer::getDefaultableMemberKind(const FunctionDecl *FuncDecl) {
       return DefaultableMemberKind::Destructor;
   }
 
-  const LangOptions &LangOpts = FuncDecl->getLangOpts();
+  
 
-  switch (FuncDecl->getDeclName().getCXXOverloadedOperator()) {
+  switch (const LangOptions &LangOpts = FuncDecl->getLangOpts(); FuncDecl->getDeclName().getCXXOverloadedOperator()) {
   case OO_EqualEqual:
     return DefaultableMemberKind::CompareEqual;
 

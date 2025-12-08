@@ -294,8 +294,8 @@ struct SampleProfTest : ::testing::Test {
     // Because _Z3bazi is not defined in module M, expect _Z3bazi's profile
     // is not loaded when the profile is ExtBinary format because this format
     // supports loading function profiles on demand.
-    FunctionSamples *ReadBazSamples = Reader->getSamplesFor(BazName);
-    if (Format == SampleProfileFormat::SPF_Ext_Binary) {
+    
+    if (FunctionSamples *ReadBazSamples = Reader->getSamplesFor(BazName); Format == SampleProfileFormat::SPF_Ext_Binary) {
       ASSERT_TRUE(ReadBazSamples == nullptr);
       ASSERT_EQ(3u, Reader->getProfiles().size());
     } else {
@@ -357,8 +357,8 @@ struct SampleProfTest : ::testing::Test {
     FunctionType *FnType =
         FunctionType::get(Type::getVoidTy(Context), {}, false);
     auto Inserted = M->getOrInsertFunction(Fname, FnType);
-    auto Fcn = cast<Function>(Inserted.getCallee());
-    if (Policy != "")
+    
+    if (auto Fcn = cast<Function>(Inserted.getCallee()); Policy != "")
       Fcn->addFnAttr("sample-profile-suffix-elision-policy", Policy);
   }
 
@@ -390,8 +390,8 @@ struct SampleProfTest : ::testing::Test {
 
     for (auto I = Expected.begin(); I != Expected.end(); ++I) {
       uint64_t Esamples = uint64_t(-1);
-      FunctionSamples *Samples = Reader->getSamplesFor(I->getKey());
-      if (Samples != nullptr)
+      
+      if (FunctionSamples *Samples = Reader->getSamplesFor(I->getKey()); Samples != nullptr)
         Esamples = Samples->getTotalSamples();
       ASSERT_EQ(I->getValue(), Esamples);
     }

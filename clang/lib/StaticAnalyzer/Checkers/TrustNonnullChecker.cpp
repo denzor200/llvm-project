@@ -113,9 +113,9 @@ public:
         (Msg.getSelector() == ObjectForKeyedSubscriptSel ||
          Msg.getSelector() == ObjectForKeySel)) {
       SymbolRef ArgS = Msg.getArgSVal(0).getAsSymbol();
-      SymbolRef RetS = Msg.getReturnValue().getAsSymbol();
+      
 
-      if (ArgS && RetS) {
+      if (SymbolRef RetS = Msg.getReturnValue().getAsSymbol(); ArgS && RetS) {
         // Emulate an implication: the argument is non-null if
         // the return value is non-null.
         State = State->set<NonNullImplicationMap>(RetS, ArgS);

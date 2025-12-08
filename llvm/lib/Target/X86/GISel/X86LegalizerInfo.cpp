@@ -602,8 +602,8 @@ X86LegalizerInfo::X86LegalizerInfo(const X86Subtarget &STI,
 bool X86LegalizerInfo::legalizeCustom(LegalizerHelper &Helper, MachineInstr &MI,
                                       LostDebugLocObserver &LocObserver) const {
   MachineIRBuilder &MIRBuilder = Helper.MIRBuilder;
-  MachineRegisterInfo &MRI = *MIRBuilder.getMRI();
-  switch (MI.getOpcode()) {
+  
+  switch (MachineRegisterInfo &MRI = *MIRBuilder.getMRI(); MI.getOpcode()) {
   default:
     // No idea what to do.
     return false;

@@ -154,10 +154,10 @@ UserExpression::Evaluate(ExecutionContext &exe_ctx,
   };
 
   if (ctx_obj) {
-    static unsigned const ctx_type_mask = lldb::TypeFlags::eTypeIsClass |
+    
+    if (static unsigned const ctx_type_mask = lldb::TypeFlags::eTypeIsClass |
                                           lldb::TypeFlags::eTypeIsStructUnion |
-                                          lldb::TypeFlags::eTypeIsReference;
-    if (!(ctx_obj->GetTypeInfo() & ctx_type_mask)) {
+                                          lldb::TypeFlags::eTypeIsReference; !(ctx_obj->GetTypeInfo() & ctx_type_mask)) {
       LLDB_LOG(log, "== [UserExpression::Evaluate] Passed a context object of "
                     "an invalid type, can't run expressions.");
       set_error(Status("a context object of an invalid type passed"));
@@ -439,8 +439,8 @@ UserExpression::Execute(DiagnosticManager &diagnostic_manager,
 
   lldb::ExpressionResults expr_result = DoExecute(
       diagnostic_manager, exe_ctx, options, shared_ptr_to_me, result_var);
-  Target *target = exe_ctx.GetTargetPtr();
-  if (options.GetSuppressPersistentResult() && result_var && target) {
+  
+  if (Target *target = exe_ctx.GetTargetPtr(); options.GetSuppressPersistentResult() && result_var && target) {
     if (auto *persistent_state =
             target->GetPersistentExpressionStateForLanguage(
                 m_language.AsLanguageType()))

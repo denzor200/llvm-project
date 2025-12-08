@@ -366,11 +366,11 @@ std::pair<const SCEV *, const SCEV *> llvm::getStartAndEndForAccess(
                 ConstantInt::get(EltSizeSCEV->getType(), -1), AR->getType())));
       }
     }
-    const SCEV *Step = AR->getStepRecurrence(*SE);
+    
 
     // For expressions with negative step, the upper bound is ScStart and the
     // lower bound is ScEnd.
-    if (const auto *CStep = dyn_cast<SCEVConstant>(Step)) {
+    if (const SCEV *Step = AR->getStepRecurrence(*SE); const auto *CStep = dyn_cast<SCEVConstant>(Step)) {
       if (CStep->getValue()->isNegative())
         std::swap(ScStart, ScEnd);
     } else {
@@ -497,8 +497,8 @@ bool RuntimePointerChecking::tryToCreateDiffCheck(
       isa<SCEVAddRecExpr>(SinkStartInt) && isa<SCEVAddRecExpr>(SrcStartInt)) {
     auto *SrcStartAR = cast<SCEVAddRecExpr>(SrcStartInt);
     auto *SinkStartAR = cast<SCEVAddRecExpr>(SinkStartInt);
-    const Loop *StartARLoop = SrcStartAR->getLoop();
-    if (StartARLoop == SinkStartAR->getLoop() &&
+    
+    if (const Loop *StartARLoop = SrcStartAR->getLoop(); StartARLoop == SinkStartAR->getLoop() &&
         StartARLoop == InnerLoop->getParentLoop() &&
         // If the diff check would already be loop invariant (due to the
         // recurrences being the same), then we prefer to keep the diff checks
@@ -525,9 +525,9 @@ SmallVector<RuntimePointerCheck, 4> RuntimePointerChecking::generateChecks() {
   for (unsigned I = 0; I < CheckingGroups.size(); ++I) {
     for (unsigned J = I + 1; J < CheckingGroups.size(); ++J) {
       const RuntimeCheckingPtrGroup &CGI = CheckingGroups[I];
-      const RuntimeCheckingPtrGroup &CGJ = CheckingGroups[J];
+      
 
-      if (needsChecking(CGI, CGJ)) {
+      if (const RuntimeCheckingPtrGroup &CGJ = CheckingGroups[J]; needsChecking(CGI, CGJ)) {
         CanUseDiffCheck = CanUseDiffCheck && tryToCreateDiffCheck(CGI, CGJ);
         Checks.emplace_back(&CGI, &CGJ);
       }
@@ -1052,8 +1052,8 @@ static bool isNoWrap(PredicatedScalarEvolution &PSE, const SCEVAddRecExpr *AR,
     // If the null pointer is undefined, then a access sequence which would
     // otherwise access it can be assumed not to unsigned wrap.  Note that this
     // assumes the object in memory is aligned to the natural alignment.
-    unsigned AddrSpace = AR->getType()->getPointerAddressSpace();
-    if (!NullPointerIsDefined(L->getHeader()->getParent(), AddrSpace) &&
+    
+    if (unsigned AddrSpace = AR->getType()->getPointerAddressSpace(); !NullPointerIsDefined(L->getHeader()->getParent(), AddrSpace) &&
         (Stride == 1 || Stride == -1))
       return true;
   }
@@ -1142,8 +1142,8 @@ static void findForkedSCEVs(
   };
 
   Instruction *I = cast<Instruction>(Ptr);
-  unsigned Opcode = I->getOpcode();
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = I->getOpcode(); Opcode) {
   case Instruction::GetElementPtr: {
     auto *GEP = cast<GetElementPtrInst>(I);
     Type *SourceTy = GEP->getSourceElementType();
@@ -1461,8 +1461,8 @@ bool AccessAnalysis::canCheckPtrAtRT(
       Value *PtrJ = RtCheck.Pointers[j].PointerValue;
 
       unsigned ASi = PtrI->getType()->getPointerAddressSpace();
-      unsigned ASj = PtrJ->getType()->getPointerAddressSpace();
-      if (ASi != ASj) {
+      
+      if (unsigned ASj = PtrJ->getType()->getPointerAddressSpace(); ASi != ASj) {
         LLVM_DEBUG(
             dbgs() << "LAA: Runtime check would require comparison between"
                       " different address spaces\n");
@@ -1949,12 +1949,12 @@ static bool isSafeDependenceDistance(const DataLayout &DL, ScalarEvolution &SE,
   const SCEV *CastedDist = &Dist;
   const SCEV *CastedProduct = Product;
   uint64_t DistTypeSizeBits = DL.getTypeSizeInBits(Dist.getType());
-  uint64_t ProductTypeSizeBits = DL.getTypeSizeInBits(Product->getType());
+  
 
   // The dependence distance can be positive/negative, so we sign extend Dist;
   // The multiplication of the absolute stride in bytes and the
   // backedgeTakenCount is non-negative, so we zero extend Product.
-  if (DistTypeSizeBits > ProductTypeSizeBits)
+  if (uint64_t ProductTypeSizeBits = DL.getTypeSizeInBits(Product->getType()); DistTypeSizeBits > ProductTypeSizeBits)
     CastedProduct = SE.getZeroExtendExpr(Product, Dist.getType());
   else
     CastedDist = SE.getNoopOrSignExtend(&Dist, Product->getType());
@@ -2030,8 +2030,8 @@ bool MemoryDepChecker::areAccessesCompletelyBeforeOrAfter(const SCEV *Src,
     LoopGuards.emplace(ScalarEvolution::LoopGuards::collect(InnermostLoop, SE));
 
   auto SrcEnd = SE.applyLoopGuards(SrcEnd_, *LoopGuards);
-  auto SinkStart = SE.applyLoopGuards(SinkStart_, *LoopGuards);
-  if (SE.isKnownPredicate(CmpInst::ICMP_ULE, SrcEnd, SinkStart))
+  
+  if (auto SinkStart = SE.applyLoopGuards(SinkStart_, *LoopGuards); SE.isKnownPredicate(CmpInst::ICMP_ULE, SrcEnd, SinkStart))
     return true;
 
   auto SinkEnd = SE.applyLoopGuards(SinkEnd_, *LoopGuards);
@@ -2182,14 +2182,14 @@ MemoryDepChecker::isDependent(const MemAccessInfo &A, unsigned AIdx,
   bool HasSameSize = TypeByteSize > 0;
 
   ScalarEvolution &SE = *PSE.getSE();
-  auto &DL = InnermostLoop->getHeader()->getDataLayout();
+  
 
   // If the distance between the acecsses is larger than their maximum absolute
   // stride multiplied by the symbolic maximum backedge taken count (which is an
   // upper bound of the number of iterations), the accesses are independet, i.e.
   // they are far enough appart that accesses won't access the same location
   // across all loop ierations.
-  if (HasSameSize &&
+  if (auto &DL = InnermostLoop->getHeader()->getDataLayout(); HasSameSize &&
       isSafeDependenceDistance(
           DL, SE, *(PSE.getSymbolicMaxBackedgeTakenCount()), *Dist, MaxStride))
     return Dependence::NoDep;
@@ -2228,7 +2228,7 @@ MemoryDepChecker::isDependent(const MemAccessInfo &A, unsigned AIdx,
       return Dependence::Unknown;
     }
 
-    bool IsTrueDataDependence = (AIsWrite && !BIsWrite);
+    
     // Check if the first access writes to a location that is read in a later
     // iteration, where the distance between them is not a multiple of a vector
     // factor and relatively small.
@@ -2237,7 +2237,7 @@ MemoryDepChecker::isDependent(const MemAccessInfo &A, unsigned AIdx,
     // couldPreventStoreLoadForward, even if it changed MinDepDistBytes, since a
     // forward dependency will allow vectorization using any width.
 
-    if (IsTrueDataDependence && EnableForwardingConflictDetection) {
+    if (bool IsTrueDataDependence = (AIsWrite && !BIsWrite); IsTrueDataDependence && EnableForwardingConflictDetection) {
       if (!ConstDist) {
         return CheckCompletelyBeforeOrAfter() ? Dependence::NoDep
                                               : Dependence::Unknown;
@@ -2947,8 +2947,8 @@ static Value *getLoopVariantGEPOperand(Value *Ptr, ScalarEvolution *SE,
 /// Get the stride of a pointer access in a loop. Looks for symbolic
 /// strides "a[i*stride]". Returns the symbolic stride, or null otherwise.
 static const SCEV *getStrideFromPointer(Value *Ptr, ScalarEvolution *SE, Loop *Lp) {
-  auto *PtrTy = dyn_cast<PointerType>(Ptr->getType());
-  if (!PtrTy)
+  
+  if (auto *PtrTy = dyn_cast<PointerType>(Ptr->getType()); !PtrTy)
     return nullptr;
 
   // Try to remove a gep instruction to make the pointer (actually index at this

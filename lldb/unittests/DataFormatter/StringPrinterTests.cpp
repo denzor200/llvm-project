@@ -38,8 +38,8 @@ format(StringRef input, StringPrinter::EscapeStyle escape_style) {
   opts.SetEscapeStyle(escape_style);
   opts.SetData(DataExtractor(input.data(), input.size(),
                              endian::InlHostByteOrder(), sizeof(void *)));
-  const bool success = StringPrinter::ReadBufferAndDumpToStream<elem_ty>(opts);
-  if (!success)
+  
+  if (const bool success = StringPrinter::ReadBufferAndDumpToStream<elem_ty>(opts); !success)
     return std::nullopt;
   return out.GetString().str();
 }

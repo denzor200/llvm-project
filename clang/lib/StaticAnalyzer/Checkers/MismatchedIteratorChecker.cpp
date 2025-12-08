@@ -79,8 +79,8 @@ void MismatchedIteratorChecker::checkPreCall(const CallEvent &Call,
       verifyMatch(C, Call.getArgSVal(0), Call.getArgSVal(1));
     }
   } else if (const auto *InstCall = dyn_cast<CXXInstanceCall>(&Call)) {
-    const auto *ContReg = InstCall->getCXXThisVal().getAsRegion();
-    if (!ContReg)
+    
+    if (const auto *ContReg = InstCall->getCXXThisVal().getAsRegion(); !ContReg)
       return;
     // Check for erase, insert and emplace using iterator of another container
     if (isEraseCall(Func) || isEraseAfterCall(Func)) {

@@ -54,9 +54,9 @@ void ASTResultSynthesizer::Initialize(ASTContext &Context) {
 }
 
 void ASTResultSynthesizer::TransformTopLevelDecl(Decl *D) {
-  Log *log = GetLog(LLDBLog::Expressions);
+  
 
-  if (NamedDecl *named_decl = dyn_cast<NamedDecl>(D)) {
+  if (Log *log = GetLog(LLDBLog::Expressions); NamedDecl *named_decl = dyn_cast<NamedDecl>(D)) {
     if (log && log->GetVerbose()) {
       if (named_decl->getIdentifier())
         LLDB_LOGF(log, "TransformTopLevelDecl(%s)",
@@ -462,9 +462,9 @@ void ASTResultSynthesizer::CommitPersistentDecls() {
         &scratch_ts_sp->getASTContext(), decl);
 
     if (!D_scratch) {
-      Log *log = GetLog(LLDBLog::Expressions);
+      
 
-      if (log) {
+      if (Log *log = GetLog(LLDBLog::Expressions); log) {
         std::string s;
         llvm::raw_string_ostream ss(s);
         decl->dump(ss);

@@ -1279,11 +1279,11 @@ bool SIGfx6CacheControl::insertAcquire(MachineBasicBlock::iterator &MI,
   if (Pos == Position::AFTER)
     ++MI;
 
-  const unsigned InvalidateL1 = canUseBUFFER_WBINVL1_VOL(ST)
-                                    ? AMDGPU::BUFFER_WBINVL1_VOL
-                                    : AMDGPU::BUFFER_WBINVL1;
+  
 
-  if (canAffectGlobalAddrSpace(AddrSpace)) {
+  if (const unsigned InvalidateL1 = canUseBUFFER_WBINVL1_VOL(ST)
+                                    ? AMDGPU::BUFFER_WBINVL1_VOL
+                                    : AMDGPU::BUFFER_WBINVL1; canAffectGlobalAddrSpace(AddrSpace)) {
     switch (Scope) {
     case SIAtomicScope::SYSTEM:
       if (ST.hasGFX940Insts()) {
@@ -2122,8 +2122,8 @@ bool SIGfx12CacheControl::handleCooperativeAtomic(MachineInstr &MI) const {
   // Cooperative atomics need to be SCOPE_DEV or higher.
   MachineOperand *CPol = TII->getNamedOperand(MI, OpName::cpol);
   assert(CPol && "No CPol operand?");
-  const unsigned Scope = CPol->getImm() & CPol::SCOPE;
-  if (Scope < CPol::SCOPE_DEV)
+  
+  if (const unsigned Scope = CPol->getImm() & CPol::SCOPE; Scope < CPol::SCOPE_DEV)
     return setScope(MI, CPol::SCOPE_DEV);
   return false;
 }
@@ -2331,9 +2331,9 @@ bool SIMemoryLegalizer::expandAtomicCmpxchgOrRmw(const SIMemOpInfo &MOI,
   assert(MI->mayLoad() && MI->mayStore());
 
   bool Changed = false;
-  MachineInstr &RMWMI = *MI;
+  
 
-  if (MOI.isAtomic()) {
+  if (MachineInstr &RMWMI = *MI; MOI.isAtomic()) {
     const AtomicOrdering Order = MOI.getOrdering();
     if (Order == AtomicOrdering::Monotonic ||
         Order == AtomicOrdering::Acquire || Order == AtomicOrdering::Release ||

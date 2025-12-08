@@ -66,8 +66,8 @@ void findTypeLocForBlockDecl(const clang::TypeSourceInfo *TSInfo,
 DeclarationFragments &
 DeclarationFragments::appendUnduplicatedTextCharacter(char Character) {
   if (!Fragments.empty()) {
-    Fragment &Last = Fragments.back();
-    if (Last.Kind == FragmentKind::Text) {
+    
+    if (Fragment &Last = Fragments.back(); Last.Kind == FragmentKind::Text) {
       // Merge the extra space into the last fragment if the last fragment is
       // also text.
       if (Last.Spelling.back() != Character) { // avoid duplicates at end
@@ -94,8 +94,8 @@ DeclarationFragments &DeclarationFragments::removeTrailingSemicolon() {
   if (Fragments.empty())
     return *this;
 
-  Fragment &Last = Fragments.back();
-  if (Last.Kind == FragmentKind::Text && Last.Spelling.back() == ';')
+  
+  if (Fragment &Last = Fragments.back(); Last.Kind == FragmentKind::Text && Last.Spelling.back() == ';')
     Last.Spelling.pop_back();
 
   return *this;
@@ -658,9 +658,9 @@ DeclarationFragments DeclarationFragmentsBuilder::getFragmentsForBlock(
       .append("(^", DeclarationFragments::FragmentKind::Text);
 
   After.append(")", DeclarationFragments::FragmentKind::Text);
-  unsigned NumParams = Block.getNumParams();
+  
 
-  if (!BlockProto || NumParams == 0) {
+  if (unsigned NumParams = Block.getNumParams(); !BlockProto || NumParams == 0) {
     if (BlockProto && BlockProto.getTypePtr()->isVariadic())
       After.append("(...)", DeclarationFragments::FragmentKind::Text);
     else
@@ -1089,8 +1089,8 @@ DeclarationFragmentsBuilder::getFragmentsForTemplateArguments(
       Fragments.append(",", DeclarationFragments::FragmentKind::Text)
           .appendSpace();
 
-    const auto &CTA = TemplateArguments[i];
-    switch (CTA.getKind()) {
+    
+    switch (const auto &CTA = TemplateArguments[i]; CTA.getKind()) {
     case TemplateArgument::Type: {
       DeclarationFragments After;
       DeclarationFragments ArgumentFragment =

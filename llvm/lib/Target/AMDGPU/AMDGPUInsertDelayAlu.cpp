@@ -34,10 +34,10 @@ public:
   // Return true if MI waits for all outstanding VALU instructions to complete.
   static bool instructionWaitsForVALU(const MachineInstr &MI) {
     // These instruction types wait for VA_VDST==0 before issuing.
-    const uint64_t VA_VDST_0 = SIInstrFlags::DS | SIInstrFlags::EXP |
+    
+    if (const uint64_t VA_VDST_0 = SIInstrFlags::DS | SIInstrFlags::EXP |
                                SIInstrFlags::FLAT | SIInstrFlags::MIMG |
-                               SIInstrFlags::MTBUF | SIInstrFlags::MUBUF;
-    if (MI.getDesc().TSFlags & VA_VDST_0)
+                               SIInstrFlags::MTBUF | SIInstrFlags::MUBUF; MI.getDesc().TSFlags & VA_VDST_0)
       return true;
     if (MI.getOpcode() == AMDGPU::S_SENDMSG_RTN_B32 ||
         MI.getOpcode() == AMDGPU::S_SENDMSG_RTN_B64)
@@ -477,8 +477,8 @@ public:
       WorkList.insert(&MBB);
     while (!WorkList.empty()) {
       auto &MBB = *WorkList.pop_back_val();
-      bool Changed = runOnMachineBasicBlock(MBB, false);
-      if (Changed)
+      
+      if (bool Changed = runOnMachineBasicBlock(MBB, false); Changed)
         WorkList.insert_range(MBB.successors());
     }
 

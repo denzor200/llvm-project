@@ -43,8 +43,8 @@ void BadSignalToKillThreadCheck::check(const MatchFinder::MatchResult &Result) {
     const StringRef ValueStr = StringRef(T.getLiteralData(), T.getLength());
 
     llvm::APInt IntValue;
-    constexpr unsigned AutoSenseRadix = 0;
-    if (ValueStr.getAsInteger(AutoSenseRadix, IntValue))
+    
+    if (constexpr unsigned AutoSenseRadix = 0; ValueStr.getAsInteger(AutoSenseRadix, IntValue))
       return std::nullopt;
     return IntValue.getZExtValue();
   };
@@ -55,9 +55,9 @@ void BadSignalToKillThreadCheck::check(const MatchFinder::MatchResult &Result) {
     return;
 
   const auto *MatchedExpr = Result.Nodes.getNodeAs<Expr>("thread-kill");
-  const auto *MatchedIntLiteral =
-      Result.Nodes.getNodeAs<IntegerLiteral>("integer-literal");
-  if (MatchedIntLiteral->getValue() == *SigtermValue) {
+  
+  if (const auto *MatchedIntLiteral =
+      Result.Nodes.getNodeAs<IntegerLiteral>("integer-literal"); MatchedIntLiteral->getValue() == *SigtermValue) {
     diag(MatchedExpr->getBeginLoc(),
          "thread should not be terminated by raising the 'SIGTERM' signal");
   }

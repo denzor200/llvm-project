@@ -337,9 +337,9 @@ bool lldb_private::formatters::LibStdcppSmartPointerSummaryProvider(
     return false;
 
   bool success;
-  uint64_t pi_addr = pi_sp->GetValueAsUnsigned(0, &success);
+  
   // Empty control field. We're done.
-  if (!success || pi_addr == 0)
+  if (uint64_t pi_addr = pi_sp->GetValueAsUnsigned(0, &success); !success || pi_addr == 0)
     return true;
 
   int64_t shared_count = 0;

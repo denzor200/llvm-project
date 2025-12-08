@@ -179,9 +179,9 @@ const lldb_private::LineEntry &SBLineEntry::ref() const { return *m_opaque_up; }
 bool SBLineEntry::GetDescription(SBStream &description) {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_up) {
+  if (Stream &strm = description.ref(); m_opaque_up) {
     char file_path[PATH_MAX * 2];
     m_opaque_up->GetFile().GetPath(file_path, sizeof(file_path));
     strm.Printf("%s:%u", file_path, GetLine());

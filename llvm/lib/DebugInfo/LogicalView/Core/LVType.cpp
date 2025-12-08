@@ -348,8 +348,8 @@ void LVTypeDefinition::resolveExtra() {
   // For the case of typedef'd anonymous structures:
   //   typedef struct { ... } Name;
   // Propagate the typedef name to the anonymous structure.
-  LVScope *Aggregate = getTypeAsScope();
-  if (Aggregate && Aggregate->getIsAnonymous())
+  
+  if (LVScope *Aggregate = getTypeAsScope(); Aggregate && Aggregate->getIsAnonymous())
     Aggregate->setName(getName());
 }
 
@@ -424,10 +424,10 @@ void LVTypeParam::encodeTemplateArgument(std::string &Name) const {
       // The argument types always are qualified.
       Name.append(std::string(getTypeQualifiedName()));
 
-      LVType *ArgType = getTypeAsType();
+      
       // For template arguments that are typedefs, use the underlying type,
       // which can be a type or scope.
-      if (ArgType->getIsTypedef()) {
+      if (LVType *ArgType = getTypeAsType(); ArgType->getIsTypedef()) {
         LVObject *BaseType = ArgType->getUnderlyingType();
         Name.append(std::string(BaseType->getName()));
       } else {
@@ -435,10 +435,10 @@ void LVTypeParam::encodeTemplateArgument(std::string &Name) const {
       }
     } else {
       if (getIsKindScope()) {
-        LVScope *ArgScope = getTypeAsScope();
+        
         // If the scope is a template, we have to resolve that template,
         // by recursively traversing its arguments.
-        if (ArgScope->getIsTemplate())
+        if (LVScope *ArgScope = getTypeAsScope(); ArgScope->getIsTemplate())
           ArgScope->encodeTemplateArguments(Name);
         else {
           // The argument types always are qualified.

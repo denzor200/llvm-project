@@ -343,8 +343,8 @@ struct MmaSyncOptoNVVM : public ConvertOpToLLVMPattern<nvgpu::MmaSyncOp> {
     std::array<int64_t, 3> gemmShape = op.getMmaShapeAsArray();
 
     // Tensor Cores (mma.sync) on F32 works only with TensorFloat32 (TF32).
-    bool tf32Enabled = op->hasAttr(op.getTf32EnabledAttrName());
-    if (aType.getElementType().isF32() && !tf32Enabled)
+    
+    if (bool tf32Enabled = op->hasAttr(op.getTf32EnabledAttrName()); aType.getElementType().isF32() && !tf32Enabled)
       return failure();
 
     FailureOr<NVVM::MMATypes> ptxTypeA = getNvvmMmaType(aType);
@@ -599,8 +599,8 @@ struct NVGPUMmaSparseSyncLowering
           "could not infer the PTX type for the accumulator/result");
 
     // Same as `mma.sync`, F32 works only with TensorFloat32 (TF32).
-    bool tf32Enabled = op->hasAttr(op.getTf32EnabledAttrName());
-    if (aType.getElementType().isF32() && !tf32Enabled)
+    
+    if (bool tf32Enabled = op->hasAttr(op.getTf32EnabledAttrName()); aType.getElementType().isF32() && !tf32Enabled)
       return failure();
 
     // TODO: add an attribute to the op to customize this behavior.

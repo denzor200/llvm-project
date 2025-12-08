@@ -122,10 +122,10 @@ bool CombinerHelper::matchNonNegZext(const MachineOperand &MO,
 
   LLT DstTy = MRI.getType(Dst);
   LLT SrcTy = MRI.getType(Src);
-  const auto &TLI = getTargetLowering();
+  
 
   // Convert zext nneg to sext if sext is the preferred form for the target.
-  if (isLegalOrBeforeLegalizer({TargetOpcode::G_SEXT, {DstTy, SrcTy}}) &&
+  if (const auto &TLI = getTargetLowering(); isLegalOrBeforeLegalizer({TargetOpcode::G_SEXT, {DstTy, SrcTy}}) &&
       TLI.isSExtCheaperThanZExt(getMVTForLLT(SrcTy), getMVTForLLT(DstTy))) {
     MatchInfo = [=](MachineIRBuilder &B) { B.buildSExt(Dst, Src); };
     return true;
@@ -184,9 +184,9 @@ bool CombinerHelper::matchTruncateOfExt(const MachineInstr &Root,
 
 bool CombinerHelper::isCastFree(unsigned Opcode, LLT ToTy, LLT FromTy) const {
   const TargetLowering &TLI = getTargetLowering();
-  LLVMContext &Ctx = getContext();
+  
 
-  switch (Opcode) {
+  switch (LLVMContext &Ctx = getContext(); Opcode) {
   case TargetOpcode::G_ANYEXT:
   case TargetOpcode::G_ZEXT:
     return TLI.isZExtFree(FromTy, ToTy, Ctx);

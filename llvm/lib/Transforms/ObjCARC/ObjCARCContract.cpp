@@ -300,12 +300,12 @@ findRetainForStoreStrongContraction(Value *New, StoreInst *Store,
   BasicBlock::iterator I = Store->getIterator();
   BasicBlock::iterator Begin = Store->getParent()->begin();
   while (I != Begin && GetBasicARCInstKind(&*I) != ARCInstKind::Retain) {
-    Instruction *Inst = &*I;
+    
 
     // It is only safe to move the retain to the store if we can prove
     // conservatively that nothing besides the release can decrement reference
     // counts in between the retain and the store.
-    if (CanDecrementRefCount(Inst, New, PA) && Inst != Release)
+    if (Instruction *Inst = &*I; CanDecrementRefCount(Inst, New, PA) && Inst != Release)
       return nullptr;
     --I;
   }
@@ -484,8 +484,8 @@ bool ObjCARCContract::tryToPeepholeInstruction(
   }
   case ARCInstKind::InitWeak: {
     // objc_initWeak(p, null) => *p = null
-    CallInst *CI = cast<CallInst>(Inst);
-    if (IsNullOrUndef(CI->getArgOperand(1))) {
+    
+    if (CallInst *CI = cast<CallInst>(Inst); IsNullOrUndef(CI->getArgOperand(1))) {
       Value *Null = ConstantPointerNull::get(cast<PointerType>(CI->getType()));
       Changed = true;
       new StoreInst(Null, CI->getArgOperand(0), CI->getIterator());
@@ -539,8 +539,8 @@ static bool useClaimRuntimeCall(Module &M) {
   if (!TT.isAArch64())
     return false;
 
-  unsigned Major = TT.getOSMajorVersion();
-  switch (TT.getOS()) {
+  
+  switch (unsigned Major = TT.getOSMajorVersion(); TT.getOS()) {
   default:
     return false;
   case Triple::IOS:
@@ -781,8 +781,8 @@ PreservedAnalyses ObjCARCContractPass::run(Function &F,
 
   bool Changed = OCAC.run(F, &AM.getResult<AAManager>(F),
                           &AM.getResult<DominatorTreeAnalysis>(F));
-  bool CFGChanged = OCAC.hasCFGChanged();
-  if (Changed) {
+  
+  if (bool CFGChanged = OCAC.hasCFGChanged(); Changed) {
     PreservedAnalyses PA;
     if (!CFGChanged)
       PA.preserveSet<CFGAnalyses>();

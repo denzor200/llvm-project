@@ -1095,8 +1095,8 @@ static Value *foldPowerOf2AndShiftedMask(ICmpInst *Cmp0, ICmpInst *Cmp1,
 
   const auto compareBMask = BMask_NotMixed | BMask_NotAllOnes;
   unsigned CmpMask0 = MaskPair->first;
-  unsigned CmpMask1 = MaskPair->second;
-  if ((CmpMask0 & Mask_AllZeros) && (CmpMask1 == compareBMask)) {
+  
+  if (unsigned CmpMask1 = MaskPair->second; (CmpMask0 & Mask_AllZeros) && (CmpMask1 == compareBMask)) {
     if (Value *V = foldNegativePower2AndShiftedMask(A, B, D, E, CmpPred0,
                                                     CmpPred1, Builder))
       return V;
@@ -1610,10 +1610,10 @@ Instruction *InstCombinerImpl::foldLogicOfIsFPClass(BinaryOperator &BO,
   bool IsLHSClass =
       match(Op0, m_OneUse(m_Intrinsic<Intrinsic::is_fpclass>(
                      m_Value(ClassVal0), m_ConstantInt(ClassMask0))));
-  bool IsRHSClass =
+  
+  if (bool IsRHSClass =
       match(Op1, m_OneUse(m_Intrinsic<Intrinsic::is_fpclass>(
-                     m_Value(ClassVal1), m_ConstantInt(ClassMask1))));
-  if ((((IsLHSClass || matchIsFPClassLikeFCmp(Op0, ClassVal0, ClassMask0)) &&
+                     m_Value(ClassVal1), m_ConstantInt(ClassMask1)))); (((IsLHSClass || matchIsFPClassLikeFCmp(Op0, ClassVal0, ClassMask0)) &&
         (IsRHSClass || matchIsFPClassLikeFCmp(Op1, ClassVal1, ClassMask1)))) &&
       ClassVal0 == ClassVal1) {
     unsigned NewClassMask;
@@ -1826,14 +1826,14 @@ Instruction *InstCombinerImpl::foldCastedBitwiseLogic(BinaryOperator &I) {
   auto FoldBitwiseICmpZeroWithICmp = [&](Value *Op0,
                                          Value *Op1) -> Instruction * {
     Value *A;
-    bool IsMatched =
+    
+
+    if (bool IsMatched =
         match(Op0,
               m_OneUse(m_LShr(
                   m_Value(A),
                   m_SpecificInt(Op0->getType()->getScalarSizeInBits() - 1)))) &&
-        match(Op1, m_OneUse(m_ZExt(m_ICmp(m_Value(), m_Value()))));
-
-    if (!IsMatched)
+        match(Op1, m_OneUse(m_ZExt(m_ICmp(m_Value(), m_Value())))); !IsMatched)
       return nullptr;
 
     auto *ICmpL =
@@ -1883,8 +1883,8 @@ Instruction *InstCombinerImpl::foldCastedBitwiseLogic(BinaryOperator &I) {
       match(Cast1, m_ZExtOrSExt(m_Value(Y)))) {
     // Cast the narrower source to the wider source type.
     unsigned XNumBits = X->getType()->getScalarSizeInBits();
-    unsigned YNumBits = Y->getType()->getScalarSizeInBits();
-    if (XNumBits != YNumBits) {
+    
+    if (unsigned YNumBits = Y->getType()->getScalarSizeInBits(); XNumBits != YNumBits) {
       // Cast the narrower source to the wider source type only if both of casts
       // have one use to avoid creating an extra instruction.
       if (!Cast0->hasOneUse() || !Cast1->hasOneUse())
@@ -2223,9 +2223,9 @@ static Instruction *canonicalizeLogicFirst(BinaryOperator &I,
     return nullptr;
 
   unsigned Width = Ty->getScalarSizeInBits();
-  unsigned LastOneMath = Width - C2->countr_zero();
+  
 
-  switch (OpC) {
+  switch (unsigned LastOneMath = Width - C2->countr_zero(); OpC) {
   case Instruction::And:
     if (C->countl_one() < LastOneMath)
       return nullptr;
@@ -2684,8 +2684,8 @@ Instruction *InstCombinerImpl::visitAnd(BinaryOperator &I) {
       match(Op1, m_MaxSignedValue()) &&
       !Builder.GetInsertBlock()->getParent()->hasFnAttribute(
           Attribute::NoImplicitFloat)) {
-    Type *EltTy = CastOp->getType()->getScalarType();
-    if (EltTy->isFloatingPointTy() &&
+    
+    if (Type *EltTy = CastOp->getType()->getScalarType(); EltTy->isFloatingPointTy() &&
         APFloat::hasSignBitInMSB(EltTy->getFltSemantics())) {
       Value *FAbs = Builder.CreateUnaryIntrinsic(Intrinsic::fabs, CastOp);
       return new BitCastInst(FAbs, I.getType());
@@ -2739,20 +2739,20 @@ Instruction *InstCombinerImpl::visitAnd(BinaryOperator &I) {
     // (A ^ B) & ((B ^ C) ^ A) -> (A ^ B) & ~C
     if (match(Op0, m_Xor(m_Value(A), m_Value(B))) &&
         match(Op1, m_Xor(m_Xor(m_Specific(B), m_Value(C)), m_Specific(A)))) {
-      Value *NotC = Op1->hasOneUse()
+      
+      if (Value *NotC = Op1->hasOneUse()
                         ? Builder.CreateNot(C)
-                        : getFreelyInverted(C, C->hasOneUse(), &Builder);
-      if (NotC != nullptr)
+                        : getFreelyInverted(C, C->hasOneUse(), &Builder); NotC != nullptr)
         return BinaryOperator::CreateAnd(Op0, NotC);
     }
 
     // ((A ^ C) ^ B) & (B ^ A) -> (B ^ A) & ~C
     if (match(Op0, m_Xor(m_Xor(m_Value(A), m_Value(C)), m_Value(B))) &&
         match(Op1, m_Xor(m_Specific(B), m_Specific(A)))) {
-      Value *NotC = Op0->hasOneUse()
+      
+      if (Value *NotC = Op0->hasOneUse()
                         ? Builder.CreateNot(C)
-                        : getFreelyInverted(C, C->hasOneUse(), &Builder);
-      if (NotC != nullptr)
+                        : getFreelyInverted(C, C->hasOneUse(), &Builder); NotC != nullptr)
         return BinaryOperator::CreateAnd(Op1, Builder.CreateNot(C));
     }
 
@@ -2794,14 +2794,14 @@ Instruction *InstCombinerImpl::visitAnd(BinaryOperator &I) {
     return replaceInstUsesWith(I, Res);
 
   if (match(Op1, m_OneUse(m_LogicalAnd(m_Value(X), m_Value(Y))))) {
-    bool IsLogical = isa<SelectInst>(Op1);
-    if (auto *V = reassociateBooleanAndOr(Op0, X, Y, I, /*IsAnd=*/true,
+    
+    if (bool IsLogical = isa<SelectInst>(Op1); auto *V = reassociateBooleanAndOr(Op0, X, Y, I, /*IsAnd=*/true,
                                           /*RHSIsLogical=*/IsLogical))
       return replaceInstUsesWith(I, V);
   }
   if (match(Op0, m_OneUse(m_LogicalAnd(m_Value(X), m_Value(Y))))) {
-    bool IsLogical = isa<SelectInst>(Op0);
-    if (auto *V = reassociateBooleanAndOr(Op1, X, Y, I, /*IsAnd=*/true,
+    
+    if (bool IsLogical = isa<SelectInst>(Op0); auto *V = reassociateBooleanAndOr(Op1, X, Y, I, /*IsAnd=*/true,
                                           /*RHSIsLogical=*/IsLogical))
       return replaceInstUsesWith(I, V);
   }
@@ -3059,10 +3059,10 @@ InstCombinerImpl::convertOrOfShiftsToFunnelShift(Instruction &Or) {
       return std::nullopt;
 
     unsigned HighSize = High->getType()->getScalarSizeInBits();
-    unsigned LowSize = Low->getType()->getScalarSizeInBits();
+    
     // Make sure High does not overlap with Low and most significant bits of
     // High aren't shifted out.
-    if (ZextHighShlAmt->ult(LowSize) || ZextHighShlAmt->ugt(Width - HighSize))
+    if (unsigned LowSize = Low->getType()->getScalarSizeInBits(); ZextHighShlAmt->ult(LowSize) || ZextHighShlAmt->ugt(Width - HighSize))
       return std::nullopt;
 
     for (User *U : ZextHigh->users()) {
@@ -3224,8 +3224,8 @@ Value *InstCombinerImpl::getSelectCondition(Value *A, Value *B,
     // original code.
     A = peekThroughBitcast(A);
     if (A->getType()->isIntOrIntVectorTy()) {
-      unsigned NumSignBits = ComputeNumSignBits(A);
-      if (NumSignBits == A->getType()->getScalarSizeInBits() &&
+      
+      if (unsigned NumSignBits = ComputeNumSignBits(A); NumSignBits == A->getType()->getScalarSizeInBits() &&
           NumSignBits <= Ty->getScalarSizeInBits())
         return Builder.CreateTrunc(A, CmpInst::makeCmpResultType(A->getType()));
     }
@@ -3700,9 +3700,9 @@ static bool matchSubIntegerPackFromVector(Value *V, Value *&Vec,
       const unsigned ShuffleIdx = ShuffleMask[Idx];
       if (ShuffleIdx >= NumVecElts) {
         const unsigned ConstIdx = ShuffleIdx - NumVecElts;
-        auto *ConstElt =
-            dyn_cast<ConstantInt>(ConstVec->getAggregateElement(ConstIdx));
-        if (!ConstElt || !ConstElt->isNullValue())
+        
+        if (auto *ConstElt =
+            dyn_cast<ConstantInt>(ConstVec->getAggregateElement(ConstIdx)); !ConstElt || !ConstElt->isNullValue())
           return false;
         continue;
       }
@@ -4294,14 +4294,14 @@ Instruction *InstCombinerImpl::visitOr(BinaryOperator &I) {
     return replaceInstUsesWith(I, Res);
 
   if (match(Op1, m_OneUse(m_LogicalOr(m_Value(X), m_Value(Y))))) {
-    bool IsLogical = isa<SelectInst>(Op1);
-    if (auto *V = reassociateBooleanAndOr(Op0, X, Y, I, /*IsAnd=*/false,
+    
+    if (bool IsLogical = isa<SelectInst>(Op1); auto *V = reassociateBooleanAndOr(Op0, X, Y, I, /*IsAnd=*/false,
                                           /*RHSIsLogical=*/IsLogical))
       return replaceInstUsesWith(I, V);
   }
   if (match(Op0, m_OneUse(m_LogicalOr(m_Value(X), m_Value(Y))))) {
-    bool IsLogical = isa<SelectInst>(Op0);
-    if (auto *V = reassociateBooleanAndOr(Op1, X, Y, I, /*IsAnd=*/false,
+    
+    if (bool IsLogical = isa<SelectInst>(Op0); auto *V = reassociateBooleanAndOr(Op1, X, Y, I, /*IsAnd=*/false,
                                           /*RHSIsLogical=*/IsLogical))
       return replaceInstUsesWith(I, V);
   }
@@ -4533,8 +4533,8 @@ Instruction *InstCombinerImpl::visitOr(BinaryOperator &I) {
       match(Op1, m_SignMask()) &&
       !Builder.GetInsertBlock()->getParent()->hasFnAttribute(
           Attribute::NoImplicitFloat)) {
-    Type *EltTy = CastOp->getType()->getScalarType();
-    if (EltTy->isFloatingPointTy() &&
+    
+    if (Type *EltTy = CastOp->getType()->getScalarType(); EltTy->isFloatingPointTy() &&
         APFloat::hasSignBitInMSB(EltTy->getFltSemantics())) {
       Value *FAbs = Builder.CreateUnaryIntrinsic(Intrinsic::fabs, CastOp);
       Value *FNegFAbs = Builder.CreateFNeg(FAbs);
@@ -5047,8 +5047,8 @@ Instruction *InstCombinerImpl::foldNot(BinaryOperator &I) {
 
     // Bit-hack form of a signbit test for iN type:
     // ~(X >>s (N - 1)) --> sext i1 (X > -1) to iN
-    unsigned FullShift = Ty->getScalarSizeInBits() - 1;
-    if (match(NotVal, m_OneUse(m_AShr(m_Value(X), m_SpecificInt(FullShift))))) {
+    
+    if (unsigned FullShift = Ty->getScalarSizeInBits() - 1; match(NotVal, m_OneUse(m_AShr(m_Value(X), m_SpecificInt(FullShift))))) {
       Value *IsNotNeg = Builder.CreateIsNotNeg(X, "isnotneg");
       return new SExtInst(IsNotNeg, Ty);
     }
@@ -5120,8 +5120,8 @@ Instruction *InstCombinerImpl::foldNot(BinaryOperator &I) {
   // Eliminate a bitwise 'not' op of 'not' min/max by inverting the min/max:
   // ~min(~X, ~Y) --> max(X, Y)
   // ~max(~X, Y) --> min(X, ~Y)
-  auto *II = dyn_cast<IntrinsicInst>(NotOp);
-  if (II && II->hasOneUse()) {
+  
+  if (auto *II = dyn_cast<IntrinsicInst>(NotOp); II && II->hasOneUse()) {
     if (match(NotOp, m_c_MaxOrMin(m_Not(m_Value(X)), m_Value(Y)))) {
       Intrinsic::ID InvID = getInverseMinMaxIntrinsic(II->getIntrinsicID());
       Value *NotY = Builder.CreateNot(Y);
@@ -5153,8 +5153,8 @@ Instruction *InstCombinerImpl::foldNot(BinaryOperator &I) {
       auto *CmpT = dyn_cast<CmpInst>(TV);
       auto *CmpF = dyn_cast<CmpInst>(FV);
       bool InvertibleT = (CmpT && CmpT->hasOneUse()) || isa<Constant>(TV);
-      bool InvertibleF = (CmpF && CmpF->hasOneUse()) || isa<Constant>(FV);
-      if (InvertibleT && InvertibleF) {
+      
+      if (bool InvertibleF = (CmpF && CmpF->hasOneUse()) || isa<Constant>(FV); InvertibleT && InvertibleF) {
         if (CmpT)
           CmpT->setPredicate(CmpT->getInversePredicate());
         else
@@ -5307,10 +5307,10 @@ Instruction *InstCombinerImpl::visitXor(BinaryOperator &I) {
       // When X is a power-of-two or zero and zero input is poison:
       // ctlz(i32 X) ^ 31 --> cttz(X)
       // cttz(i32 X) ^ 31 --> ctlz(X)
-      auto *II = dyn_cast<IntrinsicInst>(Op0);
-      if (II && II->hasOneUse() && *RHSC == Ty->getScalarSizeInBits() - 1) {
-        Intrinsic::ID IID = II->getIntrinsicID();
-        if ((IID == Intrinsic::ctlz || IID == Intrinsic::cttz) &&
+      
+      if (auto *II = dyn_cast<IntrinsicInst>(Op0); II && II->hasOneUse() && *RHSC == Ty->getScalarSizeInBits() - 1) {
+        
+        if (Intrinsic::ID IID = II->getIntrinsicID(); (IID == Intrinsic::ctlz || IID == Intrinsic::cttz) &&
             match(II->getArgOperand(1), m_One()) &&
             isKnownToBeAPowerOfTwo(II->getArgOperand(0), /*OrZero */ true)) {
           IID = (IID == Intrinsic::ctlz) ? Intrinsic::cttz : Intrinsic::ctlz;
@@ -5352,8 +5352,8 @@ Instruction *InstCombinerImpl::visitXor(BinaryOperator &I) {
         match(Op1, m_SignMask()) &&
         !Builder.GetInsertBlock()->getParent()->hasFnAttribute(
             Attribute::NoImplicitFloat)) {
-      Type *EltTy = CastOp->getType()->getScalarType();
-      if (EltTy->isFloatingPointTy() &&
+      
+      if (Type *EltTy = CastOp->getType()->getScalarType(); EltTy->isFloatingPointTy() &&
           APFloat::hasSignBitInMSB(EltTy->getFltSemantics())) {
         Value *FNeg = Builder.CreateFNeg(CastOp);
         return new BitCastInst(FNeg, I.getType());

@@ -63,8 +63,8 @@ void closeBrackets(std::string &Code, const format::FormatStyle &Style) {
 
 static StringRef commentMarker(llvm::StringRef Line) {
   for (StringRef Marker : {"///", "//"}){
-    auto I = Line.rfind(Marker);
-    if (I != StringRef::npos)
+    
+    if (auto I = Line.rfind(Marker); I != StringRef::npos)
       return Line.substr(I, Marker.size());
   }
   return "";
@@ -177,8 +177,8 @@ IncrementalChanges getIncrementalChangesAfterNewline(llvm::StringRef Code,
   // If we split a comment, replace indentation with a comment marker.
   // If the editor made the new line a comment, also respect that.
   StringRef CommentMarker = commentMarker(Leading);
-  bool NewLineIsComment = !commentMarker(Indentation).empty();
-  if (!CommentMarker.empty() &&
+  
+  if (bool NewLineIsComment = !commentMarker(Indentation).empty(); !CommentMarker.empty() &&
       (NewLineIsComment || !commentMarker(NextLine).empty() ||
        (!TrailingTrim.empty() && !TrailingTrim.starts_with("//")))) {
     // We indent the new comment to match the previous one.
@@ -391,8 +391,8 @@ transformCursorPosition(unsigned Offset,
     } else if (R.getOffset() < OriginalOffset) {
       // Replacement overlaps cursor.
       // Preserve position within replacement text, as far as possible.
-      unsigned PositionWithinReplacement = Offset - R.getOffset();
-      if (PositionWithinReplacement > R.getReplacementText().size()) {
+      
+      if (unsigned PositionWithinReplacement = Offset - R.getOffset(); PositionWithinReplacement > R.getReplacementText().size()) {
         Offset += R.getReplacementText().size();
         Offset -= PositionWithinReplacement;
       }

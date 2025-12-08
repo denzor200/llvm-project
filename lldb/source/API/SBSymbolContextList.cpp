@@ -100,8 +100,8 @@ lldb_private::SymbolContextList &SBSymbolContextList::operator*() const {
 bool SBSymbolContextList::GetDescription(lldb::SBStream &description) {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
-  if (m_opaque_up)
+  
+  if (Stream &strm = description.ref(); m_opaque_up)
     m_opaque_up->GetDescription(&strm, lldb::eDescriptionLevelFull, nullptr);
   return true;
 }

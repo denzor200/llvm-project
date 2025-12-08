@@ -550,8 +550,8 @@ bool InlineAsmLowering::lowerInlineAsm(
 
     case InlineAsm::isClobber: {
 
-      const unsigned NumRegs = OpInfo.Regs.size();
-      if (NumRegs > 0) {
+      
+      if (const unsigned NumRegs = OpInfo.Regs.size(); NumRegs > 0) {
         unsigned Flag = InlineAsm::Flag(InlineAsm::Kind::Clobber, NumRegs);
         Inst.addImm(Flag);
 
@@ -653,8 +653,8 @@ bool InlineAsmLowering::lowerAsmOperandForConstraint(
   if (Constraint.size() > 1)
     return false;
 
-  char ConstraintLetter = Constraint[0];
-  switch (ConstraintLetter) {
+  
+  switch (char ConstraintLetter = Constraint[0]; ConstraintLetter) {
   default:
     return false;
   case 'i': // Simple Integer or Relocatable Constant

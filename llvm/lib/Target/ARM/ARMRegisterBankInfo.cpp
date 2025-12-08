@@ -177,8 +177,8 @@ ARMRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
   // Try the default logic for non-generic instructions that are either copies
   // or already have some operands assigned to banks.
   if (!isPreISelGenericOpcode(Opc) || Opc == TargetOpcode::G_PHI) {
-    const InstructionMapping &Mapping = getInstrMappingImpl(MI);
-    if (Mapping.isValid())
+    
+    if (const InstructionMapping &Mapping = getInstrMappingImpl(MI); Mapping.isValid())
       return Mapping;
   }
 
@@ -416,8 +416,8 @@ ARMRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
     break;
   case DBG_VALUE: {
     SmallVector<const ValueMapping *, 4> OperandBanks(NumOperands);
-    const MachineOperand &MaybeReg = MI.getOperand(0);
-    if (MaybeReg.isReg() && MaybeReg.getReg()) {
+    
+    if (const MachineOperand &MaybeReg = MI.getOperand(0); MaybeReg.isReg() && MaybeReg.getReg()) {
       unsigned Size = MRI.getType(MaybeReg.getReg()).getSizeInBits();
       if (Size > 32 && Size != 64)
         return getInvalidInstructionMapping();

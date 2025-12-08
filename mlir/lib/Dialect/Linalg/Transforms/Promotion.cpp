@@ -405,9 +405,9 @@ mlir::linalg::promoteSubviewsPrecondition(Operation *op,
     return failure();
   // Check that at least one of the requested operands is indeed a subview.
   for (OpOperand &opOperand : linalgOp->getOpOperands()) {
-    auto sv =
-        isa_and_nonnull<memref::SubViewOp>(opOperand.get().getDefiningOp());
-    if (sv) {
+    
+    if (auto sv =
+        isa_and_nonnull<memref::SubViewOp>(opOperand.get().getDefiningOp()); sv) {
       if (!options.operandsToPromote ||
           options.operandsToPromote->count(opOperand.getOperandNumber()))
         return success();

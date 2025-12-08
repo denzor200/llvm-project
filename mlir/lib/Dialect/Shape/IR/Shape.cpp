@@ -566,10 +566,10 @@ struct AssumingAllToCstrEqCanonicalization
       auto cstrEqOp = w.getDefiningOp<CstrEqOp>();
       if (!cstrEqOp)
         return failure();
-      bool disjointShapes = llvm::none_of(cstrEqOp.getShapes(), [&](Value s) {
+      
+      if (bool disjointShapes = llvm::none_of(cstrEqOp.getShapes(), [&](Value s) {
         return llvm::is_contained(shapes, s);
-      });
-      if (!shapes.empty() && !cstrEqOp.getShapes().empty() && disjointShapes)
+      }); !shapes.empty() && !cstrEqOp.getShapes().empty() && disjointShapes)
         return failure();
       shapes.append(cstrEqOp.getShapes().begin(), cstrEqOp.getShapes().end());
     }
@@ -800,9 +800,9 @@ struct CanonicalizeCastExtentTensorOperandsPattern
     auto canonicalizeOperand = [&](Value operand) -> Value {
       if (auto castOp = operand.getDefiningOp<tensor::CastOp>()) {
         // Only eliminate the cast if it holds no shape information.
-        bool isInformationLoosingCast =
-            llvm::cast<RankedTensorType>(castOp.getType()).isDynamicDim(0);
-        if (isInformationLoosingCast) {
+        
+        if (bool isInformationLoosingCast =
+            llvm::cast<RankedTensorType>(castOp.getType()).isDynamicDim(0); isInformationLoosingCast) {
           anyChange = true;
           return castOp.getSource();
         }
@@ -1237,8 +1237,8 @@ ParseResult FunctionLibraryOp::parse(OpAsmParser &parser,
   if (parser.parseOptionalAttrDictWithKeyword(result.attributes))
     return failure();
 
-  auto *bodyRegion = result.addRegion();
-  if (parser.parseRegion(*bodyRegion))
+  
+  if (auto *bodyRegion = result.addRegion(); parser.parseRegion(*bodyRegion))
     return failure();
 
   if (parser.parseKeyword("mapping"))
@@ -1437,8 +1437,8 @@ LogicalResult mlir::shape::MeetOp::inferReturnTypes(
         return emitOptionalError(location, "requires all sizes or shapes");
     } else if (isExtentTensorType(l)) {
       auto rank1 = llvm::cast<RankedTensorType>(l).getShape()[0];
-      auto rank2 = llvm::cast<RankedTensorType>(r).getShape()[0];
-      if (ShapedType::isDynamic(rank1))
+      
+      if (auto rank2 = llvm::cast<RankedTensorType>(r).getShape()[0]; ShapedType::isDynamic(rank1))
         acc = l;
       else if (ShapedType::isDynamic(rank2))
         acc = r;
@@ -1900,8 +1900,8 @@ LogicalResult SplitAtOp::fold(FoldAdaptor adaptor,
   auto splitPoint = llvm::cast<IntegerAttr>(adaptor.getIndex()).getInt();
   // Verify that the split point is in the correct range.
   // TODO: Constant fold to an "error".
-  int64_t rank = shape.size();
-  if (-rank > splitPoint || splitPoint > rank)
+  
+  if (int64_t rank = shape.size(); -rank > splitPoint || splitPoint > rank)
     return failure();
   if (splitPoint < 0)
     splitPoint += shape.size();
@@ -2026,8 +2026,8 @@ ParseResult ReduceOp::parse(OpAsmParser &parser, OperationState &result) {
     return failure();
 
   // Parse the body.
-  Region *body = result.addRegion();
-  if (parser.parseRegion(*body, /*args=*/{}, /*argTypes=*/{}))
+  
+  if (Region *body = result.addRegion(); parser.parseRegion(*body, /*args=*/{}, /*argTypes=*/{}))
     return failure();
 
   // Parse attributes.

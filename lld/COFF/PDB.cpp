@@ -346,13 +346,13 @@ void PDBLinker::translateIdSymbols(MutableArrayRef<uint8_t> &recordData,
     assert(refs.size() == 1);
     assert(refs.front().Count == 1);
 
-    TypeIndex *ti =
-        reinterpret_cast<TypeIndex *>(content.data() + refs[0].Offset);
+    
     // `ti` is the index of a FuncIdRecord or MemberFuncIdRecord which lives in
     // the IPI stream, whose `FunctionType` member refers to the TPI stream.
     // Note that LF_FUNC_ID and LF_MFUNC_ID have the same record layout, and
     // in both cases we just need the second type index.
-    if (!ti->isSimple() && !ti->isNoneType()) {
+    if (TypeIndex *ti =
+        reinterpret_cast<TypeIndex *>(content.data() + refs[0].Offset); !ti->isSimple() && !ti->isNoneType()) {
       TypeIndex newType = TypeIndex(SimpleTypeKind::NotTranslated);
       if (ctx.config.debugGHashes) {
         auto idToType = tMerger.funcIdToType.find(*ti);
@@ -864,8 +864,8 @@ Error UnrelocatedDebugSubsection::commit(BinaryStreamWriter &writer) const {
     ExitOnError exitOnErr;
     exitOnErr(inlineeLines.initialize(storageReader));
     for (const InlineeSourceLine &line : inlineeLines) {
-      TypeIndex &inlinee = *const_cast<TypeIndex *>(&line.Header->Inlinee);
-      if (!source->remapTypeIndex(inlinee, TiRefKind::IndexRef)) {
+      
+      if (TypeIndex &inlinee = *const_cast<TypeIndex *>(&line.Header->Inlinee); !source->remapTypeIndex(inlinee, TiRefKind::IndexRef)) {
         log("bad inlinee line record in " + debugChunk->file->getName() +
             " with bad inlinee index 0x" + utohexstr(inlinee.getIndex()));
       }
@@ -1205,8 +1205,8 @@ void PDBLinker::addPublicsToPDB() {
   ctx.symtab.forEachSymbol([&publics, this](Symbol *s) {
     // Only emit external, defined, live symbols that have a chunk. Static,
     // non-external symbols do not appear in the symbol table.
-    auto *def = dyn_cast<Defined>(s);
-    if (def && def->isLive() && def->getChunk()) {
+    
+    if (auto *def = dyn_cast<Defined>(s); def && def->isLive() && def->getChunk()) {
       // Don't emit a public symbol for coverage data symbols. LLVM code
       // coverage (and PGO) create a __profd_ and __profc_ symbol for every
       // function. C++ mangled names are long, and tend to dominate symbol size.

@@ -133,9 +133,9 @@ static bool isSendMsgTraceDataOrGDS(const SIInstrInfo &TII,
     return false;
   default:
     if (TII.isDS(MI.getOpcode())) {
-      int GDS = AMDGPU::getNamedOperandIdx(MI.getOpcode(),
-                                           AMDGPU::OpName::gds);
-      if (MI.getOperand(GDS).getImm())
+      
+      if (int GDS = AMDGPU::getNamedOperandIdx(MI.getOpcode(),
+                                           AMDGPU::OpName::gds); MI.getOperand(GDS).getImm())
         return true;
     }
     return false;
@@ -878,11 +878,11 @@ int GCNHazardRecognizer::createsVALUHazard(const MachineInstr &MI) {
       return -1;
     // For MUBUF/MTBUF instructions this hazard only exists if the
     // instruction is not using a register in the soffset field.
-    const MachineOperand *SOffset =
-        TII->getNamedOperand(MI, AMDGPU::OpName::soffset);
+    
     // If we have no soffset operand, then assume this field has been
     // hardcoded to zero.
-    if (AMDGPU::getRegBitWidth(VDataRCID) > 64 &&
+    if (const MachineOperand *SOffset =
+        TII->getNamedOperand(MI, AMDGPU::OpName::soffset); AMDGPU::getRegBitWidth(VDataRCID) > 64 &&
         (!SOffset || !SOffset->isReg()))
       return VDataIdx;
   }
@@ -1042,9 +1042,9 @@ int GCNHazardRecognizer::checkVALUHazards(MachineInstr *VALU) {
 
     auto IsShift16BitDefFn = [this, VALU](const MachineInstr &ProducerMI) {
       const SIRegisterInfo *TRI = ST.getRegisterInfo();
-      const MachineOperand *ForwardedDst =
-          getDstSelForwardingOperand(ProducerMI, ST);
-      if (ForwardedDst) {
+      
+      if (const MachineOperand *ForwardedDst =
+          getDstSelForwardingOperand(ProducerMI, ST); ForwardedDst) {
         return consumesDstSelForwardingOperand(VALU, ForwardedDst, TRI);
       }
 
@@ -1172,9 +1172,9 @@ int GCNHazardRecognizer::checkInlineAsmHazards(MachineInstr *IA) {
     const int Shift16DefWaitstates = 1;
 
     auto IsShift16BitDefFn = [this, &IA](const MachineInstr &ProducerMI) {
-      const MachineOperand *Dst = getDstSelForwardingOperand(ProducerMI, ST);
+      
       // Assume inline asm reads the dst
-      if (Dst)
+      if (const MachineOperand *Dst = getDstSelForwardingOperand(ProducerMI, ST); Dst)
         return IA->modifiesRegister(Dst->getReg(), &TRI) ||
                IA->readsRegister(Dst->getReg(), &TRI);
 
@@ -1330,9 +1330,9 @@ bool GCNHazardRecognizer::fixVMEMtoScalarWriteHazards(MachineInstr *MI) {
       return false;
 
     for (const MachineOperand &Def : MI->defs()) {
-      const MachineOperand *Op =
-          I.findRegisterUseOperand(Def.getReg(), TRI, false);
-      if (!Op)
+      
+      if (const MachineOperand *Op =
+          I.findRegisterUseOperand(Def.getReg(), TRI, false); !Op)
         continue;
       return true;
     }
@@ -1550,8 +1550,8 @@ bool GCNHazardRecognizer::fixLdsBranchVmemWARHazard(MachineInstr *MI) {
     };
 
     auto IsExpiredFn = [InstType, &IsHazardInst](const MachineInstr &I, int) {
-      auto InstType2 = IsHazardInst(I);
-      if (InstType == InstType2)
+      
+      if (auto InstType2 = IsHazardInst(I); InstType == InstType2)
         return true;
 
       return isStoreCountWaitZero(I);
@@ -1937,8 +1937,8 @@ bool GCNHazardRecognizer::fixVALUTransCoexecutionHazards(MachineInstr *MI) {
     return SIInstrInfo::isVALU(I);
   };
 
-  const int HasVALU = std::numeric_limits<int>::max();
-  if (::getWaitStatesSince(IsTransHazardFn, MI, IsExpiredFn) == HasVALU)
+  
+  if (const int HasVALU = std::numeric_limits<int>::max(); ::getWaitStatesSince(IsTransHazardFn, MI, IsExpiredFn) == HasVALU)
     return false;
 
   BuildMI(*MI->getParent(), MI, MI->getDebugLoc(), TII->get(AMDGPU::V_NOP_e32));
@@ -2068,8 +2068,8 @@ bool GCNHazardRecognizer::fixWMMACoexecutionHazards(MachineInstr *MI) {
     if (!TII->isXDLWMMA(I))
       return false;
 
-    unsigned Latency = TSchedModel.computeInstrLatency(&I);
-    if (!IsWMMAHazardInstInCategory(I, TII, Latency, Category))
+    
+    if (unsigned Latency = TSchedModel.computeInstrLatency(&I); !IsWMMAHazardInstInCategory(I, TII, Latency, Category))
       return false;
 
     Register D0 = TII->getNamedOperand(I, AMDGPU::OpName::vdst)->getReg();
@@ -2093,8 +2093,8 @@ bool GCNHazardRecognizer::fixWMMACoexecutionHazards(MachineInstr *MI) {
     if (!TII->isXDLWMMA(I))
       return false;
 
-    unsigned Latency = TSchedModel.computeInstrLatency(&I);
-    if (!IsWMMAHazardInstInCategory(I, TII, Latency, Category))
+    
+    if (unsigned Latency = TSchedModel.computeInstrLatency(&I); !IsWMMAHazardInstInCategory(I, TII, Latency, Category))
       return false;
 
     // WMMA writes, VALU reads.
@@ -2341,8 +2341,8 @@ int GCNHazardRecognizer::checkMFMAPadding(MachineInstr *MI) {
   if (MFMAPaddingRatio == 0)
     return 0;
 
-  const SIMachineFunctionInfo *MFI = MF.getInfo<SIMachineFunctionInfo>();
-  if (!SIInstrInfo::isMFMA(*MI) || MFI->getOccupancy() < 2)
+  
+  if (const SIMachineFunctionInfo *MFI = MF.getInfo<SIMachineFunctionInfo>(); !SIInstrInfo::isMFMA(*MI) || MFI->getOccupancy() < 2)
     return 0;
 
   int NeighborMFMALatency = 0;
@@ -2961,10 +2961,10 @@ int GCNHazardRecognizer::checkMAIVALUHazards(MachineInstr *MI) {
     return true;
   };
 
-  int SrcCIdx = AMDGPU::getNamedOperandIdx(MI->getOpcode(),
-                                           AMDGPU::OpName::src2);
+  
 
-  if (IsMemOrExport || IsVALU) {
+  if (int SrcCIdx = AMDGPU::getNamedOperandIdx(MI->getOpcode(),
+                                           AMDGPU::OpName::src2); IsMemOrExport || IsVALU) {
     const int SMFMA4x4WriteVgprVALUMemExpReadWaitStates = 5;
     const int SMFMA16x16WriteVgprVALUMemExpReadWaitStates = 11;
     const int SMFMA32x32WriteVgprVALUMemExpReadWaitStates = 19;
@@ -3116,9 +3116,9 @@ int GCNHazardRecognizer::checkMAIVALUHazards(MachineInstr *MI) {
         getWaitStatesSinceDef(Reg, IsMFMAWriteFn, MaxWaitStates);
     if (MFMA) {
       int NeedWaitStates = MaxWaitStates;
-      int NumPasses = TSchedModel.computeInstrLatency(MFMA);
+      
 
-      if (SIInstrInfo::isDGEMM(MFMA->getOpcode())) {
+      if (int NumPasses = TSchedModel.computeInstrLatency(MFMA); SIInstrInfo::isDGEMM(MFMA->getOpcode())) {
         switch (NumPasses) {
         case 4:
           NeedWaitStates = DMFMA4x4WriteVgprVALUWriteWaitStates;
@@ -3218,10 +3218,10 @@ bool GCNHazardRecognizer::ShouldPreferAnother(SUnit *SU) {
     return MAI != nullptr;
   };
 
-  MachineInstr *MI = SU->getInstr();
-  if (IsMFMAFn(*MI)) {
-    int W = getWaitStatesSince(IsMFMAFn, 16);
-    if (MAI)
+  
+  if (MachineInstr *MI = SU->getInstr(); IsMFMAFn(*MI)) {
+    
+    if (int W = getWaitStatesSince(IsMFMAFn, 16); MAI)
       return W < (int)TSchedModel.computeInstrLatency(MAI);
   }
 
@@ -3559,9 +3559,9 @@ bool GCNHazardRecognizer::fixRequiredExportPriority(MachineInstr *MI) {
     // Raise minimum priority unless in workaround.
     auto &PrioOp = MI->getOperand(0);
     int Prio = PrioOp.getImm();
-    bool InWA = (Prio == PostExportPriority) &&
-                (It != MBB->begin() && TII.isEXP(*std::prev(It)));
-    if (InWA || Prio >= NormalPriority)
+    
+    if (bool InWA = (Prio == PostExportPriority) &&
+                (It != MBB->begin() && TII.isEXP(*std::prev(It))); InWA || Prio >= NormalPriority)
       return false;
     PrioOp.setImm(std::min(Prio + NormalPriority, MaxPriority));
     return true;
@@ -3702,8 +3702,8 @@ bool GCNHazardRecognizer::fixScratchBaseForwardingHazard(MachineInstr *MI) {
 
     auto IsExpiredFn = [=](const MachineInstr &MI, int SgprWrites) {
       if (MI.getOpcode() == AMDGPU::S_WAITCNT_DEPCTR) {
-        unsigned Wait = MI.getOperand(0).getImm();
-        if (AMDGPU::DepCtr::decodeFieldSaSdst(Wait) == 0 &&
+        
+        if (unsigned Wait = MI.getOperand(0).getImm(); AMDGPU::DepCtr::decodeFieldSaSdst(Wait) == 0 &&
             AMDGPU::DepCtr::decodeFieldVaSdst(Wait) == 0)
           return true;
       }

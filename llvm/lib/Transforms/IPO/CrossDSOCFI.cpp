@@ -70,8 +70,8 @@ void CrossDSOCFI::buildCFICheck(Module &M) {
         TypeIds.insert(TypeId->getZExtValue());
   }
 
-  NamedMDNode *CfiFunctionsMD = M.getNamedMetadata("cfi.functions");
-  if (CfiFunctionsMD) {
+  
+  if (NamedMDNode *CfiFunctionsMD = M.getNamedMetadata("cfi.functions"); CfiFunctionsMD) {
     for (auto *Func : CfiFunctionsMD->operands()) {
       assert(Func->getNumOperands() >= 2);
       for (unsigned I = 2; I < Func->getNumOperands(); ++I)
@@ -147,8 +147,8 @@ bool CrossDSOCFI::runOnModule(Module &M) {
 
 PreservedAnalyses CrossDSOCFIPass::run(Module &M, ModuleAnalysisManager &AM) {
   CrossDSOCFI Impl;
-  bool Changed = Impl.runOnModule(M);
-  if (!Changed)
+  
+  if (bool Changed = Impl.runOnModule(M); !Changed)
     return PreservedAnalyses::all();
   return PreservedAnalyses::none();
 }

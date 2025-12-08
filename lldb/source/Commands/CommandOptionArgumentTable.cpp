@@ -146,8 +146,8 @@ llvm::StringRef FormatHelpTextCallback() {
     if (f != eFormatDefault)
       sstr.PutChar('\n');
 
-    char format_char = FormatManager::GetFormatAsFormatChar(f);
-    if (format_char)
+    
+    if (char format_char = FormatManager::GetFormatAsFormatChar(f); format_char)
       sstr.Printf("'%c' or ", format_char);
 
     sstr.Printf("\"%s\"", FormatManager::GetFormatAsCString(f));

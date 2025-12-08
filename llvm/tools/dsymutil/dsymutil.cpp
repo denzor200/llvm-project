@@ -510,8 +510,8 @@ static bool verifyOutput(StringRef OutputFile, StringRef Arch,
     return false;
   }
 
-  Binary &Binary = *BinOrErr.get().getBinary();
-  if (auto *Obj = dyn_cast<MachOObjectFile>(&Binary)) {
+  
+  if (Binary &Binary = *BinOrErr.get().getBinary(); auto *Obj = dyn_cast<MachOObjectFile>(&Binary)) {
     std::unique_ptr<DWARFContext> DICtx = DWARFContext::create(*Obj);
     if (DICtx->getMaxVersion() > 5) {
       if (!Options.LinkOpts.Quiet) {

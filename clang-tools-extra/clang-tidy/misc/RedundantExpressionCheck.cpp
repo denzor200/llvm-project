@@ -256,8 +256,8 @@ static bool rangeSubsumesRange(BinaryOperatorKind OpcodeLHS,
                                const APSInt &ValueLHS,
                                BinaryOperatorKind OpcodeRHS,
                                const APSInt &ValueRHS) {
-  const int Comparison = APSInt::compareValues(ValueLHS, ValueRHS);
-  switch (OpcodeLHS) {
+  
+  switch (const int Comparison = APSInt::compareValues(ValueLHS, ValueRHS); OpcodeLHS) {
   case BO_EQ:
     return OpcodeRHS == BO_EQ && Comparison == 0;
   case BO_NE:
@@ -321,8 +321,8 @@ getOperands(const CXXOperatorCallExpr *Op) {
 template <typename TExpr>
 static const TExpr *checkOpKind(const Expr *TheExpr,
                                 OverloadedOperatorKind OpKind) {
-  const auto *AsTExpr = dyn_cast_or_null<TExpr>(TheExpr);
-  if (AsTExpr && getOp(AsTExpr) == OpKind)
+  
+  if (const auto *AsTExpr = dyn_cast_or_null<TExpr>(TheExpr); AsTExpr && getOp(AsTExpr) == OpKind)
     return AsTExpr;
 
   return nullptr;
@@ -354,10 +354,10 @@ static bool hasSameOperatorParent(const Expr *TheExpr,
   const DynTypedNodeList Parents = Context.getParents(*TheExpr);
   for (const DynTypedNode DynParent : Parents) {
     if (const auto *Parent = DynParent.get<Expr>()) {
-      const bool Skip =
+      
+      if (const bool Skip =
           isa<ParenExpr>(Parent) || isa<ImplicitCastExpr>(Parent) ||
-          isa<FullExpr>(Parent) || isa<MaterializeTemporaryExpr>(Parent);
-      if (Skip && hasSameOperatorParent<TExpr>(Parent, OpKind, Context))
+          isa<FullExpr>(Parent) || isa<MaterializeTemporaryExpr>(Parent); Skip && hasSameOperatorParent<TExpr>(Parent, OpKind, Context))
         return true;
       if (checkOpKind<TExpr>(Parent, OpKind))
         return true;
@@ -913,8 +913,8 @@ static bool areExprsSameMacroOrLiteral(const BinaryOperator *BinOp,
     return false;
   }
   const auto *Lil = dyn_cast<IntegerLiteral>(Lhs);
-  const auto *Ril = dyn_cast<IntegerLiteral>(Rhs);
-  if (Lil && Ril)
+  
+  if (const auto *Ril = dyn_cast<IntegerLiteral>(Rhs); Lil && Ril)
     return Lil->getValue() == Ril->getValue();
 
   const auto *Lbl = dyn_cast<CXXBoolLiteralExpr>(Lhs);

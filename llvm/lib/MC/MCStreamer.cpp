@@ -406,8 +406,8 @@ void MCStreamer::emitLabel(MCSymbol *Symbol, SMLoc Loc) {
 
   Symbol->setFragment(&getCurrentSectionOnly()->getDummyFragment());
 
-  MCTargetStreamer *TS = getTargetStreamer();
-  if (TS)
+  
+  if (MCTargetStreamer *TS = getTargetStreamer(); TS)
     TS->emitLabel(Symbol);
 }
 
@@ -426,8 +426,8 @@ void MCStreamer::emitCFIStartProc(bool IsSimple, SMLoc Loc) {
   Frame.IsSimple = IsSimple;
   emitCFIStartProcImpl(Frame);
 
-  const MCAsmInfo* MAI = Context.getAsmInfo();
-  if (MAI) {
+  
+  if (const MCAsmInfo* MAI = Context.getAsmInfo(); MAI) {
     for (const MCCFIInstruction& Inst : MAI->getInitialFrameState()) {
       if (Inst.getOperation() == MCCFIInstruction::OpDefCfa ||
           Inst.getOperation() == MCCFIInstruction::OpDefCfaRegister ||
@@ -696,8 +696,8 @@ void MCStreamer::emitCFIReturnColumn(int64_t Register) {
 
 void MCStreamer::emitCFILabelDirective(SMLoc Loc, StringRef Name) {
   MCSymbol *Label = emitCFILabel();
-  MCSymbol *Sym = getContext().getOrCreateSymbol(Name);
-  if (MCDwarfFrameInfo *F = getCurrentDwarfFrameInfo())
+  
+  if (MCSymbol *Sym = getContext().getOrCreateSymbol(Name); MCDwarfFrameInfo *F = getCurrentDwarfFrameInfo())
     F->Instructions.push_back(MCCFIInstruction::createLabel(Label, Sym, Loc));
 }
 
@@ -712,8 +712,8 @@ void MCStreamer::emitCFIValOffset(int64_t Register, int64_t Offset, SMLoc Loc) {
 }
 
 WinEH::FrameInfo *MCStreamer::EnsureValidWinFrameInfo(SMLoc Loc) {
-  const MCAsmInfo *MAI = Context.getAsmInfo();
-  if (!MAI->usesWindowsCFI()) {
+  
+  if (const MCAsmInfo *MAI = Context.getAsmInfo(); !MAI->usesWindowsCFI()) {
     getContext().reportError(
         Loc, ".seh_* directives are not supported on this target");
     return nullptr;
@@ -727,8 +727,8 @@ WinEH::FrameInfo *MCStreamer::EnsureValidWinFrameInfo(SMLoc Loc) {
 }
 
 void MCStreamer::emitWinCFIStartProc(const MCSymbol *Symbol, SMLoc Loc) {
-  const MCAsmInfo *MAI = Context.getAsmInfo();
-  if (!MAI->usesWindowsCFI())
+  
+  if (const MCAsmInfo *MAI = Context.getAsmInfo(); !MAI->usesWindowsCFI())
     return getContext().reportError(
         Loc, ".seh_* directives are not supported on this target");
   if (CurrentWinFrameInfo && !CurrentWinFrameInfo->End)
@@ -1101,8 +1101,8 @@ void MCStreamer::finish(SMLoc EndLoc) {
     return;
   }
 
-  MCTargetStreamer *TS = getTargetStreamer();
-  if (TS)
+  
+  if (MCTargetStreamer *TS = getTargetStreamer(); TS)
     TS->finish();
 
   finishImpl();
@@ -1147,8 +1147,8 @@ void MCStreamer::emitAssignment(MCSymbol *Symbol, const MCExpr *Value) {
   visitUsedExpr(*Value);
   Symbol->setVariableValue(Value);
 
-  MCTargetStreamer *TS = getTargetStreamer();
-  if (TS)
+  
+  if (MCTargetStreamer *TS = getTargetStreamer(); TS)
     TS->emitAssignment(Symbol, Value);
 }
 
@@ -1226,8 +1226,8 @@ void MCStreamer::emitAbsoluteSymbolDiff(const MCSymbol *Hi, const MCSymbol *Lo,
       MCBinaryExpr::createSub(MCSymbolRefExpr::create(Hi, Context),
                               MCSymbolRefExpr::create(Lo, Context), Context);
 
-  const MCAsmInfo *MAI = Context.getAsmInfo();
-  if (!MAI->doesSetDirectiveSuppressReloc()) {
+  
+  if (const MCAsmInfo *MAI = Context.getAsmInfo(); !MAI->doesSetDirectiveSuppressReloc()) {
     emitValue(Diff, Size);
     return;
   }

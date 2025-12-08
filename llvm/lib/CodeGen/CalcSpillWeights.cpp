@@ -221,8 +221,8 @@ void VirtRegAuxInfo::calculateSpillWeightAndHint(LiveInterval &LI) {
 static bool canMemFoldInlineAsm(LiveInterval &LI,
                                 const MachineRegisterInfo &MRI) {
   for (const MachineOperand &MO : MRI.reg_operands(LI.reg())) {
-    const MachineInstr *MI = MO.getParent();
-    if (MI->isInlineAsm() && MI->mayFoldInlineAsmRegOp(MI->getOperandNo(&MO)))
+    
+    if (const MachineInstr *MI = MO.getParent(); MI->isInlineAsm() && MI->mayFoldInlineAsmRegOp(MI->getOperandNo(&MO)))
       return true;
   }
 
@@ -244,11 +244,11 @@ float VirtRegAuxInfo::weightCalcHelper(LiveInterval &LI, SlotIndex *Start,
   if (LI.isSpillable()) {
     Register Reg = LI.reg();
     Register Original = VRM.getOriginal(Reg);
-    const LiveInterval &OrigInt = LIS.getInterval(Original);
+    
     // li comes from a split of OrigInt. If OrigInt was marked
     // as not spillable, make sure the new interval is marked
     // as not spillable as well.
-    if (!OrigInt.isSpillable())
+    if (const LiveInterval &OrigInt = LIS.getInterval(Original); !OrigInt.isSpillable())
       LI.markNotSpillable();
   }
 

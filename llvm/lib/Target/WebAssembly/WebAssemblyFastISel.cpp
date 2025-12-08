@@ -270,8 +270,8 @@ bool WebAssemblyFastISel::computeAddress(const Value *Obj, Address &Addr) {
     // we can.
     for (gep_type_iterator GTI = gep_type_begin(U), E = gep_type_end(U);
          GTI != E; ++GTI) {
-      const Value *Op = GTI.getOperand();
-      if (StructType *STy = GTI.getStructTypeOrNull()) {
+      
+      if (const Value *Op = GTI.getOperand(); StructType *STy = GTI.getStructTypeOrNull()) {
         const StructLayout *SL = DL.getStructLayout(STy);
         unsigned Idx = cast<ConstantInt>(Op)->getZExtValue();
         TmpOffset += SL->getElementOffset(Idx);
@@ -345,8 +345,8 @@ bool WebAssemblyFastISel::computeAddress(const Value *Obj, Address &Addr) {
       std::swap(LHS, RHS);
 
     if (const auto *CI = dyn_cast<ConstantInt>(RHS)) {
-      uint64_t TmpOffset = Addr.getOffset() + CI->getSExtValue();
-      if (int64_t(TmpOffset) >= 0) {
+      
+      if (uint64_t TmpOffset = Addr.getOffset() + CI->getSExtValue(); int64_t(TmpOffset) >= 0) {
         Addr.setOffset(TmpOffset);
         return computeAddress(LHS, Addr);
       }
@@ -368,11 +368,11 @@ bool WebAssemblyFastISel::computeAddress(const Value *Obj, Address &Addr) {
 
     // Subs of constants are common and easy enough.
     const Value *LHS = U->getOperand(0);
-    const Value *RHS = U->getOperand(1);
+    
 
-    if (const auto *CI = dyn_cast<ConstantInt>(RHS)) {
-      int64_t TmpOffset = Addr.getOffset() - CI->getSExtValue();
-      if (TmpOffset >= 0) {
+    if (const Value *RHS = U->getOperand(1); const auto *CI = dyn_cast<ConstantInt>(RHS)) {
+      
+      if (int64_t TmpOffset = Addr.getOffset() - CI->getSExtValue(); TmpOffset >= 0) {
         Addr.setOffset(TmpOffset);
         return computeAddress(LHS, Addr);
       }
@@ -392,8 +392,8 @@ bool WebAssemblyFastISel::computeAddress(const Value *Obj, Address &Addr) {
 
 void WebAssemblyFastISel::materializeLoadStoreOperands(Address &Addr) {
   if (Addr.isRegBase()) {
-    unsigned Reg = Addr.getReg();
-    if (Reg == 0) {
+    
+    if (unsigned Reg = Addr.getReg(); Reg == 0) {
       Reg = createResultReg(Subtarget->hasAddr64() ? &WebAssembly::I64RegClass
                                                    : &WebAssembly::I32RegClass);
       unsigned Opc = Subtarget->hasAddr64() ? WebAssembly::CONST_I64
@@ -891,9 +891,9 @@ bool WebAssemblyFastISel::selectCall(const Instruction *I) {
     // Placeholder for the type index.
     MIB.addImm(0);
     // The table into which this call_indirect indexes.
-    MCSymbolWasm *Table = WebAssembly::getOrCreateFunctionTableSymbol(
-        MF->getContext(), Subtarget);
-    if (Subtarget->hasCallIndirectOverlong()) {
+    
+    if (MCSymbolWasm *Table = WebAssembly::getOrCreateFunctionTableSymbol(
+        MF->getContext(), Subtarget); Subtarget->hasCallIndirectOverlong()) {
       MIB.addSym(Table);
     } else {
       // Otherwise for the MVP there is at most one table whose number is 0, but
@@ -1231,8 +1231,8 @@ bool WebAssemblyFastISel::selectLoad(const Instruction *I) {
 
   unsigned Opc;
   const TargetRegisterClass *RC;
-  bool A64 = Subtarget->hasAddr64();
-  switch (getSimpleType(Load->getType())) {
+  
+  switch (bool A64 = Subtarget->hasAddr64(); getSimpleType(Load->getType())) {
   case MVT::i1:
   case MVT::i8:
     Opc = A64 ? WebAssembly::LOAD8_U_I32_A64 : WebAssembly::LOAD8_U_I32_A32;
@@ -1290,8 +1290,8 @@ bool WebAssemblyFastISel::selectStore(const Instruction *I) {
 
   unsigned Opc;
   bool VTIsi1 = false;
-  bool A64 = Subtarget->hasAddr64();
-  switch (getSimpleType(Store->getValueOperand()->getType())) {
+  
+  switch (bool A64 = Subtarget->hasAddr64(); getSimpleType(Store->getValueOperand()->getType())) {
   case MVT::i1:
     VTIsi1 = true;
     [[fallthrough]];

@@ -46,10 +46,10 @@ static Expected<ResultOperand> matchSimpleOperand(const Init *Arg,
                                                   const CodeGenTarget &T) {
   if (Op->isSubClassOf("RegisterClass") ||
       Op->isSubClassOf("RegisterOperand")) {
-    const Record *OpRC =
-        Op->isSubClassOf("RegisterClass") ? Op : Op->getValueAsDef("RegClass");
+    
 
-    if (const auto *ArgDef = dyn_cast<DefInit>(Arg)) {
+    if (const Record *OpRC =
+        Op->isSubClassOf("RegisterClass") ? Op : Op->getValueAsDef("RegClass"); const auto *ArgDef = dyn_cast<DefInit>(Arg)) {
       const Record *ArgRec = ArgDef->getDef();
 
       // Match 'RegClass:$name' or 'RegOp:$name'.
@@ -172,8 +172,8 @@ CodeGenInstAlias::CodeGenInstAlias(const Record *R, const CodeGenTarget &T)
     if (OpInfo.MINumOperands == 1 && OpInfo.getTiedRegister() != -1) {
       // Tied operands of different RegisterClass should be explicit within an
       // instruction's syntax and so cannot be skipped.
-      int TiedOpNum = OpInfo.getTiedRegister();
-      if (OpInfo.Rec->getName() ==
+      
+      if (int TiedOpNum = OpInfo.getTiedRegister(); OpInfo.Rec->getName() ==
           ResultInst->Operands[TiedOpNum].Rec->getName())
         continue;
     }
@@ -181,8 +181,8 @@ CodeGenInstAlias::CodeGenInstAlias(const Record *R, const CodeGenTarget &T)
     if (ArgIdx >= Result->getNumArgs())
       PrintFatalError(R->getLoc(), "not enough arguments for instruction!");
 
-    const Record *Op = OpInfo.Rec;
-    if (Op->isSubClassOf("Operand") && !OpInfo.MIOperandInfo->arg_empty()) {
+    
+    if (const Record *Op = OpInfo.Rec; Op->isSubClassOf("Operand") && !OpInfo.MIOperandInfo->arg_empty()) {
       // Complex operand (a subclass of Operand with non-empty MIOperandInfo).
       // The argument can be a DAG or a subclass of Operand.
       if (auto *ArgDag = dyn_cast<DagInit>(Result->getArg(ArgIdx))) {
@@ -194,8 +194,8 @@ CodeGenInstAlias::CodeGenInstAlias(const Record *R, const CodeGenTarget &T)
         // The number of sub-arguments and the number of sub-operands
         // must match exactly.
         unsigned NumSubOps = OpInfo.MIOperandInfo->getNumArgs();
-        unsigned NumSubArgs = ArgDag->getNumArgs();
-        if (NumSubArgs != NumSubOps)
+        
+        if (unsigned NumSubArgs = ArgDag->getNumArgs(); NumSubArgs != NumSubOps)
           PrintFatalError(R, "argument #" + Twine(ArgIdx) +
                                  " must have exactly " + Twine(NumSubOps) +
                                  " sub-arguments");

@@ -864,9 +864,9 @@ private:
     MsgOs << "The ";
     printArgDesc(VC->getArgNo(), MsgOs);
     MsgOs << " to '" << getFunctionName(Call) << "' ";
-    bool ValuesPrinted =
-        NegatedVC->describeArgumentValue(Call, N->getState(), Summary, MsgOs);
-    if (ValuesPrinted)
+    
+    if (bool ValuesPrinted =
+        NegatedVC->describeArgumentValue(Call, N->getState(), Summary, MsgOs); ValuesPrinted)
       MsgOs << " but ";
     else
       MsgOs << "is out of the accepted range; It ";
@@ -1065,8 +1065,8 @@ void StdLibraryFunctionsChecker::RangeConstraint::describe(
   if (!Description.empty()) {
     Out << Description;
   } else {
-    unsigned I = Ranges.size();
-    if (Kind == WithinRange) {
+    
+    if (unsigned I = Ranges.size(); Kind == WithinRange) {
       for (const std::pair<RangeInt, RangeInt> &R : Ranges) {
         appendInsideRangeDesc(BVF.getValue(R.first, T),
                               BVF.getValue(R.second, T), T, BVF, Out);
@@ -1444,9 +1444,9 @@ void StdLibraryFunctionsChecker::checkPostCall(const CallEvent &Call,
               // note.
               std::optional<Loc> ErrnoLoc =
                   errno_modeling::getErrnoLoc(BR.getErrorNode()->getState());
-              bool ErrnoImportant = !ErrnoNote.empty() && ErrnoLoc &&
-                                    BR.isInteresting(ErrnoLoc->getAsRegion());
-              if (ErrnoImportant) {
+              
+              if (bool ErrnoImportant = !ErrnoNote.empty() && ErrnoLoc &&
+                                    BR.isInteresting(ErrnoLoc->getAsRegion()); ErrnoImportant) {
                 BR.markNotInteresting(ErrnoLoc->getAsRegion());
                 if (CaseNote.empty())
                   return ErrnoNote;
@@ -1473,8 +1473,8 @@ bool StdLibraryFunctionsChecker::evalCall(const CallEvent &Call,
   if (!FoundSummary)
     return false;
 
-  const Summary &Summary = *FoundSummary;
-  switch (Summary.getInvalidationKd()) {
+  
+  switch (const Summary &Summary = *FoundSummary; Summary.getInvalidationKd()) {
   case EvalCallAsPure: {
     ProgramStateRef State = C.getState();
     const LocationContext *LC = C.getLocationContext();

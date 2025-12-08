@@ -458,8 +458,8 @@ void PredicateInfoBuilder::processSwitch(
 
   // Now propagate info for each case value
   for (auto C : SI->cases()) {
-    BasicBlock *TargetBlock = C.getCaseSuccessor();
-    if (SwitchEdges.lookup(TargetBlock) == 1) {
+    
+    if (BasicBlock *TargetBlock = C.getCaseSuccessor(); SwitchEdges.lookup(TargetBlock) == 1) {
       PredicateSwitch *PS = new (Allocator) PredicateSwitch(
           Op, SI->getParent(), TargetBlock, C.getCaseValue(), SI);
       addInfoFor(OpsToRename, Op, PS);
@@ -603,8 +603,8 @@ void PredicateInfoBuilder::renameUses(SmallVectorImpl<Value *> &OpsToRename) {
         auto BlockEdge = getBlockEdge(PossibleCopy);
         if (!BlockEdge.second->getSinglePredecessor()) {
           VD.LocalNum = LN_Last;
-          auto *DomNode = DT.getNode(BlockEdge.first);
-          if (DomNode) {
+          
+          if (auto *DomNode = DT.getNode(BlockEdge.first); DomNode) {
             VD.DFSIn = DomNode->getDFSNumIn();
             VD.DFSOut = DomNode->getDFSNumOut();
             VD.PInfo = PossibleCopy;
@@ -615,8 +615,8 @@ void PredicateInfoBuilder::renameUses(SmallVectorImpl<Value *> &OpsToRename) {
           // insertion in the branch block).
           // Insert a possible copy at the split block and before the branch.
           VD.LocalNum = LN_First;
-          auto *DomNode = DT.getNode(BlockEdge.second);
-          if (DomNode) {
+          
+          if (auto *DomNode = DT.getNode(BlockEdge.second); DomNode) {
             VD.DFSIn = DomNode->getDFSNumIn();
             VD.DFSOut = DomNode->getDFSNumOut();
             VD.PInfo = PossibleCopy;
@@ -770,8 +770,8 @@ void PredicateInfo::verifyPredicateInfo() const {}
 // Replace bitcasts created by PredicateInfo with their operand.
 static void replaceCreatedSSACopys(PredicateInfo &PredInfo, Function &F) {
   for (Instruction &Inst : llvm::make_early_inc_range(instructions(F))) {
-    const auto *PI = PredInfo.getPredicateInfoFor(&Inst);
-    if (!PI)
+    
+    if (const auto *PI = PredInfo.getPredicateInfoFor(&Inst); !PI)
       continue;
 
     assert(isa<BitCastInst>(Inst) &&

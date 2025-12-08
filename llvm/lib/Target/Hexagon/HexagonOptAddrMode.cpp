@@ -168,8 +168,8 @@ bool HexagonOptAddrMode::canRemoveAddasl(NodeAddr<StmtNode *> AddAslSN,
                                          MachineInstr &MI,
                                          const NodeList &UNodeList) {
   // check offset size in addasl. if 'offset > 3' return false
-  const MachineOperand &OffsetOp = MI.getOperand(3);
-  if (!OffsetOp.isImm() || OffsetOp.getImm() > 3)
+  
+  if (const MachineOperand &OffsetOp = MI.getOperand(3); !OffsetOp.isImm() || OffsetOp.getImm() > 3)
     return false;
 
   Register OffsetReg = MI.getOperand(2).getReg();
@@ -242,8 +242,8 @@ bool HexagonOptAddrMode::allValidCandidates(NodeAddr<StmtNode *> SA,
       });
       return false;
     }
-    const auto &ReachingDefs = P.first;
-    if (ReachingDefs.size() > 1) {
+    
+    if (const auto &ReachingDefs = P.first; ReachingDefs.size() > 1) {
       LLVM_DEBUG({
         dbgs() << "*** Multiple Reaching Defs found!!! ***\n";
         for (auto DI : ReachingDefs) {
@@ -368,8 +368,8 @@ bool HexagonOptAddrMode::isValidOffset(MachineInstr *MI, int Offset) {
     default:
       if (HII->getAddrMode(*MI) == HexagonII::BaseImmOffset) {
         // The immediates are mentioned in multiples of vector counts
-        unsigned AlignMask = HII->getMemAccessSize(*MI) - 1;
-        if ((AlignMask & Offset) == 0)
+        
+        if (unsigned AlignMask = HII->getMemAccessSize(*MI) - 1; (AlignMask & Offset) == 0)
           return HII->isValidOffset(MI->getOpcode(), Offset, HRI, false);
       }
       return false;
@@ -403,8 +403,8 @@ bool HexagonOptAddrMode::isValidOffset(MachineInstr *MI, int Offset) {
 }
 
 unsigned HexagonOptAddrMode::getBaseOpPosition(MachineInstr *MI) {
-  const MCInstrDesc &MID = MI->getDesc();
-  switch (MI->getOpcode()) {
+  
+  switch (const MCInstrDesc &MID = MI->getDesc(); MI->getOpcode()) {
   // vgather pseudos are mayLoad and mayStore
   // hence need to explicitly specify Base and
   // Offset operand positions
@@ -425,8 +425,8 @@ unsigned HexagonOptAddrMode::getOffsetOpPosition(MachineInstr *MI) {
       (HII->getAddrMode(*MI) == HexagonII::BaseImmOffset) &&
       "Looking for an offset in non-BaseImmOffset addressing mode instruction");
 
-  const MCInstrDesc &MID = MI->getDesc();
-  switch (MI->getOpcode()) {
+  
+  switch (const MCInstrDesc &MID = MI->getDesc(); MI->getOpcode()) {
   // vgather pseudos are mayLoad and mayStore
   // hence need to explicitly specify Base and
   // Offset operand positions
@@ -451,8 +451,8 @@ bool HexagonOptAddrMode::usedInLoadStore(NodeAddr<StmtNode *> CurrentInstSN,
   for (NodeAddr<UseNode *> UN : LoadStoreUseList) {
     NodeAddr<StmtNode *> SN = UN.Addr->getOwner(*DFG);
     MachineInstr *LoadStoreMI = SN.Addr->getCode();
-    const MCInstrDesc &MID = LoadStoreMI->getDesc();
-    if ((MID.mayLoad() || MID.mayStore()) &&
+    
+    if (const MCInstrDesc &MID = LoadStoreMI->getDesc(); (MID.mayLoad() || MID.mayStore()) &&
         isValidOffset(LoadStoreMI, NewOffset)) {
       FoundLoadStoreUse = true;
       break;
@@ -568,8 +568,8 @@ bool HexagonOptAddrMode::processAddBases(NodeAddr<StmtNode *> AddSN,
 
   // If the reaching definition is a predicated instruction, this might not be
   // the only definition of our base register, so return immediately.
-  MachineInstr *ReachingDefInstr = ReachingDefStmt.Addr->getCode();
-  if (HII->isPredicated(*ReachingDefInstr))
+  
+  if (MachineInstr *ReachingDefInstr = ReachingDefStmt.Addr->getCode(); HII->isPredicated(*ReachingDefInstr))
     return false;
 
   NodeList AddiUseList;
@@ -706,8 +706,8 @@ bool HexagonOptAddrMode::processAddUses(NodeAddr<StmtNode *> AddSN,
     NodeAddr<UseNode *> UN = *I;
     NodeAddr<StmtNode *> SN = UN.Addr->getOwner(*DFG);
     MachineInstr *MI = SN.Addr->getCode();
-    const MCInstrDesc &MID = MI->getDesc();
-    if ((!MID.mayLoad() && !MID.mayStore()) ||
+    
+    if (const MCInstrDesc &MID = MI->getDesc(); (!MID.mayLoad() && !MID.mayStore()) ||
         HII->getAddrMode(*MI) != HexagonII::BaseImmOffset)
       return false;
 
@@ -801,8 +801,8 @@ bool HexagonOptAddrMode::analyzeUses(unsigned tfrDefR,
     NodeAddr<UseNode *> UN = *I;
     NodeAddr<StmtNode *> SN = UN.Addr->getOwner(*DFG);
     MachineInstr &MI = *SN.Addr->getCode();
-    const MCInstrDesc &MID = MI.getDesc();
-    if ((MID.mayLoad() || MID.mayStore())) {
+    
+    if (const MCInstrDesc &MID = MI.getDesc(); (MID.mayLoad() || MID.mayStore())) {
       if (!hasRepForm(MI, tfrDefR)) {
         KeepTfr = true;
         continue;
@@ -1115,8 +1115,8 @@ bool HexagonOptAddrMode::processBlock(NodeAddr<BlockNode *> BA) {
       int UseMOnum = -1;
       unsigned NumOperands = UseMI->getNumOperands();
       for (unsigned j = 0; j < NumOperands - 1; ++j) {
-        const MachineOperand &op = UseMI->getOperand(j);
-        if (op.isReg() && op.isUse() && DefR == op.getReg())
+        
+        if (const MachineOperand &op = UseMI->getOperand(j); op.isReg() && op.isUse() && DefR == op.getReg())
           UseMOnum = j;
       }
       // It is possible that the register will not be found in any operand.

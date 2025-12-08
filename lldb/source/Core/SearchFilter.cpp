@@ -461,9 +461,9 @@ SearchFilterSP SearchFilterByModule::CreateFromStructuredData(
     const StructuredData::Dictionary &data_dict,
     Status &error) {
   StructuredData::Array *modules_array;
-  bool success = data_dict.GetValueForKeyAsArray(GetKey(OptionNames::ModList),
-                                                 modules_array);
-  if (!success) {
+  
+  if (bool success = data_dict.GetValueForKeyAsArray(GetKey(OptionNames::ModList),
+                                                 modules_array); !success) {
     error = Status::FromErrorString(
         "SFBM::CFSD: Could not find the module list key.");
     return nullptr;
@@ -593,10 +593,10 @@ SearchFilterSP SearchFilterByModuleList::CreateFromStructuredData(
     const StructuredData::Dictionary &data_dict,
     Status &error) {
   StructuredData::Array *modules_array;
-  bool success = data_dict.GetValueForKeyAsArray(GetKey(OptionNames::ModList),
-                                                 modules_array);
+  
 
-  if (!success)
+  if (bool success = data_dict.GetValueForKeyAsArray(GetKey(OptionNames::ModList),
+                                                 modules_array); !success)
     return std::make_shared<SearchFilterByModuleList>(target_sp,
                                                       FileSpecList{});
   FileSpecList modules;
@@ -715,9 +715,9 @@ bool SearchFilterByModuleListAndCU::CompUnitPasses(FileSpec &fileSpec) {
 }
 
 bool SearchFilterByModuleListAndCU::CompUnitPasses(CompileUnit &compUnit) {
-  bool in_cu_list = m_cu_spec_list.FindFileIndex(0, compUnit.GetPrimaryFile(),
-                                                 false) != UINT32_MAX;
-  if (!in_cu_list)
+  
+  if (bool in_cu_list = m_cu_spec_list.FindFileIndex(0, compUnit.GetPrimaryFile(),
+                                                 false) != UINT32_MAX; !in_cu_list)
     return false;
 
   ModuleSP module_sp(compUnit.GetModule());
@@ -778,8 +778,8 @@ void SearchFilterByModuleListAndCU::Search(Searcher &searcher) {
 }
 
 void SearchFilterByModuleListAndCU::GetDescription(Stream *s) {
-  size_t num_modules = m_module_spec_list.GetSize();
-  if (num_modules == 1) {
+  
+  if (size_t num_modules = m_module_spec_list.GetSize(); num_modules == 1) {
     s->Printf(", module = ");
     s->PutCString(
         m_module_spec_list.GetFileSpecAtIndex(0).GetFilename().AsCString(

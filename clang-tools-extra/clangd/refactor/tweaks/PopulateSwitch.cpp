@@ -158,8 +158,8 @@ bool PopulateSwitch::prepare(const Selection &Sel) {
     // rather not deal with that in case the AST is broken.
     if (auto *DRE = dyn_cast<DeclRefExpr>(CS->getLHS()->IgnoreParenCasts())) {
       if (auto *Enumerator = dyn_cast<EnumConstantDecl>(DRE->getDecl())) {
-        auto Iter = ExpectedCases.find(Normalize(Enumerator->getInitVal()));
-        if (Iter != ExpectedCases.end())
+        
+        if (auto Iter = ExpectedCases.find(Normalize(Enumerator->getInitVal())); Iter != ExpectedCases.end())
           Iter->second.setCovered();
         continue;
       }

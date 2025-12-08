@@ -2096,8 +2096,8 @@ void __kmp_initialize_system_tick() {
   nsec2 = __kmp_now_nsec();
   diff = nsec2 - nsec;
   if (diff > 0) {
-    double tpus = 1000.0 * (double)(delay + (now - goal)) / (double)diff;
-    if (tpus > 0.0) {
+    
+    if (double tpus = 1000.0 * (double)(delay + (now - goal)) / (double)diff; tpus > 0.0) {
       __kmp_ticks_per_msec = (kmp_uint64)(tpus * 1000.0);
       __kmp_ticks_per_usec = (kmp_uint64)tpus;
     }
@@ -2681,10 +2681,10 @@ int __kmp_get_load_balance(int max) {
                 //     sscanf( buffer, "%*d (%*s) %c ", & state );
                 // looks very nice, but searching for a closing parenthesis
                 // works a bit faster.
-                char *close_parent = strstr(buffer, ") ");
-                if (close_parent != NULL) {
-                  char state = *(close_parent + 2);
-                  if (state == 'R') {
+                
+                if (char *close_parent = strstr(buffer, ") "); close_parent != NULL) {
+                  
+                  if (char state = *(close_parent + 2); state == 'R') {
                     ++running_threads;
                     if (running_threads >= max) {
                       goto finish;
@@ -3075,8 +3075,8 @@ void __kmp_hidden_helper_threads_deinitz_release() {
 #endif // KMP_OS_LINUX
 
 bool __kmp_detect_shm() {
-  DIR *dir = opendir("/dev/shm");
-  if (dir) { // /dev/shm exists
+  
+  if (DIR *dir = opendir("/dev/shm"); dir) { // /dev/shm exists
     closedir(dir);
     return true;
   } else if (ENOENT == errno) { // /dev/shm does not exist
@@ -3087,8 +3087,8 @@ bool __kmp_detect_shm() {
 }
 
 bool __kmp_detect_tmp() {
-  DIR *dir = opendir("/tmp");
-  if (dir) { // /tmp exists
+  
+  if (DIR *dir = opendir("/tmp"); dir) { // /tmp exists
     closedir(dir);
     return true;
   } else if (ENOENT == errno) { // /tmp does not exist

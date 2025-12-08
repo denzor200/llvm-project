@@ -129,8 +129,8 @@ void x86AssemblyInspectionEngine::Initialize(RegisterContextSP &reg_ctx) {
 
   for (MachineRegnumToNameAndLLDBRegnum::iterator it = m_reg_map.begin();
        it != m_reg_map.end(); ++it) {
-    const RegisterInfo *ri = reg_ctx->GetRegisterInfoByName(it->second.name);
-    if (ri)
+    
+    if (const RegisterInfo *ri = reg_ctx->GetRegisterInfoByName(it->second.name); ri)
       it->second.lldb_regnum = ri->kinds[eRegisterKindLLDB];
   }
 
@@ -336,8 +336,8 @@ bool x86AssemblyInspectionEngine::push_imm_pattern_p() {
 bool x86AssemblyInspectionEngine::push_extended_pattern_p() {
   if (*m_cur_insn == 0xff) {
     // Get the 3 opcode bits from the ModR/M byte
-    uint8_t opcode = (*(m_cur_insn + 1) >> 3) & 7;
-    if (opcode == 6) {
+    
+    if (uint8_t opcode = (*(m_cur_insn + 1) >> 3) & 7; opcode == 6) {
       // I'm only looking for 0xff /6 here - I
       // don't really care what value is being pushed, just that we're pushing
       // a 32/64 bit value on to the stack is enough.
@@ -353,8 +353,8 @@ bool x86AssemblyInspectionEngine::push_extended_pattern_p() {
 // 0x1e - push ds
 // 0x06 - push es
 bool x86AssemblyInspectionEngine::push_misc_reg_p() {
-  uint8_t p = *m_cur_insn;
-  if (m_wordsize == 4) {
+  
+  if (uint8_t p = *m_cur_insn; m_wordsize == 4) {
     if (p == 0x0e || p == 0x16 || p == 0x1e || p == 0x06)
       return true;
   }
@@ -588,8 +588,8 @@ bool x86AssemblyInspectionEngine::pop_rbp_pattern_p() {
 // 0x07 - pop es
 // 0x17 - pop ss
 bool x86AssemblyInspectionEngine::pop_misc_reg_p() {
-  uint8_t p = *m_cur_insn;
-  if (m_wordsize == 4) {
+  
+  if (uint8_t p = *m_cur_insn; m_wordsize == 4) {
     if (p == 0x1f || p == 0x07 || p == 0x17)
       return true;
   }
@@ -624,9 +624,9 @@ bool x86AssemblyInspectionEngine::mov_reg_to_local_stack_frame_p(
     int &regno, int &rbp_offset) {
   uint8_t *p = m_cur_insn;
   int src_reg_prefix_bit = 0;
-  int target_reg_prefix_bit = 0;
+  
 
-  if (m_wordsize == 8 && REX_W_PREFIX_P(*p)) {
+  if (int target_reg_prefix_bit = 0; m_wordsize == 8 && REX_W_PREFIX_P(*p)) {
     src_reg_prefix_bit = REX_W_SRCREG(*p) << 3;
     target_reg_prefix_bit = REX_W_DSTREG(*p) << 3;
     if (target_reg_prefix_bit == 1) {
@@ -749,8 +749,8 @@ bool x86AssemblyInspectionEngine::pc_rel_branch_or_jump_p (
       break;
   }
   if (b1 == 0x0f && opcode_size == 0) {
-    uint8_t b2 = m_cur_insn[1];
-    switch (b2) {
+    
+    switch (uint8_t b2 = m_cur_insn[1]; b2) {
       case 0x87: // JA/JNBE rel16/rel32
       case 0x86: // JBE/JNA rel16/rel32
       case 0x84: // JE/JZ rel16/rel32
@@ -976,9 +976,9 @@ bool x86AssemblyInspectionEngine::GetNonCallSiteUnwindPlanFromAssembly(
 
     auto &cfa_value = row.GetCFAValue();
     auto &afa_value = row.GetAFAValue();
-    auto fa_value_ptr = is_aligned ? &afa_value : &cfa_value;
+    
 
-    if (mov_rsp_rbp_pattern_p()) {
+    if (auto fa_value_ptr = is_aligned ? &afa_value : &cfa_value; mov_rsp_rbp_pattern_p()) {
       if (fa_value_ptr->GetRegisterNumber() == m_lldb_sp_regnum) {
         fa_value_ptr->SetIsRegisterPlusOffset(
             m_lldb_fp_regnum, fa_value_ptr->GetOffset());
@@ -1394,8 +1394,8 @@ bool x86AssemblyInspectionEngine::AugmentUnwindPlanFromCallSite(
                static_cast<int64_t>(offset)) {
       row_id++;
     }
-    const UnwindPlan::Row *original_row = unwind_plan.GetRowAtIndex(row_id - 1);
-    if (original_row->GetOffset() == static_cast<int64_t>(offset)) {
+    
+    if (const UnwindPlan::Row *original_row = unwind_plan.GetRowAtIndex(row_id - 1); original_row->GetOffset() == static_cast<int64_t>(offset)) {
       row = *original_row;
       continue;
     }

@@ -251,8 +251,8 @@ bool Section::ResolveContainedAddress(addr_t offset, Address &so_addr,
   for (size_t i = 0; i < num_children; i++) {
     Section *child_section = m_children.GetSectionAtIndex(i).get();
 
-    addr_t child_offset = child_section->GetOffset();
-    if (child_offset <= offset &&
+    
+    if (addr_t child_offset = child_section->GetOffset(); child_offset <= offset &&
         offset - child_offset <
             child_section->GetByteSize() + (allow_section_end ? 1 : 0))
       return child_section->ResolveContainedAddress(offset - child_offset,
@@ -267,8 +267,8 @@ bool Section::ResolveContainedAddress(addr_t offset, Address &so_addr,
 }
 
 bool Section::ContainsFileAddress(addr_t vm_addr) const {
-  const addr_t file_addr = GetFileAddress();
-  if (file_addr != LLDB_INVALID_ADDRESS && !IsThreadSpecific()) {
+  
+  if (const addr_t file_addr = GetFileAddress(); file_addr != LLDB_INVALID_ADDRESS && !IsThreadSpecific()) {
     if (file_addr <= vm_addr) {
       const addr_t offset = (vm_addr - file_addr) * m_target_byte_size;
       return offset < GetByteSize();
@@ -282,9 +282,9 @@ void Section::Dump(llvm::raw_ostream &s, unsigned indent, Target *target,
   s.indent(indent);
   s << llvm::format("0x%16.16" PRIx64 " %-22s ", GetID(), GetTypeAsCString());
   bool resolved = true;
-  addr_t addr = LLDB_INVALID_ADDRESS;
+  
 
-  if (GetByteSize() == 0)
+  if (addr_t addr = LLDB_INVALID_ADDRESS; GetByteSize() == 0)
     s.indent(39);
   else {
     if (target)
@@ -569,8 +569,8 @@ SectionSP SectionList::FindSectionByName(ConstString section_dstr) const {
     const_iterator end = m_sections.end();
     for (sect_iter = m_sections.begin();
          sect_iter != end && sect_sp.get() == nullptr; ++sect_iter) {
-      Section *child_section = sect_iter->get();
-      if (child_section) {
+      
+      if (Section *child_section = sect_iter->get(); child_section) {
         if (child_section->GetName() == section_dstr) {
           sect_sp = *sect_iter;
         } else {
@@ -627,8 +627,8 @@ SectionSP SectionList::FindSectionContainingFileAddress(addr_t vm_addr,
   const_iterator end = m_sections.end();
   for (sect_iter = m_sections.begin();
        sect_iter != end && sect_sp.get() == nullptr; ++sect_iter) {
-    Section *sect = sect_iter->get();
-    if (sect->ContainsFileAddress(vm_addr)) {
+    
+    if (Section *sect = sect_iter->get(); sect->ContainsFileAddress(vm_addr)) {
       // The file address is in this section. We need to make sure one of our
       // child sections doesn't contain this address as well as obeying the
       // depth limit that was passed in.
@@ -680,8 +680,8 @@ size_t SectionList::Slide(addr_t slide_amount, bool slide_children) {
 uint64_t SectionList::GetDebugInfoSize() const {
   uint64_t debug_info_size = 0;
   for (const auto &section : m_sections) {
-    const SectionList &sub_sections = section->GetChildren();
-    if (sub_sections.GetSize() > 0)
+    
+    if (const SectionList &sub_sections = section->GetChildren(); sub_sections.GetSize() > 0)
       debug_info_size += sub_sections.GetDebugInfoSize();
     else if (section->ContainsOnlyDebugInfo())
       debug_info_size += section->GetFileSize();

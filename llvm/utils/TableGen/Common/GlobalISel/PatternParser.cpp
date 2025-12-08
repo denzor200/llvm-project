@@ -172,8 +172,8 @@ PatternParser::parseWipMatchOpcodeMatcher(const Init &Arg, StringRef Name) {
   // Each argument is an opcode that can match.
   auto Result = std::make_unique<AnyOpcodePattern>(insertStrRef(Name));
   for (const auto &Arg : Matcher->getArgs()) {
-    const Record *OpcodeDef = getDefOfSubClass(*Arg, "Instruction");
-    if (OpcodeDef) {
+    
+    if (const Record *OpcodeDef = getDefOfSubClass(*Arg, "Instruction"); OpcodeDef) {
       Result->addOpcode(&CGT.getInstruction(OpcodeDef));
       continue;
     }

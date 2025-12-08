@@ -565,8 +565,8 @@ struct ParseCommaSeparatedList {
     if (!parseVal)
       return std::nullopt;
 
-    auto numArgs = std::tuple_size<std::tuple<Args...>>::value;
-    if (numArgs != 0 && failed(parser.parseComma()))
+    
+    if (auto numArgs = std::tuple_size<std::tuple<Args...>>::value; numArgs != 0 && failed(parser.parseComma()))
       return std::nullopt;
     auto remainingValues = ParseCommaSeparatedList<Args...>{}(dialect, parser);
     if (!remainingValues)

@@ -1191,8 +1191,8 @@ void Simplex::undoLastConstraint() {
     // all. To do this, we just need to find any row with a non-zero
     // coefficient for the column. findAnyPivotRow will always be able to
     // find such a row for a constraint.
-    unsigned column = con.back().pos;
-    if (std::optional<unsigned> maybeRow =
+    
+    if (unsigned column = con.back().pos; std::optional<unsigned> maybeRow =
             findPivotRow({}, Direction::Up, column)) {
       pivot(*maybeRow, column);
     } else if (std::optional<unsigned> maybeRow =

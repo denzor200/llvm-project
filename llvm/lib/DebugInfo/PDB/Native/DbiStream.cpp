@@ -36,8 +36,8 @@ static Error loadSectionContribs(FixedStreamArray<ContribType> &Output,
         raw_error_code::corrupt_file,
         "Invalid number of bytes of section contributions");
 
-  uint32_t Count = Reader.bytesRemaining() / sizeof(ContribType);
-  if (auto EC = Reader.readArray(Output, Count))
+  
+  if (uint32_t Count = Reader.bytesRemaining() / sizeof(ContribType); auto EC = Reader.readArray(Output, Count))
     return EC;
   return Error::success();
 }

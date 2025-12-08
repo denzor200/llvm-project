@@ -120,8 +120,8 @@ ProgramStateRef SetgidSetuidOrderChecker::evalAssume(ProgramStateRef State,
 void SetgidSetuidOrderChecker::processSetuid(ProgramStateRef State,
                                              const CallEvent &Call,
                                              CheckerContext &C) const {
-  bool IsSetuidWithGetuid = isFunctionCalledInArg(GetuidDesc, Call);
-  if (State->get<LastSetPrivilegeCall>() != Setgid && IsSetuidWithGetuid) {
+  
+  if (bool IsSetuidWithGetuid = isFunctionCalledInArg(GetuidDesc, Call); State->get<LastSetPrivilegeCall>() != Setgid && IsSetuidWithGetuid) {
     SymbolRef RetSym = Call.getReturnValue().getAsSymbol();
     State = State->set<LastSetPrivilegeCall>(Setuid);
     State = State->set<LastSetuidCallSVal>(RetSym);
@@ -142,8 +142,8 @@ void SetgidSetuidOrderChecker::processSetuid(ProgramStateRef State,
 void SetgidSetuidOrderChecker::processSetgid(ProgramStateRef State,
                                              const CallEvent &Call,
                                              CheckerContext &C) const {
-  bool IsSetgidWithGetgid = isFunctionCalledInArg(GetgidDesc, Call);
-  if (State->get<LastSetPrivilegeCall>() == Setuid) {
+  
+  if (bool IsSetgidWithGetgid = isFunctionCalledInArg(GetgidDesc, Call); State->get<LastSetPrivilegeCall>() == Setuid) {
     if (IsSetgidWithGetgid) {
       State = State->set<LastSetPrivilegeCall>(Irrelevant);
       emitReport(State, C);

@@ -172,8 +172,8 @@ bool matchAArch64MulConstCombine(
     // folded into madd or msub.
     if (MRI.hasOneNonDBGUse(Dst)) {
       MachineInstr &UseMI = *MRI.use_instr_begin(Dst);
-      unsigned UseOpc = UseMI.getOpcode();
-      if (UseOpc == TargetOpcode::G_ADD || UseOpc == TargetOpcode::G_PTR_ADD ||
+      
+      if (unsigned UseOpc = UseMI.getOpcode(); UseOpc == TargetOpcode::G_ADD || UseOpc == TargetOpcode::G_PTR_ADD ||
           UseOpc == TargetOpcode::G_SUB)
         return false;
     }
@@ -703,8 +703,8 @@ bool AArch64PostLegalizerCombiner::tryOptimizeConsecStores(
   unsigned TotalInstsExpected = NumPairsExpected + (Stores.size() % 2);
   // Size savings will depend on whether we can fold the offset, as an
   // immediate of an ADD.
-  auto &TLI = *MIB.getMF().getSubtarget().getTargetLowering();
-  if (!TLI.isLegalAddImmediate(BaseOffset))
+  
+  if (auto &TLI = *MIB.getMF().getSubtarget().getTargetLowering(); !TLI.isLegalAddImmediate(BaseOffset))
     TotalInstsExpected++;
   int SavingsExpected = Stores.size() - TotalInstsExpected;
   if (SavingsExpected <= 0)
@@ -836,8 +836,8 @@ bool AArch64PostLegalizerCombiner::optimizeConsecutiveMemOpAddressing(
         Register PtrBaseReg;
         APInt Offset;
         LLT StoredValTy = MRI.getType(St->getValueReg());
-        unsigned ValSize = StoredValTy.getSizeInBits();
-        if (ValSize < 32 || St->getMMO().getSizeInBits() != ValSize)
+        
+        if (unsigned ValSize = StoredValTy.getSizeInBits(); ValSize < 32 || St->getMMO().getSizeInBits() != ValSize)
           continue;
 
         Register PtrReg = St->getPointerReg();
@@ -853,8 +853,8 @@ bool AArch64PostLegalizerCombiner::optimizeConsecutiveMemOpAddressing(
           }
 
           // Check if this store is a valid continuation of the sequence.
-          auto &Last = Stores.back();
-          if (storeIsValid(Last, New)) {
+          
+          if (auto &Last = Stores.back(); storeIsValid(Last, New)) {
             Stores.push_back(New);
             LoadValsSinceLastStore.clear(); // Reset the load value tracking.
           } else {

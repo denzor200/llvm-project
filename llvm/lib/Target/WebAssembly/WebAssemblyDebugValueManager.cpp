@@ -51,8 +51,8 @@ static bool isSameScalarConst(const MachineInstr *A, const MachineInstr *B) {
       !WebAssembly::isScalarConst(A->getOpcode()) ||
       !WebAssembly::isScalarConst(B->getOpcode()))
     return false;
-  const MachineOperand &OpA = A->getOperand(1), &OpB = B->getOperand(1);
-  if ((OpA.isImm() && OpB.isImm() && OpA.getImm() == OpB.getImm()) ||
+  
+  if (const MachineOperand &OpA = A->getOperand(1), &OpB = B->getOperand(1); (OpA.isImm() && OpB.isImm() && OpA.getImm() == OpB.getImm()) ||
       (OpA.isFPImm() && OpB.isFPImm() && OpA.getFPImm() == OpB.getFPImm()) ||
       (OpA.isGlobal() && OpB.isGlobal() && OpA.getGlobal() == OpB.getGlobal()))
     return true;

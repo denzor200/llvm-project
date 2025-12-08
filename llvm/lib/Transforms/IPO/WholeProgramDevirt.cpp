@@ -297,12 +297,12 @@ wholeprogramdevirt::findLowestOffset(ArrayRef<VirtualCallTarget> Targets,
   for (const VirtualCallTarget &Target : Targets) {
     ArrayRef<uint8_t> VTUsed = IsAfter ? Target.TM->Bits->After.BytesUsed
                                        : Target.TM->Bits->Before.BytesUsed;
-    uint64_t Offset = IsAfter ? MinByte - Target.minAfterBytes()
-                              : MinByte - Target.minBeforeBytes();
+    
 
     // Disregard used regions that are smaller than Offset. These are
     // effectively all-free regions that do not need to be checked.
-    if (VTUsed.size() > Offset)
+    if (uint64_t Offset = IsAfter ? MinByte - Target.minAfterBytes()
+                              : MinByte - Target.minBeforeBytes(); VTUsed.size() > Offset)
       Used.push_back(VTUsed.slice(Offset));
   }
 
@@ -575,8 +575,8 @@ private:
 
 CallSiteInfo &VTableSlotInfo::findCallSiteInfo(CallBase &CB) {
   std::vector<uint64_t> Args;
-  auto *CBType = dyn_cast<IntegerType>(CB.getType());
-  if (!CBType || CBType->getBitWidth() > 64 || CB.arg_empty())
+  
+  if (auto *CBType = dyn_cast<IntegerType>(CB.getType()); !CBType || CBType->getBitWidth() > 64 || CB.arg_empty())
     return CSInfo;
   for (auto &&Arg : drop_begin(CB.args())) {
     auto *CI = dyn_cast<ConstantInt>(Arg);
@@ -1001,8 +1001,8 @@ static Error checkCombinedSummaryForTesting(ModuleSummaryIndex *Summary) {
   // export to prevent occasional use of index from pure ThinLTO compilation
   // (-fno-split-lto-module). This kind of summary index is passed to
   // DevirtIndex::run, not to DevirtModule::run used by opt/runForTesting.
-  const auto &ModPaths = Summary->modulePaths();
-  if (ClSummaryAction != PassSummaryAction::Import &&
+  
+  if (const auto &ModPaths = Summary->modulePaths(); ClSummaryAction != PassSummaryAction::Import &&
       !ModPaths.contains(ModuleSummaryIndex::getRegularLTOModuleName()))
     return createStringError(
         errc::invalid_argument,
@@ -1165,8 +1165,8 @@ bool DevirtIndex::tryFindVirtualCallTargets(
       return false;
     const GlobalVarSummary *VS = nullptr;
     for (const auto &S : P.VTableVI.getSummaryList()) {
-      auto *CurVS = cast<GlobalVarSummary>(S->getBaseObject());
-      if (!CurVS->vTableFuncs().empty() ||
+      
+      if (auto *CurVS = cast<GlobalVarSummary>(S->getBaseObject()); !CurVS->vTableFuncs().empty() ||
           // Previously clang did not attach the necessary type metadata to
           // available_externally vtables, in which case there would not
           // be any vtable functions listed in the summary and we need
@@ -1769,8 +1769,8 @@ Constant *DevirtModule::importConstant(VTableSlot Slot, ArrayRef<uint64_t> Args,
     GV->setMetadata(LLVMContext::MD_absolute_symbol,
                     MDNode::get(M.getContext(), {MinC, MaxC}));
   };
-  unsigned AbsWidth = IntTy->getBitWidth();
-  if (AbsWidth == IntPtrTy->getBitWidth())
+  
+  if (unsigned AbsWidth = IntTy->getBitWidth(); AbsWidth == IntPtrTy->getBitWidth())
     SetAbsRange(~0ull, ~0ull); // Full set.
   else
     SetAbsRange(0, 1ull << AbsWidth);
@@ -1855,8 +1855,8 @@ void DevirtModule::applyVirtualConstProp(CallSiteInfo &CSInfo, StringRef FnName,
       continue;
     auto *RetType = cast<IntegerType>(Call.CB.getType());
     IRBuilder<> B(&Call.CB);
-    Value *Addr = B.CreatePtrAdd(Call.VTable, Byte);
-    if (RetType->getBitWidth() == 1) {
+    
+    if (Value *Addr = B.CreatePtrAdd(Call.VTable, Byte); RetType->getBitWidth() == 1) {
       Value *Bits = B.CreateLoad(Int8Ty, Addr);
       Value *BitsAndBit = B.CreateAnd(Bits, Bit);
       auto IsBitSet = B.CreateICmpNE(BitsAndBit, ConstantInt::get(Int8Ty, 0));
@@ -2140,9 +2140,9 @@ void DevirtModule::scanTypeTestUsers(
     // used on a vcall we don't need them for later optimization use in any
     // case.
     else if (ImportSummary && isa<MDString>(TypeId)) {
-      const TypeIdSummary *TidSummary =
-          ImportSummary->getTypeIdSummary(cast<MDString>(TypeId)->getString());
-      if (!TidSummary)
+      
+      if (const TypeIdSummary *TidSummary =
+          ImportSummary->getTypeIdSummary(cast<MDString>(TypeId)->getString()); !TidSummary)
         RemoveTypeTestAssumes();
       else
         // If one was created it should not be Unsat, because if we reached here
@@ -2270,12 +2270,12 @@ void DevirtModule::importResolution(VTableSlot Slot, VTableSlotInfo &SlotInfo) {
     auto I = Res.ResByArg.find(CSByConstantArg.first);
     if (I == Res.ResByArg.end())
       continue;
-    auto &ResByArg = I->second;
+    
     // FIXME: We should figure out what to do about the "function name" argument
     // to the apply* functions, as the function names are unavailable during the
     // importing phase. For now we just pass the empty string. This does not
     // impact correctness because the function names are just used for remarks.
-    switch (ResByArg.TheKind) {
+    switch (auto &ResByArg = I->second; ResByArg.TheKind) {
     case WholeProgramDevirtResolution::ByArg::UniformRetVal:
       applyUniformRetValOpt(CSByConstantArg.second, "", ResByArg.Info);
       break;
@@ -2506,12 +2506,12 @@ bool DevirtModule::run() {
                  .WPDRes[S.first.ByteOffset];
     if (tryFindVirtualCallTargets(TargetsForSlot, TypeMemberInfos,
                                   S.first.ByteOffset, ExportSummary)) {
-      bool SingleImplDevirt =
-          trySingleImplDevirt(ExportSummary, TargetsForSlot, S.second, Res);
+      
       // Out of speculative devirtualization mode, Try to apply virtual constant
       // propagation or branch funneling.
       // TODO: This should eventually be enabled for non-public type tests.
-      if (!SingleImplDevirt && !ClDevirtualizeSpeculatively) {
+      if (bool SingleImplDevirt =
+          trySingleImplDevirt(ExportSummary, TargetsForSlot, S.second, Res); !SingleImplDevirt && !ClDevirtualizeSpeculatively) {
         DidVirtualConstProp |=
             tryVirtualConstProp(TargetsForSlot, S.second, Res, S.first);
 
@@ -2652,10 +2652,10 @@ void DevirtIndex::run() {
     assert(TidSummary);
     // The type id summary would have been created while building the NameByGUID
     // map earlier.
-    WholeProgramDevirtResolution *Res =
+    
+    if (WholeProgramDevirtResolution *Res =
         &ExportSummary.getTypeIdSummary(S.first.TypeID)
-             ->WPDRes[S.first.ByteOffset];
-    if (tryFindVirtualCallTargets(TargetsForSlot, *TidSummary,
+             ->WPDRes[S.first.ByteOffset]; tryFindVirtualCallTargets(TargetsForSlot, *TidSummary,
                                   S.first.ByteOffset)) {
 
       if (!trySingleImplDevirt(TargetsForSlot, S.first, S.second, Res,

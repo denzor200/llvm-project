@@ -104,8 +104,8 @@ static bool isGprbTwoInstrUnalignedLoadOrStore(const MachineInstr *MI) {
   if (MI->getOpcode() == TargetOpcode::G_LOAD ||
       MI->getOpcode() == TargetOpcode::G_STORE) {
     auto MMO = *MI->memoperands_begin();
-    const MipsSubtarget &STI = MI->getMF()->getSubtarget<MipsSubtarget>();
-    if (MMO->getSize() == 4 && (!STI.systemSupportsUnalignedAccess() &&
+    
+    if (const MipsSubtarget &STI = MI->getMF()->getSubtarget<MipsSubtarget>(); MMO->getSize() == 4 && (!STI.systemSupportsUnalignedAccess() &&
                                 (!MMO->getSize().hasValue() ||
                                  MMO->getAlign() < MMO->getSize().getValue())))
       return true;
@@ -133,9 +133,9 @@ void MipsRegisterBankInfo::AmbiguousRegDefUseContainer::addDefUses(
   assert(!MRI.getType(Reg).isPointer() &&
          "Pointers are gprb, they should not be considered as ambiguous.\n");
   for (MachineInstr &UseMI : MRI.use_instructions(Reg)) {
-    MachineInstr *NonCopyInstr = skipCopiesOutgoing(&UseMI);
+    
     // Copy with many uses.
-    if (NonCopyInstr->getOpcode() == TargetOpcode::COPY &&
+    if (MachineInstr *NonCopyInstr = skipCopiesOutgoing(&UseMI); NonCopyInstr->getOpcode() == TargetOpcode::COPY &&
         !NonCopyInstr->getOperand(0).getReg().isPhysical())
       addDefUses(NonCopyInstr->getOperand(0).getReg(), MRI);
     else
@@ -320,10 +320,10 @@ void MipsRegisterBankInfo::TypeInfoForMF::setTypesAccordingToPhysicalRegister(
   const TargetRegisterInfo &TRI = *MF.getSubtarget().getRegisterInfo();
   const RegisterBankInfo &RBI =
       *CopyInst->getMF()->getSubtarget().getRegBankInfo();
-  const RegisterBank *Bank =
-      RBI.getRegBank(CopyInst->getOperand(Op).getReg(), MRI, TRI);
+  
 
-  if (Bank == &Mips::FPRBRegBank)
+  if (const RegisterBank *Bank =
+      RBI.getRegBank(CopyInst->getOperand(Op).getReg(), MRI, TRI); Bank == &Mips::FPRBRegBank)
     setTypes(MI, InstType::FloatingPoint);
   else if (Bank == &Mips::GPRBRegBank)
     setTypes(MI, InstType::Integer);
@@ -385,9 +385,9 @@ MipsRegisterBankInfo::getInstrMapping(const MachineInstr &MI) const {
   const MachineRegisterInfo &MRI = MF.getRegInfo();
 
   if (MI.getOpcode() != TargetOpcode::G_PHI) {
-    const RegisterBankInfo::InstructionMapping &Mapping =
-        getInstrMappingImpl(MI);
-    if (Mapping.isValid())
+    
+    if (const RegisterBankInfo::InstructionMapping &Mapping =
+        getInstrMappingImpl(MI); Mapping.isValid())
       return Mapping;
   }
 
@@ -704,11 +704,11 @@ void MipsRegisterBankInfo::applyMappingImpl(
     Helper.narrowScalar(MI, 0, LLT::scalar(32));
     // Handle new instructions.
     while (!NewInstrs.empty()) {
-      MachineInstr *NewMI = NewInstrs.pop_back_val();
+      
       // This is new G_UNMERGE that was created during narrowScalar and will
       // not be considered for regbank selection. RegBankSelect for mips
       // visits/makes corresponding G_MERGE first. Combine them here.
-      if (auto *Unmerge = dyn_cast<GUnmerge>(NewMI))
+      if (MachineInstr *NewMI = NewInstrs.pop_back_val(); auto *Unmerge = dyn_cast<GUnmerge>(NewMI))
         combineAwayG_UNMERGE_VALUES(ArtCombiner, *Unmerge, NewInstrObserver);
       // This G_MERGE will be combined away when its corresponding G_UNMERGE
       // gets regBankSelected.

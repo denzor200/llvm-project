@@ -335,8 +335,8 @@ std::array<Value *, 2> Negator::getSortedOperandsOfBinOp(Instruction *I) {
       NewSelect->setName(I->getName() + ".neg");
       // Poison-generating flags should be dropped
       Value *TV = NewSelect->getTrueValue();
-      Value *FV = NewSelect->getFalseValue();
-      if (match(TV, m_Neg(m_Specific(FV))))
+      
+      if (Value *FV = NewSelect->getFalseValue(); match(TV, m_Neg(m_Specific(FV))))
         cast<Instruction>(TV)->dropPoisonGeneratingFlags();
       else if (match(FV, m_Neg(m_Specific(TV))))
         cast<Instruction>(FV)->dropPoisonGeneratingFlags();

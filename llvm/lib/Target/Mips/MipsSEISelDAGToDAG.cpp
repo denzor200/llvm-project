@@ -278,8 +278,8 @@ bool MipsSEDAGToDAGISel::selectAddrFrameIndexOffset(
     SDValue Addr, SDValue &Base, SDValue &Offset, unsigned OffsetBits,
     unsigned ShiftAmount = 0) const {
   if (CurDAG->isBaseWithConstantOffset(Addr)) {
-    auto *CN = cast<ConstantSDNode>(Addr.getOperand(1));
-    if (isIntN(OffsetBits + ShiftAmount, CN->getSExtValue())) {
+    
+    if (auto *CN = cast<ConstantSDNode>(Addr.getOperand(1)); isIntN(OffsetBits + ShiftAmount, CN->getSExtValue())) {
       EVT ValTy = Addr.getValueType();
 
       // If the first operand is a FI, get the TargetFI Node
@@ -584,9 +584,9 @@ bool MipsSEDAGToDAGISel::selectVSplatUimmPow2(SDValue N, SDValue &Imm) const {
 
   if (selectVSplat(N.getNode(), ImmValue, EltTy.getSizeInBits()) &&
       ImmValue.getBitWidth() == EltTy.getSizeInBits()) {
-    int32_t Log2 = ImmValue.exactLogBase2();
+    
 
-    if (Log2 != -1) {
+    if (int32_t Log2 = ImmValue.exactLogBase2(); Log2 != -1) {
       Imm = CurDAG->getTargetConstant(Log2, SDLoc(N), EltTy);
       return true;
     }
@@ -665,9 +665,9 @@ bool MipsSEDAGToDAGISel::selectVSplatUimmInvPow2(SDValue N,
 
   if (selectVSplat(N.getNode(), ImmValue, EltTy.getSizeInBits()) &&
       ImmValue.getBitWidth() == EltTy.getSizeInBits()) {
-    int32_t Log2 = (~ImmValue).exactLogBase2();
+    
 
-    if (Log2 != -1) {
+    if (int32_t Log2 = (~ImmValue).exactLogBase2(); Log2 != -1) {
       Imm = CurDAG->getTargetConstant(Log2, SDLoc(N), EltTy);
       return true;
     }
@@ -723,8 +723,8 @@ bool MipsSEDAGToDAGISel::trySelect(SDNode *Node) {
   }
 
   case ISD::ConstantFP: {
-    auto *CN = cast<ConstantFPSDNode>(Node);
-    if (Node->getValueType(0) == MVT::f64 && CN->isExactlyValue(+0.0)) {
+    
+    if (auto *CN = cast<ConstantFPSDNode>(Node); Node->getValueType(0) == MVT::f64 && CN->isExactlyValue(+0.0)) {
       if (Subtarget->isGP64bit()) {
         SDValue Zero = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL,
                                               Mips::ZERO_64, MVT::i64);
@@ -789,8 +789,8 @@ bool MipsSEDAGToDAGISel::trySelect(SDNode *Node) {
   }
 
   case ISD::INTRINSIC_W_CHAIN: {
-    const unsigned IntrinsicOpcode = Node->getConstantOperandVal(1);
-    switch (IntrinsicOpcode) {
+    
+    switch (const unsigned IntrinsicOpcode = Node->getConstantOperandVal(1); IntrinsicOpcode) {
     default:
       break;
 
@@ -858,8 +858,8 @@ bool MipsSEDAGToDAGISel::trySelect(SDNode *Node) {
   }
 
   case ISD::INTRINSIC_VOID: {
-    const unsigned IntrinsicOpcode = Node->getConstantOperandVal(1);
-    switch (IntrinsicOpcode) {
+    
+    switch (const unsigned IntrinsicOpcode = Node->getConstantOperandVal(1); IntrinsicOpcode) {
     default:
       break;
 

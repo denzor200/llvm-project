@@ -165,8 +165,8 @@ static void recordConditions(CallBase &CB, BasicBlock *Pred,
 static void addConditions(CallBase &CB, const ConditionsTy &Conditions) {
   for (const auto &Cond : Conditions) {
     Value *Arg = Cond.first->getOperand(0);
-    Constant *ConstVal = cast<Constant>(Cond.first->getOperand(1));
-    if (Cond.second == ICmpInst::ICMP_EQ)
+    
+    if (Constant *ConstVal = cast<Constant>(Cond.first->getOperand(1)); Cond.second == ICmpInst::ICMP_EQ)
       setConstantInArgument(CB, Arg, ConstVal);
     else if (ConstVal->getType()->isPointerTy() && ConstVal->isNullValue()) {
       assert(Cond.second == ICmpInst::ICMP_NE);
@@ -517,8 +517,8 @@ static bool doCallSiteSplitting(Function &F, TargetLibraryInfo &TLI,
       if (!CB || isa<IntrinsicInst>(CB) || isInstructionTriviallyDead(CB, &TLI))
         continue;
 
-      Function *Callee = CB->getCalledFunction();
-      if (!Callee || Callee->isDeclaration())
+      
+      if (Function *Callee = CB->getCalledFunction(); !Callee || Callee->isDeclaration())
         continue;
 
       // Successful musttail call-site splits result in erased CI and erased BB.
@@ -540,9 +540,9 @@ PreservedAnalyses CallSiteSplittingPass::run(Function &F,
                                              FunctionAnalysisManager &AM) {
   auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
   auto &TTI = AM.getResult<TargetIRAnalysis>(F);
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+  
 
-  if (!doCallSiteSplitting(F, TLI, TTI, DT))
+  if (auto &DT = AM.getResult<DominatorTreeAnalysis>(F); !doCallSiteSplitting(F, TLI, TTI, DT))
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserve<DominatorTreeAnalysis>();

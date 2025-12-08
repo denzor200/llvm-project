@@ -248,8 +248,8 @@ Status ProcessMinidump::DoDestroy() { return Status(); }
 void ProcessMinidump::RefreshStateAfterStop() {
 
   for (const auto &[_, exception_stream] : m_exceptions_by_tid) {
-    constexpr uint32_t BreakpadDumpRequested = 0xFFFFFFFF;
-    if (exception_stream.ExceptionRecord.ExceptionCode ==
+    
+    if (constexpr uint32_t BreakpadDumpRequested = 0xFFFFFFFF; exception_stream.ExceptionRecord.ExceptionCode ==
         BreakpadDumpRequested) {
       // This "ExceptionCode" value is a sentinel that is sometimes used
       // when generating a dump for a process that hasn't crashed.
@@ -466,9 +466,9 @@ ModuleSP ProcessMinidump::GetOrCreateModule(UUID minidump_uuid,
   // prefix of the actual UUID, or if either of the UUIDs are empty.
   const auto dmp_bytes = minidump_uuid.GetBytes();
   const auto mod_bytes = module_sp->GetUUID().GetBytes();
-  const bool match = dmp_bytes.empty() || mod_bytes.empty() ||
-                     mod_bytes.take_front(dmp_bytes.size()) == dmp_bytes;
-  if (match) {
+  
+  if (const bool match = dmp_bytes.empty() || mod_bytes.empty() ||
+                     mod_bytes.take_front(dmp_bytes.size()) == dmp_bytes; match) {
     LLDB_LOG(log, "Partial uuid match for {0}.", name);
     return module_sp;
   }
@@ -550,8 +550,8 @@ void ProcessMinidump::ReadModuleList() {
       // same UUID. If the base address is different, create a new module. If
       // we don't then we will end up setting the load address of a different
       // ObjectFilePlaceholder and an assertion will fire.
-      auto *objfile = module_sp->GetObjectFile();
-      if (objfile &&
+      
+      if (auto *objfile = module_sp->GetObjectFile(); objfile &&
           objfile->GetPluginName() ==
               ObjectFilePlaceholder::GetPluginNameStatic()) {
         if (((ObjectFilePlaceholder *)objfile)->GetBaseImageAddress() !=
@@ -849,8 +849,8 @@ public:
   Options *GetOptions() override { return &m_option_group; }
 
   void DoExecute(Args &command, CommandReturnObject &result) override {
-    const size_t argc = command.GetArgumentCount();
-    if (argc > 0) {
+    
+    if (const size_t argc = command.GetArgumentCount(); argc > 0) {
       result.AppendErrorWithFormat("'%s' take no arguments, only options",
                                    m_cmd_name.c_str());
       return;

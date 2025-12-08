@@ -253,9 +253,9 @@ void MachOReader::setSymbolInRelocationInfo(Object &O) const {
     for (std::unique_ptr<Section> &Sec : LC.Sections)
       for (auto &Reloc : Sec->Relocations)
         if (!Reloc.Scattered && !Reloc.IsAddend) {
-          const uint32_t SymbolNum =
-              Reloc.getPlainRelocationSymbolNum(MachOObj.isLittleEndian());
-          if (Reloc.Extern) {
+          
+          if (const uint32_t SymbolNum =
+              Reloc.getPlainRelocationSymbolNum(MachOObj.isLittleEndian()); Reloc.Extern) {
             Reloc.Symbol = O.SymTable.getSymbolByIndex(SymbolNum);
           } else {
             // FIXME: Refactor error handling in MachOReader and report an error

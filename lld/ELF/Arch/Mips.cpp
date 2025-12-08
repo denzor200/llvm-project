@@ -532,23 +532,23 @@ static uint64_t fixupCrossModeJump(Ctx &ctx, uint8_t *loc, RelType type,
   // equivalents.
   const endianness e = ELFT::Endianness;
   bool isMicroTgt = val & 0x1;
-  bool isCrossJump = (isMicroTgt && isBranchReloc(type)) ||
-                     (!isMicroTgt && isMicroBranchReloc(type));
-  if (!isCrossJump)
+  
+  if (bool isCrossJump = (isMicroTgt && isBranchReloc(type)) ||
+                     (!isMicroTgt && isMicroBranchReloc(type)); !isCrossJump)
     return val;
 
   switch (type) {
   case R_MIPS_26: {
-    uint32_t inst = read32(ctx, loc) >> 26;
-    if (inst == 0x3 || inst == 0x1d) { // JAL or JALX
+    
+    if (uint32_t inst = read32(ctx, loc) >> 26; inst == 0x3 || inst == 0x1d) { // JAL or JALX
       writeValue(ctx, loc, 0x1d << 26, 32, 0);
       return val;
     }
     break;
   }
   case R_MICROMIPS_26_S1: {
-    uint32_t inst = readShuffle<e>(ctx, loc) >> 26;
-    if (inst == 0x3d || inst == 0x3c) { // JAL32 or JALX32
+    
+    if (uint32_t inst = readShuffle<e>(ctx, loc) >> 26; inst == 0x3d || inst == 0x3c) { // JAL32 or JALX32
       val >>= 1;
       writeShuffle<e>(ctx, loc, 0x3c << 26, 32, 0);
       return val;

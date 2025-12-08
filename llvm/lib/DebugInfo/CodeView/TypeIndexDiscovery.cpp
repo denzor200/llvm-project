@@ -145,8 +145,8 @@ static uint32_t handleOneMethod(ArrayRef<uint8_t> Data, uint32_t Offset,
   uint32_t Size = 8;
   Refs.push_back({TiRefKind::TypeRef, Offset + 4, 1});
 
-  uint16_t Attrs = support::endian::read16le(Data.drop_front(2).data());
-  if (LLVM_UNLIKELY(isIntroVirtual(Attrs)))
+  
+  if (uint16_t Attrs = support::endian::read16le(Data.drop_front(2).data()); LLVM_UNLIKELY(isIntroVirtual(Attrs)))
     Size += 4;
 
   return Size + getCStringLength(Data.drop_front(Size));
@@ -252,8 +252,8 @@ static void handleFieldList(ArrayRef<uint8_t> Content,
     Content = Content.drop_front(ThisLen);
     Offset += ThisLen;
     if (!Content.empty()) {
-      uint8_t Pad = Content.front();
-      if (Pad >= LF_PAD0) {
+      
+      if (uint8_t Pad = Content.front(); Pad >= LF_PAD0) {
         uint32_t Skip = Pad & 0x0F;
         Content = Content.drop_front(Skip);
         Offset += Skip;
@@ -266,18 +266,18 @@ static void handlePointer(ArrayRef<uint8_t> Content,
                           SmallVectorImpl<TiReference> &Refs) {
   Refs.push_back({TiRefKind::TypeRef, 0, 1});
 
-  uint32_t Attrs = support::endian::read32le(Content.drop_front(4).data());
-  if (isMemberPointer(Attrs))
+  
+  if (uint32_t Attrs = support::endian::read32le(Content.drop_front(4).data()); isMemberPointer(Attrs))
     Refs.push_back({TiRefKind::TypeRef, 8, 1});
 }
 
 static void discoverTypeIndices(ArrayRef<uint8_t> Content, TypeLeafKind Kind,
                                 SmallVectorImpl<TiReference> &Refs) {
-  uint32_t Count;
+  
   // FIXME: In the future it would be nice if we could avoid hardcoding these
   // values.  One idea is to define some structures representing these types
   // that would allow the use of offsetof().
-  switch (Kind) {
+  switch (uint32_t Count; Kind) {
   case TypeLeafKind::LF_FUNC_ID:
     Refs.push_back({TiRefKind::IndexRef, 0, 1});
     Refs.push_back({TiRefKind::TypeRef, 4, 1});
@@ -359,11 +359,11 @@ static void discoverTypeIndices(ArrayRef<uint8_t> Content, TypeLeafKind Kind,
 
 static bool discoverTypeIndices(ArrayRef<uint8_t> Content, SymbolKind Kind,
                                 SmallVectorImpl<TiReference> &Refs) {
-  uint32_t Count;
+  
   // FIXME: In the future it would be nice if we could avoid hardcoding these
   // values.  One idea is to define some structures representing these types
   // that would allow the use of offsetof().
-  switch (Kind) {
+  switch (uint32_t Count; Kind) {
   case SymbolKind::S_GPROC32_ID:
   case SymbolKind::S_LPROC32_ID:
   case SymbolKind::S_LPROC32_DPC:

@@ -359,8 +359,8 @@ static Value *matchAddReduction(const ExtractElementInst &EE,
                                 bool &ReduceInOneBB) {
   ReduceInOneBB = true;
   // Make sure we're extracting index 0.
-  auto *Index = dyn_cast<ConstantInt>(EE.getIndexOperand());
-  if (!Index || !Index->isNullValue())
+  
+  if (auto *Index = dyn_cast<ConstantInt>(EE.getIndexOperand()); !Index || !Index->isNullValue())
     return nullptr;
 
   const auto *BO = dyn_cast<BinaryOperator>(EE.getVectorOperand());
@@ -552,8 +552,8 @@ bool X86PartialReductionLegacy::runOnFunction(Function &F) {
 
 PreservedAnalyses X86PartialReductionPass::run(Function &F,
                                                FunctionAnalysisManager &FAM) {
-  bool Changed = X86PartialReduction(TM).run(F);
-  if (!Changed)
+  
+  if (bool Changed = X86PartialReduction(TM).run(F); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA = PreservedAnalyses::none();

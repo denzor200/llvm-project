@@ -464,13 +464,13 @@ bool llvm::CC_RISCV(unsigned ValNo, MVT ValVT, MVT LocVT,
   // TODO: To be compatible with GCC's behaviors, we don't align registers
   // currently if we are using ILP32E calling convention. This behavior may be
   // changed when RV32E/ILP32E is ratified.
-  unsigned TwoXLenInBytes = (2 * XLen) / 8;
-  if (ArgFlags.isVarArg() && ArgFlags.getNonZeroOrigAlign() == TwoXLenInBytes &&
+  
+  if (unsigned TwoXLenInBytes = (2 * XLen) / 8; ArgFlags.isVarArg() && ArgFlags.getNonZeroOrigAlign() == TwoXLenInBytes &&
       DL.getTypeAllocSize(OrigTy) == TwoXLenInBytes &&
       ABI != RISCVABI::ABI_ILP32E) {
-    unsigned RegIdx = State.getFirstUnallocated(ArgGPRs);
+    
     // Skip 'odd' register if necessary.
-    if (RegIdx != std::size(ArgGPRs) && RegIdx % 2 == 1)
+    if (unsigned RegIdx = State.getFirstUnallocated(ArgGPRs); RegIdx != std::size(ArgGPRs) && RegIdx % 2 == 1)
       State.AllocateReg(ArgGPRs);
   }
 

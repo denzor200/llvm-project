@@ -88,8 +88,8 @@ bool ProcessElfCore::CanDebug(lldb::TargetSP target_sp,
     Status error(ModuleList::GetSharedModule(core_module_spec, m_core_module_sp,
                                              nullptr, nullptr));
     if (m_core_module_sp) {
-      ObjectFile *core_objfile = m_core_module_sp->GetObjectFile();
-      if (core_objfile && core_objfile->GetType() == ObjectFile::eTypeCoreFile)
+      
+      if (ObjectFile *core_objfile = m_core_module_sp->GetObjectFile(); core_objfile && core_objfile->GetType() == ObjectFile::eTypeCoreFile)
         return true;
     }
   }
@@ -122,8 +122,8 @@ lldb::addr_t ProcessElfCore::AddAddressRangeFromLoadSegment(
   // have PT_LOAD segments for all address ranges, but set f_filesz to zero for
   // the .text sections since they can be retrieved from the object files.
   if (header.p_filesz > 0) {
-    VMRangeToFileOffset::Entry *last_entry = m_core_aranges.Back();
-    if (last_entry && last_entry->GetRangeEnd() == range_entry.GetRangeBase() &&
+    
+    if (VMRangeToFileOffset::Entry *last_entry = m_core_aranges.Back(); last_entry && last_entry->GetRangeEnd() == range_entry.GetRangeBase() &&
         last_entry->data.GetRangeEnd() == range_entry.data.GetRangeBase() &&
         last_entry->GetByteSize() == last_entry->data.GetByteSize()) {
       last_entry->SetRangeEnd(range_entry.GetRangeEnd());
@@ -361,9 +361,9 @@ size_t ProcessElfCore::ReadMemory(lldb::addr_t addr, void *buf, size_t size,
 Status ProcessElfCore::DoGetMemoryRegionInfo(lldb::addr_t load_addr,
                                              MemoryRegionInfo &region_info) {
   region_info.Clear();
-  const VMRangeToPermissions::Entry *permission_entry =
-      m_core_range_infos.FindEntryThatContainsOrFollows(load_addr);
-  if (permission_entry) {
+  
+  if (const VMRangeToPermissions::Entry *permission_entry =
+      m_core_range_infos.FindEntryThatContainsOrFollows(load_addr); permission_entry) {
     if (permission_entry->Contains(load_addr)) {
       region_info.GetRange().SetRangeBase(permission_entry->GetRangeBase());
       region_info.GetRange().SetRangeEnd(permission_entry->GetRangeEnd());
@@ -382,9 +382,9 @@ Status ProcessElfCore::DoGetMemoryRegionInfo(lldb::addr_t load_addr,
       // A region is memory tagged if there is a memory tag segment that covers
       // the exact same range.
       region_info.SetMemoryTagged(MemoryRegionInfo::eNo);
-      const VMRangeToFileOffset::Entry *tag_entry =
-          m_core_tag_ranges.FindEntryStartsAt(permission_entry->GetRangeBase());
-      if (tag_entry &&
+      
+      if (const VMRangeToFileOffset::Entry *tag_entry =
+          m_core_tag_ranges.FindEntryStartsAt(permission_entry->GetRangeBase()); tag_entry &&
           tag_entry->GetRangeEnd() == permission_entry->GetRangeEnd())
         region_info.SetMemoryTagged(MemoryRegionInfo::eYes);
     } else if (load_addr < permission_entry->GetRangeBase()) {
@@ -518,8 +518,8 @@ static void ParseFreeBSDPrStatus(ThreadData &thread_data,
   lldb::offset_t offset = 0;
   int pr_version = data.GetU32(&offset);
 
-  Log *log = GetLog(LLDBLog::Process);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Process); log) {
     if (pr_version > 1)
       LLDB_LOGF(log, "FreeBSD PRSTATUS unexpected version %d", pr_version);
   }
@@ -546,8 +546,8 @@ static void ParseFreeBSDPrPsInfo(ProcessElfCore &process,
   lldb::offset_t offset = 0;
   int pr_version = data.GetU32(&offset);
 
-  Log *log = GetLog(LLDBLog::Process);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Process); log) {
     if (pr_version > 1)
       LLDB_LOGF(log, "FreeBSD PRPSINFO unexpected version %d", pr_version);
   }
@@ -567,8 +567,8 @@ static llvm::Error ParseNetBSDProcInfo(const DataExtractor &data,
                                        uint32_t &cpi_pid) {
   lldb::offset_t offset = 0;
 
-  uint32_t version = data.GetU32(&offset);
-  if (version != 1)
+  
+  if (uint32_t version = data.GetU32(&offset); version != 1)
     return llvm::make_error<llvm::StringError>(
         "Error parsing NetBSD core(5) notes: Unsupported procinfo version",
         llvm::inconvertibleErrorCode());
@@ -608,8 +608,8 @@ static void ParseOpenBSDProcInfo(ThreadData &thread_data,
                                  const DataExtractor &data) {
   lldb::offset_t offset = 0;
 
-  int version = data.GetU32(&offset);
-  if (version != 1)
+  
+  if (int version = data.GetU32(&offset); version != 1)
     return;
 
   offset += 4;
@@ -983,8 +983,8 @@ llvm::Error ProcessElfCore::parseLinuxNotes(llvm::ArrayRef<CoreNote> notes) {
         m_nt_file_entries.push_back(entry);
       }
       for (uint64_t i = 0; i < count; ++i) {
-        const char *path = note.data.GetCStr(&offset);
-        if (path && path[0])
+        
+        if (const char *path = note.data.GetCStr(&offset); path && path[0])
           m_nt_file_entries[i].path.assign(path);
       }
       break;

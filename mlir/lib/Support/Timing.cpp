@@ -329,8 +329,8 @@ public:
   /// Moves all child and async child timers of `other` into this timer's child
   /// for the given unique identifier.
   void mergeChild(const void *id, std::unique_ptr<TimerImpl> &&other) {
-    auto &into = children[id];
-    if (!into) {
+    
+    if (auto &into = children[id]; !into) {
       into = std::move(other);
       into->mergeAsyncChildren();
     } else {

@@ -749,8 +749,8 @@ public:
 bool GlobalModuleIndexBuilder::writeIndex(llvm::BitstreamWriter &Stream) {
   for (auto MapEntry : ImportedModuleFiles) {
     auto File = MapEntry.first;
-    ImportedModuleFileInfo &Info = MapEntry.second;
-    if (getModuleFileInfo(File).Signature) {
+    
+    if (ImportedModuleFileInfo &Info = MapEntry.second; getModuleFileInfo(File).Signature) {
       if (getModuleFileInfo(File).Signature != Info.StoredSignature)
         // Verify Signature.
         return true;

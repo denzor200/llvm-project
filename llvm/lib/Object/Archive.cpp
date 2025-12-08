@@ -428,8 +428,8 @@ Expected<const char *> ArchiveMemberHeader::getNextChildLoc() const {
   if (!isThinOrErr)
     return isThinOrErr.takeError();
 
-  bool isThin = isThinOrErr.get();
-  if (!isThin) {
+  
+  if (bool isThin = isThinOrErr.get(); !isThin) {
     Expected<uint64_t> MemberSize = getSize();
     if (!MemberSize)
       return MemberSize.takeError();
@@ -496,8 +496,8 @@ Archive::Child::Child(const Archive *Parent, const char *Start, Error *Err)
     *Err = isThinOrErr.takeError();
     return;
   }
-  bool isThin = isThinOrErr.get();
-  if (!isThin) {
+  
+  if (bool isThin = isThinOrErr.get(); !isThin) {
     Expected<uint64_t> MemberSize = getRawSize();
     if (!MemberSize) {
       *Err = MemberSize.takeError();
@@ -571,8 +571,8 @@ Expected<StringRef> Archive::Child::getBuffer() const {
   Expected<bool> isThinOrErr = isThinMember();
   if (!isThinOrErr)
     return isThinOrErr.takeError();
-  bool isThin = isThinOrErr.get();
-  if (!isThin) {
+  
+  if (bool isThin = isThinOrErr.get(); !isThin) {
     Expected<uint64_t> Size = getSize();
     if (!Size)
       return Size.takeError();
@@ -1346,9 +1346,9 @@ BigArchive::BigArchive(MemoryBufferRef Source, Error &Err)
   ErrorAsOutParameter ErrAsOutParam(&Err);
   StringRef Buffer = Data.getBuffer();
   ArFixLenHdr = reinterpret_cast<const FixLenHdr *>(Buffer.data());
-  uint64_t BufferSize = Data.getBufferSize();
+  
 
-  if (BufferSize < sizeof(FixLenHdr)) {
+  if (uint64_t BufferSize = Data.getBufferSize(); BufferSize < sizeof(FixLenHdr)) {
     Err = malformedError("malformed AIX big archive: incomplete fixed length "
                          "header, the archive is only" +
                          Twine(BufferSize) + " byte(s)");

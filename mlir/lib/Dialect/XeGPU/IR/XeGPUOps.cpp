@@ -202,10 +202,10 @@ IsValidMatrixOpParams(VectorType dataTy, MemDescType mdescTy,
     auto laneData = layout.getEffectiveLaneDataAsInt();
     auto laneLayout = layout.getEffectiveLaneLayoutAsInt();
     if (!laneData.empty()) {
-      bool isLaneDataContiguous =
+      
+      if (bool isLaneDataContiguous =
           std::all_of(laneData.begin(), std::prev(laneData.end()),
-                      [](int x) { return x == 1; });
-      if (!isLaneDataContiguous)
+                      [](int x) { return x == 1; }); !isLaneDataContiguous)
         return emitError() << "With subgroup_block_io, accessed data must be "
                               "contiguous and coalesced.";
       for (size_t i = 0; i < laneData.size(); ++i) {
@@ -498,8 +498,8 @@ LogicalResult PrefetchNdOp::verify() {
     return emitOpError("invalid l3_hint: ") << getL3HintAttr();
 
   int64_t tDescRank = tdescTy.getRank();
-  int64_t offsetSize = getMixedOffsets().size();
-  if (offsetSize != 0 && offsetSize != tDescRank)
+  
+  if (int64_t offsetSize = getMixedOffsets().size(); offsetSize != 0 && offsetSize != tDescRank)
     return emitOpError(
         "Mismatched ranks between offsets and tensor descriptor");
 
@@ -562,12 +562,12 @@ LogicalResult LoadNdOp::verify() {
     return emitOpError("invalid l3_hint: ") << getL3HintAttr();
 
   int tdescElems = tdescTy.getNumElements() * tdescTy.getArrayLength();
-  int valueElems = valueTy.getNumElements();
+  
 
   // If the result vector is 1D and has less elements than the tensor
   // descriptor, it is supposed to be a SIMT op. The layout attribute in
   // tensor_desc is not needed.
-  if (valueElems < tdescElems && valueTy.getRank() == 1) {
+  if (int valueElems = valueTy.getNumElements(); valueElems < tdescElems && valueTy.getRank() == 1) {
     // SIMT mode doesn't need LayoutAttr.
     if (tdescTy.getLayoutAttr())
       return emitOpError()
@@ -680,8 +680,8 @@ LogicalResult StoreNdOp::verify() {
   if (!isWriteHintOrNone(getL3HintAttr()))
     return emitOpError("invalid l3_hint: ") << getL3HintAttr();
 
-  auto array_len = dstTy.getArrayLength();
-  if (array_len > 1)
+  
+  if (auto array_len = dstTy.getArrayLength(); array_len > 1)
     return emitOpError("array length is not supported by store_nd.\n");
 
   auto tdescElems = dstTy.getNumElements();
@@ -1058,8 +1058,8 @@ LogicalResult DpasOp::verify() {
   if (lhsRank == 1 && rhsRank == 1 && resRank == 1) {
     auto numElems = getRhsType().getNumElements();
     auto elemTy = getRhsType().getElementType();
-    auto factor = 32 / elemTy.getIntOrFloatBitWidth();
-    if (numElems % factor != 0)
+    
+    if (auto factor = 32 / elemTy.getIntOrFloatBitWidth(); numElems % factor != 0)
       return emitOpError("Expecting B operand to be a multiple of 32 bits.");
     return success();
   }
@@ -1069,8 +1069,8 @@ LogicalResult DpasOp::verify() {
     return emitOpError(
         "expecting lhs and result to be a 2D vector, and rhs to be either "
         "2D or 3D (packed) vector.");
-  auto bK = rhsRank == 3 ? rhsShape[0] * rhsShape[2] : rhsShape[0];
-  if (bK != lhsShape[1])
+  
+  if (auto bK = rhsRank == 3 ? rhsShape[0] * rhsShape[2] : rhsShape[0]; bK != lhsShape[1])
     return emitOpError("K-dimension mismatch.");
   if (lhsShape[0] != resShape[0])
     return emitOpError("M-dimension mismatch.");

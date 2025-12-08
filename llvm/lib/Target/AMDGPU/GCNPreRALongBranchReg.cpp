@@ -139,11 +139,11 @@ bool GCNPreRALongBranchReg::run(MachineFunction &MF) {
     if (Last == MBB.end() || !Last->isUnconditionalBranch())
       continue;
     MachineBasicBlock *DestBB = TII->getBranchDestBlock(*Last);
-    uint64_t BlockDistance = static_cast<uint64_t>(
-        LongBranchFactor * BlockInfo[DestBB->getNumber()].Offset);
+    
     // If the distance falls outside the threshold assume it is a long branch
     // and we need to reserve the registers
-    if (!TII->isBranchOffsetInRange(Last->getOpcode(), BlockDistance)) {
+    if (uint64_t BlockDistance = static_cast<uint64_t>(
+        LongBranchFactor * BlockInfo[DestBB->getNumber()].Offset); !TII->isBranchOffsetInRange(Last->getOpcode(), BlockDistance)) {
       MFI->setLongBranchReservedReg(LongBranchReservedReg);
       return true;
     }

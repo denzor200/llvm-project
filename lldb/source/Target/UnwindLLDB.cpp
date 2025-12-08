@@ -129,7 +129,7 @@ UnwindLLDB::CursorSP UnwindLLDB::GetOneMoreFrame(ABI *abi) {
   RegisterContextLLDBSP reg_ctx_sp(new RegisterContextUnwind(
       m_thread, prev_frame->reg_ctx_lldb_sp, cursor_sp->sctx, cur_idx, *this));
 
-  uint64_t max_stack_depth = m_thread.GetMaxBacktraceDepth();
+  
 
   // We want to detect an unwind that cycles erroneously and stop backtracing.
   // Don't want this maximum unwind limit to be too low -- if you have a
@@ -139,7 +139,7 @@ UnwindLLDB::CursorSP UnwindLLDB::GetOneMoreFrame(ABI *abi) {
   // unwind at 10,000 or something. Realistically anything over around 200,000
   // is going to blow out the stack space. If we're still unwinding at that
   // point, we're probably never going to finish.
-  if (cur_idx >= max_stack_depth) {
+  if (uint64_t max_stack_depth = m_thread.GetMaxBacktraceDepth(); cur_idx >= max_stack_depth) {
     LLDB_LOGF(log,
               "%*sFrame %d unwound too many frames, assuming unwind has "
               "gone astray, stopping.",

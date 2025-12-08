@@ -358,8 +358,8 @@ static void PoisonAlignedStackMemory(uptr addr, uptr size, bool do_poison) {
     return;
   s8 end_offset = (s8)(size - aligned_size);
   s8* shadow_end = (s8*)MemToShadow(addr + aligned_size);
-  s8 end_value = *shadow_end;
-  if (do_poison) {
+  
+  if (s8 end_value = *shadow_end; do_poison) {
     // If possible, mark all the bytes mapping to last shadow byte as
     // unaddressable.
     if (end_value > 0 && end_value <= end_offset)
@@ -439,12 +439,12 @@ static void FixUnalignedStorage(uptr storage_beg, uptr storage_end,
                                 uptr &new_end) {
   constexpr uptr granularity = ASAN_SHADOW_GRANULARITY;
   if (UNLIKELY(!AddrIsAlignedByGranularity(storage_end))) {
-    uptr end_down = RoundDownTo(storage_end, granularity);
+    
     // Ignore the last unaligned granule if the storage is followed by
     // unpoisoned byte, because we can't poison the prefix anyway. Don't call
     // AddressIsPoisoned at all if container changes does not affect the last
     // granule at all.
-    if ((((old_end != new_end) && Max(old_end, new_end) > end_down) ||
+    if (uptr end_down = RoundDownTo(storage_end, granularity); (((old_end != new_end) && Max(old_end, new_end) > end_down) ||
          ((old_beg != new_beg) && Max(old_beg, new_beg) > end_down)) &&
         !AddressIsPoisoned(storage_end)) {
       old_beg = Min(end_down, old_beg);
@@ -456,10 +456,10 @@ static void FixUnalignedStorage(uptr storage_beg, uptr storage_end,
 
   // Handle misaligned begin and cut it off.
   if (UNLIKELY(!AddrIsAlignedByGranularity(storage_beg))) {
-    uptr beg_up = RoundUpTo(storage_beg, granularity);
+    
     // The first unaligned granule needs special handling only if we had bytes
     // there before and will have none after.
-    if ((new_beg == new_end || new_beg >= beg_up) && old_beg != old_end &&
+    if (uptr beg_up = RoundUpTo(storage_beg, granularity); (new_beg == new_end || new_beg >= beg_up) && old_beg != old_end &&
         old_beg < beg_up) {
       // Keep granule prefix outside of the storage unpoisoned.
       uptr beg_down = RoundDownTo(storage_beg, granularity);
@@ -825,8 +825,8 @@ void __sanitizer_copy_contiguous_container_annotations(const void *src_beg_p,
 
 static const void *FindBadAddress(uptr begin, uptr end, bool poisoned) {
   CHECK_LE(begin, end);
-  constexpr uptr kMaxRangeToCheck = 32;
-  if (end - begin > kMaxRangeToCheck * 2) {
+  
+  if (constexpr uptr kMaxRangeToCheck = 32; end - begin > kMaxRangeToCheck * 2) {
     if (auto *bad = FindBadAddress(begin, begin + kMaxRangeToCheck, poisoned))
       return bad;
     if (auto *bad = FindBadAddress(end - kMaxRangeToCheck, end, poisoned))

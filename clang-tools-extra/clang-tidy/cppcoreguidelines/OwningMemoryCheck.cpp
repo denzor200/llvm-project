@@ -233,11 +233,11 @@ void OwningMemoryCheck::check(const MatchFinder::MatchResult &Result) {
 bool OwningMemoryCheck::handleDeletion(const BoundNodes &Nodes) {
   // Result of delete matchers.
   const auto *DeleteStmt = Nodes.getNodeAs<CXXDeleteExpr>("delete_expr");
-  const auto *DeletedVariable =
-      Nodes.getNodeAs<DeclRefExpr>("deleted_variable");
+  
 
   // Deletion of non-owners, with `delete variable;`
-  if (DeleteStmt) {
+  if (const auto *DeletedVariable =
+      Nodes.getNodeAs<DeclRefExpr>("deleted_variable"); DeleteStmt) {
     diag(DeleteStmt->getBeginLoc(),
          "deleting a pointer through a type that is "
          "not marked 'gsl::owner<>'; consider using a "
@@ -257,12 +257,12 @@ bool OwningMemoryCheck::handleDeletion(const BoundNodes &Nodes) {
 
 bool OwningMemoryCheck::handleLegacyConsumers(const BoundNodes &Nodes) {
   // Result of matching for legacy consumer-functions like `::free()`.
-  const auto *LegacyConsumer = Nodes.getNodeAs<CallExpr>("legacy_consumer");
+  
 
   // FIXME: `freopen` should be handled separately because it takes the filename
   // as a pointer, which should not be an owner. The argument that is an owner
   // is known and the false positive coming from the filename can be avoided.
-  if (LegacyConsumer) {
+  if (const auto *LegacyConsumer = Nodes.getNodeAs<CallExpr>("legacy_consumer"); LegacyConsumer) {
     diag(LegacyConsumer->getBeginLoc(),
          "calling legacy resource function without passing a 'gsl::owner<>'")
         << LegacyConsumer->getSourceRange();
@@ -273,10 +273,10 @@ bool OwningMemoryCheck::handleLegacyConsumers(const BoundNodes &Nodes) {
 
 bool OwningMemoryCheck::handleExpectedOwner(const BoundNodes &Nodes) {
   // Result of function call matchers.
-  const auto *ExpectedOwner = Nodes.getNodeAs<Expr>("expected_owner_argument");
+  
 
   // Expected function argument to be owner.
-  if (ExpectedOwner) {
+  if (const auto *ExpectedOwner = Nodes.getNodeAs<Expr>("expected_owner_argument"); ExpectedOwner) {
     diag(ExpectedOwner->getBeginLoc(),
          "expected argument of type 'gsl::owner<>'; got %0")
         << ExpectedOwner->getType() << ExpectedOwner->getSourceRange();
@@ -378,10 +378,10 @@ bool OwningMemoryCheck::handleReturnValues(const BoundNodes &Nodes) {
   // Function return statements, that are owners/resources, but the function
   // declaration does not declare its return value as owner.
   const auto *BadReturnType = Nodes.getNodeAs<ReturnStmt>("bad_owner_return");
-  const auto *ResultType = Nodes.getNodeAs<QualType>("result");
+  
 
   // Function return values, that should be owners but aren't.
-  if (BadReturnType) {
+  if (const auto *ResultType = Nodes.getNodeAs<QualType>("result"); BadReturnType) {
     // The returned value is a resource or variable that was not annotated with
     // owner<> and the function return type is not owner<>.
     diag(BadReturnType->getBeginLoc(),

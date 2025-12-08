@@ -191,9 +191,9 @@ uint32_t EHProgramBuilder::ConvertXMMToLLDBRegister(uint8_t xmm_reg) {
 bool EHProgramBuilder::ProcessUnwindCode(UnwindCode code) {
   uint8_t o = m_iterator.IsChained() ? 0 : code.u.CodeOffset;
   uint8_t unwind_operation = code.getUnwindOp();
-  uint8_t operation_info = code.getOpInfo();
+  
 
-  switch (unwind_operation) {
+  switch (uint8_t operation_info = code.getOpInfo(); unwind_operation) {
   case UOP_PushNonVol: {
     uint32_t r = ConvertMachineToLLDBRegister(operation_info);
     if (r == LLDB_INVALID_REGNUM)

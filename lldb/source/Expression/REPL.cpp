@@ -140,10 +140,10 @@ const char *REPL::IOHandlerGetHelpPrologue() {
 
 bool REPL::IOHandlerIsInputComplete(IOHandler &io_handler, StringList &lines) {
   // Check for meta command
-  const size_t num_lines = lines.GetSize();
-  if (num_lines == 1) {
-    const char *first_line = lines.GetStringAtIndex(0);
-    if (first_line[0] == ':')
+  
+  if (const size_t num_lines = lines.GetSize(); num_lines == 1) {
+    
+    if (const char *first_line = lines.GetStringAtIndex(0); first_line[0] == ':')
       return true; // Meta command is a single line where that starts with ':'
   }
 
@@ -201,8 +201,8 @@ static bool ReadCode(const std::string &path, std::string &code,
     return false;
   }
   const size_t file_size = fs.GetByteSize(pathTwine);
-  const size_t max_size = code.max_size();
-  if (file_size > max_size) {
+  
+  if (const size_t max_size = code.max_size(); file_size > max_size) {
     error_sp->Printf("file at path '%s' too large: "
                      "file_size = %zu, max_size = %zu\n",
                      path.c_str(), file_size, max_size);
@@ -224,9 +224,9 @@ void REPL::IOHandlerInputComplete(IOHandler &io_handler, std::string &code) {
   lldb::StreamFileSP error_sp = std::make_shared<StreamFile>(
       io_handler.GetErrorStreamFileSP()->GetUnlockedFileSP());
   bool extra_line = false;
-  bool did_quit = false;
+  
 
-  if (code.empty()) {
+  if (bool did_quit = false; code.empty()) {
     m_code.AppendString("");
     static_cast<IOHandlerEditline &>(io_handler)
         .SetBaseLineNumber(m_code.GetSize() + 1);
@@ -310,8 +310,8 @@ void REPL::IOHandlerInputComplete(IOHandler &io_handler, std::string &code) {
       // Unwind any expression we might have been running in case our REPL
       // expression crashed and the user was looking around
       if (m_dedicated_repl_mode) {
-        Thread *thread = exe_ctx.GetThreadPtr();
-        if (thread && thread->UnwindInnermostExpression().Success()) {
+        
+        if (Thread *thread = exe_ctx.GetThreadPtr(); thread && thread->UnwindInnermostExpression().Success()) {
           thread->SetSelectedFrameByIndex(0, false);
           exe_ctx.SetFrameSP(
               thread->GetSelectedFrame(DoNoSelectMostRelevantFrame));
@@ -378,8 +378,8 @@ void REPL::IOHandlerInputComplete(IOHandler &io_handler, std::string &code) {
         }
 
         if (!handled) {
-          bool useColors = error_sp->GetFile().GetIsTerminalWithColors();
-          switch (execution_results) {
+          
+          switch (bool useColors = error_sp->GetFile().GetIsTerminalWithColors(); execution_results) {
           case lldb::eExpressionSetupError:
           case lldb::eExpressionParseError:
             add_to_code = false;
@@ -529,12 +529,12 @@ void REPL::IOHandlerComplete(IOHandler &io_handler,
 
   IOHandlerEditline &editline = static_cast<IOHandlerEditline &>(io_handler);
   StringList current_lines = editline.GetCurrentLines();
-  const uint32_t current_line_idx = editline.GetCurrentLineIndex();
+  
 
-  if (current_line_idx < current_lines.GetSize()) {
+  if (const uint32_t current_line_idx = editline.GetCurrentLineIndex(); current_line_idx < current_lines.GetSize()) {
     for (uint32_t i = 0; i < current_line_idx; ++i) {
-      const char *line_cstr = current_lines.GetStringAtIndex(i);
-      if (line_cstr) {
+      
+      if (const char *line_cstr = current_lines.GetStringAtIndex(i); line_cstr) {
         current_code.append("\n");
         current_code.append(line_cstr);
       }
@@ -588,10 +588,10 @@ Status REPL::RunLoop() {
     m_dedicated_repl_mode = true;
     debugger.StartIOHandlerThread();
     llvm::StringRef command_name_str("quit");
-    CommandObject *cmd_obj =
+    
+    if (CommandObject *cmd_obj =
         debugger.GetCommandInterpreter().GetCommandObjectForCommand(
-            command_name_str);
-    if (cmd_obj) {
+            command_name_str); cmd_obj) {
       assert(command_name_str.empty());
       cmd_obj->SetOverrideCallback(QuitCommandOverrideCallback, &m_target);
     }

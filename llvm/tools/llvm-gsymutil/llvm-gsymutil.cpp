@@ -458,8 +458,8 @@ static llvm::Error handleBuffer(StringRef Filename, MemoryBufferRef Buffer,
     std::vector<std::unique_ptr<MachOObjectFile>> FilterObjs;
     for (auto &ObjForArch : Fat->objects()) {
       if (auto MachOOrErr = ObjForArch.getAsObjectFile()) {
-        auto &Obj = **MachOOrErr;
-        if (filterArch(Obj))
+        
+        if (auto &Obj = **MachOOrErr; filterArch(Obj))
           FilterObjs.emplace_back(MachOOrErr->release());
       } else {
         error(Filename, MachOOrErr.takeError());

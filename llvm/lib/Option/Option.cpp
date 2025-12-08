@@ -113,8 +113,8 @@ std::unique_ptr<Arg> Option::acceptInternal(const ArgList &Args,
                                             StringRef Spelling,
                                             unsigned &Index) const {
   const size_t SpellingSize = Spelling.size();
-  const size_t ArgStringSize = StringRef(Args.getArgString(Index)).size();
-  switch (getKind()) {
+  
+  switch (const size_t ArgStringSize = StringRef(Args.getArgString(Index)).size(); getKind()) {
   case FlagClass: {
     if (SpellingSize != ArgStringSize)
       return nullptr;
@@ -132,9 +132,9 @@ std::unique_ptr<Arg> Option::acceptInternal(const ArgList &Args,
     // Parse out the comma separated values.
     const char *Prev = Str;
     for (;; ++Str) {
-      char c = *Str;
+      
 
-      if (!c || c == ',') {
+      if (char c = *Str; !c || c == ',') {
         if (Prev != Str) {
           char *Value = new char[Str - Prev + 1];
           memcpy(Value, Prev, Str - Prev);

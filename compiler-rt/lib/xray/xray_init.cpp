@@ -90,8 +90,8 @@ __xray_register_sleds(const XRaySledEntry *SledsBegin,
 
     for (std::size_t I = 0; I < SledMap.Entries; I++) {
       const auto &Sled = SledMap.Sleds[I];
-      const auto Function = Sled.function();
-      if (Function != LastFnAddr) {
+      
+      if (const auto Function = Sled.function(); Function != LastFnAddr) {
         CountFunctions++;
         LastFnAddr = Function;
       }

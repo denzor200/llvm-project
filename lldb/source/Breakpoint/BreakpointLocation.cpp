@@ -38,8 +38,8 @@ BreakpointLocation::BreakpointLocation(break_id_t loc_id, Breakpoint &owner,
       m_is_indirect(false), m_address(addr), m_owner(owner),
       m_condition_hash(0), m_loc_id(loc_id), m_hit_counter() {
   if (check_for_resolver) {
-    Symbol *symbol = m_address.CalculateSymbolContextSymbol();
-    if (symbol && symbol->IsIndirect()) {
+    
+    if (Symbol *symbol = m_address.CalculateSymbolContextSymbol(); symbol && symbol->IsIndirect()) {
       SetShouldResolveIndirectFunctions(true);
     }
   }
@@ -109,10 +109,10 @@ void BreakpointLocation::SetThreadID(lldb::tid_t thread_id) {
 }
 
 lldb::tid_t BreakpointLocation::GetThreadID() {
-  const ThreadSpec *thread_spec =
+  
+  if (const ThreadSpec *thread_spec =
       GetOptionsSpecifyingKind(BreakpointOptions::eThreadSpec)
-          .GetThreadSpecNoCreate();
-  if (thread_spec)
+          .GetThreadSpecNoCreate(); thread_spec)
     return thread_spec->GetTID();
   return LLDB_INVALID_THREAD_ID;
 }
@@ -130,10 +130,10 @@ void BreakpointLocation::SetThreadIndex(uint32_t index) {
 }
 
 uint32_t BreakpointLocation::GetThreadIndex() const {
-  const ThreadSpec *thread_spec =
+  
+  if (const ThreadSpec *thread_spec =
       GetOptionsSpecifyingKind(BreakpointOptions::eThreadSpec)
-          .GetThreadSpecNoCreate();
-  if (thread_spec)
+          .GetThreadSpecNoCreate(); thread_spec)
     return thread_spec->GetIndex();
   return 0;
 }
@@ -151,10 +151,10 @@ void BreakpointLocation::SetThreadName(const char *thread_name) {
 }
 
 const char *BreakpointLocation::GetThreadName() const {
-  const ThreadSpec *thread_spec =
+  
+  if (const ThreadSpec *thread_spec =
       GetOptionsSpecifyingKind(BreakpointOptions::eThreadSpec)
-          .GetThreadSpecNoCreate();
-  if (thread_spec)
+          .GetThreadSpecNoCreate(); thread_spec)
     return thread_spec->GetName();
   return nullptr;
 }
@@ -172,10 +172,10 @@ void BreakpointLocation::SetQueueName(const char *queue_name) {
 }
 
 const char *BreakpointLocation::GetQueueName() const {
-  const ThreadSpec *thread_spec =
+  
+  if (const ThreadSpec *thread_spec =
       GetOptionsSpecifyingKind(BreakpointOptions::eThreadSpec)
-          .GetThreadSpecNoCreate();
-  if (thread_spec)
+          .GetThreadSpecNoCreate(); thread_spec)
     return thread_spec->GetQueueName();
   return nullptr;
 }
@@ -344,8 +344,8 @@ void BreakpointLocation::SetIgnoreCount(uint32_t n) {
 
 void BreakpointLocation::DecrementIgnoreCount() {
   if (m_options_up != nullptr) {
-    uint32_t loc_ignore = m_options_up->GetIgnoreCount();
-    if (loc_ignore != 0)
+    
+    if (uint32_t loc_ignore = m_options_up->GetIgnoreCount(); loc_ignore != 0)
       m_options_up->SetIgnoreCount(loc_ignore - 1);
   }
 }
@@ -553,9 +553,9 @@ void BreakpointLocation::GetDescription(Stream *s,
   // locations:
   std::optional<std::string> scripted_opt;
   BreakpointResolverSP resolver_sp = GetBreakpoint().GetResolver();
-  BreakpointResolverScripted *scripted =
-      llvm::dyn_cast<BreakpointResolverScripted>(resolver_sp.get());
-  if (scripted)
+  
+  if (BreakpointResolverScripted *scripted =
+      llvm::dyn_cast<BreakpointResolverScripted>(resolver_sp.get()); scripted)
     scripted_opt = scripted->GetLocationDescription(shared_from_this(), level);
 
   bool is_scripted_desc = scripted_opt.has_value();
@@ -677,8 +677,8 @@ void BreakpointLocation::GetDescription(Stream *s,
     if (IsIndirect() && m_bp_site_sp) {
       Address resolved_address;
       resolved_address.SetLoadAddress(m_bp_site_sp->GetLoadAddress(), target);
-      Symbol *resolved_symbol = resolved_address.CalculateSymbolContextSymbol();
-      if (resolved_symbol) {
+      
+      if (Symbol *resolved_symbol = resolved_address.CalculateSymbolContextSymbol(); resolved_symbol) {
         if (level == eDescriptionLevelFull || level == eDescriptionLevelInitial)
           s->Printf(", ");
         else if (level == lldb::eDescriptionLevelVerbose) {
@@ -788,8 +788,8 @@ std::optional<uint32_t> BreakpointLocation::GetSuggestedStackFrameIndex() {
         start_address != m_address)
       return {};
 
-    const InlineFunctionInfo *info = inlined_block->GetInlinedFunctionInfo();
-    if (info) {
+    
+    if (const InlineFunctionInfo *info = inlined_block->GetInlinedFunctionInfo(); info) {
       if (preferred_decl == info->GetDeclaration())
         return depth;
       if (preferred_decl == info->GetCallSite())

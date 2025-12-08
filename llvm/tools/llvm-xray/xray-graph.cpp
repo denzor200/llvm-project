@@ -219,8 +219,8 @@ Error GraphRenderer::accountRecord(const XRayRecord &Record) {
     return make_error<StringError>("Records not in order",
                                    make_error_code(errc::invalid_argument));
 
-  auto &ThreadStack = PerThreadFunctionStack[Record.TId];
-  switch (Record.Type) {
+  
+  switch (auto &ThreadStack = PerThreadFunctionStack[Record.TId]; Record.Type) {
   case RecordTypes::ENTER:
   case RecordTypes::ENTER_ARG: {
     if (Record.FuncId != 0 && G.count(Record.FuncId) == 0)
@@ -236,11 +236,11 @@ Error GraphRenderer::accountRecord(const XRayRecord &Record) {
       if (!DeduceSiblingCalls)
         return make_error<StringError>("No matching ENTRY record",
                                        make_error_code(errc::invalid_argument));
-      bool FoundParent =
+      
+      if (bool FoundParent =
           llvm::any_of(llvm::reverse(ThreadStack), [&](const FunctionAttr &A) {
             return A.FuncId == Record.FuncId;
-          });
-      if (!FoundParent)
+          }); !FoundParent)
         return make_error<StringError>(
             "No matching Entry record in stack",
             make_error_code(errc::invalid_argument)); // There is no matching

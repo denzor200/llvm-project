@@ -405,8 +405,8 @@ std::string StaticVerifierFunctionEmitter::getUniqueName(StringRef kind,
 void StaticVerifierFunctionEmitter::collectConstraint(ConstraintMap &map,
                                                       StringRef kind,
                                                       Constraint constraint) {
-  auto [it, inserted] = map.try_emplace(constraint);
-  if (inserted)
+  
+  if (auto [it, inserted] = map.try_emplace(constraint); inserted)
     it->second = getUniqueName(kind, map.size());
 }
 

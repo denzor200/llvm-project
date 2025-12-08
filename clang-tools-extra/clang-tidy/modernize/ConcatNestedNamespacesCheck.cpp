@@ -71,8 +71,8 @@ SourceRange NS::getNamespaceBackRange(const SourceManager &SM,
   appendCloseComment(CloseComment);
   // current fix hint in readability/NamespaceCommentCheck.cpp use single line
   // comment
-  constexpr size_t L = sizeof("//") - 1U;
-  if (TokText.take_front(L) == "//" &&
+  
+  if (constexpr size_t L = sizeof("//") - 1U; TokText.take_front(L) == "//" &&
       TokText.drop_front(L).trim() != CloseComment)
     return getDefaultNamespaceBackRange();
   return SourceRange{front()->getRBraceLoc(), Tok->getEndLoc()};

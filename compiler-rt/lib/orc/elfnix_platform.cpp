@@ -354,9 +354,9 @@ int ELFNixPlatformRuntimeState::registerAtExit(void (*F)(void *), void *Arg,
 
 void ELFNixPlatformRuntimeState::runAtExits(void *DSOHandle) {
   std::unique_lock<std::recursive_mutex> Lock(JDStatesMutex);
-  PerJITDylibState *JDS = getJITDylibStateByHeaderAddr(DSOHandle);
+  
 
-  if (JDS)
+  if (PerJITDylibState *JDS = getJITDylibStateByHeaderAddr(DSOHandle); JDS)
     runAtExits(Lock, *JDS);
 }
 

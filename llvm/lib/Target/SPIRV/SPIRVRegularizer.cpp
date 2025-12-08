@@ -129,10 +129,10 @@ void SPIRVRegularizer::runLowerConstExpr(Function &F) {
       return nullptr;
     };
     for (unsigned OI = 0, OE = II->getNumOperands(); OI != OE; ++OI) {
-      auto *Op = II->getOperand(OI);
-      if (auto *Vec = dyn_cast<ConstantVector>(Op)) {
-        Value *ReplInst = LowerConstantVec(Vec, OI);
-        if (ReplInst)
+      
+      if (auto *Op = II->getOperand(OI); auto *Vec = dyn_cast<ConstantVector>(Op)) {
+        
+        if (Value *ReplInst = LowerConstantVec(Vec, OI); ReplInst)
           II->replaceUsesOfWith(Op, ReplInst);
       } else if (auto CE = dyn_cast<ConstantExpr>(Op)) {
         WorkList.push_front(cast<Instruction>(LowerOp(CE)));

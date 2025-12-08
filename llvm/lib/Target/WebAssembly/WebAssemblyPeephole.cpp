@@ -130,8 +130,8 @@ bool WebAssemblyPeephole::runOnMachineFunction(MachineFunction &MF) {
       default:
         break;
       case WebAssembly::CALL: {
-        MachineOperand &Op1 = MI.getOperand(1);
-        if (Op1.isSymbol()) {
+        
+        if (MachineOperand &Op1 = MI.getOperand(1); Op1.isSymbol()) {
           StringRef Name(Op1.getSymbolName());
           if (Name == TLI.getLibcallName(RTLIB::MEMCPY) ||
               Name == TLI.getLibcallName(RTLIB::MEMMOVE) ||

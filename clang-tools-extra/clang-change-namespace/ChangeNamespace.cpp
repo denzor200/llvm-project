@@ -826,8 +826,8 @@ void ChangeNamespaceTool::replaceQualifiedSymbolInDeclContext(
       break;
     if (isDeclVisibleAtLocation(*Result.SourceManager, Using, DeclCtx, Start)) {
       for (const auto *UsingShadow : Using->shadows()) {
-        const auto *TargetDecl = UsingShadow->getTargetDecl();
-        if (TargetDecl->getQualifiedNameAsString() ==
+        
+        if (const auto *TargetDecl = UsingShadow->getTargetDecl(); TargetDecl->getQualifiedNameAsString() ==
             FromDecl->getQualifiedNameAsString()) {
           ReplaceName = FromDecl->getNameAsString();
           Matched = true;

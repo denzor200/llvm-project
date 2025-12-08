@@ -302,8 +302,8 @@ static isl_stat astBuildBeforeMark(__isl_keep isl_id *MarkId,
   if (!MarkId)
     return isl_stat_error;
 
-  AstBuildUserInfo *BuildInfo = (AstBuildUserInfo *)User;
-  if (strcmp(isl_id_get_name(MarkId), "SIMD") == 0)
+  
+  if (AstBuildUserInfo *BuildInfo = (AstBuildUserInfo *)User; strcmp(isl_id_get_name(MarkId), "SIMD") == 0)
     BuildInfo->InSIMD = true;
 
   return isl_stat_ok;
@@ -355,9 +355,9 @@ static isl::ast_expr buildCondition(Scop &S, isl::ast_build Build,
 
   const ScopArrayInfo *BaseLeft =
       ScopArrayInfo::getFromId(Left)->getBasePtrOriginSAI();
-  const ScopArrayInfo *BaseRight =
-      ScopArrayInfo::getFromId(Right)->getBasePtrOriginSAI();
-  if (BaseLeft && BaseLeft == BaseRight)
+  
+  if (const ScopArrayInfo *BaseRight =
+      ScopArrayInfo::getFromId(Right)->getBasePtrOriginSAI(); BaseLeft && BaseLeft == BaseRight)
     return True;
 
   isl::set Params = S.getContext();

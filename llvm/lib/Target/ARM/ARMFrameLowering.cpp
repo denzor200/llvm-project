@@ -362,12 +362,12 @@ bool ARMFrameLowering::isFPReserved(const MachineFunction &MF) const {
 /// included as part of the stack frame.
 bool ARMFrameLowering::hasReservedCallFrame(const MachineFunction &MF) const {
   const MachineFrameInfo &MFI = MF.getFrameInfo();
-  unsigned CFSize = MFI.getMaxCallFrameSize();
+  
   // It's not always a good idea to include the call frame as part of the
   // stack frame. ARM (especially Thumb) has small immediate offset to
   // address the stack frame. So a large call frame can cause poor codegen
   // and may even makes it impossible to scavenge a register.
-  if (CFSize >= ((1 << 12) - 1) / 2)  // Half of imm12
+  if (unsigned CFSize = MFI.getMaxCallFrameSize(); CFSize >= ((1 << 12) - 1) / 2)  // Half of imm12
     return false;
 
   return !MFI.hasVarSizedObjects();
@@ -1056,8 +1056,8 @@ void ARMFrameLowering::emitPrologue(MachineFunction &MF,
   // Move past FP status save area.
   if (FPStatusSize > 0) {
     while (MBBI != MBB.end()) {
-      unsigned Opc = MBBI->getOpcode();
-      if (Opc == ARM::VMRS || Opc == ARM::VMRS_FPEXC)
+      
+      if (unsigned Opc = MBBI->getOpcode(); Opc == ARM::VMRS || Opc == ARM::VMRS_FPEXC)
         MBBI++;
       else
         break;
@@ -1116,9 +1116,9 @@ void ARMFrameLowering::emitPrologue(MachineFunction &MF,
     NeedsWinCFIStackAlloc = false;
 
   if (STI.isTargetWindows() && WindowsRequiresStackProbe(MF, NumBytes)) {
-    uint32_t NumWords = NumBytes >> 2;
+    
 
-    if (NumWords < 65536) {
+    if (uint32_t NumWords = NumBytes >> 2; NumWords < 65536) {
       BuildMI(MBB, MBBI, dl, TII.get(ARM::t2MOVi16), ARM::R4)
           .addImm(NumWords)
           .setMIFlags(MachineInstr::FrameSetup)
@@ -2363,8 +2363,8 @@ static unsigned estimateRSStackSizeLimit(MachineFunction &MF,
           break;
 
         const MCInstrDesc &MCID = MI.getDesc();
-        const TargetRegisterClass *RegClass = TII.getRegClass(MCID, i);
-        if (RegClass && !RegClass->contains(ARM::SP))
+        
+        if (const TargetRegisterClass *RegClass = TII.getRegClass(MCID, i); RegClass && !RegClass->contains(ARM::SP))
           HasNonSPFrameIndex = true;
 
         // Otherwise check the addressing mode.
@@ -2491,8 +2491,8 @@ bool ARMFrameLowering::requiresAAPCSFrameRecord(
 // scans the function for cases where this may happen.
 static bool canSpillOnFrameIndexAccess(const MachineFunction &MF,
                                        const TargetFrameLowering &TFI) {
-  const ARMFunctionInfo *AFI = MF.getInfo<ARMFunctionInfo>();
-  if (!AFI->isThumb1OnlyFunction())
+  
+  if (const ARMFunctionInfo *AFI = MF.getInfo<ARMFunctionInfo>(); !AFI->isThumb1OnlyFunction())
     return false;
 
   const ARMSubtarget &STI = MF.getSubtarget<ARMSubtarget>();
@@ -2676,10 +2676,10 @@ void ARMFrameLowering::determineCalleeSaves(MachineFunction &MF,
 
   bool ForceLRSpill = false;
   if (!LRSpilled && AFI->isThumb1OnlyFunction()) {
-    unsigned FnSize = EstimateFunctionSizeInBytes(MF, TII);
+    
     // Force LR to be spilled if the Thumb function size is > 2048. This enables
     // use of BL to implement far jump.
-    if (FnSize >= (1 << 11)) {
+    if (unsigned FnSize = EstimateFunctionSizeInBytes(MF, TII); FnSize >= (1 << 11)) {
       CanEliminateFrame = false;
       ForceLRSpill = true;
     }
@@ -2797,12 +2797,12 @@ void ARMFrameLowering::determineCalleeSaves(MachineFunction &MF,
         SavedRegs.set(ARM::LR);
         LRSpilled = true;
         NumGPRSpills++;
-        auto LRPos = llvm::find(UnspilledCS1GPRs, ARM::LR);
-        if (LRPos != UnspilledCS1GPRs.end())
+        
+        if (auto LRPos = llvm::find(UnspilledCS1GPRs, ARM::LR); LRPos != UnspilledCS1GPRs.end())
           UnspilledCS1GPRs.erase(LRPos);
       }
-      auto FPPos = llvm::find(UnspilledCS1GPRs, FramePtr);
-      if (FPPos != UnspilledCS1GPRs.end())
+      
+      if (auto FPPos = llvm::find(UnspilledCS1GPRs, FramePtr); FPPos != UnspilledCS1GPRs.end())
         UnspilledCS1GPRs.erase(FPPos);
       NumGPRSpills++;
       if (FramePtr == ARM::R7)
@@ -3013,8 +3013,8 @@ void ARMFrameLowering::determineCalleeSaves(MachineFunction &MF,
       unsigned NumExtras = TargetAlign.value() / 4;
       SmallVector<unsigned, 2> Extras;
       while (NumExtras && !UnspilledCS1GPRs.empty()) {
-        unsigned Reg = UnspilledCS1GPRs.pop_back_val();
-        if (!MRI.isReserved(Reg) &&
+        
+        if (unsigned Reg = UnspilledCS1GPRs.pop_back_val(); !MRI.isReserved(Reg) &&
             (!AFI->isThumb1OnlyFunction() || isARMLowRegister(Reg))) {
           Extras.push_back(Reg);
           NumExtras--;
@@ -3023,8 +3023,8 @@ void ARMFrameLowering::determineCalleeSaves(MachineFunction &MF,
       // For non-Thumb1 functions, also check for hi-reg CS registers
       if (!AFI->isThumb1OnlyFunction()) {
         while (NumExtras && !UnspilledCS2GPRs.empty()) {
-          unsigned Reg = UnspilledCS2GPRs.pop_back_val();
-          if (!MRI.isReserved(Reg)) {
+          
+          if (unsigned Reg = UnspilledCS2GPRs.pop_back_val(); !MRI.isReserved(Reg)) {
             Extras.push_back(Reg);
             NumExtras--;
           }
@@ -3092,8 +3092,8 @@ void ARMFrameLowering::getCalleeSaves(const MachineFunction &MF,
   // If we have the "returned" parameter attribute which guarantees that we
   // return the value which was passed in r0 unmodified (e.g. C++ 'structors),
   // record that fact for IPRA.
-  const ARMFunctionInfo *AFI = MF.getInfo<ARMFunctionInfo>();
-  if (AFI->getPreservesR0())
+  
+  if (const ARMFunctionInfo *AFI = MF.getInfo<ARMFunctionInfo>(); AFI->getPreservesR0())
     SavedRegs.set(ARM::R0);
 }
 
@@ -3111,8 +3111,8 @@ bool ARMFrameLowering::assignCalleeSavedSpillSlots(
   // For functions, which sign their return address, upon function entry, the
   // return address PAC is computed in R12. Treat R12 as a callee-saved register
   // in this case.
-  const auto &AFI = *MF.getInfo<ARMFunctionInfo>();
-  if (AFI.shouldSignReturnAddress()) {
+  
+  if (const auto &AFI = *MF.getInfo<ARMFunctionInfo>(); AFI.shouldSignReturnAddress()) {
     // The order of register must match the order we push them, because the
     // PEI assigns frame indices in that order. That order depends on the
     // PushPopSplitVariation, there are only two cases which we use with return
@@ -3179,9 +3179,9 @@ MachineBasicBlock::iterator ARMFrameLowering::eliminateCallFramePseudoInstr(
   ARMCC::CondCodes Pred = (PIdx == -1)
                               ? ARMCC::AL
                               : (ARMCC::CondCodes)I->getOperand(PIdx).getImm();
-  unsigned PredReg = TII.getFramePred(*I);
+  
 
-  if (!hasReservedCallFrame(MF)) {
+  if (unsigned PredReg = TII.getFramePred(*I); !hasReservedCallFrame(MF)) {
     // Bail early if the callee is expected to do the adjustment.
     if (IsDestroy && CalleePopAmount != -1U)
       return MBB.erase(I);
@@ -3189,8 +3189,8 @@ MachineBasicBlock::iterator ARMFrameLowering::eliminateCallFramePseudoInstr(
     // If we have alloca, convert as follows:
     // ADJCALLSTACKDOWN -> sub, sp, sp, amount
     // ADJCALLSTACKUP   -> add, sp, sp, amount
-    unsigned Amount = TII.getFrameSize(*I);
-    if (Amount != 0) {
+    
+    if (unsigned Amount = TII.getFrameSize(*I); Amount != 0) {
       // We need to keep the stack aligned properly.  To do this, we round the
       // amount of space needed for the outgoing arguments up to the next
       // alignment boundary.

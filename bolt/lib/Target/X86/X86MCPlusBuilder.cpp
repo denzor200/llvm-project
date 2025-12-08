@@ -103,8 +103,8 @@ public:
   }
 
   unsigned getCondCode(const MCInst &Inst) const override {
-    unsigned Opcode = Inst.getOpcode();
-    if (X86::isJCC(Opcode))
+    
+    if (unsigned Opcode = Inst.getOpcode(); X86::isJCC(Opcode))
       return Inst.getOperand(Info->get(Opcode).NumOperands - 1).getImm();
     return X86::COND_INVALID;
   }
@@ -1076,8 +1076,8 @@ public:
     }
 
     unsigned MemOpOffset = getMemoryOperandNo(Inst);
-    unsigned NewOpcode = 0;
-    if (I.IsLoad) {
+    
+    if (unsigned NewOpcode = 0; I.IsLoad) {
       switch (I.DataSize) {
       case 2: NewOpcode = X86::POP16r; break;
       case 4: NewOpcode = X86::POP32r; break;
@@ -1280,8 +1280,8 @@ public:
 
   bool addToImm(MCInst &Inst, int64_t &Amt, MCContext *Ctx) const override {
     unsigned ImmOpNo = -1U;
-    int MemOpNo = getMemoryOperandNo(Inst);
-    if (MemOpNo != -1)
+    
+    if (int MemOpNo = getMemoryOperandNo(Inst); MemOpNo != -1)
       ImmOpNo = MemOpNo + X86::AddrDisp;
     else
       for (unsigned Index = 0; Index < MCPlus::getNumPrimeOperands(Inst);
@@ -1677,9 +1677,9 @@ public:
     // Check and remove redundant Address-Size override prefix.
     if (opts::X86StripRedundantAddressSize) {
       uint64_t TSFlags = Info->get(OldOpcode).TSFlags;
-      unsigned Flags = Inst.getFlags();
+      
 
-      if (!X86_MC::needsAddressSizeOverride(Inst, STI, MemOpNo, TSFlags) &&
+      if (unsigned Flags = Inst.getFlags(); !X86_MC::needsAddressSizeOverride(Inst, STI, MemOpNo, TSFlags) &&
           Flags & X86::IP_HAS_AD_SIZE)
         Inst.setFlags(Flags ^ X86::IP_HAS_AD_SIZE);
     }
@@ -1688,9 +1688,9 @@ public:
     // SIB byte is present, but no index is used and modrm alone should have
     // been enough. Converting to NoRegister effectively removes the SIB byte.
     if (MemOpNo >= 0) {
-      MCOperand &IndexOp =
-          Inst.getOperand(static_cast<unsigned>(MemOpNo) + X86::AddrIndexReg);
-      if (IndexOp.getReg() == X86::EIZ || IndexOp.getReg() == X86::RIZ)
+      
+      if (MCOperand &IndexOp =
+          Inst.getOperand(static_cast<unsigned>(MemOpNo) + X86::AddrIndexReg); IndexOp.getReg() == X86::EIZ || IndexOp.getReg() == X86::RIZ)
         IndexOp = MCOperand::createReg(X86::NoRegister);
     }
 
@@ -1698,19 +1698,19 @@ public:
       NewOpcode = getShortBranchOpcode(OldOpcode);
     } else if (OldOpcode == X86::MOV64ri) {
       if (Inst.getOperand(MCPlus::getNumPrimeOperands(Inst) - 1).isImm()) {
-        const int64_t Imm =
-            Inst.getOperand(MCPlus::getNumPrimeOperands(Inst) - 1).getImm();
-        if (int64_t(Imm) == int64_t(int32_t(Imm)))
+        
+        if (const int64_t Imm =
+            Inst.getOperand(MCPlus::getNumPrimeOperands(Inst) - 1).getImm(); int64_t(Imm) == int64_t(int32_t(Imm)))
           NewOpcode = X86::MOV64ri32;
       }
     } else {
       // If it's arithmetic instruction check if signed operand fits in 1 byte.
-      const unsigned ShortOpcode = X86::getOpcodeForShortImmediateForm(OldOpcode);
-      if (ShortOpcode != OldOpcode &&
+      
+      if (const unsigned ShortOpcode = X86::getOpcodeForShortImmediateForm(OldOpcode); ShortOpcode != OldOpcode &&
           Inst.getOperand(MCPlus::getNumPrimeOperands(Inst) - 1).isImm()) {
-        int64_t Imm =
-            Inst.getOperand(MCPlus::getNumPrimeOperands(Inst) - 1).getImm();
-        if (int64_t(Imm) == int64_t(int8_t(Imm)))
+        
+        if (int64_t Imm =
+            Inst.getOperand(MCPlus::getNumPrimeOperands(Inst) - 1).getImm(); int64_t(Imm) == int64_t(int8_t(Imm)))
           NewOpcode = ShortOpcode;
       }
     }
@@ -1742,11 +1742,11 @@ public:
       uint16_t StackPtrReg;
       int64_t StackOffset;
       uint8_t Size;
-      bool IsStackAccess =
-          isStackAccess(Inst, IsLoad, IsStore, IsStoreFromReg, Reg, SrcImm,
-                        StackPtrReg, StackOffset, Size, IsSimple, IsIndexed);
+      
       // Prohibit non-stack-based loads
-      if (!IsStackAccess)
+      if (bool IsStackAccess =
+          isStackAccess(Inst, IsLoad, IsStore, IsStoreFromReg, Reg, SrcImm,
+                        StackPtrReg, StackOffset, Size, IsSimple, IsIndexed); !IsStackAccess)
         return false;
       // If stack memory operands are allowed, check if it's RBP-based
       if (!AllowBasePtrStackMemOp &&
@@ -2055,9 +2055,9 @@ public:
       // Check if one of the previous instructions defines the jump-on register.
       for (auto PrevII = II; PrevII != IE; ++PrevII) {
         MCInst &PrevInstr = *PrevII;
-        const MCInstrDesc &PrevInstrDesc = Info->get(PrevInstr.getOpcode());
+        
 
-        if (!PrevInstrDesc.hasDefOfPhysReg(PrevInstr, R1, *RegInfo))
+        if (const MCInstrDesc &PrevInstrDesc = Info->get(PrevInstr.getOpcode()); !PrevInstrDesc.hasDefOfPhysReg(PrevInstr, R1, *RegInfo))
           continue;
 
         if (isMoveMem2Reg(PrevInstr)) {
@@ -2190,8 +2190,8 @@ public:
     // find load from vtable, this may or may not include the method offset
     while (Itr != End) {
       MCInst &CurInst = *Itr++;
-      const MCInstrDesc &Desc = Info->get(CurInst.getOpcode());
-      if (Desc.hasDefOfPhysReg(CurInst, MethodRegNum, *RegInfo)) {
+      
+      if (const MCInstrDesc &Desc = Info->get(CurInst.getOpcode()); Desc.hasDefOfPhysReg(CurInst, MethodRegNum, *RegInfo)) {
         if (!mayLoad(CurInst))
           return false;
         if (std::optional<X86MemOperand> MO =
@@ -2219,8 +2219,8 @@ public:
     // look for any adds affecting the method register.
     while (Itr != End) {
       MCInst &CurInst = *Itr++;
-      const MCInstrDesc &Desc = Info->get(CurInst.getOpcode());
-      if (Desc.hasDefOfPhysReg(CurInst, VtableRegNum, *RegInfo)) {
+      
+      if (const MCInstrDesc &Desc = Info->get(CurInst.getOpcode()); Desc.hasDefOfPhysReg(CurInst, VtableRegNum, *RegInfo)) {
         if (isADDri(CurInst)) {
           assert(!MethodOffset);
           MethodOffset = CurInst.getOperand(2).getImm();
@@ -2926,8 +2926,8 @@ public:
   }
 
   bool isBranchOnMem(const MCInst &Inst) const override {
-    unsigned OpCode = Inst.getOpcode();
-    if (OpCode == X86::CALL64m || (OpCode == X86::JMP32m && isTailCall(Inst)) ||
+    
+    if (unsigned OpCode = Inst.getOpcode(); OpCode == X86::CALL64m || (OpCode == X86::JMP32m && isTailCall(Inst)) ||
         OpCode == X86::JMP64m)
       return true;
 
@@ -2935,8 +2935,8 @@ public:
   }
 
   bool isBranchOnReg(const MCInst &Inst) const override {
-    unsigned OpCode = Inst.getOpcode();
-    if (OpCode == X86::CALL64r || (OpCode == X86::JMP32r && isTailCall(Inst)) ||
+    
+    if (unsigned OpCode = Inst.getOpcode(); OpCode == X86::CALL64r || (OpCode == X86::JMP32r && isTailCall(Inst)) ||
         OpCode == X86::JMP64r)
       return true;
 
@@ -3305,8 +3305,8 @@ public:
       std::set<unsigned> UsedRegs;
 
       for (unsigned int I = 0; I < MCPlus::getNumPrimeOperands(CallInst); ++I) {
-        const MCOperand &Op = CallInst.getOperand(I);
-        if (Op.isReg())
+        
+        if (const MCOperand &Op = CallInst.getOperand(I); Op.isReg())
           UsedRegs.insert(Op.getReg());
       }
 
@@ -3470,8 +3470,8 @@ public:
           std::optional<MCPlus::MCLandingPad> EHInfo = getEHInfo(CallInst);
           if (EHInfo)
             addEHInfo(CallOrJmp, *EHInfo);
-          int64_t GnuArgsSize = getGnuArgsSize(CallInst);
-          if (GnuArgsSize >= 0)
+          
+          if (int64_t GnuArgsSize = getGnuArgsSize(CallInst); GnuArgsSize >= 0)
             addGnuArgsSize(CallOrJmp, GnuArgsSize);
         }
 

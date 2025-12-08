@@ -235,9 +235,9 @@ replaceUnitDimIndexOps(GenericOp genericOp,
       rewriter.replaceOpWithNewOp<arith::ConstantIndexOp>(indexOp, 0);
     } else {
       // Update the dimension of the index operation if needed.
-      unsigned droppedDims = llvm::count_if(
-          unitDims, [&](unsigned dim) { return dim < indexOp.getDim(); });
-      if (droppedDims != 0)
+      
+      if (unsigned droppedDims = llvm::count_if(
+          unitDims, [&](unsigned dim) { return dim < indexOp.getDim(); }); droppedDims != 0)
         rewriter.replaceOpWithNewOp<IndexOp>(indexOp,
                                              indexOp.getDim() - droppedDims);
     }
@@ -881,8 +881,8 @@ namespace {
 static SmallVector<ReassociationIndices>
 getReassociationForReshapeAtDim(int64_t rank, int64_t pos) {
   SmallVector<ReassociationIndices> reassociation(rank - 1, {0, 1});
-  bool lastDim = pos == rank - 1;
-  if (rank > 2) {
+  
+  if (bool lastDim = pos == rank - 1; rank > 2) {
     for (int64_t i = 0; i < rank - 1; i++) {
       if (i == pos || (lastDim && i == pos - 1))
         reassociation[i] = ReassociationIndices{i, i + 1};

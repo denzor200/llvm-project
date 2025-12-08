@@ -832,8 +832,8 @@ optMain(int argc, char **argv,
   // Create a new optimization pass for each one specified on the command line.
   for (const PassInfo *PassInf : PassList) {
     if (PassInf->getNormalCtor()) {
-      Pass *P = PassInf->getNormalCtor()();
-      if (P) {
+      
+      if (Pass *P = PassInf->getNormalCtor()(); P) {
         // Add the pass to the pass manager.
         Passes.add(P);
         // If we are verifying all of the intermediate steps, add the verifier.

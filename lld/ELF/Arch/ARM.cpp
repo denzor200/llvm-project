@@ -472,8 +472,8 @@ bool ARM::inBranchRange(RelType type, uint64_t src, uint64_t dst) const {
     // Bit 0 == 1 denotes Thumb state, it is not part of the range.
     dst &= ~0x1;
 
-  int64_t offset = llvm::SignExtend64<32>(dst - src);
-  switch (type) {
+  
+  switch (int64_t offset = llvm::SignExtend64<32>(dst - src); type) {
   case R_ARM_PC24:
   case R_ARM_PLT32:
   case R_ARM_JUMP24:
@@ -1319,8 +1319,8 @@ void elf::processArmCmseSymbols(Ctx &ctx) {
     MutableArrayRef<Symbol *> syms = file->getMutableSymbols();
     for (Symbol *&sym : syms) {
       StringRef symName = sym->getName();
-      auto it = ctx.symtab->cmseSymMap.find(symName);
-      if (it != ctx.symtab->cmseSymMap.end())
+      
+      if (auto it = ctx.symtab->cmseSymMap.find(symName); it != ctx.symtab->cmseSymMap.end())
         sym = it->second.acleSeSym;
     }
   });
@@ -1351,8 +1351,8 @@ ArmCmseSGSection::ArmCmseSGSection(Ctx &ctx)
 
   if (!ctx.symtab->cmseImportLib.empty() && ctx.arg.cmseOutputLib.empty()) {
     for (auto &[_, entryFunc] : ctx.symtab->cmseSymMap) {
-      Symbol *sym = entryFunc.sym;
-      if (!ctx.symtab->inCMSEOutImpLib.count(sym->getName()))
+      
+      if (Symbol *sym = entryFunc.sym; !ctx.symtab->inCMSEOutImpLib.count(sym->getName()))
         Warn(ctx) << "new entry function '" << sym->getName()
                   << "' introduced but no output import library specified";
     }
@@ -1416,12 +1416,12 @@ void ArmCmseSGSection::finalizeContents() {
     return a->getAddr().value() < b->getAddr().value();
   });
   // This is the partition of the veneers with fixed addresses.
-  uint64_t addr = (*sgVeneers.begin())->getAddr().has_value()
-                      ? (*sgVeneers.begin())->getAddr().value()
-                      : getVA();
+  
   // Check if the start address of '.gnu.sgstubs' correspond to the
   // linker-synthesized veneer with the lowest address.
-  if ((getVA() & ~1) != (addr & ~1)) {
+  if (uint64_t addr = (*sgVeneers.begin())->getAddr().has_value()
+                      ? (*sgVeneers.begin())->getAddr().value()
+                      : getVA(); (getVA() & ~1) != (addr & ~1)) {
     Err(ctx)
         << "start address of '.gnu.sgstubs' is different from previous link";
     return;

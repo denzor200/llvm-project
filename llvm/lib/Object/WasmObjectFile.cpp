@@ -224,16 +224,16 @@ static Error readInitExpr(wasm::WasmInitExpr &Expr,
   }
 
   if (!Expr.Extended) {
-    uint8_t EndOpcode = readOpcode(Ctx);
-    if (EndOpcode != wasm::WASM_OPCODE_END)
+    
+    if (uint8_t EndOpcode = readOpcode(Ctx); EndOpcode != wasm::WASM_OPCODE_END)
       Expr.Extended = true;
   }
 
   if (Expr.Extended) {
     Ctx.Ptr = Start;
     while (true) {
-      uint8_t Opcode = readOpcode(Ctx);
-      switch (Opcode) {
+      
+      switch (uint8_t Opcode = readOpcode(Ctx); Opcode) {
       case wasm::WASM_OPCODE_I32_CONST:
       case wasm::WASM_OPCODE_GLOBAL_GET:
       case wasm::WASM_OPCODE_REF_NULL:
@@ -728,9 +728,9 @@ Error WasmObjectFile::parseLinkingSectionSymtab(ReadContext &Ctx) {
 
     Info.Kind = readUint8(Ctx);
     Info.Flags = readVaruint32(Ctx);
-    bool IsDefined = (Info.Flags & wasm::WASM_SYMBOL_UNDEFINED) == 0;
+    
 
-    switch (Info.Kind) {
+    switch (bool IsDefined = (Info.Flags & wasm::WASM_SYMBOL_UNDEFINED) == 0; Info.Kind) {
     case wasm::WASM_SYMBOL_TYPE_FUNCTION:
       Info.ElementIndex = readVaruint32(Ctx);
       if (!isValidFunctionIndex(Info.ElementIndex) ||
@@ -828,8 +828,8 @@ Error WasmObjectFile::parseLinkingSectionSymtab(ReadContext &Ctx) {
             return make_error<GenericBinaryError>(
                 "invalid data segment index: " + Twine(Index),
                 object_error::parse_failed);
-          size_t SegmentSize = DataSegments[Index].Data.Content.size();
-          if (Offset > SegmentSize)
+          
+          if (size_t SegmentSize = DataSegments[Index].Data.Content.size(); Offset > SegmentSize)
             return make_error<GenericBinaryError>(
                 "invalid data symbol offset: `" + Info.Name +
                     "` (offset: " + Twine(Offset) +
@@ -914,16 +914,16 @@ Error WasmObjectFile::parseLinkingSectionComdat(ReadContext &Ctx) {
                                                 Twine(Name),
                                             object_error::parse_failed);
     LinkingData.Comdats.emplace_back(Name);
-    uint32_t Flags = readVaruint32(Ctx);
-    if (Flags != 0)
+    
+    if (uint32_t Flags = readVaruint32(Ctx); Flags != 0)
       return make_error<GenericBinaryError>("unsupported COMDAT flags",
                                             object_error::parse_failed);
 
     uint32_t EntryCount = readVaruint32(Ctx);
     while (EntryCount--) {
       unsigned Kind = readVaruint32(Ctx);
-      unsigned Index = readVaruint32(Ctx);
-      switch (Kind) {
+      
+      switch (unsigned Index = readVaruint32(Ctx); Kind) {
       default:
         return make_error<GenericBinaryError>("invalid COMDAT entry type",
                                               object_error::parse_failed);
@@ -1221,8 +1221,8 @@ Error WasmObjectFile::parseTypeSection(ReadContext &Ctx) {
       // types. Here we parse the type declarations just enough to skip past
       // them in the binary.
       if (Form == wasm::WASM_TYPE_SUB || Form == wasm::WASM_TYPE_SUB_FINAL) {
-        uint32_t Supers = readVaruint32(Ctx);
-        if (Supers > 0) {
+        
+        if (uint32_t Supers = readVaruint32(Ctx); Supers > 0) {
           if (Supers != 1)
             return make_error<GenericBinaryError>(
                 "Invalid number of supertypes", object_error::parse_failed);
@@ -1656,10 +1656,10 @@ Error WasmObjectFile::parseElemSection(ReadContext &Ctx) {
     wasm::WasmElemSegment Segment;
     Segment.Flags = readVaruint32(Ctx);
 
-    uint32_t SupportedFlags = wasm::WASM_ELEM_SEGMENT_HAS_TABLE_NUMBER |
+    
+    if (uint32_t SupportedFlags = wasm::WASM_ELEM_SEGMENT_HAS_TABLE_NUMBER |
                               wasm::WASM_ELEM_SEGMENT_IS_PASSIVE |
-                              wasm::WASM_ELEM_SEGMENT_HAS_INIT_EXPRS;
-    if (Segment.Flags & ~SupportedFlags)
+                              wasm::WASM_ELEM_SEGMENT_HAS_INIT_EXPRS; Segment.Flags & ~SupportedFlags)
       return make_error<GenericBinaryError>(
           "Unsupported flags for element segment", object_error::parse_failed);
 
@@ -1702,8 +1702,8 @@ Error WasmObjectFile::parseElemSection(ReadContext &Ctx) {
     }
 
     if (HasElemKind) {
-      auto ElemKind = readVaruint32(Ctx);
-      if (Segment.Flags & wasm::WASM_ELEM_SEGMENT_HAS_INIT_EXPRS) {
+      
+      if (auto ElemKind = readVaruint32(Ctx); Segment.Flags & wasm::WASM_ELEM_SEGMENT_HAS_INIT_EXPRS) {
         Segment.ElemKind = parseValType(Ctx, ElemKind);
         if (Segment.ElemKind != wasm::ValType::FUNCREF &&
             Segment.ElemKind != wasm::ValType::EXTERNREF &&
@@ -1875,8 +1875,8 @@ uint64_t WasmObjectFile::getWasmSymbolValue(const WasmSymbol &Sym) const {
     // The value of a data symbol is the segment offset, plus the symbol
     // offset within the segment.
     uint32_t SegmentIndex = Sym.Info.DataRef.Segment;
-    const wasm::WasmDataSegment &Segment = DataSegments[SegmentIndex].Data;
-    if (Segment.Offset.Extended) {
+    
+    if (const wasm::WasmDataSegment &Segment = DataSegments[SegmentIndex].Data; Segment.Offset.Extended) {
       llvm_unreachable("extended init exprs not supported");
     } else if (Segment.Offset.Inst.Opcode == wasm::WASM_OPCODE_I32_CONST) {
       return Segment.Offset.Inst.Value.Int32 + Sym.Info.DataRef.Offset;
@@ -1910,9 +1910,9 @@ uint64_t WasmObjectFile::getCommonSymbolSizeImpl(DataRefImpl Symb) const {
 
 Expected<SymbolRef::Type>
 WasmObjectFile::getSymbolType(DataRefImpl Symb) const {
-  const WasmSymbol &Sym = getWasmSymbol(Symb);
+  
 
-  switch (Sym.Info.Kind) {
+  switch (const WasmSymbol &Sym = getWasmSymbol(Symb); Sym.Info.Kind) {
   case wasm::WASM_SYMBOL_TYPE_FUNCTION:
     return SymbolRef::ST_Function;
   case wasm::WASM_SYMBOL_TYPE_GLOBAL:

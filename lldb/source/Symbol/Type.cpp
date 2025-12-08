@@ -267,8 +267,8 @@ SymbolFileType::SymbolFileType(SymbolFile &symbol_file,
 
 Type *SymbolFileType::GetType() {
   if (!m_type_sp) {
-    Type *resolved_type = m_symbol_file.ResolveTypeUID(GetID());
-    if (resolved_type)
+    
+    if (Type *resolved_type = m_symbol_file.ResolveTypeUID(GetID()); resolved_type)
       m_type_sp = resolved_type->shared_from_this();
   }
   return m_type_sp.get();
@@ -474,8 +474,8 @@ llvm::Expected<uint64_t> Type::GetByteSize(ExecutionContextScope *exe_scope) {
   case eEncodingIsVolatileUID:
   case eEncodingIsAtomicUID:
   case eEncodingIsTypedefUID: {
-    Type *encoding_type = GetEncodingType();
-    if (encoding_type)
+    
+    if (Type *encoding_type = GetEncodingType(); encoding_type)
       if (std::optional<uint64_t> size =
               llvm::expectedToOptional(encoding_type->GetByteSize(exe_scope))) {
         m_byte_size = *size;
@@ -522,8 +522,8 @@ bool Type::IsTemplateType() {
 lldb::TypeSP Type::GetTypedefType() {
   lldb::TypeSP type_sp;
   if (IsTypedef()) {
-    Type *typedef_type = m_symbol_file->ResolveTypeUID(m_encoding_uid);
-    if (typedef_type)
+    
+    if (Type *typedef_type = m_symbol_file->ResolveTypeUID(m_encoding_uid); typedef_type)
       type_sp = typedef_type->shared_from_this();
   }
   return type_sp;
@@ -564,8 +564,8 @@ bool Type::ReadFromMemory(ExecutionContext *exe_ctx, lldb::addr_t addr,
       return true;
     } else {
       if (exe_ctx) {
-        Process *process = exe_ctx->GetProcessPtr();
-        if (process) {
+        
+        if (Process *process = exe_ctx->GetProcessPtr(); process) {
           Status error;
           return exe_ctx->GetProcessPtr()->ReadMemory(addr, dst, byte_size,
                                                       error) == byte_size;
@@ -859,8 +859,8 @@ ModuleSP Type::GetExeModule() {
     auto ts = m_compiler_type.GetTypeSystem();
     if (!ts)
       return {};
-    SymbolFile *symbol_file = ts->GetSymbolFile();
-    if (symbol_file)
+    
+    if (SymbolFile *symbol_file = ts->GetSymbolFile(); symbol_file)
       return symbol_file->GetObjectFile()->GetModule();
   }
   return {};

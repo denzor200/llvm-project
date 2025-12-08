@@ -226,11 +226,11 @@ raw_ostream &operator<<(raw_ostream &OS, const Print<Stmt> &P) {
   OS << Print(P.Obj.Id, P.G) << ": " << P.G.getTII().getName(Opc);
   // Print the target for calls and branches (for readability).
   if (MI.isCall() || MI.isBranch()) {
-    MachineInstr::const_mop_iterator T =
+    
+    if (MachineInstr::const_mop_iterator T =
         llvm::find_if(MI.operands(), [](const MachineOperand &Op) -> bool {
           return Op.isMBB() || Op.isGlobal() || Op.isSymbol();
-        });
-    if (T != MI.operands_end()) {
+        }); T != MI.operands_end()) {
       OS << ' ';
       if (T->isMBB())
         OS << printMBBReference(*T->getMBB());
@@ -387,9 +387,9 @@ void NodeAllocator::clear() {
 
 // Insert node NA after "this" in the circular chain.
 void NodeBase::append(Node NA) {
-  NodeId Nx = Next;
+  
   // If NA is already "next", do nothing.
-  if (Next != NA.Id) {
+  if (NodeId Nx = Next; Next != NA.Id) {
     Next = NA.Id;
     NA.Addr->Next = Nx;
   }
@@ -1557,8 +1557,8 @@ void DataFlowGraph::linkRefUp(Instr IA, NodeAddr<T> TA, DefStack &DS) {
 
     // Skip all defs that we have already seen.
     // If this completes a cover of RR, stop the stack traversal.
-    bool Seen = Defs.hasCoverOf(QR);
-    if (Seen)
+    
+    if (bool Seen = Defs.hasCoverOf(QR); Seen)
       continue;
 
     bool Cover = Defs.insert(QR).hasCoverOf(RR);
@@ -1604,8 +1604,8 @@ void DataFlowGraph::linkStmtRefs(DefStackMap &DefM, Stmt SA, Predicate P) {
     auto F = DefM.find(RR.Id);
     if (F == DefM.end())
       continue;
-    DefStack &DS = F->second;
-    if (Kind == NodeAttrs::Use)
+    
+    if (DefStack &DS = F->second; Kind == NodeAttrs::Use)
       linkRefUp<UseNode *>(SA, RA, DS);
     else if (Kind == NodeAttrs::Def)
       linkRefUp<DefNode *>(SA, RA, DS);

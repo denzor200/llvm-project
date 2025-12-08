@@ -133,9 +133,9 @@ InstrInfoEmitter::GetOperandInfo(const CodeGenInstruction &Inst) {
     // This might be a multiple operand thing. Targets like X86 have registers
     // in their multi-operand operands. It may also be an anonymous operand,
     // which has a single operand, but no declared class for the operand.
-    const DagInit *MIOI = Op.MIOperandInfo;
+    
 
-    if (!MIOI || MIOI->getNumArgs() == 0) {
+    if (const DagInit *MIOI = Op.MIOperandInfo; !MIOI || MIOI->getNumArgs() == 0) {
       // Single, anonymous, operand.
       OperandList.push_back(Op);
     } else {
@@ -487,8 +487,8 @@ void InstrInfoEmitter::emitOperandTypeMappings(
     for (const CodeGenInstruction *Inst : NumberedInstructions) {
       OperandOffsets.push_back(CurrentOffset);
       for (const auto &Op : Inst->Operands) {
-        const DagInit *MIOI = Op.MIOperandInfo;
-        if (!ExpandMIOperandInfo || !MIOI || MIOI->getNumArgs() == 0) {
+        
+        if (const DagInit *MIOI = Op.MIOperandInfo; !ExpandMIOperandInfo || !MIOI || MIOI->getNumArgs() == 0) {
           // Single, anonymous, operand.
           OperandRecords.push_back(Op.Rec);
           ++CurrentOffset;
@@ -888,9 +888,9 @@ void InstrInfoEmitter::buildTargetSpecializedPseudoInstsMap() {
         Target.getInstruction(SpecializedRec);
     const Record *BaseInstRec = SpecializedRec->getValueAsDef("Instruction");
 
-    const CodeGenInstruction &BaseInst = Target.getInstruction(BaseInstRec);
+    
 
-    if (!TargetSpecializedPseudoInsts.insert({&BaseInst, &SpecializedInst})
+    if (const CodeGenInstruction &BaseInst = Target.getInstruction(BaseInstRec); !TargetSpecializedPseudoInsts.insert({&BaseInst, &SpecializedInst})
              .second)
       PrintFatalError(SpecializedRec, "multiple overrides of '" +
                                           BaseInst.getName() + "' defined");

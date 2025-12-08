@@ -401,8 +401,8 @@ bool SemaPPC::BuiltinPPCMMACall(CallExpr *TheCall, unsigned BuiltinID,
 }
 
 bool SemaPPC::BuiltinVSX(CallExpr *TheCall) {
-  unsigned ExpectedNumArgs = 3;
-  if (SemaRef.checkArgCount(TheCall, ExpectedNumArgs))
+  
+  if (unsigned ExpectedNumArgs = 3; SemaRef.checkArgCount(TheCall, ExpectedNumArgs))
     return true;
 
   // Check the third argument is a compile time constant

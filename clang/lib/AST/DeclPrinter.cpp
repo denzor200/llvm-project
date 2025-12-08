@@ -719,8 +719,8 @@ void DeclPrinter::VisitFunctionDecl(FunctionDecl *D) {
   if (D->isFunctionTemplateSpecialization()) {
     llvm::raw_string_ostream POut(Proto);
     DeclPrinter TArgPrinter(POut, SubPolicy, Context, Indentation);
-    const auto *TArgAsWritten = D->getTemplateSpecializationArgsAsWritten();
-    if (TArgAsWritten && !Policy.PrintAsCanonical)
+    
+    if (const auto *TArgAsWritten = D->getTemplateSpecializationArgsAsWritten(); TArgAsWritten && !Policy.PrintAsCanonical)
       TArgPrinter.printTemplateArguments(TArgAsWritten->arguments(), nullptr);
     else if (const TemplateArgumentList *TArgs =
                  D->getTemplateSpecializationArgs())
@@ -920,8 +920,8 @@ void DeclPrinter::VisitFieldDecl(FieldDecl *D) {
                                   &Context);
   }
 
-  Expr *Init = D->getInClassInitializer();
-  if (!Policy.SuppressInitializers && Init) {
+  
+  if (Expr *Init = D->getInClassInitializer(); !Policy.SuppressInitializers && Init) {
     if (D->getInClassInitStyle() == ICIS_ListInit)
       Out << " ";
     else
@@ -1095,9 +1095,9 @@ void DeclPrinter::VisitCXXRecordDecl(CXXRecordDecl *D) {
     if (auto *S = dyn_cast<ClassTemplateSpecializationDecl>(D)) {
       const TemplateParameterList *TParams =
           S->getSpecializedTemplate()->getTemplateParameters();
-      const ASTTemplateArgumentListInfo *TArgAsWritten =
-          S->getTemplateArgsAsWritten();
-      if (TArgAsWritten && !Policy.PrintAsCanonical)
+      
+      if (const ASTTemplateArgumentListInfo *TArgAsWritten =
+          S->getTemplateArgsAsWritten(); TArgAsWritten && !Policy.PrintAsCanonical)
         printTemplateArguments(TArgAsWritten->arguments(), TParams);
       else
         printTemplateArguments(S->getTemplateArgs().asArray(), TParams);
@@ -1529,8 +1529,8 @@ void DeclPrinter::VisitObjCProtocolDecl(ObjCProtocolDecl *PID) {
     return;
   }
   // Protocols?
-  const ObjCList<ObjCProtocolDecl> &Protocols = PID->getReferencedProtocols();
-  if (!Protocols.empty()) {
+  
+  if (const ObjCList<ObjCProtocolDecl> &Protocols = PID->getReferencedProtocols(); !Protocols.empty()) {
     Out << "@protocol " << *PID;
     for (ObjCList<ObjCProtocolDecl>::iterator I = Protocols.begin(),
          E = Protocols.end(); I != E; ++I)

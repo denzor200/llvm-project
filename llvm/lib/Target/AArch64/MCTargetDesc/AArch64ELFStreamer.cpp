@@ -177,9 +177,9 @@ class AArch64TargetAsmStreamer : public AArch64TargetStreamer {
       return;
     }
 
-    unsigned VendorID = AArch64BuildAttributes::getVendorID(VendorName);
+    
 
-    switch (VendorID) {
+    switch (unsigned VendorID = AArch64BuildAttributes::getVendorID(VendorName); VendorID) {
     case AArch64BuildAttributes::VENDOR_UNKNOWN:
       if (unsigned(-1) != Value) {
         OS << "\t.aeabi_attribute" << "\t" << Tag << ", " << Value;
@@ -541,8 +541,8 @@ void AArch64TargetELFStreamer::finish() {
 
   MCSectionELF *MemtagSec = nullptr;
   for (const MCSymbol &Symbol : Asm.symbols()) {
-    auto &Sym = static_cast<const MCSymbolELF &>(Symbol);
-    if (Sym.isMemtag()) {
+    
+    if (auto &Sym = static_cast<const MCSymbolELF &>(Symbol); Sym.isMemtag()) {
       MemtagSec = Ctx.getELFSection(".memtag.globals.static",
                                     ELF::SHT_AARCH64_MEMTAG_GLOBALS_STATIC, 0);
       break;

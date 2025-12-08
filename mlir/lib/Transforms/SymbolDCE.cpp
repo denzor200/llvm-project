@@ -105,9 +105,9 @@ LogicalResult SymbolDCE::computeLiveness(Operation *symbolTableOp,
         worklist.push_back(&op);
         continue;
       }
-      bool isDiscardable = (symbolTableIsHidden || symbol.isPrivate()) &&
-                           symbol.canDiscardOnUseEmpty();
-      if (!isDiscardable && liveSymbols.insert(&op).second)
+      
+      if (bool isDiscardable = (symbolTableIsHidden || symbol.isPrivate()) &&
+                           symbol.canDiscardOnUseEmpty(); !isDiscardable && liveSymbols.insert(&op).second)
         worklist.push_back(&op);
     }
   }

@@ -104,9 +104,9 @@ struct StoreToLoadForwardingCandidate {
 
     int64_t StrideLoad =
         getPtrStride(PSE, LoadType, LoadPtr, L, DT).value_or(0);
-    int64_t StrideStore =
-        getPtrStride(PSE, LoadType, StorePtr, L, DT).value_or(0);
-    if (!StrideLoad || !StrideStore || StrideLoad != StrideStore)
+    
+    if (int64_t StrideStore =
+        getPtrStride(PSE, LoadType, StorePtr, L, DT).value_or(0); !StrideLoad || !StrideStore || StrideLoad != StrideStore)
       return false;
 
     // TODO: This check for stride values other than 1 and -1 can be eliminated.
@@ -586,8 +586,8 @@ public:
         return false;
       }
 
-      auto *HeaderBB = L->getHeader();
-      if (llvm::shouldOptimizeForSize(HeaderBB, PSI, BFI,
+      
+      if (auto *HeaderBB = L->getHeader(); llvm::shouldOptimizeForSize(HeaderBB, PSI, BFI,
                                       PGSOQueryType::IRPass)) {
         LLVM_DEBUG(
             dbgs() << "Versioning is needed but not allowed when optimizing "

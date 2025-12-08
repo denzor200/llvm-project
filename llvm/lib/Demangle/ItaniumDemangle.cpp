@@ -33,8 +33,8 @@ const char *itanium_demangle::parse_discriminator(const char *first,
   // parse but ignore discriminator
   if (first != last) {
     if (*first == '_') {
-      const char *t1 = first + 1;
-      if (t1 != last) {
+      
+      if (const char *t1 = first + 1; t1 != last) {
         if (std::isdigit(*t1))
           first = t1 + 1;
         else if (*t1 == '_') {

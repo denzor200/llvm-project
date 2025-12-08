@@ -354,8 +354,8 @@ Expected<int64_t> MappedFileRegionArena::allocateOffset(uint64_t AllocSize) {
   if (LLVM_UNLIKELY(NewEnd > DiskSize)) {
     uint64_t NewSize;
     // The minimum increment is a page, but allocate more to amortize the cost.
-    constexpr uint64_t Increment = 1 * 1024 * 1024; // 1 MB
-    if (Error E = preallocateFileTail(*FD, DiskSize, DiskSize + Increment)
+    // 1 MB
+    if (constexpr uint64_t Increment = 1 * 1024 * 1024; Error E = preallocateFileTail(*FD, DiskSize, DiskSize + Increment)
                       .moveInto(NewSize))
       return std::move(E);
     assert(NewSize >= DiskSize + Increment);

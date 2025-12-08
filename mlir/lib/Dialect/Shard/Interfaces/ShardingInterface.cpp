@@ -108,14 +108,14 @@ fromArrayOfVector(MLIRContext *ctxt, const SmallVector<SmallVector<T>> &vec) {
 
 FailureOr<std::pair<bool, Sharding>> shard::getSharding(OpResult result) {
   Value val = cast<Value>(result);
-  bool anyShardedForDef = llvm::any_of(val.getUsers(), [](Operation *user) {
+  
+
+  if (bool anyShardedForDef = llvm::any_of(val.getUsers(), [](Operation *user) {
     auto shardOp = llvm::dyn_cast<shard::ShardOp>(user);
     if (!shardOp)
       return false;
     return !shardOp.getAnnotateForUsers();
-  });
-
-  if (anyShardedForDef) {
+  }); anyShardedForDef) {
     // expected to have exact one use if it has a use of `shard.shard` without
     // unit attr annotate_for_users
     if (!val.hasOneUse())
@@ -178,8 +178,8 @@ LogicalResult shard::ShardingInterface::verifyShardingInterfaceImpl() {
   if (maps.empty())
     return failure();
   unsigned numOperands = op->getNumOperands();
-  unsigned numResults = op->getNumResults();
-  if (numOperands + numResults != maps.size())
+  
+  if (unsigned numResults = op->getNumResults(); numOperands + numResults != maps.size())
     return failure();
 
   for (OpResult result : op->getResults()) {
@@ -371,8 +371,8 @@ static Sharding getSharding(OpResult result,
     // `expr` must be an `AffineDimExpr` because `map` is verified by
     // isProjectedPermutation
     auto dim = cast<AffineDimExpr>(expr);
-    unsigned loopIdx = dim.getPosition();
-    if (loopIdx < shardingOption.shardingArray.size())
+    
+    if (unsigned loopIdx = dim.getPosition(); loopIdx < shardingOption.shardingArray.size())
       splitAxes[it.index()].append(shardingOption.shardingArray[loopIdx]);
   }
 
@@ -559,8 +559,8 @@ static void updateGridAxisAssignmentForLoopIterators(
     SmallVector<std::optional<SmallVector<GridAxis>>>
         &gridAxesAssignmentForLoopIterators) {
   AffineDimExpr affineDimExpr = cast<AffineDimExpr>(indexingExpr);
-  unsigned loopIteratorIdx = affineDimExpr.getPosition();
-  if (gridAxesAssignmentForLoopIterators[loopIteratorIdx]) {
+  
+  if (unsigned loopIteratorIdx = affineDimExpr.getPosition(); gridAxesAssignmentForLoopIterators[loopIteratorIdx]) {
     assert(llvm::equal(gridAxesAssignmentForTensorAxis,
                        *gridAxesAssignmentForLoopIterators[loopIteratorIdx]));
   } else {

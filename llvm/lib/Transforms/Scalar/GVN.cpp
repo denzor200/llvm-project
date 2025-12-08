@@ -398,8 +398,8 @@ GVNPass::ValueTable::createExtractvalueExpr(ExtractValueInst *EI) {
   E.Ty = EI->getType();
   E.Opcode = 0;
 
-  WithOverflowInst *WO = dyn_cast<WithOverflowInst>(EI->getAggregateOperand());
-  if (WO != nullptr && EI->getNumIndices() == 1 && *EI->idx_begin() == 0) {
+  
+  if (WithOverflowInst *WO = dyn_cast<WithOverflowInst>(EI->getAggregateOperand()); WO != nullptr && EI->getNumIndices() == 1 && *EI->idx_begin() == 0) {
     // EI is an extract from one of our with.overflow intrinsics. Synthesize
     // a semantically equivalent expression instead of an extract value
     // expression.
@@ -513,8 +513,8 @@ uint32_t GVNPass::ValueTable::lookupOrAddCall(CallInst *C) {
 
   if (MD && AA->onlyReadsMemory(C)) {
     Expression Exp = createExpr(C);
-    auto [E, IsValNumNew] = assignExpNewValueNum(Exp);
-    if (IsValNumNew) {
+    
+    if (auto [E, IsValNumNew] = assignExpNewValueNum(Exp); IsValNumNew) {
       ValueNumbering[C] = E;
       return E;
     }
@@ -538,8 +538,8 @@ uint32_t GVNPass::ValueTable::lookupOrAddCall(CallInst *C) {
 
       for (unsigned I = 0, E = C->arg_size(); I < E; ++I) {
         uint32_t CVN = lookupOrAdd(C->getArgOperand(I));
-        uint32_t LocalDepCallVN = lookupOrAdd(LocalDepCall->getArgOperand(I));
-        if (CVN != LocalDepCallVN) {
+        
+        if (uint32_t LocalDepCallVN = lookupOrAdd(LocalDepCall->getArgOperand(I)); CVN != LocalDepCallVN) {
           ValueNumbering[C] = NextValueNumber;
           return NextValueNumber++;
         }
@@ -569,9 +569,9 @@ uint32_t GVNPass::ValueTable::lookupOrAddCall(CallInst *C) {
         break;
       }
 
-      CallInst *NonLocalDepCall = dyn_cast<CallInst>(I.getResult().getInst());
+      
       // FIXME: All duplicated with non-local case.
-      if (NonLocalDepCall && DT->properlyDominates(I.getBB(), C->getParent())) {
+      if (CallInst *NonLocalDepCall = dyn_cast<CallInst>(I.getResult().getInst()); NonLocalDepCall && DT->properlyDominates(I.getBB(), C->getParent())) {
         CDep = NonLocalDepCall;
         continue;
       }
@@ -591,8 +591,8 @@ uint32_t GVNPass::ValueTable::lookupOrAddCall(CallInst *C) {
     }
     for (unsigned I = 0, E = C->arg_size(); I < E; ++I) {
       uint32_t CVN = lookupOrAdd(C->getArgOperand(I));
-      uint32_t CDepVN = lookupOrAdd(CDep->getArgOperand(I));
-      if (CVN != CDepVN) {
+      
+      if (uint32_t CDepVN = lookupOrAdd(CDep->getArgOperand(I)); CVN != CDepVN) {
         ValueNumbering[C] = NextValueNumber;
         return NextValueNumber++;
       }
@@ -1146,8 +1146,8 @@ Value *AvailableValue::MaterializeAdjustedValue(LoadInst *Load,
                                                 Instruction *InsertPt) const {
   Value *Res;
   Type *LoadTy = Load->getType();
-  const DataLayout &DL = Load->getDataLayout();
-  if (isSimpleValue()) {
+  
+  if (const DataLayout &DL = Load->getDataLayout(); isSimpleValue()) {
     Res = getSimpleValue();
     if (Res->getType() != LoadTy) {
       Res = getValueForLoad(Res, Offset, LoadTy, InsertPt, Load->getFunction());
@@ -1158,8 +1158,8 @@ Value *AvailableValue::MaterializeAdjustedValue(LoadInst *Load,
                         << "\n\n\n");
     }
   } else if (isCoercedLoadValue()) {
-    LoadInst *CoercedLoad = getCoercedLoadValue();
-    if (CoercedLoad->getType() == LoadTy && Offset == 0) {
+    
+    if (LoadInst *CoercedLoad = getCoercedLoadValue(); CoercedLoad->getType() == LoadTy && Offset == 0) {
       Res = CoercedLoad;
       combineMetadataForCSE(CoercedLoad, Load, false);
     } else {
@@ -1234,8 +1234,8 @@ static const Instruction *findMayClobberedPtrAccess(LoadInst *Load,
 
   for (auto *U : PtrOp->users()) {
     if (U != Load && (isa<LoadInst>(U) || isa<StoreInst>(U))) {
-      auto *I = cast<Instruction>(U);
-      if (I->getFunction() == Load->getFunction() && DT->dominates(I, Load)) {
+      
+      if (auto *I = cast<Instruction>(U); I->getFunction() == Load->getFunction() && DT->dominates(I, Load)) {
         // Use the most immediately dominating value.
         if (OtherAccess) {
           if (DT->dominates(OtherAccess, I))
@@ -1255,8 +1255,8 @@ static const Instruction *findMayClobberedPtrAccess(LoadInst *Load,
   // use that lies between any other potentially available use and Load.
   for (auto *U : PtrOp->users()) {
     if (U != Load && (isa<LoadInst>(U) || isa<StoreInst>(U))) {
-      auto *I = cast<Instruction>(U);
-      if (I->getFunction() == Load->getFunction() &&
+      
+      if (auto *I = cast<Instruction>(U); I->getFunction() == Load->getFunction() &&
           isPotentiallyReachable(I, Load, nullptr, DT)) {
         if (OtherAccess) {
           if (liesBetween(OtherAccess, I, Load, DT)) {
@@ -1289,8 +1289,8 @@ static void reportMayClobberedLoad(LoadInst *Load, MemDepResult DepInfo,
   R << "load of type " << NV("Type", Load->getType()) << " not eliminated"
     << setExtraArgs();
 
-  const Instruction *OtherAccess = findMayClobberedPtrAccess(Load, DT);
-  if (OtherAccess)
+  
+  if (const Instruction *OtherAccess = findMayClobberedPtrAccess(Load, DT); OtherAccess)
     R << " in favor of " << NV("OtherAccess", OtherAccess);
 
   R << " because it is clobbered by " << NV("ClobberedBy", DepInfo.getInst());
@@ -1328,17 +1328,17 @@ GVNPass::AnalyzeLoadAvailability(LoadInst *Load, MemDepResult DepInfo,
 
   Instruction *DepInst = DepInfo.getInst();
 
-  const DataLayout &DL = Load->getDataLayout();
-  if (DepInfo.isClobber()) {
+  
+  if (const DataLayout &DL = Load->getDataLayout(); DepInfo.isClobber()) {
     // If the dependence is to a store that writes to a superset of the bits
     // read by the load, we can extract the bits we need for the load from the
     // stored value.
     if (StoreInst *DepSI = dyn_cast<StoreInst>(DepInst)) {
       // Can't forward from non-atomic to atomic without violating memory model.
       if (Address && Load->isAtomic() <= DepSI->isAtomic()) {
-        int Offset =
-            analyzeLoadFromClobberingStore(Load->getType(), Address, DepSI, DL);
-        if (Offset != -1)
+        
+        if (int Offset =
+            analyzeLoadFromClobberingStore(Load->getType(), Address, DepSI, DL); Offset != -1)
           return AvailableValue::get(DepSI->getValueOperand(), Offset);
       }
     }
@@ -1378,9 +1378,9 @@ GVNPass::AnalyzeLoadAvailability(LoadInst *Load, MemDepResult DepInfo,
     // forward a value on from it.
     if (MemIntrinsic *DepMI = dyn_cast<MemIntrinsic>(DepInst)) {
       if (Address && !Load->isAtomic()) {
-        int Offset = analyzeLoadFromClobberingMemInst(Load->getType(), Address,
-                                                      DepMI, DL);
-        if (Offset != -1)
+        
+        if (int Offset = analyzeLoadFromClobberingMemInst(Load->getType(), Address,
+                                                      DepMI, DL); Offset != -1)
           return AvailableValue::getMI(DepMI, Offset);
       }
     }
@@ -1575,9 +1575,9 @@ void GVNPass::eliminatePartiallyRedundantLoad(
         UnavailableBlock->getTerminator()->getIterator());
     NewLoad->setDebugLoc(Load->getDebugLoc());
     if (MSSAU) {
-      auto *NewAccess = MSSAU->createMemoryAccessInBB(
-          NewLoad, nullptr, NewLoad->getParent(), MemorySSA::BeforeTerminator);
-      if (auto *NewDef = dyn_cast<MemoryDef>(NewAccess))
+      
+      if (auto *NewAccess = MSSAU->createMemoryAccessInBB(
+          NewLoad, nullptr, NewLoad->getParent(), MemorySSA::BeforeTerminator); auto *NewDef = dyn_cast<MemoryDef>(NewAccess))
         MSSAU->insertDef(NewDef, /*RenameUses=*/true);
       else
         MSSAU->insertUse(cast<MemoryUse>(NewAccess), /*RenameUses=*/true);
@@ -1613,8 +1613,8 @@ void GVNPass::eliminatePartiallyRedundantLoad(
     // For PredBB in CriticalEdgePredAndLoad we need to replace the uses of old
     // load instruction with the new created load instruction.
     if (CriticalEdgePredAndLoad) {
-      auto It = CriticalEdgePredAndLoad->find(UnavailableBlock);
-      if (It != CriticalEdgePredAndLoad->end()) {
+      
+      if (auto It = CriticalEdgePredAndLoad->find(UnavailableBlock); It != CriticalEdgePredAndLoad->end()) {
         ++NumPRELoadMoved2CEPred;
         ICF->insertInstructionTo(NewLoad, UnavailableBlock);
         LoadInst *OldLoad = It->second;
@@ -2090,19 +2090,19 @@ bool GVNPass::processAssumeIntrinsic(AssumeInst *IntrinsicI) {
       // Insert a new store to null instruction before the load to indicate that
       // this code is not reachable.  FIXME: We could insert unreachable
       // instruction directly because we can modify the CFG.
-      auto *NewS =
+      
+      if (auto *NewS =
           new StoreInst(PoisonValue::get(Int8Ty), Constant::getNullValue(PtrTy),
-                        IntrinsicI->getIterator());
-      if (MSSAU) {
+                        IntrinsicI->getIterator()); MSSAU) {
         const MemoryUseOrDef *FirstNonDom = nullptr;
-        const auto *AL =
-            MSSAU->getMemorySSA()->getBlockAccesses(IntrinsicI->getParent());
+        
 
         // If there are accesses in the current basic block, find the first one
         // that does not come before NewS. The new memory access is inserted
         // after the found access or before the terminator if no such access is
         // found.
-        if (AL) {
+        if (const auto *AL =
+            MSSAU->getMemorySSA()->getBlockAccesses(IntrinsicI->getParent()); AL) {
           for (const auto &Acc : *AL) {
             if (auto *Current = dyn_cast<MemoryUseOrDef>(&Acc))
               if (!Current->getMemoryInst()->comesBefore(NewS)) {
@@ -2369,8 +2369,8 @@ uint32_t GVNPass::ValueTable::phiTranslateImpl(const BasicBlock *Pred,
     assert(Exp.VarArgs.size() >= 2 && "Unsupported commutative instruction!");
     if (Exp.VarArgs[0] > Exp.VarArgs[1]) {
       std::swap(Exp.VarArgs[0], Exp.VarArgs[1]);
-      uint32_t Opcode = Exp.Opcode >> 8;
-      if (Opcode == Instruction::ICmp || Opcode == Instruction::FCmp)
+      
+      if (uint32_t Opcode = Exp.Opcode >> 8; Opcode == Instruction::ICmp || Opcode == Instruction::FCmp)
         Exp.Opcode = (Opcode << 8) |
                      CmpInst::getSwappedPredicate(
                          static_cast<CmpInst::Predicate>(Exp.Opcode & 255));
@@ -2493,8 +2493,8 @@ bool GVNPass::propagateEquality(
         (isa<Instruction>(LHS) && isa<Instruction>(RHS))) {
       // Move the 'oldest' value to the right-hand side, using the value number
       // as a proxy for age.
-      uint32_t RVN = VN.lookupOrAdd(RHS);
-      if (LVN < RVN) {
+      
+      if (uint32_t RVN = VN.lookupOrAdd(RHS); LVN < RVN) {
         std::swap(LHS, RHS);
         LVN = RVN;
       }
@@ -2597,8 +2597,8 @@ bool GVNPass::propagateEquality(
                 !DT->dominates(Edge->getEnd(), Entry.BB))
               continue;
           } else {
-            auto *InstBB = std::get<Instruction *>(Root)->getParent();
-            if (!DT->dominates(Entry.BB, InstBB) &&
+            
+            if (auto *InstBB = std::get<Instruction *>(Root)->getParent(); !DT->dominates(Entry.BB, InstBB) &&
                 !DT->dominates(InstBB, Entry.BB))
               continue;
           }
@@ -2654,8 +2654,8 @@ bool GVNPass::processInstruction(Instruction *I) {
   // to value numbering it.  Value numbering often exposes redundancies, for
   // example if it determines that %y is equal to %x then the instruction
   // "%z = and i32 %x, %y" becomes "%z = and i32 %x, %x" which we now simplify.
-  const DataLayout &DL = I->getDataLayout();
-  if (Value *V = simplifyInstruction(I, {DL, TLI, DT, AC})) {
+  
+  if (const DataLayout &DL = I->getDataLayout(); Value *V = simplifyInstruction(I, {DL, TLI, DT, AC})) {
     bool Changed = false;
     if (!I->use_empty()) {
       // Simplification can cause a special instruction to become not special.
@@ -2734,9 +2734,9 @@ bool GVNPass::processInstruction(Instruction *I) {
       ++SwitchEdges[Succ];
 
     for (const auto &Case : SI->cases()) {
-      BasicBlock *Dst = Case.getCaseSuccessor();
+      
       // If there is only a single edge, propagate the case value into it.
-      if (SwitchEdges.lookup(Dst) == 1) {
+      if (BasicBlock *Dst = Case.getCaseSuccessor(); SwitchEdges.lookup(Dst) == 1) {
         BasicBlockEdge E(Parent, Dst);
         Changed |= propagateEquality(SwitchCond, Case.getCaseValue(), E);
       }
@@ -2902,9 +2902,9 @@ bool GVNPass::performScalarPREInsertion(Instruction *Instr, BasicBlock *Pred,
       Success = false;
       break;
     }
-    uint32_t TValNo =
-        VN.phiTranslate(Pred, Curr, VN.lookup(Op), *this);
-    if (Value *V = findLeader(Pred, TValNo)) {
+    
+    if (uint32_t TValNo =
+        VN.phiTranslate(Pred, Curr, VN.lookup(Op), *this); Value *V = findLeader(Pred, TValNo)) {
       Instr->setOperand(I, V);
     } else {
       Success = false;

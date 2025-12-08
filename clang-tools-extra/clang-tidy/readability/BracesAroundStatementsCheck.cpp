@@ -70,10 +70,10 @@ void BracesAroundStatementsCheck::registerMatchers(MatchFinder *Finder) {
 void BracesAroundStatementsCheck::check(
     const MatchFinder::MatchResult &Result) {
   const SourceManager &SM = *Result.SourceManager;
-  const ASTContext *Context = Result.Context;
+  
 
   // Get location of closing parenthesis or 'do' to insert opening brace.
-  if (const auto *S = Result.Nodes.getNodeAs<ForStmt>("for")) {
+  if (const ASTContext *Context = Result.Context; const auto *S = Result.Nodes.getNodeAs<ForStmt>("for")) {
     checkStmt(Result, S->getBody(), S->getRParenLoc());
   } else if (const auto *S =
                  Result.Nodes.getNodeAs<CXXForRangeStmt>("for-range")) {

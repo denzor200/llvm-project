@@ -1128,9 +1128,9 @@ void MLocTracker::writeRegMask(const MachineOperand *MO, unsigned CurBB,
   // terminates the liveness of a register, meaning its value can't be
   // relied upon -- we represent this by giving it a new value.
   for (auto Location : locations()) {
-    unsigned ID = LocIdxToLocID[Location.Idx];
+    
     // Don't clobber SP, even if the mask says it's clobbered.
-    if (ID < NumRegs && !SPAliases.count(ID) && MO->clobbersPhysReg(ID))
+    if (unsigned ID = LocIdxToLocID[Location.Idx]; ID < NumRegs && !SPAliases.count(ID) && MO->clobbersPhysReg(ID))
       defReg(ID, CurBB, InstID);
   }
   Masks.push_back(std::make_pair(MO, InstID));
@@ -1164,8 +1164,8 @@ std::optional<SpillLocationNo> MLocTracker::getOrTrackSpillLoc(SpillLoc L) {
 }
 
 std::string MLocTracker::LocIdxToName(LocIdx Idx) const {
-  unsigned ID = LocIdxToLocID[Idx];
-  if (ID >= NumRegs) {
+  
+  if (unsigned ID = LocIdxToLocID[Idx]; ID >= NumRegs) {
     StackSlotPos Pos = locIDToSpillIdx(ID);
     ID -= NumRegs;
     unsigned Slot = ID / NumSlotIdxes;
@@ -1265,7 +1265,7 @@ MLocTracker::emitLoc(const SmallVectorImpl<ResolvedDbgOp> &DbgOps,
     if (LocID >= NumRegs) {
       SpillLocationNo SpillID = locIDToSpill(LocID);
       StackSlotPos StackIdx = locIDToSpillIdx(LocID);
-      unsigned short Offset = StackIdx.second;
+      
 
       // TODO: support variables that are located in spill slots, with non-zero
       // offsets from the start of the spill slot. It would require some more
@@ -1274,7 +1274,7 @@ MLocTracker::emitLoc(const SmallVectorImpl<ResolvedDbgOp> &DbgOps,
       // Accept no-subregister slots and subregisters where the offset is zero.
       // The consumer should already have type information to work out how large
       // the variable is.
-      if (Offset == 0) {
+      if (unsigned short Offset = StackIdx.second; Offset == 0) {
         const SpillLoc &Spill = SpillLocs[SpillID.id()];
         unsigned Base = Spill.SpillBase;
 
@@ -1296,8 +1296,8 @@ MLocTracker::emitLoc(const SmallVectorImpl<ResolvedDbgOp> &DbgOps,
         unsigned ValueSizeInBits = getLocSizeInBits(MLoc);
         unsigned DerefSizeInBytes = ValueSizeInBits / 8;
         if (auto Fragment = Var.getFragment()) {
-          unsigned VariableSizeInBits = Fragment->SizeInBits;
-          if (VariableSizeInBits != ValueSizeInBits || Expr->isComplex())
+          
+          if (unsigned VariableSizeInBits = Fragment->SizeInBits; VariableSizeInBits != ValueSizeInBits || Expr->isComplex())
             UseDerefSize = true;
         } else if (auto Size = Var.getVariable()->getSizeInBits()) {
           if (*Size != ValueSizeInBits) {
@@ -1446,8 +1446,8 @@ bool InstrRefBasedLDV::transferDebugValue(const MachineInstr &MI) {
 
   // If there are no instructions in this lexical scope, do no location tracking
   // at all, this variable shouldn't get a legitimate location range.
-  auto *Scope = LS.findLexicalScope(MI.getDebugLoc().get());
-  if (Scope == nullptr)
+  
+  if (auto *Scope = LS.findLexicalScope(MI.getDebugLoc().get()); Scope == nullptr)
     return true; // handled it; by doing nothing
 
   // MLocTracker needs to know that this register is read, even if it's only
@@ -1517,14 +1517,14 @@ std::optional<ValueIDNum> InstrRefBasedLDV::getValueForInstrRef(
   // Try to lookup the instruction number, and find the machine value number
   // that it defines. It could be an instruction, or a PHI.
   auto InstrIt = DebugInstrNumToInstr.find(InstNo);
-  auto PHIIt = llvm::lower_bound(DebugPHINumToValue, InstNo);
-  if (InstrIt != DebugInstrNumToInstr.end()) {
+  
+  if (auto PHIIt = llvm::lower_bound(DebugPHINumToValue, InstNo); InstrIt != DebugInstrNumToInstr.end()) {
     const MachineInstr &TargetInstr = *InstrIt->second.first;
-    uint64_t BlockNo = TargetInstr.getParent()->getNumber();
+    
 
     // Pick out the designated operand. It might be a memory reference, if
     // a register def was folded into a stack store.
-    if (OpNo == MachineFunction::DebugOperandMemNumber &&
+    if (uint64_t BlockNo = TargetInstr.getParent()->getNumber(); OpNo == MachineFunction::DebugOperandMemNumber &&
         TargetInstr.hasOneMemOperand()) {
       std::optional<LocIdx> L = findLocationForMemOperand(TargetInstr);
       if (L)
@@ -1536,9 +1536,9 @@ std::optional<ValueIDNum> InstrRefBasedLDV::getValueForInstrRef(
       // shouldn't crash the compiler -- instead leave the variable value as
       // None, which will make it appear "optimised out".
       if (OpNo < TargetInstr.getNumOperands()) {
-        const MachineOperand &MO = TargetInstr.getOperand(OpNo);
+        
 
-        if (MO.isReg() && MO.isDef() && MO.getReg()) {
+        if (const MachineOperand &MO = TargetInstr.getOperand(OpNo); MO.isReg() && MO.isDef() && MO.getReg()) {
           unsigned LocID = MTracker->getLocID(MO.getReg());
           LocIdx L = MTracker->LocIDToLocIdx[LocID];
           NewID = ValueIDNum(BlockNo, InstrIt->second.second, L);
@@ -1600,15 +1600,15 @@ std::optional<ValueIDNum> InstrRefBasedLDV::getValueForInstrRef(
 
       // If the register we have isn't the right size or in the right place,
       // Try to find a subregister inside it.
-      unsigned MainRegSize = TRI->getRegSizeInBits(*TRC);
-      if (Size != MainRegSize || Offset) {
+      
+      if (unsigned MainRegSize = TRI->getRegSizeInBits(*TRC); Size != MainRegSize || Offset) {
         // Enumerate all subregisters, searching.
         Register NewReg = Register();
         for (MCRegister SR : TRI->subregs(Reg)) {
           unsigned Subreg = TRI->getSubRegIndex(Reg, SR);
           unsigned SubregSize = TRI->getSubRegIdxSize(Subreg);
-          unsigned SubregOffset = TRI->getSubRegIdxOffset(Subreg);
-          if (SubregSize == Size && SubregOffset == Offset) {
+          
+          if (unsigned SubregOffset = TRI->getSubRegIdxOffset(Subreg); SubregSize == Size && SubregOffset == Offset) {
             NewReg = SR;
             break;
           }
@@ -1654,8 +1654,8 @@ bool InstrRefBasedLDV::transferDebugInstrRef(MachineInstr &MI,
 
   DebugVariable V(Var, Expr, InlinedAt);
 
-  auto *Scope = LS.findLexicalScope(MI.getDebugLoc().get());
-  if (Scope == nullptr)
+  
+  if (auto *Scope = LS.findLexicalScope(MI.getDebugLoc().get()); Scope == nullptr)
     return true; // Handled by doing nothing. This variable is never in scope.
 
   SmallVector<DbgOpID> DbgOpIDs;
@@ -2029,8 +2029,8 @@ InstrRefBasedLDV::isSpillInstruction(const MachineInstr &MI,
 
   // Reject any memory operand that's aliased -- we can't guarantee its value.
   auto MMOI = MI.memoperands_begin();
-  const PseudoSourceValue *PVal = (*MMOI)->getPseudoValue();
-  if (PVal->isAliased(MFI))
+  
+  if (const PseudoSourceValue *PVal = (*MMOI)->getPseudoValue(); PVal->isAliased(MFI))
     return std::nullopt;
 
   if (!MI.getSpillSize(TII) && !MI.getFoldedSpillSize(TII))
@@ -2442,8 +2442,8 @@ void InstrRefBasedLDV::produceMLocTransferFunction(
       auto Result =
         TransferMap.insert(std::make_pair(Idx.asU64(), NotGeneratedNum));
       if (!Result.second) {
-        ValueIDNum &ValueID = Result.first->second;
-        if (ValueID.getBlock() == I && ValueID.isPHI())
+        
+        if (ValueIDNum &ValueID = Result.first->second; ValueID.getBlock() == I && ValueID.isPHI())
           // It was left as live-through. Set it to clobbered.
           ValueID = NotGeneratedNum;
       }
@@ -2610,8 +2610,8 @@ void InstrRefBasedLDV::placeMLocPHIs(
     // Collect the set of defs.
     SmallPtrSet<MachineBasicBlock *, 32> DefBlocks;
     for (MachineBasicBlock *MBB : OrderToBB) {
-      const auto &TransferFunc = MLocTransfer[MBB->getNumber()];
-      if (TransferFunc.contains(L))
+      
+      if (const auto &TransferFunc = MLocTransfer[MBB->getNumber()]; TransferFunc.contains(L))
         DefBlocks.insert(MBB);
     }
 
@@ -3018,8 +3018,8 @@ bool InstrRefBasedLDV::vlocJoin(
 
     // Keep track of where back-edges begin in the Values vector. Relies on
     // BlockOrders being sorted by RPO.
-    unsigned ThisBBRPONum = BBToOrder[p];
-    if (ThisBBRPONum < CurBlockRPONum)
+    
+    if (unsigned ThisBBRPONum = BBToOrder[p]; ThisBBRPONum < CurBlockRPONum)
       ++BackEdgesStart;
 
     Values.push_back(std::make_pair(p, &OutLoc));
@@ -3250,8 +3250,8 @@ void InstrRefBasedLDV::buildVLocValueMap(
     // Collect the set of blocks where variables are def'd.
     SmallPtrSet<MachineBasicBlock *, 32> DefBlocks;
     for (const MachineBasicBlock *ExpMBB : BlocksToExplore) {
-      auto &TransferFunc = AllTheVLocs[ExpMBB->getNumber()].Vars;
-      if (TransferFunc.contains(VarID))
+      
+      if (auto &TransferFunc = AllTheVLocs[ExpMBB->getNumber()].Vars; TransferFunc.contains(VarID))
         DefBlocks.insert(const_cast<MachineBasicBlock *>(ExpMBB));
     }
 
@@ -3332,8 +3332,8 @@ void InstrRefBasedLDV::buildVLocValueMap(
 
         // Do transfer function.
         auto &VTracker = AllTheVLocs[MBB->getNumber()];
-        auto TransferIt = VTracker.Vars.find(VarID);
-        if (TransferIt != VTracker.Vars.end()) {
+        
+        if (auto TransferIt = VTracker.Vars.find(VarID); TransferIt != VTracker.Vars.end()) {
           // Erase on empty transfer (DBG_VALUE $noreg).
           if (TransferIt->second.Kind == DbgValue::Undef) {
             DbgValue NewVal(MBB->getNumber(), EmptyProperties, DbgValue::NoVal);
@@ -3531,8 +3531,8 @@ void InstrRefBasedLDV::makeDepthFirstEjectionMap(
     LexicalScope *WS = ScopePosition.first;
     ssize_t ChildNum = ScopePosition.second--;
 
-    const SmallVectorImpl<LexicalScope *> &Children = WS->getChildren();
-    if (ChildNum >= 0) {
+    
+    if (const SmallVectorImpl<LexicalScope *> &Children = WS->getChildren(); ChildNum >= 0) {
       // If ChildNum is positive, there are remaining children to explore.
       // Push the child and its children-count onto the stack.
       auto &ChildScope = Children[ChildNum];
@@ -3549,8 +3549,8 @@ void InstrRefBasedLDV::makeDepthFirstEjectionMap(
         getBlocksForScope(DILocationIt->second, BlocksToExplore,
                           ScopeToAssignBlocks.find(WS)->second);
         for (const auto *MBB : BlocksToExplore) {
-          unsigned BBNum = MBB->getNumber();
-          if (EjectionMap[BBNum] == 0)
+          
+          if (unsigned BBNum = MBB->getNumber(); EjectionMap[BBNum] == 0)
             EjectionMap[BBNum] = WS->getDFSOut();
         }
 
@@ -3639,8 +3639,8 @@ bool InstrRefBasedLDV::depthFirstVLocAndEmit(
     HighestDFSIn = std::max(HighestDFSIn, WS->getDFSIn());
 
     // Descend into any scope nests.
-    const SmallVectorImpl<LexicalScope *> &Children = WS->getChildren();
-    if (ChildNum < (ssize_t)Children.size()) {
+    
+    if (const SmallVectorImpl<LexicalScope *> &Children = WS->getChildren(); ChildNum < (ssize_t)Children.size()) {
       // There are children to explore -- push onto stack and continue.
       auto &ChildScope = Children[ChildNum];
       WorkStack.push_back(std::make_pair(ChildScope, 0));
@@ -4120,8 +4120,8 @@ public:
   /// ValueIsNewPHI - Like ValueIsPHI but also check if the PHI has no source
   /// operands, i.e., it was just added.
   static LDVSSAPhi *ValueIsNewPHI(BlockValueNum Val, LDVSSAUpdater *Updater) {
-    LDVSSAPhi *PHI = ValueIsPHI(Val, Updater);
-    if (PHI && PHI->IncomingValues.size() == 0)
+    
+    if (LDVSSAPhi *PHI = ValueIsPHI(Val, Updater); PHI && PHI->IncomingValues.size() == 0)
       return PHI;
     return nullptr;
   }

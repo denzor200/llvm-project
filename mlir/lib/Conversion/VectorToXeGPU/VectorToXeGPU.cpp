@@ -53,8 +53,8 @@ static LogicalResult storeLoadPreconditions(PatternRewriter &rewriter,
                                             Operation *op, VectorType vecTy) {
   // Validate only vector as the basic vector store and load ops guarantee
   // XeGPU-compatible memref source.
-  unsigned vecRank = vecTy.getRank();
-  if (!(vecRank == 1 || vecRank == 2))
+  
+  if (unsigned vecRank = vecTy.getRank(); !(vecRank == 1 || vecRank == 2))
     return rewriter.notifyMatchFailure(op, "Expects 1D or 2D vector");
 
   return success();
@@ -167,11 +167,11 @@ computeMemrefMeta(OpType xferOp, PatternRewriter &rewriter) {
     SmallVector<int64_t> intStrides;
     if (failed(memrefType.getStridesAndOffset(intStrides, offset)))
       return {{}, offsetVal};
-    bool hasDynamicStrides = llvm::any_of(intStrides, [](int64_t strideVal) {
-      return ShapedType::isDynamic(strideVal);
-    });
+    
 
-    if (!hasDynamicStrides)
+    if (bool hasDynamicStrides = llvm::any_of(intStrides, [](int64_t strideVal) {
+      return ShapedType::isDynamic(strideVal);
+    }); !hasDynamicStrides)
       for (int64_t s : intStrides)
         strides.push_back(arith::ConstantIndexOp::create(rewriter, loc, s));
 

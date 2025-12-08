@@ -70,9 +70,9 @@ NoOwnershipChangeVisitor::getFunctionName(const ExplodedNode *CallEnterN) {
 
 bool NoOwnershipChangeVisitor::wasModifiedInFunction(
     const ExplodedNode *CallEnterN, const ExplodedNode *CallExitEndN) {
-  const Decl *Callee =
-      CallExitEndN->getFirstPred()->getLocationContext()->getDecl();
-  if (!doesFnIntendToHandleOwnership(
+  
+  if (const Decl *Callee =
+      CallExitEndN->getFirstPred()->getLocationContext()->getDecl(); !doesFnIntendToHandleOwnership(
           Callee,
           CallExitEndN->getState()->getAnalysisManager().getASTContext()))
     return true;

@@ -188,8 +188,8 @@ protected:
       LLVMOrcCSymbolMapPair Pair = {Element.Name, Sym};
       LLVMOrcCSymbolMapPair Pairs[] = {Pair};
       LLVMOrcMaterializationUnitRef MU = LLVMOrcAbsoluteSymbols(Pairs, 1);
-      LLVMErrorRef Err = LLVMOrcJITDylibDefine(JD, MU);
-      if (Err)
+      
+      if (LLVMErrorRef Err = LLVMOrcJITDylibDefine(JD, MU); Err)
         return Err;
     }
     return LLVMErrorSuccess;
@@ -294,8 +294,8 @@ TEST_F(OrcCAPITestBase, MaterializationUnitCreation) {
   LLVMJITEvaluatedSymbol Sym = {Addr, Flags};
   LLVMOrcCSymbolMapPair Pair = {Name, Sym};
   LLVMOrcCSymbolMapPair Pairs[] = {Pair};
-  LLVMOrcMaterializationUnitRef MU = LLVMOrcAbsoluteSymbols(Pairs, 1);
-  if (LLVMErrorRef E = LLVMOrcJITDylibDefine(MainDylib, MU))
+  
+  if (LLVMOrcMaterializationUnitRef MU = LLVMOrcAbsoluteSymbols(Pairs, 1); LLVMErrorRef E = LLVMOrcJITDylibDefine(MainDylib, MU))
     FAIL() << "Unexpected error while adding \"test\" symbol (triple = "
            << TargetTriple << "): " << toString(E);
   LLVMOrcJITTargetAddress OutAddr;
@@ -379,9 +379,9 @@ TEST_F(OrcCAPITestBase, ExecutionSessionLookup_Success) {
   LLVMOrcCSymbolMapPair MainJDPairs[] = {
       {Foo, {0x1, {LLVMJITSymbolGenericFlagsExported, 0}}},
       {Bar, {0x2, {LLVMJITSymbolGenericFlagsNone, 0}}}};
-  LLVMOrcMaterializationUnitRef MainJDMU =
-      LLVMOrcAbsoluteSymbols(MainJDPairs, 2);
-  if (LLVMErrorRef E = LLVMOrcJITDylibDefine(MainDylib, MainJDMU))
+  
+  if (LLVMOrcMaterializationUnitRef MainJDMU =
+      LLVMOrcAbsoluteSymbols(MainJDPairs, 2); LLVMErrorRef E = LLVMOrcJITDylibDefine(MainDylib, MainJDMU))
     FAIL() << "Unexpected error while adding MainDylib symbols (triple = "
            << TargetTriple << "): " << toString(E);
 
@@ -469,8 +469,8 @@ TEST_F(OrcCAPITestBase, ResourceTrackerDefinitionLifetime) {
   // removed.
   LLVMOrcResourceTrackerRef RT =
       LLVMOrcJITDylibCreateResourceTracker(MainDylib);
-  LLVMOrcThreadSafeModuleRef TSM = createTestModule(SumExample, "sum.ll");
-  if (LLVMErrorRef E = LLVMOrcLLJITAddLLVMIRModuleWithRT(Jit, RT, TSM))
+  
+  if (LLVMOrcThreadSafeModuleRef TSM = createTestModule(SumExample, "sum.ll"); LLVMErrorRef E = LLVMOrcLLJITAddLLVMIRModuleWithRT(Jit, RT, TSM))
     FAIL() << "Failed to add LLVM IR module to LLJIT (triple = " << TargetTriple
            << "): " << toString(E);
   LLVMOrcJITTargetAddress TestFnAddr;
@@ -497,8 +497,8 @@ TEST_F(OrcCAPITestBase, ResourceTrackerTransfer) {
       LLVMOrcJITDylibGetDefaultResourceTracker(MainDylib);
   LLVMOrcResourceTrackerRef RT2 =
       LLVMOrcJITDylibCreateResourceTracker(MainDylib);
-  LLVMOrcThreadSafeModuleRef TSM = createTestModule(SumExample, "sum.ll");
-  if (LLVMErrorRef E = LLVMOrcLLJITAddLLVMIRModuleWithRT(Jit, DefaultRT, TSM))
+  
+  if (LLVMOrcThreadSafeModuleRef TSM = createTestModule(SumExample, "sum.ll"); LLVMErrorRef E = LLVMOrcLLJITAddLLVMIRModuleWithRT(Jit, DefaultRT, TSM))
     FAIL() << "Failed to add LLVM IR module to LLJIT (triple = " << TargetTriple
            << "): " << toString(E);
   LLVMOrcJITTargetAddress Addr;
@@ -517,9 +517,9 @@ TEST_F(OrcCAPITestBase, DISABLED_AddObjectBuffer) {
 TEST_F(OrcCAPITestBase, AddObjectBuffer) {
 #endif
   LLVMOrcObjectLayerRef ObjLinkingLayer = LLVMOrcLLJITGetObjLinkingLayer(Jit);
-  LLVMMemoryBufferRef ObjBuffer = createTestObject(SumExample, "sum.ll");
+  
 
-  if (LLVMErrorRef E = LLVMOrcObjectLayerAddObjectFile(ObjLinkingLayer,
+  if (LLVMMemoryBufferRef ObjBuffer = createTestObject(SumExample, "sum.ll"); LLVMErrorRef E = LLVMOrcObjectLayerAddObjectFile(ObjLinkingLayer,
                                                        MainDylib, ObjBuffer))
     FAIL() << "Failed to add object file to ObjLinkingLayer (triple = "
            << TargetTriple << "): " << toString(E);
@@ -585,8 +585,8 @@ TEST_F(OrcCAPITestBase, ExecutionTest) {
 
   // This test performs OrcJIT compilation of a simple sum module
   LLVMInitializeNativeAsmPrinter();
-  LLVMOrcThreadSafeModuleRef TSM = createTestModule(SumExample, "sum.ll");
-  if (LLVMErrorRef E = LLVMOrcLLJITAddLLVMIRModule(Jit, MainDylib, TSM))
+  
+  if (LLVMOrcThreadSafeModuleRef TSM = createTestModule(SumExample, "sum.ll"); LLVMErrorRef E = LLVMOrcLLJITAddLLVMIRModule(Jit, MainDylib, TSM))
     FAIL() << "Failed to add LLVM IR module to LLJIT (triple = " << TargetTriple
            << ")" << toString(E);
   LLVMOrcJITTargetAddress TestFnAddr;
@@ -663,9 +663,9 @@ void Materialize(void *Ctx, LLVMOrcMaterializationResponsibilityRef MR) {
   LLVMOrcRetainSymbolStringPoolEntry(OtherSymbol);
   LLVMOrcMaterializationResponsibilityRef OtherMR = NULL;
   {
-    LLVMErrorRef Err = LLVMOrcMaterializationResponsibilityDelegate(
-        MR, &OtherSymbol, 1, &OtherMR);
-    if (Err) {
+    
+    if (LLVMErrorRef Err = LLVMOrcMaterializationResponsibilityDelegate(
+        MR, &OtherSymbol, 1, &OtherMR); Err) {
       char *ErrMsg = LLVMGetErrorMessage(Err);
       fprintf(stderr, "Error: %s\n", ErrMsg);
       LLVMDisposeErrorMessage(ErrMsg);
@@ -680,9 +680,9 @@ void Materialize(void *Ctx, LLVMOrcMaterializationResponsibilityRef MR) {
   LLVMOrcMaterializationUnitRef OtherMU = LLVMOrcAbsoluteSymbols(&OtherPair, 1);
   // OtherSymbol is no longer owned by us
   {
-    LLVMErrorRef Err =
-        LLVMOrcMaterializationResponsibilityReplace(OtherMR, OtherMU);
-    if (Err) {
+    
+    if (LLVMErrorRef Err =
+        LLVMOrcMaterializationResponsibilityReplace(OtherMR, OtherMU); Err) {
       char *ErrMsg = LLVMGetErrorMessage(Err);
       fprintf(stderr, "Error: %s\n", ErrMsg);
       LLVMDisposeErrorMessage(ErrMsg);

@@ -83,11 +83,11 @@ thread_return_t NsanThread::ThreadStart() {
 NsanThread::StackBounds NsanThread::GetStackBounds() const {
   if (!stack_switching_)
     return {stack_.bottom, stack_.top};
-  const uptr cur_stack = GET_CURRENT_FRAME();
+  
   // Note: need to check next stack first, because FinishSwitchFiber
   // may be in process of overwriting stack_.top/bottom_. But in such case
   // we are already on the next stack.
-  if (cur_stack >= next_stack_.bottom && cur_stack < next_stack_.top)
+  if (const uptr cur_stack = GET_CURRENT_FRAME(); cur_stack >= next_stack_.bottom && cur_stack < next_stack_.top)
     return {next_stack_.bottom, next_stack_.top};
   return {stack_.bottom, stack_.top};
 }
@@ -144,8 +144,8 @@ void __nsan::SetCurrentThread(NsanThread *t) {
 }
 
 void __nsan::NsanTSDDtor(void *tsd) {
-  NsanThread *t = (NsanThread *)tsd;
-  if (t->destructor_iterations_ > 1) {
+  
+  if (NsanThread *t = (NsanThread *)tsd; t->destructor_iterations_ > 1) {
     t->destructor_iterations_--;
     CHECK_EQ(0, pthread_setspecific(tsd_key, tsd));
     return;

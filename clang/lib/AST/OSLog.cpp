@@ -76,8 +76,8 @@ public:
       return true;
 
     ArgsData.emplace_back();
-    unsigned ArgIndex = FS.getArgIndex();
-    if (ArgIndex < Args.size())
+    
+    if (unsigned ArgIndex = FS.getArgIndex(); ArgIndex < Args.size())
       ArgsData.back().E = Args[ArgIndex];
 
     // First get the Kind
@@ -92,8 +92,8 @@ public:
     switch (FS.getConversionSpecifier().getKind()) {
     case clang::analyze_format_string::ConversionSpecifier::sArg:   // "%s"
     case clang::analyze_format_string::ConversionSpecifier::SArg: { // "%S"
-      auto &precision = FS.getPrecision();
-      switch (precision.getHowSpecified()) {
+      
+      switch (auto &precision = FS.getPrecision(); precision.getHowSpecified()) {
       case clang::analyze_format_string::OptionalAmount::NotSpecified: // "%s"
         break;
       case clang::analyze_format_string::OptionalAmount::Constant: // "%.16s"
@@ -108,8 +108,8 @@ public:
       break;
     }
     case clang::analyze_format_string::ConversionSpecifier::PArg: { // "%P"
-      auto &precision = FS.getPrecision();
-      switch (precision.getHowSpecified()) {
+      
+      switch (auto &precision = FS.getPrecision(); precision.getHowSpecified()) {
       case clang::analyze_format_string::OptionalAmount::NotSpecified: // "%P"
         return false; // length must be supplied with pointer format specifier
       case clang::analyze_format_string::OptionalAmount::Constant: // "%.16P"

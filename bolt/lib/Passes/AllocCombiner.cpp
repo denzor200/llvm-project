@@ -36,8 +36,8 @@ static bool isIndifferentToSP(const MCInst &Inst, const BinaryContext &BC) {
   if (BC.MIB->isCFI(Inst))
     return true;
 
-  const MCInstrDesc &II = BC.MII->get(Inst.getOpcode());
-  if (BC.MIB->isTerminator(Inst) ||
+  
+  if (const MCInstrDesc &II = BC.MII->get(Inst.getOpcode()); BC.MIB->isTerminator(Inst) ||
       II.hasImplicitDefOfPhysReg(BC.MIB->getStackPointer(), BC.MRI.get()) ||
       II.hasImplicitUseOfPhysReg(BC.MIB->getStackPointer()))
     return false;
@@ -55,8 +55,8 @@ static bool shouldProcess(const BinaryFunction &Function) {
 static void runForAllWeCare(std::map<uint64_t, BinaryFunction> &BFs,
                             std::function<void(BinaryFunction &)> Task) {
   for (auto &It : BFs) {
-    BinaryFunction &Function = It.second;
-    if (shouldProcess(Function))
+    
+    if (BinaryFunction &Function = It.second; shouldProcess(Function))
       Task(Function);
   }
 }

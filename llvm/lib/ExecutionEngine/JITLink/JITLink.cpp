@@ -137,8 +137,8 @@ void printEdge(raw_ostream &OS, const Block &B, const Edge &E,
      << " + " << formatv("{0:x}", E.getOffset()) << " -- " << EdgeKindName
      << " -> ";
 
-  auto &TargetSym = E.getTarget();
-  if (TargetSym.hasName())
+  
+  if (auto &TargetSym = E.getTarget(); TargetSym.hasName())
     OS << TargetSym.getName();
   else {
     auto &TargetBlock = TargetSym.getBlock();

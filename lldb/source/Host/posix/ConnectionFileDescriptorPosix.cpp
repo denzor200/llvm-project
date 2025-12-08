@@ -289,8 +289,8 @@ size_t ConnectionFileDescriptor::Read(void *dst, size_t dst_len,
     *error_ptr = error.Clone();
 
   if (error.Fail()) {
-    uint32_t error_value = error.GetError();
-    switch (error_value) {
+    
+    switch (uint32_t error_value = error.GetError(); error_value) {
     case EAGAIN: // The file was marked for non-blocking I/O, and no data were
                  // ready to be read.
       if (m_io_sp->GetFdType() == IOObject::eFDTypeSocket)
@@ -665,8 +665,8 @@ ConnectionFileDescriptor::ConnectFD(llvm::StringRef s,
     // sure it is. We currently are doing this by trying to get the flags
     // from the file descriptor and making sure it isn't a bad fd.
     errno = 0;
-    int flags = ::fcntl(fd, F_GETFL, 0);
-    if (flags == -1 || errno == EBADF) {
+    
+    if (int flags = ::fcntl(fd, F_GETFL, 0); flags == -1 || errno == EBADF) {
       if (error_ptr)
         *error_ptr = Status::FromErrorStringWithFormat(
             "stale file descriptor: %s", s.str().c_str());
@@ -686,9 +686,9 @@ ConnectionFileDescriptor::ConnectFD(llvm::StringRef s,
       // Try and get a socket option from this file descriptor to see if
       // this is a socket and set m_is_socket accordingly.
       int resuse;
-      bool is_socket =
-          !!tcp_socket->GetOption(SOL_SOCKET, SO_REUSEADDR, resuse);
-      if (is_socket)
+      
+      if (bool is_socket =
+          !!tcp_socket->GetOption(SOL_SOCKET, SO_REUSEADDR, resuse); is_socket)
         m_io_sp = std::move(tcp_socket);
       else
         m_io_sp =

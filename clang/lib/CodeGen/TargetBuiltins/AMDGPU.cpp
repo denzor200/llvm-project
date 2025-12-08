@@ -315,8 +315,8 @@ void CodeGenFunction::ProcessOrderScopeAMDGCN(Value *Order, Value *Scope,
 
   // Older builtins had an enum argument for the memory scope.
   const char *SSN = nullptr;
-  int scope = cast<llvm::ConstantInt>(Scope)->getZExtValue();
-  switch (scope) {
+  
+  switch (int scope = cast<llvm::ConstantInt>(Scope)->getZExtValue(); scope) {
   case AtomicScopeGenericModel::System: // __MEMORY_SCOPE_SYSTEM
     SSID = llvm::SyncScope::System;
     break;

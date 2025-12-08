@@ -634,8 +634,8 @@ bool Parser::ParseTopLevelDecl(DeclGroupPtrTy &Result,
     // Recognize context-sensitive C++20 'export module' and 'export import'
     // declarations.
     case tok::identifier: {
-      IdentifierInfo *II = NextToken().getIdentifierInfo();
-      if ((II == Ident_module || II == Ident_import) &&
+      
+      if (IdentifierInfo *II = NextToken().getIdentifierInfo(); (II == Ident_module || II == Ident_import) &&
           GetLookAheadToken(2).isNot(tok::coloncolon)) {
         if (II == Ident_module)
           goto module_decl;
@@ -664,10 +664,10 @@ bool Parser::ParseTopLevelDecl(DeclGroupPtrTy &Result,
 
   case tok::annot_module_include: {
     auto Loc = Tok.getLocation();
-    Module *Mod = reinterpret_cast<Module *>(Tok.getAnnotationValue());
+    
     // FIXME: We need a better way to disambiguate C++ clang modules and
     // standard C++ modules.
-    if (!getLangOpts().CPlusPlusModules || !Mod->isHeaderUnit())
+    if (Module *Mod = reinterpret_cast<Module *>(Tok.getAnnotationValue()); !getLangOpts().CPlusPlusModules || !Mod->isHeaderUnit())
       Actions.ActOnAnnotModuleInclude(Loc, Mod);
     else {
       DeclResult Import =
@@ -873,8 +873,8 @@ Parser::ParseExternalDeclaration(ParsedAttributes &Attrs,
     // Empty asm string is allowed because it will not introduce
     // any assembly code.
     if (!(getLangOpts().GNUAsm || Result.isInvalid())) {
-      const auto *SL = cast<StringLiteral>(Result.get());
-      if (!SL->getString().trim().empty())
+      
+      if (const auto *SL = cast<StringLiteral>(Result.get()); !SL->getString().trim().empty())
         Diag(StartLoc, diag::err_gnu_inline_asm_disabled);
     }
 
@@ -1040,8 +1040,8 @@ Parser::ParseExternalDeclaration(ParsedAttributes &Attrs,
 bool Parser::isDeclarationAfterDeclarator() {
   // Check for '= delete' or '= default'
   if (getLangOpts().CPlusPlus && Tok.is(tok::equal)) {
-    const Token &KW = NextToken();
-    if (KW.is(tok::kw_default) || KW.is(tok::kw_delete))
+    
+    if (const Token &KW = NextToken(); KW.is(tok::kw_default) || KW.is(tok::kw_delete))
       return false;
   }
 
@@ -1523,10 +1523,10 @@ void Parser::ParseKNRParamDeclarations(Declarator &D) {
       MaybeParseGNUAttributes(ParmDeclarator);
 
       // Ask the actions module to compute the type for this declarator.
-      Decl *Param =
-        Actions.ActOnParamDeclarator(getCurScope(), ParmDeclarator);
+      
 
-      if (Param &&
+      if (Decl *Param =
+        Actions.ActOnParamDeclarator(getCurScope(), ParmDeclarator); Param &&
           // A missing identifier has already been diagnosed.
           ParmDeclarator.getIdentifier()) {
 
@@ -1591,8 +1591,8 @@ ExprResult Parser::ParseAsmStringLiteral(bool ForAsmLabel) {
     if (AsmString.isInvalid())
       return AsmString;
 
-    const auto *SL = cast<StringLiteral>(AsmString.get());
-    if (!SL->isOrdinary()) {
+    
+    if (const auto *SL = cast<StringLiteral>(AsmString.get()); !SL->isOrdinary()) {
       Diag(Tok, diag::err_asm_operand_wide_string_literal)
           << SL->isWide() << SL->getSourceRange();
       return ExprError();
@@ -2107,8 +2107,8 @@ bool Parser::TryAnnotateTypeOrScopeTokenAfterScopeSpec(
   }
 
   if (Tok.is(tok::annot_template_id)) {
-    TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok);
-    if (TemplateId->Kind == TNK_Type_template) {
+    
+    if (TemplateIdAnnotation *TemplateId = takeTemplateIdAnnotation(Tok); TemplateId->Kind == TNK_Type_template) {
       // A template-id that refers to a type was parsed into a
       // template-id annotation in a context where we weren't allowed
       // to produce a type annotation token. Update the template-id

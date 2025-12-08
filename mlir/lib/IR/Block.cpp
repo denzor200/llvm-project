@@ -350,8 +350,8 @@ SuccessorRange::SuccessorRange() : SuccessorRange(nullptr, 0) {}
 SuccessorRange::SuccessorRange(Block *block) : SuccessorRange() {
   if (block->empty() || llvm::hasSingleElement(*block->getParent()))
     return;
-  Operation *term = &block->back();
-  if ((count = term->getNumSuccessors()))
+  
+  if (Operation *term = &block->back(); (count = term->getNumSuccessors()))
     base = term->getBlockOperands().data();
 }
 

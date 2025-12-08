@@ -116,9 +116,9 @@ void RedundantBranchConditionCheck::check(
     const Stmt *Body = InnerIf->getThen();
     const Expr *OtherSide = nullptr;
     if (BinOpCond) {
-      const auto *LeftDRE =
-          dyn_cast<DeclRefExpr>(BinOpCond->getLHS()->IgnoreParenImpCasts());
-      if (LeftDRE && LeftDRE->getDecl() == CondVar)
+      
+      if (const auto *LeftDRE =
+          dyn_cast<DeclRefExpr>(BinOpCond->getLHS()->IgnoreParenImpCasts()); LeftDRE && LeftDRE->getDecl() == CondVar)
         OtherSide = BinOpCond->getRHS();
       else
         OtherSide = BinOpCond->getLHS();
@@ -158,9 +158,9 @@ void RedundantBranchConditionCheck::check(
   } else {
     const auto *CondOp =
         cast<BinaryOperator>(InnerIf->getCond()->IgnoreParenImpCasts());
-    const auto *LeftDRE =
-        dyn_cast<DeclRefExpr>(CondOp->getLHS()->IgnoreParenImpCasts());
-    if (LeftDRE && LeftDRE->getDecl() == CondVar) {
+    
+    if (const auto *LeftDRE =
+        dyn_cast<DeclRefExpr>(CondOp->getLHS()->IgnoreParenImpCasts()); LeftDRE && LeftDRE->getDecl() == CondVar) {
       const SourceLocation BeforeRHS =
           CondOp->getRHS()->getBeginLoc().getLocWithOffset(-1);
       Diag << FixItHint::CreateRemoval(CharSourceRange::getTokenRange(

@@ -647,8 +647,8 @@ static bool isValidInBitMode(Binary &Bin) {
     return true;
 
   if (SymbolicFile *SymFile = dyn_cast<SymbolicFile>(&Bin)) {
-    bool Is64Bit = SymFile->is64Bit();
-    if ((Is64Bit && (BitMode == BitModeTy::Bit32)) ||
+    
+    if (bool Is64Bit = SymFile->is64Bit(); (Is64Bit && (BitMode == BitModeTy::Bit32)) ||
         (!Is64Bit && (BitMode == BitModeTy::Bit64)))
       return false;
   }
@@ -1446,8 +1446,8 @@ static int ranlib_main(int argc, char **argv) {
           if (object::Archive::getDefaultKind() == object::Archive::K_AIXBIG) {
             HasAIXXOption = true;
             arg.consume_front("X");
-            const char *Xarg = arg.data();
-            if (Xarg[0] == '\0') {
+            
+            if (const char *Xarg = arg.data(); Xarg[0] == '\0') {
               if (argv[i + 1][0] != '-')
                 BitMode = getBitMode(argv[++i]);
               else

@@ -142,11 +142,11 @@ void BlockCoverageInference::findDependencies() {
                            ReachableFromTerminal);
 
     auto Preds = predecessors(&BB);
-    bool HasSuperReachablePred = llvm::any_of(Preds, [&](auto *Pred) {
+    
+    if (bool HasSuperReachablePred = llvm::any_of(Preds, [&](auto *Pred) {
       return ReachableFromEntry.count(Pred) &&
              ReachableFromTerminal.count(Pred);
-    });
-    if (!HasSuperReachablePred)
+    }); !HasSuperReachablePred)
       for (auto *Pred : Preds)
         if (ReachableFromEntry.count(Pred))
           PredecessorDependencies[&BB].insert(Pred);
@@ -186,8 +186,8 @@ void BlockCoverageInference::findDependencies() {
   // Given a path with at least one node, return the next node on the path.
   auto getNextOnPath = [&](BlockSet &Path) -> const BasicBlock * {
     assert(Path.size());
-    auto &Neighbors = AdjacencyList[Path.back()];
-    if (Path.size() == 1) {
+    
+    if (auto &Neighbors = AdjacencyList[Path.back()]; Path.size() == 1) {
       // This is the first node on the path, return its neighbor.
       assert(Neighbors.size() == 1);
       return Neighbors.front();

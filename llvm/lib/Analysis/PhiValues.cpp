@@ -96,8 +96,8 @@ void PhiValues::processPhi(const PHINode *Phi,
           // is guaranteed to have been completed before this one. Therefore we
           // can just add its reachable values to the reachable values of this
           // component.
-          unsigned int OpDepthNumber = DepthMap[PhiOp];
-          if (OpDepthNumber != RootDepthNumber) {
+          
+          if (unsigned int OpDepthNumber = DepthMap[PhiOp]; OpDepthNumber != RootDepthNumber) {
             auto It = ReachableMap.find(OpDepthNumber);
             if (It != ReachableMap.end())
               Reachable.insert_range(It->second);

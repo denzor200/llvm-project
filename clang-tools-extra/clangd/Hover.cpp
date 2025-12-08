@@ -183,8 +183,8 @@ HoverInfo::PrintedType printType(QualType QT, ASTContext &ASTCtx,
   }
   QT.print(OS, PP);
 
-  const Config &Cfg = Config::current();
-  if (!QT.isNull() && Cfg.Hover.ShowAKA) {
+  
+  if (const Config &Cfg = Config::current(); !QT.isNull() && Cfg.Hover.ShowAKA) {
     bool ShouldAKA = false;
     QualType DesugaredTy = clang::desugarForDiagnostic(ASTCtx, QT, ShouldAKA);
     if (ShouldAKA)
@@ -583,8 +583,8 @@ std::optional<StringRef> setterVariableName(const CXXMethodDecl *CMD) {
   if (auto *CE = llvm::dyn_cast<CallExpr>(RHS->IgnoreCasts())) {
     if (CE->getNumArgs() != 1)
       return std::nullopt;
-    auto *ND = llvm::dyn_cast_or_null<NamedDecl>(CE->getCalleeDecl());
-    if (!ND || !ND->getIdentifier() || ND->getName() != "move" ||
+    
+    if (auto *ND = llvm::dyn_cast_or_null<NamedDecl>(CE->getCalleeDecl()); !ND || !ND->getIdentifier() || ND->getName() != "move" ||
         !ND->isInStdNamespace())
       return std::nullopt;
     RHS = CE->getArg(0);
@@ -778,8 +778,8 @@ HoverInfo getHoverContents(const DefinedMacro &Macro, const syntax::Token &Tok,
     StringRef Buffer = SM.getBufferData(SM.getFileID(StartLoc), &Invalid);
     if (!Invalid) {
       unsigned StartOffset = SM.getFileOffset(StartLoc);
-      unsigned EndOffset = SM.getFileOffset(EndLoc);
-      if (EndOffset <= Buffer.size() && StartOffset < EndOffset)
+      
+      if (unsigned EndOffset = SM.getFileOffset(EndLoc); EndOffset <= Buffer.size() && StartOffset < EndOffset)
         HI.Definition =
             ("#define " + Buffer.substr(StartOffset, EndOffset - StartOffset))
                 .str();
@@ -795,8 +795,8 @@ HoverInfo getHoverContents(const DefinedMacro &Macro, const syntax::Token &Tok,
       ExpansionText += ExpandedTok.text(SM);
       ExpansionText += " ";
       const Config &Cfg = Config::current();
-      const size_t Limit = static_cast<size_t>(Cfg.Hover.MacroContentsLimit);
-      if (Limit && ExpansionText.size() > Limit) {
+      
+      if (const size_t Limit = static_cast<size_t>(Cfg.Hover.MacroContentsLimit); Limit && ExpansionText.size() > Limit) {
         ExpansionText.clear();
         break;
       }
@@ -995,14 +995,14 @@ void addLayoutInfo(const NamedDecl &ND, HoverInfo &HI) {
       else if (auto Size = Ctx.getTypeSizeInCharsIfKnown(FD->getType()))
         HI.Size = FD->isZeroSize(Ctx) ? 0 : Size->getQuantity() * 8;
       if (HI.Size) {
-        unsigned EndOfField = *HI.Offset + *HI.Size;
+        
 
         // Calculate padding following the field.
-        if (!Record->isUnion() &&
+        if (unsigned EndOfField = *HI.Offset + *HI.Size; !Record->isUnion() &&
             FD->getFieldIndex() + 1 < Layout.getFieldCount()) {
           // Measure padding up to the next class field.
-          unsigned NextOffset = Layout.getFieldOffset(FD->getFieldIndex() + 1);
-          if (NextOffset >= EndOfField) // next field could be a bitfield!
+          
+          if (unsigned NextOffset = Layout.getFieldOffset(FD->getFieldIndex() + 1); NextOffset >= EndOfField) // next field could be a bitfield!
             HI.Padding = NextOffset - EndOfField;
         } else {
           // Measure padding up to the end of the object.

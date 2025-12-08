@@ -358,9 +358,9 @@ void RegBankLegalizeHelper::widenMMOToS32(GAnyLoad &MI) const {
   MachineMemOperand &MMO = MI.getMMO();
   unsigned MemSize = 8 * MMO.getSize().getValue();
 
-  MachineMemOperand *WideMMO = B.getMF().getMachineMemOperand(&MMO, 0, S32);
+  
 
-  if (MI.getOpcode() == G_LOAD) {
+  if (MachineMemOperand *WideMMO = B.getMF().getMachineMemOperand(&MMO, 0, S32); MI.getOpcode() == G_LOAD) {
     B.buildLoad(Dst, Ptr, *WideMMO);
   } else {
     auto Load = B.buildLoad(SgprRB_S32, Ptr, *WideMMO);
@@ -383,8 +383,8 @@ void RegBankLegalizeHelper::lowerVccExtToSel(MachineInstr &MI) {
   LLT Ty = MRI.getType(Dst);
   Register Src = MI.getOperand(1).getReg();
   unsigned Opc = MI.getOpcode();
-  int TrueExtCst = Opc == G_SEXT ? -1 : 1;
-  if (Ty == S32 || Ty == S16) {
+  
+  if (int TrueExtCst = Opc == G_SEXT ? -1 : 1; Ty == S32 || Ty == S16) {
     auto True = B.buildConstant({VgprRB, Ty}, TrueExtCst);
     auto False = B.buildConstant({VgprRB, Ty}, 0);
     B.buildSelect(Dst, Src, True, False);
@@ -559,9 +559,9 @@ void RegBankLegalizeHelper::lowerV_BFE(MachineInstr &MI) {
   Register SHRSrcLo = UnmergeSHRSrc.getReg(0);
   Register SHRSrcHi = UnmergeSHRSrc.getReg(1);
   auto Zero = B.buildConstant({VgprRB, S32}, 0);
-  unsigned BFXOpc = Signed ? AMDGPU::G_SBFX : AMDGPU::G_UBFX;
+  
 
-  if (WidthImm <= 32) {
+  if (unsigned BFXOpc = Signed ? AMDGPU::G_SBFX : AMDGPU::G_UBFX; WidthImm <= 32) {
     // SHRSrc Hi|Lo: ????????|???syyyl -> ????????|ssssyyyl
     auto Lo = B.buildInstr(BFXOpc, {VgprRB_S32}, {SHRSrcLo, Zero, Width});
     MachineInstrBuilder Hi;
@@ -801,9 +801,9 @@ void RegBankLegalizeHelper::lower(MachineInstr &MI,
     return lowerSplitTo32SExtInReg(MI);
   case SplitLoad: {
     LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
-    unsigned Size = DstTy.getSizeInBits();
+    
     // Even split to 128-bit loads
-    if (Size > 128) {
+    if (unsigned Size = DstTy.getSizeInBits(); Size > 128) {
       LLT B128;
       if (DstTy.isVector()) {
         LLT EltTy = DstTy.getElementType();
@@ -1200,9 +1200,9 @@ void RegBankLegalizeHelper::applyMappingSrc(
     MachineOperand &Op = MI.getOperand(OpIdx);
     Register Reg = Op.getReg();
     LLT Ty = MRI.getType(Reg);
-    const RegisterBank *RB = MRI.getRegBank(Reg);
+    
 
-    switch (MethodIDs[i]) {
+    switch (const RegisterBank *RB = MRI.getRegBank(Reg); MethodIDs[i]) {
     case Vcc: {
       assert(Ty == S1);
       assert(RB == VccRB || RB == SgprRB);

@@ -96,8 +96,8 @@ void SelfExecutorProcessControl::lookupSymbolsAsync(
       auto &Sym = KV.first;
       std::string Tmp((*Sym).data() + !!GlobalManglingPrefix,
                       (*Sym).size() - !!GlobalManglingPrefix);
-      void *Addr = Dylib.getAddressOfSymbol(Tmp.c_str());
-      if (!Addr && KV.second == SymbolLookupFlags::RequiredSymbol)
+      
+      if (void *Addr = Dylib.getAddressOfSymbol(Tmp.c_str()); !Addr && KV.second == SymbolLookupFlags::RequiredSymbol)
         R.back().emplace_back();
       else
         // FIXME: determine accurate JITSymbolFlags.

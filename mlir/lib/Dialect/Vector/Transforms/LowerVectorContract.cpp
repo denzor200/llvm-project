@@ -34,8 +34,8 @@ using namespace mlir::vector;
 // Helper to find an index in an affine map.
 static std::optional<int64_t> getResultIndex(AffineMap map, int64_t index) {
   for (int64_t i = 0, e = map.getNumResults(); i < e; ++i) {
-    int64_t idx = map.getDimPosition(i);
-    if (idx == index)
+    
+    if (int64_t idx = map.getDimPosition(i); idx == index)
       return i;
   }
   return std::nullopt;
@@ -46,8 +46,8 @@ static SmallVector<Attribute> adjustIter(ArrayAttr iteratorTypes,
                                          int64_t index) {
   SmallVector<Attribute> results;
   for (const auto &it : llvm::enumerate(iteratorTypes)) {
-    int64_t idx = it.index();
-    if (idx == index)
+    
+    if (int64_t idx = it.index(); idx == index)
       continue;
     results.push_back(it.value());
   }

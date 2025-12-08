@@ -174,8 +174,8 @@ static void distributePressure(float RemainingPressure,
     const float MinimalPressure = getPressureForSubunit(NumMinimalSU - 1);
     const float SecondToMinimalPressure = getPressureForSubunit(NumMinimalSU);
     assert(MinimalPressure < SecondToMinimalPressure);
-    const float Increment = SecondToMinimalPressure - MinimalPressure;
-    if (RemainingPressure <= NumMinimalSU * Increment) {
+    
+    if (const float Increment = SecondToMinimalPressure - MinimalPressure; RemainingPressure <= NumMinimalSU * Increment) {
       // There is not enough remaining pressure.
       for (size_t I = 0; I < NumMinimalSU; ++I) {
         getPressureForSubunit(I) += RemainingPressure / NumMinimalSU;
@@ -204,9 +204,9 @@ computeIdealizedProcResPressure(const MCSchedModel &SM,
   });
   for (const MCWriteProcResEntry &WPR : WPRS) {
     // Get units for the entry.
-    const MCProcResourceDesc *const ProcResDesc =
-        SM.getProcResource(WPR.ProcResourceIdx);
-    if (ProcResDesc->SubUnitsIdxBegin == nullptr) {
+    
+    if (const MCProcResourceDesc *const ProcResDesc =
+        SM.getProcResource(WPR.ProcResourceIdx); ProcResDesc->SubUnitsIdxBegin == nullptr) {
       // This is a ProcResUnit.
       DensePressure[WPR.ProcResourceIdx] += WPR.ReleaseAtCycle;
     } else {
@@ -306,8 +306,8 @@ std::vector<BenchmarkMeasure> ResolvedSchedClass::getAsPoint(
       const PerInstructionStats &Stats = std::get<1>(I);
 
       StringRef Key = Stats.key();
-      uint16_t ProcResIdx = findProcResIdx(STI, Key);
-      if (ProcResIdx > 0) {
+      
+      if (uint16_t ProcResIdx = findProcResIdx(STI, Key); ProcResIdx > 0) {
         // Find the pressure on ProcResIdx `Key`.
         const auto ProcResPressureIt =
             find_if(IdealizedProcResPressure,

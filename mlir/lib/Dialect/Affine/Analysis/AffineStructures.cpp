@@ -79,8 +79,8 @@ FlatAffineValueConstraints::addAffineForOpDomain(AffineForOp forOp) {
     return failure();
   }
 
-  int64_t step = forOp.getStepAsInt();
-  if (step != 1) {
+  
+  if (int64_t step = forOp.getStepAsInt(); step != 1) {
     if (!forOp.hasConstantLowerBound())
       LLVM_DEBUG(forOp.emitWarning("domain conservatively approximated"));
     else {
@@ -419,8 +419,8 @@ void FlatAffineRelation::compose(const FlatAffineRelation &other) {
       setValue(i, *relMaybeValues[i]);
   // Add and match range of `this` to range of `rel`.
   for (unsigned i = 0, e = getNumRangeDims(); i < e; ++i) {
-    unsigned rangeIdx = rel.getNumDomainDims() + i;
-    if (thisMaybeValues[rangeIdx].has_value())
+    
+    if (unsigned rangeIdx = rel.getNumDomainDims() + i; thisMaybeValues[rangeIdx].has_value())
       rel.setValue(rangeIdx, *thisMaybeValues[rangeIdx]);
   }
 

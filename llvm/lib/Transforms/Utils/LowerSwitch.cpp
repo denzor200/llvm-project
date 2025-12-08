@@ -442,8 +442,8 @@ void ProcessSwitchInst(SwitchInst *SI,
       const APInt &Low = I.Low->getValue();
       const APInt &High = I.High->getValue();
 
-      IntRange &LastRange = UnreachableRanges.back();
-      if (LastRange.Low.eq(Low)) {
+      
+      if (IntRange &LastRange = UnreachableRanges.back(); LastRange.Low.eq(Low)) {
         // There is nothing left of the previous range.
         UnreachableRanges.pop_back();
       } else {

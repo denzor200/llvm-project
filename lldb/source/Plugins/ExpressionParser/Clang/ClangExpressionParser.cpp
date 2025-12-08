@@ -187,8 +187,8 @@ public:
       return nullptr;
     auto &diags = m_manager->Diagnostics();
     for (auto it = diags.rbegin(); it != diags.rend(); it++) {
-      lldb_private::Diagnostic *diag = it->get();
-      if (ClangDiagnostic *clang_diag = dyn_cast<ClangDiagnostic>(diag)) {
+      
+      if (lldb_private::Diagnostic *diag = it->get(); ClangDiagnostic *clang_diag = dyn_cast<ClangDiagnostic>(diag)) {
         if (clang_diag->GetSeverity() == lldb::eSeverityWarning)
           return nullptr;
         if (clang_diag->GetSeverity() == lldb::eSeverityError)
@@ -206,8 +206,8 @@ public:
       // when we move the expression result ot the ScratchASTContext). Let's at
       // least log these diagnostics until we find a way to properly render
       // them and display them to the user.
-      Log *log = GetLog(LLDBLog::Expressions);
-      if (log) {
+      
+      if (Log *log = GetLog(LLDBLog::Expressions); log) {
         llvm::SmallVector<char, 32> diag_str;
         Info.FormatDiagnostic(diag_str);
         diag_str.push_back('\0');
@@ -280,8 +280,8 @@ public:
           for (const auto &range : Info.getRanges()) {
             if (range.getBegin() == sloc) {
               // FIXME: This is probably not handling wide characters correctly.
-              unsigned end_col = sm.getSpellingColumnNumber(range.getEnd());
-              if (end_col > loc.column)
+              
+              if (unsigned end_col = sm.getSpellingColumnNumber(range.getEnd()); end_col > loc.column)
                 loc.length = end_col - loc.column;
               break;
             }
@@ -1409,8 +1409,8 @@ bool ClangExpressionParser::RewriteExpression(
   RewritesReceiver rewrites_receiver(rewriter);
 
   const DiagnosticList &diagnostics = diagnostic_manager.Diagnostics();
-  size_t num_diags = diagnostics.size();
-  if (num_diags == 0)
+  
+  if (size_t num_diags = diagnostics.size(); num_diags == 0)
     return false;
 
   for (const auto &diag : diagnostic_manager.Diagnostics()) {
@@ -1505,8 +1505,8 @@ lldb_private::Status ClangExpressionParser::DoPrepareForExecution(
               lang.GetDescription().data());
     lldb::ProcessSP process_sp = exe_ctx.GetProcessSP();
     if (process_sp && lang) {
-      auto runtime = process_sp->GetLanguageRuntime(lang.AsLanguageType());
-      if (runtime)
+      
+      if (auto runtime = process_sp->GetLanguageRuntime(lang.AsLanguageType()); runtime)
         runtime->GetIRPasses(custom_passes);
     }
   }
@@ -1532,10 +1532,10 @@ lldb_private::Status ClangExpressionParser::DoPrepareForExecution(
 
   ClangExpressionHelper *type_system_helper =
       dyn_cast<ClangExpressionHelper>(m_expr.GetTypeSystemHelper());
-  ClangExpressionDeclMap *decl_map =
-      type_system_helper->DeclMap(); // result can be NULL
+  // result can be NULL
 
-  if (decl_map) {
+  if (ClangExpressionDeclMap *decl_map =
+      type_system_helper->DeclMap(); decl_map) {
     StreamString error_stream;
     IRForTarget ir_for_target(decl_map, m_expr.NeedsVariableResolution(),
                               *execution_unit_sp, error_stream,

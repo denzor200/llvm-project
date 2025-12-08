@@ -43,8 +43,8 @@ static SetVector<Value *> collectReferencedValues(Value *Root) {
 }
 
 static bool shouldReduceOperand(Use &Op) {
-  Type *Ty = Op->getType();
-  if (Ty->isLabelTy() || Ty->isMetadataTy())
+  
+  if (Type *Ty = Op->getType(); Ty->isLabelTy() || Ty->isMetadataTy())
     return false;
   // TODO: be more precise about which GEP operands we can reduce (e.g. array
   // indexes)
@@ -104,9 +104,9 @@ opportunities(Function &F,
     if (LHS == RHS)
       return false;
 
-    int ReductivePowerDiff =
-        classifyReductivePower(RHS) - classifyReductivePower(LHS);
-    if (ReductivePowerDiff != 0)
+    
+    if (int ReductivePowerDiff =
+        classifyReductivePower(RHS) - classifyReductivePower(LHS); ReductivePowerDiff != 0)
       return ReductivePowerDiff < 0;
 
     // LHS is more reduced if it is defined further up the dominance tree. In a
@@ -206,8 +206,8 @@ void llvm::reduceOperandsSkipDeltaPass(Oracle &O, ReducerWorkItem &WorkItem) {
       // in-sync with what countOperands() has computed.
       bool AlreadyReplaced = false;
       for (Value *C : Candidates) {
-        bool Keep = O.shouldKeep();
-        if (AlreadyReplaced || Keep)
+        
+        if (bool Keep = O.shouldKeep(); AlreadyReplaced || Keep)
           continue;
 
         // Replacing the operand value immediately would influence the candidate

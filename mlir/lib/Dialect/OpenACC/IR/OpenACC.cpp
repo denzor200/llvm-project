@@ -1123,8 +1123,8 @@ struct RemoveEmptyKernelEnvironment
                                 PatternRewriter &rewriter) const override {
     assert(op->getNumRegions() == 1 && "expected op to have one region");
 
-    Block &block = op.getRegion().front();
-    if (!block.empty())
+    
+    if (Block &block = op.getRegion().front(); !block.empty())
       return failure();
 
     // Conservatively disable canonicalization of empty acc.kernel_environment
@@ -1318,8 +1318,8 @@ static LogicalResult verifyInitLikeSingleArgRegion(
 
   if (region.empty())
     return op->emitOpError() << "expects non-empty " << regionName << " region";
-  Block &firstBlock = region.front();
-  if (firstBlock.getNumArguments() < 1 ||
+  
+  if (Block &firstBlock = region.front(); firstBlock.getNumArguments() < 1 ||
       firstBlock.getArgument(0).getType() != type)
     return op->emitOpError() << "expects " << regionName
                              << " region first "
@@ -1357,10 +1357,10 @@ PrivateRecipeOp::createAndPopulate(OpBuilder &builder, Location loc,
                                    StringRef varName, ValueRange bounds) {
   // First, validate that we can handle this variable type
   bool isMappable = isa<MappableType>(varType);
-  bool isPointerLike = isa<PointerLikeType>(varType);
+  
 
   // Unsupported type
-  if (!isMappable && !isPointerLike)
+  if (bool isPointerLike = isa<PointerLikeType>(varType); !isMappable && !isPointerLike)
     return std::nullopt;
 
   OpBuilder::InsertionGuard guard(builder);
@@ -1406,8 +1406,8 @@ LogicalResult acc::FirstprivateRecipeOp::verifyRegions() {
   if (getCopyRegion().empty())
     return emitOpError() << "expects non-empty copy region";
 
-  Block &firstBlock = getCopyRegion().front();
-  if (firstBlock.getNumArguments() < 2 ||
+  
+  if (Block &firstBlock = getCopyRegion().front(); firstBlock.getNumArguments() < 2 ||
       firstBlock.getArgument(0).getType() != getType())
     return emitOpError() << "expects copy region with two arguments of the "
                             "privatization type";
@@ -1429,10 +1429,10 @@ FirstprivateRecipeOp::createAndPopulate(OpBuilder &builder, Location loc,
                                         StringRef varName, ValueRange bounds) {
   // First, validate that we can handle this variable type
   bool isMappable = isa<MappableType>(varType);
-  bool isPointerLike = isa<PointerLikeType>(varType);
+  
 
   // Unsupported type
-  if (!isMappable && !isPointerLike)
+  if (bool isPointerLike = isa<PointerLikeType>(varType); !isMappable && !isPointerLike)
     return std::nullopt;
 
   OpBuilder::InsertionGuard guard(builder);
@@ -1485,8 +1485,8 @@ LogicalResult acc::ReductionRecipeOp::verifyRegions() {
   if (getCombinerRegion().empty())
     return emitOpError() << "expects non-empty combiner region";
 
-  Block &reductionBlock = getCombinerRegion().front();
-  if (reductionBlock.getNumArguments() < 2 ||
+  
+  if (Block &reductionBlock = getCombinerRegion().front(); reductionBlock.getNumArguments() < 2 ||
       reductionBlock.getArgument(0).getType() != getType() ||
       reductionBlock.getArgument(1).getType() != getType())
     return emitOpError() << "expects combiner region with the first two "
@@ -3042,12 +3042,12 @@ LogicalResult acc::LoopOp::verify() {
                 getIndependentAttr().getAsRange<mlir::acc::DeviceTypeAttr>(),
                 hasDeviceNone)
           : false;
-  bool hasDefaultAuto =
+  
+  if (bool hasDefaultAuto =
       getAuto_Attr()
           ? llvm::any_of(getAuto_Attr().getAsRange<mlir::acc::DeviceTypeAttr>(),
                          hasDeviceNone)
-          : false;
-  if (!hasDefaultSeq && !hasDefaultIndependent && !hasDefaultAuto) {
+          : false; !hasDefaultSeq && !hasDefaultIndependent && !hasDefaultAuto) {
     return emitError()
            << "at least one of auto, independent, seq must be present";
   }
@@ -3495,9 +3495,9 @@ void acc::LoopOp::addGangOperands(
   // potentially add something similar to the
   // addDeviceTypeAffectedOperandHelper, but it seems that would be pretty
   // excessive for a one-off case.
-  unsigned numAdded = segments.size() - beforeCount;
+  
 
-  if (numAdded > 0) {
+  if (unsigned numAdded = segments.size() - beforeCount; numAdded > 0) {
     llvm::SmallVector<mlir::Attribute> gangTypes;
     if (getGangOperandsArgTypeAttr())
       llvm::copy(getGangOperandsArgTypeAttr(), std::back_inserter(gangTypes));
@@ -3992,9 +3992,9 @@ LogicalResult acc::RoutineOp::verify() {
     auto dtype = static_cast<acc::DeviceType>(dtypeInt);
     if (dtype == acc::DeviceType::None)
       continue;
-    unsigned parallelism = getParallelismForDeviceType(*this, dtype);
+    
 
-    if (parallelism > 1 || (baseParallelism == 1 && parallelism == 1))
+    if (unsigned parallelism = getParallelismForDeviceType(*this, dtype); parallelism > 1 || (baseParallelism == 1 && parallelism == 1))
       return emitError() << "only one of `gang`, `worker`, `vector`, `seq` can "
                             "be present at the same time";
   }

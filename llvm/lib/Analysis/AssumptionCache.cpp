@@ -107,8 +107,8 @@ void AssumptionCache::updateAffectedValues(AssumeInst *CI) {
   findAffectedValues(CI, TTI, Affected);
 
   for (auto &AV : Affected) {
-    auto &AVV = getOrInsertAffectedValues(AV.Assume);
-    if (llvm::none_of(AVV, [&](ResultElem &Elem) {
+    
+    if (auto &AVV = getOrInsertAffectedValues(AV.Assume); llvm::none_of(AVV, [&](ResultElem &Elem) {
           return Elem.Assume == CI && Elem.Index == AV.Index;
         }))
       AVV.push_back({CI, AV.Index});

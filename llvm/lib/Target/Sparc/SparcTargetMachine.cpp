@@ -105,9 +105,9 @@ SparcTargetMachine::getSubtargetImpl(const Function &F) const {
   // FIXME: This is related to the code below to reset the target options,
   // we need to know whether or not the soft float flag is set on the
   // function, so we can enable it as a subtarget feature.
-  bool softFloat = F.getFnAttribute("use-soft-float").getValueAsBool();
+  
 
-  if (softFloat)
+  if (bool softFloat = F.getFnAttribute("use-soft-float").getValueAsBool(); softFloat)
     FS += FS.empty() ? "+soft-float" : ",+soft-float";
 
   auto &I = SubtargetMap[CPU + FS];

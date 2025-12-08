@@ -1106,8 +1106,8 @@ void MCObjectFileInfo::initMCObjectFileInfo(MCContext &MCCtx, bool PIC,
   DwarfAccelNamespaceSection = nullptr; // Used only by selected targets.
   DwarfAccelTypesSection = nullptr;     // Used only by selected targets.
 
-  const Triple &TheTriple = Ctx->getTargetTriple();
-  switch (Ctx->getObjectFileType()) {
+  
+  switch (const Triple &TheTriple = Ctx->getTargetTriple(); Ctx->getObjectFileType()) {
   case MCContext::IsMachO:
     initMachOMCObjectFileInfo(TheTriple);
     break;

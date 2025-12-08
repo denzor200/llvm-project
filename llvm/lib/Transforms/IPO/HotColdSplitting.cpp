@@ -413,8 +413,8 @@ Function *HotColdSplitting::extractColdRegion(
     BasicBlock &EntryPoint, CodeExtractor &CE,
     const CodeExtractorAnalysisCache &CEAC, BlockFrequencyInfo *BFI,
     TargetTransformInfo &TTI, OptimizationRemarkEmitter &ORE) {
-  Function *OrigF = EntryPoint.getParent();
-  if (Function *OutF = CE.extractCodeRegion(CEAC)) {
+  
+  if (Function *OrigF = EntryPoint.getParent(); Function *OutF = CE.extractCodeRegion(CEAC)) {
     User *U = *OutF->user_begin();
     CallInst *CI = cast<CallInst>(U);
     NumColdRegionsOutlined++;
@@ -571,11 +571,11 @@ public:
       bool SinkDom = DT.dominates(&SinkBB, &SuccBB);
 
       // Don't allow the backwards & forwards DFSes to mark the same block.
-      bool DuplicateBlock = RegionBlocks.count(&SuccBB);
+      
 
       // If SinkBB does not dominate a successor, do not mark the successor (or
       // any of its successors) cold.
-      if (DuplicateBlock || !SinkDom || !mayExtractBlock(SuccBB)) {
+      if (bool DuplicateBlock = RegionBlocks.count(&SuccBB); DuplicateBlock || !SinkDom || !mayExtractBlock(SuccBB)) {
         SuccIt.skipChildren();
         continue;
       }
@@ -826,9 +826,9 @@ HotColdSplittingPass::run(Module &M, ModuleAnalysisManager &AM) {
     return *ORE;
   };
 
-  ProfileSummaryInfo *PSI = &AM.getResult<ProfileSummaryAnalysis>(M);
+  
 
-  if (HotColdSplitting(PSI, GBFI, GTTI, &GetORE, LookupAC).run(M))
+  if (ProfileSummaryInfo *PSI = &AM.getResult<ProfileSummaryAnalysis>(M); HotColdSplitting(PSI, GBFI, GTTI, &GetORE, LookupAC).run(M))
     return PreservedAnalyses::none();
   return PreservedAnalyses::all();
 }

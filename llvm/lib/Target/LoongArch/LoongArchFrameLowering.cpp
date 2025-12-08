@@ -364,11 +364,11 @@ void LoongArchFrameLowering::emitEpilogue(MachineFunction &MF,
 uint64_t LoongArchFrameLowering::getFirstSPAdjustAmount(
     const MachineFunction &MF) const {
   const MachineFrameInfo &MFI = MF.getFrameInfo();
-  const std::vector<CalleeSavedInfo> &CSI = MFI.getCalleeSavedInfo();
+  
 
   // Return the FirstSPAdjustAmount if the StackSize can not fit in a signed
   // 12-bit and there exists a callee-saved register needing to be pushed.
-  if (!isInt<12>(MFI.getStackSize()) && (CSI.size() > 0)) {
+  if (const std::vector<CalleeSavedInfo> &CSI = MFI.getCalleeSavedInfo(); !isInt<12>(MFI.getStackSize()) && (CSI.size() > 0)) {
     // FirstSPAdjustAmount is chosen as (2048 - StackAlign) because 2048 will
     // cause sp = sp + 2048 in the epilogue to be split into multiple
     // instructions. Offsets smaller than 2048 can fit in a single load/store
@@ -416,9 +416,9 @@ LoongArchFrameLowering::eliminateCallFramePseudoInstr(
     // pointer. This is necessary when there is a variable length stack
     // allocation (e.g. alloca), which means it's not possible to allocate
     // space for outgoing arguments from within the function prologue.
-    int64_t Amount = MI->getOperand(0).getImm();
+    
 
-    if (Amount != 0) {
+    if (int64_t Amount = MI->getOperand(0).getImm(); Amount != 0) {
       // Ensure the stack remains aligned after adjustment.
       Amount = alignSPAdjust(Amount);
 

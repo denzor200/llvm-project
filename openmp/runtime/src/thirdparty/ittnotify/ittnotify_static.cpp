@@ -1066,8 +1066,8 @@ static const char *__itt_get_env_var(const char *name) {
     char *env = getenv(name);
     if (env != NULL) {
       size_t len = __itt_fstrnlen(env, MAX_ENV_VALUE_SIZE);
-      size_t max_len = MAX_ENV_VALUE_SIZE - (size_t)(env_value - env_buff);
-      if (len < max_len) {
+      
+      if (size_t max_len = MAX_ENV_VALUE_SIZE - (size_t)(env_value - env_buff); len < max_len) {
         const char *ret = (const char *)env_value;
         __itt_fstrcpyn(env_value, max_len, env, len + 1);
         env_value += len + 1;
@@ -1196,9 +1196,9 @@ static __itt_group_id __itt_get_groups(void) {
   int i;
   __itt_group_id res = __itt_group_none;
   const char *var_name = "INTEL_ITTNOTIFY_GROUPS";
-  const char *group_str = __itt_get_env_var(var_name);
+  
 
-  if (group_str != NULL) {
+  if (const char *group_str = __itt_get_env_var(var_name); group_str != NULL) {
     int len;
     char gr[255];
     const char *chunk;
@@ -1277,9 +1277,9 @@ static void __itt_nullify_all_pointers(void) {
 
 ITT_EXTERN_C void _N_(fini_ittlib)(void) {
   __itt_api_fini_t *__itt_api_fini_ptr = NULL;
-  static volatile TIDT current_thread = 0;
+  
 
-  if (_N_(_ittapi_global).api_initialized) {
+  if (static volatile TIDT current_thread = 0; _N_(_ittapi_global).api_initialized) {
     ITT_MUTEX_INIT_AND_LOCK(_N_(_ittapi_global));
     if (_N_(_ittapi_global).api_initialized) {
       if (current_thread == 0) {

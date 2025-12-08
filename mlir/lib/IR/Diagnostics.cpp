@@ -376,8 +376,8 @@ struct SourceMgrDiagnosticHandlerImpl {
 
     // Look for a buffer in the manager that has this filename.
     for (unsigned i = 1, e = mgr.getNumBuffers() + 1; i != e; ++i) {
-      auto *buf = mgr.getMemoryBuffer(i);
-      if (buf->getBufferIdentifier() == filename)
+      
+      if (auto *buf = mgr.getMemoryBuffer(i); buf->getBufferIdentifier() == filename)
         return filenameToBufId[filename] = i;
     }
 

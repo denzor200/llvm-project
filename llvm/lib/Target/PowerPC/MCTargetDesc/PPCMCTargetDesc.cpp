@@ -121,8 +121,8 @@ const char *PPC::stripRegisterPrefix(const char *RegName) {
 /// operands).
 MCRegister PPC::getRegNumForOperand(const MCInstrDesc &Desc, MCRegister Reg,
                                     unsigned OpNo) {
-  int16_t regClass = Desc.operands()[OpNo].RegClass;
-  switch (regClass) {
+  
+  switch (int16_t regClass = Desc.operands()[OpNo].RegClass; regClass) {
     // We store F0-F31, VF0-VF31 in MCOperand and it should be F0-F31,
     // VSX32-VSX63 during encoding/disassembling
     case PPC::VSSRCRegClassID:
@@ -239,8 +239,8 @@ public:
   }
 
   void emitMachine(StringRef CPU) override {
-    const Triple &TT = Streamer.getContext().getTargetTriple();
-    if (TT.isOSBinFormatXCOFF())
+    
+    if (const Triple &TT = Streamer.getContext().getTargetTriple(); TT.isOSBinFormatXCOFF())
       OS << "\t.machine\t" << '\"' << CPU << '\"' << '\n';
     else
       OS << "\t.machine " << CPU << '\n';
@@ -302,17 +302,17 @@ public:
     // For GAS compatibility, unless we already saw a .abiversion directive,
     // set e_flags to indicate ELFv2 ABI.
     ELFObjectWriter &W = getStreamer().getWriter();
-    unsigned Flags = W.getELFHeaderEFlags();
-    if ((Flags & ELF::EF_PPC64_ABI) == 0)
+    
+    if (unsigned Flags = W.getELFHeaderEFlags(); (Flags & ELF::EF_PPC64_ABI) == 0)
       W.setELFHeaderEFlags(Flags | 2);
   }
 
   void emitAssignment(MCSymbol *S, const MCExpr *Value) override {
-    auto *Symbol = static_cast<MCSymbolELF *>(S);
+    
 
     // When encoding an assignment to set symbol A to symbol B, also copy
     // the st_other bits encoding the local entry point offset.
-    if (copyLocalEntry(Symbol, Value))
+    if (auto *Symbol = static_cast<MCSymbolELF *>(S); copyLocalEntry(Symbol, Value))
       UpdateOther.insert(Symbol);
     else
       UpdateOther.erase(Symbol);

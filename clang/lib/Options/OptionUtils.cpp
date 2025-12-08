@@ -89,8 +89,8 @@ static bool getRefinementStep(StringRef In, clang::DiagnosticsEngine &Diags,
       Diags.Report(diag::err_drv_invalid_value) << Option << RefStep;
       return false;
     }
-    char RefStepChar = RefStep[0];
-    if (RefStepChar < '0' || RefStepChar > '9') {
+    
+    if (char RefStepChar = RefStep[0]; RefStepChar < '0' || RefStepChar > '9') {
       Diags.Report(diag::err_drv_invalid_value) << Option << RefStep;
       return false;
     }

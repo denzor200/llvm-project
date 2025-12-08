@@ -523,8 +523,8 @@ LogicalResult BufferDeallocation::verifyOperationPreconditions(Operation *op) {
   // the deallocation steps. Furthermore, we accept cases, where we have a
   // region that returns no results, since, in that case, the intra-region
   // control flow does not affect the transformation.
-  size_t size = regions.size();
-  if (((size == 1 && !op->getResults().empty()) || size > 1) &&
+  
+  if (size_t size = regions.size(); ((size == 1 && !op->getResults().empty()) || size > 1) &&
       !dyn_cast<RegionBranchOpInterface>(op)) {
     return op->emitError("All operations with attached regions need to "
                          "implement the RegionBranchOpInterface.");

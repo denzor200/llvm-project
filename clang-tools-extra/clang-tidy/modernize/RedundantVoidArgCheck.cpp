@@ -63,8 +63,8 @@ void RedundantVoidArgCheck::registerMatchers(MatchFinder *Finder) {
 }
 
 void RedundantVoidArgCheck::check(const MatchFinder::MatchResult &Result) {
-  const BoundNodes &Nodes = Result.Nodes;
-  if (const auto *Function = Nodes.getNodeAs<FunctionDecl>(FunctionId))
+  
+  if (const BoundNodes &Nodes = Result.Nodes; const auto *Function = Nodes.getNodeAs<FunctionDecl>(FunctionId))
     processFunctionDecl(Result, Function);
   else if (const auto *TypedefName =
                Nodes.getNodeAs<TypedefNameDecl>(TypedefId))

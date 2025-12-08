@@ -661,8 +661,8 @@ void DataLayout::setPrimitiveSpec(char Specifier, uint32_t BitWidth,
     break;
   }
 
-  auto I = lower_bound(*Specs, BitWidth, LessPrimitiveBitWidth());
-  if (I != Specs->end() && I->BitWidth == BitWidth) {
+  
+  if (auto I = lower_bound(*Specs, BitWidth, LessPrimitiveBitWidth()); I != Specs->end() && I->BitWidth == BitWidth) {
     // Update the abi, preferred alignments.
     I->ABIAlign = ABIAlign;
     I->PrefAlign = PrefAlign;
@@ -675,8 +675,8 @@ void DataLayout::setPrimitiveSpec(char Specifier, uint32_t BitWidth,
 const DataLayout::PointerSpec &
 DataLayout::getPointerSpec(uint32_t AddrSpace) const {
   if (AddrSpace != 0) {
-    auto I = lower_bound(PointerSpecs, AddrSpace, LessPointerAddrSpace());
-    if (I != PointerSpecs.end() && I->AddrSpace == AddrSpace)
+    
+    if (auto I = lower_bound(PointerSpecs, AddrSpace, LessPointerAddrSpace()); I != PointerSpecs.end() && I->AddrSpace == AddrSpace)
       return *I;
   }
 
@@ -688,8 +688,8 @@ void DataLayout::setPointerSpec(uint32_t AddrSpace, uint32_t BitWidth,
                                 Align ABIAlign, Align PrefAlign,
                                 uint32_t IndexBitWidth, bool HasUnstableRepr,
                                 bool HasExternalState) {
-  auto I = lower_bound(PointerSpecs, AddrSpace, LessPointerAddrSpace());
-  if (I == PointerSpecs.end() || I->AddrSpace != AddrSpace) {
+  
+  if (auto I = lower_bound(PointerSpecs, AddrSpace, LessPointerAddrSpace()); I == PointerSpecs.end() || I->AddrSpace != AddrSpace) {
     PointerSpecs.insert(I, PointerSpec{AddrSpace, BitWidth, ABIAlign, PrefAlign,
                                        IndexBitWidth, HasUnstableRepr,
                                        HasExternalState});
@@ -817,8 +817,8 @@ Align DataLayout::getAlignment(Type *Ty, bool abi_or_pref) const {
   case Type::FP128TyID:
   case Type::X86_FP80TyID: {
     unsigned BitWidth = getTypeSizeInBits(Ty).getFixedValue();
-    auto I = lower_bound(FloatSpecs, BitWidth, LessPrimitiveBitWidth());
-    if (I != FloatSpecs.end() && I->BitWidth == BitWidth)
+    
+    if (auto I = lower_bound(FloatSpecs, BitWidth, LessPrimitiveBitWidth()); I != FloatSpecs.end() && I->BitWidth == BitWidth)
       return abi_or_pref ? I->ABIAlign : I->PrefAlign;
 
     // If we still couldn't find a reasonable default alignment, fall back
@@ -832,8 +832,8 @@ Align DataLayout::getAlignment(Type *Ty, bool abi_or_pref) const {
   case Type::FixedVectorTyID:
   case Type::ScalableVectorTyID: {
     unsigned BitWidth = getTypeSizeInBits(Ty).getKnownMinValue();
-    auto I = lower_bound(VectorSpecs, BitWidth, LessPrimitiveBitWidth());
-    if (I != VectorSpecs.end() && I->BitWidth == BitWidth)
+    
+    if (auto I = lower_bound(VectorSpecs, BitWidth, LessPrimitiveBitWidth()); I != VectorSpecs.end() && I->BitWidth == BitWidth)
       return abi_or_pref ? I->ABIAlign : I->PrefAlign;
 
     // By default, use natural alignment for vector types. This is consistent
@@ -951,8 +951,8 @@ int64_t DataLayout::getIndexedOffsetInType(Type *ElemTy,
     GTI = gep_type_begin(ElemTy, Indices),
     GTE = gep_type_end(ElemTy, Indices);
   for (; GTI != GTE; ++GTI) {
-    Value *Idx = GTI.getOperand();
-    if (StructType *STy = GTI.getStructTypeOrNull()) {
+    
+    if (Value *Idx = GTI.getOperand(); StructType *STy = GTI.getStructTypeOrNull()) {
       assert(Idx->getType()->isIntegerTy(32) && "Illegal struct idx");
       unsigned FieldNo = cast<ConstantInt>(Idx)->getZExtValue();
 
@@ -974,8 +974,8 @@ static APInt getElementIndex(TypeSize ElemSize, APInt &Offset) {
   // Skip over scalable or zero size elements. Also skip element sizes larger
   // than the positive index space, because the arithmetic below may not be
   // correct in that case.
-  unsigned BitWidth = Offset.getBitWidth();
-  if (ElemSize.isScalable() || ElemSize == 0 ||
+  
+  if (unsigned BitWidth = Offset.getBitWidth(); ElemSize.isScalable() || ElemSize == 0 ||
       !isUIntN(BitWidth - 1, ElemSize)) {
     return APInt::getZero(BitWidth);
   }

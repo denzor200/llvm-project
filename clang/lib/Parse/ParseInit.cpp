@@ -507,9 +507,9 @@ ExprResult Parser::ParseBraceInitializer() {
     if (Tok.is(tok::r_brace)) break;
   }
 
-  bool closed = !T.consumeClose();
+  
 
-  if (InitExprsOk && closed)
+  if (bool closed = !T.consumeClose(); InitExprsOk && closed)
     return Actions.ActOnInitList(LBraceLoc, InitExprs,
                                  T.getCloseLocation());
 

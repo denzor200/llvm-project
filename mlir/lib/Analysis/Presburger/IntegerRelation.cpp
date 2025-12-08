@@ -670,8 +670,8 @@ static unsigned getBestVarToEliminate(const IntegerRelation &cst,
   unsigned minLoc = start;
   unsigned min = getProductOfNumLowerUpperBounds(start);
   for (unsigned c = start + 1; c < end; c++) {
-    unsigned numLbUbProduct = getProductOfNumLowerUpperBounds(c);
-    if (numLbUbProduct < min) {
+    
+    if (unsigned numLbUbProduct = getProductOfNumLowerUpperBounds(c); numLbUbProduct < min) {
       min = numLbUbProduct;
       minLoc = c;
     }
@@ -1312,8 +1312,8 @@ void IntegerRelation::mergeAndAlignSymbols(IntegerRelation &other) {
     const Identifier *findBegin =
         other.space.getIds(VarKind::Symbol).begin() + i;
     const Identifier *findEnd = other.space.getIds(VarKind::Symbol).end();
-    const Identifier *itr = std::find(findBegin, findEnd, identifier);
-    if (itr != findEnd) {
+    
+    if (const Identifier *itr = std::find(findBegin, findEnd, identifier); itr != findEnd) {
       other.swapVar(other.getVarKindOffset(VarKind::Symbol) + i,
                     other.getVarKindOffset(VarKind::Symbol) + i +
                         std::distance(findBegin, itr));
@@ -1605,8 +1605,8 @@ std::optional<DynamicAPInt> IntegerRelation::getConstantBoundOnDimSize(
 
   // Find an equality for 'pos'^th variable that equates it to some function
   // of the symbolic variables (+ constant).
-  int eqPos = findEqualityToConstant(pos, /*symbolic=*/true);
-  if (eqPos != -1) {
+  
+  if (int eqPos = findEqualityToConstant(pos, /*symbolic=*/true); eqPos != -1) {
     auto eq = getEquality(eqPos);
     // If the equality involves a local var, we do not handle it.
     // FlatLinearConstraints can instead be used to detect the local variable as
@@ -1732,8 +1732,8 @@ IntegerRelation::computeConstantLowerOrUpperBound(unsigned pos) {
   projectOut(0, pos);
   projectOut(1, getNumVars() - 1);
   // Check if there's an equality equating the '0'^th variable to a constant.
-  int eqRowIdx = findEqualityToConstant(/*pos=*/0, /*symbolic=*/false);
-  if (eqRowIdx != -1)
+  
+  if (int eqRowIdx = findEqualityToConstant(/*pos=*/0, /*symbolic=*/false); eqRowIdx != -1)
     // atEq(rowIdx, 0) is either -1 or 1.
     return -atEq(eqRowIdx, getNumCols() - 1) / atEq(eqRowIdx, 0);
 
@@ -1872,8 +1872,8 @@ void IntegerRelation::removeTrivialRedundancy() {
         rowsWithoutConstTerm.insert({rowWithoutConstTerm, {r, constTerm}});
     if (!ret.second) {
       // Check if the other constraint has a higher constant term.
-      auto &val = ret.first->second;
-      if (val.second > constTerm) {
+      
+      if (auto &val = ret.first->second; val.second > constTerm) {
         // The stored row is redundant. Mark it so, and update with this one.
         redunIneq[val.first] = true;
         val = {r, constTerm};

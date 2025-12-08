@@ -361,9 +361,9 @@ bool ScriptedProcess::DoUpdateThreadList(ThreadList &old_thread_list,
     return true;
   };
 
-  size_t thread_count = thread_info_sp->GetSize();
+  
 
-  if (!keys->ForEach(sort_keys) || sorted_threads.size() != thread_count)
+  if (size_t thread_count = thread_info_sp->GetSize(); !keys->ForEach(sort_keys) || sorted_threads.size() != thread_count)
     // Might be worth showing the unsorted thread list instead of return early.
     return ScriptedInterface::ErrorWithMessage<bool>(
         LLVM_PRETTY_FUNCTION, "Couldn't sort thread list.", error);

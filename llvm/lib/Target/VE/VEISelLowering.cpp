@@ -338,8 +338,8 @@ void VETargetLowering::initVPUActions() {
   // vNt32, vNt64 ops (legal element types)
   for (MVT VT : MVT::vector_valuetypes()) {
     MVT ElemVT = VT.getVectorElementType();
-    unsigned ElemBits = ElemVT.getScalarSizeInBits();
-    if (ElemBits != 32 && ElemBits != 64)
+    
+    if (unsigned ElemBits = ElemVT.getScalarSizeInBits(); ElemBits != 32 && ElemBits != 64)
       continue;
 
     for (unsigned MemOpc : {ISD::MLOAD, ISD::MSTORE, ISD::LOAD, ISD::STORE})
@@ -966,9 +966,9 @@ SDValue VETargetLowering::makeAddress(SDValue Op, SelectionDAG &DAG) const {
 
   // Handle PIC mode first. VE needs a got load for every variable!
   if (isPositionIndependent()) {
-    auto GlobalN = dyn_cast<GlobalAddressSDNode>(Op);
+    
 
-    if (isa<ConstantPoolSDNode>(Op) || isa<JumpTableSDNode>(Op) ||
+    if (auto GlobalN = dyn_cast<GlobalAddressSDNode>(Op); isa<ConstantPoolSDNode>(Op) || isa<JumpTableSDNode>(Op) ||
         (GlobalN && GlobalN->getGlobal()->hasLocalLinkage())) {
       // Create following instructions for local linkage PIC code.
       //     lea %reg, label@gotoff_lo
@@ -1052,12 +1052,12 @@ SDValue VETargetLowering::lowerATOMIC_FENCE(SDValue Op,
   SDLoc DL(Op);
   AtomicOrdering FenceOrdering =
       static_cast<AtomicOrdering>(Op.getConstantOperandVal(1));
-  SyncScope::ID FenceSSID =
-      static_cast<SyncScope::ID>(Op.getConstantOperandVal(2));
+  
 
   // VE uses Release consistency, so need a fence instruction if it is a
   // cross-thread fence.
-  if (FenceSSID == SyncScope::System) {
+  if (SyncScope::ID FenceSSID =
+      static_cast<SyncScope::ID>(Op.getConstantOperandVal(2)); FenceSSID == SyncScope::System) {
     switch (FenceOrdering) {
     case AtomicOrdering::NotAtomic:
     case AtomicOrdering::Unordered:
@@ -1711,8 +1711,8 @@ static SDValue lowerRETURNADDR(SDValue Op, SelectionDAG &DAG,
 SDValue VETargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
                                                   SelectionDAG &DAG) const {
   SDLoc DL(Op);
-  unsigned IntNo = Op.getConstantOperandVal(0);
-  switch (IntNo) {
+  
+  switch (unsigned IntNo = Op.getConstantOperandVal(0); IntNo) {
   default: // Don't custom lower most intrinsics.
     return SDValue();
   case Intrinsic::eh_sjlj_lsda: {

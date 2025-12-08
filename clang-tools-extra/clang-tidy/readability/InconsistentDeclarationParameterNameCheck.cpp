@@ -167,9 +167,9 @@ findInconsistentDeclarations(const FunctionDecl *OriginalDeclaration,
 
 static const FunctionDecl *
 getParameterSourceDeclaration(const FunctionDecl *OriginalDeclaration) {
-  const FunctionTemplateDecl *PrimaryTemplate =
-      OriginalDeclaration->getPrimaryTemplate();
-  if (PrimaryTemplate != nullptr) {
+  
+  if (const FunctionTemplateDecl *PrimaryTemplate =
+      OriginalDeclaration->getPrimaryTemplate(); PrimaryTemplate != nullptr) {
     // In case of template specializations, use primary template declaration as
     // the source of parameter names.
     return PrimaryTemplate->getTemplatedDecl();

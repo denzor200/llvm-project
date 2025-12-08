@@ -61,9 +61,9 @@ void MCELFStreamer::emitLabel(MCSymbol *S, SMLoc Loc) {
   auto *Symbol = static_cast<MCSymbolELF *>(S);
   MCObjectStreamer::emitLabel(Symbol, Loc);
 
-  const MCSectionELF &Section =
-      static_cast<const MCSectionELF &>(*getCurrentSectionOnly());
-  if (Section.getFlags() & ELF::SHF_TLS)
+  
+  if (const MCSectionELF &Section =
+      static_cast<const MCSectionELF &>(*getCurrentSectionOnly()); Section.getFlags() & ELF::SHF_TLS)
     Symbol->setType(ELF::STT_TLS);
 }
 
@@ -72,17 +72,17 @@ void MCELFStreamer::emitLabelAtPos(MCSymbol *S, SMLoc Loc, MCFragment &F,
   auto *Symbol = static_cast<MCSymbolELF *>(S);
   MCObjectStreamer::emitLabelAtPos(Symbol, Loc, F, Offset);
 
-  const MCSectionELF &Section =
-      static_cast<const MCSectionELF &>(*getCurrentSectionOnly());
-  if (Section.getFlags() & ELF::SHF_TLS)
+  
+  if (const MCSectionELF &Section =
+      static_cast<const MCSectionELF &>(*getCurrentSectionOnly()); Section.getFlags() & ELF::SHF_TLS)
     Symbol->setType(ELF::STT_TLS);
 }
 
 void MCELFStreamer::changeSection(MCSection *Section, uint32_t Subsection) {
   MCAssembler &Asm = getAssembler();
   auto *SectionELF = static_cast<const MCSectionELF *>(Section);
-  const MCSymbol *Grp = SectionELF->getGroup();
-  if (Grp)
+  
+  if (const MCSymbol *Grp = SectionELF->getGroup(); Grp)
     Asm.registerSymbol(*Grp);
   if (SectionELF->getFlags() & ELF::SHF_GNU_RETAIN)
     getWriter().markGnuAbi();
@@ -317,8 +317,8 @@ void MCELFStreamer::emitIdent(StringRef IdentString) {
 void MCELFStreamer::finalizeCGProfileEntry(const MCSymbolRefExpr *Sym,
                                            uint64_t Offset,
                                            const MCSymbolRefExpr *&SRE) {
-  const MCSymbol *S = &SRE->getSymbol();
-  if (S->isTemporary()) {
+  
+  if (const MCSymbol *S = &SRE->getSymbol(); S->isTemporary()) {
     if (!S->isInSection()) {
       getContext().reportError(
           SRE->getLoc(), Twine("Reference to undefined temporary symbol ") +

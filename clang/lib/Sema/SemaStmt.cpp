@@ -294,8 +294,8 @@ void DiagnoseUnused(Sema &S, const Expr *E, std::optional<unsigned> DiagID) {
     if (E->getType()->isVoidType())
       return;
 
-    auto [OffendingDecl, A] = CE->getUnusedResultAttr(S.Context);
-    if (DiagnoseNoDiscard(S, OffendingDecl, A, Loc, R1, R2,
+    
+    if (auto [OffendingDecl, A] = CE->getUnusedResultAttr(S.Context); DiagnoseNoDiscard(S, OffendingDecl, A, Loc, R1, R2,
                           /*isCtor=*/false))
       return;
 
@@ -316,8 +316,8 @@ void DiagnoseUnused(Sema &S, const Expr *E, std::optional<unsigned> DiagID) {
       }
     }
   } else if (const auto *CE = dyn_cast<CXXConstructExpr>(E)) {
-    auto [OffendingDecl, A] = CE->getUnusedResultAttr(S.Context);
-    if (DiagnoseNoDiscard(S, OffendingDecl, A, Loc, R1, R2,
+    
+    if (auto [OffendingDecl, A] = CE->getUnusedResultAttr(S.Context); DiagnoseNoDiscard(S, OffendingDecl, A, Loc, R1, R2,
                           /*isCtor=*/true))
       return;
   } else if (const auto *ILE = dyn_cast<InitListExpr>(E)) {
@@ -337,8 +337,8 @@ void DiagnoseUnused(Sema &S, const Expr *E, std::optional<unsigned> DiagID) {
       return;
     }
 
-    auto [OffendingDecl, A] = ME->getUnusedResultAttr(S.Context);
-    if (DiagnoseNoDiscard(S, OffendingDecl, A, Loc, R1, R2,
+    
+    if (auto [OffendingDecl, A] = ME->getUnusedResultAttr(S.Context); DiagnoseNoDiscard(S, OffendingDecl, A, Loc, R1, R2,
                           /*isCtor=*/false))
       return;
   } else if (const PseudoObjectExpr *POE = dyn_cast<PseudoObjectExpr>(E)) {
@@ -440,10 +440,10 @@ StmtResult Sema::ActOnCompoundStmt(SourceLocation L, SourceLocation R,
   // If we're in C mode, check that we don't have any decls after stmts.  If
   // so, emit an extension diagnostic in C89 and potentially a warning in later
   // versions.
-  const unsigned MixedDeclsCodeID = getLangOpts().C99
+  
+  if (const unsigned MixedDeclsCodeID = getLangOpts().C99
                                         ? diag::warn_mixed_decls_code
-                                        : diag::ext_mixed_decls_code;
-  if (!getLangOpts().CPlusPlus && !Diags.isIgnored(MixedDeclsCodeID, L)) {
+                                        : diag::ext_mixed_decls_code; !getLangOpts().CPlusPlus && !Diags.isIgnored(MixedDeclsCodeID, L)) {
     // Note that __extension__ can be around a decl.
     unsigned i = 0;
     // Skip over all declarations.
@@ -1007,9 +1007,9 @@ StmtResult Sema::ActOnIfStmt(SourceLocation IfLoc,
     bool Immediate = ExprEvalContexts.back().Context ==
                      ExpressionEvaluationContext::ImmediateFunctionContext;
     if (CurContext->isFunctionOrMethod()) {
-      const auto *FD =
-          dyn_cast<FunctionDecl>(Decl::castFromDeclContext(CurContext));
-      if (FD && FD->isImmediateFunction())
+      
+      if (const auto *FD =
+          dyn_cast<FunctionDecl>(Decl::castFromDeclContext(CurContext)); FD && FD->isImmediateFunction())
         Immediate = true;
     }
     if (isUnevaluatedContext() || Immediate)
@@ -1612,8 +1612,8 @@ Sema::ActOnFinishSwitchStmt(SourceLocation SwitchLoc, Stmt *Switch,
       // See which case values aren't in enum.
       for (CaseValsTy::const_iterator CI = CaseVals.begin();
           CI != CaseVals.end(); CI++) {
-        Expr *CaseExpr = CI->second->getLHS();
-        if (ShouldDiagnoseSwitchCaseNotInEnum(*this, ED, CaseExpr, EI, EIEnd,
+        
+        if (Expr *CaseExpr = CI->second->getLHS(); ShouldDiagnoseSwitchCaseNotInEnum(*this, ED, CaseExpr, EI, EIEnd,
                                               CI->first))
           Diag(CaseExpr->getExprLoc(), diag::warn_not_in_enum)
             << CondTypeBeforePromotion;
@@ -2236,8 +2236,8 @@ void Sema::CheckBreakContinueBinding(Expr *E) {
   if (!E || getLangOpts().CPlusPlus)
     return;
   BreakContinueFinder BCFinder(*this, E);
-  Scope *BreakParent = CurScope->getBreakParent();
-  if (BCFinder.BreakFound() && BreakParent) {
+  
+  if (Scope *BreakParent = CurScope->getBreakParent(); BCFinder.BreakFound() && BreakParent) {
     if (BreakParent->getFlags() & Scope::SwitchScope) {
       Diag(BCFinder.GetBreakLoc(), diag::warn_break_binds_to_switch);
     } else {
@@ -3513,11 +3513,11 @@ const VarDecl *Sema::getCopyElisionCandidate(NamedReturnInfo &Info,
 static bool
 VerifyInitializationSequenceCXX98(const Sema &S,
                                   const InitializationSequence &Seq) {
-  const auto *Step = llvm::find_if(Seq.steps(), [](const auto &Step) {
+  
+  if (const auto *Step = llvm::find_if(Seq.steps(), [](const auto &Step) {
     return Step.Kind == InitializationSequence::SK_ConstructorInitialization ||
            Step.Kind == InitializationSequence::SK_UserConversion;
-  });
-  if (Step != Seq.step_end()) {
+  }); Step != Seq.step_end()) {
     const auto *FD = Step->Function.Function;
     if (isa<CXXConstructorDecl>(FD)
             ? !FD->getParamDecl(0)->getType()->isRValueReferenceType()
@@ -3855,8 +3855,8 @@ bool Sema::DeduceFunctionTypeFromReturnExpr(FunctionDecl *FD,
       //  type has multiple return statements, the return type is deduced for
       //  each return statement. [...] if the type deduced is not the same in
       //  each deduction, the program is ill-formed.
-      const LambdaScopeInfo *LambdaSI = getCurLambda();
-      if (LambdaSI && LambdaSI->HasImplicitReturnType)
+      
+      if (const LambdaScopeInfo *LambdaSI = getCurLambda(); LambdaSI && LambdaSI->HasImplicitReturnType)
         Diag(ReturnLoc, diag::err_typecheck_missing_return_type_incompatible)
             << Info.SecondArg << Info.FirstArg << true /*IsLambda*/;
       else
@@ -3910,8 +3910,8 @@ Sema::ActOnReturnStmt(SourceLocation ReturnLoc, Expr *RetValExp,
         << /*return*/ 1 << /*out of */ 0);
 
   // using plain return in a coroutine is not allowed.
-  FunctionScopeInfo *FSI = getCurFunction();
-  if (FSI->FirstReturnLoc.isInvalid() && FSI->isCoroutine()) {
+  
+  if (FunctionScopeInfo *FSI = getCurFunction(); FSI->FirstReturnLoc.isInvalid() && FSI->isCoroutine()) {
     assert(FSI->FirstCoroutineStmtLoc.isValid() &&
            "first coroutine location not set");
     Diag(ReturnLoc, diag::err_return_in_coroutine);
@@ -4007,8 +4007,8 @@ StmtResult Sema::BuildReturnStmt(SourceLocation ReturnLoc, Expr *RetValExp,
     return StmtError();
 
   if (RetValExp) {
-    const auto *ATy = dyn_cast<ArrayType>(RetValExp->getType());
-    if (ATy && ATy->getElementType().isWebAssemblyReferenceType()) {
+    
+    if (const auto *ATy = dyn_cast<ArrayType>(RetValExp->getType()); ATy && ATy->getElementType().isWebAssemblyReferenceType()) {
       Diag(ReturnLoc, diag::err_wasm_table_art) << 1;
       return StmtError();
     }
@@ -4033,12 +4033,12 @@ StmtResult Sema::BuildReturnStmt(SourceLocation ReturnLoc, Expr *RetValExp,
   // deduction.
   if (getLangOpts().CPlusPlus14) {
     if (AutoType *AT = FnRetType->getContainedAutoType()) {
-      FunctionDecl *FD = cast<FunctionDecl>(CurContext);
+      
       // If we've already decided this function is invalid, e.g. because
       // we saw a `return` whose expression had an error, don't keep
       // trying to deduce its return type.
       // (Some return values may be needlessly wrapped in RecoveryExpr).
-      if (FD->isInvalidDecl() ||
+      if (FunctionDecl *FD = cast<FunctionDecl>(CurContext); FD->isInvalidDecl() ||
           DeduceFunctionTypeFromReturnExpr(FD, ReturnLoc, RetValExp, AT)) {
         FD->setInvalidDecl();
         if (!AllowRecovery)
@@ -4428,8 +4428,8 @@ StmtResult Sema::ActOnCXXTryBlock(SourceLocation TryLoc, Stmt *TryBlock,
       CatchTypePublicBases CTPB(HandledBaseTypes,
                                 H->getCaughtType().getCanonicalType());
       if (RD->lookupInBases(CTPB, Paths)) {
-        const CXXCatchStmt *Problem = CTPB.getFoundHandler();
-        if (!Paths.isAmbiguous(
+        
+        if (const CXXCatchStmt *Problem = CTPB.getFoundHandler(); !Paths.isAmbiguous(
                 CanQualType::CreateUnsafe(CTPB.getFoundHandlerType()))) {
           Diag(H->getExceptionDecl()->getTypeSpecStartLoc(),
                diag::warn_exception_caught_by_earlier_handler)
@@ -4468,12 +4468,12 @@ StmtResult Sema::ActOnCXXTryBlock(SourceLocation TryLoc, Stmt *TryBlock,
 
 void Sema::DiagnoseExceptionUse(SourceLocation Loc, bool IsTry) {
   const llvm::Triple &T = Context.getTargetInfo().getTriple();
-  const bool IsOpenMPGPUTarget =
-      getLangOpts().OpenMPIsTargetDevice && T.isGPU();
+  
 
   // Don't report an error if 'try' is used in system headers or in an OpenMP
   // target region compiled for a GPU architecture.
-  if (IsOpenMPGPUTarget || getLangOpts().CUDA)
+  if (const bool IsOpenMPGPUTarget =
+      getLangOpts().OpenMPIsTargetDevice && T.isGPU(); IsOpenMPGPUTarget || getLangOpts().CUDA)
     // Delay error emission for the OpenMP device code.
     return;
 
@@ -4624,10 +4624,10 @@ buildCapturedStmtCaptureList(Sema &S, CapturedRegionScopeInfo *RSI,
     // no side-effects.
 
     // Create a field for this capture.
-    FieldDecl *Field = S.BuildCaptureField(RSI->TheRecordDecl, Cap);
+    
 
     // Add the capture to our list of captures.
-    if (Cap.isThisCapture()) {
+    if (FieldDecl *Field = S.BuildCaptureField(RSI->TheRecordDecl, Cap); Cap.isThisCapture()) {
       Captures.push_back(CapturedStmt::Capture(Cap.getLocation(),
                                                CapturedStmt::VCK_This));
     } else if (Cap.isVLATypeCapture()) {

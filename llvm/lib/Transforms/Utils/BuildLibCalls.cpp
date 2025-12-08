@@ -1422,8 +1422,8 @@ void llvm::markRegisterParameterAttributes(Function *F) {
   if (!F->arg_size() || F->isVarArg())
     return;
 
-  const CallingConv::ID CC = F->getCallingConv();
-  if (CC != CallingConv::C && CC != CallingConv::X86_StdCall)
+  
+  if (const CallingConv::ID CC = F->getCallingConv(); CC != CallingConv::C && CC != CallingConv::X86_StdCall)
     return;
 
   const Module *M = F->getParent();

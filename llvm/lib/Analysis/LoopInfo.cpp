@@ -157,8 +157,8 @@ PHINode *Loop::getCanonicalInductionVariable() const {
 
   // Loop over all of the PHI nodes, looking for a canonical indvar.
   for (BasicBlock::iterator I = H->begin(); isa<PHINode>(I); ++I) {
-    PHINode *PN = cast<PHINode>(I);
-    if (ConstantInt *CI =
+    
+    if (PHINode *PN = cast<PHINode>(I); ConstantInt *CI =
             dyn_cast<ConstantInt>(PN->getIncomingValueForBlock(Incoming)))
       if (CI->isZero())
         if (Instruction *Inc =
@@ -311,13 +311,13 @@ PHINode *Loop::getInductionVariable(ScalarEvolution &SE) const {
       continue;
 
     BasicBlock *Latch = getLoopLatch();
-    Value *StepInst = IndVar.getIncomingValueForBlock(Latch);
+    
 
     // case 1:
     // IndVar = phi[{InitialValue, preheader}, {StepInst, latch}]
     // StepInst = IndVar + step
     // cmp = StepInst < FinalValue
-    if (StepInst == LatchCmpOp0 || StepInst == LatchCmpOp1)
+    if (Value *StepInst = IndVar.getIncomingValueForBlock(Latch); StepInst == LatchCmpOp0 || StepInst == LatchCmpOp1)
       return &IndVar;
 
     // case 2:
@@ -342,8 +342,8 @@ bool Loop::getInductionDescriptor(ScalarEvolution &SE,
 bool Loop::isAuxiliaryInductionVariable(PHINode &AuxIndVar,
                                         ScalarEvolution &SE) const {
   // Located in the loop header
-  BasicBlock *Header = getHeader();
-  if (AuxIndVar.getParent() != Header)
+  
+  if (BasicBlock *Header = getHeader(); AuxIndVar.getParent() != Header)
     return false;
 
   // No uses outside of the loop
@@ -414,8 +414,8 @@ bool Loop::isCanonical(ScalarEvolution &SE) const {
   if (!getInductionDescriptor(SE, IndDesc))
     return false;
 
-  ConstantInt *Init = dyn_cast_or_null<ConstantInt>(IndDesc.getStartValue());
-  if (!Init || !Init->isZero())
+  
+  if (ConstantInt *Init = dyn_cast_or_null<ConstantInt>(IndDesc.getStartValue()); !Init || !Init->isZero())
     return false;
 
   if (IndDesc.getInductionOpcode() != Instruction::Add)
@@ -549,9 +549,9 @@ void Loop::setLoopAlreadyUnrolled() {
 void Loop::setLoopMustProgress() {
   LLVMContext &Context = getHeader()->getContext();
 
-  MDNode *MustProgress = findOptionMDForLoop(this, "llvm.loop.mustprogress");
+  
 
-  if (MustProgress)
+  if (MDNode *MustProgress = findOptionMDForLoop(this, "llvm.loop.mustprogress"); MustProgress)
     return;
 
   MDNode *MustProgressMD =
@@ -730,9 +730,9 @@ void UnloopUpdater::updateBlockParents() {
     for (BasicBlock *POI : Traversal) {
 
       Loop *L = LI->getLoopFor(POI);
-      Loop *NL = getNearestLoop(POI, L);
+      
 
-      if (NL != L) {
+      if (Loop *NL = getNearestLoop(POI, L); NL != L) {
         // For reducible loops, NL is now an ancestor of Unloop.
         assert((NL != &Unloop && (!NL || NL->contains(&Unloop))) &&
                "uninitialized successor");
@@ -759,8 +759,8 @@ void UnloopUpdater::updateBlockParents() {
          POI != POE; ++POI) {
 
       Loop *L = LI->getLoopFor(*POI);
-      Loop *NL = getNearestLoop(*POI, L);
-      if (NL != L) {
+      
+      if (Loop *NL = getNearestLoop(*POI, L); NL != L) {
         assert(NL != &Unloop && (!NL || NL->contains(&Unloop)) &&
                "uninitialized successor");
         LI->changeLoopFor(*POI, NL);
@@ -1013,8 +1013,8 @@ void llvm::printLoop(const Loop &L, raw_ostream &OS,
 
   OS << Banner;
 
-  auto *PreHeader = L.getLoopPreheader();
-  if (PreHeader) {
+  
+  if (auto *PreHeader = L.getLoopPreheader(); PreHeader) {
     OS << "\n; Preheader:";
     PreHeader->print(OS);
     OS << "\n; Loop:";
@@ -1139,8 +1139,8 @@ CallBase *llvm::getLoopConvergenceHeart(const Loop *TheLoop) {
       // verifier has already checked that only the loop intrinsic can use such
       // a token.
       if (auto *Token = CB->getConvergenceControlToken()) {
-        auto *TokenDef = cast<Instruction>(Token);
-        if (!TheLoop->contains(TokenDef->getParent()))
+        
+        if (auto *TokenDef = cast<Instruction>(Token); !TheLoop->contains(TokenDef->getParent()))
           return CB;
       }
       return nullptr;
@@ -1184,8 +1184,8 @@ MDNode *llvm::makePostTransformationMetadata(LLVMContext &Context,
       bool IsVectorMetadata = false;
       Metadata *Op = MDO;
       if (MDNode *MD = dyn_cast<MDNode>(Op)) {
-        const MDString *S = dyn_cast<MDString>(MD->getOperand(0));
-        if (S)
+        
+        if (const MDString *S = dyn_cast<MDString>(MD->getOperand(0)); S)
           IsVectorMetadata =
               llvm::any_of(RemovePrefixes, [S](StringRef Prefix) -> bool {
                 return S->getString().starts_with(Prefix);

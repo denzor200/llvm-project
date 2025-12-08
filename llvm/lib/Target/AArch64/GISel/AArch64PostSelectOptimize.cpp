@@ -259,13 +259,13 @@ bool AArch64PostSelectOptimize::optimizeNZCVDefs(MachineBasicBlock &MBB) {
   LRU.addLiveOuts(MBB);
 
   for (auto &II : instructionsWithoutDebug(MBB.rbegin(), MBB.rend())) {
-    bool NZCVDead = LRU.available(AArch64::NZCV);
-    if (NZCVDead && II.definesRegister(AArch64::NZCV, /*TRI=*/nullptr)) {
+    
+    if (bool NZCVDead = LRU.available(AArch64::NZCV); NZCVDead && II.definesRegister(AArch64::NZCV, /*TRI=*/nullptr)) {
       // The instruction defines NZCV, but NZCV is dead.
       unsigned NewOpc = getNonFlagSettingVariant(II.getOpcode());
-      int DeadNZCVIdx =
-          II.findRegisterDefOperandIdx(AArch64::NZCV, /*TRI=*/nullptr);
-      if (DeadNZCVIdx != -1) {
+      
+      if (int DeadNZCVIdx =
+          II.findRegisterDefOperandIdx(AArch64::NZCV, /*TRI=*/nullptr); DeadNZCVIdx != -1) {
         if (NewOpc) {
           // If there is an equivalent non-flag-setting op, we convert.
           LLVM_DEBUG(dbgs() << "Post-select optimizer: converting flag-setting "

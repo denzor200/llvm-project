@@ -528,10 +528,10 @@ private:
       // The constraints introduced by compound index expression are
       // complicated. Skip them.
       AffineMap idxMap = linalgOp.getMatchingIndexingMap(t);
-      bool hasCompExpr = llvm::any_of(idxMap.getResults(), [](AffineExpr exp) {
+      
+      if (bool hasCompExpr = llvm::any_of(idxMap.getResults(), [](AffineExpr exp) {
         return !llvm::isa<AffineDimExpr>(exp);
-      });
-      if (!srcEnc || hasCompExpr)
+      }); !srcEnc || hasCompExpr)
         continue;
 
       // Try scheduling loop without constraints from `tval`.

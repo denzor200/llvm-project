@@ -494,8 +494,8 @@ public:
                         ExecutionContext *execution_context) override {
     Status error;
 
-    const int short_option = m_getopt_table[option_idx].val;
-    switch (short_option) {
+    
+    switch (const int short_option = m_getopt_table[option_idx].val; short_option) {
     case 'a':
       m_include_any_process = true;
       break;
@@ -993,8 +993,8 @@ EnableOptionsSP ParseAutoEnableOptions(Status &error, Debugger &debugger) {
   if (args.GetArgumentCount() > 0) {
     // Eliminate the initial '--' that would be required to set the settings
     // that themselves include '-' and/or '--'.
-    const char *first_arg = args.GetArgumentAtIndex(0);
-    if (first_arg && (strcmp(first_arg, "--") == 0))
+    
+    if (const char *first_arg = args.GetArgumentAtIndex(0); first_arg && (strcmp(first_arg, "--") == 0))
       args.Shift();
   }
 
@@ -1391,9 +1391,9 @@ Status StructuredDataDarwinLog::FilterLaunchInfo(ProcessLaunchInfo &launch_info,
 
   // If the target architecture is not one that supports DarwinLog, we have
   // nothing to do here.
-  auto &triple = target ? target->GetArchitecture().GetTriple()
-                        : launch_info.GetArchitecture().GetTriple();
-  if (triple.getVendor() != llvm::Triple::Apple) {
+  
+  if (auto &triple = target ? target->GetArchitecture().GetTriple()
+                        : launch_info.GetArchitecture().GetTriple(); triple.getVendor() != llvm::Triple::Apple) {
     return error;
   }
 
@@ -1803,8 +1803,8 @@ void StructuredDataDarwinLog::EnableNow() {
     // We haven't run the enable command yet.  Just do that now, it'll take
     // care of the rest.
     auto &interpreter = debugger_sp->GetCommandInterpreter();
-    const bool success = RunEnableCommand(interpreter);
-    if (log) {
+    
+    if (const bool success = RunEnableCommand(interpreter); log) {
       if (success)
         LLDB_LOGF(log,
                   "StructuredDataDarwinLog::%s() ran enable command "

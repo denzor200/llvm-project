@@ -58,8 +58,8 @@ void OptionValueDictionary::DumpValue(const ExecutionContext *exe_ctx,
 
       strm.Indent(value.first);
 
-      const uint32_t extra_dump_options = m_raw_value_dump ? eDumpOptionRaw : 0;
-      switch (dict_type) {
+      
+      switch (const uint32_t extra_dump_options = m_raw_value_dump ? eDumpOptionRaw : 0; dict_type) {
       default:
       case eTypeArray:
       case eTypeDictionary:
@@ -116,8 +116,8 @@ size_t OptionValueDictionary::GetArgs(Args &args) const {
 Status OptionValueDictionary::SetArgs(const Args &args,
                                       VarSetOperationType op) {
   Status error;
-  const size_t argc = args.GetArgumentCount();
-  switch (op) {
+  
+  switch (const size_t argc = args.GetArgumentCount(); op) {
   case eVarSetOperationClear:
     Clear();
     break;
@@ -155,8 +155,8 @@ Status OptionValueDictionary::SetArgs(const Args &args,
         if ((key.size() > 2) && (key.back() == ']')) {
           // Strip leading '[' and trailing ']'
           key = key.substr(1, key.size() - 2);
-          const char quote_char = key.front();
-          if ((quote_char == '\'') || (quote_char == '"')) {
+          
+          if (const char quote_char = key.front(); (quote_char == '\'') || (quote_char == '"')) {
             if ((key.size() > 2) && (key.back() == quote_char)) {
               // Strip the quotes
               key = key.substr(1, key.size() - 2);

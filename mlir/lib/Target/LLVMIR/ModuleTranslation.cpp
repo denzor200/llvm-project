@@ -598,8 +598,8 @@ llvm::Constant *mlir::LLVM::detail::getLLVMConstant(
     // the lack of native fp8 types in LLVM at the moment. Additionally, handle
     // targets (like AMDGPU) that don't implement bfloat and convert all bfloats
     // to i16.
-    unsigned floatWidth = APFloat::getSizeInBits(sem);
-    if (llvmType->isIntegerTy(floatWidth))
+    
+    if (unsigned floatWidth = APFloat::getSizeInBits(sem); llvmType->isIntegerTy(floatWidth))
       return llvm::ConstantInt::get(llvmType,
                                     floatAttr.getValue().bitcastToAPInt());
     if (llvmType !=
@@ -1367,8 +1367,8 @@ LogicalResult ModuleTranslation::convertGlobalsAndAliases() {
       ReturnOp ret = cast<ReturnOp>(initializer->getTerminator());
       llvm::Constant *cst =
           cast<llvm::Constant>(lookupValue(ret.getOperand(0)));
-      auto *global = cast<llvm::GlobalVariable>(lookupGlobal(op));
-      if (!shouldDropGlobalInitializer(global->getLinkage(), cst))
+      
+      if (auto *global = cast<llvm::GlobalVariable>(lookupGlobal(op)); !shouldDropGlobalInitializer(global->getLinkage(), cst))
         global->setInitializer(cst);
 
       // Try to remove the dangling constants again after all operations are
@@ -1517,8 +1517,8 @@ LogicalResult ModuleTranslation::convertOneFunction(LLVMFuncOp func) {
 
   // Check the personality and set it.
   if (func.getPersonality()) {
-    llvm::Type *ty = llvm::PointerType::getUnqual(llvmFunc->getContext());
-    if (llvm::Constant *pfunc = getLLVMConstant(ty, func.getPersonalityAttr(),
+    
+    if (llvm::Type *ty = llvm::PointerType::getUnqual(llvmFunc->getContext()); llvm::Constant *pfunc = getLLVMConstant(ty, func.getPersonalityAttr(),
                                                 func.getLoc(), *this))
       llvmFunc->setPersonalityFn(pfunc);
   }

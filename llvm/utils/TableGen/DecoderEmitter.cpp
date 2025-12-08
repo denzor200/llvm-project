@@ -652,8 +652,8 @@ static std::vector<EncodingIsland> getIslands(const KnownBits &EncodingBits,
   unsigned FilterWidth = FilterBits.getBitWidth();
   for (unsigned I = 0; I != FilterWidth; ++I) {
     bool IsKnown = EncodingBits.Zero[I] || EncodingBits.One[I];
-    bool IsFiltered = FilterBits.Zero[I] || FilterBits.One[I];
-    if (!IsFiltered && IsKnown) {
+    
+    if (bool IsFiltered = FilterBits.Zero[I] || FilterBits.One[I]; !IsFiltered && IsKnown) {
       if (OnIsland) {
         // Accumulate island bits.
         FieldVal |= static_cast<uint64_t>(EncodingBits.One[I])
@@ -965,8 +965,8 @@ std::unique_ptr<Filter> FilterChooser::findBestFilter() const {
     KnownBits EncodingBits = Encoding.getMandatoryBits();
 
     for (unsigned BitIndex = 0; BitIndex != FilterWidth; ++BitIndex) {
-      bool IsKnown = EncodingBits.Zero[BitIndex] || EncodingBits.One[BitIndex];
-      switch (BitAttrs[BitIndex]) {
+      
+      switch (bool IsKnown = EncodingBits.Zero[BitIndex] || EncodingBits.One[BitIndex]; BitAttrs[BitIndex]) {
       case ATTR_NONE:
         if (IsKnown)
           BitAttrs[BitIndex] = ATTR_ALL_SET;
@@ -1267,8 +1267,8 @@ DecoderTreeBuilder::convertSingleton(unsigned EncodingID,
   }
 
   const KnownBits &InstBits = Encoding.getInstBits();
-  const APInt &SoftFailMask = Encoding.getSoftFailMask();
-  if (!SoftFailMask.isZero()) {
+  
+  if (const APInt &SoftFailMask = Encoding.getSoftFailMask(); !SoftFailMask.isZero()) {
     APInt PositiveMask = InstBits.Zero & SoftFailMask;
     APInt NegativeMask = InstBits.One & SoftFailMask;
     N->addChild(std::make_unique<SoftFailNode>(PositiveMask.getZExtValue(),

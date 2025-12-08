@@ -539,8 +539,8 @@ Error RawInstrProfReader<IntPtrT>::readNextHeader(const char *CurrentPos) {
     return make_error<InstrProfError>(instrprof_error::malformed,
                                       "insufficient padding");
   // The magic should have the same byte order as in the previous header.
-  uint64_t Magic = *reinterpret_cast<const uint64_t *>(CurrentPos);
-  if (Magic != swap(RawInstrProf::getMagic<IntPtrT>()))
+  
+  if (uint64_t Magic = *reinterpret_cast<const uint64_t *>(CurrentPos); Magic != swap(RawInstrProf::getMagic<IntPtrT>()))
     return make_error<InstrProfError>(instrprof_error::bad_magic);
 
   // There's another profile to read, so we need to process the header.
@@ -595,8 +595,8 @@ Error RawInstrProfReader<IntPtrT>::readHeader(
   const uint8_t *BinaryIdStart =
       reinterpret_cast<const uint8_t *>(&Header) + sizeof(RawInstrProf::Header);
   const uint8_t *BinaryIdEnd = BinaryIdStart + BinaryIdSize;
-  const uint8_t *BufferEnd = (const uint8_t *)DataBuffer->getBufferEnd();
-  if (BinaryIdSize % sizeof(uint64_t) || BinaryIdEnd > BufferEnd)
+  
+  if (const uint8_t *BufferEnd = (const uint8_t *)DataBuffer->getBufferEnd(); BinaryIdSize % sizeof(uint64_t) || BinaryIdEnd > BufferEnd)
     return error(instrprof_error::bad_header);
   ArrayRef<uint8_t> BinaryIdsBuffer(BinaryIdStart, BinaryIdSize);
   if (!BinaryIdsBuffer.empty()) {
@@ -1469,8 +1469,8 @@ IndexedMemProfReader::getMemProfRecord(const uint64_t FuncNameHash) const {
         instrprof_error::unknown_function,
         "memprof record not found for function hash " + Twine(FuncNameHash));
 
-  const memprof::IndexedMemProfRecord &IndexedRecord = *Iter;
-  switch (Version) {
+  
+  switch (const memprof::IndexedMemProfRecord &IndexedRecord = *Iter; Version) {
   case memprof::Version2:
     assert(MemProfFrameTable && "MemProfFrameTable must be available");
     assert(MemProfCallStackTable && "MemProfCallStackTable must be available");
@@ -1640,8 +1640,8 @@ void InstrProfReader::accumulateCounts(CountSumOrPercent &Sum, bool IsCS) {
   uint64_t NumFuncs = 0;
   for (const auto &Func : *this) {
     if (isIRLevelProfile()) {
-      bool FuncIsCS = NamedInstrProfRecord::hasCSFlagInHash(Func.Hash);
-      if (FuncIsCS != IsCS)
+      
+      if (bool FuncIsCS = NamedInstrProfRecord::hasCSFlagInHash(Func.Hash); FuncIsCS != IsCS)
         continue;
     }
     Func.accumulateCounts(Sum);

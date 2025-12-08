@@ -80,10 +80,10 @@ transform::CastAndCallOp::apply(transform::TransformRewriter &rewriter,
       // If we are inserting after the insertion point operation, the
       // insertion point operation must properly dominate the user. Otherwise
       // basic dominance is enough.
-      bool doesDominate = insertAfter
+      
+      if (bool doesDominate = insertAfter
                               ? dom.properlyDominates(insertionPoint, user)
-                              : dom.dominates(insertionPoint, user);
-      if (!doesDominate) {
+                              : dom.dominates(insertionPoint, user); !doesDominate) {
         return emitDefiniteFailure()
                << "User " << user << " is not dominated by insertion point "
                << insertionPoint;
@@ -95,10 +95,10 @@ transform::CastAndCallOp::apply(transform::TransformRewriter &rewriter,
     // If we are inserting before the insertion point operation, the
     // input must properly dominate the insertion point operation. Otherwise
     // basic dominance is enough.
-    bool doesDominate = insertAfter
+    
+    if (bool doesDominate = insertAfter
                             ? dom.dominates(input, insertionPoint)
-                            : dom.properlyDominates(input, insertionPoint);
-    if (!doesDominate) {
+                            : dom.properlyDominates(input, insertionPoint); !doesDominate) {
       return emitDefiniteFailure()
              << "input " << input << " does not dominate insertion point "
              << insertionPoint;

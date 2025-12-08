@@ -268,8 +268,8 @@ bool AlignmentFromAssumptionsPass::processAssumption(CallInst *ACall,
       for (auto &U : J->uses()) {
         if (U->getType()->isPointerTy()) {
           Instruction *K = cast<Instruction>(U.getUser());
-          StoreInst *SI = dyn_cast<StoreInst>(K);
-          if (SI && SI->getPointerOperandIndex() != U.getOperandNo())
+          
+          if (StoreInst *SI = dyn_cast<StoreInst>(K); SI && SI->getPointerOperandIndex() != U.getOperandNo())
             continue;
           if (!Visited.count(K))
             WorkList.push_back(K);
@@ -302,8 +302,8 @@ AlignmentFromAssumptionsPass::run(Function &F, FunctionAnalysisManager &AM) {
 
   AssumptionCache &AC = AM.getResult<AssumptionAnalysis>(F);
   ScalarEvolution &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
-  DominatorTree &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  if (!runImpl(F, AC, &SE, &DT))
+  
+  if (DominatorTree &DT = AM.getResult<DominatorTreeAnalysis>(F); !runImpl(F, AC, &SE, &DT))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

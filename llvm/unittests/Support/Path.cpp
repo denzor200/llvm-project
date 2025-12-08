@@ -767,8 +767,8 @@ TEST_F(FileSystemTest, RealPath) {
   SmallString<64> HomeDir;
 
   // This can fail if $HOME is not set and getpwuid fails.
-  bool Result = llvm::sys::path::home_directory(HomeDir);
-  if (Result) {
+  
+  if (bool Result = llvm::sys::path::home_directory(HomeDir); Result) {
     checkSeparators(HomeDir);
     ASSERT_NO_ERROR(fs::real_path(HomeDir, Expected));
     checkSeparators(Expected);

@@ -201,11 +201,11 @@ void ExegesisEmitter::emitPfmCounters(raw_ostream &OS) const {
   const auto PfmCounterDefs =
       Records.getAllDerivedDefinitions("ProcPfmCounters");
   // Only emit if non-empty.
-  const bool HasAtLeastOnePfmIssueCounter =
+  
+  if (const bool HasAtLeastOnePfmIssueCounter =
       llvm::any_of(PfmCounterDefs, [](const Record *Def) {
         return !Def->getValueAsListOfDefs("IssueCounters").empty();
-      });
-  if (HasAtLeastOnePfmIssueCounter) {
+      }); HasAtLeastOnePfmIssueCounter) {
     OS << "static const PfmCountersInfo::IssueCounter " << Target
        << "PfmIssueCounters[] = {\n";
     for (const Record *Def : PfmCounterDefs) {

@@ -39,9 +39,9 @@ void AVRInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                Register SrcReg, bool KillSrc,
                                bool RenamableDest, bool RenamableSrc) const {
   const AVRRegisterInfo &TRI = *STI.getRegisterInfo();
-  unsigned Opc;
+  
 
-  if (AVR::DREGSRegClass.contains(DestReg, SrcReg)) {
+  if (unsigned Opc; AVR::DREGSRegClass.contains(DestReg, SrcReg)) {
     // If our AVR has `movw`, let's emit that; otherwise let's emit two separate
     // `mov`s.
     if (STI.hasMOVW() && AVR::DREGSMOVWRegClass.contains(DestReg, SrcReg)) {
@@ -322,8 +322,8 @@ bool AVRInstrInfo::analyzeBranch(MachineBasicBlock &MBB,
 
     // Working from the bottom, handle the first conditional branch.
     if (Cond.empty()) {
-      MachineBasicBlock *TargetBB = I->getOperand(0).getMBB();
-      if (AllowModify && UnCondBrIter != MBB.end() &&
+      
+      if (MachineBasicBlock *TargetBB = I->getOperand(0).getMBB(); AllowModify && UnCondBrIter != MBB.end() &&
           MBB.isLayoutSuccessor(TargetBB)) {
         // If we can modify the code and it ends in something like:
         //
@@ -472,9 +472,9 @@ bool AVRInstrInfo::reverseBranchCondition(
 }
 
 unsigned AVRInstrInfo::getInstSizeInBytes(const MachineInstr &MI) const {
-  unsigned Opcode = MI.getOpcode();
+  
 
-  switch (Opcode) {
+  switch (unsigned Opcode = MI.getOpcode(); Opcode) {
   // A regular instruction
   default: {
     const MCInstrDesc &Desc = get(Opcode);

@@ -175,8 +175,8 @@ static bool needsLeadingZero(uint64_t Value)
 {
   while (Value)
   {
-    uint64_t digit = (Value >> 60) & 0xf;
-    if (digit != 0)
+    
+    if (uint64_t digit = (Value >> 60) & 0xf; digit != 0)
       return (digit >= 0xa);
     Value <<= 4;
   }

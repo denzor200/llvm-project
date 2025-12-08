@@ -393,8 +393,8 @@ Value *Simplifier::Context::subst(Value *Tree, Value *OldV, Value *NewV) {
     if (!U || U->getParent())
       continue;
     for (unsigned i = 0, n = U->getNumOperands(); i != n; ++i) {
-      Value *Op = U->getOperand(i);
-      if (Op == OldV) {
+      
+      if (Value *Op = U->getOperand(i); Op == OldV) {
         U->setOperand(i, NewV);
         unuse(OldV);
       } else {
@@ -441,14 +441,14 @@ void Simplifier::Context::replace(Value *OldV, Value *NewV) {
 
 void Simplifier::Context::cleanup() {
   for (Value *V : Clones) {
-    Instruction *U = cast<Instruction>(V);
-    if (!U->getParent())
+    
+    if (Instruction *U = cast<Instruction>(V); !U->getParent())
       U->dropAllReferences();
   }
 
   for (Value *V : Clones) {
-    Instruction *U = cast<Instruction>(V);
-    if (!U->getParent())
+    
+    if (Instruction *U = cast<Instruction>(V); !U->getParent())
       U->deleteValue();
   }
 }
@@ -755,8 +755,8 @@ bool PolynomialMultiplyRecognize::matchLeftShift(SelectInst *SelI,
     // Matched: select +++ ? 0 : T
     //          select +++ ? T : 0
 
-    Value *U = *SelI->user_begin();
-    if (!match(U, m_c_Xor(m_Specific(SelI), m_Value(R))))
+    
+    if (Value *U = *SelI->user_begin(); !match(U, m_c_Xor(m_Specific(SelI), m_Value(R))))
       return false;
     // Matched: xor (select +++ ? 0 : T), R
     //          xor (select +++ ? T : 0), R
@@ -921,8 +921,8 @@ bool PolynomialMultiplyRecognize::scanSelect(SelectInst *SelI,
         if (!match(PV.X, m_Xor(m_Value(X1), m_Value(X2))))
           return false;
         auto *I1 = dyn_cast<Instruction>(X1);
-        auto *I2 = dyn_cast<Instruction>(X2);
-        if (!I1 || I1->getParent() != LoopB) {
+        
+        if (auto *I2 = dyn_cast<Instruction>(X2); !I1 || I1->getParent() != LoopB) {
           Var = X2;
           Inv = X1;
         } else if (!I2 || I2->getParent() != LoopB) {
@@ -1024,8 +1024,8 @@ void PolynomialMultiplyRecognize::promoteTo(Instruction *In,
       }
     }
   } else if (ZExtInst *Z = dyn_cast<ZExtInst>(In)) {
-    Value *Op = Z->getOperand(0);
-    if (Op->getType() == Z->getType())
+    
+    if (Value *Op = Z->getOperand(0); Op->getType() == Z->getType())
       Z->replaceAllUsesWith(Op);
     Z->eraseFromParent();
     return;
@@ -1064,8 +1064,8 @@ bool PolynomialMultiplyRecognize::promoteTypes(BasicBlock *LoopB,
     if (P.getNumIncomingValues() != 1)
       return false;
     assert(P.getIncomingBlock(0) == LoopB);
-    IntegerType *T = dyn_cast<IntegerType>(P.getType());
-    if (!T || T->getBitWidth() > DestBW)
+    
+    if (IntegerType *T = dyn_cast<IntegerType>(P.getType()); !T || T->getBitWidth() > DestBW)
       return false;
   }
 
@@ -1277,8 +1277,8 @@ bool PolynomialMultiplyRecognize::keepsHighBitsZero(Value *V,
 }
 
 bool PolynomialMultiplyRecognize::isOperandShifted(Instruction *I, Value *Op) {
-  unsigned Opc = I->getOpcode();
-  if (Opc == Instruction::Shl || Opc == Instruction::LShr)
+  
+  if (unsigned Opc = I->getOpcode(); Opc == Instruction::Shl || Opc == Instruction::LShr)
     return Op != I->getOperand(1);
   return true;
 }
@@ -1350,8 +1350,8 @@ bool PolynomialMultiplyRecognize::convertShiftsToLeft(BasicBlock *LoopB,
     if (!R)
       continue;
     for (Value *Op : R->operands()) {
-      auto *T = dyn_cast<Instruction>(Op);
-      if (T && T->getParent() != LoopB)
+      
+      if (auto *T = dyn_cast<Instruction>(Op); T && T->getParent() != LoopB)
         Inputs.insert(Op);
       else
         Internal.insert(Op);
@@ -1912,8 +1912,8 @@ bool HexagonLoopIdiomRecognize::isLegalStore(Loop *CurLoop, StoreInst *SI) {
   Value *StorePtr = SI->getPointerOperand();
 
   // Reject stores that are so large that they overflow an unsigned.
-  uint64_t SizeInBits = DL->getTypeSizeInBits(StoredVal->getType());
-  if ((SizeInBits & 7) || (SizeInBits >> 32) != 0)
+  
+  if (uint64_t SizeInBits = DL->getTypeSizeInBits(StoredVal->getType()); (SizeInBits & 7) || (SizeInBits >> 32) != 0)
     return false;
 
   // See if the pointer expression is an AddRec like {base,+,1} on the current
@@ -2079,8 +2079,8 @@ CleanupAndExit:
   } else {
     // Don't generate memmove if this function will be inlined. This is
     // because the caller will undergo this transformation after inlining.
-    Function *Func = CurLoop->getHeader()->getParent();
-    if (Func->hasFnAttribute(Attribute::AlwaysInline))
+    
+    if (Function *Func = CurLoop->getHeader()->getParent(); Func->hasFnAttribute(Attribute::AlwaysInline))
       goto CleanupAndExit;
 
     // In case of a memmove, the call to memmove will be executed instead
@@ -2393,8 +2393,8 @@ bool HexagonLoopIdiomRecognize::runOnCountableLoop(Loop *L) {
 }
 
 bool HexagonLoopIdiomRecognize::run(Loop *L) {
-  const Module &M = *L->getHeader()->getParent()->getParent();
-  if (M.getTargetTriple().getArch() != Triple::hexagon)
+  
+  if (const Module &M = *L->getHeader()->getParent()->getParent(); M.getTargetTriple().getArch() != Triple::hexagon)
     return false;
 
   // If the loop could not be converted to canonical form, it must have an

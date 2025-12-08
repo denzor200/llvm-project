@@ -85,8 +85,8 @@ bool UnrolledInstAnalyzer::visitBinaryOperator(BinaryOperator &I) {
       RHS = SimpleRHS;
 
   Value *SimpleV = nullptr;
-  const DataLayout &DL = I.getDataLayout();
-  if (auto FI = dyn_cast<FPMathOperator>(&I))
+  
+  if (const DataLayout &DL = I.getDataLayout(); auto FI = dyn_cast<FPMathOperator>(&I))
     SimpleV =
         simplifyBinOp(I.getOpcode(), LHS, RHS, FI->getFastMathFlags(), DL);
   else
@@ -133,8 +133,8 @@ bool UnrolledInstAnalyzer::visitCastInst(CastInst &I) {
   // analysis, which operates on integers (and, e.g., might convert i8* null to
   // i32 0).
   if (CastInst::castIsValid(I.getOpcode(), Op, I.getType())) {
-    const DataLayout &DL = I.getDataLayout();
-    if (Value *V = simplifyCastInst(I.getOpcode(), Op, I.getType(), DL)) {
+    
+    if (const DataLayout &DL = I.getDataLayout(); Value *V = simplifyCastInst(I.getOpcode(), Op, I.getType(), DL)) {
       SimplifiedValues[&I] = V;
       return true;
     }
@@ -161,8 +161,8 @@ bool UnrolledInstAnalyzer::visitCmpInst(CmpInst &I) {
       auto SimplifiedRHS = SimplifiedAddresses.find(RHS);
       if (SimplifiedRHS != SimplifiedAddresses.end()) {
         SimplifiedAddress &LHSAddr = SimplifiedLHS->second;
-        SimplifiedAddress &RHSAddr = SimplifiedRHS->second;
-        if (LHSAddr.Base == RHSAddr.Base) {
+        
+        if (SimplifiedAddress &RHSAddr = SimplifiedRHS->second; LHSAddr.Base == RHSAddr.Base) {
           // FIXME: This is only correct for equality predicates. For
           // unsigned predicates, this only holds if we have nowrap flags,
           // which we don't track (for nuw it's valid as-is, for nusw it
@@ -177,8 +177,8 @@ bool UnrolledInstAnalyzer::visitCmpInst(CmpInst &I) {
     }
   }
 
-  const DataLayout &DL = I.getDataLayout();
-  if (Value *V = simplifyCmpInst(I.getPredicate(), LHS, RHS, DL)) {
+  
+  if (const DataLayout &DL = I.getDataLayout(); Value *V = simplifyCmpInst(I.getPredicate(), LHS, RHS, DL)) {
     SimplifiedValues[&I] = V;
     return true;
   }

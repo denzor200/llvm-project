@@ -33,11 +33,11 @@ typeContainsPointer(QualType T,
   // Look through typedef chain to check for special types.
   for (QualType CurrentT = T; const auto *TT = CurrentT->getAs<TypedefType>();
        CurrentT = TT->getDecl()->getUnderlyingType()) {
-    const IdentifierInfo *II = TT->getDecl()->getIdentifier();
+    
     // Special Case: Syntactically uintptr_t is not a pointer; semantically,
     // however, very likely used as such. Therefore, classify uintptr_t as a
     // pointer, too.
-    if (II && II->isStr("uintptr_t"))
+    if (const IdentifierInfo *II = TT->getDecl()->getIdentifier(); II && II->isStr("uintptr_t"))
       return true;
   }
 
@@ -73,8 +73,8 @@ typeContainsPointer(QualType T,
 
 /// Infer type from a simple sizeof expression.
 static QualType inferTypeFromSizeofExpr(const Expr *E) {
-  const Expr *Arg = E->IgnoreParenImpCasts();
-  if (const auto *UET = dyn_cast<UnaryExprOrTypeTraitExpr>(Arg)) {
+  
+  if (const Expr *Arg = E->IgnoreParenImpCasts(); const auto *UET = dyn_cast<UnaryExprOrTypeTraitExpr>(Arg)) {
     if (UET->getKind() == UETT_SizeOf) {
       if (UET->isArgumentType())
         return UET->getArgumentTypeInfo()->getType();
@@ -135,8 +135,8 @@ static QualType inferPossibleTypeFromArithSizeofExpr(const Expr *E) {
 ///   void *x = malloc(my_size);  // infers 'MyType'
 ///
 static QualType inferPossibleTypeFromVarInitSizeofExpr(const Expr *E) {
-  const Expr *Arg = E->IgnoreParenImpCasts();
-  if (const auto *DRE = dyn_cast<DeclRefExpr>(Arg)) {
+  
+  if (const Expr *Arg = E->IgnoreParenImpCasts(); const auto *DRE = dyn_cast<DeclRefExpr>(Arg)) {
     if (const auto *VD = dyn_cast<VarDecl>(DRE->getDecl())) {
       if (const Expr *Init = VD->getInit())
         return inferPossibleTypeFromArithSizeofExpr(Init);

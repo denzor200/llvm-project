@@ -665,9 +665,9 @@ static void destructureIndices(Type currType, ArrayRef<GEPArg> indices,
     // any integer constants into constant indices. If this is not possible
     // we don't do anything here. The verifier will catch it and emit a proper
     // error. All other canonicalization is done in the fold method.
-    bool requiresConst = !rawConstantIndices.empty() &&
-                         isa_and_nonnull<LLVMStructType>(currType);
-    if (Value val = llvm::dyn_cast_if_present<Value>(iter)) {
+    
+    if (bool requiresConst = !rawConstantIndices.empty() &&
+                         isa_and_nonnull<LLVMStructType>(currType); Value val = llvm::dyn_cast_if_present<Value>(iter)) {
       APInt intC;
       if (requiresConst && matchPattern(val, m_ConstantInt(&intC)) &&
           intC.isSignedIntN(kGEPConstantBitWidth)) {
@@ -690,8 +690,8 @@ static void destructureIndices(Type currType, ArrayRef<GEPArg> indices,
                      return containerType.getElementType();
                    })
                    .Case([&](LLVMStructType structType) -> Type {
-                     int64_t memberIndex = rawConstantIndices.back();
-                     if (memberIndex >= 0 && static_cast<size_t>(memberIndex) <
+                     
+                     if (int64_t memberIndex = rawConstantIndices.back(); memberIndex >= 0 && static_cast<size_t>(memberIndex) <
                                                  structType.getBody().size())
                        return structType.getBody()[memberIndex];
                      return nullptr;
@@ -1109,8 +1109,8 @@ static LogicalResult verifyCallOpDebugInfo(CallOp callOp, LLVMFuncOp callee) {
   };
   if (!hasSubprogram(parentFunc) || !hasSubprogram(callee))
     return success();
-  bool containsLoc = !isa<UnknownLoc>(callOp->getLoc());
-  if (!containsLoc)
+  
+  if (bool containsLoc = !isa<UnknownLoc>(callOp->getLoc()); !containsLoc)
     return callOp.emitError()
            << "inlinable function call in a function with a DISubprogram "
               "location must have a debug location";
@@ -1773,8 +1773,8 @@ LogicalResult LandingpadOp::verify() {
 
   for (unsigned idx = 0, ie = getNumOperands(); idx < ie; idx++) {
     value = getOperand(idx);
-    bool isFilter = llvm::isa<LLVMArrayType>(value.getType());
-    if (isFilter) {
+    
+    if (bool isFilter = llvm::isa<LLVMArrayType>(value.getType()); isFilter) {
       // FIXME: Verify filter clauses when arrays are appropriately handled
     } else {
       // catch - global addresses only.
@@ -2287,8 +2287,8 @@ void GlobalOp::print(OpAsmPrinter &p) {
     return;
   p << " : " << getType();
 
-  Region &initializer = getInitializerRegion();
-  if (!initializer.empty()) {
+  
+  if (Region &initializer = getInitializerRegion(); !initializer.empty()) {
     p << ' ';
     p.printRegion(initializer, /*printEntryBlockArgs=*/false);
   }
@@ -2404,8 +2404,8 @@ ParseResult GlobalOp::parse(OpAsmParser &parser, OperationState &result) {
   if (types.size() > 1)
     return parser.emitError(parser.getNameLoc(), "expected zero or one type");
 
-  Region &initRegion = *result.addRegion();
-  if (types.empty()) {
+  
+  if (Region &initRegion = *result.addRegion(); types.empty()) {
     if (auto strAttr = llvm::dyn_cast_or_null<StringAttr>(value)) {
       MLIRContext *context = parser.getContext();
       auto arrayType = LLVM::LLVMArrayType::get(IntegerType::get(context, 8),
@@ -2443,11 +2443,11 @@ static bool isZeroAttribute(Attribute value) {
 }
 
 LogicalResult GlobalOp::verify() {
-  bool validType = isCompatibleOuterType(getType())
+  
+  if (bool validType = isCompatibleOuterType(getType())
                        ? !llvm::isa<LLVMVoidType, LLVMTokenType,
                                     LLVMMetadataType, LLVMLabelType>(getType())
-                       : llvm::isa<PointerElementTypeInterface>(getType());
-  if (!validType)
+                       : llvm::isa<PointerElementTypeInterface>(getType()); !validType)
     return emitOpError(
         "expects type to be a valid element type for an LLVM global");
   if ((*this)->getParentOp() && !satisfiesLLVMModule((*this)->getParentOp()))
@@ -2497,8 +2497,8 @@ LogicalResult GlobalOp::verify() {
 
   std::optional<uint64_t> alignAttr = getAlignment();
   if (alignAttr.has_value()) {
-    uint64_t value = alignAttr.value();
-    if (!llvm::isPowerOf2_64(value))
+    
+    if (uint64_t value = alignAttr.value(); !llvm::isPowerOf2_64(value))
       return emitError() << "alignment attribute is not a power of 2";
   }
 
@@ -2654,8 +2654,8 @@ ParseResult AliasOp::parse(OpAsmParser &parser, OperationState &result) {
   if (types.size() > 1)
     return parser.emitError(parser.getNameLoc(), "expected zero or one type");
 
-  Region &initRegion = *result.addRegion();
-  if (parser.parseRegion(initRegion).failed())
+  
+  if (Region &initRegion = *result.addRegion(); parser.parseRegion(initRegion).failed())
     return failure();
 
   result.addAttribute(getAliasTypeAttrName(result.name),
@@ -2664,11 +2664,11 @@ ParseResult AliasOp::parse(OpAsmParser &parser, OperationState &result) {
 }
 
 LogicalResult AliasOp::verify() {
-  bool validType = isCompatibleOuterType(getType())
+  
+  if (bool validType = isCompatibleOuterType(getType())
                        ? !llvm::isa<LLVMVoidType, LLVMTokenType,
                                     LLVMMetadataType, LLVMLabelType>(getType())
-                       : llvm::isa<PointerElementTypeInterface>(getType());
-  if (!validType)
+                       : llvm::isa<PointerElementTypeInterface>(getType()); !validType)
     return emitOpError(
         "expects type to be a valid element type for an LLVM global alias");
 
@@ -3070,8 +3070,8 @@ void LLVMFuncOp::print(OpAsmPrinter &p) {
        getVscaleRangeAttrName()});
 
   // Print the body if this is not an external function.
-  Region &body = getBody();
-  if (!body.empty()) {
+  
+  if (Region &body = getBody(); !body.empty()) {
     p << ' ';
     p.printRegion(body, /*printEntryBlockArgs=*/false,
                   /*printBlockTerminators=*/true);
@@ -3111,7 +3111,8 @@ LogicalResult LLVMFuncOp::verify() {
 
   Type landingpadResultTy;
   StringRef diagnosticMessage;
-  bool isLandingpadTypeConsistent =
+  
+  if (bool isLandingpadTypeConsistent =
       !walk([&](Operation *op) {
          const auto checkType = [&](Type type, StringRef errorMessage) {
            if (!landingpadResultTy) {
@@ -3138,8 +3139,7 @@ LogicalResult LLVMFuncOp::verify() {
                return checkType(resume.getValue().getType(), errorMessage);
              })
              .Default([](auto) { return WalkResult::skip(); });
-       }).wasInterrupted();
-  if (!isLandingpadTypeConsistent) {
+       }).wasInterrupted(); !isLandingpadTypeConsistent) {
     assert(!diagnosticMessage.empty() &&
            "Expecting a non-empty diagnostic message");
     return emitError(diagnosticMessage);
@@ -3510,8 +3510,8 @@ LogicalResult AtomicRMWOp::verify() {
       return emitOpError("unexpected LLVM IR type for 'xchg' bin_op");
   } else {
     auto intType = llvm::dyn_cast<IntegerType>(valType);
-    unsigned intBitWidth = intType ? intType.getWidth() : 0;
-    if (intBitWidth != 8 && intBitWidth != 16 && intBitWidth != 32 &&
+    
+    if (unsigned intBitWidth = intType ? intType.getWidth() : 0; intBitWidth != 8 && intBitWidth != 16 && intBitWidth != 32 &&
         intBitWidth != 64)
       return emitOpError("expected LLVM IR integer type");
   }

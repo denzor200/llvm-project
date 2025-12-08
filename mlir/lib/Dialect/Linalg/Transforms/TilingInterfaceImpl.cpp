@@ -440,8 +440,8 @@ static InitSliceInfo getInitSliceInfoForOuterParallel(
   SmallVector<OpFoldResult> initStrides(initRank, one);
   SmallVector<OpFoldResult> resultShape;
   for (AffineExpr dimExpr : partialReductionMap.getResults()) {
-    unsigned dim = cast<AffineDimExpr>(dimExpr).getPosition();
-    if (std::optional<unsigned> dimPos = getPositionIn(reductionDims, dim)) {
+    
+    if (unsigned dim = cast<AffineDimExpr>(dimExpr).getPosition(); std::optional<unsigned> dimPos = getPositionIn(reductionDims, dim)) {
       initOffsets.push_back(splitReductionIvs[dimPos.value()]);
       initSizes.push_back(one);
     } else {
@@ -916,10 +916,10 @@ struct PackOpTiling
         // hard check to determine if a dimension is tiled or not.
         int64_t srcDimSize = packOp.getSourceType().getDimSize(dim);
         int64_t destDimSize = outerShapeWithoutTranspose[dim];
-        bool isTiled = failed(cstTileSize) ||
+        
+        if (bool isTiled = failed(cstTileSize) ||
                        ShapedType::isDynamic(srcDimSize) ||
-                       cstTileSize.value() < srcDimSize;
-        if (!isTiled) {
+                       cstTileSize.value() < srcDimSize; !isTiled) {
           outerDimOffsets.push_back(offsets[dim]);
           if (ShapedType::isStatic(destDimSize)) {
             outerDimSizes.push_back(b.getIndexAttr(destDimSize));

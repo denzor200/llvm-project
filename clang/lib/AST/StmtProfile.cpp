@@ -1729,9 +1729,9 @@ void StmtProfiler::VisitRequiresExpr(const RequiresExpr *S) {
       //    expression. It is equivalent to the simple-requirement x++; [...]
       // We therefore do not profile isSimple() here.
       ID.AddBoolean(ExprReq->getNoexceptLoc().isValid());
-      const concepts::ExprRequirement::ReturnTypeRequirement &RetReq =
-          ExprReq->getReturnTypeRequirement();
-      if (RetReq.isEmpty()) {
+      
+      if (const concepts::ExprRequirement::ReturnTypeRequirement &RetReq =
+          ExprReq->getReturnTypeRequirement(); RetReq.isEmpty()) {
         ID.AddInteger(0);
       } else if (RetReq.isTypeConstraint()) {
         ID.AddInteger(1);
@@ -2216,9 +2216,9 @@ StmtProfiler::VisitCXXPseudoDestructorExpr(const CXXPseudoDestructorExpr *S) {
 
 void StmtProfiler::VisitOverloadExpr(const OverloadExpr *S) {
   VisitExpr(S);
-  bool DescribingDependentVarTemplate =
-      S->getNumDecls() == 1 && isa<VarTemplateDecl>(*S->decls_begin());
-  if (DescribingDependentVarTemplate) {
+  
+  if (bool DescribingDependentVarTemplate =
+      S->getNumDecls() == 1 && isa<VarTemplateDecl>(*S->decls_begin()); DescribingDependentVarTemplate) {
     VisitDecl(*S->decls_begin());
   } else {
     VisitNestedNameSpecifier(S->getQualifier());

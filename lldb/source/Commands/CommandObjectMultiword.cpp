@@ -56,10 +56,10 @@ CommandObjectSP CommandObjectMultiword::GetSubcommandSP(llvm::StringRef sub_cmd,
   StringList local_matches;
   if (matches == nullptr)
     matches = &local_matches;
-  int num_matches =
-      AddNamesMatchingPartialString(m_subcommand_dict, sub_cmd, *matches);
+  
 
-  if (num_matches == 1) {
+  if (int num_matches =
+      AddNamesMatchingPartialString(m_subcommand_dict, sub_cmd, *matches); num_matches == 1) {
     // Cleaner, but slightly less efficient would be to call back into this
     // function, since I now know I have an exact match...
 
@@ -151,8 +151,8 @@ llvm::Error CommandObjectMultiword::RemoveUserSubcommand(llvm::StringRef cmd_nam
 void CommandObjectMultiword::Execute(const char *args_string,
                                      CommandReturnObject &result) {
   Args args(args_string);
-  const size_t argc = args.GetArgumentCount();
-  if (argc == 0) {
+  
+  if (const size_t argc = args.GetArgumentCount(); argc == 0) {
     this->CommandObject::GenerateHelpText(result);
     return;
   }
@@ -274,8 +274,8 @@ void CommandObjectMultiword::HandleCompletion(CompletionRequest &request) {
         new_matches.GetStringAtIndex(0) != nullptr &&
         (arg0 == new_matches.GetStringAtIndex(0))) {
       StringList temp_matches;
-      CommandObject *cmd_obj = GetSubcommandObject(arg0, &temp_matches);
-      if (cmd_obj != nullptr) {
+      
+      if (CommandObject *cmd_obj = GetSubcommandObject(arg0, &temp_matches); cmd_obj != nullptr) {
         if (request.GetParsedLine().GetArgumentCount() != 1) {
           request.GetParsedLine().Shift();
           request.AppendEmptyArgument();
@@ -321,58 +321,58 @@ CommandObjectProxy::CommandObjectProxy(CommandInterpreter &interpreter,
 CommandObjectProxy::~CommandObjectProxy() = default;
 
 Options *CommandObjectProxy::GetOptions() {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     return proxy_command->GetOptions();
   return CommandObject::GetOptions();
 }
 
 llvm::StringRef CommandObjectProxy::GetHelp() {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     return proxy_command->GetHelp();
   return CommandObject::GetHelp();
 }
 
 llvm::StringRef CommandObjectProxy::GetSyntax() {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     return proxy_command->GetSyntax();
   return CommandObject::GetSyntax();
 }
 
 llvm::StringRef CommandObjectProxy::GetHelpLong() {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     return proxy_command->GetHelpLong();
   return CommandObject::GetHelpLong();
 }
 
 bool CommandObjectProxy::IsRemovable() const {
-  const CommandObject *proxy_command =
-      const_cast<CommandObjectProxy *>(this)->GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (const CommandObject *proxy_command =
+      const_cast<CommandObjectProxy *>(this)->GetProxyCommandObject(); proxy_command)
     return proxy_command->IsRemovable();
   return false;
 }
 
 bool CommandObjectProxy::IsMultiwordObject() {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     return proxy_command->IsMultiwordObject();
   return false;
 }
 
 CommandObjectMultiword *CommandObjectProxy::GetAsMultiwordCommand() {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     return proxy_command->GetAsMultiwordCommand();
   return nullptr;
 }
 
 void CommandObjectProxy::GenerateHelpText(Stream &result) {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     proxy_command->GenerateHelpText(result);
   else
     CommandObject::GenerateHelpText(result);
@@ -381,60 +381,60 @@ void CommandObjectProxy::GenerateHelpText(Stream &result) {
 lldb::CommandObjectSP
 CommandObjectProxy::GetSubcommandSP(llvm::StringRef sub_cmd,
                                     StringList *matches) {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     return proxy_command->GetSubcommandSP(sub_cmd, matches);
   return lldb::CommandObjectSP();
 }
 
 CommandObject *CommandObjectProxy::GetSubcommandObject(llvm::StringRef sub_cmd,
                                                        StringList *matches) {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     return proxy_command->GetSubcommandObject(sub_cmd, matches);
   return nullptr;
 }
 
 bool CommandObjectProxy::LoadSubCommand(
     llvm::StringRef cmd_name, const lldb::CommandObjectSP &command_sp) {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     return proxy_command->LoadSubCommand(cmd_name, command_sp);
   return false;
 }
 
 bool CommandObjectProxy::WantsRawCommandString() {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     return proxy_command->WantsRawCommandString();
   return false;
 }
 
 bool CommandObjectProxy::WantsCompletion() {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     return proxy_command->WantsCompletion();
   return false;
 }
 
 void CommandObjectProxy::HandleCompletion(CompletionRequest &request) {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     proxy_command->HandleCompletion(request);
 }
 
 void CommandObjectProxy::HandleArgumentCompletion(
     CompletionRequest &request, OptionElementVector &opt_element_vector) {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     proxy_command->HandleArgumentCompletion(request, opt_element_vector);
 }
 
 std::optional<std::string>
 CommandObjectProxy::GetRepeatCommand(Args &current_command_args,
                                      uint32_t index) {
-  CommandObject *proxy_command = GetProxyCommandObject();
-  if (proxy_command)
+  
+  if (CommandObject *proxy_command = GetProxyCommandObject(); proxy_command)
     return proxy_command->GetRepeatCommand(current_command_args, index);
   return std::nullopt;
 }

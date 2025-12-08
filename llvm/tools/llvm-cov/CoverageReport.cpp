@@ -644,8 +644,8 @@ Error DirectoryCoverageReport::prepareSubDirectoryReports(
 
   // Call recursively on subdirectories.
   for (auto &&KV : SubDirs) {
-    auto &V = KV.second;
-    if (V.second.size() == 1) {
+    
+    if (auto &V = KV.second; V.second.size() == 1) {
       // If there's only one file in that subdirectory, we don't bother to
       // recurse on it further.
       V.first.Name = V.second.front().substr(LCP);

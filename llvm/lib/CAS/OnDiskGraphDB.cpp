@@ -607,8 +607,8 @@ Expected<TempFile> TempFile::create(const Twine &Model) {
 
 bool TrieRecord::compare_exchange_strong(Data &Existing, Data New) {
   uint64_t ExistingPacked = pack(Existing);
-  uint64_t NewPacked = pack(New);
-  if (Storage.compare_exchange_strong(ExistingPacked, NewPacked))
+  
+  if (uint64_t NewPacked = pack(New); Storage.compare_exchange_strong(ExistingPacked, NewPacked))
     return true;
   Existing = unpack(ExistingPacked);
   return false;
@@ -813,8 +813,8 @@ DataRecordHandle::Layout::Layout(const Input &I) {
 
 uint64_t DataRecordHandle::getDataSize() const {
   int64_t RelOffset = sizeof(Header);
-  auto *DataSizePtr = reinterpret_cast<const char *>(H) + RelOffset;
-  switch (getLayoutFlags().DataSize) {
+  
+  switch (auto *DataSizePtr = reinterpret_cast<const char *>(H) + RelOffset; getLayoutFlags().DataSize) {
   case DataSizeFlags::Uses1B:
     return (H->Packed >> ((sizeof(Header::PackTy) - 2) * CHAR_BIT)) & UINT8_MAX;
   case DataSizeFlags::Uses2B:
@@ -839,8 +839,8 @@ uint32_t DataRecordHandle::getNumRefs() const {
   LayoutFlags LF = getLayoutFlags();
   int64_t RelOffset = sizeof(Header);
   skipDataSize(LF, RelOffset);
-  auto *NumRefsPtr = reinterpret_cast<const char *>(H) + RelOffset;
-  switch (LF.NumRefs) {
+  
+  switch (auto *NumRefsPtr = reinterpret_cast<const char *>(H) + RelOffset; LF.NumRefs) {
   case NumRefsFlags::Uses0B:
     return 0;
   case NumRefsFlags::Uses1B:

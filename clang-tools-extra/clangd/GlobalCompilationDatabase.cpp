@@ -415,8 +415,8 @@ DirectoryBasedGlobalCompilationDatabase::lookupCDB(
     SearchDirs = {*Opts.CompileCommandsDir};
   else {
     WithContext WithProvidedContext(Opts.ContextProvider(Request.FileName));
-    const auto &Spec = Config::current().CompileFlags.CDBSearch;
-    switch (Spec.Policy) {
+    
+    switch (const auto &Spec = Config::current().CompileFlags.CDBSearch; Spec.Policy) {
     case Config::CDBSearchSpec::NoCDBSearch:
       return std::nullopt;
     case Config::CDBSearchSpec::FixedDir:
@@ -683,9 +683,9 @@ public:
       if (ExitEarly()) // loading config may be slow
         return Filtered;
       WithContext WithProvidedContent(Parent.Opts.ContextProvider(AllFiles[I]));
-      const Config::CDBSearchSpec &Spec =
-          Config::current().CompileFlags.CDBSearch;
-      switch (Spec.Policy) {
+      
+      switch (const Config::CDBSearchSpec &Spec =
+          Config::current().CompileFlags.CDBSearch; Spec.Policy) {
       case Config::CDBSearchSpec::NoCDBSearch:
         break;
       case Config::CDBSearchSpec::Ancestors:

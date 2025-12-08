@@ -212,9 +212,9 @@ lldb_private::Status SelectHelper::Select() {
         tv.tv_usec = 0;
       }
     }
-    const int num_set_fds = ::select(nfds, read_fdset_ptr, write_fdset_ptr,
-                                     error_fdset_ptr, tv_ptr);
-    if (num_set_fds < 0) {
+    
+    if (const int num_set_fds = ::select(nfds, read_fdset_ptr, write_fdset_ptr,
+                                     error_fdset_ptr, tv_ptr); num_set_fds < 0) {
       // We got an error
       error = lldb_private::Status::FromErrno();
       if (error.GetError() == EINTR) {

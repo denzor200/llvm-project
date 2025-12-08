@@ -304,12 +304,12 @@ bool AArch64MIPeepholeOpt::visitORR(MachineInstr &MI) {
   // conservatively.
   if (SrcMI->getOpcode() == TargetOpcode::COPY &&
       SrcMI->getOperand(1).getReg().isVirtual()) {
-    const TargetRegisterClass *RC =
-        MRI->getRegClass(SrcMI->getOperand(1).getReg());
+    
 
     // A COPY from an FPR will become a FMOVSWr, so do so now so that we know
     // that the upper bits are zero.
-    if (RC != &AArch64::FPR32RegClass &&
+    if (const TargetRegisterClass *RC =
+        MRI->getRegClass(SrcMI->getOperand(1).getReg()); RC != &AArch64::FPR32RegClass &&
         ((RC != &AArch64::FPR64RegClass && RC != &AArch64::FPR128RegClass &&
           RC != &AArch64::ZPRRegClass) ||
          SrcMI->getOperand(1).getSubReg() != AArch64::ssub))
@@ -528,8 +528,8 @@ bool AArch64MIPeepholeOpt::checkMovImmInstr(MachineInstr &MI,
                                             MachineInstr *&SubregToRegMI) {
   // Check whether current MBB is in loop and the AND is loop invariant.
   MachineBasicBlock *MBB = MI.getParent();
-  MachineLoop *L = MLI->getLoopFor(MBB);
-  if (L && !L->isLoopInvariant(MI))
+  
+  if (MachineLoop *L = MLI->getLoopFor(MBB); L && !L->isLoopInvariant(MI))
     return false;
 
   // Check whether current MI's operand is MOV with immediate.
@@ -693,8 +693,8 @@ static bool is64bitDefwithZeroHigh64bit(MachineInstr *MI,
                                         MachineRegisterInfo *MRI) {
   if (!MI->getOperand(0).isReg() || !MI->getOperand(0).isDef())
     return false;
-  const TargetRegisterClass *RC = MRI->getRegClass(MI->getOperand(0).getReg());
-  if (RC != &AArch64::FPR64RegClass)
+  
+  if (const TargetRegisterClass *RC = MRI->getRegClass(MI->getOperand(0).getReg()); RC != &AArch64::FPR64RegClass)
     return false;
   return MI->getOpcode() > TargetOpcode::GENERIC_OP_END;
 }
@@ -751,8 +751,8 @@ bool AArch64MIPeepholeOpt::visitINSvi64lane(MachineInstr &MI) {
 
 bool AArch64MIPeepholeOpt::visitFMOVDr(MachineInstr &MI) {
   // An FMOVDr sets the high 64-bits to zero implicitly, similar to ORR for GPR.
-  MachineInstr *Low64MI = MRI->getUniqueVRegDef(MI.getOperand(1).getReg());
-  if (!Low64MI || !is64bitDefwithZeroHigh64bit(Low64MI, MRI))
+  
+  if (MachineInstr *Low64MI = MRI->getUniqueVRegDef(MI.getOperand(1).getReg()); !Low64MI || !is64bitDefwithZeroHigh64bit(Low64MI, MRI))
     return false;
 
   // Let's remove MIs for high 64-bits.

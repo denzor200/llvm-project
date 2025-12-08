@@ -49,8 +49,8 @@ LogicalResult mlir::LLVMImportInterface::convertUnregisteredIntrinsic(
   moduleImport.convertArgAndResultAttrs(inst, op);
 
   // Update importer tracking of results.
-  unsigned numRes = op.getNumResults();
-  if (numRes == 1)
+  
+  if (unsigned numRes = op.getNumResults(); numRes == 1)
     moduleImport.mapValue(inst) = op.getResult(0);
   else if (numRes == 0)
     moduleImport.mapNoResultOp(inst);

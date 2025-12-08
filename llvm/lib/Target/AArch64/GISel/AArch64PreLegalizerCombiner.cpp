@@ -422,9 +422,9 @@ bool matchExtUaddvToUaddlv(MachineInstr &MI, MachineRegisterInfo &MRI,
 
   // Check if the last instruction is an extend
   MachineInstr *ExtMI = getDefIgnoringCopies(MI.getOperand(1).getReg(), MRI);
-  auto ExtOpc = ExtMI->getOpcode();
+  
 
-  if (ExtOpc == TargetOpcode::G_ZEXT)
+  if (auto ExtOpc = ExtMI->getOpcode(); ExtOpc == TargetOpcode::G_ZEXT)
     std::get<1>(MatchInfo) = 0;
   else if (ExtOpc == TargetOpcode::G_SEXT)
     std::get<1>(MatchInfo) = 1;
@@ -466,8 +466,8 @@ void applyExtUaddvToUaddlv(MachineInstr &MI, MachineRegisterInfo &MRI,
   LLT MainTy;
   SmallVector<Register, 1> WorkingRegisters;
   unsigned SrcScalSize = SrcTy.getScalarSizeInBits();
-  unsigned SrcNumElem = SrcTy.getNumElements();
-  if ((SrcScalSize == 8 && SrcNumElem > 16) ||
+  
+  if (unsigned SrcNumElem = SrcTy.getNumElements(); (SrcScalSize == 8 && SrcNumElem > 16) ||
       (SrcScalSize == 16 && SrcNumElem > 8) ||
       (SrcScalSize == 32 && SrcNumElem > 4)) {
 
@@ -577,8 +577,8 @@ bool matchPushAddSubExt(MachineInstr &MI, MachineRegisterInfo &MRI,
   LLT Ext1SrcTy = MRI.getType(SrcReg1);
   LLT Ext2SrcTy = MRI.getType(SrcReg2);
   unsigned ExtDstScal = MRI.getType(ExtDstReg).getScalarSizeInBits();
-  unsigned Ext1SrcScal = Ext1SrcTy.getScalarSizeInBits();
-  if (((Ext1SrcScal == 8 && ExtDstScal == 32) ||
+  
+  if (unsigned Ext1SrcScal = Ext1SrcTy.getScalarSizeInBits(); ((Ext1SrcScal == 8 && ExtDstScal == 32) ||
        ((Ext1SrcScal == 8 || Ext1SrcScal == 16) && ExtDstScal == 64)) &&
       Ext1SrcTy == Ext2SrcTy)
     return true;
@@ -773,8 +773,8 @@ bool AArch64PreLegalizerCombinerImpl::tryCombineAll(MachineInstr &MI) const {
   if (tryCombineAllImpl(MI))
     return true;
 
-  unsigned Opc = MI.getOpcode();
-  switch (Opc) {
+  
+  switch (unsigned Opc = MI.getOpcode(); Opc) {
   case TargetOpcode::G_SHUFFLE_VECTOR:
     return Helper.tryCombineShuffleVector(MI);
   case TargetOpcode::G_UADDO:
@@ -786,9 +786,9 @@ bool AArch64PreLegalizerCombinerImpl::tryCombineAll(MachineInstr &MI) const {
   case TargetOpcode::G_MEMSET: {
     // If we're at -O0 set a maxlen of 32 to inline, otherwise let the other
     // heuristics decide.
-    unsigned MaxLen = CInfo.EnableOpt ? 0 : 32;
+    
     // Try to inline memcpy type calls if optimizations are enabled.
-    if (Helper.tryCombineMemCpyFamily(MI, MaxLen))
+    if (unsigned MaxLen = CInfo.EnableOpt ? 0 : 32; Helper.tryCombineMemCpyFamily(MI, MaxLen))
       return true;
     if (Opc == TargetOpcode::G_MEMSET)
       return llvm::AArch64GISelUtils::tryEmitBZero(MI, B, CInfo.EnableMinSize);

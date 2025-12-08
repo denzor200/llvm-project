@@ -360,8 +360,8 @@ public:
 
   AccountRecordStatus accountRecord(const XRayRecord &R,
                                     AccountRecordState *state) {
-    auto &TS = ThreadStackMap[R.TId];
-    switch (R.Type) {
+    
+    switch (auto &TS = ThreadStackMap[R.TId]; R.Type) {
     case RecordTypes::CUSTOM_EVENT:
     case RecordTypes::TYPED_EVENT:
       return AccountRecordStatus::OK;
@@ -380,9 +380,9 @@ public:
       }
 
       auto &Top = TS.back();
-      auto I = find_if(Top.first->Callees,
-                       [&](StackTrieNode *N) { return N->FuncId == R.FuncId; });
-      if (I == Top.first->Callees.end()) {
+      
+      if (auto I = find_if(Top.first->Callees,
+                       [&](StackTrieNode *N) { return N->FuncId == R.FuncId; }); I == Top.first->Callees.end()) {
         // We didn't find the callee in the stack trie, so we're going to
         // add to the stack then set up the pointers properly.
         auto N = createTrieNode(R.TId, R.FuncId, Top.first);
@@ -428,8 +428,8 @@ public:
       for (auto &E : make_range(I, TS.end() - 1))
         E.first->ExtraData.IntermediateDurations.push_back(
             std::max(E.second, R.TSC) - std::min(E.second, R.TSC));
-      auto &Deepest = TS.back();
-      if (wasLastRecordExit)
+      
+      if (auto &Deepest = TS.back(); wasLastRecordExit)
         Deepest.first->ExtraData.IntermediateDurations.push_back(
             std::max(Deepest.second, R.TSC) - std::min(Deepest.second, R.TSC));
       else
@@ -510,11 +510,11 @@ public:
     for (const auto &MapIter : Roots) {
       const auto &RootNodeVector = MapIter.second;
       for (auto *Node : RootNodeVector) {
-        auto MaybeFoundIter =
+        
+        if (auto MaybeFoundIter =
             find_if(MergedByThreadRoots, [Node](StackTrieNode *elem) {
               return Node->FuncId == elem->FuncId;
-            });
-        if (MaybeFoundIter == MergedByThreadRoots.end()) {
+            }); MaybeFoundIter == MergedByThreadRoots.end()) {
           MergedByThreadRoots.push_back(Node);
         } else {
           MergedByThreadRoots.push_back(mergeTrieNodes(

@@ -1523,9 +1523,9 @@ OpFoldResult arith::ExtFOp::fold(FoldAdaptor adaptor) {
           bitEnumContainsAll(truncFMF, arith::FastMathFlags::contract);
       arith::FastMathFlags extFMF =
           getFastmath().value_or(arith::FastMathFlags::none);
-      bool isExtContract =
-          bitEnumContainsAll(extFMF, arith::FastMathFlags::contract);
-      if (isTruncContract && isExtContract) {
+      
+      if (bool isExtContract =
+          bitEnumContainsAll(extFMF, arith::FastMathFlags::contract); isTruncContract && isExtContract) {
         return truncFOp.getOperand();
       }
     }
@@ -2218,10 +2218,10 @@ public:
     // to distinguish it from one less than that value.
     if ((int)intWidth > mantissaWidth) {
       // Conversion would lose accuracy. Check if loss can impact comparison.
-      int exponent = ilogb(rhs);
-      if (exponent == APFloat::IEK_Inf) {
-        int maxExponent = ilogb(APFloat::getLargest(rhs.getSemantics()));
-        if (maxExponent < (int)valueBits) {
+      
+      if (int exponent = ilogb(rhs); exponent == APFloat::IEK_Inf) {
+        
+        if (int maxExponent = ilogb(APFloat::getLargest(rhs.getSemantics())); maxExponent < (int)valueBits) {
           // Conversion could create infinity.
           return failure();
         }
@@ -2337,8 +2337,8 @@ public:
                   APInt::getZero(floatTy.getWidth()));
       apf.convertFromAPInt(rhsInt, !isUnsigned, APFloat::rmNearestTiesToEven);
 
-      bool equal = apf == rhs;
-      if (!equal) {
+      
+      if (bool equal = apf == rhs; !equal) {
         // If we had a comparison against a fractional value, we have to adjust
         // the compare predicate and sometimes the value.  rhsInt is rounded
         // towards zero at this point.

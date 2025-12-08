@@ -494,8 +494,8 @@ TEST(InstModificationIRStrategy, FastMath) {
   for (auto &F : *M) {
     for (auto &BB : F) {
       for (auto &I : BB) {
-        Type *Ty = I.getType();
-        if (Ty->isFPOrFPVectorTy() || Ty->isArrayTy()) {
+        
+        if (Type *Ty = I.getType(); Ty->isFPOrFPVectorTy() || Ty->isArrayTy()) {
           FPOpsHasFastMath[&I] = false;
         }
       }

@@ -94,8 +94,8 @@ template <typename T> struct NormalFloat {
   LIBC_INLINE operator T() const {
     int biased_exponent = exponent + FPBits<T>::EXP_BIAS;
     // Max exponent is of the form 0xFF...E. That is why -2 and not -1.
-    constexpr int MAX_EXPONENT_VALUE = (1 << FPBits<T>::EXP_LEN) - 2;
-    if (biased_exponent > MAX_EXPONENT_VALUE) {
+    
+    if (constexpr int MAX_EXPONENT_VALUE = (1 << FPBits<T>::EXP_LEN) - 2; biased_exponent > MAX_EXPONENT_VALUE) {
       return FPBits<T>::inf(sign).get_val();
     }
 
@@ -104,10 +104,10 @@ template <typename T> struct NormalFloat {
 
     constexpr int SUBNORMAL_EXPONENT = -FPBits<T>::EXP_BIAS + 1;
     if (exponent < SUBNORMAL_EXPONENT) {
-      unsigned shift = static_cast<unsigned>(SUBNORMAL_EXPONENT - exponent);
+      
       // Since exponent > subnormalExponent, shift is strictly greater than
       // zero.
-      if (shift <= FPBits<T>::FRACTION_LEN + 1) {
+      if (unsigned shift = static_cast<unsigned>(SUBNORMAL_EXPONENT - exponent); shift <= FPBits<T>::FRACTION_LEN + 1) {
         // Generate a subnormal number. Might lead to loss of precision.
         // We round to nearest and round halfway cases to even.
         const StorageType shift_out_mask =
@@ -216,8 +216,8 @@ template <> LIBC_INLINE NormalFloat<long double>::operator long double() const {
   using LDBits = FPBits<long double>;
   int biased_exponent = exponent + LDBits::EXP_BIAS;
   // Max exponent is of the form 0xFF...E. That is why -2 and not -1.
-  constexpr int MAX_EXPONENT_VALUE = (1 << LDBits::EXP_LEN) - 2;
-  if (biased_exponent > MAX_EXPONENT_VALUE) {
+  
+  if (constexpr int MAX_EXPONENT_VALUE = (1 << LDBits::EXP_LEN) - 2; biased_exponent > MAX_EXPONENT_VALUE) {
     return LDBits::inf(sign).get_val();
   }
 
@@ -226,8 +226,8 @@ template <> LIBC_INLINE NormalFloat<long double>::operator long double() const {
 
   constexpr int SUBNORMAL_EXPONENT = -LDBits::EXP_BIAS + 1;
   if (exponent < SUBNORMAL_EXPONENT) {
-    unsigned shift = SUBNORMAL_EXPONENT - exponent;
-    if (shift <= LDBits::FRACTION_LEN + 1) {
+    
+    if (unsigned shift = SUBNORMAL_EXPONENT - exponent; shift <= LDBits::FRACTION_LEN + 1) {
       // Generate a subnormal number. Might lead to loss of precision.
       // We round to nearest and round halfway cases to even.
       const StorageType shift_out_mask = (StorageType(1) << shift) - 1;

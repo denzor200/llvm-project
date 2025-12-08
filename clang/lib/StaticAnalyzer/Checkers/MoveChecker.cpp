@@ -265,8 +265,8 @@ static bool isAnyBaseRegionReported(ProgramStateRef State,
 
 static const MemRegion *unwrapRValueReferenceIndirection(const MemRegion *MR) {
   if (const auto *SR = dyn_cast_or_null<SymbolicRegion>(MR)) {
-    SymbolRef Sym = SR->getSymbol();
-    if (Sym->getType()->isRValueReferenceType())
+    
+    if (SymbolRef Sym = SR->getSymbol(); Sym->getType()->isRValueReferenceType())
       if (const MemRegion *OriginMR = Sym->getOriginRegion())
         return OriginMR;
   }
@@ -534,8 +534,8 @@ bool MoveChecker::isInMoveSafeContext(const LocationContext *LC) const {
     const auto *CtxDec = LC->getDecl();
     auto *CtorDec = dyn_cast_or_null<CXXConstructorDecl>(CtxDec);
     auto *DtorDec = dyn_cast_or_null<CXXDestructorDecl>(CtxDec);
-    auto *MethodDec = dyn_cast_or_null<CXXMethodDecl>(CtxDec);
-    if (DtorDec || (CtorDec && CtorDec->isCopyOrMoveConstructor()) ||
+    
+    if (auto *MethodDec = dyn_cast_or_null<CXXMethodDecl>(CtxDec); DtorDec || (CtorDec && CtorDec->isCopyOrMoveConstructor()) ||
         (MethodDec && MethodDec->isOverloadedOperator() &&
          MethodDec->getOverloadedOperator() == OO_Equal) ||
         isStateResetMethod(MethodDec) || isMoveSafeMethod(MethodDec))
@@ -610,9 +610,9 @@ void MoveChecker::checkPreCall(const CallEvent &Call, CheckerContext &C) const {
   // Checking constructor calls.
   if (const auto *CC = dyn_cast<CXXConstructorCall>(&Call)) {
     State = removeFromState(State, CC->getCXXThisVal().getAsRegion());
-    auto CtorDec = CC->getDecl();
+    
     // Check for copying a moved-from object and report the bug.
-    if (CtorDec && CtorDec->isCopyOrMoveConstructor()) {
+    if (auto CtorDec = CC->getDecl(); CtorDec && CtorDec->isCopyOrMoveConstructor()) {
       const MemRegion *ArgRegion = CC->getArgSVal(0).getAsRegion();
       const CXXRecordDecl *RD = CtorDec->getParent();
       MisuseKind MK = CtorDec->isMoveConstructor() ? MK_Move : MK_Copy;
@@ -689,10 +689,10 @@ void MoveChecker::checkDeadSymbols(SymbolReaper &SymReaper,
   TrackedRegionMapTy TrackedRegions = State->get<TrackedRegionMap>();
   for (auto E : TrackedRegions) {
     const MemRegion *Region = E.first;
-    bool IsRegDead = !SymReaper.isLiveRegion(Region);
+    
 
     // Remove the dead regions from the region map.
-    if (IsRegDead) {
+    if (bool IsRegDead = !SymReaper.isLiveRegion(Region); IsRegDead) {
       State = State->remove<TrackedRegionMap>(Region);
     }
   }

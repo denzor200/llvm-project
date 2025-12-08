@@ -1112,9 +1112,9 @@ LogicalResult ConvertMemsetOpToGpuRuntimeCallPattern::matchAndRewrite(
   auto loc = memsetOp.getLoc();
 
   Type valueType = adaptor.getValue().getType();
-  unsigned bitWidth = valueType.getIntOrFloatBitWidth();
+  
   // Ints and floats of 16 or 32 bit width are allowed.
-  if (!valueType.isIntOrFloat() || (bitWidth != 16 && bitWidth != 32)) {
+  if (unsigned bitWidth = valueType.getIntOrFloatBitWidth(); !valueType.isIntOrFloat() || (bitWidth != 16 && bitWidth != 32)) {
     return rewriter.notifyMatchFailure(
         memsetOp, "value must be a 16 or 32 bit int or float");
   }

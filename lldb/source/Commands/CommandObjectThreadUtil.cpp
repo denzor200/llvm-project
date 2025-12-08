@@ -40,8 +40,8 @@ void CommandObjectIterateOverThreads::DoExecute(Args &command,
   m_unique_stacks = false;
 
   if (command.GetArgumentCount() == 0) {
-    Thread *thread = m_exe_ctx.GetThreadPtr();
-    if (thread)
+    
+    if (Thread *thread = m_exe_ctx.GetThreadPtr(); thread)
       HandleOneThread(thread->GetID(), result);
     return;
   } else if (command.GetArgumentCount() == 1) {

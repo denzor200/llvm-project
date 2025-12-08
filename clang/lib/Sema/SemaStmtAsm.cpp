@@ -92,8 +92,8 @@ static bool CheckAsmLValue(Expr *E, Sema &S) {
 
   // Okay, this is not an lvalue, but perhaps it is the result of a cast that we
   // are supposed to allow.
-  const Expr *E2 = E->IgnoreParenNoopCasts(S.Context);
-  if (E != E2 && E2->isLValue()) {
+  
+  if (const Expr *E2 = E->IgnoreParenNoopCasts(S.Context); E != E2 && E2->isLValue()) {
     emitAndFixInvalidAsmCastLValue(E2, E, S);
     // Accept, even if we emitted an error diagnostic.
     return false;
@@ -190,8 +190,8 @@ static StringRef extractRegisterName(const Expr *Expression,
   Expression = Expression->IgnoreImpCasts();
   if (const DeclRefExpr *AsmDeclRef = dyn_cast<DeclRefExpr>(Expression)) {
     // Handle cases where the expression is a variable
-    const VarDecl *Variable = dyn_cast<VarDecl>(AsmDeclRef->getDecl());
-    if (Variable && Variable->getStorageClass() == SC_Register) {
+    
+    if (const VarDecl *Variable = dyn_cast<VarDecl>(AsmDeclRef->getDecl()); Variable && Variable->getStorageClass() == SC_Register) {
       if (AsmLabelAttr *Attr = Variable->getAttr<AsmLabelAttr>())
         if (Target.isValidGCCRegisterName(Attr->getLabel()))
           return Target.getNormalizedGCCRegisterName(Attr->getLabel(), true);
@@ -766,12 +766,12 @@ StmtResult Sema::ActOnGCCAsmStmt(SourceLocation AsmLoc, bool IsSimple,
   // Sort NamedOperandList.
   llvm::stable_sort(NamedOperandList, llvm::less_first());
   // Find adjacent duplicate operand.
-  SmallVector<NamedOperand, 4>::iterator Found =
+  
+  if (SmallVector<NamedOperand, 4>::iterator Found =
       std::adjacent_find(begin(NamedOperandList), end(NamedOperandList),
                          [](const NamedOperand &LHS, const NamedOperand &RHS) {
                            return LHS.first == RHS.first;
-                         });
-  if (Found != NamedOperandList.end()) {
+                         }); Found != NamedOperandList.end()) {
     Diag((Found + 1)->second->getBeginLoc(),
          diag::error_duplicate_asm_operand_name)
         << (Found + 1)->first;
@@ -984,8 +984,8 @@ StmtResult Sema::ActOnMSAsmStmt(SourceLocation AsmLoc, SourceLocation LBraceLoc,
 
   bool InvalidOperand = false;
   for (uint64_t I = 0; I < NumOutputs + NumInputs; ++I) {
-    Expr *E = Exprs[I];
-    if (E->getType()->isBitIntType()) {
+    
+    if (Expr *E = Exprs[I]; E->getType()->isBitIntType()) {
       InvalidOperand = true;
       Diag(E->getBeginLoc(), diag::err_asm_invalid_type)
           << E->getType() << (I < NumOutputs)

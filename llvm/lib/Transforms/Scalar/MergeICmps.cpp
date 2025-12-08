@@ -600,8 +600,8 @@ private:
     };
     append(Comparisons[0].BB->getName());
     for (int I = 1, E = Comparisons.size(); I < E; ++I) {
-      const BasicBlock *const BB = Comparisons[I].BB;
-      if (!BB->getName().empty()) {
+      
+      if (const BasicBlock *const BB = Comparisons[I].BB; !BB->getName().empty()) {
         append("+");
         append(BB->getName());
       }
@@ -720,8 +720,8 @@ static BasicBlock *mergeComparisons(ArrayRef<BCECmpBlock> Comparisons,
     DTU.applyUpdates({{DominatorTree::Insert, BB, PhiBB}});
   } else {
     // Continue to next block if equal, exit to phi else.
-    auto *BI = Builder.CreateCondBr(IsEqual, NextCmpBlock, PhiBB);
-    if (auto BranchWeights = computeMergedBranchWeights(Comparisons))
+    
+    if (auto *BI = Builder.CreateCondBr(IsEqual, NextCmpBlock, PhiBB); auto BranchWeights = computeMergedBranchWeights(Comparisons))
       setBranchWeights(*BI, BranchWeights.value(), /*IsExpected=*/false);
     Phi.addIncoming(ConstantInt::getFalse(Context), BB);
     DTU.applyUpdates({{DominatorTree::Insert, BB, NextCmpBlock},
@@ -759,8 +759,8 @@ bool BCECmpChain::simplify(const TargetLibraryInfo &TLI, AliasAnalysis &AA,
 
   // If the old cmp chain was the function entry, we need to update the function
   // entry.
-  const bool ChainEntryIsFnEntry = EntryBlock_->isEntryBlock();
-  if (ChainEntryIsFnEntry && DTU.hasDomTree()) {
+  
+  if (const bool ChainEntryIsFnEntry = EntryBlock_->isEntryBlock(); ChainEntryIsFnEntry && DTU.hasDomTree()) {
     LLVM_DEBUG(dbgs() << "Changing function entry from "
                       << EntryBlock_->getName() << " to "
                       << NextCmpBlock->getName() << "\n");
@@ -964,8 +964,8 @@ PreservedAnalyses MergeICmpsPass::run(Function &F,
   auto &TTI = AM.getResult<TargetIRAnalysis>(F);
   auto &AA = AM.getResult<AAManager>(F);
   auto *DT = AM.getCachedResult<DominatorTreeAnalysis>(F);
-  const bool MadeChanges = runImpl(F, TLI, TTI, AA, DT);
-  if (!MadeChanges)
+  
+  if (const bool MadeChanges = runImpl(F, TLI, TTI, AA, DT); !MadeChanges)
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
   PA.preserve<DominatorTreeAnalysis>();

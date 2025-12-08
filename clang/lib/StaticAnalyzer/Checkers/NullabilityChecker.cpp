@@ -419,8 +419,8 @@ checkParamsForPreconditionViolation(ArrayRef<ParmVarDecl *> Params,
 static bool
 checkSelfIvarsForInvariantViolation(ProgramStateRef State,
                                     const LocationContext *LocCtxt) {
-  auto *MD = dyn_cast<ObjCMethodDecl>(LocCtxt->getDecl());
-  if (!MD || !MD->isInstanceMethod())
+  
+  if (auto *MD = dyn_cast<ObjCMethodDecl>(LocCtxt->getDecl()); !MD || !MD->isInstanceMethod())
     return false;
 
   const ImplicitParamDecl *SelfDecl = LocCtxt->getSelfDecl();
@@ -509,8 +509,8 @@ void NullabilityChecker::checkDeadSymbols(SymbolReaper &SR,
   // with any property accesses on that object
   PropertyAccessesMapTy PropertyAccesses = State->get<PropertyAccessesMap>();
   for (ObjectPropPair PropKey : llvm::make_first_range(PropertyAccesses)) {
-    const MemRegion *ReceiverRegion = PropKey.first;
-    if (!SR.isLiveRegion(ReceiverRegion)) {
+    
+    if (const MemRegion *ReceiverRegion = PropKey.first; !SR.isLiveRegion(ReceiverRegion)) {
       State = State->remove<PropertyAccessesMap>(PropKey);
     }
   }
@@ -545,10 +545,10 @@ void NullabilityChecker::checkEvent(ImplicitNullDerefEvent Event) const {
 
   if (NullableDereferenced.isEnabled() &&
       TrackedNullability->getValue() == Nullability::Nullable) {
-    BugReporter &BR = *Event.BR;
+    
     // Do not suppress errors on defensive code paths, because dereferencing
     // a nullable pointer is always an error.
-    if (Event.IsDirectDereference)
+    if (BugReporter &BR = *Event.BR; Event.IsDirectDereference)
       reportBug("Nullable pointer is dereferenced",
                 ErrorKind::NullableDereferenced, NullableDereferenced,
                 Event.SinkNode, Region, BR);
@@ -936,9 +936,9 @@ static Nullability getReceiverNullability(const ObjCMethodCall &M,
     const MemRegion *SelfRegion = ValueRegionSVal->getRegion();
     assert(SelfRegion);
 
-    const NullabilityState *TrackedSelfNullability =
-        State->get<NullabilityMap>(SelfRegion);
-    if (TrackedSelfNullability)
+    
+    if (const NullabilityState *TrackedSelfNullability =
+        State->get<NullabilityMap>(SelfRegion); TrackedSelfNullability)
       return TrackedSelfNullability->getValue();
   }
   return Nullability::Unspecified;
@@ -1087,9 +1087,9 @@ void NullabilityChecker::checkPostObjCMessage(const ObjCMethodCall &M,
               M.getSelector().getIdentifierInfoForSlot(0)) {
         LookupResolved = true;
         ObjectPropPair Key = std::make_pair(ReceiverRegion, Ident);
-        const ConstrainedPropertyVal *PrevPropVal =
-            State->get<PropertyAccessesMap>(Key);
-        if (PrevPropVal && PrevPropVal->isConstrainedNonnull) {
+        
+        if (const ConstrainedPropertyVal *PrevPropVal =
+            State->get<PropertyAccessesMap>(Key); PrevPropVal && PrevPropVal->isConstrainedNonnull) {
           RetNullability = Nullability::Nonnull;
         } else {
           // If a previous property access was constrained as nonnull, we hold

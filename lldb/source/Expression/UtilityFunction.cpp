@@ -89,9 +89,9 @@ FunctionCaller *UtilityFunction::MakeFunctionCaller(
   if (m_caller_up) {
     DiagnosticManager diagnostics;
 
-    unsigned num_errors =
-        m_caller_up->CompileFunction(thread_to_use_sp, diagnostics);
-    if (num_errors) {
+    
+    if (unsigned num_errors =
+        m_caller_up->CompileFunction(thread_to_use_sp, diagnostics); num_errors) {
       error = Status::FromError(diagnostics.GetAsError(
           lldb::eExpressionParseError,
           "Error compiling " + m_function_name + " caller function:"));

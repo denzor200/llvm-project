@@ -31,8 +31,8 @@ void ARMTargetInfo::setABIAAPCS() {
   const llvm::Triple &T = getTriple();
 
   bool IsNetBSD = T.isOSNetBSD();
-  bool IsOpenBSD = T.isOSOpenBSD();
-  if (!T.isOSWindows() && !IsNetBSD && !IsOpenBSD)
+  
+  if (bool IsOpenBSD = T.isOSOpenBSD(); !T.isOSWindows() && !IsNetBSD && !IsOpenBSD)
     WCharType = UnsignedInt;
 
   UseBitFieldTypeAlignment = true;

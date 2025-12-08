@@ -238,9 +238,9 @@ public:
     // offset is saved in the map for `redirectEdge` to transform the edges.
     llvm::SmallMapVector<Block *, unsigned, 4> blockArgMapping;
     for (Block *entryBlock : entryBlocks) {
-      auto [iter, inserted] = blockArgMapping.insert(
-          {entryBlock, multiplexerBlock->getNumArguments()});
-      if (inserted)
+      
+      if (auto [iter, inserted] = blockArgMapping.insert(
+          {entryBlock, multiplexerBlock->getNumArguments()}); inserted)
         addBlockArgumentsFromOther(multiplexerBlock, entryBlock);
     }
 

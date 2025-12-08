@@ -31,8 +31,8 @@ static CXXRecordDecl *getCurrentInstantiationOf(QualType T,
   const TagType *TagTy = dyn_cast<TagType>(T->getCanonicalTypeInternal());
   if (!isa_and_present<RecordType, InjectedClassNameType>(TagTy))
     return nullptr;
-  auto *RD = cast<CXXRecordDecl>(TagTy->getDecl())->getDefinitionOrSelf();
-  if (isa<InjectedClassNameType>(TagTy) ||
+  
+  if (auto *RD = cast<CXXRecordDecl>(TagTy->getDecl())->getDefinitionOrSelf(); isa<InjectedClassNameType>(TagTy) ||
       RD->isCurrentInstantiation(CurContext))
     return RD;
   return nullptr;
@@ -82,11 +82,11 @@ DeclContext *Sema::computeDeclContext(const CXXScopeSpec &SS,
               SS.getTemplateParamLists();
           if (!TemplateParamLists.empty()) {
             unsigned Depth = ClassTemplate->getTemplateParameters()->getDepth();
-            auto L = find_if(TemplateParamLists,
+            
+            if (auto L = find_if(TemplateParamLists,
                              [Depth](TemplateParameterList *TPL) {
                                return TPL->getDepth() == Depth;
-                             });
-            if (L != TemplateParamLists.end()) {
+                             }); L != TemplateParamLists.end()) {
               void *Pos = nullptr;
               PartialSpec = ClassTemplate->findPartialSpecialization(
                   SpecType->template_arguments(), *L, Pos);
@@ -238,8 +238,8 @@ bool Sema::RequireCompleteEnumDecl(EnumDecl *EnumD, SourceLocation L,
   // Try to instantiate the definition, if this is a specialization of an
   // enumeration temploid.
   if (EnumDecl *Pattern = EnumD->getInstantiatedFromMemberEnum()) {
-    MemberSpecializationInfo *MSI = EnumD->getMemberSpecializationInfo();
-    if (MSI->getTemplateSpecializationKind() != TSK_ExplicitSpecialization) {
+    
+    if (MemberSpecializationInfo *MSI = EnumD->getMemberSpecializationInfo(); MSI->getTemplateSpecializationKind() != TSK_ExplicitSpecialization) {
       if (InstantiateEnum(L, EnumD, Pattern,
                           getTemplateInstantiationArgs(EnumD),
                           TSK_ImplicitInstantiation)) {
@@ -738,8 +738,8 @@ bool Sema::BuildCXXNestedNameSpecifier(Scope *S, NestedNameSpecInfo &IdInfo,
   //   void foo() { D::foo2(); }
   // };
   if (getLangOpts().MSVCCompat) {
-    DeclContext *DC = LookupCtx ? LookupCtx : CurContext;
-    if (DC->isDependentContext() && DC->isFunctionOrMethod()) {
+    
+    if (DeclContext *DC = LookupCtx ? LookupCtx : CurContext; DC->isDependentContext() && DC->isFunctionOrMethod()) {
       CXXRecordDecl *ContainingClass = dyn_cast<CXXRecordDecl>(DC->getParent());
       if (ContainingClass && ContainingClass->hasAnyDependentBases()) {
         Diag(IdInfo.IdentifierLoc,

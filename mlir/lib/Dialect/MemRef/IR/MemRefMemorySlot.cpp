@@ -289,8 +289,8 @@ struct MemRefDestructurableTypeExternalModel
   std::optional<DenseMap<Attribute, Type>>
   getSubelementIndexMap(Type type) const {
     auto memrefType = llvm::cast<MemRefType>(type);
-    constexpr int64_t maxMemrefSizeForDestructuring = 16;
-    if (!memrefType.hasStaticShape() ||
+    
+    if (constexpr int64_t maxMemrefSizeForDestructuring = 16; !memrefType.hasStaticShape() ||
         memrefType.getNumElements() > maxMemrefSizeForDestructuring ||
         memrefType.getNumElements() == 1)
       return {};

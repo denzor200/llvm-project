@@ -433,9 +433,9 @@ PreservedAnalyses FixIrreduciblePass::run(Function &F,
                                           FunctionAnalysisManager &AM) {
   auto *LI = AM.getCachedResult<LoopAnalysis>(F);
   auto &CI = AM.getResult<CycleAnalysis>(F);
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+  
 
-  if (!FixIrreducibleImpl(F, CI, DT, LI))
+  if (auto &DT = AM.getResult<DominatorTreeAnalysis>(F); !FixIrreducibleImpl(F, CI, DT, LI))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

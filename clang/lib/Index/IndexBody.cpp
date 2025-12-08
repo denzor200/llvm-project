@@ -75,9 +75,9 @@ public:
         break;
       --It;
     }
-    const Stmt *Parent = *It;
+    
 
-    if (auto BO = dyn_cast<BinaryOperator>(Parent)) {
+    if (const Stmt *Parent = *It; auto BO = dyn_cast<BinaryOperator>(Parent)) {
       if (BO->getOpcode() == BO_Assign) {
         if (BO->getLHS()->IgnoreParenCasts() == E)
           Roles |= (unsigned)SymbolRole::Write;
@@ -266,9 +266,9 @@ public:
         }
         return true;
       };
-      bool IsPropCall = isa_and_nonnull<PseudoObjectExpr>(Containing);
+      
       // Implicit property message sends are not 'implicit'.
-      if ((E->isImplicit() || IsPropCall) &&
+      if (bool IsPropCall = isa_and_nonnull<PseudoObjectExpr>(Containing); (E->isImplicit() || IsPropCall) &&
           !(IsPropCall &&
             IsImplicitProperty(cast<PseudoObjectExpr>(Containing))))
         Roles |= (unsigned)SymbolRole::Implicit;
@@ -471,8 +471,8 @@ public:
 
   bool VisitOffsetOfExpr(OffsetOfExpr *S) {
     for (unsigned I = 0, E = S->getNumComponents(); I != E; ++I) {
-      const OffsetOfNode &Component = S->getComponent(I);
-      if (Component.getKind() == OffsetOfNode::Field)
+      
+      if (const OffsetOfNode &Component = S->getComponent(I); Component.getKind() == OffsetOfNode::Field)
         IndexCtx.handleReference(Component.getField(), Component.getEndLoc(),
                                  Parent, ParentDC, SymbolRoleSet(), {});
       // FIXME: Try to resolve dependent field references.

@@ -823,8 +823,8 @@ const ExplodedNode *StreamChecker::getAcquisitionSite(const ExplodedNode *N,
 }
 
 static std::optional<int64_t> getKnownValue(ProgramStateRef State, SVal V) {
-  SValBuilder &SVB = State->getStateManager().getSValBuilder();
-  if (const llvm::APSInt *Int = SVB.getKnownValue(State, V))
+  
+  if (SValBuilder &SVB = State->getStateManager().getSValBuilder(); const llvm::APSInt *Int = SVB.getKnownValue(State, V))
     return Int->tryExtValue();
   return std::nullopt;
 }
@@ -1045,10 +1045,10 @@ void StreamChecker::preRead(const FnDescription *Desc, const CallEvent &Call,
   if (!State)
     return;
 
-  SymbolRef Sym = StreamVal.getAsSymbol();
-  if (Sym && State->get<StreamMap>(Sym)) {
-    const StreamState *SS = State->get<StreamMap>(Sym);
-    if (SS->ErrorState & ErrorFEof)
+  
+  if (SymbolRef Sym = StreamVal.getAsSymbol(); Sym && State->get<StreamMap>(Sym)) {
+    
+    if (const StreamState *SS = State->get<StreamMap>(Sym); SS->ErrorState & ErrorFEof)
       reportFEofWarning(Sym, C, State);
   } else {
     C.addTransition(State);
@@ -1686,8 +1686,8 @@ void StreamChecker::evalFflush(const FnDescription *Desc, const CallEvent &Call,
   if (StateNotNull && !StateNull) {
     // Skip if the input stream's state is unknown, open-failed or closed.
     if (SymbolRef StreamSym = StreamVal.getAsSymbol()) {
-      const StreamState *SS = State->get<StreamMap>(StreamSym);
-      if (SS) {
+      
+      if (const StreamState *SS = State->get<StreamMap>(StreamSym); SS) {
         assert(SS->isOpened() && "Stream is expected to be opened");
         ClearErrorInNotFailed(StreamSym, SS);
       } else
@@ -1698,8 +1698,8 @@ void StreamChecker::evalFflush(const FnDescription *Desc, const CallEvent &Call,
     const StreamMapTy &Map = StateNotFailed->get<StreamMap>();
     for (const auto &I : Map) {
       SymbolRef Sym = I.first;
-      const StreamState &SS = I.second;
-      if (SS.isOpened())
+      
+      if (const StreamState &SS = I.second; SS.isOpened())
         ClearErrorInNotFailed(Sym, &SS);
     }
   }
@@ -1859,9 +1859,9 @@ public:
                                    PathSensitiveBugReport &BR) override {
     if (Satisfied)
       return nullptr;
-    const StreamState *PredSS =
-        N->getFirstPred()->getState()->get<StreamMap>(StreamSym);
-    if (PredSS && PredSS->isClosed())
+    
+    if (const StreamState *PredSS =
+        N->getFirstPred()->getState()->get<StreamMap>(StreamSym); PredSS && PredSS->isClosed())
       return nullptr;
 
     const Stmt *S = N->getStmtForDiagnostics();
@@ -1978,8 +1978,8 @@ StreamChecker::ensureFseekWhenceCorrect(SVal WhenceVal, CheckerContext &C,
   if (!CI)
     return State;
 
-  int64_t X = CI->getValue()->getSExtValue();
-  if (X == SeekSetVal || X == SeekCurVal || X == SeekEndVal)
+  
+  if (int64_t X = CI->getValue()->getSExtValue(); X == SeekSetVal || X == SeekCurVal || X == SeekEndVal)
     return State;
 
   if (ExplodedNode *N = C.generateNonFatalErrorNode(State)) {

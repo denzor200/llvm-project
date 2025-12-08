@@ -409,8 +409,8 @@ void SignalHandlerCheck::check(const MatchFinder::MatchResult &Result) {
   auto Itr = llvm::df_begin(HandlerNode), ItrE = llvm::df_end(HandlerNode);
   while (Itr != ItrE) {
     const auto *CallF = dyn_cast<FunctionDecl>((*Itr)->getDecl());
-    const unsigned int PathL = Itr.getPathLength();
-    if (CallF) {
+    
+    if (const unsigned int PathL = Itr.getPathLength(); CallF) {
       // A signal handler or a function transitively reachable from the signal
       // handler was found to be unsafe.
       // Generate notes for the whole call chain (including the signal handler
@@ -482,8 +482,8 @@ bool SignalHandlerCheck::checkFunctionCPP14(
   }
 
   const FunctionDecl *FBody = nullptr;
-  const Stmt *BodyS = FD->getBody(FBody);
-  if (!BodyS)
+  
+  if (const Stmt *BodyS = FD->getBody(FBody); !BodyS)
     return false;
 
   bool StmtProblemsFound = false;
@@ -491,8 +491,8 @@ bool SignalHandlerCheck::checkFunctionCPP14(
   auto Matches =
       match(decl(forEachDescendant(stmt().bind("stmt"))), *FBody, Ctx);
   for (const auto &Match : Matches) {
-    const auto *FoundS = Match.getNodeAs<Stmt>("stmt");
-    if (isCXXOnlyStmt(FoundS)) {
+    
+    if (const auto *FoundS = Match.getNodeAs<Stmt>("stmt"); isCXXOnlyStmt(FoundS)) {
       const SourceRange R = getSourceRangeOfStmt(FoundS, Ctx);
       if (R.isInvalid())
         continue;
@@ -541,8 +541,8 @@ void SignalHandlerCheck::reportHandlerChain(
   while (CallLevel >= 0) {
     Callee = Caller;
     Caller = Itr.getPath(CallLevel);
-    const Expr *CE = findCallExpr(Caller, Callee);
-    if (SkipPathEnd)
+    
+    if (const Expr *CE = findCallExpr(Caller, Callee); SkipPathEnd)
       SkipPathEnd = false;
     else
       diag(CE->getBeginLoc(), "function %0 called here from %1",

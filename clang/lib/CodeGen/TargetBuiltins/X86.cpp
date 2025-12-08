@@ -238,8 +238,8 @@ static Value *EmitX86ScalarSelect(CodeGenFunction &CGF,
 static Value *EmitX86MaskedCompareResult(CodeGenFunction &CGF, Value *Cmp,
                                          unsigned NumElts, Value *MaskIn) {
   if (MaskIn) {
-    const auto *C = dyn_cast<Constant>(MaskIn);
-    if (!C || !C->isAllOnesValue())
+    
+    if (const auto *C = dyn_cast<Constant>(MaskIn); !C || !C->isAllOnesValue())
       Cmp = CGF.Builder.CreateAnd(Cmp, getMaskVecValue(CGF, MaskIn, NumElts));
   }
 
@@ -392,8 +392,8 @@ static Value *EmitX86FMAExpr(CodeGenFunction &CGF, const CallExpr *E,
     Res = CGF.Builder.CreateCall(Intr, {A, B, C, Ops.back() });
   } else {
     llvm::Type *Ty = A->getType();
-    Function *FMA;
-    if (CGF.Builder.getIsFPConstrained()) {
+    
+    if (Function *FMA; CGF.Builder.getIsFPConstrained()) {
       CodeGenFunction::CGFPOptionsRAII FPOptsRAII(CGF, E);
       FMA = CGF.CGM.getIntrinsic(Intrinsic::experimental_constrained_fma, Ty);
       Res = CGF.Builder.CreateConstrainedFPCall(FMA, {A, B, C});
@@ -2174,10 +2174,10 @@ Value *CodeGenFunction::EmitX86BuiltinExpr(unsigned BuiltinID,
   case X86::BI__builtin_ia32_sqrtsh_round_mask:
   case X86::BI__builtin_ia32_sqrtsd_round_mask:
   case X86::BI__builtin_ia32_sqrtss_round_mask: {
-    unsigned CC = cast<llvm::ConstantInt>(Ops[4])->getZExtValue();
+    
     // Support only if the rounding mode is 4 (AKA CUR_DIRECTION),
     // otherwise keep the intrinsic.
-    if (CC != 4) {
+    if (unsigned CC = cast<llvm::ConstantInt>(Ops[4])->getZExtValue(); CC != 4) {
       Intrinsic::ID IID;
 
       switch (BuiltinID) {
@@ -2213,10 +2213,10 @@ Value *CodeGenFunction::EmitX86BuiltinExpr(unsigned BuiltinID,
   case X86::BI__builtin_ia32_sqrtph512:
   case X86::BI__builtin_ia32_sqrtps512:
   case X86::BI__builtin_ia32_sqrtpd512: {
-    unsigned CC = cast<llvm::ConstantInt>(Ops[1])->getZExtValue();
+    
     // Support only if the rounding mode is 4 (AKA CUR_DIRECTION),
     // otherwise keep the intrinsic.
-    if (CC != 4) {
+    if (unsigned CC = cast<llvm::ConstantInt>(Ops[1])->getZExtValue(); CC != 4) {
       Intrinsic::ID IID;
 
       switch (BuiltinID) {

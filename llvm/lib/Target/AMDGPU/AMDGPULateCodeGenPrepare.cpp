@@ -336,9 +336,9 @@ bool LiveRegOptimizer::optimizeLiveType(
         continue;
       }
 
-      Instruction *UseInst = cast<Instruction>(V);
+      
       // Collect all uses of PHINodes and any use the crosses BB boundaries.
-      if (UseInst->getParent() != II->getParent() || isa<PHINode>(II)) {
+      if (Instruction *UseInst = cast<Instruction>(V); UseInst->getParent() != II->getParent() || isa<PHINode>(II)) {
         Uses.insert(UseInst);
         if (!isa<PHINode>(II))
           Defs.insert(II);
@@ -442,9 +442,9 @@ bool LiveRegOptimizer::optimizeLiveType(
 }
 
 bool AMDGPULateCodeGenPrepare::canWidenScalarExtLoad(LoadInst &LI) const {
-  unsigned AS = LI.getPointerAddressSpace();
+  
   // Skip non-constant address space.
-  if (AS != AMDGPUAS::CONSTANT_ADDRESS &&
+  if (unsigned AS = LI.getPointerAddressSpace(); AS != AMDGPUAS::CONSTANT_ADDRESS &&
       AS != AMDGPUAS::CONSTANT_ADDRESS_32BIT)
     return false;
   // Skip non-simple loads.
@@ -526,9 +526,9 @@ AMDGPULateCodeGenPreparePass::run(Function &F, FunctionAnalysisManager &FAM) {
   AssumptionCache &AC = FAM.getResult<AssumptionAnalysis>(F);
   UniformityInfo &UI = FAM.getResult<UniformityInfoAnalysis>(F);
 
-  bool Changed = AMDGPULateCodeGenPrepare(F, ST, &AC, UI).run();
+  
 
-  if (!Changed)
+  if (bool Changed = AMDGPULateCodeGenPrepare(F, ST, &AC, UI).run(); !Changed)
     return PreservedAnalyses::all();
   PreservedAnalyses PA = PreservedAnalyses::none();
   PA.preserveSet<CFGAnalyses>();

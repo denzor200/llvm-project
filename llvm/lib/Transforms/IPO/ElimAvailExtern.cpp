@@ -158,14 +158,14 @@ static bool eliminateAvailableExternally(Module &M, bool Convert) {
 
 PreservedAnalyses
 EliminateAvailableExternallyPass::run(Module &M, ModuleAnalysisManager &MAM) {
-  auto *CtxProf = MAM.getCachedResult<CtxProfAnalysis>(M);
+  
   // Convert to local instead of eliding if we use contextual profiling in this
   // module. This is because the IPO decisions performed with contextual
   // information will likely differ from decisions made without. For a function
   // that's imported, its optimizations will, thus, differ, and be specialized
   // for this contextual information. Eliding it in favor of the original would
   // undo these optimizations.
-  if (!eliminateAvailableExternally(
+  if (auto *CtxProf = MAM.getCachedResult<CtxProfAnalysis>(M); !eliminateAvailableExternally(
           M, /*Convert=*/(CtxProf && CtxProf->isInSpecializedModule())))
     return PreservedAnalyses::all();
   return PreservedAnalyses::none();

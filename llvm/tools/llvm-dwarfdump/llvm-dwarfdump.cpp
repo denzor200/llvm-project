@@ -818,8 +818,8 @@ static bool handleBuffer(StringRef Filename, MemoryBufferRef Buffer,
       std::string ObjName =
           (Filename + "(" + ObjForArch.getArchFlagName() + ")").str();
       if (auto MachOOrErr = ObjForArch.getAsObjectFile()) {
-        auto &Obj = **MachOOrErr;
-        if (filterArch(Obj)) {
+        
+        if (auto &Obj = **MachOOrErr; filterArch(Obj)) {
           std::unique_ptr<DWARFContext> DICtx = DWARFContext::create(
               Obj, DWARFContext::ProcessDebugRelocations::Process, nullptr, "",
               RecoverableErrorHandler);

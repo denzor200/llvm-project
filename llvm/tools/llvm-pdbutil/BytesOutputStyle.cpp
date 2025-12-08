@@ -363,9 +363,9 @@ static void iterateModules(PDBFile &File, LinePrinter &P, uint32_t IndentLevel,
 
   auto &Stream = Err(File.getPDBDbiStream());
 
-  const DbiModuleList &Modules = Stream.modules();
+  
 
-  if (opts::bytes::ModuleIndex.getNumOccurrences() > 0) {
+  if (const DbiModuleList &Modules = Stream.modules(); opts::bytes::ModuleIndex.getNumOccurrences() > 0) {
     iterateOneModule(File, P, Modules, opts::bytes::ModuleIndex, 1, IndentLevel,
                      Callback);
   } else {

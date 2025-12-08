@@ -476,9 +476,9 @@ bool llvm::expandRemainderUpTo32Bits(BinaryOperator *Rem) {
   Value *ExtDivisor;
   Value *ExtRem;
   Value *Trunc;
-  Type *Int32Ty = Builder.getInt32Ty();
+  
 
-  if (Rem->getOpcode() == Instruction::SRem) {
+  if (Type *Int32Ty = Builder.getInt32Ty(); Rem->getOpcode() == Instruction::SRem) {
     ExtDividend = Builder.CreateSExt(Rem->getOperand(0), Int32Ty);
     ExtDivisor = Builder.CreateSExt(Rem->getOperand(1), Int32Ty);
     ExtRem = Builder.CreateSRem(ExtDividend, ExtDivisor);
@@ -509,9 +509,9 @@ bool llvm::expandRemainderUpTo64Bits(BinaryOperator *Rem) {
   Type *RemTy = Rem->getType();
   assert(!RemTy->isVectorTy() && "Div over vectors not supported");
 
-  unsigned RemTyBitWidth = RemTy->getIntegerBitWidth();
+  
 
-  if (RemTyBitWidth >= 64)
+  if (unsigned RemTyBitWidth = RemTy->getIntegerBitWidth(); RemTyBitWidth >= 64)
     return expandRemainder(Rem);
 
   // If bitwidth smaller than 64 extend inputs, extend output and proceed
@@ -571,9 +571,9 @@ bool llvm::expandDivisionUpTo32Bits(BinaryOperator *Div) {
   Value *ExtDivisor;
   Value *ExtDiv;
   Value *Trunc;
-  Type *Int32Ty = Builder.getInt32Ty();
+  
 
-  if (Div->getOpcode() == Instruction::SDiv) {
+  if (Type *Int32Ty = Builder.getInt32Ty(); Div->getOpcode() == Instruction::SDiv) {
     ExtDividend = Builder.CreateSExt(Div->getOperand(0), Int32Ty);
     ExtDivisor = Builder.CreateSExt(Div->getOperand(1), Int32Ty);
     ExtDiv = Builder.CreateSDiv(ExtDividend, ExtDivisor);
@@ -604,9 +604,9 @@ bool llvm::expandDivisionUpTo64Bits(BinaryOperator *Div) {
   Type *DivTy = Div->getType();
   assert(!DivTy->isVectorTy() && "Div over vectors not supported");
 
-  unsigned DivTyBitWidth = DivTy->getIntegerBitWidth();
+  
 
-  if (DivTyBitWidth >= 64)
+  if (unsigned DivTyBitWidth = DivTy->getIntegerBitWidth(); DivTyBitWidth >= 64)
     return expandDivision(Div);
 
   // If bitwidth smaller than 64 extend inputs, extend output and proceed

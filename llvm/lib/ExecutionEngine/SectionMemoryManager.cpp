@@ -133,8 +133,8 @@ uint8_t *SectionMemoryManager::allocateSection(
 
   // The allocateMappedMemory may allocate much more memory than we need. In
   // this case, we store the unused memory as a free memory block.
-  unsigned FreeSize = EndOfBlock - Addr - Size;
-  if (FreeSize > 16) {
+  
+  if (unsigned FreeSize = EndOfBlock - Addr - Size; FreeSize > 16) {
     FreeMemBlock FreeMB;
     FreeMB.Free = sys::MemoryBlock((void *)(Addr + Size), FreeSize);
     FreeMB.PendingPrefixIndex = (unsigned)-1;

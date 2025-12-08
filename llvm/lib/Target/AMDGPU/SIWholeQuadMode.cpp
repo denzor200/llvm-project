@@ -462,8 +462,8 @@ void SIWholeQuadMode::markOperand(const MachineInstr &MI,
     // e.g. when a loop counter is stored in a VGPR.
     for (MCRegUnit Unit : TRI->regunits(Reg.asMCReg())) {
       LiveRange &LR = LIS->getRegUnit(Unit);
-      const VNInfo *Value = LR.Query(LIS->getInstructionIndex(MI)).valueIn();
-      if (Value)
+      
+      if (const VNInfo *Value = LR.Query(LIS->getInstructionIndex(MI)).valueIn(); Value)
         markDefs(MI, LR, VirtRegOrUnit(Unit), AMDGPU::NoSubRegister, Flag,
                  Worklist);
     }
@@ -563,8 +563,8 @@ char SIWholeQuadMode::scanInstructions(MachineFunction &MF,
       } else if (Opcode == AMDGPU::V_SET_INACTIVE_B32) {
         // Disable strict states; StrictWQM will be added as required later.
         III.Disabled = StateStrict;
-        MachineOperand &Inactive = MI.getOperand(4);
-        if (Inactive.isReg()) {
+        
+        if (MachineOperand &Inactive = MI.getOperand(4); Inactive.isReg()) {
           if (Inactive.isUndef() && MI.getOperand(3).getImm() == 0)
             LowerToCopyInstrs.insert(&MI);
           else
@@ -653,10 +653,10 @@ void SIWholeQuadMode::propagateInstruction(MachineInstr &MI,
 
   // Propagate backwards within block
   if (MachineInstr *PrevMI = MI.getPrevNode()) {
-    char InNeeds = (II.Needs & ~StateStrict) | II.OutNeeds;
-    if (!PrevMI->isPHI()) {
-      InstrInfo &PrevII = Instructions[PrevMI];
-      if ((PrevII.OutNeeds | InNeeds) != PrevII.OutNeeds) {
+    
+    if (char InNeeds = (II.Needs & ~StateStrict) | II.OutNeeds; !PrevMI->isPHI()) {
+      
+      if (InstrInfo &PrevII = Instructions[PrevMI]; (PrevII.OutNeeds | InNeeds) != PrevII.OutNeeds) {
         PrevII.OutNeeds |= InNeeds;
         Worklist.emplace_back(PrevMI);
       }
@@ -684,8 +684,8 @@ void SIWholeQuadMode::propagateBlock(MachineBasicBlock &MBB,
   // Propagate through instructions
   if (!MBB.empty()) {
     MachineInstr *LastMI = &*MBB.rbegin();
-    InstrInfo &LastII = Instructions[LastMI];
-    if ((LastII.OutNeeds | BI.OutNeeds) != LastII.OutNeeds) {
+    
+    if (InstrInfo &LastII = Instructions[LastMI]; (LastII.OutNeeds | BI.OutNeeds) != LastII.OutNeeds) {
       LastII.OutNeeds |= BI.OutNeeds;
       Worklist.emplace_back(LastMI);
     }
@@ -876,10 +876,10 @@ MachineInstr *SIWholeQuadMode::lowerKillF32(MachineInstr &MI) {
   // Pick opcode based on comparison type.
   MachineInstr *VcmpMI;
   const MachineOperand &Op0 = MI.getOperand(0);
-  const MachineOperand &Op1 = MI.getOperand(1);
+  
 
   // VCC represents lanes killed.
-  if (TRI->isVGPR(*MRI, Op0.getReg())) {
+  if (const MachineOperand &Op1 = MI.getOperand(1); TRI->isVGPR(*MRI, Op0.getReg())) {
     Opcode = AMDGPU::getVOPe32(Opcode);
     VcmpMI = BuildMI(MBB, &MI, DL, TII->get(Opcode)).add(Op1).add(Op0);
   } else {
@@ -944,8 +944,8 @@ MachineInstr *SIWholeQuadMode::lowerKillI1(MachineInstr &MI, bool IsWQM) {
                          .addReg(LMC.ExecReg);
     } else {
       // Static: kill does nothing
-      bool IsLastTerminator = std::next(MI.getIterator()) == MBB.end();
-      if (!IsLastTerminator) {
+      
+      if (bool IsLastTerminator = std::next(MI.getIterator()) == MBB.end(); !IsLastTerminator) {
         LIS->RemoveMachineInstrFromMaps(MI);
       } else {
         assert(MBB.succ_size() == 1 && MI.getOpcode() != AMDGPU::SI_DEMOTE_I1);
@@ -1486,9 +1486,9 @@ bool SIWholeQuadMode::lowerCopyInstrs() {
 
     const Register Reg = MI->getOperand(0).getReg();
 
-    const TargetRegisterClass *regClass =
-        TRI->getRegClassForOperandReg(*MRI, MI->getOperand(0));
-    if (TRI->isVGPRClass(regClass)) {
+    
+    if (const TargetRegisterClass *regClass =
+        TRI->getRegClassForOperandReg(*MRI, MI->getOperand(0)); TRI->isVGPRClass(regClass)) {
       const unsigned MovOp = TII->getMovOpcode(regClass);
       MI->setDesc(TII->get(MovOp));
 
@@ -1593,10 +1593,10 @@ void SIWholeQuadMode::lowerInitExec(MachineInstr &MI) {
 
   if (MI.getOpcode() == AMDGPU::SI_INIT_EXEC) {
     // This should be before all vector instructions.
-    MachineInstr *InitMI = BuildMI(*MBB, MBB->begin(), MI.getDebugLoc(),
+    
+    if (MachineInstr *InitMI = BuildMI(*MBB, MBB->begin(), MI.getDebugLoc(),
                                    TII->get(LMC.MovOpc), LMC.ExecReg)
-                               .addImm(MI.getOperand(0).getImm());
-    if (LIS) {
+                               .addImm(MI.getOperand(0).getImm()); LIS) {
       LIS->RemoveMachineInstrFromMaps(MI);
       LIS->InsertMachineInstrInMaps(*InitMI);
     }
@@ -1713,8 +1713,8 @@ bool SIWholeQuadMode::run(MachineFunction &MF) {
   const bool HasLiveMaskQueries = !LiveMaskQueries.empty();
   const bool HasWaveModes = GlobalFlags & ~StateExact;
   const bool HasKills = !KillInstrs.empty();
-  const bool UsesWQM = GlobalFlags & StateWQM;
-  if (HasKills || UsesWQM || (HasWaveModes && HasLiveMaskQueries)) {
+  
+  if (const bool UsesWQM = GlobalFlags & StateWQM; HasKills || UsesWQM || (HasWaveModes && HasLiveMaskQueries)) {
     LiveMaskReg = MRI->createVirtualRegister(TRI->getBoolRC());
     MachineInstr *MI =
         BuildMI(Entry, EntryMI, DebugLoc(), TII->get(AMDGPU::COPY), LiveMaskReg)
@@ -1728,8 +1728,8 @@ bool SIWholeQuadMode::run(MachineFunction &MF) {
   for (MachineInstr *MI : SetInactiveInstrs) {
     if (LowerToCopyInstrs.contains(MI))
       continue;
-    auto &Info = Instructions[MI];
-    if (Info.MarkedStates & StateStrict) {
+    
+    if (auto &Info = Instructions[MI]; Info.MarkedStates & StateStrict) {
       Info.Needs |= StateStrictWWM;
       Info.Disabled &= ~StateStrictWWM;
       Blocks[MI->getParent()].Needs |= StateStrictWWM;
@@ -1807,8 +1807,8 @@ SIWholeQuadModePass::run(MachineFunction &MF,
   MachinePostDominatorTree *PDT =
       MFAM.getCachedResult<MachinePostDominatorTreeAnalysis>(MF);
   SIWholeQuadMode Impl(MF, LIS, MDT, PDT);
-  bool Changed = Impl.run(MF);
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(MF); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA = getMachineFunctionPassPreservedAnalyses();

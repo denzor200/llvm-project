@@ -154,9 +154,9 @@ void AffineDataCopyGeneration::runOnBlock(Block *block,
       // the footprint can't be calculated, we assume for now it fits. Recurse
       // inside if footprint for 'forOp' exceeds capacity, or when
       // skipNonUnitStrideLoops is set and the step size is not one.
-      bool recurseInner = skipNonUnitStrideLoops ? forOp.getStep() != 1
-                                                 : exceedsCapacity(forOp);
-      if (recurseInner) {
+      
+      if (bool recurseInner = skipNonUnitStrideLoops ? forOp.getStep() != 1
+                                                 : exceedsCapacity(forOp); recurseInner) {
         // We'll recurse and do the copies at an inner level for 'forInst'.
         // Recurse onto the body of this loop.
         runOnBlock(forOp.getBody(), copyNests);

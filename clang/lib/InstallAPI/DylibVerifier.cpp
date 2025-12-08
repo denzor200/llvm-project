@@ -19,10 +19,10 @@ namespace clang {
 namespace installapi {
 
 ArchitectureSet &LibAttrs::getArchSet(StringRef Attr) {
-  auto *It = llvm::find_if(LibraryAttributes, [&Attr](const auto &Input) {
+  
+  if (auto *It = llvm::find_if(LibraryAttributes, [&Attr](const auto &Input) {
     return Attr == Input.first;
-  });
-  if (It != LibraryAttributes.end())
+  }); It != LibraryAttributes.end())
     return It->second;
   LibraryAttributes.push_back({Attr.str(), ArchitectureSet()});
   return LibraryAttributes.back().second;
@@ -863,9 +863,9 @@ bool DylibVerifier::verifyBinaryAttrs(const ArrayRef<Target> ProvidedTargets,
   auto ProvidedPlatforms = mapToPlatformVersionSet(ProvidedTargets);
   auto DylibPlatforms = mapToPlatformVersionSet(DylibTargets);
   if (ProvidedPlatforms != DylibPlatforms) {
-    const bool DiffMinOS =
-        mapToPlatformSet(ProvidedTargets) == mapToPlatformSet(DylibTargets);
-    if (DiffMinOS)
+    
+    if (const bool DiffMinOS =
+        mapToPlatformSet(ProvidedTargets) == mapToPlatformSet(DylibTargets); DiffMinOS)
       Ctx.Diag->Report(diag::warn_platform_mismatch)
           << ProvidedPlatforms << DylibPlatforms;
     else {

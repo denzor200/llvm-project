@@ -87,8 +87,8 @@ OptionGroupVariable::SetOptionValue(uint32_t option_idx,
   Status error;
   llvm::ArrayRef<OptionDefinition> variable_options =
       include_frame_options ? g_variable_options : g_variable_options_noframe;
-  const int short_option = variable_options[option_idx].short_option;
-  switch (short_option) {
+  
+  switch (const int short_option = variable_options[option_idx].short_option; short_option) {
   case 'r':
     use_regex = true;
     break;

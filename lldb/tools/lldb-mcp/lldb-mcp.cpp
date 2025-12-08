@@ -73,8 +73,8 @@ FileSpec driverPath() {
   // Check if an override for which lldb we're using exists, otherwise look next
   // to the current binary.
   std::string lldb_exe_path = host_env.lookup("LLDB_EXE_PATH");
-  auto &fs = FileSystem::Instance();
-  if (fs.Exists(lldb_exe_path))
+  
+  if (auto &fs = FileSystem::Instance(); fs.Exists(lldb_exe_path))
     return FileSpec(lldb_exe_path);
 
   FileSpec lldb_exec_spec = lldb_private::HostInfo::GetProgramFileSpec();

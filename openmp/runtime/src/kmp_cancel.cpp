@@ -308,9 +308,9 @@ if (kmp_get_cancellation_status(kmp_cancel_parallel)) {
 */
 int __kmp_get_cancellation_status(int cancel_kind) {
   if (__kmp_omp_cancellation) {
-    kmp_info_t *this_thr = __kmp_entry_thread();
+    
 
-    switch (cancel_kind) {
+    switch (kmp_info_t *this_thr = __kmp_entry_thread(); cancel_kind) {
     case cancel_parallel:
     case cancel_loop:
     case cancel_sections: {

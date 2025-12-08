@@ -70,9 +70,9 @@ void tools::MinGW::Linker::AddLibGCC(const ArgList &Args,
     bool Static = Args.hasArg(options::OPT_static_libgcc) ||
                   Args.hasArg(options::OPT_static);
     bool Shared = Args.hasArg(options::OPT_shared);
-    bool CXX = getToolChain().getDriver().CCCIsCXX();
+    
 
-    if (Static || (!CXX && !Shared)) {
+    if (bool CXX = getToolChain().getDriver().CCCIsCXX(); Static || (!CXX && !Shared)) {
       CmdArgs.push_back("-lgcc");
       CmdArgs.push_back("-lgcc_eh");
     } else {
@@ -153,9 +153,9 @@ void tools::MinGW::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     D.Diag(diag::err_target_unknown_triple) << TC.getEffectiveTriple().str();
   }
 
-  Arg *SubsysArg =
-      Args.getLastArg(options::OPT_mwindows, options::OPT_mconsole);
-  if (SubsysArg && SubsysArg->getOption().matches(options::OPT_mwindows)) {
+  
+  if (Arg *SubsysArg =
+      Args.getLastArg(options::OPT_mwindows, options::OPT_mconsole); SubsysArg && SubsysArg->getOption().matches(options::OPT_mwindows)) {
     CmdArgs.push_back("--subsystem");
     CmdArgs.push_back("windows");
   } else if (SubsysArg &&
@@ -588,10 +588,10 @@ bool toolchains::MinGW::HasNativeLLVMSupport() const {
 
 ToolChain::UnwindTableLevel
 toolchains::MinGW::getDefaultUnwindTableLevel(const ArgList &Args) const {
-  Arg *ExceptionArg = Args.getLastArg(options::OPT_fsjlj_exceptions,
+  
+  if (Arg *ExceptionArg = Args.getLastArg(options::OPT_fsjlj_exceptions,
                                       options::OPT_fseh_exceptions,
-                                      options::OPT_fdwarf_exceptions);
-  if (ExceptionArg &&
+                                      options::OPT_fdwarf_exceptions); ExceptionArg &&
       ExceptionArg->getOption().matches(options::OPT_fseh_exceptions))
     return UnwindTableLevel::Asynchronous;
 

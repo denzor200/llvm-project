@@ -62,8 +62,8 @@ bool Sema::isLibstdcxxEagerExceptionSpecHack(const Declarator &D) {
   if (!IsInStd) {
     // This isn't a direct member of namespace std, but it might still be
     // libstdc++'s std::__debug::array or std::__profile::array.
-    IdentifierInfo *II = ND->getIdentifier();
-    if (!II || !(II->isStr("__debug") || II->isStr("__profile")) ||
+    
+    if (IdentifierInfo *II = ND->getIdentifier(); !II || !(II->isStr("__debug") || II->isStr("__profile")) ||
         !ND->isInStdNamespace())
       return false;
   }
@@ -625,8 +625,8 @@ static bool CheckEquivalentExceptionSpecImpl(
       // std::bad_alloc, all conditions are met.
       QualType Exception = *WithExceptions->exception_begin();
       if (CXXRecordDecl *ExRecord = Exception->getAsCXXRecordDecl()) {
-        IdentifierInfo* Name = ExRecord->getIdentifier();
-        if (Name && Name->getName() == "bad_alloc") {
+        
+        if (IdentifierInfo* Name = ExRecord->getIdentifier(); Name && Name->getName() == "bad_alloc") {
           // It's called bad_alloc, but is it in std?
           if (ExRecord->isInStdNamespace()) {
             return false;
@@ -1586,8 +1586,8 @@ CanThrowResult Sema::canThrow(const Stmt *S) {
     auto *TS = cast<CXXTryStmt>(S);
     // try /*...*/ catch (...) { H } can throw only if H can throw.
     // Any other try-catch can throw if any substatement can throw.
-    const CXXCatchStmt *FinalHandler = TS->getHandler(TS->getNumHandlers() - 1);
-    if (!FinalHandler->getExceptionDecl())
+    
+    if (const CXXCatchStmt *FinalHandler = TS->getHandler(TS->getNumHandlers() - 1); !FinalHandler->getExceptionDecl())
       return canThrow(FinalHandler->getHandlerBlock());
     return canSubStmtsThrow(*this, S);
   }

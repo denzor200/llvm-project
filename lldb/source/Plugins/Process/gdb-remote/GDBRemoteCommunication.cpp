@@ -146,10 +146,10 @@ GDBRemoteCommunication::SendRawPacketNoLock(llvm::StringRef packet,
       size_t binary_start_offset = 0;
       if (strncmp(packet_data, "$vFile:pwrite:", strlen("$vFile:pwrite:")) ==
           0) {
-        const char *first_comma = strchr(packet_data, ',');
-        if (first_comma) {
-          const char *second_comma = strchr(first_comma + 1, ',');
-          if (second_comma)
+        
+        if (const char *first_comma = strchr(packet_data, ','); first_comma) {
+          
+          if (const char *second_comma = strchr(first_comma + 1, ','); second_comma)
             binary_start_offset = second_comma - packet_data + 1;
         }
       }
@@ -653,8 +653,8 @@ GDBRemoteCommunication::CheckForPacket(const uint8_t *src, size_t src_len,
     case '$':
       // Look for a standard gdb packet?
       {
-        size_t hash_pos = m_bytes.find('#');
-        if (hash_pos != std::string::npos) {
+        
+        if (size_t hash_pos = m_bytes.find('#'); hash_pos != std::string::npos) {
           if (hash_pos + 2 < m_bytes.size()) {
             checksum_idx = hash_pos + 1;
             // Skip the dollar sign
@@ -726,8 +726,8 @@ GDBRemoteCommunication::CheckForPacket(const uint8_t *src, size_t src_len,
         // '#CC' checksum
         if (m_bytes[0] == '$' && total_length > 4) {
           for (size_t i = 0; !binary && i < total_length; ++i) {
-            unsigned char c = m_bytes[i];
-            if (!llvm::isPrint(c) && !llvm::isSpace(c)) {
+            
+            if (unsigned char c = m_bytes[i]; !llvm::isPrint(c) && !llvm::isSpace(c)) {
               binary = true;
             }
           }
@@ -744,8 +744,8 @@ GDBRemoteCommunication::CheckForPacket(const uint8_t *src, size_t src_len,
                         (uint64_t)total_length, m_bytes[0]);
           for (size_t i = content_start; i < content_end; ++i) {
             // Remove binary escaped bytes when displaying the packet...
-            const char ch = m_bytes[i];
-            if (ch == 0x7d) {
+            
+            if (const char ch = m_bytes[i]; ch == 0x7d) {
               // 0x7d is the escape character.  The next character is to be
               // XOR'd with 0x20.
               const char escapee = m_bytes[++i] ^ 0x20;

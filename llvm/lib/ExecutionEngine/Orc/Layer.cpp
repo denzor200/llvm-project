@@ -64,8 +64,8 @@ IRMaterializationUnit::IRMaterializationUnit(
           // Skip zero-initializers.
           if (isa<ConstantAggregateZero>(InitVal))
             continue;
-          const auto *InitIntValue = dyn_cast<ConstantInt>(InitVal);
-          if (InitIntValue && InitIntValue->isZero())
+          
+          if (const auto *InitIntValue = dyn_cast<ConstantInt>(InitVal); InitIntValue && InitIntValue->isZero())
             continue;
 
           auto EmuTLST = Mangle(("__emutls_t." + GV.getName()).str());

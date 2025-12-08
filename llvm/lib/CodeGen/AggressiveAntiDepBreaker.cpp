@@ -266,16 +266,16 @@ static void AntiDepEdges(const SUnit *SU, std::vector<const SDep *> &Edges) {
 /// critical path.
 static const SUnit *CriticalPathStep(const SUnit *SU) {
   const SDep *Next = nullptr;
-  unsigned NextDepth = 0;
+  
   // Find the predecessor edge with the greatest depth.
-  if (SU) {
+  if (unsigned NextDepth = 0; SU) {
     for (const SDep &Pred : SU->Preds) {
       const SUnit *PredSU = Pred.getSUnit();
       unsigned PredLatency = Pred.getLatency();
-      unsigned PredTotalLatency = PredSU->getDepth() + PredLatency;
+      
       // In the case of a latency tie, prefer an anti-dependency edge over
       // other types of edges.
-      if (NextDepth < PredTotalLatency ||
+      if (unsigned PredTotalLatency = PredSU->getDepth() + PredLatency; NextDepth < PredTotalLatency ||
           (NextDepth == PredTotalLatency && Pred.getKind() == SDep::Anti)) {
         NextDepth = PredTotalLatency;
         Next = &Pred;
@@ -578,11 +578,11 @@ bool AggressiveAntiDepBreaker::FindSuitableFreeRegisters(
   // All group registers should be a subreg of SuperReg.
   for (MCRegister Reg : Regs) {
     if (Reg == SuperReg) continue;
-    bool IsSub = TRI->isSubRegister(SuperReg, Reg);
+    
     // FIXME: remove this once PR18663 has been properly fixed. For now,
     // return a conservative answer:
     // assert(IsSub && "Expecting group subregister");
-    if (!IsSub)
+    if (bool IsSub = TRI->isSubRegister(SuperReg, Reg); !IsSub)
       return false;
   }
 
@@ -642,8 +642,8 @@ bool AggressiveAntiDepBreaker::FindSuitableFreeRegisters(
       if (Reg == SuperReg) {
         NewReg = NewSuperReg;
       } else {
-        unsigned NewSubRegIdx = TRI->getSubRegIndex(SuperReg, Reg);
-        if (NewSubRegIdx != 0)
+        
+        if (unsigned NewSubRegIdx = TRI->getSubRegIndex(SuperReg, Reg); NewSubRegIdx != 0)
           NewReg = TRI->getSubReg(NewSuperReg, NewSubRegIdx);
       }
 
@@ -700,8 +700,8 @@ bool AggressiveAntiDepBreaker::FindSuitableFreeRegisters(
         if (!Q.second.Operand->isDef() || !Q.second.Operand->isEarlyClobber())
           continue;
 
-        MachineInstr *DefMI = Q.second.Operand->getParent();
-        if (DefMI->readsRegister(NewReg, TRI)) {
+        
+        if (MachineInstr *DefMI = Q.second.Operand->getParent(); DefMI->readsRegister(NewReg, TRI)) {
           LLVM_DEBUG(dbgs() << "(ec)");
           goto next_super_reg;
         }
@@ -929,8 +929,8 @@ unsigned AggressiveAntiDepBreaker::BreakAntiDependencies(
               // If the SU for the instruction being updated has debug
               // information related to the anti-dependency register, make
               // sure to update that as well.
-              const SUnit *SU = MISUnitMap[Q.second.Operand->getParent()];
-              if (!SU) continue;
+              
+              if (const SUnit *SU = MISUnitMap[Q.second.Operand->getParent()]; !SU) continue;
               UpdateDbgValues(DbgValues, Q.second.Operand->getParent(),
                               AntiDepReg, NewReg);
             }

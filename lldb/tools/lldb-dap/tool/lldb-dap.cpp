@@ -573,8 +573,8 @@ int main(int argc, char *argv[]) {
   if (llvm::opt::Arg *target_arg = input_args.getLastArg(OPT_launch_target)) {
     if (llvm::opt::Arg *comm_file = input_args.getLastArg(OPT_comm_file)) {
       lldb::pid_t pid = LLDB_INVALID_PROCESS_ID;
-      llvm::opt::Arg *debugger_pid = input_args.getLastArg(OPT_debugger_pid);
-      if (debugger_pid) {
+      
+      if (llvm::opt::Arg *debugger_pid = input_args.getLastArg(OPT_debugger_pid); debugger_pid) {
         llvm::StringRef debugger_pid_value = debugger_pid->getValue();
         if (debugger_pid_value.getAsInteger(10, pid)) {
           llvm::errs() << "'" << debugger_pid_value

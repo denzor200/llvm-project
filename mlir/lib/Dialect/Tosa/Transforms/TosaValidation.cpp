@@ -410,8 +410,8 @@ private:
       const int64_t scaleYN = scale[0];
       const int64_t scaleYD = scale[1];
       const int64_t scaleXN = scale[2];
-      const int64_t scaleXD = scale[3];
-      if (failed(levelCheckScale(op, scaleYN / scaleYD,
+      
+      if (const int64_t scaleXD = scale[3]; failed(levelCheckScale(op, scaleYN / scaleYD,
                                  "scale_y_n/scale_y_d <= MAX_SCALE")) ||
           failed(levelCheckScale(op, scaleXN / scaleXD,
                                  "scale_x_n/scale_x_d <= MAX_SCALE"))) {
@@ -527,10 +527,10 @@ LogicalResult TosaValidation::levelCheckRanks(tosa::ArgMaxOp tosaOp) {
 
 template <>
 LogicalResult TosaValidation::levelCheckRanks(tosa::IfOp tosaOp) {
-  auto *op = tosaOp.getOperation();
+  
 
   // Only the condition input has rank limitation.
-  if (failed(levelCheckRank(op, tosaOp.getCondition(), "operand",
+  if (auto *op = tosaOp.getOperation(); failed(levelCheckRank(op, tosaOp.getCondition(), "operand",
                             targetEnv.getLevel().MAX_RANK)))
     return failure();
 
@@ -702,9 +702,9 @@ LogicalResult TosaValidation::levelCheckSize(Operation *op,
     // defined in 1.7. Levels.
     // For each tensor, the number of tensor elements multiplied by the
     // element size in bytes must be representable as a tensor_size_t.
-    const int64_t max_size =
-        (INT64_C(1) << targetEnv.getLevel().MAX_LOG2_SIZE) - 1;
-    if (size > max_size)
+    
+    if (const int64_t max_size =
+        (INT64_C(1) << targetEnv.getLevel().MAX_LOG2_SIZE) - 1; size > max_size)
       return op->emitOpError()
              << "failed level check: " << operandOrResult
              << " tensor size (in bytes) <= (1 << MAX_LOG2_SIZE - 1)";
@@ -831,8 +831,8 @@ LogicalResult checkErrorIfResize(Operation *op) {
     const SmallVector<int64_t, 4> sizes = {
         outputType.getDimSize(1), outputType.getDimSize(2),
         inputType.getDimSize(1), inputType.getDimSize(2)};
-    const int64_t *maxDim = llvm::max_element(sizes);
-    if (maxDim != sizes.end() && *maxDim >= 16384)
+    
+    if (const int64_t *maxDim = llvm::max_element(sizes); maxDim != sizes.end() && *maxDim >= 16384)
       return op->emitOpError(
                  "expect input/output height/width dims to be < 16384, ")
              << "got [OH, OW, IH, IW] = " << sizes;

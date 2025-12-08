@@ -607,7 +607,7 @@ AArch64RegisterInfo::getCrossCopyRegClass(const TargetRegisterClass *RC) const {
 MCRegister AArch64RegisterInfo::getBaseRegister() const { return AArch64::X19; }
 
 bool AArch64RegisterInfo::hasBasePointer(const MachineFunction &MF) const {
-  const MachineFrameInfo &MFI = MF.getFrameInfo();
+  
 
   // In the presence of variable sized objects or funclets, if the fixed stack
   // size is large enough that referencing from the FP won't result in things
@@ -617,7 +617,7 @@ bool AArch64RegisterInfo::hasBasePointer(const MachineFunction &MF) const {
   // Furthermore, if both variable sized objects are present, and the
   // stack needs to be dynamically re-aligned, the base pointer is the only
   // reliable way to reference the locals.
-  if (MFI.hasVarSizedObjects() || MF.hasEHFunclets()) {
+  if (const MachineFrameInfo &MFI = MF.getFrameInfo(); MFI.hasVarSizedObjects() || MF.hasEHFunclets()) {
     if (hasStackRealignment(MF))
       return true;
 
@@ -945,8 +945,8 @@ void AArch64RegisterInfo::getOffsetOpcodes(
   DIExpression::appendOffset(Ops, Offset.getFixed());
 
   unsigned VG = getDwarfRegNum(AArch64::VG, true);
-  int64_t VGSized = Offset.getScalable() / 2;
-  if (VGSized > 0) {
+  
+  if (int64_t VGSized = Offset.getScalable() / 2; VGSized > 0) {
     Ops.push_back(dwarf::DW_OP_constu);
     Ops.push_back(VGSized);
     Ops.append({dwarf::DW_OP_bregx, VG, 0ULL});
@@ -1056,9 +1056,9 @@ bool AArch64RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
 unsigned AArch64RegisterInfo::getRegPressureLimit(const TargetRegisterClass *RC,
                                                   MachineFunction &MF) const {
-  const AArch64FrameLowering *TFI = getFrameLowering(MF);
+  
 
-  switch (RC->getID()) {
+  switch (const AArch64FrameLowering *TFI = getFrameLowering(MF); RC->getID()) {
   default:
     return 0;
   case AArch64::GPR32RegClassID:
@@ -1231,11 +1231,7 @@ bool AArch64RegisterInfo::getRegAllocationHints(
       bool IsMulZPR = TupleID == AArch64::ZPR2Mul2RegClassID ||
                       TupleID == AArch64::ZPR4Mul4RegClassID;
 
-      const MachineOperand *AssignedRegOp = llvm::find_if(
-          make_range(Use.operands_begin() + 1, Use.operands_end()),
-          [&VRM](const MachineOperand &Op) {
-            return VRM->hasPhys(Op.getReg());
-          });
+      
 
       // Example:
       //
@@ -1270,7 +1266,11 @@ bool AArch64RegisterInfo::getRegAllocationHints(
       //   %v0, we just need to ensure that { z1, z9 }, { z2, z10 } and
       //   { z3, z11 } are also free. If so, we add { z2, z10 }.
 
-      if (AssignedRegOp == Use.operands_end()) {
+      if (const MachineOperand *AssignedRegOp = llvm::find_if(
+          make_range(Use.operands_begin() + 1, Use.operands_end()),
+          [&VRM](const MachineOperand &Op) {
+            return VRM->hasPhys(Op.getReg());
+          }); AssignedRegOp == Use.operands_end()) {
         // There are no registers already assigned to any of the pseudo
         // operands. Look for a valid starting register for the group.
         for (unsigned I = 0; I < StridedOrder.size(); ++I) {
@@ -1278,8 +1278,8 @@ bool AArch64RegisterInfo::getRegAllocationHints(
 
           // If the FORM_TRANSPOSE nodes use the ZPRMul classes, the starting
           // register of the first load should be a multiple of 2 or 4.
-          unsigned SubRegIdx = Use.getOperand(OpIdx).getSubReg();
-          if (IsMulZPR && (getSubReg(Reg, SubRegIdx) - AArch64::Z0) % UseOps !=
+          
+          if (unsigned SubRegIdx = Use.getOperand(OpIdx).getSubReg(); IsMulZPR && (getSubReg(Reg, SubRegIdx) - AArch64::Z0) % UseOps !=
                               ((unsigned)OpIdx - 1))
             continue;
 
@@ -1353,8 +1353,8 @@ bool AArch64RegisterInfo::getRegAllocationHints(
 
 unsigned AArch64RegisterInfo::getLocalAddressRegister(
   const MachineFunction &MF) const {
-  const auto &MFI = MF.getFrameInfo();
-  if (!MF.hasEHFunclets() && !MFI.hasVarSizedObjects())
+  
+  if (const auto &MFI = MF.getFrameInfo(); !MF.hasEHFunclets() && !MFI.hasVarSizedObjects())
     return AArch64::SP;
   else if (hasStackRealignment(MF))
     return getBaseRegister();
@@ -1401,8 +1401,8 @@ bool AArch64RegisterInfo::shouldCoalesce(
   if (MI->isCopy() && SubReg != DstSubReg &&
       (AArch64::ZPRRegClass.hasSubClassEq(DstRC) ||
        AArch64::ZPRRegClass.hasSubClassEq(SrcRC))) {
-    unsigned SrcReg = MI->getOperand(1).getReg();
-    if (any_of(MRI.def_instructions(SrcReg), IsCoalescerBarrier))
+    
+    if (unsigned SrcReg = MI->getOperand(1).getReg(); any_of(MRI.def_instructions(SrcReg), IsCoalescerBarrier))
       return false;
     unsigned DstReg = MI->getOperand(0).getReg();
     if (any_of(MRI.use_nodbg_instructions(DstReg), IsCoalescerBarrier))

@@ -162,12 +162,12 @@ void AArch64BranchTargets::addBTI(MachineBasicBlock &MBB, bool CouldCall,
 
   // Insert BTI exactly at the first executable instruction.
   const DebugLoc DL = MBB.findDebugLoc(MBBI);
-  MachineInstr *BTI = BuildMI(MBB, MBBI, DL, TII->get(AArch64::HINT))
-                          .addImm(HintNum)
-                          .getInstr();
+  
 
   // WinEH: put .seh_nop after BTI when the first real insn is FrameSetup.
-  if (HasWinCFI && MBBI != MBB.end() &&
+  if (MachineInstr *BTI = BuildMI(MBB, MBBI, DL, TII->get(AArch64::HINT))
+                          .addImm(HintNum)
+                          .getInstr(); HasWinCFI && MBBI != MBB.end() &&
       MBBI->getFlag(MachineInstr::FrameSetup)) {
     auto AfterBTI = std::next(MachineBasicBlock::iterator(BTI));
     BuildMI(MBB, AfterBTI, DL, TII->get(AArch64::SEH_Nop));

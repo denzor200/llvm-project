@@ -19,8 +19,8 @@ llvm::Regex HeaderFile::getFrameworkIncludeRule() {
 std::optional<std::string> createIncludeHeaderName(const StringRef FullPath) {
   // Headers in usr(/local)*/include.
   std::string Pattern = "/include/";
-  auto PathPrefix = FullPath.find(Pattern);
-  if (PathPrefix != StringRef::npos) {
+  
+  if (auto PathPrefix = FullPath.find(Pattern); PathPrefix != StringRef::npos) {
     PathPrefix += Pattern.size();
     return FullPath.drop_front(PathPrefix).str();
   }

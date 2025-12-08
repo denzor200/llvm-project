@@ -197,10 +197,10 @@ bool PPCPostRASchedStrategy::tryCandidate(SchedCandidate &Cand,
   unsigned TryCandZoneCluster = TryCand.AtTop ? TopClusterID : BotClusterID;
   bool CandIsClusterSucc =
       isTheSameCluster(CandZoneCluster, Cand.SU->ParentClusterIdx);
-  bool TryCandIsClusterSucc =
-      isTheSameCluster(TryCandZoneCluster, TryCand.SU->ParentClusterIdx);
+  
 
-  if (tryGreater(TryCandIsClusterSucc, CandIsClusterSucc, TryCand, Cand,
+  if (bool TryCandIsClusterSucc =
+      isTheSameCluster(TryCandZoneCluster, TryCand.SU->ParentClusterIdx); tryGreater(TryCandIsClusterSucc, CandIsClusterSucc, TryCand, Cand,
                  Cluster))
     return TryCand.Reason != NoCand;
 

@@ -433,8 +433,8 @@ template<class MachHeader>
 void MachODumper::printFileHeaders(const MachHeader &Header) {
   W.printEnum("Magic", Header.magic, ArrayRef(MachOMagics));
   W.printEnum("CpuType", Header.cputype, ArrayRef(MachOHeaderCpuTypes));
-  uint32_t subtype = Header.cpusubtype & ~MachO::CPU_SUBTYPE_MASK;
-  switch (Header.cputype) {
+  
+  switch (uint32_t subtype = Header.cpusubtype & ~MachO::CPU_SUBTYPE_MASK; Header.cputype) {
   case MachO::CPU_TYPE_X86:
     W.printEnum("CpuSubType", subtype, ArrayRef(MachOHeaderCpuSubtypesX86));
     break;
@@ -877,8 +877,8 @@ void MachODumper::printMachOVersionMin() {
     SmallString<32> Version;
     Version = utostr(MachOObjectFile::getVersionMinMajor(VMC, false)) + "." +
               utostr(MachOObjectFile::getVersionMinMinor(VMC, false));
-    uint32_t Update = MachOObjectFile::getVersionMinUpdate(VMC, false);
-    if (Update != 0)
+    
+    if (uint32_t Update = MachOObjectFile::getVersionMinUpdate(VMC, false); Update != 0)
       Version += "." + utostr(MachOObjectFile::getVersionMinUpdate(VMC, false));
     W.printString("Version", Version);
     SmallString<32> SDK;
@@ -887,8 +887,8 @@ void MachODumper::printMachOVersionMin() {
     else {
       SDK = utostr(MachOObjectFile::getVersionMinMajor(VMC, true)) + "." +
             utostr(MachOObjectFile::getVersionMinMinor(VMC, true));
-      uint32_t Update = MachOObjectFile::getVersionMinUpdate(VMC, true);
-      if (Update != 0)
+      
+      if (uint32_t Update = MachOObjectFile::getVersionMinUpdate(VMC, true); Update != 0)
         SDK += "." + utostr(MachOObjectFile::getVersionMinUpdate(VMC, true));
     }
     W.printString("SDK", SDK);

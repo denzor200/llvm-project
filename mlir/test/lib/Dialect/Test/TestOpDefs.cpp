@@ -554,13 +554,13 @@ ParseResult StringAttrPrettyNameOp::parse(OpAsmParser &parser,
 
   // If the attribute dictionary contains no 'names' attribute, infer it from
   // the SSA name (if specified).
-  bool hadNames = llvm::any_of(result.attributes, [](NamedAttribute attr) {
-    return attr.getName() == "names";
-  });
+  
 
   // If there was no name specified, check to see if there was a useful name
   // specified in the asm file.
-  if (hadNames || parser.getNumResults() == 0)
+  if (bool hadNames = llvm::any_of(result.attributes, [](NamedAttribute attr) {
+    return attr.getName() == "names";
+  }); hadNames || parser.getNumResults() == 0)
     return success();
 
   SmallVector<StringRef, 4> names;
@@ -801,8 +801,8 @@ static_assert(OpTrait::hasSingleBlockImplicitTerminator<
 
 ParseResult SingleNoTerminatorCustomAsmOp::parse(OpAsmParser &parser,
                                                  OperationState &state) {
-  Region *body = state.addRegion();
-  if (parser.parseRegion(*body, /*arguments=*/{}, /*argTypes=*/{}))
+  
+  if (Region *body = state.addRegion(); parser.parseRegion(*body, /*arguments=*/{}, /*argTypes=*/{}))
     return failure();
   return success();
 }
@@ -823,8 +823,8 @@ LogicalResult TestVerifiersOp::verify() {
   if (!getRegion().hasOneBlock())
     return emitOpError("`hasOneBlock` trait hasn't been verified");
 
-  Operation *definingOp = getInput().getDefiningOp();
-  if (definingOp && failed(mlir::verify(definingOp)))
+  
+  if (Operation *definingOp = getInput().getDefiningOp(); definingOp && failed(mlir::verify(definingOp)))
     return emitOpError("operand hasn't been verified");
 
   // Avoid using `emitRemark(msg)` since that will trigger an infinite verifier
@@ -1372,9 +1372,9 @@ TestVersionedOpA::readProperties(mlir::DialectBytecodeReader &reader,
   if (succeeded(maybeVersion)) {
     // If version is less than 2.0, there is no additional attribute to parse.
     // We can materialize missing properties post parsing before verification.
-    const auto *version =
-        reinterpret_cast<const TestDialectVersion *>(*maybeVersion);
-    if ((version->major_ < 2)) {
+    
+    if (const auto *version =
+        reinterpret_cast<const TestDialectVersion *>(*maybeVersion); (version->major_ < 2)) {
       return success();
     }
   }
@@ -1391,9 +1391,9 @@ void TestVersionedOpA::writeProperties(mlir::DialectBytecodeWriter &writer) {
   auto maybeVersion = writer.getDialectVersion<test::TestDialect>();
   if (succeeded(maybeVersion)) {
     // If version is less than 2.0, there is no additional attribute to write.
-    const auto *version =
-        reinterpret_cast<const TestDialectVersion *>(*maybeVersion);
-    if ((version->major_ < 2)) {
+    
+    if (const auto *version =
+        reinterpret_cast<const TestDialectVersion *>(*maybeVersion); (version->major_ < 2)) {
       llvm::outs() << "downgrading op properties...\n";
       return;
     }
@@ -1418,9 +1418,9 @@ llvm::LogicalResult TestOpWithVersionedProperties::readFromMlirBytecode(
   if (succeeded(maybeVersion)) {
     // If version is less than 2.0, there is no additional attribute to parse.
     // We can materialize missing properties post parsing before verification.
-    const auto *version =
-        reinterpret_cast<const TestDialectVersion *>(*maybeVersion);
-    if ((version->major_ < 2))
+    
+    if (const auto *version =
+        reinterpret_cast<const TestDialectVersion *>(*maybeVersion); (version->major_ < 2))
       needToParseAnotherInt = false;
   }
   if (needToParseAnotherInt && failed(reader.readVarInt(value2)))

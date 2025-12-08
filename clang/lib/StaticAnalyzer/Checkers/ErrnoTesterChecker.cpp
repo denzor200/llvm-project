@@ -169,8 +169,8 @@ void ErrnoTesterChecker::evalSetErrnoCheckState(CheckerContext &C,
 
 bool ErrnoTesterChecker::evalCall(const CallEvent &Call,
                                   CheckerContext &C) const {
-  const EvalFn *Fn = TestCalls.lookup(Call);
-  if (Fn) {
+  
+  if (const EvalFn *Fn = TestCalls.lookup(Call); Fn) {
     (*Fn)(C, Call);
     return C.isDifferent();
   }

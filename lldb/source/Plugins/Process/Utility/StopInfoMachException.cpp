@@ -82,8 +82,8 @@ static constexpr addr_t g_mte_tag_mask = (addr_t)0x0f << g_mte_tag_shift;
 
 bool StopInfoMachException::DetermineTagMismatch(ExecutionContext &exe_ctx) {
   const bool IsBadAccess = m_value == 1;            // EXC_BAD_ACCESS
-  const bool IsMTETagFault = (m_exc_code == 0x106); // EXC_ARM_MTE_TAG_FAULT
-  if (!IsBadAccess || !IsMTETagFault)
+  // EXC_ARM_MTE_TAG_FAULT
+  if (const bool IsMTETagFault = (m_exc_code == 0x106); !IsBadAccess || !IsMTETagFault)
     return false;
 
   if (m_exc_data_count < 2)
@@ -108,8 +108,8 @@ bool StopInfoMachException::DetermineTagMismatch(ExecutionContext &exe_ctx) {
 
 bool StopInfoMachException::DeterminePtrauthFailure(ExecutionContext &exe_ctx) {
   bool IsBreakpoint = m_value == 6; // EXC_BREAKPOINT
-  bool IsBadAccess = m_value == 1;  // EXC_BAD_ACCESS
-  if (!IsBreakpoint && !IsBadAccess)
+   // EXC_BAD_ACCESS
+  if (bool IsBadAccess = m_value == 1; !IsBreakpoint && !IsBadAccess)
     return false;
 
   // Check that we have a live process.
@@ -643,8 +643,8 @@ StopInfoSP StopInfoMachException::CreateStopReasonWithMachException(
         // so we should check with our dynamic loader to verify.
         ProcessSP process_sp(thread.GetProcess());
         if (process_sp) {
-          DynamicLoader *dynamic_loader = process_sp->GetDynamicLoader();
-          if (dynamic_loader && dynamic_loader->ProcessDidExec()) {
+          
+          if (DynamicLoader *dynamic_loader = process_sp->GetDynamicLoader(); dynamic_loader && dynamic_loader->ProcessDidExec()) {
             // The program was re-exec'ed
             return StopInfo::CreateStopReasonWithExec(thread);
           }

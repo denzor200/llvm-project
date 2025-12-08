@@ -100,11 +100,11 @@ bool X86ATTInstPrinter::printVecCompareInstr(const MCInst *MI,
 
   int64_t Imm = MI->getOperand(MI->getNumOperands() - 1).getImm();
 
-  const MCInstrDesc &Desc = MII.get(MI->getOpcode());
+  
 
   // Custom print the vector compare instructions to get the immediate
   // translated into the mnemonic.
-  switch (MI->getOpcode()) {
+  switch (const MCInstrDesc &Desc = MII.get(MI->getOpcode()); MI->getOpcode()) {
   case X86::CMPPDrmi:     case X86::CMPPDrri:
   case X86::CMPPSrmi:     case X86::CMPPSrri:
   case X86::CMPSDrmi:     case X86::CMPSDrri:
@@ -404,8 +404,8 @@ bool X86ATTInstPrinter::printVecCompareInstr(const MCInst *MI,
 
 void X86ATTInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                      raw_ostream &O) {
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isReg()) {
+  
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isReg()) {
     printRegName(O, Op.getReg());
   } else if (Op.isImm()) {
     // Print immediates as signed values.
@@ -457,8 +457,8 @@ void X86ATTInstPrinter::printMemReference(const MCInst *MI, unsigned Op,
   printOptionalSegReg(MI, Op + X86::AddrSegmentReg, O);
 
   if (DispSpec.isImm()) {
-    int64_t DispVal = DispSpec.getImm();
-    if (DispVal || (!IndexReg.getReg() && !BaseReg.getReg()))
+    
+    if (int64_t DispVal = DispSpec.getImm(); DispVal || (!IndexReg.getReg() && !BaseReg.getReg()))
       O << formatImm(DispVal);
   } else {
     assert(DispSpec.isExpr() && "non-immediate displacement for LEA?");

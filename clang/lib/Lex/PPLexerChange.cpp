@@ -379,9 +379,9 @@ bool Preprocessor::HandleEndOfFile(Token &Result, bool isEndOfMacro) {
             const StringRef DefinedMacroName = DefinedMacro->getName();
             const size_t MaxHalfLength = std::max(ControllingMacroName.size(),
                                                   DefinedMacroName.size()) / 2;
-            const unsigned ED = ControllingMacroName.edit_distance(
-                DefinedMacroName, true, MaxHalfLength);
-            if (ED <= MaxHalfLength) {
+            
+            if (const unsigned ED = ControllingMacroName.edit_distance(
+                DefinedMacroName, true, MaxHalfLength); ED <= MaxHalfLength) {
               // Emit a warning for a bad header guard.
               Diag(CurPPLexer->MIOpt.GetMacroLocation(),
                    diag::warn_header_guard)

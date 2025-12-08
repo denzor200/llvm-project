@@ -174,8 +174,8 @@ static std::string searchLibrary(StringRef name,
 
 static bool isI386Target(const opt::InputArgList &args,
                          const Triple &defaultTarget) {
-  auto *a = args.getLastArg(OPT_m);
-  if (a)
+  
+  if (auto *a = args.getLastArg(OPT_m); a)
     return StringRef(a->getValue()) == "i386pe";
   return defaultTarget.getArch() == Triple::x86;
 }

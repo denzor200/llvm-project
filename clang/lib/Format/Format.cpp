@@ -2865,8 +2865,8 @@ private:
       }
     }
     if (Style.DerivePointerAlignment) {
-      const auto NetRightCount = countVariableAlignments(AnnotatedLines);
-      if (NetRightCount > 0)
+      
+      if (const auto NetRightCount = countVariableAlignments(AnnotatedLines); NetRightCount > 0)
         Style.PointerAlignment = FormatStyle::PAS_Right;
       else if (NetRightCount < 0)
         Style.PointerAlignment = FormatStyle::PAS_Left;
@@ -3012,8 +3012,8 @@ private:
   void checkEmptyNamespace(SmallVectorImpl<AnnotatedLine *> &AnnotatedLines) {
     std::set<unsigned> DeletedLines;
     for (unsigned i = 0, e = AnnotatedLines.size(); i != e; ++i) {
-      auto &Line = *AnnotatedLines[i];
-      if (Line.startsWithNamespace())
+      
+      if (auto &Line = *AnnotatedLines[i]; Line.startsWithNamespace())
         checkEmptyNamespace(AnnotatedLines, i, i, DeletedLines);
     }
 
@@ -3648,8 +3648,8 @@ static unsigned findJavaImportGroup(const FormatStyle &Style,
   unsigned LongestMatchIndex = std::numeric_limits<unsigned>::max();
   unsigned LongestMatchLength = 0;
   for (unsigned I = 0; I < Style.JavaImportGroups.size(); I++) {
-    const std::string &GroupPrefix = Style.JavaImportGroups[I];
-    if (ImportIdentifier.starts_with(GroupPrefix) &&
+    
+    if (const std::string &GroupPrefix = Style.JavaImportGroups[I]; ImportIdentifier.starts_with(GroupPrefix) &&
         GroupPrefix.length() > LongestMatchLength) {
       LongestMatchIndex = I;
       LongestMatchLength = GroupPrefix.length();

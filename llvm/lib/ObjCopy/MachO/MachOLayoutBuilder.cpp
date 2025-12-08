@@ -316,8 +316,8 @@ Error MachOLayoutBuilder::layoutTail(uint64_t Offset) {
   // Now we have determined the layout of the contents of the __LINKEDIT
   // segment. Update its load command.
   if (LinkEditLoadCommand) {
-    MachO::macho_load_command *MLC = LinkEditLoadCommand;
-    switch (LinkEditLoadCommand->load_command_data.cmd) {
+    
+    switch (MachO::macho_load_command *MLC = LinkEditLoadCommand; LinkEditLoadCommand->load_command_data.cmd) {
     case MachO::LC_SEGMENT:
       MLC->segment_command_data.cmdsize = sizeof(MachO::segment_command);
       MLC->segment_command_data.fileoff = StartOfLinkEdit;

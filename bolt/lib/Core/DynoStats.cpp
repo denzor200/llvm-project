@@ -232,8 +232,8 @@ DynoStats getDynoStats(BinaryFunction &BF) {
       if (BC.MIB->isIndirectCall(Instr)) {
         Stats[DynoStats::INDIRECT_CALLS] += CallFreq;
       } else if (const MCSymbol *CallSymbol = BC.MIB->getTargetSymbol(Instr)) {
-        const BinaryFunction *BF = BC.getFunctionForSymbol(CallSymbol);
-        if (BF && BF->isPLTFunction()) {
+        
+        if (const BinaryFunction *BF = BC.getFunctionForSymbol(CallSymbol); BF && BF->isPLTFunction()) {
           Stats[DynoStats::PLT_CALLS] += CallFreq;
 
           // We don't process PLT functions and hence have to adjust relevant

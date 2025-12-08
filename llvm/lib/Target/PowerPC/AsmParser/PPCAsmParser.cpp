@@ -816,8 +816,8 @@ addNegOperand(MCInst &Inst, MCOperand &Op, MCContext &Ctx) {
 
 void PPCAsmParser::processInstruction(MCInst &Inst,
                                       const OperandVector &Operands) {
-  int Opcode = Inst.getOpcode();
-  switch (Opcode) {
+  
+  switch (int Opcode = Inst.getOpcode(); Opcode) {
   case PPC::DCBTx:
   case PPC::DCBTT:
   case PPC::DCBTSTx:
@@ -1186,8 +1186,8 @@ void PPCAsmParser::processInstruction(MCInst &Inst,
   case PPC::RLWINMbm:
   case PPC::RLWINMbm_rec: {
     unsigned MB, ME;
-    int64_t BM = Inst.getOperand(3).getImm();
-    if (!isRunOfOnes(BM, MB, ME))
+    
+    if (int64_t BM = Inst.getOperand(3).getImm(); !isRunOfOnes(BM, MB, ME))
       break;
 
     MCInst TmpInst;
@@ -1203,8 +1203,8 @@ void PPCAsmParser::processInstruction(MCInst &Inst,
   case PPC::RLWIMIbm:
   case PPC::RLWIMIbm_rec: {
     unsigned MB, ME;
-    int64_t BM = Inst.getOperand(3).getImm();
-    if (!isRunOfOnes(BM, MB, ME))
+    
+    if (int64_t BM = Inst.getOperand(3).getImm(); !isRunOfOnes(BM, MB, ME))
       break;
 
     MCInst TmpInst;
@@ -1221,8 +1221,8 @@ void PPCAsmParser::processInstruction(MCInst &Inst,
   case PPC::RLWNMbm:
   case PPC::RLWNMbm_rec: {
     unsigned MB, ME;
-    int64_t BM = Inst.getOperand(3).getImm();
-    if (!isRunOfOnes(BM, MB, ME))
+    
+    if (int64_t BM = Inst.getOperand(3).getImm(); !isRunOfOnes(BM, MB, ME))
       break;
 
     MCInst TmpInst;
@@ -1253,8 +1253,8 @@ static std::string PPCMnemonicSpellCheck(StringRef S, const FeatureBitset &FBS,
 // valid; otherwise, returns false.
 static bool validateMemOp(const OperandVector &Operands, bool isMemriOp) {
   for (size_t idx = 0; idx < Operands.size(); ++idx) {
-    const PPCOperand &Op = static_cast<const PPCOperand &>(*Operands[idx]);
-    if (Op.isMemOpBase() != (idx == 3 && isMemriOp))
+    
+    if (const PPCOperand &Op = static_cast<const PPCOperand &>(*Operands[idx]); Op.isMemOpBase() != (idx == 3 && isMemriOp))
       return false;
   }
   return true;
@@ -1265,9 +1265,9 @@ bool PPCAsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                                            MCStreamer &Out, uint64_t &ErrorInfo,
                                            bool MatchingInlineAsm) {
   MCInst Inst;
-  const PPCInstrInfo *TII = static_cast<const PPCInstrInfo *>(&MII);
+  
 
-  switch (MatchInstructionImpl(Operands, Inst, ErrorInfo, MatchingInlineAsm)) {
+  switch (const PPCInstrInfo *TII = static_cast<const PPCInstrInfo *>(&MII); MatchInstructionImpl(Operands, Inst, ErrorInfo, MatchingInlineAsm)) {
   case Match_Success:
     if (!validateMemOp(Operands, TII->isMemriOp(Inst.getOpcode())))
       return Error(IDLoc, "invalid operand for instruction");
@@ -1362,8 +1362,8 @@ ParseStatus PPCAsmParser::tryParseRegister(MCRegister &Reg, SMLoc &StartLoc,
 // `Spec`. Reports an error if multiple specifiers are detected.
 const MCExpr *PPCAsmParser::extractSpecifier(const MCExpr *E,
                                              PPCMCExpr::Specifier &Spec) {
-  MCContext &Context = getParser().getContext();
-  switch (E->getKind()) {
+  
+  switch (MCContext &Context = getParser().getContext(); E->getKind()) {
   case MCExpr::Constant:
     break;
   case MCExpr::Specifier: {
@@ -1375,8 +1375,8 @@ const MCExpr *PPCAsmParser::extractSpecifier(const MCExpr *E,
   } break;
 
   case MCExpr::SymbolRef: {
-    const auto *SRE = cast<MCSymbolRefExpr>(E);
-    switch (getSpecifier(SRE)) {
+    
+    switch (const auto *SRE = cast<MCSymbolRefExpr>(E); getSpecifier(SRE)) {
     case PPC::S_None:
     default:
       break;
@@ -1400,8 +1400,8 @@ const MCExpr *PPCAsmParser::extractSpecifier(const MCExpr *E,
 
   case MCExpr::Unary: {
     const MCUnaryExpr *UE = cast<MCUnaryExpr>(E);
-    const MCExpr *Sub = extractSpecifier(UE->getSubExpr(), Spec);
-    if (Spec != PPC::S_None)
+    
+    if (const MCExpr *Sub = extractSpecifier(UE->getSubExpr(), Spec); Spec != PPC::S_None)
       return MCUnaryExpr::create(UE->getOpcode(), Sub, Context);
     break;
   }
@@ -1409,8 +1409,8 @@ const MCExpr *PPCAsmParser::extractSpecifier(const MCExpr *E,
   case MCExpr::Binary: {
     const MCBinaryExpr *BE = cast<MCBinaryExpr>(E);
     const MCExpr *LHS = extractSpecifier(BE->getLHS(), Spec);
-    const MCExpr *RHS = extractSpecifier(BE->getRHS(), Spec);
-    if (Spec != PPC::S_None)
+    
+    if (const MCExpr *RHS = extractSpecifier(BE->getRHS(), Spec); Spec != PPC::S_None)
       return MCBinaryExpr::create(BE->getOpcode(), LHS, RHS, Context);
     break;
   }
@@ -1430,8 +1430,8 @@ bool PPCAsmParser::parseExpression(const MCExpr *&EVal) {
     return true;
 
   uint16_t Spec = PPC::S_None;
-  const MCExpr *E = extractSpecifier(EVal, Spec);
-  if (Spec != PPC::S_None)
+  
+  if (const MCExpr *E = extractSpecifier(EVal, Spec); Spec != PPC::S_None)
     EVal = MCSpecifierExpr::create(E, Spec, getParser().getContext());
 
   return false;
@@ -1628,8 +1628,8 @@ bool PPCAsmParser::parseInstruction(ParseInstructionInfo &Info, StringRef Name,
       Name == "lharx" || Name == "lbarx") {
     if (Operands.size() != 5)
       return false;
-    PPCOperand &EHOp = (PPCOperand &)*Operands[4];
-    if (EHOp.isUImm<1>() && EHOp.getImm() == 0)
+    
+    if (PPCOperand &EHOp = (PPCOperand &)*Operands[4]; EHOp.isUImm<1>() && EHOp.getImm() == 0)
       Operands.pop_back();
   }
 
@@ -1734,9 +1734,9 @@ bool PPCAsmParser::parseDirectiveAbiVersion(SMLoc L) {
       parseToken(AsmToken::EndOfStatement))
     return addErrorSuffix(" in '.abiversion' directive");
 
-  PPCTargetStreamer *TStreamer = static_cast<PPCTargetStreamer *>(
-      getParser().getStreamer().getTargetStreamer());
-  if (TStreamer != nullptr)
+  
+  if (PPCTargetStreamer *TStreamer = static_cast<PPCTargetStreamer *>(
+      getParser().getStreamer().getTargetStreamer()); TStreamer != nullptr)
     TStreamer->emitAbiVersion(AbiVersion);
 
   return false;
@@ -1756,9 +1756,9 @@ bool PPCAsmParser::parseDirectiveLocalEntry(SMLoc L) {
       parseToken(AsmToken::EndOfStatement))
     return addErrorSuffix(" in '.localentry' directive");
 
-  PPCTargetStreamer *TStreamer = static_cast<PPCTargetStreamer *>(
-      getParser().getStreamer().getTargetStreamer());
-  if (TStreamer != nullptr)
+  
+  if (PPCTargetStreamer *TStreamer = static_cast<PPCTargetStreamer *>(
+      getParser().getStreamer().getTargetStreamer()); TStreamer != nullptr)
     TStreamer->emitLocalEntry(Sym, Expr);
 
   return false;
@@ -1808,8 +1808,8 @@ unsigned PPCAsmParser::validateTargetOperandClass(MCParsedAsmOperand &AsmOp,
     default: return Match_InvalidOperand;
   }
 
-  PPCOperand &Op = static_cast<PPCOperand &>(AsmOp);
-  if (Op.isUImm<3>() && Op.getImm() == ImmVal)
+  
+  if (PPCOperand &Op = static_cast<PPCOperand &>(AsmOp); Op.isUImm<3>() && Op.getImm() == ImmVal)
     return Match_Success;
 
   return Match_InvalidOperand;

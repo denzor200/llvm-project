@@ -248,8 +248,8 @@ PreservedAnalyses RAGreedyPass::run(MachineFunction &MF,
   RAGreedy::RequiredAnalyses Analyses(MF, MFAM);
   RAGreedy Impl(Analyses, Opts.Filter);
 
-  bool Changed = Impl.run(MF);
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(MF); !Changed)
     return PreservedAnalyses::all();
   auto PA = getMachineFunctionPassPreservedAnalyses();
   PA.preserveSet<CFGAnalyses>();
@@ -671,8 +671,8 @@ RegAllocEvictionAdvisor::getOrderLimit(const LiveInterval &VirtReg,
   if (CostPerUseLimit < uint8_t(~0u)) {
     // Check of any registers in RC are below CostPerUseLimit.
     const TargetRegisterClass *RC = MRI->getRegClass(VirtReg.reg());
-    uint8_t MinCost = RegClassInfo.getMinCost(RC);
-    if (MinCost >= CostPerUseLimit) {
+    
+    if (uint8_t MinCost = RegClassInfo.getMinCost(RC); MinCost >= CostPerUseLimit) {
       LLVM_DEBUG(dbgs() << TRI->getRegClassName(RC) << " minimum cost = "
                         << MinCost << ", no cheaper registers to be found.\n");
       return std::nullopt;
@@ -912,8 +912,8 @@ bool RAGreedy::growRegion(GlobalSplitCandidate &Cand) {
         // loop-internal blocks. If the block is indeed a header, don't make
         // the NewBlocks as PrefSpill to allow the variable to be live in
         // Header<->Latch.
-        MachineLoop *L = Loops->getLoopFor(MF->getBlockNumbered(NewBlocks[0]));
-        if (L && L->getHeader()->getNumber() == (int)NewBlocks[0] &&
+        
+        if (MachineLoop *L = Loops->getLoopFor(MF->getBlockNumbered(NewBlocks[0])); L && L->getHeader()->getNumber() == (int)NewBlocks[0] &&
             all_of(NewBlocks.drop_front(), [&](unsigned Block) {
               return L == Loops->getLoopFor(MF->getBlockNumbered(Block));
             }))
@@ -1076,8 +1076,8 @@ void RAGreedy::splitAroundRegion(LiveRangeEdit &LREdit,
     unsigned IntvIn = 0, IntvOut = 0;
     SlotIndex IntfIn, IntfOut;
     if (BI.LiveIn) {
-      unsigned CandIn = BundleCand[Bundles->getBundle(Number, false)];
-      if (CandIn != NoCand) {
+      
+      if (unsigned CandIn = BundleCand[Bundles->getBundle(Number, false)]; CandIn != NoCand) {
         GlobalSplitCandidate &Cand = GlobalCand[CandIn];
         IntvIn = Cand.IntvIdx;
         Cand.Intf.moveToBlock(Number);
@@ -1085,8 +1085,8 @@ void RAGreedy::splitAroundRegion(LiveRangeEdit &LREdit,
       }
     }
     if (BI.LiveOut) {
-      unsigned CandOut = BundleCand[Bundles->getBundle(Number, true)];
-      if (CandOut != NoCand) {
+      
+      if (unsigned CandOut = BundleCand[Bundles->getBundle(Number, true)]; CandOut != NoCand) {
         GlobalSplitCandidate &Cand = GlobalCand[CandOut];
         IntvOut = Cand.IntvIdx;
         Cand.Intf.moveToBlock(Number);
@@ -1124,8 +1124,8 @@ void RAGreedy::splitAroundRegion(LiveRangeEdit &LREdit,
       unsigned IntvIn = 0, IntvOut = 0;
       SlotIndex IntfIn, IntfOut;
 
-      unsigned CandIn = BundleCand[Bundles->getBundle(Number, false)];
-      if (CandIn != NoCand) {
+      
+      if (unsigned CandIn = BundleCand[Bundles->getBundle(Number, false)]; CandIn != NoCand) {
         GlobalSplitCandidate &Cand = GlobalCand[CandIn];
         IntvIn = Cand.IntvIdx;
         Cand.Intf.moveToBlock(Number);
@@ -1239,8 +1239,8 @@ unsigned RAGreedy::calculateRegionSplitCostAroundReg(MCRegister PhysReg,
     for (unsigned CandIndex = 0; CandIndex != NumCands; ++CandIndex) {
       if (CandIndex == BestCand || !GlobalCand[CandIndex].PhysReg)
         continue;
-      unsigned Count = GlobalCand[CandIndex].LiveBundles.count();
-      if (Count < WorstCount) {
+      
+      if (unsigned Count = GlobalCand[CandIndex].LiveBundles.count(); Count < WorstCount) {
         Worst = CandIndex;
         WorstCount = Count;
       }
@@ -1334,8 +1334,8 @@ MCRegister RAGreedy::doRegionSplit(const LiveInterval &VirtReg,
 
   // Assign bundles for the best candidate region.
   if (BestCand != NoCand) {
-    GlobalSplitCandidate &Cand = GlobalCand[BestCand];
-    if (unsigned B = Cand.getBundles(BundleCand, BestCand)) {
+    
+    if (GlobalSplitCandidate &Cand = GlobalCand[BestCand]; unsigned B = Cand.getBundles(BundleCand, BestCand)) {
       UsedCands.push_back(BestCand);
       Cand.IntvIdx = SE->openIntv();
       LLVM_DEBUG(dbgs() << "Split for " << printReg(Cand.PhysReg, TRI) << " in "
@@ -1483,8 +1483,8 @@ MCRegister RAGreedy::tryBlockSplit(const LiveInterval &VirtReg,
   // Sort out the new intervals created by splitting. The remainder interval
   // goes straight to spilling, the new local ranges get to stay RS_New.
   for (unsigned I = 0, E = LREdit.size(); I != E; ++I) {
-    const LiveInterval &LI = LIS->getInterval(LREdit.get(I));
-    if (ExtraInfo->getOrInitStage(LI.reg()) == RS_New && IntvMap[I] == 0)
+    
+    if (const LiveInterval &LI = LIS->getInterval(LREdit.get(I)); ExtraInfo->getOrInitStage(LI.reg()) == RS_New && IntvMap[I] == 0)
       ExtraInfo->setStage(LI, RS_Spill);
   }
 
@@ -1862,9 +1862,9 @@ MCRegister RAGreedy::tryLocalSplit(const LiveInterval &VirtReg,
       unsigned NewGaps = LiveBefore + SplitAfter - SplitBefore + LiveAfter;
 
       // Legally, without causing looping?
-      bool Legal = !ProgressRequired || NewGaps < NumGaps;
+      
 
-      if (Legal && MaxGap < huge_valf) {
+      if (bool Legal = !ProgressRequired || NewGaps < NumGaps; Legal && MaxGap < huge_valf) {
         // Estimate the new spill weight. Each instruction reads or writes the
         // register. Conservatively assume there are no read-modify-write
         // instructions.
@@ -1880,8 +1880,8 @@ MCRegister RAGreedy::tryLocalSplit(const LiveInterval &VirtReg,
         LLVM_DEBUG(dbgs() << " w=" << EstWeight);
         if (EstWeight * Hysteresis >= MaxGap) {
           Shrink = false;
-          float Diff = EstWeight - MaxGap;
-          if (Diff > BestDiff) {
+          
+          if (float Diff = EstWeight - MaxGap; Diff > BestDiff) {
             LLVM_DEBUG(dbgs() << " (best)");
             BestDiff = Hysteresis * Diff;
             BestBefore = SplitBefore;
@@ -1939,8 +1939,8 @@ MCRegister RAGreedy::tryLocalSplit(const LiveInterval &VirtReg,
   // leave the new intervals as RS_New so they can compete.
   bool LiveBefore = BestBefore != 0 || BI.LiveIn;
   bool LiveAfter = BestAfter != NumGaps || BI.LiveOut;
-  unsigned NewGaps = LiveBefore + BestAfter - BestBefore + LiveAfter;
-  if (NewGaps >= NumGaps) {
+  
+  if (unsigned NewGaps = LiveBefore + BestAfter - BestBefore + LiveAfter; NewGaps >= NumGaps) {
     LLVM_DEBUG(dbgs() << "Tagging non-progress ranges:");
     assert(!ProgressRequired && "Didn't make progress when it was required.");
     for (unsigned I = 0, E = IntvMap.size(); I != E; ++I)
@@ -2324,8 +2324,8 @@ MCRegister RAGreedy::selectOrSplit(const LiveInterval &VirtReg,
   MCRegister Reg =
       selectOrSplitImpl(VirtReg, NewVRegs, FixedRegisters, RecolorStack);
   if (Reg == ~0U && (CutOffInfo != CO_None)) {
-    uint8_t CutOffEncountered = CutOffInfo & (CO_Depth | CO_Interf);
-    if (CutOffEncountered == CO_Depth)
+    
+    if (uint8_t CutOffEncountered = CutOffInfo & (CO_Depth | CO_Interf); CutOffEncountered == CO_Depth)
       Ctx.emitError("register allocation failed: maximum depth for recoloring "
                     "reached. Use -fexhaustive-register-search to skip "
                     "cutoffs");

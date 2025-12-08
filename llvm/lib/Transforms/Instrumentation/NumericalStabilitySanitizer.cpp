@@ -976,8 +976,8 @@ Value *NumericalStabilitySanitizer::emitCheck(Value *V, Value *ShadowV,
     return ShadowV;
 
   if (Instruction *Inst = dyn_cast<Instruction>(V)) {
-    Function *F = Inst->getFunction();
-    if (CheckFunctionsFilter && !CheckFunctionsFilter->match(F->getName())) {
+    
+    if (Function *F = Inst->getFunction(); CheckFunctionsFilter && !CheckFunctionsFilter->match(F->getName())) {
       return ShadowV;
     }
   }
@@ -999,8 +999,8 @@ void NumericalStabilitySanitizer::emitFCmpCheck(FCmpInst &FCmp,
   if (!ClInstrumentFCmp)
     return;
 
-  Function *F = FCmp.getFunction();
-  if (CheckFunctionsFilter && !CheckFunctionsFilter->match(F->getName()))
+  
+  if (Function *F = FCmp.getFunction(); CheckFunctionsFilter && !CheckFunctionsFilter->match(F->getName()))
     return;
 
   Value *LHS = FCmp.getOperand(0);
@@ -1228,9 +1228,9 @@ Value *NumericalStabilitySanitizer::handleTrunc(const FPTruncInst &Trunc,
 
   // See (A) above.
   Value *Source = ExtendedSourceTy ? Map.getShadow(OrigSource) : OrigSource;
-  Type *SourceTy = ExtendedSourceTy ? ExtendedSourceTy : OrigSourceTy;
+  
   // See (B) above.
-  if (SourceTy == ExtendedVT)
+  if (Type *SourceTy = ExtendedSourceTy ? ExtendedSourceTy : OrigSourceTy; SourceTy == ExtendedVT)
     return Source;
 
   return Builder.CreateFPTrunc(Source, ExtendedVT);
@@ -1275,9 +1275,9 @@ Value *NumericalStabilitySanitizer::handleExt(const FPExtInst &Ext, Type *VT,
 
   // See (A) above.
   Value *Source = ExtendedSourceTy ? Map.getShadow(OrigSource) : OrigSource;
-  Type *SourceTy = ExtendedSourceTy ? ExtendedSourceTy : OrigSourceTy;
+  
   // See (B) above.
-  if (SourceTy == ExtendedVT)
+  if (Type *SourceTy = ExtendedSourceTy ? ExtendedSourceTy : OrigSourceTy; SourceTy == ExtendedVT)
     return Source;
 
   return Builder.CreateFPExt(Source, ExtendedVT);
@@ -1557,8 +1557,8 @@ Value *NumericalStabilitySanitizer::maybeHandleKnownCallBase(
   Intrinsic::ID WidenedId = Intrinsic::ID();
   FunctionType *WidenedFnTy = nullptr;
   if (const auto ID = Fn->getIntrinsicID()) {
-    const auto *Widened = KnownIntrinsic::widen(Fn->getName());
-    if (Widened) {
+    
+    if (const auto *Widened = KnownIntrinsic::widen(Fn->getName()); Widened) {
       WidenedId = Widened->ID;
       WidenedFnTy = Widened->MakeFnTy(Context);
     } else {
@@ -1755,8 +1755,8 @@ Value *NumericalStabilitySanitizer::createShadowValueWithOperandsAvailable(
 void NumericalStabilitySanitizer::maybeCreateShadowValue(
     Instruction &Root, const TargetLibraryInfo &TLI, ValueToShadowMap &Map) {
   Type *VT = Root.getType();
-  Type *ExtendedVT = Config.getExtendedFPType(VT);
-  if (ExtendedVT == nullptr)
+  
+  if (Type *ExtendedVT = Config.getExtendedFPType(VT); ExtendedVT == nullptr)
     return; // Not an FT value.
 
   if (Map.hasShadow(&Root))
@@ -1778,8 +1778,8 @@ void NumericalStabilitySanitizer::maybeCreateShadowValue(
 
     bool MissingShadow = false;
     for (Value *Op : I->operands()) {
-      Type *VT = Op->getType();
-      if (!Config.getExtendedFPType(VT))
+      
+      if (Type *VT = Op->getType(); !Config.getExtendedFPType(VT))
         continue; // Not an FT value.
       if (Map.hasShadow(Op))
         continue; // Shadow is already available.
@@ -1904,9 +1904,9 @@ void NumericalStabilitySanitizer::propagateNonFTStore(
         break;
       }
     } else if (auto *CDV = dyn_cast<ConstantDataVector>(C)) {
-      const int NumElements =
-          cast<VectorType>(CDV->getType())->getElementCount().getFixedValue();
-      switch (CDV->getType()->getScalarSizeInBits()) {
+      
+      switch (const int NumElements =
+          cast<VectorType>(CDV->getType())->getElementCount().getFixedValue(); CDV->getType()->getScalarSizeInBits()) {
       case 32:
         BitcastTy =
             VectorType::get(Type::getFloatTy(Context), NumElements, false);
@@ -2000,8 +2000,8 @@ void NumericalStabilitySanitizer::propagateShadowValues(
   if (InsertValueInst *Insert = dyn_cast<InsertValueInst>(&Inst)) {
     Value *V = Insert->getOperand(1);
     Type *VT = V->getType();
-    Type *ExtendedVT = Config.getExtendedFPType(VT);
-    if (ExtendedVT == nullptr)
+    
+    if (Type *ExtendedVT = Config.getExtendedFPType(VT); ExtendedVT == nullptr)
       return;
     IRBuilder<> Builder(Insert);
     emitCheck(V, Map.getShadow(V), Builder, CheckLoc::makeInsert());
@@ -2182,8 +2182,8 @@ bool NumericalStabilitySanitizer::sanitizeFunction(
 static uint64_t GetMemOpSize(Value *V) {
   uint64_t OpSize = 0;
   if (Constant *C = dyn_cast<Constant>(V)) {
-    auto *CInt = dyn_cast<ConstantInt>(C);
-    if (CInt && CInt->getValue().getBitWidth() <= 64)
+    
+    if (auto *CInt = dyn_cast<ConstantInt>(C); CInt && CInt->getValue().getBitWidth() <= 64)
       OpSize = CInt->getValue().getZExtValue();
   }
 

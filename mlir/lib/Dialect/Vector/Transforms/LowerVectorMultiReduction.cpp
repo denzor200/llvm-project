@@ -186,8 +186,8 @@ public:
     bool isReductionDimScalable = false;
     for (const auto &it : llvm::enumerate(reductionMask)) {
       int64_t i = it.index();
-      bool isReduction = it.value();
-      if (isReduction) {
+      
+      if (bool isReduction = it.value(); isReduction) {
         reductionDims.push_back(i);
         reductionShapes.push_back(srcShape[i]);
         isReductionDimScalable |= srcScalableDims[i];
@@ -308,9 +308,9 @@ struct TwoDimMultiReductionToElementWise
 
   LogicalResult matchAndRewrite(vector::MultiDimReductionOp multiReductionOp,
                                 PatternRewriter &rewriter) const override {
-    auto srcRank = multiReductionOp.getSourceVectorType().getRank();
+    
     // Rank-2 ["parallel", "reduce"] or bail.
-    if (srcRank != 2)
+    if (auto srcRank = multiReductionOp.getSourceVectorType().getRank(); srcRank != 2)
       return failure();
 
     if (multiReductionOp.isReducedDim(1) || !multiReductionOp.isReducedDim(0))
@@ -363,8 +363,8 @@ struct TwoDimMultiReductionToReduction
 
   LogicalResult matchAndRewrite(vector::MultiDimReductionOp multiReductionOp,
                                 PatternRewriter &rewriter) const override {
-    auto srcRank = multiReductionOp.getSourceVectorType().getRank();
-    if (srcRank != 2)
+    
+    if (auto srcRank = multiReductionOp.getSourceVectorType().getRank(); srcRank != 2)
       return failure();
 
     if (multiReductionOp.isReducedDim(0) || !multiReductionOp.isReducedDim(1))
@@ -424,9 +424,9 @@ struct OneDimMultiReductionToTwoDim
 
   LogicalResult matchAndRewrite(vector::MultiDimReductionOp multiReductionOp,
                                 PatternRewriter &rewriter) const override {
-    auto srcRank = multiReductionOp.getSourceVectorType().getRank();
+    
     // Rank-1 or bail.
-    if (srcRank != 1)
+    if (auto srcRank = multiReductionOp.getSourceVectorType().getRank(); srcRank != 1)
       return failure();
 
     // Vector mask setup.

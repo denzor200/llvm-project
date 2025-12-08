@@ -28,8 +28,8 @@ UnixSignals::Signal::Signal(llvm::StringRef name, bool default_suppress,
       m_default_stop(default_stop), m_default_notify(default_notify) {}
 
 lldb::UnixSignalsSP UnixSignals::Create(const ArchSpec &arch) {
-  const auto &triple = arch.GetTriple();
-  switch (triple.getOS()) {
+  
+  switch (const auto &triple = arch.GetTriple(); triple.getOS()) {
   case llvm::Triple::Linux:
     return std::make_shared<LinuxSignals>();
   case llvm::Triple::FreeBSD:
@@ -277,8 +277,8 @@ bool UnixSignals::SetShouldSuppress(int signo, bool value) {
 }
 
 bool UnixSignals::SetShouldSuppress(const char *signal_name, bool value) {
-  const int32_t signo = GetSignalNumberFromName(signal_name);
-  if (signo != LLDB_INVALID_SIGNAL_NUMBER)
+  
+  if (const int32_t signo = GetSignalNumberFromName(signal_name); signo != LLDB_INVALID_SIGNAL_NUMBER)
     return SetShouldSuppress(signo, value);
   return false;
 }
@@ -301,8 +301,8 @@ bool UnixSignals::SetShouldStop(int signo, bool value) {
 }
 
 bool UnixSignals::SetShouldStop(const char *signal_name, bool value) {
-  const int32_t signo = GetSignalNumberFromName(signal_name);
-  if (signo != LLDB_INVALID_SIGNAL_NUMBER)
+  
+  if (const int32_t signo = GetSignalNumberFromName(signal_name); signo != LLDB_INVALID_SIGNAL_NUMBER)
     return SetShouldStop(signo, value);
   return false;
 }
@@ -325,8 +325,8 @@ bool UnixSignals::SetShouldNotify(int signo, bool value) {
 }
 
 bool UnixSignals::SetShouldNotify(const char *signal_name, bool value) {
-  const int32_t signo = GetSignalNumberFromName(signal_name);
-  if (signo != LLDB_INVALID_SIGNAL_NUMBER)
+  
+  if (const int32_t signo = GetSignalNumberFromName(signal_name); signo != LLDB_INVALID_SIGNAL_NUMBER)
     return SetShouldNotify(signo, value);
   return false;
 }

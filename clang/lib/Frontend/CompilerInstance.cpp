@@ -718,8 +718,8 @@ static bool EnableCodeCompletion(Preprocessor &PP,
 }
 
 void CompilerInstance::createCodeCompletionConsumer() {
-  const ParsedSourceLocation &Loc = getFrontendOpts().CodeCompletionAt;
-  if (!CompletionConsumer) {
+  
+  if (const ParsedSourceLocation &Loc = getFrontendOpts().CodeCompletionAt; !CompletionConsumer) {
     setCodeCompletionConsumer(createCodeCompletionConsumer(
         getPreprocessor(), Loc.FileName, Loc.Line, Loc.Column,
         getFrontendOpts().CodeCompleteOpts, llvm::outs()));
@@ -1723,8 +1723,8 @@ static ModuleSource selectModuleSource(
   }
 
   // Try to load the module from the prebuilt module path.
-  const HeaderSearchOptions &HSOpts = HS.getHeaderSearchOpts();
-  if (!HSOpts.PrebuiltModuleFiles.empty() ||
+  
+  if (const HeaderSearchOptions &HSOpts = HS.getHeaderSearchOpts(); !HSOpts.PrebuiltModuleFiles.empty() ||
       !HSOpts.PrebuiltModulePaths.empty()) {
     ModuleFilename = HS.getPrebuiltModuleFileName(ModuleName);
     if (HSOpts.EnablePrebuiltImplicitModules && ModuleFilename.empty())
@@ -1793,13 +1793,13 @@ ModuleLoadResult CompilerInstance::findOrCompileModuleAndReadAST(
 
   // Try to load the module file. If we are not trying to load from the
   // module cache, we don't know how to rebuild modules.
-  unsigned ARRFlags = Source == MS_ModuleCache
+  
+  switch (unsigned ARRFlags = Source == MS_ModuleCache
                           ? ASTReader::ARR_OutOfDate | ASTReader::ARR_Missing |
                                 ASTReader::ARR_TreatModuleWithErrorsAsOutOfDate
                           : Source == MS_PrebuiltModulePath
                                 ? 0
-                                : ASTReader::ARR_ConfigurationMismatch;
-  switch (getASTReader()->ReadAST(ModuleFilename,
+                                : ASTReader::ARR_ConfigurationMismatch; getASTReader()->ReadAST(ModuleFilename,
                                   Source == MS_PrebuiltModulePath
                                       ? serialization::MK_PrebuiltModule
                                       : Source == MS_ModuleBuildPragma
@@ -1927,8 +1927,8 @@ CompilerInstance::loadModule(SourceLocation ImportLoc,
 
   // If we don't already have information on this module, load the module now.
   Module *Module = nullptr;
-  ModuleMap &MM = getPreprocessor().getHeaderSearchInfo().getModuleMap();
-  if (auto MaybeModule = MM.getCachedModuleLoad(*Path[0].getIdentifierInfo())) {
+  
+  if (ModuleMap &MM = getPreprocessor().getHeaderSearchInfo().getModuleMap(); auto MaybeModule = MM.getCachedModuleLoad(*Path[0].getIdentifierInfo())) {
     // Use the cached result, which may be nullptr.
     Module = *MaybeModule;
     // Config macros are already checked before building a module, but they need
@@ -2016,10 +2016,10 @@ CompilerInstance::loadModule(SourceLocation ImportLoc,
       unsigned BestEditDistance = (std::numeric_limits<unsigned>::max)();
 
       for (class Module *SubModule : Module->submodules()) {
-        unsigned ED =
+        
+        if (unsigned ED =
             Name.edit_distance(SubModule->Name,
-                               /*AllowReplacements=*/true, BestEditDistance);
-        if (ED <= BestEditDistance) {
+                               /*AllowReplacements=*/true, BestEditDistance); ED <= BestEditDistance) {
           if (ED < BestEditDistance) {
             Best.clear();
             BestEditDistance = ED;
@@ -2234,11 +2234,11 @@ CompilerInstance::lookupMissingImports(StringRef Name,
   // actually occurred.
   if (!buildingModule()) {
     // Load global module index, or retrieve a previously loaded one.
-    GlobalModuleIndex *GlobalIndex = loadGlobalModuleIndex(
-      TriggerLoc);
+    
 
     // Only if we have a global index.
-    if (GlobalIndex) {
+    if (GlobalModuleIndex *GlobalIndex = loadGlobalModuleIndex(
+      TriggerLoc); GlobalIndex) {
       GlobalModuleIndex::HitSet FoundModules;
 
       // Find the modules that reference the identifier.

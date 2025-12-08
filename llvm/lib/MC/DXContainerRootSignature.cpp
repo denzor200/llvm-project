@@ -104,8 +104,8 @@ void RootSignatureDesc::write(raw_ostream &OS) const {
   assert(NumParameters == ParamsOffsets.size());
   for (size_t I = 0; I < NumParameters; ++I) {
     rewriteOffsetToCurrentByte(BOS, ParamsOffsets[I]);
-    const RootParameterInfo &Info = ParametersContainer.getInfo(I);
-    switch (Info.Type) {
+    
+    switch (const RootParameterInfo &Info = ParametersContainer.getInfo(I); Info.Type) {
     case dxbc::RootParameterType::Constants32Bit: {
       const mcdxbc::RootConstants &Constants =
           ParametersContainer.getConstant(Info.Location);

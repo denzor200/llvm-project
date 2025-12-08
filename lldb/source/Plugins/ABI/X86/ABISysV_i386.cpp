@@ -247,9 +247,9 @@ Status ABISysV_i386::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
              (type_flags & eTypeIsEnumeration)) //'Integral' + 'Floating Point'
   {
     lldb::offset_t offset = 0;
-    const RegisterInfo *eax_info = reg_ctx->GetRegisterInfoByName("eax", 0);
+    
 
-    if (type_flags & eTypeIsInteger) // 'Integral' except enum
+    if (const RegisterInfo *eax_info = reg_ctx->GetRegisterInfoByName("eax", 0); type_flags & eTypeIsInteger) // 'Integral' except enum
     {
       switch (num_bytes) {
       default:
@@ -308,9 +308,9 @@ Status ABISysV_i386::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
       0. This is in accordance
       with the document Intel 64 and IA-32 Architectures Software Developer's
       Manual, January 2015 */
-      uint32_t value_ftag_u32 = 0x00000080;
+      
 
-      if (num_bytes <= 12) // handles float, double, long double, __float80
+      if (uint32_t value_ftag_u32 = 0x00000080; num_bytes <= 12) // handles float, double, long double, __float80
       {
         long double value_long_dbl = 0.0;
         if (num_bytes == 4)
@@ -396,9 +396,9 @@ ValueObjectSP ABISysV_i386::GetReturnValueObjectSimple(
         llvm::expectedToOptional(return_compiler_type.GetByteSize(&thread));
     if (!byte_size)
       return return_valobj_sp;
-    bool success = false;
+    
 
-    if (type_flags & eTypeIsInteger) // 'Integral' except enum
+    if (bool success = false; type_flags & eTypeIsInteger) // 'Integral' except enum
     {
       const bool is_signed = ((type_flags & eTypeIsSigned) != 0);
       uint64_t raw_value =
@@ -474,10 +474,10 @@ ValueObjectSP ABISysV_i386::GetReturnValueObjectSimple(
           DataExtractor data;
           if (st0_value.GetData(data)) {
             lldb::offset_t offset = 0;
-            long double value_long_double = data.GetLongDouble(&offset);
+            
 
             // float is 4 bytes.
-            if (*byte_size == 4) {
+            if (long double value_long_double = data.GetLongDouble(&offset); *byte_size == 4) {
               float value_float = (float)value_long_double;
               value.GetScalar() = value_float;
               success = true;
@@ -548,9 +548,9 @@ ValueObjectSP ABISysV_i386::GetReturnValueObjectSimple(
             }
           }
         } else if (*byte_size <= vec_reg->byte_size * 2) {
-          const RegisterInfo *vec_reg2 =
-              reg_ctx->GetRegisterInfoByName("xmm1", 0);
-          if (vec_reg2) {
+          
+          if (const RegisterInfo *vec_reg2 =
+              reg_ctx->GetRegisterInfoByName("xmm1", 0); vec_reg2) {
             ProcessSP process_sp(thread.GetProcess());
             if (process_sp) {
               std::unique_ptr<DataBufferHeap> heap_data_up(

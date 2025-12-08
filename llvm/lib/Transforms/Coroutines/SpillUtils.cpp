@@ -605,8 +605,8 @@ BasicBlock::iterator coro::getSpillInsertionPt(const coro::Shape &Shape,
       InsertPt = NewBB->getTerminator()->getIterator();
     } else if (isa<PHINode>(I)) {
       // Skip the PHINodes and EH pads instructions.
-      BasicBlock *DefBlock = I->getParent();
-      if (auto *CSI = dyn_cast<CatchSwitchInst>(DefBlock->getTerminator()))
+      
+      if (BasicBlock *DefBlock = I->getParent(); auto *CSI = dyn_cast<CatchSwitchInst>(DefBlock->getTerminator()))
         InsertPt = splitBeforeCatchSwitch(CSI)->getIterator();
       else
         InsertPt = DefBlock->getFirstInsertionPt();

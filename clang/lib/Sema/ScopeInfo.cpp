@@ -93,9 +93,9 @@ FunctionScopeInfo::WeakObjectProfileTy::getBaseInfo(const Expr *E) {
   }
   case Stmt::PseudoObjectExprClass: {
     const PseudoObjectExpr *POE = cast<PseudoObjectExpr>(E);
-    const ObjCPropertyRefExpr *BaseProp =
-      dyn_cast<ObjCPropertyRefExpr>(POE->getSyntacticForm());
-    if (BaseProp) {
+    
+    if (const ObjCPropertyRefExpr *BaseProp =
+      dyn_cast<ObjCPropertyRefExpr>(POE->getSyntacticForm()); BaseProp) {
       D = getBestPropertyDecl(BaseProp);
 
       if (BaseProp->isObjectReceiver()) {

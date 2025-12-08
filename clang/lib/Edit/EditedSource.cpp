@@ -57,8 +57,8 @@ void EditedSource::finishedCommit() {
     SourceLocation ExpLoc;
     MacroArgUse ArgUse;
     std::tie(ExpLoc, ArgUse) = ExpArg;
-    auto &ArgUses = ExpansionToArgMap[ExpLoc];
-    if (!llvm::is_contained(ArgUses, ArgUse))
+    
+    if (auto &ArgUses = ExpansionToArgMap[ExpLoc]; !llvm::is_contained(ArgUses, ArgUse))
       ArgUses.push_back(ArgUse);
   }
   CurrCommitMacroArgExps.clear();
@@ -289,8 +289,8 @@ bool EditedSource::commit(const Commit &commit) {
 
   for (edit::Commit::edit_iterator
          I = commit.edit_begin(), E = commit.edit_end(); I != E; ++I) {
-    const edit::Commit::Edit &edit = *I;
-    switch (edit.Kind) {
+    
+    switch (const edit::Commit::Edit &edit = *I; edit.Kind) {
     case edit::Commit::Act_Insert:
       commitInsert(edit.OrigLoc, edit.Offset, edit.Text, edit.BeforePrev);
       break;

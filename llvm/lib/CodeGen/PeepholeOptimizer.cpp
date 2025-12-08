@@ -1043,8 +1043,8 @@ bool PeepholeOptimizer::findNextSource(const TargetRegisterClass *DefRC,
 
       // ValueTrackerResult usually have one source unless it's the result from
       // a PHI instruction. Add the found PHI edges to be looked up further.
-      unsigned NumSrcs = Res.getNumSources();
-      if (NumSrcs > 1) {
+      
+      if (unsigned NumSrcs = Res.getNumSources(); NumSrcs > 1) {
         PHICount++;
         if (PHICount >= RewritePHILimit) {
           LLVM_DEBUG(dbgs() << "findNextSource: PHI limit reached\n");
@@ -1208,9 +1208,9 @@ bool PeepholeOptimizer::optimizeCoalescableCopyImpl(Rewriter &&CpyRewriter) {
       // copy-like queries return register:subreg pairs where the register's
       // current class does not directly support the subregister index.
       const TargetRegisterClass *RC = MRI->getRegClass(NewSrc.Reg);
-      const TargetRegisterClass *WithSubRC =
-          TRI->getSubClassWithSubReg(RC, NewSrc.SubReg);
-      if (!MRI->constrainRegClass(NewSrc.Reg, WithSubRC))
+      
+      if (const TargetRegisterClass *WithSubRC =
+          TRI->getSubClassWithSubReg(RC, NewSrc.SubReg); !MRI->constrainRegClass(NewSrc.Reg, WithSubRC))
         continue;
       Changed = true;
     }
@@ -1247,9 +1247,9 @@ bool PeepholeOptimizer::optimizeCoalescableCopy(MachineInstr &MI) {
   assert(isCoalescableCopy(MI) && "Invalid argument");
   assert(MI.getDesc().getNumDefs() == 1 &&
          "Coalescer can understand multiple defs?!");
-  const MachineOperand &MODef = MI.getOperand(0);
+  
   // Do not rewrite physical definitions.
-  if (MODef.getReg().isPhysical())
+  if (const MachineOperand &MODef = MI.getOperand(0); MODef.getReg().isPhysical())
     return false;
 
   switch (MI.getOpcode()) {
@@ -1289,13 +1289,13 @@ MachineInstr &PeepholeOptimizer::rewriteSource(MachineInstr &CopyLike,
 
   if (NewSrc.SubReg) {
     const TargetRegisterClass *NewSrcRC = MRI->getRegClass(NewSrc.Reg);
-    const TargetRegisterClass *WithSubRC =
-        TRI->getSubClassWithSubReg(NewSrcRC, NewSrc.SubReg);
+    
 
     // The new source may not directly support the subregister, but we should be
     // able to assume it is constrainable to support the subregister (otherwise
     // ValueTracker was lying and reported a useless value).
-    if (!MRI->constrainRegClass(NewSrc.Reg, WithSubRC))
+    if (const TargetRegisterClass *WithSubRC =
+        TRI->getSubClassWithSubReg(NewSrcRC, NewSrc.SubReg); !MRI->constrainRegClass(NewSrc.Reg, WithSubRC))
       llvm_unreachable("replacement register cannot support subregister");
   }
 
@@ -1354,11 +1354,11 @@ bool PeepholeOptimizer::optimizeUncoalescableCopy(
     // FIXME: Uncoalescable copies are treated differently by
     // UncoalescableRewriter, and this probably should not share
     // API. getNextRewritableSource really finds rewritable defs.
-    const TargetRegisterClass *DefRC = MRI->getRegClass(Def.Reg);
+    
 
     // If we do not know how to rewrite this definition, there is no point
     // in trying to kill this instruction.
-    if (!findNextSource(DefRC, Def.SubReg, Def, RewriteMap))
+    if (const TargetRegisterClass *DefRC = MRI->getRegClass(Def.Reg); !findNextSource(DefRC, Def.SubReg, Def, RewriteMap))
       return false;
 
     RewritePairs.push_back(Def);
@@ -1385,8 +1385,8 @@ bool PeepholeOptimizer::isLoadFoldable(
     MachineInstr &MI, SmallSet<Register, 16> &FoldAsLoadDefCandidates) {
   if (!MI.canFoldAsLoad() || !MI.mayLoad())
     return false;
-  const MCInstrDesc &MCID = MI.getDesc();
-  if (MCID.getNumDefs() != 1)
+  
+  if (const MCInstrDesc &MCID = MI.getDesc(); MCID.getNumDefs() != 1)
     return false;
 
   Register Reg = MI.getOperand(0).getReg();
@@ -1404,8 +1404,8 @@ bool PeepholeOptimizer::isLoadFoldable(
 bool PeepholeOptimizer::isMoveImmediate(
     MachineInstr &MI, SmallSet<Register, 4> &ImmDefRegs,
     DenseMap<Register, MachineInstr *> &ImmDefMIs) {
-  const MCInstrDesc &MCID = MI.getDesc();
-  if (MCID.getNumDefs() != 1 || !MI.getOperand(0).isReg())
+  
+  if (const MCInstrDesc &MCID = MI.getDesc(); MCID.getNumDefs() != 1 || !MI.getOperand(0).isReg())
     return false;
   Register Reg = MI.getOperand(0).getReg();
   if (!Reg.isVirtual())
@@ -1675,8 +1675,8 @@ PeepholeOptimizerPass::run(MachineFunction &MF,
       Aggressive ? &MFAM.getResult<MachineDominatorTreeAnalysis>(MF) : nullptr;
   auto *MLI = &MFAM.getResult<MachineLoopAnalysis>(MF);
   PeepholeOptimizer Impl(DT, MLI);
-  bool Changed = Impl.run(MF);
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(MF); !Changed)
     return PreservedAnalyses::all();
 
   auto PA = getMachineFunctionPassPreservedAnalyses();
@@ -1939,9 +1939,9 @@ ValueTrackerResult ValueTracker::getNextSourceFromCopy() {
     if (SrcReg.isVirtual()) {
       // TODO: Try constraining on rewrite if we can
       const TargetRegisterClass *RegRC = MRI.getRegClass(SrcReg);
-      const TargetRegisterClass *SrcWithSubRC =
-          TRI->getSubClassWithSubReg(RegRC, SubReg);
-      if (RegRC != SrcWithSubRC)
+      
+      if (const TargetRegisterClass *SrcWithSubRC =
+          TRI->getSubClassWithSubReg(RegRC, SubReg); RegRC != SrcWithSubRC)
         return ValueTrackerResult();
     } else {
       if (!TRI->getSubReg(SrcReg, SubReg))
@@ -2086,11 +2086,11 @@ ValueTrackerResult ValueTracker::getNextSourceFromInsertSubreg() {
   // #2 Otherwise, if the sub register we are looking for is not partial
   // defined by the inserted element, we can look through the main
   // register (v0).
-  const MachineOperand &MODef = Def->getOperand(DefIdx);
+  
   // If the result register (Def) and the base register (v0) do not
   // have the same register class or if we have to compose
   // subregisters, bail out.
-  if (MRI.getRegClass(MODef.getReg()) != MRI.getRegClass(BaseReg.Reg) ||
+  if (const MachineOperand &MODef = Def->getOperand(DefIdx); MRI.getRegClass(MODef.getReg()) != MRI.getRegClass(BaseReg.Reg) ||
       BaseReg.SubReg)
     return ValueTrackerResult();
 

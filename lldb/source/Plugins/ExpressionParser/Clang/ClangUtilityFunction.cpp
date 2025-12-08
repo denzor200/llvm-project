@@ -163,8 +163,8 @@ bool ClangUtilityFunction::Install(DiagnosticManager &diagnostic_manager,
   if (jit_error.Success()) {
     return true;
   } else {
-    const char *error_cstr = jit_error.AsCString();
-    if (error_cstr && error_cstr[0]) {
+    
+    if (const char *error_cstr = jit_error.AsCString(); error_cstr && error_cstr[0]) {
       diagnostic_manager.Printf(lldb::eSeverityError, "%s", error_cstr);
     } else {
       diagnostic_manager.PutString(lldb::eSeverityError,
@@ -179,9 +179,9 @@ char ClangUtilityFunction::ClangUtilityFunctionHelper::ID;
 void ClangUtilityFunction::ClangUtilityFunctionHelper::ResetDeclMap(
     ExecutionContext &exe_ctx, bool keep_result_in_memory) {
   std::shared_ptr<ClangASTImporter> ast_importer;
-  auto *state = exe_ctx.GetTargetSP()->GetPersistentExpressionStateForLanguage(
-      lldb::eLanguageTypeC);
-  if (state) {
+  
+  if (auto *state = exe_ctx.GetTargetSP()->GetPersistentExpressionStateForLanguage(
+      lldb::eLanguageTypeC); state) {
     auto *persistent_vars = llvm::cast<ClangPersistentVariables>(state);
     ast_importer = persistent_vars->GetClangASTImporter();
   }

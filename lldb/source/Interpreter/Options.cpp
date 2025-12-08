@@ -148,8 +148,8 @@ void Options::BuildValidOptionSets() {
     return;
 
   // Check to see if there are any options.
-  int num_options = NumCommandOptions();
-  if (num_options == 0)
+  
+  if (int num_options = NumCommandOptions(); num_options == 0)
     return;
 
   auto opt_defs = GetDefinitions();
@@ -162,8 +162,8 @@ void Options::BuildValidOptionSets() {
   uint32_t num_option_sets = 0;
 
   for (const auto &def : opt_defs) {
-    uint32_t this_usage_mask = def.usage_mask;
-    if (this_usage_mask == LLDB_OPT_SET_ALL) {
+    
+    if (uint32_t this_usage_mask = def.usage_mask; this_usage_mask == LLDB_OPT_SET_ALL) {
       if (num_option_sets == 0)
         num_option_sets = 1;
     } else {
@@ -266,8 +266,8 @@ void Options::OutputFormattedUsageText(Stream &strm,
                                        bool use_color) {
   std::string actual_text;
   if (option_def.validator) {
-    const char *condition = option_def.validator->ShortConditionString();
-    if (condition) {
+    
+    if (const char *condition = option_def.validator->ShortConditionString(); condition) {
       actual_text = "[";
       actual_text.append(condition);
       actual_text.append("] ");
@@ -275,11 +275,11 @@ void Options::OutputFormattedUsageText(Stream &strm,
   }
   actual_text.append(
       ansi::FormatAnsiTerminalCodes(option_def.usage_text, use_color));
-  const size_t visible_length = ansi::ColumnWidth(actual_text);
+  
 
   // Will it all fit on one line?
 
-  if (static_cast<uint32_t>(visible_length + strm.GetIndentLevel()) <
+  if (const size_t visible_length = ansi::ColumnWidth(actual_text); static_cast<uint32_t>(visible_length + strm.GetIndentLevel()) <
       output_max_columns) {
     // Output it as a single line.
     strm.Indent(ansi::FormatAnsiTerminalCodes(actual_text, use_color));
@@ -397,8 +397,8 @@ void Options::GenerateOptionUsage(Stream &strm, CommandObject &cmd,
   StreamString arguments_str;
   cmd.GetFormattedCommandArguments(arguments_str);
 
-  const uint32_t num_options = NumCommandOptions();
-  if (num_options == 0)
+  
+  if (const uint32_t num_options = NumCommandOptions(); num_options == 0)
     return;
 
   const bool only_print_args = cmd.IsDashDashCommand();
@@ -558,8 +558,8 @@ void Options::GenerateOptionUsage(Stream &strm, CommandObject &cmd,
 llvm::Error Options::VerifyOptions() {
   bool options_are_valid = false;
 
-  int num_levels = GetRequiredOptions().size();
-  if (num_levels) {
+  
+  if (int num_levels = GetRequiredOptions().size(); num_levels) {
     for (int i = 0; i < num_levels && !options_are_valid; ++i) {
       // This is the correct set of options if:  1). m_seen_options contains
       // all of m_required_options[i] (i.e. all the required options at this
@@ -601,8 +601,8 @@ llvm::Error Options::VerifyOptions() {
 llvm::Error Options::VerifyPartialOptions() {
   bool options_are_valid = false;
 
-  int num_levels = GetRequiredOptions().size();
-  if (num_levels) {
+  
+  if (int num_levels = GetRequiredOptions().size(); num_levels) {
     for (int i = 0; i < num_levels && !options_are_valid; ++i) {
       // In this case we are treating all options as optional rather than
       // required. Therefore a set of options is correct if m_seen_options is a
@@ -638,8 +638,8 @@ bool Options::HandleOptionCompletion(CompletionRequest &request,
   for (size_t i = 0; i < opt_element_vector.size(); i++) {
     size_t opt_pos = static_cast<size_t>(opt_element_vector[i].opt_pos);
     size_t opt_arg_pos = static_cast<size_t>(opt_element_vector[i].opt_arg_pos);
-    int opt_defs_index = opt_element_vector[i].opt_defs_index;
-    if (opt_pos == request.GetCursorIndex()) {
+    
+    if (int opt_defs_index = opt_element_vector[i].opt_defs_index; opt_pos == request.GetCursorIndex()) {
       // We're completing the option itself.
 
       if (opt_defs_index == OptionArgElement::eBareDash) {
@@ -735,8 +735,8 @@ void Options::HandleOptionArgumentCompletion(
   int opt_defs_index = opt_element_vector[opt_element_index].opt_defs_index;
 
   // See if this is an enumeration type option, and if so complete it here:
-  const auto &enum_values = opt_defs[opt_defs_index].enum_values;
-  if (!enum_values.empty())
+  
+  if (const auto &enum_values = opt_defs[opt_defs_index].enum_values; !enum_values.empty())
     for (const auto &enum_value : enum_values)
       request.TryCompleteCurrentArg(enum_value.string_value);
 
@@ -752,10 +752,10 @@ void Options::HandleOptionArgumentCompletion(
     lldb::CommandArgumentType option_arg_type =
         opt_defs[opt_defs_index].argument_type;
     if (option_arg_type != eArgTypeNone) {
-      const CommandObject::ArgumentTableEntry *arg_entry =
+      
+      if (const CommandObject::ArgumentTableEntry *arg_entry =
           CommandObject::FindArgumentDataByType(
-              opt_defs[opt_defs_index].argument_type);
-      if (arg_entry)
+              opt_defs[opt_defs_index].argument_type); arg_entry)
         completion_mask = arg_entry->completion_type;
     }
   }
@@ -778,9 +778,9 @@ void Options::HandleOptionArgumentCompletion(
       // restrict it to that shared library.
       if (cur_opt_name && strcmp(cur_opt_name, "shlib") == 0 &&
           cur_arg_pos != -1) {
-        const char *module_name =
-            request.GetParsedLine().GetArgumentAtIndex(cur_arg_pos);
-        if (module_name) {
+        
+        if (const char *module_name =
+            request.GetParsedLine().GetArgumentAtIndex(cur_arg_pos); module_name) {
           FileSpec module_spec(module_name);
           lldb::TargetSP target_sp =
               interpreter.GetDebugger().GetSelectedTarget();
@@ -1088,8 +1088,8 @@ llvm::Expected<Args> Options::ParseAlias(const Args &args,
 
     if (!input_line.empty()) {
       llvm::StringRef tmp_arg = args_copy[idx].ref();
-      size_t pos = input_line.find(tmp_arg);
-      if (pos != std::string::npos)
+      
+      if (size_t pos = input_line.find(tmp_arg); pos != std::string::npos)
         input_line.erase(pos, tmp_arg.size());
     }
     args_copy.DeleteArgumentAtIndex(idx);
@@ -1098,8 +1098,8 @@ llvm::Expected<Args> Options::ParseAlias(const Args &args,
         (idx < args_copy.GetArgumentCount()) &&
         (args_copy[idx].ref() == OptionParser::GetOptionArgument())) {
       if (input_line.size() > 0) {
-        size_t pos = input_line.find(option_to_insert);
-        if (pos != std::string::npos)
+        
+        if (size_t pos = input_line.find(option_to_insert); pos != std::string::npos)
           input_line.erase(pos, option_to_insert.size());
       }
       args_copy.DeleteArgumentAtIndex(idx);
@@ -1212,9 +1212,9 @@ OptionElementVector Options::ParseForCompletion(const Args &args,
       }
 
       const OptionDefinition *def = long_options[long_options_index].definition;
-      int has_arg =
-          (def == nullptr) ? OptionParser::eNoArgument : def->option_has_arg;
-      switch (has_arg) {
+      
+      switch (int has_arg =
+          (def == nullptr) ? OptionParser::eNoArgument : def->option_has_arg; has_arg) {
       case OptionParser::eNoArgument:
         option_element_vector.push_back(OptionArgElement(
             opt_defs_index,
@@ -1276,8 +1276,8 @@ OptionElementVector Options::ParseForCompletion(const Args &args,
   // only care if it is AT the cursor position. Note, a single quoted dash is
   // not the same as a single dash...
 
-  const Args::ArgEntry &cursor = args[cursor_index];
-  if ((static_cast<int32_t>(dash_dash_pos) == -1 ||
+  
+  if (const Args::ArgEntry &cursor = args[cursor_index]; (static_cast<int32_t>(dash_dash_pos) == -1 ||
        cursor_index < dash_dash_pos) &&
       !cursor.IsQuoted() && cursor.ref() == "-") {
     option_element_vector.push_back(
@@ -1318,8 +1318,8 @@ llvm::Expected<Args> Options::Parse(const Args &args,
     // Did we get an error?
     if (val == '?') {
       // Account for "argv[0]" and that it points to the next option.
-      int idx = OptionParser::GetOptionIndex() - 2;
-      if (idx >= 0 && (size_t)idx < args.GetArgumentCount())
+      
+      if (int idx = OptionParser::GetOptionIndex() - 2; idx >= 0 && (size_t)idx < args.GetArgumentCount())
         error = Status::FromError(llvm::make_error<OptionParseError>(
             args[idx], "unknown or ambiguous option"));
       else
@@ -1369,9 +1369,9 @@ llvm::Expected<Args> Options::Parse(const Args &args,
       if (platform_sp) {
         // Ensure we have an execution context, empty or not.
         ExecutionContext dummy_context;
-        ExecutionContext *exe_ctx_p =
-            execution_context ? execution_context : &dummy_context;
-        if (validator && !validator->IsValid(*platform_sp, *exe_ctx_p)) {
+        
+        if (ExecutionContext *exe_ctx_p =
+            execution_context ? execution_context : &dummy_context; validator && !validator->IsValid(*platform_sp, *exe_ctx_p)) {
           validation_failed = true;
           error = Status::FromErrorStringWithFormat(
               "Option \"%s\" invalid.  %s", def->long_option,

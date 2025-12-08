@@ -171,8 +171,8 @@ PreservedAnalyses
 PHIEliminationPass::run(MachineFunction &MF,
                         MachineFunctionAnalysisManager &MFAM) {
   PHIEliminationImpl Impl(MF, MFAM);
-  bool Changed = Impl.run(MF);
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(MF); !Changed)
     return PreservedAnalyses::all();
   auto PA = getMachineFunctionPassPreservedAnalyses();
   PA.preserve<LiveIntervalsAnalysis>();
@@ -334,8 +334,8 @@ static bool isImplicitlyDefined(Register VirtReg,
 static bool allPhiOperandsUndefined(const MachineInstr &MPhi,
                                     const MachineRegisterInfo &MRI) {
   for (unsigned I = 1, E = MPhi.getNumOperands(); I != E; I += 2) {
-    const MachineOperand &MO = MPhi.getOperand(I);
-    if (!isImplicitlyDefined(MO.getReg(), MRI) && !MO.isUndef())
+    
+    if (const MachineOperand &MO = MPhi.getOperand(I); !isImplicitlyDefined(MO.getReg(), MRI) && !MO.isUndef())
       return false;
   }
   return true;
@@ -682,10 +682,10 @@ void PHIEliminationImpl::LowerPHINode(MachineBasicBlock &MBB,
         bool isLiveOut = false;
         for (MachineBasicBlock *Succ : opBlock.successors()) {
           SlotIndex startIdx = LIS->getMBBStartIdx(Succ);
-          VNInfo *VNI = SrcLI.getVNInfoAt(startIdx);
+          
 
           // Definitions by other PHIs are not truly live-in for our purposes.
-          if (VNI && VNI->def != startIdx) {
+          if (VNInfo *VNI = SrcLI.getVNInfoAt(startIdx); VNI && VNI->def != startIdx) {
             isLiveOut = true;
             break;
           }

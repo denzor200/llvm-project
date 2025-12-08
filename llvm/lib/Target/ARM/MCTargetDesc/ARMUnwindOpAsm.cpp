@@ -82,8 +82,8 @@ void UnwindOpcodeAssembler::EmitRegSave(uint32_t RegSave) {
     Mask &= ~(0xffffffe0u << Range);
 
     // Emit this opcode when the mask covers every registers.
-    uint32_t UnmaskedReg = RegSave & 0xfff0u & (~Mask);
-    if (UnmaskedReg == 0u) {
+    
+    if (uint32_t UnmaskedReg = RegSave & 0xfff0u & (~Mask); UnmaskedReg == 0u) {
       // Pop r[4 : (4 + n)]
       EmitInt8(ARM::EHABI::UNWIND_OPCODE_POP_REG_RANGE_R4 | Range);
       RegSave &= 0x000fu;

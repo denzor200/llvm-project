@@ -646,8 +646,8 @@ bool SemaRISCV::CheckBuiltinFunctionCall(const TargetInfo &TI,
         SemaRef.BuiltinConstantArg(TheCall, LMULOffset, LMULResult))
       return true;
     int SEWValue = SEWResult.getSExtValue();
-    int LMULValue = LMULResult.getSExtValue();
-    if (((SEWValue == 0 && LMULValue == 5) || // e8mf8
+    
+    if (int LMULValue = LMULResult.getSExtValue(); ((SEWValue == 0 && LMULValue == 5) || // e8mf8
          (SEWValue == 1 && LMULValue == 6) || // e16mf4
          (SEWValue == 2 && LMULValue == 7) || // e32mf2
          SEWValue == 3) &&                    // e64
@@ -688,8 +688,8 @@ bool SemaRISCV::CheckBuiltinFunctionCall(const TargetInfo &TI,
     llvm::APSInt Result;
 
     // We can't check the value of a dependent argument.
-    Expr *Arg = TheCall->getArg(0);
-    if (Arg->isTypeDependent() || Arg->isValueDependent())
+    
+    if (Expr *Arg = TheCall->getArg(0); Arg->isTypeDependent() || Arg->isValueDependent())
       return false;
 
     // Check constant-ness first.
@@ -1515,9 +1515,9 @@ void SemaRISCV::checkRVVTypeSupport(QualType Ty, SourceLocation Loc, Decl *D,
   ASTContext::BuiltinVectorTypeInfo Info =
       SemaRef.Context.getBuiltinVectorTypeInfo(Ty->castAs<BuiltinType>());
   unsigned EltSize = SemaRef.Context.getTypeSize(Info.ElementType);
-  unsigned MinElts = Info.EC.getKnownMinValue();
+  
 
-  if (Info.ElementType->isSpecificBuiltinType(BuiltinType::Double) &&
+  if (unsigned MinElts = Info.EC.getKnownMinValue(); Info.ElementType->isSpecificBuiltinType(BuiltinType::Double) &&
       !FeatureMap.lookup("zve64d"))
     Diag(Loc, diag::err_riscv_type_requires_extension) << Ty << "zve64d";
   // (ELEN, LMUL) pairs of (8, mf8), (16, mf4), (32, mf2), (64, m1) requires at

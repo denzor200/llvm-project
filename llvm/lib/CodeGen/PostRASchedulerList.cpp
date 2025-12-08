@@ -379,8 +379,8 @@ PostRASchedulerPass::run(MachineFunction &MF,
                   .getManager();
   AliasAnalysis *AA = &FAM.getResult<AAManager>(MF.getFunction());
   PostRAScheduler Impl(MF, MLI, AA, TM);
-  bool Changed = Impl.run(MF);
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(MF); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA = getMachineFunctionPassPreservedAnalyses();

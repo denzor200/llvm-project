@@ -309,8 +309,8 @@ void CFIInstrInserter::updateSuccCFAInfo(MBBCFAInfo &MBBInfo) {
     MBBCFAInfo &CurrentInfo = MBBVector[Current->getNumber()];
     calculateOutgoingCFAInfo(CurrentInfo);
     for (auto *Succ : CurrentInfo.MBB->successors()) {
-      MBBCFAInfo &SuccInfo = MBBVector[Succ->getNumber()];
-      if (!SuccInfo.Processed) {
+      
+      if (MBBCFAInfo &SuccInfo = MBBVector[Succ->getNumber()]; !SuccInfo.Processed) {
         SuccInfo.IncomingCFAOffset = CurrentInfo.OutgoingCFAOffset;
         SuccInfo.IncomingCFARegister = CurrentInfo.OutgoingCFARegister;
         SuccInfo.IncomingCSRSaved = CurrentInfo.OutgoingCSRSaved;

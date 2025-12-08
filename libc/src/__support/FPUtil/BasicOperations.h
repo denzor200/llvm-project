@@ -273,8 +273,8 @@ LIBC_INLINE int canonicalize(T &cx, const T &x) {
     bool bit63 = sx.get_implicit_bit();
     UInt128 mantissa = sx.get_explicit_mantissa();
     bool bit62 = static_cast<bool>((mantissa & (1ULL << 62)) >> 62);
-    int exponent = sx.get_biased_exponent();
-    if (exponent == 0x7FFF) {
+    
+    if (int exponent = sx.get_biased_exponent(); exponent == 0x7FFF) {
       if (!bit63 && !bit62) {
         if (mantissa == 0) {
           cx = FPBits<T>::quiet_nan(sx.sign(), mantissa).get_val();
@@ -347,9 +347,9 @@ LIBC_INLINE cpp::enable_if_t<cpp::is_floating_point_v<T>, T> getpayload(T x) {
   if (!x_bits.is_nan())
     return T(-1.0);
 
-  StorageType payload = x_bits.uintval() & (FPBits::FRACTION_MASK >> 1);
+  
 
-  if constexpr (is_big_int_v<StorageType>) {
+  if constexpr (StorageType payload = x_bits.uintval() & (FPBits::FRACTION_MASK >> 1); is_big_int_v<StorageType>) {
     DyadicFloat<FPBits::STORAGE_LEN> payload_dfloat(Sign::POS, 0, payload);
 
     return static_cast<T>(payload_dfloat);

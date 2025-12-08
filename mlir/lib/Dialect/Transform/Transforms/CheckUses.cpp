@@ -189,11 +189,11 @@ public:
       // done for partial blocks here, full blocks will be considered below
       // similarly to other blocks.
       if (isFromBlockPartial) {
-        bool defUseSameBlock = ancestor->getBlock() == defBlock;
+        
         // Consider all ops from the def to its block terminator, except the
         // when the use is in the same block, in which case only consider the
         // ops until the user.
-        if (PotentialDeleters potentialDeleters = isFreedInBlockAfter(
+        if (bool defUseSameBlock = ancestor->getBlock() == defBlock; PotentialDeleters potentialDeleters = isFreedInBlockAfter(
                 operand.get().getDefiningOp(), operand.get(),
                 defUseSameBlock ? ancestor : nullptr))
           return potentialDeleters;

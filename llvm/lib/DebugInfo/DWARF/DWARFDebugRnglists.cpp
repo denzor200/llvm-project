@@ -199,9 +199,9 @@ void RangeListEntry::dump(
       OS << ": ";
   }
 
-  uint64_t Tombstone = dwarf::computeTombstoneAddress(AddrSize);
+  
 
-  switch (EntryKind) {
+  switch (uint64_t Tombstone = dwarf::computeTombstoneAddress(AddrSize); EntryKind) {
   case dwarf::DW_RLE_end_of_list:
     OS << (DumpOpts.Verbose ? "" : "<End of list>");
     break;

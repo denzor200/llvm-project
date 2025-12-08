@@ -68,9 +68,9 @@ DisassemblerSP Disassembler::FindPlugin(const ArchSpec &arch,
   LLDB_SCOPED_TIMERF("Disassembler::FindPlugin (arch = %s, plugin_name = %s)",
                      arch.GetArchitectureName(), plugin_name);
 
-  DisassemblerCreateInstance create_callback = nullptr;
+  
 
-  if (plugin_name) {
+  if (DisassemblerCreateInstance create_callback = nullptr; plugin_name) {
     create_callback =
         PluginManager::GetDisassemblerCreateCallbackForPluginName(plugin_name);
     if (create_callback) {
@@ -113,14 +113,14 @@ static Address ResolveAddress(Target &target, const Address &addr) {
     Address resolved_addr;
     // If we weren't passed in a section offset address range, try and resolve
     // it to something
-    bool is_resolved =
+    
+
+    // We weren't able to resolve the address, just treat it as a raw address
+    if (bool is_resolved =
         target.HasLoadedSections()
             ? target.ResolveLoadAddress(addr.GetOffset(), resolved_addr)
             : target.GetImages().ResolveFileAddress(addr.GetOffset(),
-                                                    resolved_addr);
-
-    // We weren't able to resolve the address, just treat it as a raw address
-    if (is_resolved && resolved_addr.IsValid())
+                                                    resolved_addr); is_resolved && resolved_addr.IsValid())
       return resolved_addr;
   }
   return addr;
@@ -188,9 +188,9 @@ bool Disassembler::Disassemble(Debugger &debugger, const ArchSpec &arch,
     return false;
 
   const bool force_live_memory = true;
-  size_t bytes_disassembled = disasm_sp->ParseInstructions(
-      exe_ctx.GetTargetRef(), address, limit, &strm, force_live_memory);
-  if (bytes_disassembled == 0)
+  
+  if (size_t bytes_disassembled = disasm_sp->ParseInstructions(
+      exe_ctx.GetTargetRef(), address, limit, &strm, force_live_memory); bytes_disassembled == 0)
     return false;
 
   disasm_sp->PrintInstructions(debugger, arch, exe_ctx,
@@ -266,18 +266,18 @@ bool Disassembler::ElideMixedSourceAndDisassemblyLine(
       OptionValueSP value_sp = target_sp->GetDebugger().GetPropertyValue(
           &exe_ctx, "target.process.thread.step-avoid-regexp", error);
       if (value_sp && value_sp->GetType() == OptionValue::eTypeRegex) {
-        OptionValueRegex *re = value_sp->GetAsRegex();
-        if (re) {
+        
+        if (OptionValueRegex *re = value_sp->GetAsRegex(); re) {
           avoid_regex = re->GetCurrentValue();
         }
       }
     }
   }
   if (avoid_regex && sc.symbol != nullptr) {
-    const char *function_name =
+    
+    if (const char *function_name =
         sc.GetFunctionName(Mangled::ePreferDemangledWithoutArguments)
-            .GetCString();
-    if (function_name && avoid_regex->Execute(function_name)) {
+            .GetCString(); function_name && avoid_regex->Execute(function_name)) {
       // skip this source line
       return true;
     }
@@ -457,22 +457,22 @@ void Disassembler::PrintInstructions(Debugger &debugger, const ArchSpec &arch,
 
   size_t address_text_size = 0;
   for (size_t i = 0; i < num_instructions_found; ++i) {
-    Instruction *inst = GetInstructionList().GetInstructionAtIndex(i).get();
-    if (inst) {
+    
+    if (Instruction *inst = GetInstructionList().GetInstructionAtIndex(i).get(); inst) {
       const Address &addr = inst->GetAddress();
       ModuleSP module_sp(addr.GetModule());
       if (module_sp) {
         const SymbolContextItem resolve_mask = eSymbolContextFunction |
                                                eSymbolContextSymbol |
                                                eSymbolContextLineEntry;
-        uint32_t resolved_mask =
-            module_sp->ResolveSymbolContextForAddress(addr, resolve_mask, sc);
-        if (resolved_mask) {
+        
+        if (uint32_t resolved_mask =
+            module_sp->ResolveSymbolContextForAddress(addr, resolve_mask, sc); resolved_mask) {
           StreamString strmstr;
           Debugger::FormatDisassemblerAddress(disassembly_format, &sc, nullptr,
                                               &exe_ctx, &addr, strmstr);
-          size_t cur_line = strmstr.GetSizeOfLastLine();
-          if (cur_line > address_text_size)
+          
+          if (size_t cur_line = strmstr.GetSizeOfLastLine(); cur_line > address_text_size)
             address_text_size = cur_line;
 
           // Add entries to our "source_lines_seen" map+set which list which
@@ -507,9 +507,9 @@ void Disassembler::PrintInstructions(Debugger &debugger, const ArchSpec &arch,
   previous_symbol = nullptr;
   SourceLine previous_line;
   for (size_t i = 0; i < num_instructions_found; ++i) {
-    Instruction *inst = GetInstructionList().GetInstructionAtIndex(i).get();
+    
 
-    if (inst) {
+    if (Instruction *inst = GetInstructionList().GetInstructionAtIndex(i).get(); inst) {
       const Address &addr = inst->GetAddress();
       const bool inst_is_at_pc = pc_addr_ptr && addr == *pc_addr_ptr;
       SourceLinesToDisplay source_lines_to_display;
@@ -518,9 +518,9 @@ void Disassembler::PrintInstructions(Debugger &debugger, const ArchSpec &arch,
 
       ModuleSP module_sp(addr.GetModule());
       if (module_sp) {
-        uint32_t resolved_mask = module_sp->ResolveSymbolContextForAddress(
-            addr, eSymbolContextEverything, sc);
-        if (resolved_mask) {
+        
+        if (uint32_t resolved_mask = module_sp->ResolveSymbolContextForAddress(
+            addr, eSymbolContextEverything, sc); resolved_mask) {
           if (mixed_source_and_assembly) {
 
             // If we've started a new function (non-inlined), print all of the
@@ -894,8 +894,8 @@ OptionValueSP Instruction::ReadArray(FILE *in_file, Stream &out_stream,
 
     std::string line(buffer);
 
-    size_t len = line.size();
-    if (line[len - 1] == '\n') {
+    
+    if (size_t len = line.size(); line[len - 1] == '\n') {
       line[len - 1] = '\0';
       line.resize(len - 1);
     }
@@ -955,8 +955,8 @@ OptionValueSP Instruction::ReadDictionary(FILE *in_file, Stream &out_stream) {
     // Check to see if the line contains the end-of-dictionary marker ("}")
     std::string line(buffer);
 
-    size_t len = line.size();
-    if (line[len - 1] == '\n') {
+    
+    if (size_t len = line.size(); line[len - 1] == '\n') {
       line[len - 1] = '\0';
       line.resize(len - 1);
     }
@@ -1016,8 +1016,8 @@ OptionValueSP Instruction::ReadDictionary(FILE *in_file, Stream &out_stream) {
         value_sp = std::make_shared<OptionValueUInt64>(0, 0);
         value_sp->SetValueFromString(value);
       } else {
-        size_t len = value.size();
-        if ((value[0] == '"') && (value[len - 1] == '"'))
+        
+        if (size_t len = value.size(); (value[0] == '"') && (value[len - 1] == '"'))
           value = value.substr(1, len - 2);
         value_sp = std::make_shared<OptionValueString>(value.c_str(), "");
       }
@@ -1152,8 +1152,8 @@ uint32_t InstructionList::GetMaxOpcocdeByteSize() const {
   collection::const_iterator pos, end;
   for (pos = m_instructions.begin(), end = m_instructions.end(); pos != end;
        ++pos) {
-    uint32_t inst_size = (*pos)->GetOpcode().GetByteSize();
-    if (max_inst_size < inst_size)
+    
+    if (uint32_t inst_size = (*pos)->GetOpcode().GetByteSize(); max_inst_size < inst_size)
       max_inst_size = inst_size;
   }
   return max_inst_size;
@@ -1177,8 +1177,8 @@ InstructionSP InstructionList::GetInstructionAtIndex(size_t idx) const {
 }
 
 InstructionSP InstructionList::GetInstructionAtAddress(const Address &address) {
-  uint32_t index = GetIndexOfInstructionAtAddress(address);
-  if (index != UINT32_MAX)
+  
+  if (uint32_t index = GetIndexOfInstructionAtAddress(address); index != UINT32_MAX)
     return GetInstructionAtIndex(index);
   return nullptr;
 }

@@ -349,8 +349,8 @@ getScalableECFromSignature(const FunctionType *Signature, const VFISAKind ISA,
   Type *RetTy = Signature->getReturnType();
   if (!RetTy->isVoidTy()) {
     // If the return type is a struct, only allow unpacked struct literals.
-    StructType *StructTy = dyn_cast<StructType>(RetTy);
-    if (StructTy && !isUnpackedStructLiteral(StructTy))
+    
+    if (StructType *StructTy = dyn_cast<StructType>(RetTy); StructTy && !isUnpackedStructLiteral(StructTy))
       return std::nullopt;
 
     for (Type *RetTy : getContainedTypes(RetTy)) {

@@ -272,8 +272,8 @@ CXDiagnosticSet DiagLoader::load(const char *file) {
 std::error_code
 DiagLoader::readLocation(const serialized_diags::Location &SDLoc,
                          CXLoadedDiagnostic::Location &LoadedLoc) {
-  unsigned FileID = SDLoc.FileID;
-  if (FileID == 0)
+  
+  if (unsigned FileID = SDLoc.FileID; FileID == 0)
     LoadedLoc.file = nullptr;
   else {
     auto It = TopDiags->Files.find(FileID);

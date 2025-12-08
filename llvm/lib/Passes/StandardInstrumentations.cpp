@@ -174,8 +174,8 @@ const Module *unwrapModule(Any IR, bool Force = false) {
 
   if (const auto *C = unwrapIR<LazyCallGraph::SCC>(IR)) {
     for (const LazyCallGraph::Node &N : *C) {
-      const Function &F = N.getFunction();
-      if (Force || (!F.isDeclaration() && isFunctionInPrintList(F.getName()))) {
+      
+      if (const Function &F = N.getFunction(); Force || (!F.isDeclaration() && isFunctionInPrintList(F.getName()))) {
         return F.getParent();
       }
     }
@@ -217,16 +217,16 @@ void printIR(raw_ostream &OS, const Module *M) {
 
 void printIR(raw_ostream &OS, const LazyCallGraph::SCC *C) {
   for (const LazyCallGraph::Node &N : *C) {
-    const Function &F = N.getFunction();
-    if (!F.isDeclaration() && isFunctionInPrintList(F.getName())) {
+    
+    if (const Function &F = N.getFunction(); !F.isDeclaration() && isFunctionInPrintList(F.getName())) {
       F.print(OS);
     }
   }
 }
 
 void printIR(raw_ostream &OS, const Loop *L) {
-  const Function *F = L->getHeader()->getParent();
-  if (!isFunctionInPrintList(F->getName()))
+  
+  if (const Function *F = L->getHeader()->getParent(); !isFunctionInPrintList(F->getName()))
     return;
   printLoop(const_cast<Loop &>(*L), OS);
 }
@@ -560,8 +560,8 @@ void IRChangedTester::handleIR(const std::string &S, StringRef PassID) {
   }
 
   StringRef Args[] = {TestChanged, FileName[0], PassID};
-  int Result = sys::ExecuteAndWait(*Exe, Args);
-  if (Result < 0) {
+  
+  if (int Result = sys::ExecuteAndWait(*Exe, Args); Result < 0) {
     dbgs() << "Error executing test-changed executable.";
     return;
   }
@@ -1074,8 +1074,8 @@ bool OptPassGateInstrumentation::shouldRun(StringRef PassName, Any IR) {
 
 void OptPassGateInstrumentation::registerCallbacks(
     PassInstrumentationCallbacks &PIC) {
-  const OptPassGate &PassGate = Context.getOptPassGate();
-  if (!PassGate.isEnabled())
+  
+  if (const OptPassGate &PassGate = Context.getOptPassGate(); !PassGate.isEnabled())
     return;
 
   PIC.registerShouldRunOptionalPassCallback(
@@ -1440,8 +1440,8 @@ void PreservedCFGCheckerInstrumentation::registerCallbacks(
                  CFG(F, /* TrackBBLifetime */ false));
     }
     if (const auto *MPtr = unwrapIR<Module>(IR)) {
-      auto &M = *const_cast<Module *>(MPtr);
-      if (auto *HashBefore =
+      
+      if (auto &M = *const_cast<Module *>(MPtr); auto *HashBefore =
               MAM.getCachedResult<PreservedModuleHashAnalysis>(M)) {
         if (HashBefore->Hash != StructuralHash(M)) {
           report_fatal_error(formatv(
@@ -2191,8 +2191,8 @@ namespace llvm {
 
 DCData::DCData(const BasicBlock &B) {
   // Build up transition labels.
-  const Instruction *Term = B.getTerminator();
-  if (const BranchInst *Br = dyn_cast<const BranchInst>(Term))
+  
+  if (const Instruction *Term = B.getTerminator(); const BranchInst *Br = dyn_cast<const BranchInst>(Term))
     if (Br->isUnconditional())
       addSuccessorLabel(Br->getSuccessor(0)->getName().str(), "");
     else {
@@ -2271,8 +2271,8 @@ std::string DotCfgChangeReporter::genHTML(StringRef Text, StringRef DotFile,
     return "Unable to find dot executable.";
 
   StringRef Args[] = {DotBinary, "-Tpdf", "-o", PDFFile, DotFile};
-  int Result = sys::ExecuteAndWait(*DotExe, Args, std::nullopt);
-  if (Result < 0)
+  
+  if (int Result = sys::ExecuteAndWait(*DotExe, Args, std::nullopt); Result < 0)
     return "Error executing system dot.";
 
   // Create the HTML tag refering to the PDF file.

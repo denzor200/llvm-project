@@ -76,8 +76,8 @@ void clang::maybePruneImpl(StringRef Path, time_t PruneInterval,
         continue;
 
       // If the file has been used recently enough, leave it there.
-      time_t FileAccessTime = llvm::sys::toTimeT(StatBuf.getLastAccessedTime());
-      if (CurrentTime - FileAccessTime <= PruneAfter)
+      
+      if (time_t FileAccessTime = llvm::sys::toTimeT(StatBuf.getLastAccessedTime()); CurrentTime - FileAccessTime <= PruneAfter)
         continue;
 
       // Remove the file.

@@ -230,8 +230,8 @@ RValue CodeGenFunction::EmitCXXMemberOrOperatorMemberCallExpr(
     DevirtualizedMethod = MD->getCorrespondingMethodInClass(BestDynamicDecl);
     assert(DevirtualizedMethod);
     const CXXRecordDecl *DevirtualizedClass = DevirtualizedMethod->getParent();
-    const Expr *Inner = Base->IgnoreParenBaseCasts();
-    if (DevirtualizedMethod->getReturnType().getCanonicalType() !=
+    
+    if (const Expr *Inner = Base->IgnoreParenBaseCasts(); DevirtualizedMethod->getReturnType().getCanonicalType() !=
         MD->getReturnType().getCanonicalType())
       // If the return types are not the same, this might be a case where more
       // code needs to run to compensate for it. For example, the derived
@@ -555,8 +555,8 @@ static void EmitNullBaseClassInitialization(CodeGenFunction &CGF,
   // like -1, which happens to be the pattern used by member-pointers.
   // TODO: isZeroInitializable can be over-conservative in the case where a
   // virtual base contains a member pointer.
-  llvm::Constant *NullConstantForBase = CGF.CGM.EmitNullConstantForBase(Base);
-  if (!NullConstantForBase->isNullValue()) {
+  
+  if (llvm::Constant *NullConstantForBase = CGF.CGM.EmitNullConstantForBase(Base); !NullConstantForBase->isNullValue()) {
     llvm::GlobalVariable *NullVariable = new llvm::GlobalVariable(
         CGF.CGM.getModule(), NullConstantForBase->getType(),
         /*isConstant=*/true, llvm::GlobalVariable::PrivateLinkage,
@@ -902,8 +902,8 @@ static llvm::Value *EmitCXXNewAllocSize(CodeGenFunction &CGF,
       llvm::Value *result =
           CGF.Builder.CreateCall(umul_with_overflow, {size, tsmV});
 
-      llvm::Value *overflowed = CGF.Builder.CreateExtractValue(result, 1);
-      if (hasOverflow)
+      
+      if (llvm::Value *overflowed = CGF.Builder.CreateExtractValue(result, 1); hasOverflow)
         hasOverflow = CGF.Builder.CreateOr(hasOverflow, overflowed);
       else
         hasOverflow = overflowed;
@@ -941,8 +941,8 @@ static llvm::Value *EmitCXXNewAllocSize(CodeGenFunction &CGF,
       llvm::Value *result =
           CGF.Builder.CreateCall(uadd_with_overflow, {size, cookieSizeV});
 
-      llvm::Value *overflowed = CGF.Builder.CreateExtractValue(result, 1);
-      if (hasOverflow)
+      
+      if (llvm::Value *overflowed = CGF.Builder.CreateExtractValue(result, 1); hasOverflow)
         hasOverflow = CGF.Builder.CreateOr(hasOverflow, overflowed);
       else
         hasOverflow = overflowed;
@@ -1084,8 +1084,8 @@ void CodeGenFunction::EmitNewArrayInitializer(
           CurPtr, InitListElements, "string.init.end");
 
       // Zero out the rest, if any remain.
-      llvm::ConstantInt *ConstNum = dyn_cast<llvm::ConstantInt>(NumElements);
-      if (!ConstNum || !ConstNum->equalsInt(InitListElements)) {
+      
+      if (llvm::ConstantInt *ConstNum = dyn_cast<llvm::ConstantInt>(NumElements); !ConstNum || !ConstNum->equalsInt(InitListElements)) {
         bool OK = TryMemsetInitialization();
         (void)OK;
         assert(OK && "couldn't memset character type?");
@@ -1350,8 +1350,8 @@ static RValue EmitNewDeleteCall(CodeGenFunction &CGF,
   ///   to a replaceable global allocation function.
   ///
   /// We model such elidable calls with the 'builtin' attribute.
-  llvm::Function *Fn = dyn_cast<llvm::Function>(CalleePtr);
-  if (CalleeDecl->isReplaceableGlobalAllocationFunction() &&
+  
+  if (llvm::Function *Fn = dyn_cast<llvm::Function>(CalleePtr); CalleeDecl->isReplaceableGlobalAllocationFunction() &&
       Fn && Fn->hasFnAttribute(llvm::Attribute::NoBuiltin)) {
     CallOrInvoke->addFnAttr(llvm::Attribute::Builtin);
   }
@@ -1900,8 +1900,8 @@ CodeGenFunction::pushCallObjectDeleteCleanup(const FunctionDecl *OperatorDelete,
 static void EmitDestroyingObjectDelete(CodeGenFunction &CGF,
                                        const CXXDeleteExpr *DE, Address Ptr,
                                        QualType ElementType) {
-  auto *Dtor = ElementType->getAsCXXRecordDecl()->getDestructor();
-  if (Dtor && Dtor->isVirtual())
+  
+  if (auto *Dtor = ElementType->getAsCXXRecordDecl()->getDestructor(); Dtor && Dtor->isVirtual())
     CGF.CGM.getCXXABI().emitVirtualObjectDelete(CGF, DE, Ptr, ElementType,
                                                 Dtor);
   else
@@ -1937,15 +1937,15 @@ static bool EmitObjectDelete(CodeGenFunction &CGF,
 
       if (Dtor->isVirtual()) {
         bool UseVirtualCall = true;
-        const Expr *Base = DE->getArgument();
-        if (auto *DevirtualizedDtor =
+        
+        if (const Expr *Base = DE->getArgument(); auto *DevirtualizedDtor =
                 dyn_cast_or_null<const CXXDestructorDecl>(
                     Dtor->getDevirtualizedMethod(
                         Base, CGF.CGM.getLangOpts().AppleKext))) {
           UseVirtualCall = false;
-          const CXXRecordDecl *DevirtualizedClass =
-              DevirtualizedDtor->getParent();
-          if (declaresSameEntity(getCXXRecord(Base), DevirtualizedClass)) {
+          
+          if (const CXXRecordDecl *DevirtualizedClass =
+              DevirtualizedDtor->getParent(); declaresSameEntity(getCXXRecord(Base), DevirtualizedClass)) {
             // Devirtualized to the class of the base type (the type of the
             // whole expression).
             Dtor = DevirtualizedDtor;

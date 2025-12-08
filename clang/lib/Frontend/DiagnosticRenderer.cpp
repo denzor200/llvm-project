@@ -461,9 +461,9 @@ rangesInsideSameMacroArgExpansion(FullSourceLoc Loc,
   SmallVector<CharSourceRange> SpellingRanges;
   mapDiagnosticRanges(Loc, Ranges, SpellingRanges);
 
-  unsigned ValidCount =
-      llvm::count_if(Ranges, [](const auto &R) { return R.isValid(); });
-  if (ValidCount > SpellingRanges.size())
+  
+  if (unsigned ValidCount =
+      llvm::count_if(Ranges, [](const auto &R) { return R.isValid(); }); ValidCount > SpellingRanges.size())
     return false;
 
   const SourceManager &SM = Loc.getManager();

@@ -636,10 +636,10 @@ void LoopConvertCheck::doConversion(
   bool CanCopy = true;
   std::vector<FixItHint> FixIts;
   if (VarNameFromAlias) {
-    const auto *AliasVar = cast<VarDecl>(AliasDecl->getSingleDecl());
+    
 
     // Handle structured bindings
-    if (const auto *AliasDecompositionDecl =
+    if (const auto *AliasVar = cast<VarDecl>(AliasDecl->getSingleDecl()); const auto *AliasDecompositionDecl =
             dyn_cast<DecompositionDecl>(AliasDecl->getSingleDecl())) {
       VarNameOrStructuredBinding = "[";
 
@@ -757,11 +757,11 @@ void LoopConvertCheck::doConversion(
       !Descriptor.ElemType->isDependentSizedArrayType() &&
       // TypeInfo::Width is in bits.
       Context->getTypeInfo(Descriptor.ElemType).Width <= 8 * MaxCopySize;
-  const bool UseCopy =
-      CanCopy && ((VarNameFromAlias && !AliasVarIsRef) ||
-                  (Descriptor.DerefByConstRef && IsCheapToCopy));
+  
 
-  if (!UseCopy) {
+  if (const bool UseCopy =
+      CanCopy && ((VarNameFromAlias && !AliasVarIsRef) ||
+                  (Descriptor.DerefByConstRef && IsCheapToCopy)); !UseCopy) {
     if (Descriptor.DerefByConstRef) {
       Type = Context->getLValueReferenceType(Context->getConstType(Type));
     } else if (Descriptor.DerefByValue) {
@@ -929,10 +929,10 @@ bool LoopConvertCheck::isConvertible(ASTContext *Context,
     return false;
 
   // Check that we have exactly one index variable and at most one end variable.
-  const auto *InitVar = Nodes.getNodeAs<VarDecl>(InitVarName);
+  
 
   // FIXME: Try to put most of this logic inside a matcher.
-  if (FixerKind == LFK_Iterator || FixerKind == LFK_ReverseIterator) {
+  if (const auto *InitVar = Nodes.getNodeAs<VarDecl>(InitVarName); FixerKind == LFK_Iterator || FixerKind == LFK_ReverseIterator) {
     const QualType InitVarType = InitVar->getType();
     const QualType CanonicalInitVarType = InitVarType.getCanonicalType();
 

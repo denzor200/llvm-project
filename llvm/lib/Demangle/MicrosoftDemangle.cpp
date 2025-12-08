@@ -724,8 +724,8 @@ Demangler::translateIntrinsicFunctionCode(char CH,
       IFK::None,                       // ?__Z <unused>
   };
 
-  int Index = (CH >= '0' && CH <= '9') ? (CH - '0') : (CH - 'A' + 10);
-  switch (Group) {
+  
+  switch (int Index = (CH >= '0' && CH <= '9') ? (CH - '0') : (CH - 'A' + 10); Group) {
   case FunctionIdentifierCodeGroup::Basic:
     return Basic[Index];
   case FunctionIdentifierCodeGroup::Under:
@@ -743,8 +743,8 @@ Demangler::demangleFunctionIdentifierCode(std::string_view &MangledName,
     Error = true;
     return nullptr;
   }
-  const char CH = MangledName.front();
-  switch (Group) {
+  
+  switch (const char CH = MangledName.front(); Group) {
   case FunctionIdentifierCodeGroup::Basic:
     MangledName.remove_prefix(1);
     switch (CH) {
@@ -795,11 +795,11 @@ SymbolNode *Demangler::demangleEncodedSymbol(std::string_view &MangledName,
   }
   FunctionSymbolNode *FSN = demangleFunctionEncoding(MangledName);
 
-  IdentifierNode *UQN = Name->getUnqualifiedIdentifier();
-  if (UQN->kind() == NodeKind::ConversionOperatorIdentifier) {
-    ConversionOperatorIdentifierNode *COIN =
-        static_cast<ConversionOperatorIdentifierNode *>(UQN);
-    if (FSN)
+  
+  if (IdentifierNode *UQN = Name->getUnqualifiedIdentifier(); UQN->kind() == NodeKind::ConversionOperatorIdentifier) {
+    
+    if (ConversionOperatorIdentifierNode *COIN =
+        static_cast<ConversionOperatorIdentifierNode *>(UQN); FSN)
       COIN->TargetType = FSN->Signature->ReturnType;
   }
   return FSN;
@@ -819,9 +819,9 @@ SymbolNode *Demangler::demangleDeclarator(std::string_view &MangledName) {
 
   IdentifierNode *UQN = QN->getUnqualifiedIdentifier();
   if (UQN->kind() == NodeKind::ConversionOperatorIdentifier) {
-    ConversionOperatorIdentifierNode *COIN =
-        static_cast<ConversionOperatorIdentifierNode *>(UQN);
-    if (!COIN->TargetType) {
+    
+    if (ConversionOperatorIdentifierNode *COIN =
+        static_cast<ConversionOperatorIdentifierNode *>(UQN); !COIN->TargetType) {
       Error = true;
       return nullptr;
     }
@@ -1415,8 +1415,8 @@ Demangler::demangleStringLiteral(std::string_view &MangledName) {
         goto StringLiteralError;
       if (MangledName.size() < 2)
         goto StringLiteralError;
-      wchar_t W = demangleWcharLiteral(MangledName);
-      if (StringByteSize != 2 || Result->IsTruncated)
+      
+      if (wchar_t W = demangleWcharLiteral(MangledName); StringByteSize != 2 || Result->IsTruncated)
         outputEscapedChar(OB, W);
       StringByteSize -= 2;
       if (Error)
@@ -1456,9 +1456,9 @@ Demangler::demangleStringLiteral(std::string_view &MangledName) {
     }
     const unsigned NumChars = BytesDecoded / CharBytes;
     for (unsigned CharIndex = 0; CharIndex < NumChars; ++CharIndex) {
-      unsigned NextChar =
-          decodeMultiByteChar(StringBytes, CharIndex, CharBytes);
-      if (CharIndex + 1 < NumChars || Result->IsTruncated)
+      
+      if (unsigned NextChar =
+          decodeMultiByteChar(StringBytes, CharIndex, CharBytes); CharIndex + 1 < NumChars || Result->IsTruncated)
         outputEscapedChar(OB, NextChar);
     }
   }

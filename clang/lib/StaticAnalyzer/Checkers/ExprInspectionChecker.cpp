@@ -210,11 +210,11 @@ const MemRegion *ExprInspectionChecker::getArgRegion(const CallExpr *CE,
 
 void ExprInspectionChecker::analyzerEval(const CallExpr *CE,
                                          CheckerContext &C) const {
-  const LocationContext *LC = C.getPredecessor()->getLocationContext();
+  
 
   // A specific instantiation of an inlined function may have more constrained
   // values than can generally be assumed. Skip the check.
-  if (LC->getStackFrame()->getParent() != nullptr)
+  if (const LocationContext *LC = C.getPredecessor()->getLocationContext(); LC->getStackFrame()->getParent() != nullptr)
     return;
 
   reportBug(getArgumentValueString(CE, C), C);
@@ -237,14 +237,14 @@ void ExprInspectionChecker::analyzerNumTimesReached(const CallExpr *CE,
 
 void ExprInspectionChecker::analyzerCheckInlined(const CallExpr *CE,
                                                  CheckerContext &C) const {
-  const LocationContext *LC = C.getPredecessor()->getLocationContext();
+  
 
   // An inlined function could conceivably also be analyzed as a top-level
   // function. We ignore this case and only emit a message (TRUE or FALSE)
   // when we are analyzing it as an inlined function. This means that
   // clang_analyzer_checkInlined(true) should always print TRUE, but
   // clang_analyzer_checkInlined(false) should never actually print anything.
-  if (LC->getStackFrame()->getParent() == nullptr)
+  if (const LocationContext *LC = C.getPredecessor()->getLocationContext(); LC->getStackFrame()->getParent() == nullptr)
     return;
 
   reportBug(getArgumentValueString(CE, C), C);
@@ -401,8 +401,8 @@ void ExprInspectionChecker::checkDeadSymbols(SymbolReaper &SymReaper,
   }
 
   for (auto I : State->get<DenotedSymbols>()) {
-    SymbolRef Sym = I.first;
-    if (!SymReaper.isLive(Sym))
+    
+    if (SymbolRef Sym = I.first; !SymReaper.isLive(Sym))
       State = State->remove<DenotedSymbols>(Sym);
   }
 
@@ -523,8 +523,8 @@ public:
 
 void ExprInspectionChecker::analyzerExpress(const CallExpr *CE,
                                             CheckerContext &C) const {
-  const Expr *Arg = getArgExpr(CE, C);
-  if (!Arg)
+  
+  if (const Expr *Arg = getArgExpr(CE, C); !Arg)
     return;
 
   SVal ArgVal = C.getSVal(CE->getArg(0));

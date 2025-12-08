@@ -311,8 +311,8 @@ private:
       });
     };
     for (auto I = DFS.beginPostorder(), E = DFS.endPostorder(); I != E; ++I) {
-      BasicBlock *BB = *I;
-      if (BlockIsInLoop(BB))
+      
+      if (BasicBlock *BB = *I; BlockIsInLoop(BB))
         BlocksInLoopAfterFolding.insert(BB);
     }
 
@@ -412,11 +412,11 @@ private:
       // the current loop. We need to fix loop info accordingly. For this, we
       // find the most nested loop that still contains L and remove L from all
       // loops that are inside of it.
-      Loop *StillReachable = getInnermostLoopFor(LiveExitBlocks, L, LI);
+      
 
       // Okay, our loop is no longer in the outer loop (and maybe not in some of
       // its parents as well). Make the fixup.
-      if (StillReachable != OuterLoop) {
+      if (Loop *StillReachable = getInnermostLoopFor(LiveExitBlocks, L, LI); StillReachable != OuterLoop) {
         LI.changeLoopFor(NewPreheader, StillReachable);
         removeBlockFromLoops(NewPreheader, OuterLoop, StillReachable);
         for (auto *BB : L.blocks())

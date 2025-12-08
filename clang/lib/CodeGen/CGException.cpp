@@ -132,8 +132,8 @@ const EHPersonality EHPersonality::ZOS_CPlusPlus = {"__zos_cxx_personality_v2",
 
 static const EHPersonality &getCPersonality(const TargetInfo &Target,
                                             const CodeGenOptions &CGOpts) {
-  const llvm::Triple &T = Target.getTriple();
-  if (T.isWindowsMSVCEnvironment())
+  
+  if (const llvm::Triple &T = Target.getTriple(); T.isWindowsMSVCEnvironment())
     return EHPersonality::MSVC_CxxFrameHandler3;
   if (CGOpts.hasSjLjExceptions())
     return EHPersonality::GNU_C_SJLJ;
@@ -281,8 +281,8 @@ static bool LandingPadHasOnlyCXXUses(llvm::LandingPadInst *LPI) {
   for (unsigned I = 0, E = LPI->getNumClauses(); I != E; ++I) {
     // Look for something that would've been returned by the ObjC
     // runtime's GetEHType() method.
-    llvm::Value *Val = LPI->getClause(I)->stripPointerCasts();
-    if (LPI->isCatch(I)) {
+    
+    if (llvm::Value *Val = LPI->getClause(I)->stripPointerCasts(); LPI->isCatch(I)) {
       // Check if the catch value has the ObjC prefix.
       if (llvm::GlobalVariable *GV = dyn_cast<llvm::GlobalVariable>(Val))
         // ObjC EH selector entries are always global variables with
@@ -449,8 +449,8 @@ void CodeGenFunction::EmitCXXThrowExpr(const CXXThrowExpr *E,
   // and the target is a GPU, we do not support exception handling.
   // Therefore, we emit a trap which will abort the program, and
   // prompt a warning indicating that a trap will be emitted.
-  const llvm::Triple &T = Target.getTriple();
-  if (CGM.getLangOpts().OpenMPIsTargetDevice && T.isGPU()) {
+  
+  if (const llvm::Triple &T = Target.getTriple(); CGM.getLangOpts().OpenMPIsTargetDevice && T.isGPU()) {
     EmitTrapCall(llvm::Intrinsic::trap);
     return;
   }
@@ -642,8 +642,8 @@ void CodeGenFunction::EnterCXXTryStmt(const CXXTryStmt &S, bool IsFnTryBlock) {
   for (unsigned I = 0; I != NumHandlers; ++I) {
     const CXXCatchStmt *C = S.getHandler(I);
 
-    llvm::BasicBlock *Handler = createBasicBlock("catch");
-    if (C->getExceptionDecl()) {
+    
+    if (llvm::BasicBlock *Handler = createBasicBlock("catch"); C->getExceptionDecl()) {
       // FIXME: Dropping the reference type on the type into makes it
       // impossible to correctly implement catch-by-reference
       // semantics for pointers.  Unfortunately, this is what all
@@ -690,8 +690,8 @@ CodeGenFunction::getEHDispatchBlock(EHScopeStack::stable_iterator si) {
     switch (scope.getKind()) {
     case EHScope::Catch: {
       // Apply a special case to a single catch-all.
-      EHCatchScope &catchScope = cast<EHCatchScope>(scope);
-      if (catchScope.getNumHandlers() == 1 &&
+      
+      if (EHCatchScope &catchScope = cast<EHCatchScope>(scope); catchScope.getNumHandlers() == 1 &&
           catchScope.getHandler(0).isCatchAll()) {
         dispatchBlock = catchScope.getHandler(0).Block;
 
@@ -1544,9 +1544,9 @@ llvm::BasicBlock *CodeGenFunction::getTerminateLandingPad() {
   Builder.SetInsertPoint(TerminateLandingPad);
 
   // Tell the backend that this is a landing pad.
-  const EHPersonality &Personality = EHPersonality::get(*this);
+  
 
-  if (!CurFn->hasPersonalityFn())
+  if (const EHPersonality &Personality = EHPersonality::get(*this); !CurFn->hasPersonalityFn())
     CurFn->setPersonalityFn(getOpaquePersonalityFn(CGM, Personality));
 
   llvm::LandingPadInst *LPadInst =
@@ -1639,8 +1639,8 @@ llvm::BasicBlock *CodeGenFunction::getEHResumeBlock(bool isCleanup) {
 
   // This can always be a call because we necessarily didn't find
   // anything on the EH stack which needs our help.
-  const char *RethrowName = Personality.CatchallRethrowFn;
-  if (RethrowName != nullptr && !isCleanup) {
+  
+  if (const char *RethrowName = Personality.CatchallRethrowFn; RethrowName != nullptr && !isCleanup) {
     EmitRuntimeCall(getCatchallRethrowFn(CGM, RethrowName),
                     getExceptionFromSlot())->setDoesNotReturn();
     Builder.CreateUnreachable();
@@ -1716,8 +1716,8 @@ void CodeGenFunction::VolatilizeTryBlocks(
       }
     }
   }
-  const llvm::Instruction *TI = BB->getTerminator();
-  if (TI) {
+  
+  if (const llvm::Instruction *TI = BB->getTerminator(); TI) {
     unsigned N = TI->getNumSuccessors();
     for (unsigned I = 0; I < N; I++)
       VolatilizeTryBlocks(TI->getSuccessor(I), V);
@@ -1818,8 +1818,8 @@ struct CaptureFinder : ConstStmtVisitor<CaptureFinder> {
     if (ParentCGF.getTarget().getTriple().getArch() != llvm::Triple::x86)
       return;
 
-    unsigned ID = E->getBuiltinCallee();
-    switch (ID) {
+    
+    switch (unsigned ID = E->getBuiltinCallee(); ID) {
     case Builtin::BI__exception_code:
     case Builtin::BI_exception_code:
       // This is the simple case where we are the outermost finally. All we
@@ -2026,8 +2026,8 @@ void CodeGenFunction::startOutlinedSEHHelper(CodeGenFunction &ParentCGF,
     llvm::raw_svector_ostream OS(Name);
     GlobalDecl ParentSEHFn = ParentCGF.CurSEHParent;
     assert(ParentSEHFn && "No CurSEHParent!");
-    MangleContext &Mangler = CGM.getCXXABI().getMangleContext();
-    if (IsFilter)
+    
+    if (MangleContext &Mangler = CGM.getCXXABI().getMangleContext(); IsFilter)
       Mangler.mangleSEHFilterExpression(ParentSEHFn, OS);
     else
       Mangler.mangleSEHFinallyBlock(ParentSEHFn, OS);
@@ -2193,10 +2193,10 @@ void CodeGenFunction::EnterSEHTryStmt(const SEHTryStmt &S) {
   // If the filter is known to evaluate to 1, then we can use the clause
   // "catch i8* null". We can't do this on x86 because the filter has to save
   // the exception code.
-  llvm::Constant *C =
+  
+  if (llvm::Constant *C =
     ConstantEmitter(*this).tryEmitAbstract(Except->getFilterExpr(),
-                                           getContext().IntTy);
-  if (CGM.getTarget().getTriple().getArch() != llvm::Triple::x86 && C &&
+                                           getContext().IntTy); CGM.getTarget().getTriple().getArch() != llvm::Triple::x86 && C &&
       C->isOneValue()) {
     CatchScope->setCatchAllHandler(0, createBasicBlock("__except"));
     return;

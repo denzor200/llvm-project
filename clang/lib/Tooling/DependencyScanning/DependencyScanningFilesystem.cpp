@@ -272,8 +272,8 @@ DependencyScanningWorkerFilesystem::findEntryByFilenameWithWriteThrough(
     StringRef Filename) {
   if (const auto *Entry = LocalCache.findEntryByFilename(Filename))
     return Entry;
-  auto &Shard = SharedCache.getShardForFilename(Filename);
-  if (const auto *Entry = Shard.findEntryByFilename(Filename))
+  
+  if (auto &Shard = SharedCache.getShardForFilename(Filename); const auto *Entry = Shard.findEntryByFilename(Filename))
     return &LocalCache.insertEntryForFilename(Filename, *Entry);
   return nullptr;
 }

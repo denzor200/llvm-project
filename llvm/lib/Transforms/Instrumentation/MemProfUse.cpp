@@ -422,8 +422,8 @@ handleAllocSite(Instruction &I, CallBase *CI,
       continue;
     // Keep the larger one, or the noncold one if they are the same size.
     auto CurSize = It->second->Info.getTotalSize();
-    auto NewSize = AllocInfo->Info.getTotalSize();
-    if ((CurSize > NewSize) ||
+    
+    if (auto NewSize = AllocInfo->Info.getTotalSize(); (CurSize > NewSize) ||
         (CurSize == NewSize &&
          getAllocType(AllocInfo) != AllocationType::NotCold))
       continue;
@@ -762,12 +762,12 @@ PreservedAnalyses MemProfUsePass::run(Module &M, ModuleAnalysisManager &AM) {
     return PreservedAnalyses::all();
   }
 
-  const bool Changed =
-      annotateGlobalVariables(M, MemProfReader->getDataAccessProfileData());
+  
 
   // If the module doesn't contain any function, return after we process all
   // global variables.
-  if (M.empty())
+  if (const bool Changed =
+      annotateGlobalVariables(M, MemProfReader->getDataAccessProfileData()); M.empty())
     return Changed ? PreservedAnalyses::none() : PreservedAnalyses::all();
 
   auto &FAM = AM.getResult<FunctionAnalysisManagerModuleProxy>(M).getManager();

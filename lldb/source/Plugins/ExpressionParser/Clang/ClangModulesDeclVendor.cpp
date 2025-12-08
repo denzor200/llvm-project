@@ -184,8 +184,8 @@ void StoringDiagnosticConsumer::EndSourceFile() {
 
 bool StoringDiagnosticConsumer::HandleModuleRemark(
     const clang::Diagnostic &info) {
-  Log *log = GetLog(LLDBLog::Types | LLDBLog::Expressions);
-  switch (info.getID()) {
+  
+  switch (Log *log = GetLog(LLDBLog::Types | LLDBLog::Expressions); info.getID()) {
   case clang::diag::remark_module_build: {
     const auto &module_name = info.getArgStdStr(0);
     SetCurrentModuleProgress(module_name);
@@ -309,11 +309,11 @@ ClangModulesDeclVendorImpl::AddModule(const SourceModule &module,
     auto sysroot_begin = llvm::sys::path::begin(module.sysroot.GetStringRef());
     auto sysroot_end = llvm::sys::path::end(module.sysroot.GetStringRef());
     // FIXME: Use C++14 std::equal(it, it, it, it) variant once it's available.
-    bool is_system_module = (std::distance(path_begin, path_end) >=
-                             std::distance(sysroot_begin, sysroot_end)) &&
-                            std::equal(sysroot_begin, sysroot_end, path_begin);
+    
     // No need to inject search paths to modules in the sysroot.
-    if (!is_system_module) {
+    if (bool is_system_module = (std::distance(path_begin, path_end) >=
+                             std::distance(sysroot_begin, sysroot_end)) &&
+                            std::equal(sysroot_begin, sysroot_end, path_begin); !is_system_module) {
       bool is_system = true;
       bool is_framework = false;
       auto dir = HS.getFileMgr().getOptionalDirectoryRef(
@@ -602,11 +602,11 @@ void ClangModulesDeclVendorImpl::ForEachMacro(
               macro_expansion.append(token_str);
             } else {
               bool invalid = false;
-              const char *literal_source =
-                  m_compiler_instance->getSourceManager().getCharacterData(
-                      ti->getLocation(), &invalid);
+              
 
-              if (invalid) {
+              if (const char *literal_source =
+                  m_compiler_instance->getSourceManager().getCharacterData(
+                      ti->getLocation(), &invalid); invalid) {
                 lldbassert(0 && "Unhandled token kind");
                 macro_expansion.append("<unknown literal value>");
               } else {

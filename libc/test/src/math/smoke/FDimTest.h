@@ -75,9 +75,9 @@ public:
         continue;
 
       T x = xbits.get_val();
-      T y = ybits.get_val();
+      
 
-      if (x > y) {
+      if (T y = ybits.get_val(); x > y) {
         EXPECT_FP_EQ(x - y, func(x, y));
       } else {
         EXPECT_FP_EQ(zero, func(x, y));

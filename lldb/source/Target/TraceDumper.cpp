@@ -92,10 +92,10 @@ IsSameInstructionSymbolContext(const TraceDumper::SymbolInfo &prev_insn,
 
   Block *inline_block_a =
       insn.sc.block ? insn.sc.block->GetContainingInlinedBlock() : nullptr;
-  Block *inline_block_b = prev_insn.sc.block
+  
+  if (Block *inline_block_b = prev_insn.sc.block
                               ? prev_insn.sc.block->GetContainingInlinedBlock()
-                              : nullptr;
-  if (inline_block_a != inline_block_b)
+                              : nullptr; inline_block_a != inline_block_b)
     return false;
 
   // line entry checks
@@ -217,8 +217,8 @@ private:
         /*show_function_arguments=*/true,
         /*show_function_name=*/true);
     m_s << " to ";
-    const SymbolContext &last_sc = segment.GetLastInstructionSymbolInfo().sc;
-    if (IsLineEntryValid(first_sc.line_entry) &&
+    
+    if (const SymbolContext &last_sc = segment.GetLastInstructionSymbolInfo().sc; IsLineEntryValid(first_sc.line_entry) &&
         IsLineEntryValid(last_sc.line_entry)) {
       m_s.Format("{0}:{1}", last_sc.line_entry.line, last_sc.line_entry.column);
     } else {
@@ -238,8 +238,8 @@ private:
     }
     const SymbolContext &sc = function_call.GetSymbolInfo().sc;
 
-    const char *module_name = GetModuleName(sc);
-    if (!module_name)
+    
+    if (const char *module_name = GetModuleName(sc); !module_name)
       m_s << "(none)";
     else if (!sc.function && !sc.symbol)
       m_s << module_name << "`(none)";

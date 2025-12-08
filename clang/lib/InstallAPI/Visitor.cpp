@@ -309,11 +309,11 @@ static bool hasVTable(const CXXRecordDecl *D) {
   assert(D->isExternallyVisible() && "Should be externally visible");
   assert(D->isCompleteDefinition() && "Only works on complete definitions");
 
-  const CXXMethodDecl *KeyFunctionD =
-      D->getASTContext().getCurrentKeyFunction(D);
+  
   // If this class has a key function, then there is a vtable, possibly internal
   // though.
-  if (KeyFunctionD) {
+  if (const CXXMethodDecl *KeyFunctionD =
+      D->getASTContext().getCurrentKeyFunction(D); KeyFunctionD) {
     switch (KeyFunctionD->getTemplateSpecializationKind()) {
     case TSK_Undeclared:
     case TSK_ExplicitSpecialization:
@@ -350,9 +350,9 @@ static CXXLinkage getVTableLinkage(const CXXRecordDecl *D) {
   if (D->getVisibility() == HiddenVisibility)
     return CXXLinkage::PrivateLinkage;
 
-  const CXXMethodDecl *KeyFunctionD =
-      D->getASTContext().getCurrentKeyFunction(D);
-  if (KeyFunctionD) {
+  
+  if (const CXXMethodDecl *KeyFunctionD =
+      D->getASTContext().getCurrentKeyFunction(D); KeyFunctionD) {
     // If this class has a key function, use that to determine the
     // linkage of the vtable.
     switch (KeyFunctionD->getTemplateSpecializationKind()) {
@@ -450,8 +450,8 @@ std::string InstallAPIVisitor::getMangledCXXThunk(
     const GlobalDecl &D, const ThunkInfo &Thunk, bool ElideOverrideInfo) const {
   SmallString<256> Name;
   raw_svector_ostream NameStream(Name);
-  const auto *Method = cast<CXXMethodDecl>(D.getDecl());
-  if (const auto *Dtor = dyn_cast<CXXDestructorDecl>(Method))
+  
+  if (const auto *Method = cast<CXXMethodDecl>(D.getDecl()); const auto *Dtor = dyn_cast<CXXDestructorDecl>(Method))
     MC->mangleCXXDtorThunk(Dtor, D.getDtorType(), Thunk, ElideOverrideInfo,
                            NameStream);
   else

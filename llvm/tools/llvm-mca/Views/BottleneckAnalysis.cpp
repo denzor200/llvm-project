@@ -114,8 +114,8 @@ void PressureTracker::handlePressureEvent(const HWPressureEvent &Event) {
 
     for (const InstRef &IR : Event.AffectedInstructions) {
       const Instruction &IS = *IR.getInstruction();
-      unsigned BusyResources = IS.getCriticalResourceMask() & ResourceMask;
-      if (!BusyResources)
+      
+      if (unsigned BusyResources = IS.getCriticalResourceMask() & ResourceMask; !BusyResources)
         continue;
 
       unsigned IID = IR.getSourceIndex();
@@ -191,8 +191,8 @@ void DependencyGraph::pruneEdges(unsigned Iterations) {
 void DependencyGraph::initializeRootSet(
     SmallVectorImpl<unsigned> &RootSet) const {
   for (unsigned I = 0, E = Nodes.size(); I < E; ++I) {
-    const DGNode &N = Nodes[I];
-    if (N.NumPredecessors == 0 && !N.OutgoingEdges.empty())
+    
+    if (const DGNode &N = Nodes[I]; N.NumPredecessors == 0 && !N.OutgoingEdges.empty())
       RootSet.emplace_back(I);
   }
 }
@@ -237,11 +237,11 @@ void DependencyGraph::propagateThroughEdges(SmallVectorImpl<unsigned> &RootSet,
       for (const DependencyEdge &DepEdge : N.OutgoingEdges) {
         unsigned ToIID = DepEdge.ToIID;
         DGNode &To = Nodes[ToIID];
-        uint64_t Cost = N.Cost + DepEdge.Dep.Cost;
+        
         // Check if this is the most expensive incoming edge seen so far.  In
         // case, update the total cost of the destination node (ToIID), as well
         // its field `CriticalPredecessor`.
-        if (Cost > To.Cost) {
+        if (uint64_t Cost = N.Cost + DepEdge.Dep.Cost; Cost > To.Cost) {
           To.CriticalPredecessor = DepEdge;
           To.Cost = Cost;
           To.Depth = N.Depth + 1;
@@ -424,11 +424,11 @@ void DependencyGraph::addDependency(unsigned From, unsigned To,
   DGNode &NodeTo = Nodes[To];
   SmallVectorImpl<DependencyEdge> &Vec = NodeFrom.OutgoingEdges;
 
-  auto It = find_if(Vec, [To, Dep](DependencyEdge &DE) {
-    return DE.ToIID == To && DE.Dep.ResourceOrRegID == Dep.ResourceOrRegID;
-  });
+  
 
-  if (It != Vec.end()) {
+  if (auto It = find_if(Vec, [To, Dep](DependencyEdge &DE) {
+    return DE.ToIID == To && DE.Dep.ResourceOrRegID == Dep.ResourceOrRegID;
+  }); It != Vec.end()) {
     It->Dep.Cost += Dep.Cost;
     It->Frequency++;
     return;
@@ -611,8 +611,8 @@ void BottleneckAnalysis::printBottleneckHints(raw_ostream &OS) const {
     ArrayRef<unsigned> Distribution = Tracker.getResourcePressureDistribution();
     const MCSchedModel &SM = getSubTargetInfo().getSchedModel();
     for (unsigned I = 0, E = Distribution.size(); I < E; ++I) {
-      unsigned ReleaseAtCycles = Distribution[I];
-      if (ReleaseAtCycles) {
+      
+      if (unsigned ReleaseAtCycles = Distribution[I]; ReleaseAtCycles) {
         double Frequency = (double)ReleaseAtCycles * 100 / TotalCycles;
         const MCProcResourceDesc &PRDesc = *SM.getProcResource(I);
         OS << "\n  - " << PRDesc.Name << "  [ "
@@ -665,8 +665,8 @@ json::Value BottleneckAnalysis::toJSON() const {
     ArrayRef<unsigned> Distribution = Tracker.getResourcePressureDistribution();
     const MCSchedModel &SM = getSubTargetInfo().getSchedModel();
     for (unsigned I = 0, E = Distribution.size(); I < E; ++I) {
-      unsigned ReleaseAtCycles = Distribution[I];
-      if (ReleaseAtCycles) {
+      
+      if (unsigned ReleaseAtCycles = Distribution[I]; ReleaseAtCycles) {
         const MCProcResourceDesc &PRDesc = *SM.getProcResource(I);
         json::Object RPJO({{PRDesc.Name, ReleaseAtCycles}});
         ResourcePressure.push_back(std::move(RPJO));

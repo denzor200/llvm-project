@@ -73,8 +73,8 @@ bool WebAssemblyLowerBrUnless::runOnMachineFunction(MachineFunction &MF) {
       // Attempt to invert the condition in place.
       if (MFI.isVRegStackified(Cond)) {
         assert(MRI.hasOneDef(Cond));
-        MachineInstr *Def = MRI.getVRegDef(Cond);
-        switch (Def->getOpcode()) {
+        
+        switch (MachineInstr *Def = MRI.getVRegDef(Cond); Def->getOpcode()) {
           using namespace WebAssembly;
         case EQ_I32:
           Def->setDesc(TII.get(NE_I32));

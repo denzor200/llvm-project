@@ -108,9 +108,9 @@ void zlib::compress(ArrayRef<uint8_t> Input,
                     SmallVectorImpl<uint8_t> &CompressedBuffer, int Level) {
   unsigned long CompressedSize = ::compressBound(Input.size());
   CompressedBuffer.resize_for_overwrite(CompressedSize);
-  int Res = ::compress2((Bytef *)CompressedBuffer.data(), &CompressedSize,
-                        (const Bytef *)Input.data(), Input.size(), Level);
-  if (Res == Z_MEM_ERROR)
+  
+  if (int Res = ::compress2((Bytef *)CompressedBuffer.data(), &CompressedSize,
+                        (const Bytef *)Input.data(), Input.size(), Level); Res == Z_MEM_ERROR)
     report_bad_alloc_error("Allocation failed");
   assert(Res == Z_OK);
   // Tell MemorySanitizer that zlib output buffer is fully initialized.

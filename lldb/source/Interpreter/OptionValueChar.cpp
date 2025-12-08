@@ -52,8 +52,8 @@ Status OptionValueChar::SetValueFromString(llvm::StringRef value,
   case eVarSetOperationReplace:
   case eVarSetOperationAssign: {
     bool success = false;
-    char char_value = OptionArgParser::ToChar(value, '\0', &success);
-    if (success) {
+    
+    if (char char_value = OptionArgParser::ToChar(value, '\0', &success); success) {
       m_current_value = char_value;
       m_value_was_set = true;
     } else

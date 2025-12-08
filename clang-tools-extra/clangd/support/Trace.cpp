@@ -98,12 +98,12 @@ private:
       // Instead we send the complete (X) event in the destructor.
 
       // If our parent was on a different thread, add an arrow to this span.
-      auto *Parent = Context::current().get(SpanKey);
-      if (Parent && *Parent && (*Parent)->TID != TID) {
+      
+      if (auto *Parent = Context::current().get(SpanKey); Parent && *Parent && (*Parent)->TID != TID) {
         // If the parent span ended already, then show this as "following" it.
         // Otherwise show us as "parallel".
-        double OriginTime = (*Parent)->EndTime;
-        if (!OriginTime)
+        
+        if (double OriginTime = (*Parent)->EndTime; !OriginTime)
           OriginTime = (*Parent)->StartTime;
 
         auto FlowID = nextID();

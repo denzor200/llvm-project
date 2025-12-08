@@ -499,13 +499,13 @@ void mlir::affine::normalizeAffineParallel(AffineParallelOp op) {
   AffineMap lbMap = op.getLowerBoundsMap();
   SmallVector<int64_t, 8> steps = op.getSteps();
   // No need to do any work if the parallel op is already normalized.
-  bool isAlreadyNormalized =
+  
+  if (bool isAlreadyNormalized =
       llvm::all_of(llvm::zip(steps, lbMap.getResults()), [](auto tuple) {
         int64_t step = std::get<0>(tuple);
         auto lbExpr = dyn_cast<AffineConstantExpr>(std::get<1>(tuple));
         return lbExpr && lbExpr.getValue() == 0 && step == 1;
-      });
-  if (isAlreadyNormalized)
+      }); isAlreadyNormalized)
     return;
 
   AffineValueMap ranges;
@@ -661,8 +661,8 @@ static bool mayHaveEffect(Operation *srcMemOp, Operation *destMemOp,
   // AffineScope. Also, we can only check if our affine scope is isolated from
   // above; otherwise, values can from outside of the affine scope that the
   // check below cannot analyze.
-  Region *srcScope = getAffineAnalysisScope(srcMemOp);
-  if (srcAccess.memref == destAccess.memref &&
+  
+  if (Region *srcScope = getAffineAnalysisScope(srcMemOp); srcAccess.memref == destAccess.memref &&
       srcScope == getAffineAnalysisScope(destMemOp)) {
     unsigned nsLoops = getNumCommonSurroundingLoops(*srcMemOp, *destMemOp);
     FlatAffineValueConstraints dependenceConstraints;
@@ -727,9 +727,9 @@ bool mlir::affine::hasNoInterveningEffect(
         // need to consider other potential stores with depth >
         // minSurroundingLoops since `start` would overwrite any store with a
         // smaller number of surrounding loops before.
-        unsigned minSurroundingLoops =
-            getNumCommonSurroundingLoops(*start, *memOp);
-        if (mayHaveEffect(op, memOp, minSurroundingLoops))
+        
+        if (unsigned minSurroundingLoops =
+            getNumCommonSurroundingLoops(*start, *memOp); mayHaveEffect(op, memOp, minSurroundingLoops))
           hasSideEffect = true;
         return;
       }

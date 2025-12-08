@@ -75,9 +75,9 @@ bool lldb_private::formatters::NSBundleSummaryProvider(
       return false;
 
     StreamString summary_stream;
-    bool was_nsstring_ok =
-        NSStringSummaryProvider(*text, summary_stream, options);
-    if (was_nsstring_ok && summary_stream.GetSize() > 0) {
+    
+    if (bool was_nsstring_ok =
+        NSStringSummaryProvider(*text, summary_stream, options); was_nsstring_ok && summary_stream.GetSize() > 0) {
       stream.Printf("%s", summary_stream.GetData());
       return true;
     }
@@ -124,9 +124,9 @@ bool lldb_private::formatters::NSTimeZoneSummaryProvider(
       return false;
 
     StreamString summary_stream;
-    bool was_nsstring_ok =
-        NSStringSummaryProvider(*text, summary_stream, options);
-    if (was_nsstring_ok && summary_stream.GetSize() > 0) {
+    
+    if (bool was_nsstring_ok =
+        NSStringSummaryProvider(*text, summary_stream, options); was_nsstring_ok && summary_stream.GetSize() > 0) {
       stream.Printf("%s", summary_stream.GetData());
       return true;
     }
@@ -173,9 +173,9 @@ bool lldb_private::formatters::NSNotificationSummaryProvider(
       return false;
 
     StreamString summary_stream;
-    bool was_nsstring_ok =
-        NSStringSummaryProvider(*text, summary_stream, options);
-    if (was_nsstring_ok && summary_stream.GetSize() > 0) {
+    
+    if (bool was_nsstring_ok =
+        NSStringSummaryProvider(*text, summary_stream, options); was_nsstring_ok && summary_stream.GetSize() > 0) {
       stream.Printf("%s", summary_stream.GetData());
       return true;
     }
@@ -978,9 +978,9 @@ bool lldb_private::formatters::NSDateSummaryProvider(
 
   // Accomodate for the __NSTaggedDate format introduced in Foundation 1600.
   if (class_name == g_NSTaggedDate) {
-    auto *runtime = llvm::dyn_cast_or_null<AppleObjCRuntime>(
-        ObjCLanguageRuntime::Get(*process_sp));
-    if (runtime && runtime->GetFoundationVersion() >= 1600)
+    
+    if (auto *runtime = llvm::dyn_cast_or_null<AppleObjCRuntime>(
+        ObjCLanguageRuntime::Get(*process_sp)); runtime && runtime->GetFoundationVersion() >= 1600)
       date_value = decodeTaggedTimeInterval(value_bits << 4);
   }
 
@@ -1141,8 +1141,8 @@ bool lldb_private::formatters::ObjCBOOLSummaryProvider(
     if (!real_guy_sp)
       return false;
   }
-  int8_t value = (real_guy_sp->GetValueAsSigned(0) & 0xFF);
-  switch (value) {
+  
+  switch (int8_t value = (real_guy_sp->GetValueAsSigned(0) & 0xFF); value) {
   case 0:
     stream.Printf("NO");
     break;

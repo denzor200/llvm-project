@@ -668,8 +668,8 @@ static void emitLeafTable(const DirectiveLanguage &DirLang, raw_ostream &OS,
     int DirA = LeavesA[0], DirB = LeavesB[0];
     // First of all, end directives compare greater than non-end directives.
     bool IsEndA = EndDirectives.contains(DirA);
-    bool IsEndB = EndDirectives.contains(DirB);
-    if (IsEndA != IsEndB)
+    
+    if (bool IsEndB = EndDirectives.contains(DirB); IsEndA != IsEndB)
       return IsEndA < IsEndB;
     if (LeavesA[1] == 0 && LeavesB[1] == 0)
       return DirA < DirB;
@@ -695,8 +695,8 @@ static void emitLeafTable(const DirectiveLanguage &DirLang, raw_ostream &OS,
     OS << "    {" << Qual << getIdentifierName(Directives[Leaves[0]], Prefix);
     OS << ", static_cast<" << DirectiveType << ">(" << Leaves[1] << "),";
     for (size_t I = 2, E = Leaves.size(); I != E; ++I) {
-      int Idx = Leaves[I];
-      if (Idx >= 0)
+      
+      if (int Idx = Leaves[I]; Idx >= 0)
         OS << ' ' << Qual << getIdentifierName(Directives[Leaves[I]], Prefix)
            << ',';
       else
@@ -757,10 +757,10 @@ static void generateGetDirectiveAssociation(const DirectiveLanguage &DirLang,
 
   auto GetAssocName = [&](Association A) -> StringRef {
     if (A != Association::Invalid && A != Association::FromLeaves) {
-      const auto *F = find_if(Associations, [&](const Record *R) {
+      
+      if (const auto *F = find_if(Associations, [&](const Record *R) {
         return GetAssocValue(R->getName()) == A;
-      });
-      if (F != Associations.end())
+      }); F != Associations.end())
         return (*F)->getValueAsString("name"); // enum name
     }
     llvm_unreachable("Unexpected association value");

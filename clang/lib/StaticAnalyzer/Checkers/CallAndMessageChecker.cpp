@@ -149,8 +149,8 @@ static void describeUninitializedArgumentInCall(const CallEvent &Call,
                                                 llvm::raw_svector_ostream &Os) {
   switch (Call.getKind()) {
   case CE_ObjCMessage: {
-    const ObjCMethodCall &Msg = cast<ObjCMethodCall>(Call);
-    switch (Msg.getMessageKind()) {
+    
+    switch (const ObjCMethodCall &Msg = cast<ObjCMethodCall>(Call); Msg.getMessageKind()) {
     case OCM_Message:
       Os << (ArgumentNumber + 1) << llvm::getOrdinalSuffix(ArgumentNumber + 1)
          << " argument in message expression is an uninitialized value";
@@ -637,9 +637,9 @@ void CallAndMessageChecker::HandleNilReceiver(CheckerContext &C,
                                   .isConsumedExpr(Msg.getOriginExpr())) {
     // Compute: sizeof(void *) and sizeof(return type)
     const uint64_t voidPtrSize = Ctx.getTypeSize(Ctx.VoidPtrTy);
-    const uint64_t returnTypeSize = Ctx.getTypeSize(CanRetTy);
+    
 
-    if (CanRetTy.getTypePtr()->isReferenceType()||
+    if (const uint64_t returnTypeSize = Ctx.getTypeSize(CanRetTy); CanRetTy.getTypePtr()->isReferenceType()||
         (voidPtrSize < returnTypeSize &&
          !(supportsNilWithFloatRet(Ctx.getTargetInfo().getTriple()) &&
            (Ctx.FloatTy == CanRetTy ||

@@ -72,11 +72,11 @@ Expected<std::unique_ptr<ObjectFile>>
 ObjectFile::createELFObjectFile(MemoryBufferRef Obj, bool InitContent) {
   std::pair<unsigned char, unsigned char> Ident =
       getElfArchType(Obj.getBuffer());
-  std::size_t MaxAlignment =
-      1ULL << llvm::countr_zero(
-          reinterpret_cast<uintptr_t>(Obj.getBufferStart()));
+  
 
-  if (MaxAlignment < 2)
+  if (std::size_t MaxAlignment =
+      1ULL << llvm::countr_zero(
+          reinterpret_cast<uintptr_t>(Obj.getBufferStart())); MaxAlignment < 2)
     return createError("Insufficient alignment");
 
   if (Ident.first == ELF::ELFCLASS32) {
@@ -370,9 +370,9 @@ SubtargetFeatures ELFObjectFileBase::getHexagonFeatures() const {
 
 Expected<SubtargetFeatures> ELFObjectFileBase::getRISCVFeatures() const {
   SubtargetFeatures Features;
-  unsigned PlatformFlags = getPlatformFlags();
+  
 
-  if (PlatformFlags & ELF::EF_RISCV_RVC) {
+  if (unsigned PlatformFlags = getPlatformFlags(); PlatformFlags & ELF::EF_RISCV_RVC) {
     Features.AddFeature("zca");
   }
 
@@ -455,9 +455,9 @@ std::optional<StringRef> ELFObjectFileBase::tryGetCPUName() const {
 
 StringRef ELFObjectFileBase::getAMDGPUCPUName() const {
   assert(getEMachine() == ELF::EM_AMDGPU);
-  unsigned CPU = getPlatformFlags() & ELF::EF_AMDGPU_MACH;
+  
 
-  switch (CPU) {
+  switch (unsigned CPU = getPlatformFlags() & ELF::EF_AMDGPU_MACH; CPU) {
   // Radeon HD 2000/3000 Series (R600).
   case ELF::EF_AMDGPU_MACH_R600_R600:
     return "r600";
@@ -626,12 +626,12 @@ StringRef ELFObjectFileBase::getAMDGPUCPUName() const {
 
 StringRef ELFObjectFileBase::getNVPTXCPUName() const {
   assert(getEMachine() == ELF::EM_CUDA);
-  unsigned SM = getEIdentABIVersion() == ELF::ELFABIVERSION_CUDA_V1
+  
+
+  switch (unsigned SM = getEIdentABIVersion() == ELF::ELFABIVERSION_CUDA_V1
                     ? getPlatformFlags() & ELF::EF_CUDA_SM
                     : (getPlatformFlags() & ELF::EF_CUDA_SM_MASK) >>
-                          ELF::EF_CUDA_SM_OFFSET;
-
-  switch (SM) {
+                          ELF::EF_CUDA_SM_OFFSET; SM) {
   // Fermi architecture.
   case ELF::EF_CUDA_SM20:
     return "sm_20";

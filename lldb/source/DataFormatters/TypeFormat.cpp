@@ -49,8 +49,8 @@ bool TypeFormatImpl_Format::FormatObject(ValueObject *valobj,
     DataExtractor data;
 
     if (context_type == Value::ContextType::RegisterInfo) {
-      const RegisterInfo *reg_info = value.GetRegisterInfo();
-      if (reg_info) {
+      
+      if (const RegisterInfo *reg_info = value.GetRegisterInfo(); reg_info) {
         Status error;
         valobj->GetData(data, error);
         if (error.Fail())

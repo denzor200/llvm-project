@@ -235,8 +235,8 @@ bool DWARFDebugInfoEntry::GetDIENamesAndRanges(
                                       cu);
             } else {
               DataExtractor data = cu->GetLocationData();
-              const dw_offset_t offset = form_value.Unsigned();
-              if (data.ValidOffset(offset)) {
+              
+              if (const dw_offset_t offset = form_value.Unsigned(); data.ValidOffset(offset)) {
                 data = DataExtractor(data, offset, data.GetByteSize() - offset);
                 if (lo_pc != LLDB_INVALID_ADDRESS) {
                   assert(lo_pc >= cu->GetBaseAddress());
@@ -423,9 +423,9 @@ dw_offset_t DWARFDebugInfoEntry::GetAttributeValue(
       DWARFDIE die = form_value.Reference();
       if (!die)
         continue;
-      dw_offset_t die_offset = die.GetDIE()->GetAttributeValue(
-          die.GetCU(), attr, form_value, end_attr_offset_ptr, false);
-      if (die_offset)
+      
+      if (dw_offset_t die_offset = die.GetDIE()->GetAttributeValue(
+          die.GetCU(), attr, form_value, end_attr_offset_ptr, false); die_offset)
         return die_offset;
     }
   }
@@ -613,8 +613,8 @@ const char *DWARFDebugInfoEntry::GetPubname(const DWARFUnit *cu) const {
 /// table instead of the compile unit offset.
 void DWARFDebugInfoEntry::BuildFunctionAddressRangeTable(
     DWARFUnit *cu, DWARFDebugAranges *debug_aranges) const {
-  Log *log = GetLog(DWARFLog::DebugInfo);
-  if (m_tag) {
+  
+  if (Log *log = GetLog(DWARFLog::DebugInfo); m_tag) {
     // Subprogram forward declarations don't have
     // DW_AT_ranges/DW_AT_low_pc/DW_AT_high_pc attributes, so don't even try
     // getting address range information for them.

@@ -182,8 +182,8 @@ static void ParseAndSetPath(const char *pattern, char *dest,
 
 void ReportFile::SetReportPath(const char *path) {
   if (path) {
-    uptr len = internal_strlen(path);
-    if (len > sizeof(path_prefix) - 100) {
+    
+    if (uptr len = internal_strlen(path); len > sizeof(path_prefix) - 100) {
       bool fallback = common_flags()->log_fallback_to_stderr;
       const char *message =
           fallback ? "WARNING: Path is too long, falling back to stderr: "
@@ -308,8 +308,8 @@ char *FindPathToBinary(const char *name) {
   const char *beg = path;
   while (true) {
     const char *end = internal_strchrnul(beg, kPathSeparator);
-    uptr prefix_len = end - beg;
-    if (prefix_len + name_len + 2 <= kMaxPathLength) {
+    
+    if (uptr prefix_len = end - beg; prefix_len + name_len + 2 <= kMaxPathLength) {
       internal_memcpy(buffer.data(), beg, prefix_len);
       buffer[prefix_len] = '/';
       internal_memcpy(&buffer[prefix_len + 1], name, name_len);

@@ -383,8 +383,8 @@ std::optional<SVal> StoreManager::evalBaseToDerived(SVal Base,
   // Derived{TargetClass, Element{SourceClass, SR}}?
   if (const auto *SR = dyn_cast<SymbolicRegion>(MR)) {
     QualType T = SR->getSymbol()->getType();
-    const CXXRecordDecl *SourceClass = T->getPointeeCXXRecordDecl();
-    if (TargetClass && SourceClass && TargetClass->isDerivedFrom(SourceClass))
+    
+    if (const CXXRecordDecl *SourceClass = T->getPointeeCXXRecordDecl(); TargetClass && SourceClass && TargetClass->isDerivedFrom(SourceClass))
       return loc::MemRegionVal(
           MRMgr.getCXXDerivedObjectRegion(TargetClass, SR));
     return loc::MemRegionVal(GetElementZeroRegion(SR, TargetType));
@@ -532,8 +532,8 @@ bool StoreManager::FindUniqueBinding::HandleBinding(StoreManager& SMgr,
                                                     Store store,
                                                     const MemRegion* R,
                                                     SVal val) {
-  SymbolRef SymV = val.getAsLocSymbol();
-  if (!SymV || SymV != Sym)
+  
+  if (SymbolRef SymV = val.getAsLocSymbol(); !SymV || SymV != Sym)
     return true;
 
   if (Binding) {

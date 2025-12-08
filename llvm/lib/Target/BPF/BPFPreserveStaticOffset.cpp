@@ -458,8 +458,8 @@ static void rewriteUses(Instruction *Insn,
                         SmallVector<Instruction *> &Visited, bool AllowPatial,
                         bool &StillUsed) {
   for (User *U : Insn->users()) {
-    auto *UI = dyn_cast<Instruction>(U);
-    if (UI && (isPointerOperand(Insn, UI) || isPreserveStaticOffsetCall(UI) ||
+    
+    if (auto *UI = dyn_cast<Instruction>(U); UI && (isPointerOperand(Insn, UI) || isPreserveStaticOffsetCall(UI) ||
                isInlineableCall(UI)))
       rewriteAccessChain(UI, GEPs, Visited, AllowPatial, StillUsed);
     else
@@ -660,8 +660,8 @@ static bool rewriteFunction(Function &F, bool AllowPartial) {
   for (auto *Call : MarkerCalls) {
     if (RemovedMarkers.contains(Call))
       continue;
-    bool StillUsed = rewriteAccessChain(Call, AllowPartial, RemovedMarkers);
-    if (!StillUsed || !AllowPartial)
+    
+    if (bool StillUsed = rewriteAccessChain(Call, AllowPartial, RemovedMarkers); !StillUsed || !AllowPartial)
       removeMarkerCall(Call);
   }
 

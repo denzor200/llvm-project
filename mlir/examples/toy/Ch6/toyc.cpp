@@ -313,8 +313,8 @@ int main(int argc, char **argv) {
     return error;
 
   // If we aren't exporting to non-mlir, then we are done.
-  bool isOutputingMLIR = emitAction <= Action::DumpMLIRLLVM;
-  if (isOutputingMLIR) {
+  
+  if (bool isOutputingMLIR = emitAction <= Action::DumpMLIRLLVM; isOutputingMLIR) {
     module->dump();
     return 0;
   }

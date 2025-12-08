@@ -268,9 +268,9 @@ static void hoistNonConstantDirectUses(AccConstructT accOp,
   accOp.walk([&](acc::AddressOfGlobalOpInterface addrOfOp) {
     SymbolRefAttr symRef = addrOfOp.getSymbol();
     if (symRef) {
-      Operation *globalOp =
-          SymbolTable::lookupNearestSymbolFrom(addrOfOp, symRef);
-      if (isGlobalUseCandidateForHoisting(globalOp, addrOfOp, symRef,
+      
+      if (Operation *globalOp =
+          SymbolTable::lookupNearestSymbolFrom(addrOfOp, symRef); isGlobalUseCandidateForHoisting(globalOp, addrOfOp, symRef,
                                           accSupport)) {
         addrOfOp->moveBefore(accOp);
         LLVM_DEBUG(
@@ -298,9 +298,9 @@ static void collectGlobalsFromDeviceRegion(Region &region,
       //    is whether this symbol is not already a device one (either because
       //    acc declare is already used or this is a CUF global).
       Operation *globalOp = nullptr;
-      bool isCandidate = !accSupport.isValidSymbolUse(op, symRef, &globalOp);
+      
       // 3) Add the candidate to the set of globals to be `acc declare`d.
-      if (isCandidate && globalOp && isValidForAccDeclare(globalOp))
+      if (bool isCandidate = !accSupport.isValidSymbolUse(op, symRef, &globalOp); isCandidate && globalOp && isValidForAccDeclare(globalOp))
         globals.insert(globalOp);
     } else if (auto indirectAccessOp =
                    dyn_cast<acc::IndirectGlobalAccessOpInterface>(op)) {

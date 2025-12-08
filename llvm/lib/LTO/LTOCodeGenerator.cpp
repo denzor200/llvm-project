@@ -313,9 +313,9 @@ bool LTOCodeGenerator::compileOptimizedToFile(const char **Name) {
         std::make_unique<llvm::raw_fd_ostream>(FD, true));
   };
 
-  bool genResult = compileOptimized(AddStream, 1);
+  
 
-  if (!genResult) {
+  if (bool genResult = compileOptimized(AddStream, 1); !genResult) {
     sys::fs::remove(Twine(Filename));
     return false;
   }

@@ -82,8 +82,8 @@ using FuncCallerMap = DenseMap<func::FuncOp, DenseSet<Operation *>>;
 /// Get or create FuncAnalysisState.
 static FuncAnalysisState &
 getOrCreateFuncAnalysisState(OneShotAnalysisState &state) {
-  auto *result = state.getExtension<FuncAnalysisState>();
-  if (result)
+  
+  if (auto *result = state.getExtension<FuncAnalysisState>(); result)
     return *result;
   return state.addExtension<FuncAnalysisState>();
 }
@@ -354,9 +354,9 @@ static LogicalResult getFuncOpsOrderedByCalls(
     orderedFuncOps.push_back(func);
 
     for (func::FuncOp caller : calledBy[func]) {
-      auto &count = numberCallOpsContainedInFuncOp[caller];
+      
 
-      if (--count == 0)
+      if (auto &count = numberCallOpsContainedInFuncOp[caller]; --count == 0)
         worklist.push_back(caller);
     }
 

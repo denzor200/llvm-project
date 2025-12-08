@@ -278,8 +278,8 @@ void LanaiTargetLowering::LowerAsmOperandForConstraint(
   if (Constraint.size() > 1)
     return;
 
-  char ConstraintLetter = Constraint[0];
-  switch (ConstraintLetter) {
+  
+  switch (char ConstraintLetter = Constraint[0]; ConstraintLetter) {
   case 'I': // Signed 16 bit constant
     // If this fails, the parent routine will give an error
     if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
@@ -319,8 +319,8 @@ void LanaiTargetLowering::LowerAsmOperandForConstraint(
     return;
   case 'M': // signed 32 bit immediate where lower 16 bits are 0
     if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
-      int64_t Val = C->getSExtValue();
-      if ((isInt<32>(Val)) && ((Val & 0xffff) == 0)) {
+      
+      if (int64_t Val = C->getSExtValue(); (isInt<32>(Val)) && ((Val & 0xffff) == 0)) {
         Result = DAG.getTargetConstant(Val, SDLoc(C), Op.getValueType());
         break;
       }
@@ -328,8 +328,8 @@ void LanaiTargetLowering::LowerAsmOperandForConstraint(
     return;
   case 'N': // signed 26 bit immediate
     if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
-      int64_t Val = C->getSExtValue();
-      if ((Val >= -33554432) && (Val <= 33554431)) {
+      
+      if (int64_t Val = C->getSExtValue(); (Val >= -33554432) && (Val <= 33554431)) {
         Result = DAG.getTargetConstant(Val, SDLoc(C), Op.getValueType());
         break;
       }
@@ -1036,8 +1036,8 @@ SDValue LanaiTargetLowering::LowerRETURNADDR(SDValue Op,
 
   EVT VT = Op.getValueType();
   SDLoc DL(Op);
-  unsigned Depth = Op.getConstantOperandVal(0);
-  if (Depth) {
+  
+  if (unsigned Depth = Op.getConstantOperandVal(0); Depth) {
     SDValue FrameAddr = LowerFRAMEADDR(Op, DAG);
     const unsigned Offset = -4;
     SDValue Ptr = DAG.getNode(ISD::ADD, DL, VT, FrameAddr,
@@ -1075,13 +1075,13 @@ SDValue LanaiTargetLowering::LowerConstantPool(SDValue Op,
   SDLoc DL(Op);
   ConstantPoolSDNode *N = cast<ConstantPoolSDNode>(Op);
   const Constant *C = N->getConstVal();
-  const LanaiTargetObjectFile *TLOF =
-      static_cast<const LanaiTargetObjectFile *>(
-          getTargetMachine().getObjFileLowering());
+  
 
   // If the code model is small or constant will be placed in the small section,
   // then assume address will fit in 21-bits.
-  if (getTargetMachine().getCodeModel() == CodeModel::Small ||
+  if (const LanaiTargetObjectFile *TLOF =
+      static_cast<const LanaiTargetObjectFile *>(
+          getTargetMachine().getObjFileLowering()); getTargetMachine().getCodeModel() == CodeModel::Small ||
       TLOF->isConstantInSmallSection(DAG.getDataLayout(), C)) {
     SDValue Small = DAG.getTargetConstantPool(
         C, MVT::i32, N->getAlign(), N->getOffset(), LanaiII::MO_NO_FLAG);
@@ -1115,8 +1115,8 @@ SDValue LanaiTargetLowering::LowerGlobalAddress(SDValue Op,
 
   // If the code model is small or global variable will be placed in the small
   // section, then assume address will fit in 21-bits.
-  const GlobalObject *GO = GV->getAliaseeObject();
-  if (TLOF->isGlobalInSmallSection(GO, getTargetMachine())) {
+  
+  if (const GlobalObject *GO = GV->getAliaseeObject(); TLOF->isGlobalInSmallSection(GO, getTargetMachine())) {
     SDValue Small = DAG.getTargetGlobalAddress(
         GV, DL, getPointerTy(DAG.getDataLayout()), Offset, LanaiII::MO_NO_FLAG);
     return DAG.getNode(ISD::OR, DL, MVT::i32,
@@ -1156,10 +1156,10 @@ SDValue LanaiTargetLowering::LowerBlockAddress(SDValue Op,
 SDValue LanaiTargetLowering::LowerJumpTable(SDValue Op,
                                             SelectionDAG &DAG) const {
   SDLoc DL(Op);
-  JumpTableSDNode *JT = cast<JumpTableSDNode>(Op);
+  
 
   // If the code model is small assume address will fit in 21-bits.
-  if (getTargetMachine().getCodeModel() == CodeModel::Small) {
+  if (JumpTableSDNode *JT = cast<JumpTableSDNode>(Op); getTargetMachine().getCodeModel() == CodeModel::Small) {
     SDValue Small = DAG.getTargetJumpTable(
         JT->getIndex(), getPointerTy(DAG.getDataLayout()), LanaiII::MO_NO_FLAG);
     return DAG.getNode(ISD::OR, DL, MVT::i32,
@@ -1435,8 +1435,8 @@ SDValue LanaiTargetLowering::PerformDAGCombine(SDNode *N,
 void LanaiTargetLowering::computeKnownBitsForTargetNode(
     const SDValue Op, KnownBits &Known, const APInt &DemandedElts,
     const SelectionDAG &DAG, unsigned Depth) const {
-  unsigned BitWidth = Known.getBitWidth();
-  switch (Op.getOpcode()) {
+  
+  switch (unsigned BitWidth = Known.getBitWidth(); Op.getOpcode()) {
   default:
     break;
   case LanaiISD::SETCC:

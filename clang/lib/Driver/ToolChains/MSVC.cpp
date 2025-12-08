@@ -853,8 +853,8 @@ static void TranslateOptArg(Arg *A, llvm::opt::DerivedArgList &DAL,
 
   StringRef OptStr = A->getValue();
   for (size_t I = 0, E = OptStr.size(); I != E; ++I) {
-    const char &OptChar = *(OptStr.data() + I);
-    switch (OptChar) {
+    
+    switch (const char &OptChar = *(OptStr.data() + I); OptChar) {
     default:
       break;
     case '1':
@@ -995,8 +995,8 @@ MSVCToolChain::TranslateArgs(const llvm::opt::DerivedArgList &Args,
     StringRef OptStr = A->getValue();
     for (size_t I = 0, E = OptStr.size(); I != E; ++I) {
       char OptChar = OptStr[I];
-      char PrevChar = I > 0 ? OptStr[I - 1] : '0';
-      if (PrevChar == 'b') {
+      
+      if (char PrevChar = I > 0 ? OptStr[I - 1] : '0'; PrevChar == 'b') {
         // OptChar does not expand; it's an argument to the previous char.
         continue;
       }

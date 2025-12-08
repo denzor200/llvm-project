@@ -363,8 +363,8 @@ static int AssembleInput(const char *ProgName, const Target *TheTarget,
     return 1;
   }
 
-  int SymbolResult = fillCommandLineSymbols(*Parser);
-  if(SymbolResult)
+  
+  if(int SymbolResult = fillCommandLineSymbols(*Parser); SymbolResult)
     return SymbolResult;
   Parser->setShowParsedOperands(ShowInstOperands);
   Parser->setTargetParser(*TAP);

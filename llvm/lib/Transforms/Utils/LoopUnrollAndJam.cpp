@@ -152,8 +152,8 @@ static bool processHeaderPhiOperands(BasicBlock *Header, BasicBlock *Latch,
   };
 
   for (auto &Phi : Header->phis()) {
-    Value *V = Phi.getIncomingValueForBlock(Latch);
-    if (Instruction *I = dyn_cast<Instruction>(V))
+    
+    if (Value *V = Phi.getIncomingValueForBlock(Latch); Instruction *I = dyn_cast<Instruction>(V))
       if (!ProcessInstr(I))
         return false;
   }
@@ -964,8 +964,8 @@ bool llvm::isSafeToUnrollAndJam(Loop *L, ScalarEvolution &SE, DominatorTree &DT,
   BasicBlock *Header = L->getHeader();
   BasicBlock *Latch = L->getLoopLatch();
   BasicBlockSet AftBlocks = AftBlocksMap[L];
-  Loop *SubLoop = L->getSubLoops()[0];
-  if (!processHeaderPhiOperands(
+  
+  if (Loop *SubLoop = L->getSubLoops()[0]; !processHeaderPhiOperands(
           Header, Latch, AftBlocks, [&AftBlocks, &SubLoop](Instruction *I) {
             if (SubLoop->contains(I->getParent()))
               return false;

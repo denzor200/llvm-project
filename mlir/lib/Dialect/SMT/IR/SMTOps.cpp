@@ -187,8 +187,8 @@ LogicalResult ConcatOp::inferReturnTypes(
 
 LogicalResult RepeatOp::verify() {
   unsigned inputWidth = cast<BitVectorType>(getInput().getType()).getWidth();
-  unsigned resultWidth = getType().getWidth();
-  if (resultWidth % inputWidth != 0)
+  
+  if (unsigned resultWidth = getType().getWidth(); resultWidth % inputWidth != 0)
     return emitOpError() << "result bit-vector width must be a multiple of the "
                             "input bit-vector width";
 

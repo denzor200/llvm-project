@@ -301,9 +301,9 @@ Expected<Profile> xray::loadProfile(StringRef Filename) {
     auto DataOrError = readData(Extractor, Offset);
     if (!DataOrError)
       return DataOrError.takeError();
-    auto &Data = DataOrError.get();
+    
 
-    if (auto E =
+    if (auto &Data = DataOrError.get(); auto E =
             P.addBlock(Profile::Block{Profile::ThreadID{Header.Thread},
                                       {{P.internPath(Path), std::move(Data)}}}))
       return std::move(E);
@@ -385,8 +385,8 @@ Expected<Profile> xray::profileFromTrace(const Trace &T) {
   // the Profile.
   for (const auto &ThreadPaths : ThreadPathData) {
     const auto &TID = ThreadPaths.first;
-    const auto &PathsData = ThreadPaths.second;
-    if (auto E = P.addBlock({
+    
+    if (const auto &PathsData = ThreadPaths.second; auto E = P.addBlock({
             TID,
             std::vector<std::pair<Profile::PathID, Profile::Data>>(
                 PathsData.begin(), PathsData.end()),

@@ -578,9 +578,9 @@ std::optional<VectorSplit> ScalarizerVisitor::getVectorSplit(Type *Ty) {
     return {};
 
   unsigned NumElems = Split.VecTy->getNumElements();
-  Type *ElemTy = Split.VecTy->getElementType();
+  
 
-  if (NumElems == 1 || ElemTy->isPointerTy() ||
+  if (Type *ElemTy = Split.VecTy->getElementType(); NumElems == 1 || ElemTy->isPointerTy() ||
       2 * ElemTy->getScalarSizeInBits() > ScalarizeMinBits) {
     Split.NumPacked = 1;
     Split.NumFragments = NumElems;
@@ -593,8 +593,8 @@ std::optional<VectorSplit> ScalarizerVisitor::getVectorSplit(Type *Ty) {
     Split.NumFragments = divideCeil(NumElems, Split.NumPacked);
     Split.SplitTy = FixedVectorType::get(ElemTy, Split.NumPacked);
 
-    unsigned RemainderElems = NumElems % Split.NumPacked;
-    if (RemainderElems > 1)
+    
+    if (unsigned RemainderElems = NumElems % Split.NumPacked; RemainderElems > 1)
       Split.RemainderTy = FixedVectorType::get(ElemTy, RemainderElems);
     else if (RemainderElems == 1)
       Split.RemainderTy = ElemTy;
@@ -738,8 +738,8 @@ bool ScalarizerVisitor::splitCall(CallInst &CI) {
   // Assumes that any vector type has the same number of elements as the return
   // vector type, which is true for all current intrinsics.
   for (unsigned I = 0; I != NumArgs; ++I) {
-    Value *OpI = CI.getOperand(I);
-    if ([[maybe_unused]] auto *OpVecTy =
+    
+    if ([[maybe_unused]] Value *OpI = CI.getOperand(I); auto *OpVecTy =
             dyn_cast<FixedVectorType>(OpI->getType())) {
       assert(OpVecTy->getNumElements() == VS->VecTy->getNumElements());
       std::optional<VectorSplit> OpVS = getVectorSplit(OpI->getType());
@@ -950,9 +950,9 @@ bool ScalarizerVisitor::visitBitCastInst(BitCastInst &BCI) {
   Res.resize(DstVS->NumFragments);
 
   unsigned DstSplitBits = DstVS->SplitTy->getPrimitiveSizeInBits();
-  unsigned SrcSplitBits = SrcVS->SplitTy->getPrimitiveSizeInBits();
+  
 
-  if (isPointerTy || DstSplitBits == SrcSplitBits) {
+  if (unsigned SrcSplitBits = SrcVS->SplitTy->getPrimitiveSizeInBits(); isPointerTy || DstSplitBits == SrcSplitBits) {
     assert(DstVS->NumFragments == SrcVS->NumFragments);
     for (unsigned I = 0; I < DstVS->NumFragments; ++I) {
       Res[I] = Builder.CreateBitCast(Op0[I], DstVS->getFragmentType(I),
@@ -1168,8 +1168,8 @@ bool ScalarizerVisitor::visitShuffleVectorInst(ShuffleVectorInst &SVI) {
   Res.resize(VS->NumFragments);
 
   for (unsigned I = 0; I < VS->NumFragments; ++I) {
-    int Selector = SVI.getMaskValue(I);
-    if (Selector < 0)
+    
+    if (int Selector = SVI.getMaskValue(I); Selector < 0)
       Res[I] = PoisonValue::get(VS->VecTy->getElementType());
     else if (unsigned(Selector) < Op0.size())
       Res[I] = Op0[Selector];
@@ -1277,8 +1277,8 @@ bool ScalarizerVisitor::finish() {
     return false;
   for (const auto &GMI : Gathered) {
     Instruction *Op = GMI.first;
-    ValueVector &CV = *GMI.second;
-    if (!Op->use_empty()) {
+    
+    if (ValueVector &CV = *GMI.second; !Op->use_empty()) {
       // The value is still needed, so recreate it using a series of
       // insertelements and/or shufflevectors.
       Value *Res;

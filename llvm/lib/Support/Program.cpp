@@ -79,9 +79,9 @@ bool sys::commandLineFitsWithinSystemLimits(StringRef Program,
 }
 
 void sys::printArg(raw_ostream &OS, StringRef Arg, bool Quote) {
-  const bool Escape = Arg.find_first_of(" \"\\$") != StringRef::npos;
+  
 
-  if (!Quote && !Escape) {
+  if (const bool Escape = Arg.find_first_of(" \"\\$") != StringRef::npos; !Quote && !Escape) {
     OS << Arg;
     return;
   }

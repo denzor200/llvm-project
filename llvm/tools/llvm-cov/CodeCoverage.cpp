@@ -470,8 +470,8 @@ std::unique_ptr<CoverageMapping> CodeCoverageTool::load() {
     return nullptr;
   }
   auto Coverage = std::move(CoverageOrErr.get());
-  unsigned Mismatched = Coverage->getMismatchedCount();
-  if (Mismatched) {
+  
+  if (unsigned Mismatched = Coverage->getMismatchedCount(); Mismatched) {
     warning(Twine(Mismatched) + " functions have mismatched data");
 
     if (ViewOpts.Debug) {
@@ -594,11 +594,11 @@ void CodeCoverageTool::demangleSymbols(const CoverageMapping &Coverage) {
   std::optional<StringRef> Redirects[] = {
       InputPath.str(), OutputPath.str(), {""}};
   std::string ErrMsg;
-  int RC =
+  
+  if (int RC =
       sys::ExecuteAndWait(ViewOpts.DemanglerOpts[0], ArgsV,
                           /*env=*/std::nullopt, Redirects, /*secondsToWait=*/0,
-                          /*memoryLimit=*/0, &ErrMsg);
-  if (RC) {
+                          /*memoryLimit=*/0, &ErrMsg); RC) {
     error(ErrMsg, ViewOpts.DemanglerOpts[0]);
     return;
   }
@@ -1058,8 +1058,8 @@ int CodeCoverageTool::doShow(int argc, const char **argv,
       cl::desc("<high>,<low> value indicate thresholds for high and low"
                "coverage watermark"));
 
-  auto Err = commandLineParser(argc, argv);
-  if (Err)
+  
+  if (auto Err = commandLineParser(argc, argv); Err)
     return Err;
 
   if (ViewOpts.Format == CoverageViewOptions::OutputFormat::Lcov) {
@@ -1244,8 +1244,8 @@ int CodeCoverageTool::doReport(int argc, const char **argv,
       "show-functions", cl::Optional, cl::init(false),
       cl::desc("Show coverage summaries for each function"));
 
-  auto Err = commandLineParser(argc, argv);
-  if (Err)
+  
+  if (auto Err = commandLineParser(argc, argv); Err)
     return Err;
 
   if (ViewOpts.Format == CoverageViewOptions::OutputFormat::HTML) {
@@ -1307,8 +1307,8 @@ int CodeCoverageTool::doExport(int argc, const char **argv,
                                     cl::desc("Unify function instantiations"),
                                     cl::init(true), cl::cat(ExportCategory));
 
-  auto Err = commandLineParser(argc, argv);
-  if (Err)
+  
+  if (auto Err = commandLineParser(argc, argv); Err)
     return Err;
 
   ViewOpts.SkipExpansions = SkipExpansions;

@@ -227,8 +227,8 @@ lldb::ModuleSP AppleObjCRuntime::GetObjCModule() {
   if (module_sp)
     return module_sp;
 
-  Process *process = GetProcess();
-  if (process) {
+  
+  if (Process *process = GetProcess(); process) {
     const ModuleList &modules = process->GetTarget().GetImages();
     for (uint32_t idx = 0; idx < modules.GetSize(); idx++) {
       module_sp = modules.GetModuleAtIndex(idx);
@@ -395,8 +395,8 @@ AppleObjCRuntime::GetObjCVersion(Process *process, ModuleSP &objc_module_sp) {
     if (AppleIsModuleObjCLibrary(module_sp) &&
         module_sp->IsLoadedInTarget(&target)) {
       objc_module_sp = module_sp;
-      ObjectFile *ofile = module_sp->GetObjectFile();
-      if (!ofile)
+      
+      if (ObjectFile *ofile = module_sp->GetObjectFile(); !ofile)
         return ObjCRuntimeVersions::eObjC_VersionUnknown;
 
       SectionList *sections = module_sp->GetSectionList();
@@ -417,9 +417,9 @@ AppleObjCRuntime::GetObjCVersion(Process *process, ModuleSP &objc_module_sp) {
 void AppleObjCRuntime::SetExceptionBreakpoints() {
   const bool catch_bp = false;
   const bool throw_bp = true;
-  const bool is_internal = true;
+  
 
-  if (!m_objc_exception_bp_sp) {
+  if (const bool is_internal = true; !m_objc_exception_bp_sp) {
     m_objc_exception_bp_sp = LanguageRuntime::CreateExceptionBreakpoint(
         m_process->GetTarget(), GetLanguageType(), catch_bp, throw_bp,
         is_internal);

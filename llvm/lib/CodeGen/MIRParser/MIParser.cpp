@@ -790,8 +790,8 @@ bool MIParser::parseBasicBlockDefinition(
   }
   auto *MBB = MF.CreateMachineBasicBlock(BB, BBID);
   MF.insert(MF.end(), MBB);
-  bool WasInserted = MBBSlots.insert(std::make_pair(ID, MBB)).second;
-  if (!WasInserted)
+  
+  if (bool WasInserted = MBBSlots.insert(std::make_pair(ID, MBB)).second; !WasInserted)
     return error(Loc, Twine("redefinition of machine basic block with id #") +
                           Twine(ID));
   if (Alignment)
@@ -1600,8 +1600,8 @@ bool MIParser::parseRegisterClassOrBank(VRegInfo &RegInfo) {
   StringRef Name = Token.stringValue();
 
   // Was it a register class?
-  const TargetRegisterClass *RC = PFS.Target.getRegClass(Name);
-  if (RC) {
+  
+  if (const TargetRegisterClass *RC = PFS.Target.getRegClass(Name); RC) {
     lex();
 
     switch (RegInfo.Kind) {
@@ -1787,8 +1787,8 @@ bool MIParser::parseRegisterOperand(MachineOperand &Dest,
     if (parseRegisterClassOrBank(*RegInfo))
         return true;
   }
-  MachineRegisterInfo &MRI = MF.getRegInfo();
-  if ((Flags & RegState::Define) == 0) {
+  
+  if (MachineRegisterInfo &MRI = MF.getRegInfo(); (Flags & RegState::Define) == 0) {
     if (consumeIfPresent(MIToken::lparen)) {
       unsigned Idx;
       if (!parseRegisterTiedDefIndex(Idx))
@@ -1949,8 +1949,8 @@ bool MIParser::parseLowLevelType(StringRef::iterator Loc, LLT &Ty) {
   }
 
   if (Token.range().front() == 's') {
-    auto ScalarSize = APSInt(Token.range().drop_front()).getZExtValue();
-    if (ScalarSize) {
+    
+    if (auto ScalarSize = APSInt(Token.range().drop_front()).getZExtValue(); ScalarSize) {
       if (!verifyScalarSize(ScalarSize))
         return error("invalid size for scalar type");
       Ty = LLT::scalar(ScalarSize);
@@ -3007,8 +3007,8 @@ bool MIParser::parseMachineOperand(const unsigned OpCode, const unsigned OpIdx,
     } else
       return parseTypedImmediateOperand(Dest);
   case MIToken::dot: {
-    const auto *TII = MF.getSubtarget().getInstrInfo();
-    if (const auto *Formatter = TII->getMIRFormatter()) {
+    
+    if (const auto *TII = MF.getSubtarget().getInstrInfo(); const auto *Formatter = TII->getMIRFormatter()) {
       return parseTargetImmMnemonic(OpCode, OpIdx, Dest, *Formatter);
     }
     [[fallthrough]];
@@ -3284,8 +3284,8 @@ bool MIParser::parseMemoryPseudoSourceValue(const PseudoSourceValue *&PSV) {
     break;
   case MIToken::kw_custom: {
     lex();
-    const auto *TII = MF.getSubtarget().getInstrInfo();
-    if (const auto *Formatter = TII->getMIRFormatter()) {
+    
+    if (const auto *TII = MF.getSubtarget().getInstrInfo(); const auto *Formatter = TII->getMIRFormatter()) {
       if (Formatter->parseCustomPseudoSourceValue(
               Token.stringValue(), MF, PFS, PSV,
               [this](StringRef::iterator Loc, const Twine &Msg) -> bool {
@@ -3442,12 +3442,12 @@ bool MIParser::parseMachineMemoryOperand(MachineMemOperand *&Dest) {
 
   MachinePointerInfo Ptr = MachinePointerInfo();
   if (Token.is(MIToken::Identifier)) {
-    const char *Word =
+    
+    if (const char *Word =
         ((Flags & MachineMemOperand::MOLoad) &&
          (Flags & MachineMemOperand::MOStore))
             ? "on"
-            : Flags & MachineMemOperand::MOLoad ? "from" : "into";
-    if (Token.stringValue() != Word)
+            : Flags & MachineMemOperand::MOLoad ? "from" : "into"; Token.stringValue() != Word)
       return error(Twine("expected '") + Word + "'");
     lex();
 

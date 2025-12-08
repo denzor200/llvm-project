@@ -626,9 +626,9 @@ void Parser::parseMustache(ASTNode *Parent) {
     Token CurrentToken = Tokens[CurrentPtr];
     CurrentPtr++;
     ArrayRef<StringRef> A = CurrentToken.getAccessor();
-    AstPtr CurrentNode;
+    
 
-    switch (CurrentToken.getType()) {
+    switch (AstPtr CurrentNode; CurrentToken.getType()) {
     case Token::Type::Text: {
       CurrentNode = createTextNode(Ctx, CurrentToken.TokenBody, Parent);
       Parent->addChild(CurrentNode);
@@ -764,8 +764,8 @@ void ASTNode::renderSection(const json::Value &CurrentCtx,
 void ASTNode::renderInvertSection(const json::Value &CurrentCtx,
                                   MustacheOutputStream &OS) {
   bool IsLambda = Ctx.SectionLambdas.contains(AccessorValue[0]);
-  const json::Value *ContextPtr = findContext();
-  if (isContextFalsey(ContextPtr) && !IsLambda) {
+  
+  if (const json::Value *ContextPtr = findContext(); isContextFalsey(ContextPtr) && !IsLambda) {
     renderChild(CurrentCtx, OS);
   }
 }

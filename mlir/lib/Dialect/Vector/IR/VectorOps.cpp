@@ -111,9 +111,9 @@ static MaskFormat getMaskFormat(Value mask) {
     auto maskOperands = m.getOperands();
     for (Value operand : maskOperands) {
       if (auto constantOp = operand.getDefiningOp<arith::ConstantOp>()) {
-        int64_t dimSize =
-            llvm::cast<IntegerAttr>(constantOp.getValue()).getInt();
-        if (dimSize <= 0)
+        
+        if (int64_t dimSize =
+            llvm::cast<IntegerAttr>(constantOp.getValue()).getInt(); dimSize <= 0)
           return MaskFormat::AllFalse;
       }
     }
@@ -213,8 +213,8 @@ static bool isSplatWriteConsistentWithMaskedRead(vector::TransferWriteOp write,
   // or has the same mask. Note this does not allow the case where the write is
   // masked and the read is unmasked, as then the read could be of more elements
   // than the write (which may not be the same value).
-  bool couldBeSameSplat = readMask && (!writeMask || writeMask == readMask);
-  if (!couldBeSameSplat)
+  
+  if (bool couldBeSameSplat = readMask && (!writeMask || writeMask == readMask); !couldBeSameSplat)
     return false;
   // Check for constant splat (as the source of the write).
   DenseElementsAttr splatAttr;
@@ -287,8 +287,8 @@ bool mlir::vector::isDisjointTransferIndices(
       // the intervals accessed don't overlap.
       int64_t vectorDim = transferA.getVectorType().getDimSize(i - rankOffset);
       if (cstIndexA.has_value() && cstIndexB.has_value()) {
-        int64_t distance = std::abs(*cstIndexA - *cstIndexB);
-        if (distance >= vectorDim)
+        
+        if (int64_t distance = std::abs(*cstIndexA - *cstIndexB); distance >= vectorDim)
           return true;
         continue;
       }
@@ -998,8 +998,8 @@ static LogicalResult verifyOutputShape(
       VectorType v = pair.first;
       auto map = pair.second;
       for (unsigned idx = 0, e = v.getRank(); idx < e; ++idx) {
-        unsigned pos = map.getDimPosition(idx);
-        if (!extents[pos])
+        
+        if (unsigned pos = map.getDimPosition(idx); !extents[pos])
           extents[pos] = getAffineConstantExpr(v.getShape()[idx], ctx);
       }
     }
@@ -1367,9 +1367,9 @@ LogicalResult vector::ExtractOp::verify() {
           "expected a scalar instead of a 0-d vector as the result type");
 
   // Note: This check must come before getMixedPosition() to prevent a crash.
-  auto dynamicMarkersCount =
-      llvm::count_if(getStaticPosition(), ShapedType::isDynamic);
-  if (static_cast<size_t>(dynamicMarkersCount) != getDynamicPosition().size())
+  
+  if (auto dynamicMarkersCount =
+      llvm::count_if(getStaticPosition(), ShapedType::isDynamic); static_cast<size_t>(dynamicMarkersCount) != getDynamicPosition().size())
     return emitOpError(
         "mismatch between dynamic and static positions (kDynamic marker but no "
         "corresponding dynamic position) -- this can only happen due to an "
@@ -1380,8 +1380,8 @@ LogicalResult vector::ExtractOp::verify() {
         "expected position attribute of rank no greater than vector rank");
   for (auto [idx, pos] : llvm::enumerate(position)) {
     if (auto attr = dyn_cast<Attribute>(pos)) {
-      int64_t constIdx = cast<IntegerAttr>(attr).getInt();
-      if (!isValidPositiveIndexOrPoison(
+      
+      if (int64_t constIdx = cast<IntegerAttr>(attr).getInt(); !isValidPositiveIndexOrPoison(
               constIdx, kPoisonIndex, getSourceVectorType().getDimSize(idx))) {
         return emitOpError("expected position attribute #")
                << (idx + 1)
@@ -1608,8 +1608,8 @@ Value ExtractFromInsertTransposeChainState::tryToFoldExtractOpInPlace(
     return Value();
 
   // If we can't fold (either internal transposition, or nothing to fold), bail.
-  bool nothingToFold = (source == extractOp.getSource());
-  if (nothingToFold || !canFold())
+  
+  if (bool nothingToFold = (source == extractOp.getSource()); nothingToFold || !canFold())
     return Value();
 
   // Otherwise, fold by updating the op inplace and return its result.
@@ -1797,10 +1797,10 @@ static Value foldExtractFromShuffle(ExtractOp extractOp) {
   int64_t inputVecSize = shuffleOp.getV1().getType().getShape()[0];
   auto shuffleMask = shuffleOp.getMask();
   int64_t extractIdx = extractOp.getStaticPosition()[0];
-  int64_t shuffleIdx = shuffleMask[extractIdx];
+  
 
   // Find the shuffled vector to extract from based on the shuffle index.
-  if (shuffleIdx < inputVecSize) {
+  if (int64_t shuffleIdx = shuffleMask[extractIdx]; shuffleIdx < inputVecSize) {
     extractOp.setOperand(0, shuffleOp.getV1());
     extractOp.setStaticPosition({shuffleIdx});
   } else {
@@ -1900,8 +1900,8 @@ static Value foldExtractFromExtractStrided(ExtractOp extractOp) {
   auto sliceOffsets =
       extractVector<int64_t>(extractStridedSliceOp.getOffsets());
   while (!sliceOffsets.empty()) {
-    size_t lastOffset = sliceOffsets.size() - 1;
-    if (sliceOffsets.back() != 0 ||
+    
+    if (size_t lastOffset = sliceOffsets.size() - 1; sliceOffsets.back() != 0 ||
         extractStridedSliceOp.getType().getDimSize(lastOffset) !=
             extractStridedSliceOp.getSourceVectorType().getDimSize(lastOffset))
       break;
@@ -1968,9 +1968,9 @@ static Value foldExtractStridedOpFromInsertChain(ExtractOp extractOp) {
               ? 1
               : insertOp.getSourceVectorType().getDimSize(dim - insertRankDiff);
       int64_t end = start + size;
-      int64_t offset = extractOffsets[dim];
+      
       // Check if the start of the extract offset is in the interval inserted.
-      if (start <= offset && offset < end) {
+      if (int64_t offset = extractOffsets[dim]; start <= offset && offset < end) {
         if (dim >= insertRankDiff)
           offsetDiffs.push_back(offset - start);
         continue;
@@ -2071,10 +2071,10 @@ static Value extractInsertFoldConstantOp(OpType op, AdaptorType adaptor,
     Attribute positionAttr = dynamicPositionAttr[index];
     Value position = dynamicPosition[index++];
     if (auto attr = mlir::dyn_cast_if_present<IntegerAttr>(positionAttr)) {
-      int64_t value = attr.getInt();
+      
       // Do not fold if the value is out of bounds (-1 signifies a poison
       // value rather than OOB index).
-      if (value >= -1 && value < vectorShape[i]) {
+      if (int64_t value = attr.getInt(); value >= -1 && value < vectorShape[i]) {
         staticPosition[i] = attr.getInt();
         opChange = true;
         continue;
@@ -2262,10 +2262,10 @@ public:
         continue;
       }
 
-      int64_t createMaskBound =
-          llvm::cast<IntegerAttr>(constantOp.getValue()).getInt();
+      
 
-      if (pos != ShapedType::kDynamic) {
+      if (int64_t createMaskBound =
+          llvm::cast<IntegerAttr>(constantOp.getValue()).getInt(); pos != ShapedType::kDynamic) {
         // If any position is outside the range from the `create_mask`, then the
         // extracted mask will be all-false.
         allFalse |= pos >= createMaskBound;
@@ -3018,8 +3018,8 @@ static LogicalResult foldBroadcastOfShapeCast(BroadcastOp broadcastOp) {
       srcShapeCast.getResultVectorType().getShape();
   // Trailing dimensions should be the same if shape_cast only alters the
   // leading dimensions.
-  unsigned numTrailingDims = std::min(srcShape.size(), shapecastShape.size());
-  if (!llvm::equal(srcShape.take_back(numTrailingDims),
+  
+  if (unsigned numTrailingDims = std::min(srcShape.size(), shapecastShape.size()); !llvm::equal(srcShape.take_back(numTrailingDims),
                    shapecastShape.take_back(numTrailingDims)))
     return failure();
 
@@ -3098,16 +3098,16 @@ LogicalResult ShuffleOp::verify() {
   int64_t v1Rank = v1Type.getRank();
   int64_t v2Rank = v2Type.getRank();
   bool wellFormed0DCase = v1Rank == 0 && v2Rank == 0 && resRank == 1;
-  bool wellFormedNDCase = v1Rank == resRank && v2Rank == resRank;
-  if (!wellFormed0DCase && !wellFormedNDCase)
+  
+  if (bool wellFormedNDCase = v1Rank == resRank && v2Rank == resRank; !wellFormed0DCase && !wellFormedNDCase)
     return emitOpError("rank mismatch");
 
   // Verify all but leading dimension sizes.
   for (int64_t r = 1; r < v1Rank; ++r) {
     int64_t resDim = resultType.getDimSize(r);
     int64_t v1Dim = v1Type.getDimSize(r);
-    int64_t v2Dim = v2Type.getDimSize(r);
-    if (resDim != v1Dim || v1Dim != v2Dim)
+    
+    if (int64_t v2Dim = v2Type.getDimSize(r); resDim != v1Dim || v1Dim != v2Dim)
       return emitOpError("dimension mismatch");
   }
   // Verify mask length.
@@ -3326,8 +3326,8 @@ public:
     int64_t resultVectorSize = resultType.getNumElements();
     for (int i = 0, e = resultVectorSize / 2; i < e; ++i) {
       int64_t maskValueA = shuffleMask[i * 2];
-      int64_t maskValueB = shuffleMask[(i * 2) + 1];
-      if (maskValueA != i || maskValueB != (resultVectorSize / 2) + i)
+      
+      if (int64_t maskValueB = shuffleMask[(i * 2) + 1]; maskValueA != i || maskValueB != (resultVectorSize / 2) + i)
         return rewriter.notifyMatchFailure(op,
                                            "ShuffleOp mask not interleaving");
     }
@@ -3414,8 +3414,8 @@ LogicalResult InsertOp::verify() {
         "expected position attribute rank to match the dest vector rank");
   for (auto [idx, pos] : llvm::enumerate(position)) {
     if (auto attr = dyn_cast<Attribute>(pos)) {
-      int64_t constIdx = cast<IntegerAttr>(attr).getInt();
-      if (!isValidPositiveIndexOrPoison(constIdx, kPoisonIndex,
+      
+      if (int64_t constIdx = cast<IntegerAttr>(attr).getInt(); !isValidPositiveIndexOrPoison(constIdx, kPoisonIndex,
                                         destVectorType.getDimSize(idx))) {
         return emitOpError("expected position attribute #")
                << (idx + 1)
@@ -4253,9 +4253,9 @@ foldExtractStridedOpFromInsertChain(ExtractStridedSliceOp op) {
       int64_t start = getElement(insertOffsets, dim);
       int64_t end = start + insertOp.getSourceVectorType().getDimSize(dim);
       int64_t offset = getElement(extractOffsets, dim);
-      int64_t size = getElement(extractSizes, dim);
+      
       // Check if the start of the extract offset is in the interval inserted.
-      if (start <= offset && offset < end) {
+      if (int64_t size = getElement(extractSizes, dim); start <= offset && offset < end) {
         // If the extract interval overlaps but is not fully included we may
         // have a partial overlap that will prevent any folding.
         if (offset + size > end)
@@ -4742,10 +4742,10 @@ verifyTransferOp(VectorTransferOpInterface op, ShapedType shapedType,
     unsigned sourceVecSize =
         dataLayout.getTypeSizeInBits(vectorElementType.getElementType()) *
         vectorElementType.getShape().back();
-    unsigned resultVecSize =
+    
+    if (unsigned resultVecSize =
         dataLayout.getTypeSizeInBits(vectorType.getElementType()) *
-        vectorType.getShape().back();
-    if (resultVecSize % sourceVecSize != 0)
+        vectorType.getShape().back(); resultVecSize % sourceVecSize != 0)
       return op->emitOpError(
           "requires the bitwidth of the minor 1-D vector to be an integral "
           "multiple of the bitwidth of the minor 1-D vector of the source");
@@ -4767,9 +4767,9 @@ verifyTransferOp(VectorTransferOpInterface op, ShapedType shapedType,
     // Memref or tensor has scalar element type.
     unsigned minorSize =
         vectorType.getRank() == 0 ? 1 : vectorType.getShape().back();
-    unsigned resultVecSize =
-        dataLayout.getTypeSizeInBits(vectorType.getElementType()) * minorSize;
-    if (resultVecSize % dataLayout.getTypeSizeInBits(elementType) != 0)
+    
+    if (unsigned resultVecSize =
+        dataLayout.getTypeSizeInBits(vectorType.getElementType()) * minorSize; resultVecSize % dataLayout.getTypeSizeInBits(elementType) != 0)
       return op->emitOpError(
           "requires the bitwidth of the minor 1-D vector to be an integral "
           "multiple of the bitwidth of the source element type");
@@ -5029,9 +5029,9 @@ static LogicalResult foldTransferInBoundsAttribute(TransferOp op) {
   // 2. Handle broadcast dims
   // If all non-broadcast dims are "in bounds", then all bcast dims should be
   // "in bounds" as well.
-  bool allNonBcastDimsInBounds = llvm::all_of(
-      nonBcastDims, [&newInBounds](unsigned idx) { return newInBounds[idx]; });
-  if (allNonBcastDimsInBounds) {
+  
+  if (bool allNonBcastDimsInBounds = llvm::all_of(
+      nonBcastDims, [&newInBounds](unsigned idx) { return newInBounds[idx]; }); allNonBcastDimsInBounds) {
     for (size_t idx : permutationMap.getBroadcastDims()) {
       changed |= !newInBounds[idx];
       newInBounds[idx] = true;
@@ -5171,9 +5171,9 @@ struct TransferReadAfterWriteToBroadcast
     // separate.
     AffineMap readMap = compressUnusedDims(readOp.getPermutationMap());
     AffineMap writeMap = compressUnusedDims(defWrite.getPermutationMap());
-    bool bcast = !readMap.getBroadcastDims().empty() ||
-                 !writeMap.getBroadcastDims().empty();
-    if (!bcast)
+    
+    if (bool bcast = !readMap.getBroadcastDims().empty() ||
+                 !writeMap.getBroadcastDims().empty(); !bcast)
       return failure();
     // At this point, we know we have a bcast.
     // Bail in the masked case (too complex atm and needed to properly account
@@ -6586,10 +6586,10 @@ OpFoldResult BitCastOp::fold(FoldAdaptor adaptor) {
 
       if (llvm::isa<IntegerType>(dstElemType)) {
         uint64_t srcBitWidth = srcElemType.getIntOrFloatBitWidth();
-        uint64_t dstBitWidth = dstElemType.getIntOrFloatBitWidth();
+        
 
         // Casting to a larger integer bit width.
-        if (dstBitWidth > srcBitWidth && dstBitWidth % srcBitWidth == 0) {
+        if (uint64_t dstBitWidth = dstElemType.getIntOrFloatBitWidth(); dstBitWidth > srcBitWidth && dstBitWidth % srcBitWidth == 0) {
           APInt intBits = splat.getValue().zext(dstBitWidth);
 
           // Duplicate the lower width element.
@@ -6961,8 +6961,8 @@ public:
     VectorType outputType = transpose.getResultVectorType();
 
     // transpose(broadcast(scalar)) -> broadcast(scalar) is always valid
-    bool inputIsScalar = !inputType;
-    if (inputIsScalar) {
+    
+    if (bool inputIsScalar = !inputType; inputIsScalar) {
       rewriter.replaceOpWithNewOp<vector::BroadcastOp>(transpose, outputType,
                                                        broadcast.getSource());
       return success();
@@ -6978,8 +6978,8 @@ public:
     for (int inputIndex = 0; inputIndex < inputRank; ++inputIndex) {
       bool notOne = inputShape[inputIndex] != 1;
       bool prevNotOne = (inputIndex != 0 && inputShape[inputIndex - 1] != 1);
-      bool groupEndFound = notOne || prevNotOne;
-      if (groupEndFound) {
+      
+      if (bool groupEndFound = notOne || prevNotOne; groupEndFound) {
         int high = inputIndex + deltaRank;
         // Return failure if not all permutation destinations for indices in
         // [low, high) are in [low, high), i.e. the permutation is not local to
@@ -7040,8 +7040,8 @@ LogicalResult ConstantMaskOp::verify() {
   if (resultType.getRank() == 0) {
     if (getMaskDimSizes().size() != 1)
       return emitError("array attr must have length 1 for 0-D vectors");
-    auto dim = getMaskDimSizes()[0];
-    if (dim != 0 && dim != 1)
+    
+    if (auto dim = getMaskDimSizes()[0]; dim != 0 && dim != 1)
       return emitError("mask dim size must be either 0 or 1 for 0-D vectors");
     return success();
   }
@@ -7067,8 +7067,8 @@ LogicalResult ConstantMaskOp::verify() {
   // Verify that if one mask dim size is zero, they all should be zero (because
   // the mask region is a conjunction of each mask dimension interval).
   bool anyZeros = llvm::is_contained(maskDimSizes, 0);
-  bool allZeros = llvm::all_of(maskDimSizes, [](int64_t s) { return s == 0; });
-  if (anyZeros && !allZeros)
+  
+  if (bool allZeros = llvm::all_of(maskDimSizes, [](int64_t s) { return s == 0; }); anyZeros && !allZeros)
     return emitOpError("expected all mask dim sizes to be zeros, "
                        "as a result of conjunction with zero mask dim");
   return success();
@@ -7323,8 +7323,8 @@ void mlir::vector::MaskOp::print(OpAsmPrinter &p) {
 
   // Print single masked operation and skip terminator.
   p << " { ";
-  Block *singleBlock = &getMaskRegion().getBlocks().front();
-  if (singleBlock && !singleBlock->getOperations().empty())
+  
+  if (Block *singleBlock = &getMaskRegion().getBlocks().front(); singleBlock && !singleBlock->getOperations().empty())
     p.printCustomOrGenericOp(&singleBlock->front());
   p << " }";
 
@@ -7723,8 +7723,8 @@ struct StepCompareFolder : public OpRewritePattern<StepOp> {
         continue;
 
       // arith.cmpi canonicalizer makes constants final operands.
-      const unsigned stepOperandNumber = use.getOperandNumber();
-      if (stepOperandNumber != 0)
+      
+      if (const unsigned stepOperandNumber = use.getOperandNumber(); stepOperandNumber != 0)
         continue;
 
       // Check that operand 1 is a constant.

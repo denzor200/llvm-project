@@ -72,10 +72,10 @@ Register llvm::constrainOperandRegClass(
   // then create a copy between the new and the old register.
   if (ConstrainedReg != Reg) {
     MachineBasicBlock::iterator InsertIt(&InsertPt);
-    MachineBasicBlock &MBB = *InsertPt.getParent();
+    
     // FIXME: The copy needs to have the classes constrained for its operands.
     // Use operand's regbank to get the class for old register (Reg).
-    if (RegMO.isUse()) {
+    if (MachineBasicBlock &MBB = *InsertPt.getParent(); RegMO.isUse()) {
       BuildMI(MBB, InsertIt, InsertPt.getDebugLoc(),
               TII.get(TargetOpcode::COPY), ConstrainedReg)
           .addReg(Reg);
@@ -190,8 +190,8 @@ bool llvm::constrainSelectedInstRegOperands(MachineInstr &I,
     // Tie uses to defs as indicated in MCInstrDesc if this hasn't already been
     // done.
     if (MO.isUse()) {
-      int DefIdx = I.getDesc().getOperandConstraint(OpI, MCOI::TIED_TO);
-      if (DefIdx != -1 && !I.isRegTiedToUseOperand(DefIdx))
+      
+      if (int DefIdx = I.getDesc().getOperandConstraint(OpI, MCOI::TIED_TO); DefIdx != -1 && !I.isRegTiedToUseOperand(DefIdx))
         I.tieOperands(DefIdx, OpI);
     }
   }
@@ -418,8 +418,8 @@ bool getCImmAsAPInt(const MachineInstr *MI, APInt &Result) {
 }
 
 bool getCImmOrFPImmAsAPInt(const MachineInstr *MI, APInt &Result) {
-  const MachineOperand &CstVal = MI->getOperand(1);
-  if (CstVal.isCImm())
+  
+  if (const MachineOperand &CstVal = MI->getOperand(1); CstVal.isCImm())
     Result = CstVal.getCImm()->getValue();
   else if (CstVal.isFPImm())
     Result = CstVal.getFPImm()->getValueAPF().bitcastToAPInt();
@@ -540,9 +540,9 @@ bool llvm::extractParts(Register Reg, LLT RegTy, LLT MainTy, LLT &LeftoverTy,
   if (RegTy.isVector() && MainTy.isVector()) {
     unsigned RegNumElts = RegTy.getNumElements();
     unsigned MainNumElts = MainTy.getNumElements();
-    unsigned LeftoverNumElts = RegNumElts % MainNumElts;
+    
     // If can unmerge to LeftoverTy, do it
-    if (MainNumElts % LeftoverNumElts == 0 &&
+    if (unsigned LeftoverNumElts = RegNumElts % MainNumElts; MainNumElts % LeftoverNumElts == 0 &&
         RegNumElts % LeftoverNumElts == 0 &&
         RegTy.getScalarSizeInBits() == MainTy.getScalarSizeInBits() &&
         LeftoverNumElts > 1) {
@@ -680,8 +680,8 @@ std::optional<APInt> llvm::ConstantFoldBinOp(unsigned Opcode,
     return std::nullopt;
 
   const APInt &C1 = MaybeOp1Cst->Value;
-  const APInt &C2 = MaybeOp2Cst->Value;
-  switch (Opcode) {
+  
+  switch (const APInt &C2 = MaybeOp2Cst->Value; Opcode) {
   default:
     break;
   case TargetOpcode::G_ADD:
@@ -747,8 +747,8 @@ llvm::ConstantFoldFPBinOp(unsigned Opcode, const Register Op1,
     return std::nullopt;
 
   APFloat C1 = Op1Cst->getValueAPF();
-  const APFloat &C2 = Op2Cst->getValueAPF();
-  switch (Opcode) {
+  
+  switch (const APFloat &C2 = Op2Cst->getValueAPF(); Opcode) {
   case TargetOpcode::G_FADD:
     C1.add(C2, APFloat::rmNearestTiesToEven);
     return C1;
@@ -897,8 +897,8 @@ bool llvm::isKnownNeverNaN(Register Val, const MachineRegisterInfo &MRI,
 
 Align llvm::inferAlignFromPtrInfo(MachineFunction &MF,
                                   const MachinePointerInfo &MPO) {
-  auto PSV = dyn_cast_if_present<const PseudoSourceValue *>(MPO.V);
-  if (auto FSPV = dyn_cast_or_null<FixedStackPseudoSourceValue>(PSV)) {
+  
+  if (auto PSV = dyn_cast_if_present<const PseudoSourceValue *>(MPO.V); auto FSPV = dyn_cast_or_null<FixedStackPseudoSourceValue>(PSV)) {
     MachineFrameInfo &MFI = MF.getFrameInfo();
     return commonAlignment(MFI.getObjectAlign(FSPV->getFrameIndex()),
                            MPO.Offset);
@@ -921,8 +921,8 @@ Register llvm::getFunctionLiveInPhysReg(MachineFunction &MF,
   MachineRegisterInfo &MRI = MF.getRegInfo();
   Register LiveIn = MRI.getLiveInVirtReg(PhysReg);
   if (LiveIn) {
-    MachineInstr *Def = MRI.getVRegDef(LiveIn);
-    if (Def) {
+    
+    if (MachineInstr *Def = MRI.getVRegDef(LiveIn); Def) {
       // FIXME: Should the verifier check this is in the entry block?
       assert(Def->getParent() == &EntryMBB && "live-in copy not in entry block");
       return LiveIn;
@@ -969,9 +969,9 @@ std::optional<APInt> llvm::ConstantFoldCastOp(unsigned Opcode, LLT DstTy,
   if (!Val)
     return Val;
 
-  const unsigned DstSize = DstTy.getScalarSizeInBits();
+  
 
-  switch (Opcode) {
+  switch (const unsigned DstSize = DstTy.getScalarSizeInBits(); Opcode) {
   case TargetOpcode::G_SEXT:
     return Val->sext(DstSize);
   case TargetOpcode::G_ZEXT:
@@ -1492,8 +1492,8 @@ bool llvm::isBuildVectorAllOnes(const MachineInstr &MI,
 
 std::optional<RegOrConstant>
 llvm::getVectorSplat(const MachineInstr &MI, const MachineRegisterInfo &MRI) {
-  unsigned Opc = MI.getOpcode();
-  if (!isBuildVectorOp(Opc))
+  
+  if (unsigned Opc = MI.getOpcode(); !isBuildVectorOp(Opc))
     return std::nullopt;
   if (auto Splat = getIConstantSplatSExtVal(MI, MRI))
     return RegOrConstant(*Splat);
@@ -1552,8 +1552,8 @@ bool llvm::isConstantOrConstantVector(const MachineInstr &MI,
 
   const unsigned NumOps = MI.getNumOperands();
   for (unsigned I = 1; I != NumOps; ++I) {
-    const MachineInstr *ElementDef = MRI.getVRegDef(MI.getOperand(I).getReg());
-    if (!isConstantScalar(*ElementDef, MRI, AllowFP, AllowOpaqueConstants))
+    
+    if (const MachineInstr *ElementDef = MRI.getVRegDef(MI.getOperand(I).getReg()); !isConstantScalar(*ElementDef, MRI, AllowFP, AllowOpaqueConstants))
       return false;
   }
 
@@ -1727,9 +1727,9 @@ void llvm::salvageDebugInfo(const MachineRegisterInfo &MRI, MachineInstr &MI) {
 
     SmallVector<MachineOperand *, 16> DbgUsers;
     for (auto &MOUse : MRI.use_operands(Def.getReg())) {
-      MachineInstr *DbgValue = MOUse.getParent();
+      
       // Ignore partially formed DBG_VALUEs.
-      if (DbgValue->isNonListDebugValue() && DbgValue->getNumOperands() == 4) {
+      if (MachineInstr *DbgValue = MOUse.getParent(); DbgValue->isNonListDebugValue() && DbgValue->getNumOperands() == 4) {
         DbgUsers.push_back(&MOUse);
       }
     }
@@ -1901,8 +1901,8 @@ static bool canCreateUndefOrPoison(Register Reg, const MachineRegisterInfo &MRI,
     return includesPoison(Kind) &&
            !shiftAmountKnownInRange(RegDef->getOperand(2).getReg(), MRI);
   case TargetOpcode::G_INSERT_VECTOR_ELT: {
-    GInsertVectorElement *Insert = cast<GInsertVectorElement>(RegDef);
-    if (includesPoison(Kind)) {
+    
+    if (GInsertVectorElement *Insert = cast<GInsertVectorElement>(RegDef); includesPoison(Kind)) {
       std::optional<ValueAndVReg> Index =
           getIConstantVRegValWithLookThrough(Insert->getIndexReg(), MRI);
       if (!Index)
@@ -1913,8 +1913,8 @@ static bool canCreateUndefOrPoison(Register Reg, const MachineRegisterInfo &MRI,
     return false;
   }
   case TargetOpcode::G_EXTRACT_VECTOR_ELT: {
-    GExtractVectorElement *Extract = cast<GExtractVectorElement>(RegDef);
-    if (includesPoison(Kind)) {
+    
+    if (GExtractVectorElement *Extract = cast<GExtractVectorElement>(RegDef); includesPoison(Kind)) {
       std::optional<ValueAndVReg> Index =
           getIConstantVRegValWithLookThrough(Extract->getIndexReg(), MRI);
       if (!Index)
@@ -1956,9 +1956,9 @@ static bool isGuaranteedNotToBeUndefOrPoison(Register Reg,
   if (Depth >= MaxAnalysisRecursionDepth)
     return false;
 
-  MachineInstr *RegDef = MRI.getVRegDef(Reg);
+  
 
-  switch (RegDef->getOpcode()) {
+  switch (MachineInstr *RegDef = MRI.getVRegDef(Reg); RegDef->getOpcode()) {
   case TargetOpcode::G_FREEZE:
     return true;
   case TargetOpcode::G_IMPLICIT_DEF:

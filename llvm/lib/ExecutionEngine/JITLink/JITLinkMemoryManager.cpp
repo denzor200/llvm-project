@@ -222,8 +222,8 @@ SimpleSegmentAlloc::~SimpleSegmentAlloc() = default;
 
 SimpleSegmentAlloc::SegmentInfo
 SimpleSegmentAlloc::getSegInfo(orc::AllocGroup AG) {
-  auto I = ContentBlocks.find(AG);
-  if (I != ContentBlocks.end()) {
+  
+  if (auto I = ContentBlocks.find(AG); I != ContentBlocks.end()) {
     auto &B = *I->second;
     return {B.getAddress(), B.getAlreadyMutableContent()};
   }

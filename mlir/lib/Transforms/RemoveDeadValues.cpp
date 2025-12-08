@@ -360,8 +360,8 @@ static void processFuncOp(FunctionOpInterface funcOp, Operation *module,
   // the entry (first) block to the other blocks, the control never reaches any
   // block other than the entry block, because every block has a terminator.
   for (Block &block : funcOp.getBlocks()) {
-    Operation *returnOp = block.getTerminator();
-    if (returnOp && returnOp->getNumOperands() == numReturns)
+    
+    if (Operation *returnOp = block.getTerminator(); returnOp && returnOp->getNumOperands() == numReturns)
       cl.operands.push_back({returnOp, nonLiveRets});
   }
 
@@ -533,12 +533,12 @@ static void processRegionBranchOp(RegionBranchOpInterface regionBranchOp,
                          successor.getSuccessorInputs())) {
             bool recomputeBasedOn =
                 operandsToKeep[opOperand->getOperandNumber()];
-            bool toRecompute =
+            
+            if (bool toRecompute =
                 successorRegion
                     ? argsToKeep[successorRegion]
                                 [cast<BlockArgument>(input).getArgNumber()]
-                    : resultsToKeep[cast<OpResult>(input).getResultNumber()];
-            if (!toRecompute && recomputeBasedOn)
+                    : resultsToKeep[cast<OpResult>(input).getResultNumber()]; !toRecompute && recomputeBasedOn)
               resultsOrArgsToKeepChanged = true;
             if (successorRegion) {
               argsToKeep[successorRegion][cast<BlockArgument>(input)
@@ -570,12 +570,12 @@ static void processRegionBranchOp(RegionBranchOpInterface regionBranchOp,
               bool recomputeBasedOn =
                   terminatorOperandsToKeep[region.back().getTerminator()]
                                           [opOperand->getOperandNumber()];
-              bool toRecompute =
+              
+              if (bool toRecompute =
                   successorRegion
                       ? argsToKeep[successorRegion]
                                   [cast<BlockArgument>(input).getArgNumber()]
-                      : resultsToKeep[cast<OpResult>(input).getResultNumber()];
-              if (!toRecompute && recomputeBasedOn)
+                      : resultsToKeep[cast<OpResult>(input).getResultNumber()]; !toRecompute && recomputeBasedOn)
                 resultsOrArgsToKeepChanged = true;
               if (successorRegion) {
                 argsToKeep[successorRegion][cast<BlockArgument>(input)
@@ -847,8 +847,8 @@ static void cleanUpDeadVals(RDVFinalCleanupList &list) {
           // Map the argument logical index to the operand number(s) recorded.
           int operandOffset = call.getArgOperands().getBeginOperandIndex();
           for (int argIdx : deadArgIdxs.set_bits()) {
-            int operandNumber = operandOffset + argIdx;
-            if (operandNumber < static_cast<int>(o.nonLive.size()))
+            
+            if (int operandNumber = operandOffset + argIdx; operandNumber < static_cast<int>(o.nonLive.size()))
               o.nonLive.reset(operandNumber);
           }
         }

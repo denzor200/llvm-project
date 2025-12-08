@@ -173,8 +173,8 @@ NodeList Liveness::getAllReachingDefs(RegisterRef RefRR,
   std::map<MachineBasicBlock *, SmallVector<NodeId, 32>> Blocks;
   for (NodeId N : DefQ) {
     auto TA = DFG.addr<DefNode *>(N);
-    bool IsPhi = TA.Addr->getFlags() & NodeAttrs::PhiRef;
-    if (!IsPhi && !PRI.alias(RefRR, TA.Addr->getRegRef(DFG)))
+    
+    if (bool IsPhi = TA.Addr->getFlags() & NodeAttrs::PhiRef; !IsPhi && !PRI.alias(RefRR, TA.Addr->getRegRef(DFG)))
       continue;
     Defs.insert(TA.Id);
     NodeAddr<InstrNode *> IA = TA.Addr->getOwner(DFG);
@@ -285,8 +285,8 @@ NodeList Liveness::getAllReachingDefs(RegisterRef RefRR,
     for (NodeAddr<DefNode *> DA : Ds) {
       // When collecting a full chain of definitions, do not consider phi
       // defs to actually define a register.
-      uint16_t Flags = DA.Addr->getFlags();
-      if (!FullChain || !(Flags & NodeAttrs::PhiRef))
+      
+      if (uint16_t Flags = DA.Addr->getFlags(); !FullChain || !(Flags & NodeAttrs::PhiRef))
         if (!(Flags & NodeAttrs::Preserving)) // Don't care about Undef here.
           RRs.insert(DA.Addr->getRegRef(DFG));
     }
@@ -508,8 +508,8 @@ void Liveness::computePhiInfo() {
       NodeId UN = !IsDead ? DA.Addr->getReachedUse() : 0;
       while (UN != 0) {
         NodeAddr<UseNode *> A = DFG.addr<UseNode *>(UN);
-        uint16_t F = A.Addr->getFlags();
-        if ((F & (NodeAttrs::Undef | NodeAttrs::PhiRef)) == 0) {
+        
+        if (uint16_t F = A.Addr->getFlags(); (F & (NodeAttrs::Undef | NodeAttrs::PhiRef)) == 0) {
           RegisterRef R = A.Addr->getRegRef(DFG);
           RealUses[R.Id].insert({A.Id, R.Mask});
         }
@@ -522,11 +522,11 @@ void Liveness::computePhiInfo() {
       while (DN != 0) {
         NodeAddr<DefNode *> A = DFG.addr<DefNode *>(DN);
         for (auto T : DFG.getRelatedRefs(A.Addr->getOwner(DFG), A)) {
-          uint16_t Flags = NodeAddr<DefNode *>(T).Addr->getFlags();
+          
           // Must traverse the reached-def chain. Consider:
           //   def(D0) -> def(R0) -> def(R0) -> use(D0)
           // The reachable use of D0 passes through a def of R0.
-          if (!(Flags & NodeAttrs::PhiRef))
+          if (uint16_t Flags = NodeAddr<DefNode *>(T).Addr->getFlags(); !(Flags & NodeAttrs::PhiRef))
             DefQ.insert(T.Id);
         }
         DN = A.Addr->getSibling();

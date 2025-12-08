@@ -183,8 +183,8 @@ bool GCOVFile::readGCNO(GCOVBuffer &buf) {
       }
       GCOVBlock &Block = *fn->blocks[srcNo];
       for (;;) {
-        uint32_t line = buf.getWord();
-        if (line)
+        
+        if (uint32_t line = buf.getWord(); line)
           Block.addLine(line);
         else {
           StringRef filename;
@@ -391,16 +391,16 @@ void GCOVFunction::propagateCounts(const GCOVBlock &v, GCOVArc *pred) {
       continue;
     }
     if (u.i < u.v.pred.size()) {
-      GCOVArc *e = u.v.pred[u.i++];
-      if (e != u.pred) {
+      
+      if (GCOVArc *e = u.v.pred[u.i++]; e != u.pred) {
         if (e->onTree())
           stack.push_back({e->src, e, /*inDst=*/false});
         else
           u.excess += e->count;
       }
     } else if (u.i < u.v.pred.size() + u.v.succ.size()) {
-      GCOVArc *e = u.v.succ[u.i++ - u.v.pred.size()];
-      if (e != u.pred) {
+      
+      if (GCOVArc *e = u.v.succ[u.i++ - u.v.pred.size()]; e != u.pred) {
         if (e->onTree())
           stack.push_back({e->dst, e, /*inDst=*/true});
         else
@@ -534,8 +534,8 @@ uint64_t GCOVBlock::getCyclesCount(const BlockVector &blocks) {
     }
     d = 0;
     for (const auto *block : blocks) {
-      auto *b = const_cast<GCOVBlock *>(block);
-      if (b->traversable && (d = augmentOneCycle(b, stack)) > 0)
+      
+      if (auto *b = const_cast<GCOVBlock *>(block); b->traversable && (d = augmentOneCycle(b, stack)) > 0)
         break;
     }
     if (d == 0)
@@ -707,8 +707,8 @@ void Context::collectFunction(GCOVFunction &f, Summary &summary) {
       continue;
     for (const GCOVBlockLocation &loc : b.locations) {
       SourceInfo &locSource = sources[loc.srcIdx];
-      uint32_t maxLineNum = *llvm::max_element(loc.lines);
-      if (maxLineNum >= locSource.lines.size())
+      
+      if (uint32_t maxLineNum = *llvm::max_element(loc.lines); maxLineNum >= locSource.lines.size())
         locSource.lines.resize(maxLineNum + 1);
       for (uint32_t lineNum : loc.lines) {
         LineInfo &line = locSource.lines[lineNum];
@@ -827,8 +827,8 @@ void Context::annotateSource(SourceInfo &si, const GCOVFile &file,
         os << format("%5u-block %2u\n", lineNum, blockIdx++);
       }
       if (options.BranchInfo) {
-        size_t NumEdges = b->succ.size();
-        if (NumEdges > 1)
+        
+        if (size_t NumEdges = b->succ.size(); NumEdges > 1)
           printBranchInfo(*b, edgeIdx, os);
         else if (options.UncondBranch && NumEdges == 1) {
           uint64_t count = b->succ[0]->count;

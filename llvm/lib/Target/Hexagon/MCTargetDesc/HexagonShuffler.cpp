@@ -70,8 +70,8 @@ public:
   // Allocate slots.
   bool bid(unsigned B) {
     // Exclude already auctioned slots from the bid.
-    unsigned b = B & ~isSold;
-    if (b) {
+    
+    if (unsigned b = B & ~isSold; b) {
       for (unsigned i = 0; i < HEXAGON_PACKET_SIZE; ++i)
         if (b & (1 << i)) {
           // Request candidate slots.
@@ -91,12 +91,12 @@ unsigned HexagonResource::setWeight(unsigned s) {
   const unsigned SlotWeight = 8;
   const unsigned MaskWeight = SlotWeight - 1;
   unsigned Units = getUnits();
-  unsigned Key = ((1u << s) & Units) != 0;
+  
 
   // Calculate relative weight of the insn for the given slot, weighing it the
   // heavier the more restrictive the insn is and the lowest the slots that the
   // insn may be executed in.
-  if (Key == 0 || Units == 0 || (SlotWeight * s >= 32))
+  if (unsigned Key = ((1u << s) & Units) != 0; Key == 0 || Units == 0 || (SlotWeight * s >= 32))
     return Weight = 0;
 
   unsigned Ctpop = llvm::popcount(Units);
@@ -113,9 +113,9 @@ HexagonCVIResource::HexagonCVIResource(MCInstrInfo const &MCII,
 
   const unsigned ItinUnits = HexagonMCInstrInfo::getCVIResources(MCII, STI, *id);
   unsigned Lanes;
-  const unsigned Units = HexagonConvertUnits(ItinUnits, &Lanes);
+  
 
-  if (Units == 0 && Lanes == 0) {
+  if (const unsigned Units = HexagonConvertUnits(ItinUnits, &Lanes); Units == 0 && Lanes == 0) {
     // For core insns.
     Valid = false;
     setUnits(0);
@@ -153,8 +153,8 @@ static bool checkHVXPipes(const HVXInstsT &hvxInsts, unsigned startIdx,
     for (unsigned b = 0x1; b <= 0x8; b <<= 1) {
       if ((hvxInsts[startIdx].Units & b) == 0)
         continue;
-      unsigned allBits = makeAllBits(b, hvxInsts[startIdx].Lanes);
-      if ((allBits & usedUnits) == 0) {
+      
+      if (unsigned allBits = makeAllBits(b, hvxInsts[startIdx].Lanes); (allBits & usedUnits) == 0) {
         if (checkHVXPipes(hvxInsts, startIdx + 1, usedUnits | allBits))
           return true;
       }
@@ -196,13 +196,13 @@ void HexagonShuffler::restrictSlot1AOK(HexagonPacketSummary const &Summary) {
   if (Summary.Slot1AOKLoc)
     for (HexagonInstr &ISJ : insts()) {
       MCInst const &Inst = ISJ.getDesc();
-      const unsigned Type = HexagonMCInstrInfo::getType(MCII, Inst);
-      if (Type != HexagonII::TypeALU32_2op &&
+      
+      if (const unsigned Type = HexagonMCInstrInfo::getType(MCII, Inst); Type != HexagonII::TypeALU32_2op &&
           Type != HexagonII::TypeALU32_3op &&
           Type != HexagonII::TypeALU32_ADDI) {
-        const unsigned Units = ISJ.Core.getUnits();
+        
 
-        if (Units & Slot1Mask) {
+        if (const unsigned Units = ISJ.Core.getUnits(); Units & Slot1Mask) {
           AppliedRestrictions.push_back(std::make_pair(
               Inst.getLoc(),
               "Instruction was restricted from being in slot 1"));
@@ -227,10 +227,10 @@ void HexagonShuffler::restrictNoSlot1Store(
   bool AppliedRestriction = false;
 
   for (HexagonInstr &ISJ : insts()) {
-    MCInst const &Inst = ISJ.getDesc();
-    if (HexagonMCInstrInfo::getDesc(MCII, Inst).mayStore()) {
-      unsigned Units = ISJ.Core.getUnits();
-      if (Units & Slot1Mask) {
+    
+    if (MCInst const &Inst = ISJ.getDesc(); HexagonMCInstrInfo::getDesc(MCII, Inst).mayStore()) {
+      
+      if (unsigned Units = ISJ.Core.getUnits(); Units & Slot1Mask) {
         AppliedRestriction = true;
         AppliedRestrictions.push_back(std::make_pair(
             Inst.getLoc(), "Instruction was restricted from being in slot 1"));
@@ -269,8 +269,8 @@ bool HexagonShuffler::applySlotRestrictions(HexagonPacketSummary const &Summary,
 
 void HexagonShuffler::restrictBranchOrder(HexagonPacketSummary const &Summary) {
   // preserve branch order
-  const bool HasMultipleBranches = Summary.branchInsts.size() > 1;
-  if (!HasMultipleBranches)
+  
+  if (const bool HasMultipleBranches = Summary.branchInsts.size() > 1; !HasMultipleBranches)
     return;
 
   if (Summary.branchInsts.size() > 2) {
@@ -295,8 +295,8 @@ void HexagonShuffler::restrictBranchOrder(HexagonPacketSummary const &Summary) {
     Summary.branchInsts[0]->Core.setUnits(jumpSlot.first);
     Summary.branchInsts[1]->Core.setUnits(jumpSlot.second);
 
-    const bool HasShuffledPacket = tryAuction(Summary).has_value();
-    if (HasShuffledPacket)
+    
+    if (const bool HasShuffledPacket = tryAuction(Summary).has_value(); HasShuffledPacket)
       return;
 
     // if yes, great, if not then restore original slot mask
@@ -309,8 +309,8 @@ void HexagonShuffler::restrictBranchOrder(HexagonPacketSummary const &Summary) {
 
 void HexagonShuffler::permitNonSlot() {
   for (HexagonInstr &ISJ : insts()) {
-    const bool RequiresSlot = HexagonMCInstrInfo::requiresSlot(STI, *ISJ.ID);
-    if (!RequiresSlot)
+    
+    if (const bool RequiresSlot = HexagonMCInstrInfo::requiresSlot(STI, *ISJ.ID); !RequiresSlot)
       ISJ.Core.setAllUnits();
   }
 }
@@ -409,11 +409,11 @@ bool HexagonShuffler::restrictStoreLoadOrder(
               return I.Core.getUnits() == Slot0Mask &&
                      I.ID->getOpcode() != ID.getOpcode();
             });
-        const bool SafeToMoveToSlot0 =
-            (Summary.loads == 0) ||
-            (!isMemReorderDisabled() && PacketHasNoOnlySlot0);
+        
 
-        if (Summary.stores == 1 && SafeToMoveToSlot0)
+        if (const bool SafeToMoveToSlot0 =
+            (Summary.loads == 0) ||
+            (!isMemReorderDisabled() && PacketHasNoOnlySlot0); Summary.stores == 1 && SafeToMoveToSlot0)
           // Pin the store to slot #0 only if isMemReorderDisabled() == false
           ISJ->Core.setUnits(ISJ->Core.getUnits() & slotSingleStore);
         else if (Summary.stores >= 1) {
@@ -587,11 +587,11 @@ void HexagonShuffler::restrictPreferSlot3(HexagonPacketSummary const &Summary,
   const bool HasOnlySlot3 = llvm::any_of(insts(), [&](HexagonInstr const &I) {
     return (I.Core.getUnits() == Slot3Mask);
   });
-  const bool NeedsPrefSlot3Shuffle = Summary.branchInsts.size() <= 1 &&
-                                     !HasOnlySlot3 && Summary.pSlot3Cnt == 1 &&
-                                     Summary.PrefSlot3Inst && DoShuffle;
+  
 
-  if (!NeedsPrefSlot3Shuffle)
+  if (const bool NeedsPrefSlot3Shuffle = Summary.branchInsts.size() <= 1 &&
+                                     !HasOnlySlot3 && Summary.pSlot3Cnt == 1 &&
+                                     Summary.PrefSlot3Inst && DoShuffle; !NeedsPrefSlot3Shuffle)
     return;
 
   HexagonInstr *PrefSlot3Inst = *Summary.PrefSlot3Inst;
@@ -710,12 +710,12 @@ void HexagonShuffler::reportResourceError(HexagonPacketSummary const &Summary, S
 
 
 void HexagonShuffler::reportResourceUsage(HexagonPacketSummary const &Summary) {
-  auto SM = Context.getSourceManager();
-  if (SM) {
+  
+  if (auto SM = Context.getSourceManager(); SM) {
     for (HexagonInstr const &I : insts()) {
-      const unsigned Units = I.Core.getUnits();
+      
 
-      if (HexagonMCInstrInfo::requiresSlot(STI, *I.ID)) {
+      if (const unsigned Units = I.Core.getUnits(); HexagonMCInstrInfo::requiresSlot(STI, *I.ID)) {
         const std::string UnitsText = Units ? SlotMaskToText(Units) : "<None>";
         SM->PrintMessage(I.ID->getLoc(), SourceMgr::DK_Note,
                 Twine("Instruction can utilize slots: ") +
@@ -732,8 +732,8 @@ void HexagonShuffler::reportError(Twine const &Msg) {
   CheckFailure = true;
   if (ReportErrors) {
     for (auto const &I : AppliedRestrictions) {
-      auto SM = Context.getSourceManager();
-      if (SM)
+      
+      if (auto SM = Context.getSourceManager(); SM)
         SM->PrintMessage(I.first, SourceMgr::DK_Note, I.second);
     }
     Context.reportError(Loc, Msg);

@@ -592,8 +592,8 @@ TEST_F(DWARFASTParserClangTests, TestDefaultTemplateParamParsing) {
 
   for (auto const &type_sp : types) {
     ASSERT_NE(type_sp, nullptr);
-    auto const *decl = ClangUtil::GetAsTagDecl(type_sp->GetFullCompilerType());
-    if (decl->getName() == "bar" || decl->getName() == "baz") {
+    
+    if (auto const *decl = ClangUtil::GetAsTagDecl(type_sp->GetFullCompilerType()); decl->getName() == "bar" || decl->getName() == "baz") {
       check_decl(decl);
     }
   }

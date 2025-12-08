@@ -117,9 +117,9 @@ ProgramStateRef ProgramState::bindLoc(Loc LV,
   ProgramStateManager &Mgr = getStateManager();
   ExprEngine &Eng = Mgr.getOwningEngine();
   ProgramStateRef State = makeWithStore(Mgr.StoreMgr->Bind(getStore(), LV, V));
-  const MemRegion *MR = LV.getAsRegion();
+  
 
-  if (MR && notifyChanges)
+  if (const MemRegion *MR = LV.getAsRegion(); MR && notifyChanges)
     return Eng.processRegionChange(State, MR, LCtx);
 
   return State;
@@ -574,8 +574,8 @@ ProgramStateRef ProgramStateManager::removeGDM(ProgramStateRef state, void *Key)
 }
 
 bool ScanReachableSymbols::scan(nonloc::LazyCompoundVal val) {
-  bool wasVisited = !visited.insert(val.getCVData()).second;
-  if (wasVisited)
+  
+  if (bool wasVisited = !visited.insert(val.getCVData()).second; wasVisited)
     return true;
 
   StoreManager &StoreMgr = state->getStateManager().getStoreManager();
@@ -596,8 +596,8 @@ bool ScanReachableSymbols::scan(nonloc::CompoundVal val) {
 
 bool ScanReachableSymbols::scan(const SymExpr *sym) {
   for (SymbolRef SubSym : sym->symbols()) {
-    bool wasVisited = !visited.insert(SubSym).second;
-    if (wasVisited)
+    
+    if (bool wasVisited = !visited.insert(SubSym).second; wasVisited)
       continue;
 
     if (!visitor.VisitSymbol(SubSym))
@@ -631,8 +631,8 @@ bool ScanReachableSymbols::scan(const MemRegion *R) {
   if (isa<MemSpaceRegion>(R))
     return true;
 
-  bool wasVisited = !visited.insert(R).second;
-  if (wasVisited)
+  
+  if (bool wasVisited = !visited.insert(R).second; wasVisited)
     return true;
 
   if (!visitor.VisitMemRegion(R))
@@ -651,8 +651,8 @@ bool ScanReachableSymbols::scan(const MemRegion *R) {
 
     // When we reach the topmost region, scan all symbols in it.
     if (isa<MemSpaceRegion>(Super)) {
-      StoreManager &StoreMgr = state->getStateManager().getStoreManager();
-      if (!StoreMgr.scanReachableSymbols(state->getStore(), SR, *this))
+      
+      if (StoreManager &StoreMgr = state->getStateManager().getStoreManager(); !StoreMgr.scanReachableSymbols(state->getStore(), SR, *this))
         return false;
     }
   }

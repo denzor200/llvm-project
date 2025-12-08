@@ -267,8 +267,8 @@ bool patchCustomEvent(const bool Enable, const uint32_t FuncId,
   //
   //
   // The "unpatch" should just turn the 'nopw' back to a 'jmp +15'.
-  const uint64_t Address = Sled.address();
-  if (Enable) {
+  
+  if (const uint64_t Address = Sled.address(); Enable) {
     std::atomic_store_explicit(
         reinterpret_cast<std::atomic<uint16_t> *>(Address), NopwSeq,
         std::memory_order_release);
@@ -299,8 +299,8 @@ bool patchTypedEvent(const bool Enable, const uint32_t FuncId,
   // unstashes the registers and returns. If the arguments are already in
   // the correct registers, the stashing and unstashing become equivalently
   // sized nops.
-  const uint64_t Address = Sled.address();
-  if (Enable) {
+  
+  if (const uint64_t Address = Sled.address(); Enable) {
     std::atomic_store_explicit(
         reinterpret_cast<std::atomic<uint16_t> *>(Address), NopwSeq,
         std::memory_order_release);

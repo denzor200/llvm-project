@@ -532,8 +532,8 @@ Function::~Function() {
 
 void Function::BuildLazyArguments() const {
   // Create the arguments vector, all arguments start out unnamed.
-  auto *FT = getFunctionType();
-  if (NumArgs > 0) {
+  
+  if (auto *FT = getFunctionType(); NumArgs > 0) {
     Arguments = std::allocator<Argument>().allocate(NumArgs);
     for (unsigned i = 0, e = NumArgs; i != e; ++i) {
       Type *ArgTy = FT->getParamType(i);
@@ -1122,8 +1122,8 @@ void Function::setEntryCount(uint64_t Count, Function::ProfileCountType Type,
 }
 
 std::optional<ProfileCount> Function::getEntryCount(bool AllowSynthetic) const {
-  MDNode *MD = getMetadata(LLVMContext::MD_prof);
-  if (MD && MD->getOperand(0))
+  
+  if (MDNode *MD = getMetadata(LLVMContext::MD_prof); MD && MD->getOperand(0))
     if (MDString *MDS = dyn_cast<MDString>(MD->getOperand(0))) {
       if (MDS->getString() == MDProfLabels::FunctionEntryCount) {
         ConstantInt *CI = mdconst::extract<ConstantInt>(MD->getOperand(1));

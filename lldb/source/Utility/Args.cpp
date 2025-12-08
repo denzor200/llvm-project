@@ -464,8 +464,8 @@ void Args::EncodeEscapeSequences(const char *src, std::string &dst) {
   dst.clear();
   if (src) {
     for (const char *p = src; *p != '\0'; ++p) {
-      size_t non_special_chars = ::strcspn(p, "\\");
-      if (non_special_chars > 0) {
+      
+      if (size_t non_special_chars = ::strcspn(p, "\\"); non_special_chars > 0) {
         dst.append(p, non_special_chars);
         p += non_special_chars;
         if (*p == '\0')
@@ -520,8 +520,8 @@ void Args::EncodeEscapeSequences(const char *src, std::string &dst) {
             // for loop will do this for us, so we advance p by one less than i
             // (even if i is zero)
             p += i - 1;
-            unsigned long octal_value = ::strtoul(oct_str, nullptr, 8);
-            if (octal_value <= UINT8_MAX) {
+            
+            if (unsigned long octal_value = ::strtoul(oct_str, nullptr, 8); octal_value <= UINT8_MAX) {
               dst.append(1, static_cast<char>(octal_value));
             }
           }
@@ -540,8 +540,8 @@ void Args::EncodeEscapeSequences(const char *src, std::string &dst) {
               hex_str[1] = *p;
             }
 
-            unsigned long hex_value = strtoul(hex_str, nullptr, 16);
-            if (hex_value <= UINT8_MAX)
+            
+            if (unsigned long hex_value = strtoul(hex_str, nullptr, 16); hex_value <= UINT8_MAX)
               dst.append(1, static_cast<char>(hex_value));
           } else {
             dst.append(1, 'x');

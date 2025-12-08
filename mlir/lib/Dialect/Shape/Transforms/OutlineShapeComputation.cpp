@@ -45,8 +45,8 @@ getInputsOfCluster(const llvm::SmallVector<Operation *, 8> &cluster) {
 
   for (Operation *op : cluster) {
     for (Value operand : op->getOperands()) {
-      Operation *operandOp = operand.getDefiningOp();
-      if (opSet.contains(operandOp)) {
+      
+      if (Operation *operandOp = operand.getDefiningOp(); opSet.contains(operandOp)) {
         // Skip if defining op is in the cluster.
         continue;
       }

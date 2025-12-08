@@ -256,8 +256,8 @@ void IRNumberingState::computeGlobalNumberingState(Operation *rootOp) {
     if (op->getNumRegions() && stage.isAfterAllRegions()) {
       // If no non-isolated uses were found, we can safely mark this operation
       // as isolated from above.
-      OperationNumbering *numbering = opStack.pop_back_val().numbering;
-      if (!numbering->isIsolatedFromAbove.has_value())
+      
+      if (OperationNumbering *numbering = opStack.pop_back_val().numbering; !numbering->isIsolatedFromAbove.has_value())
         numbering->isIsolatedFromAbove = true;
       return;
     }
@@ -576,8 +576,8 @@ struct NumberingResourceBuilder : public AsmResourceBuilder {
   void numberEntry(StringRef key) {
     // TODO: We could pre-number resource key strings here as well.
 
-    auto *it = dialect->resourceMap.find(key);
-    if (it != dialect->resourceMap.end()) {
+    
+    if (auto *it = dialect->resourceMap.find(key); it != dialect->resourceMap.end()) {
       it->second->number = nextResourceID++;
       it->second->isDeclaration = false;
     }

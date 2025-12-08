@@ -92,8 +92,8 @@ void XCOFFDumper::printFileHeaders() {
   W.printNumber("NumberOfSections", Obj.getNumberOfSections());
 
   // Negative timestamp values are reserved for future use.
-  int32_t TimeStamp = Obj.getTimeStamp();
-  if (TimeStamp > 0) {
+  
+  if (int32_t TimeStamp = Obj.getTimeStamp(); TimeStamp > 0) {
     // This handling of the time stamp assumes that the host system's time_t is
     // compatible with AIX time_t. If a platform is not compatible, the lit
     // tests will let us know.
@@ -101,9 +101,9 @@ void XCOFFDumper::printFileHeaders() {
 
     char FormattedTime[80] = {};
 
-    size_t BytesFormatted =
-      strftime(FormattedTime, sizeof(FormattedTime), "%F %T", gmtime(&TimeDate));
-    if (BytesFormatted)
+    
+    if (size_t BytesFormatted =
+      strftime(FormattedTime, sizeof(FormattedTime), "%F %T", gmtime(&TimeDate)); BytesFormatted)
       W.printHex("TimeStamp", FormattedTime, TimeStamp);
     else
       W.printHex("Timestamp", TimeStamp);
@@ -120,8 +120,8 @@ void XCOFFDumper::printFileHeaders() {
     W.printNumber("SymbolTableEntries", Obj.getNumberOfSymbolTableEntries64());
   } else {
     W.printHex("SymbolTableOffset", Obj.getSymbolTableOffset32());
-    int32_t SymTabEntries = Obj.getRawNumberOfSymbolTableEntries32();
-    if (SymTabEntries >= 0)
+    
+    if (int32_t SymTabEntries = Obj.getRawNumberOfSymbolTableEntries32(); SymTabEntries >= 0)
       W.printNumber("SymbolTableEntries", SymTabEntries);
     else
       W.printHex("SymbolTableEntries", "Reserved Value", SymTabEntries);
@@ -310,8 +310,8 @@ static const char *getImplicitLoaderSectionSymName(int SymIndx) {
 template <typename LoadSectionRelocTy>
 void XCOFFDumper::printLoaderSectionRelocationEntry(
     LoadSectionRelocTy *LoaderSecRelEntPtr, StringRef SymbolName) {
-  uint16_t Type = LoaderSecRelEntPtr->Type;
-  if (opts::ExpandRelocs) {
+  
+  if (uint16_t Type = LoaderSecRelEntPtr->Type; opts::ExpandRelocs) {
     DictScope DS(W, "Relocation");
     auto IsRelocationSigned = [](uint8_t Info) {
       return Info & XCOFF::XR_SIGN_INDICATOR_MASK;
@@ -829,10 +829,10 @@ void XCOFFDumper::printSymbol(const SymbolRef &S) {
       if (I == NumberOfAuxEntries && !Obj.is64Bit())
         break;
 
-      uintptr_t AuxAddress = XCOFFObjectFile::getAdvancedSymbolEntryAddress(
-          SymbolEntRef.getEntryAddress(), I);
+      
 
-      if (Obj.is64Bit()) {
+      if (uintptr_t AuxAddress = XCOFFObjectFile::getAdvancedSymbolEntryAddress(
+          SymbolEntRef.getEntryAddress(), I); Obj.is64Bit()) {
         XCOFF::SymbolAuxType Type = *Obj.getSymbolAuxType(AuxAddress);
         if (Type == XCOFF::SymbolAuxType::AUX_CSECT)
           continue;
@@ -876,10 +876,10 @@ void XCOFFDumper::printSymbol(const SymbolRef &S) {
   case XCOFF::C_DWARF: {
     checkNumOfAux();
 
-    uintptr_t AuxAddress = XCOFFObjectFile::getAdvancedSymbolEntryAddress(
-        SymbolEntRef.getEntryAddress(), 1);
+    
 
-    if (Obj.is64Bit()) {
+    if (uintptr_t AuxAddress = XCOFFObjectFile::getAdvancedSymbolEntryAddress(
+        SymbolEntRef.getEntryAddress(), 1); Obj.is64Bit()) {
       const XCOFFSectAuxEntForDWARF64 *AuxEntPtr =
           getAuxEntPtr<XCOFFSectAuxEntForDWARF64>(AuxAddress);
       printSectAuxEntForDWARF<XCOFFSectAuxEntForDWARF64>(AuxEntPtr);
@@ -894,10 +894,10 @@ void XCOFFDumper::printSymbol(const SymbolRef &S) {
   case XCOFF::C_FCN: {
     checkNumOfAux();
 
-    uintptr_t AuxAddress = XCOFFObjectFile::getAdvancedSymbolEntryAddress(
-        SymbolEntRef.getEntryAddress(), 1);
+    
 
-    if (Obj.is64Bit()) {
+    if (uintptr_t AuxAddress = XCOFFObjectFile::getAdvancedSymbolEntryAddress(
+        SymbolEntRef.getEntryAddress(), 1); Obj.is64Bit()) {
       const XCOFFBlockAuxEnt64 *AuxEntPtr =
           getAuxEntPtr<XCOFFBlockAuxEnt64>(AuxAddress);
       printBlockAuxEnt(AuxEntPtr);
@@ -1049,9 +1049,9 @@ static void printAuxMemberHelper(PrintStyle Style, const char *MemberName,
                                  uint16_t AuxSize, uint16_t &PartialFieldOffset,
                                  const char *&PartialFieldName,
                                  ScopedPrinter &W) {
-  ptrdiff_t Offset = reinterpret_cast<const char *>(&Member) -
-                     reinterpret_cast<const char *>(AuxHeader);
-  if (Offset + sizeof(Member) <= AuxSize)
+  
+  if (ptrdiff_t Offset = reinterpret_cast<const char *>(&Member) -
+                     reinterpret_cast<const char *>(AuxHeader); Offset + sizeof(Member) <= AuxSize)
     Style == Hex ? W.printHex(MemberName, Member)
                  : W.printNumber(MemberName, Member);
   else if (Offset < AuxSize) {

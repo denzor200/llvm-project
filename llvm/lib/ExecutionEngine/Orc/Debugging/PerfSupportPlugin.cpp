@@ -66,8 +66,8 @@ Expected<std::string> createX64EHFrameHeader(Section &EHFrame,
   if (auto Err = Writer.writeInteger(TableEnc))
     return std::move(Err);
   if (absolute) {
-    uint64_t EHFrameAddr = SectionRange(EHFrame).getStart().getValue();
-    if (auto Err = Writer.writeInteger(EHFrameAddr))
+    
+    if (uint64_t EHFrameAddr = SectionRange(EHFrame).getStart().getValue(); auto Err = Writer.writeInteger(EHFrameAddr))
       return std::move(Err);
   } else {
     if (auto Err = Writer.writeInteger(EHFrameRelocation))

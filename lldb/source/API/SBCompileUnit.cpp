@@ -53,8 +53,8 @@ uint32_t SBCompileUnit::GetNumLineEntries() const {
   LLDB_INSTRUMENT_VA(this);
 
   if (m_opaque_ptr) {
-    LineTable *line_table = m_opaque_ptr->GetLineTable();
-    if (line_table) {
+    
+    if (LineTable *line_table = m_opaque_ptr->GetLineTable(); line_table) {
       return line_table->GetSize();
     }
   }
@@ -66,8 +66,8 @@ SBLineEntry SBCompileUnit::GetLineEntryAtIndex(uint32_t idx) const {
 
   SBLineEntry sb_line_entry;
   if (m_opaque_ptr) {
-    LineTable *line_table = m_opaque_ptr->GetLineTable();
-    if (line_table) {
+    
+    if (LineTable *line_table = m_opaque_ptr->GetLineTable(); line_table) {
       LineEntry line_entry;
       if (line_table->GetLineEntryAtIndex(idx, line_entry))
         sb_line_entry.SetLineEntry(line_entry);
@@ -224,9 +224,9 @@ void SBCompileUnit::reset(lldb_private::CompileUnit *lldb_object_ptr) {
 bool SBCompileUnit::GetDescription(SBStream &description) {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_ptr) {
+  if (Stream &strm = description.ref(); m_opaque_ptr) {
     m_opaque_ptr->Dump(&strm, false);
   } else
     strm.PutCString("No value");

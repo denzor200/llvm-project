@@ -144,8 +144,8 @@ void VarLenInst::buildRec(const DagInit *DI) {
     int e = Reverse ? -1 : DI->getNumArgs();
     int s = Reverse ? -1 : 1;
     for (; i != e; i += s) {
-      const Init *Arg = DI->getArg(i);
-      if (const auto *BI = dyn_cast<BitsInit>(Arg)) {
+      
+      if (const Init *Arg = DI->getArg(i); const auto *BI = dyn_cast<BitsInit>(Arg)) {
         if (!BI->isComplete())
           PrintFatalError(TheDef->getLoc(),
                           "Expecting complete bits init in `" + Op + "`");

@@ -126,9 +126,9 @@ static bool isDefOrUse(const AsmParserState::SMDefinition &def, SMLoc loc,
   }
 
   // Check the uses.
-  const auto *useIt = llvm::find_if(
-      def.uses, [&](const SMRange &range) { return contains(range, loc); });
-  if (useIt != def.uses.end()) {
+  
+  if (const auto *useIt = llvm::find_if(
+      def.uses, [&](const SMRange &range) { return contains(range, loc); }); useIt != def.uses.end()) {
     if (overlappedRange)
       *overlappedRange = *useIt;
     return true;

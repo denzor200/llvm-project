@@ -239,8 +239,8 @@ uint32_t CompileUnit::FindLineEntry(uint32_t start_idx, uint32_t line,
                                    /*column=*/std::nullopt,
                                    /*check_inlines=*/false, exact);
 
-  LineTable *line_table = GetLineTable();
-  if (line_table)
+  
+  if (LineTable *line_table = GetLineTable(); line_table)
     return line_table->FindLineEntryIndexByFileIndex(
         start_idx, file_indexes, location_spec, line_entry_ptr);
   return UINT32_MAX;
@@ -354,16 +354,16 @@ void CompileUnit::ResolveSymbolContext(
         // We only have to descend through the regular blocks, looking for
         // immediate inlines, since those are the only ones that will have this
         // callsite.
-        const InlineFunctionInfo *inline_info =
-            sibling_block->GetInlinedFunctionInfo();
-        if (inline_info) {
+        
+        if (const InlineFunctionInfo *inline_info =
+            sibling_block->GetInlinedFunctionInfo(); inline_info) {
           // If this is the call-site we are looking for, record that:
           // We need to be careful because the call site from the debug info
           // will generally have a column, but the user might not have specified
           // it.
           Declaration found_decl = inline_info->GetCallSite();
-          uint32_t sought_column = sought_decl.GetColumn();
-          if (found_decl.FileAndLineEqual(sought_decl, false) &&
+          
+          if (uint32_t sought_column = sought_decl.GetColumn(); found_decl.FileAndLineEqual(sought_decl, false) &&
               (sought_column == LLDB_INVALID_COLUMN_NUMBER ||
                sought_column == found_decl.GetColumn())) {
             // If we found a call site, it belongs not in this inlined block,

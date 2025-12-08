@@ -483,8 +483,8 @@ Expected<std::unique_ptr<ExpressionAST>> Pattern::parseNumericOperand(
   // Otherwise, parse it as a literal.
   APInt LiteralValue;
   StringRef SaveExpr = Expr;
-  bool Negative = Expr.consume_front("-");
-  if (!Expr.consumeInteger((AO == AllowedOperand::LegacyLiteral) ? 10 : 0,
+  
+  if (bool Negative = Expr.consume_front("-"); !Expr.consumeInteger((AO == AllowedOperand::LegacyLiteral) ? 10 : 0,
                            LiteralValue)) {
     LiteralValue = toSigned(LiteralValue, Negative);
     return std::make_unique<ExpressionLiteral>(SaveExpr.drop_back(Expr.size()),
@@ -663,8 +663,8 @@ Expected<std::unique_ptr<Expression>> Pattern::parseNumericSubstitutionBlock(
 
   // Parse format specifier (NOTE: ',' is also an argument separator).
   size_t FormatSpecEnd = Expr.find(',');
-  size_t FunctionStart = Expr.find('(');
-  if (FormatSpecEnd != StringRef::npos && FormatSpecEnd < FunctionStart) {
+  
+  if (size_t FunctionStart = Expr.find('('); FormatSpecEnd != StringRef::npos && FormatSpecEnd < FunctionStart) {
     StringRef FormatExpr = Expr.take_front(FormatSpecEnd);
     Expr = Expr.drop_front(FormatSpecEnd + 1);
     FormatExpr = FormatExpr.trim(SpaceChars);
@@ -929,8 +929,8 @@ bool Pattern::parsePattern(StringRef PatternStr, StringRef Prefix,
       // Parse string variable or legacy @LINE expression.
       if (!IsNumBlock) {
         size_t VarEndIdx = MatchStr.find(':');
-        size_t SpacePos = MatchStr.substr(0, VarEndIdx).find_first_of(" \t");
-        if (SpacePos != StringRef::npos) {
+        
+        if (size_t SpacePos = MatchStr.substr(0, VarEndIdx).find_first_of(" \t"); SpacePos != StringRef::npos) {
           SM.PrintMessage(SMLoc::getFromPointer(MatchStr.data() + SpacePos),
                           SourceMgr::DK_Error, "unexpected whitespace");
           return true;
@@ -1387,9 +1387,9 @@ void Pattern::printFuzzyMatch(const SourceMgr &SM, StringRef Buffer,
     // Compute the "quality" of this match as an arbitrary combination of the
     // match distance and the number of lines skipped to get to this match.
     unsigned Distance = computeMatchDistance(Buffer.substr(i));
-    double Quality = Distance + (NumLinesForward / 100.);
+    
 
-    if (Quality < BestQuality || Best == StringRef::npos) {
+    if (double Quality = Distance + (NumLinesForward / 100.); Quality < BestQuality || Best == StringRef::npos) {
       Best = i;
       BestQuality = Quality;
     }
@@ -1848,8 +1848,8 @@ bool FileCheck::readCheckFile(
 
     StringRef PatternInBuffer =
         CmdLine->getBuffer().substr(Prefix.size(), PatternString.size());
-    unsigned BufferID = SM.AddNewSourceBuffer(std::move(CmdLine), SMLoc());
-    if (ImpPatBufferIDRange) {
+    
+    if (unsigned BufferID = SM.AddNewSourceBuffer(std::move(CmdLine), SMLoc()); ImpPatBufferIDRange) {
       if (ImpPatBufferIDRange->first == ImpPatBufferIDRange->second) {
         ImpPatBufferIDRange->first = BufferID;
         ImpPatBufferIDRange->second = BufferID + 1;
@@ -1993,9 +1993,9 @@ bool FileCheck::readCheckFile(
   // When there are no used prefixes we report an error except in the case that
   // no prefix is specified explicitly but -implicit-check-not is specified.
   const bool NoPrefixesFound = PrefixesNotFound.size() == DistinctPrefixes;
-  const bool SomePrefixesUnexpectedlyNotUsed =
-      !Req.AllowUnusedPrefixes && !PrefixesNotFound.empty();
-  if ((NoPrefixesFound || SomePrefixesUnexpectedlyNotUsed) &&
+  
+  if (const bool SomePrefixesUnexpectedlyNotUsed =
+      !Req.AllowUnusedPrefixes && !PrefixesNotFound.empty(); (NoPrefixesFound || SomePrefixesUnexpectedlyNotUsed) &&
       (ImplicitNegativeChecks.empty() || !Req.IsDefaultCheckPrefix)) {
     errs() << "error: no check strings found with prefix"
            << (PrefixesNotFound.size() > 1 ? "es " : " ");
@@ -2340,9 +2340,9 @@ bool FileCheckString::CheckSame(const SourceMgr &SM, StringRef Buffer) const {
 
   // Count the number of newlines between the previous match and this one.
   const char *FirstNewLine = nullptr;
-  unsigned NumNewLines = CountNumNewlinesBetween(Buffer, FirstNewLine);
+  
 
-  if (NumNewLines != 0) {
+  if (unsigned NumNewLines = CountNumNewlinesBetween(Buffer, FirstNewLine); NumNewLines != 0) {
     SM.PrintMessage(Loc, SourceMgr::DK_Error,
                     Prefix +
                         "-SAME: is not on the same line as the previous match");

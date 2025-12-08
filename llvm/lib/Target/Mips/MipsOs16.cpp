@@ -48,8 +48,8 @@ namespace {
 // registers because of the ABI
 //
 static  bool needsFPFromSig(Function &F) {
-  Type* RetType = F.getReturnType();
-  switch (RetType->getTypeID()) {
+  
+  switch (Type* RetType = F.getReturnType(); RetType->getTypeID()) {
   case Type::FloatTyID:
   case Type::DoubleTyID:
     return true;
@@ -57,8 +57,8 @@ static  bool needsFPFromSig(Function &F) {
     ;
   }
   if (F.arg_size() >=1) {
-    Argument &Arg = *F.arg_begin();
-    switch (Arg.getType()->getTypeID()) {
+    
+    switch (Argument &Arg = *F.arg_begin(); Arg.getType()->getTypeID()) {
     case Type::FloatTyID:
     case Type::DoubleTyID:
       return true;
@@ -77,8 +77,8 @@ static bool needsFP(Function &F) {
   for (Function::const_iterator BB = F.begin(), E = F.end(); BB != E; ++BB)
     for (BasicBlock::const_iterator I = BB->begin(), E = BB->end();
          I != E; ++I) {
-      const Instruction &Inst = *I;
-      switch (Inst.getOpcode()) {
+      
+      switch (const Instruction &Inst = *I; Inst.getOpcode()) {
       case Instruction::FAdd:
       case Instruction::FSub:
       case Instruction::FMul:
@@ -98,8 +98,8 @@ static bool needsFP(Function &F) {
       if (const CallInst *CI = dyn_cast<CallInst>(I)) {
         LLVM_DEBUG(dbgs() << "Working on call"
                           << "\n");
-        Function &F_ =  *CI->getCalledFunction();
-        if (needsFPFromSig(F_))
+        
+        if (Function &F_ =  *CI->getCalledFunction(); needsFPFromSig(F_))
           return true;
       }
     }

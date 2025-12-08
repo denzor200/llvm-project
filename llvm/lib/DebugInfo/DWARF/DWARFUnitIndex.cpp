@@ -239,8 +239,8 @@ void DWARFUnitIndex::dump(raw_ostream &OS) const {
   }
   OS << '\n';
   for (unsigned i = 0; i != Header.NumBuckets; ++i) {
-    auto &Row = Rows[i];
-    if (auto *Contribs = Row.Contributions.get()) {
+    
+    if (auto &Row = Rows[i]; auto *Contribs = Row.Contributions.get()) {
       OS << format("%5u 0x%016" PRIx64 " ", i + 1, Row.Signature);
       for (unsigned i = 0; i != Header.NumColumns; ++i) {
         auto &Contrib = Contribs[i];
@@ -297,8 +297,8 @@ DWARFUnitIndex::getFromOffset(uint64_t Offset) const {
     return nullptr;
   --I;
   const auto *E = *I;
-  const auto &InfoContrib = E->Contributions[InfoColumn];
-  if ((InfoContrib.getOffset() + InfoContrib.getLength()) <= Offset)
+  
+  if (const auto &InfoContrib = E->Contributions[InfoColumn]; (InfoContrib.getOffset() + InfoContrib.getLength()) <= Offset)
     return nullptr;
   return E;
 }

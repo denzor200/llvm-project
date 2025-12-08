@@ -188,9 +188,9 @@ bool runImpl(Module &M) {
     }
 
     if (!CheckFunction) {
-      Function *DefaultCheckFunc =
-          createDefaultCheckFunction(M, UseX86FastCall);
-      if (IsELF) {
+      
+      if (Function *DefaultCheckFunc =
+          createDefaultCheckFunction(M, UseX86FastCall); IsELF) {
         DefaultCheckFunc->setName(CheckFunctionName);
         DefaultCheckFunc->setLinkage(GlobalValue::WeakAnyLinkage);
         CheckFunction = DefaultCheckFunc;

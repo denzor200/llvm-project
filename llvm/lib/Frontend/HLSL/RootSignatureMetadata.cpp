@@ -591,10 +591,10 @@ validateDescriptorTableRegisterOverflow(const mcdxbc::DescriptorTable &Table,
     if (Range.NumDescriptors == 0)
       continue;
 
-    const uint64_t RangeBound = llvm::hlsl::rootsig::computeRangeBound(
-        Range.BaseShaderRegister, Range.NumDescriptors);
+    
 
-    if (!verifyNoOverflowedOffset(RangeBound))
+    if (const uint64_t RangeBound = llvm::hlsl::rootsig::computeRangeBound(
+        Range.BaseShaderRegister, Range.NumDescriptors); !verifyNoOverflowedOffset(RangeBound))
       return makeRSError(
           formatv("Overflow for shader register range: {0}", FmtRange{Range}));
 
@@ -688,11 +688,11 @@ Error MetadataParser::validateRootSignature(
               makeRSError(formatv("Invalid value for NumDescriptors: {0}",
                                   Range.NumDescriptors)));
 
-        bool IsValidFlag = dxbc::isValidDescriptorRangeFlags(Range.Flags) &&
+        
+        if (bool IsValidFlag = dxbc::isValidDescriptorRangeFlags(Range.Flags) &&
                            hlsl::rootsig::verifyDescriptorRangeFlag(
                                RSD.Version, Range.RangeType,
-                               dxbc::DescriptorRangeFlags(Range.Flags));
-        if (!IsValidFlag)
+                               dxbc::DescriptorRangeFlags(Range.Flags)); !IsValidFlag)
           DeferredErrs = joinErrors(
               std::move(DeferredErrs),
               makeRSError(formatv("Invalid value for DescriptorFlag: {0}",
@@ -748,11 +748,11 @@ Error MetadataParser::validateRootSignature(
           joinErrors(std::move(DeferredErrs),
                      makeRSError(formatv("Invalid value for RegisterSpace: {0}",
                                          Sampler.RegisterSpace)));
-    bool IsValidFlag =
+    
+    if (bool IsValidFlag =
         dxbc::isValidStaticSamplerFlags(Sampler.Flags) &&
         hlsl::rootsig::verifyStaticSamplerFlags(
-            RSD.Version, dxbc::StaticSamplerFlags(Sampler.Flags));
-    if (!IsValidFlag)
+            RSD.Version, dxbc::StaticSamplerFlags(Sampler.Flags)); !IsValidFlag)
       DeferredErrs = joinErrors(
           std::move(DeferredErrs),
           makeRSError(formatv("Invalid value for Static Sampler Flag: {0}",

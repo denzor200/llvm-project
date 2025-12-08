@@ -409,8 +409,8 @@ static const ObjCCategoryDecl *getCategoryContext(const NamedDecl *D) {
 }
 
 void USRGenerator::VisitObjCMethodDecl(const ObjCMethodDecl *D) {
-  const DeclContext *container = D->getDeclContext();
-  if (const ObjCProtocolDecl *pd = dyn_cast<ObjCProtocolDecl>(container)) {
+  
+  if (const DeclContext *container = D->getDeclContext(); const ObjCProtocolDecl *pd = dyn_cast<ObjCProtocolDecl>(container)) {
     Visit(pd);
   }
   else {
@@ -614,8 +614,8 @@ void USRGenerator::VisitTagDecl(const TagDecl *D) {
 void USRGenerator::VisitTypedefDecl(const TypedefDecl *D) {
   if (ShouldGenerateLocation(D) && GenLoc(D, /*IncludeOffset=*/isLocal(D)))
     return;
-  const DeclContext *DC = D->getDeclContext();
-  if (const NamedDecl *DCN = dyn_cast<NamedDecl>(DC))
+  
+  if (const DeclContext *DC = D->getDeclContext(); const NamedDecl *DCN = dyn_cast<NamedDecl>(DC))
     Visit(DCN);
   Out << "@T@";
   Out << D->getName();
@@ -1196,8 +1196,8 @@ bool clang::index::generateUSRForDecl(const Decl *D, SmallVectorImpl<char> &Buf,
   // create USRs that can identify them.
 
   // Check if the declaration has explicit external USR specified.
-  auto *CD = D->getCanonicalDecl();
-  if (auto *ExternalSymAttr = CD->getAttr<ExternalSourceSymbolAttr>()) {
+  
+  if (auto *CD = D->getCanonicalDecl(); auto *ExternalSymAttr = CD->getAttr<ExternalSourceSymbolAttr>()) {
     if (!ExternalSymAttr->getUSR().empty()) {
       llvm::raw_svector_ostream Out(Buf);
       Out << ExternalSymAttr->getUSR();

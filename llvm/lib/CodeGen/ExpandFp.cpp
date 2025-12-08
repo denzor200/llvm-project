@@ -444,8 +444,8 @@ static void expandFPToI(Instruction *FPToI) {
 
   // FIXME: fp16's range is covered by i32. So `fptoi half` can convert
   // to i32 first following a sext/zext to target integer type.
-  Value *A1 = nullptr;
-  if (FloatVal->getType()->isHalfTy()) {
+  
+  if (Value *A1 = nullptr; FloatVal->getType()->isHalfTy()) {
     if (FPToI->getOpcode() == Instruction::FPToUI) {
       Value *A0 = Builder.CreateFPToUI(FloatVal, Builder.getInt32Ty());
       A1 = Builder.CreateZExt(A0, IntTy);

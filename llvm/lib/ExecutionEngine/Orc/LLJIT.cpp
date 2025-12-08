@@ -75,8 +75,8 @@ Function *addHelperAndWrapper(Module &M, StringRef WrapperName,
   llvm::append_range(HelperArgs, HelperPrefixArgs);
   for (auto &Arg : WrapperFn->args())
     HelperArgs.push_back(&Arg);
-  auto *HelperResult = IB.CreateCall(HelperFn, HelperArgs);
-  if (HelperFn->getReturnType()->isVoidTy())
+  
+  if (auto *HelperResult = IB.CreateCall(HelperFn, HelperArgs); HelperFn->getReturnType()->isVoidTy())
     IB.CreateRetVoid();
   else
     IB.CreateRet(HelperResult);
@@ -206,8 +206,8 @@ public:
   }
 
   Error notifyAdding(ResourceTracker &RT, const MaterializationUnit &MU) {
-    auto &JD = RT.getJITDylib();
-    if (auto &InitSym = MU.getInitializerSymbol())
+    
+    if (auto &JD = RT.getJITDylib(); auto &InitSym = MU.getInitializerSymbol())
       InitSymbols[&JD].add(InitSym, SymbolLookupFlags::WeaklyReferencedSymbol);
     else {
       // If there's no identified init symbol attached, but there is a symbol
@@ -1250,8 +1250,8 @@ Expected<JITDylibSP> setUpGenericLLVMIRPlatform(LLJIT &J) {
 
     // Otherwise fall back to standard unwind registration.
     if (UseEHFrames) {
-      auto &ES = J.getExecutionSession();
-      if (auto EHFP = EHFrameRegistrationPlugin::Create(ES)) {
+      
+      if (auto &ES = J.getExecutionSession(); auto EHFP = EHFrameRegistrationPlugin::Create(ES)) {
         OLL->addPlugin(std::move(*EHFP));
         LLVM_DEBUG(dbgs() << "Enabled eh-frame support.\n");
       } else

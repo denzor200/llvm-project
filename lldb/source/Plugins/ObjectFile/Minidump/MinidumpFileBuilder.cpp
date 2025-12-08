@@ -84,8 +84,8 @@ Status MinidumpFileBuilder::AddHeaderAndCalculateDirectories() {
   m_saved_data_size +=
       m_expected_directories * sizeof(llvm::minidump::Directory);
   Status error;
-  offset_t new_offset = m_core_file->SeekFromStart(m_saved_data_size);
-  if (new_offset != m_saved_data_size)
+  
+  if (offset_t new_offset = m_core_file->SeekFromStart(m_saved_data_size); new_offset != m_saved_data_size)
     error = Status::FromErrorStringWithFormat(
         "Failed to fill in header and directory "
         "sections. Written / Expected (%" PRIx64 " / %" PRIx64 ")",
@@ -229,8 +229,8 @@ Status WriteString(const std::string &to_write,
   llvm::StringRef to_write_ref(to_write.c_str(), to_write.size() + 1);
   llvm::SmallVector<llvm::UTF16, 128> to_write_utf16;
 
-  bool converted = convertUTF8ToUTF16String(to_write_ref, to_write_utf16);
-  if (!converted) {
+  
+  if (bool converted = convertUTF8ToUTF16String(to_write_ref, to_write_utf16); !converted) {
     error = Status::FromErrorStringWithFormat(
         "Unable to convert the string to UTF16. Failed to convert %s",
         to_write.c_str());
@@ -468,14 +468,14 @@ llvm::support::ulittle64_t read_register_u64(RegisterContext *reg_ctx,
 
 void read_register_u128(RegisterContext *reg_ctx, llvm::StringRef reg_name,
                         uint8_t *dst) {
-  const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoByName(reg_name);
-  if (reg_info) {
+  
+  if (const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoByName(reg_name); reg_info) {
     lldb_private::RegisterValue reg_value;
     if (reg_ctx->ReadRegister(reg_info, reg_value)) {
       Status error;
-      uint32_t bytes_copied = reg_value.GetAsMemoryData(
-          *reg_info, dst, 16, lldb::ByteOrder::eByteOrderLittle, error);
-      if (bytes_copied == 16)
+      
+      if (uint32_t bytes_copied = reg_value.GetAsMemoryData(
+          *reg_info, dst, 16, lldb::ByteOrder::eByteOrderLittle, error); bytes_copied == 16)
         return;
     }
   }
@@ -1279,9 +1279,9 @@ Status MinidumpFileBuilder::DumpFile() {
 }
 
 void MinidumpFileBuilder::DeleteFile() noexcept {
-  Log *log = GetLog(LLDBLog::Object);
+  
 
-  if (m_core_file) {
+  if (Log *log = GetLog(LLDBLog::Object); m_core_file) {
     Status error = m_core_file->Close();
     if (error.Fail())
       LLDB_LOGF(log, "Failed to close minidump file: %s", error.AsCString());

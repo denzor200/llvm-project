@@ -66,9 +66,9 @@ const char *SBBlock::GetInlinedName() const {
   LLDB_INSTRUMENT_VA(this);
 
   if (m_opaque_ptr) {
-    const InlineFunctionInfo *inlined_info =
-        m_opaque_ptr->GetInlinedFunctionInfo();
-    if (inlined_info) {
+    
+    if (const InlineFunctionInfo *inlined_info =
+        m_opaque_ptr->GetInlinedFunctionInfo(); inlined_info) {
       return inlined_info->GetName().AsCString(nullptr);
     }
   }
@@ -80,9 +80,9 @@ SBFileSpec SBBlock::GetInlinedCallSiteFile() const {
 
   SBFileSpec sb_file;
   if (m_opaque_ptr) {
-    const InlineFunctionInfo *inlined_info =
-        m_opaque_ptr->GetInlinedFunctionInfo();
-    if (inlined_info)
+    
+    if (const InlineFunctionInfo *inlined_info =
+        m_opaque_ptr->GetInlinedFunctionInfo(); inlined_info)
       sb_file.SetFileSpec(inlined_info->GetCallSite().GetFile());
   }
   return sb_file;
@@ -92,9 +92,9 @@ uint32_t SBBlock::GetInlinedCallSiteLine() const {
   LLDB_INSTRUMENT_VA(this);
 
   if (m_opaque_ptr) {
-    const InlineFunctionInfo *inlined_info =
-        m_opaque_ptr->GetInlinedFunctionInfo();
-    if (inlined_info)
+    
+    if (const InlineFunctionInfo *inlined_info =
+        m_opaque_ptr->GetInlinedFunctionInfo(); inlined_info)
       return inlined_info->GetCallSite().GetLine();
   }
   return 0;
@@ -104,9 +104,9 @@ uint32_t SBBlock::GetInlinedCallSiteColumn() const {
   LLDB_INSTRUMENT_VA(this);
 
   if (m_opaque_ptr) {
-    const InlineFunctionInfo *inlined_info =
-        m_opaque_ptr->GetInlinedFunctionInfo();
-    if (inlined_info)
+    
+    if (const InlineFunctionInfo *inlined_info =
+        m_opaque_ptr->GetInlinedFunctionInfo(); inlined_info)
       return inlined_info->GetCallSite().GetColumn();
   }
   return 0;
@@ -164,9 +164,9 @@ void SBBlock::SetPtr(lldb_private::Block *block) { m_opaque_ptr = block; }
 bool SBBlock::GetDescription(SBStream &description) {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_ptr) {
+  if (Stream &strm = description.ref(); m_opaque_ptr) {
     lldb::user_id_t id = m_opaque_ptr->GetID();
     strm.Printf("Block: {id: %" PRIu64 "} ", id);
     if (IsInlined()) {
@@ -250,8 +250,8 @@ lldb::SBValueList SBBlock::GetVariables(lldb::SBFrame &frame, bool arguments,
     VariableListSP variable_list_sp(block->GetBlockVariableList(true));
 
     if (variable_list_sp) {
-      const size_t num_variables = variable_list_sp->GetSize();
-      if (num_variables) {
+      
+      if (const size_t num_variables = variable_list_sp->GetSize(); num_variables) {
         for (size_t i = 0; i < num_variables; ++i) {
           VariableSP variable_sp(variable_list_sp->GetVariableAtIndex(i));
           if (variable_sp) {
@@ -305,8 +305,8 @@ lldb::SBValueList SBBlock::GetVariables(lldb::SBTarget &target, bool arguments,
     VariableListSP variable_list_sp(block->GetBlockVariableList(true));
 
     if (variable_list_sp) {
-      const size_t num_variables = variable_list_sp->GetSize();
-      if (num_variables) {
+      
+      if (const size_t num_variables = variable_list_sp->GetSize(); num_variables) {
         for (size_t i = 0; i < num_variables; ++i) {
           VariableSP variable_sp(variable_list_sp->GetVariableAtIndex(i));
           if (variable_sp) {

@@ -151,8 +151,8 @@ CGIOperandList::CGIOperandList(const Record *R) : TheDef(R) {
       }
 
       unsigned NumSubArgs = SubArgDag->getNumArgs();
-      unsigned NumSubOps = MIOpInfo->getNumArgs();
-      if (NumSubArgs != NumSubOps) {
+      
+      if (unsigned NumSubOps = MIOpInfo->getNumArgs(); NumSubArgs != NumSubOps) {
         PrintFatalError(R->getLoc(),
                         "In instruction '" + R->getName() + "', operand #" +
                             Twine(i) + " has " + Twine(NumSubArgs) +
@@ -242,8 +242,8 @@ CGIOperandList::parseOperandName(StringRef Op, bool AllowWholeOp) const {
   StringRef SubOpName;
 
   // Check to see if this is $foo.bar.
-  StringRef::size_type DotIdx = OpName.find_first_of('.');
-  if (DotIdx != StringRef::npos) {
+  
+  if (StringRef::size_type DotIdx = OpName.find_first_of('.'); DotIdx != StringRef::npos) {
     SubOpName = OpName.substr(DotIdx + 1);
     if (SubOpName.empty())
       PrintFatalError(TheDef->getLoc(),

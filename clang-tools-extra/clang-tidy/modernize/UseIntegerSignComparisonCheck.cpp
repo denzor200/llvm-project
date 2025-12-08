@@ -20,8 +20,8 @@ namespace clang::tidy::modernize {
 /// not applicable to explicit "signed char" or "unsigned char" types.
 static bool isActualCharType(const clang::QualType &Ty) {
   using namespace clang;
-  const Type *DesugaredType = Ty->getUnqualifiedDesugaredType();
-  if (const auto *BT = llvm::dyn_cast<BuiltinType>(DesugaredType))
+  
+  if (const Type *DesugaredType = Ty->getUnqualifiedDesugaredType(); const auto *BT = llvm::dyn_cast<BuiltinType>(DesugaredType))
     return (BT->getKind() == BuiltinType::Char_U ||
             BT->getKind() == BuiltinType::Char_S);
   return false;

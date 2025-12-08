@@ -1074,8 +1074,8 @@ bool DarwinAsmParser::parseSDKVersion(VersionTuple &SDKVersion) {
 
 void DarwinAsmParser::checkVersion(StringRef Directive, StringRef Arg,
                                    SMLoc Loc, Triple::OSType ExpectedOS) {
-  const Triple &Target = getContext().getTargetTriple();
-  if (Target.getOS() != ExpectedOS)
+  
+  if (const Triple &Target = getContext().getTargetTriple(); Target.getOS() != ExpectedOS)
     Warning(Loc, Twine(Directive) +
             (Arg.empty() ? Twine() : Twine(' ') + Arg) +
             " used while targeting " + Target.getOSName());

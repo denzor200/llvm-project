@@ -202,9 +202,9 @@ bool lldb_private::formatters::LibcxxSmartPointerSummaryProvider(
   DumpCxxSmartPtrPointerSummary(stream, *ptr_sp, options);
 
   bool success;
-  uint64_t ctrl_addr = ctrl_sp->GetValueAsUnsigned(0, &success);
+  
   // Empty control field. We're done.
-  if (!success || ctrl_addr == 0)
+  if (uint64_t ctrl_addr = ctrl_sp->GetValueAsUnsigned(0, &success); !success || ctrl_addr == 0)
     return true;
 
   if (auto count_sp = ctrl_sp->GetChildMemberWithName("__shared_owners_")) {
@@ -608,9 +608,9 @@ static bool formatStringImpl(ValueObject &valobj, Stream &stream,
                              const TypeSummaryOptions &summary_options,
                              std::string prefix_token) {
   StreamString scratch_stream;
-  const bool success = LibcxxStringSummaryProvider<element_type>(
-      valobj, scratch_stream, summary_options, prefix_token);
-  if (success)
+  
+  if (const bool success = LibcxxStringSummaryProvider<element_type>(
+      valobj, scratch_stream, summary_options, prefix_token); success)
     stream << scratch_stream.GetData();
   else
     stream << "Summary Unavailable";
@@ -762,9 +762,9 @@ LibcxxChronoTimePointSecondsSummaryProvider(ValueObject &valobj, Stream &stream,
     stream.Printf("timestamp=%" PRId64 " s", static_cast<int64_t>(seconds));
   else {
     std::array<char, 128> str;
-    std::size_t size =
-        std::strftime(str.data(), str.size(), fmt, gmtime(&seconds));
-    if (size == 0)
+    
+    if (std::size_t size =
+        std::strftime(str.data(), str.size(), fmt, gmtime(&seconds)); size == 0)
       return false;
 
     stream.Printf("date/time=%s timestamp=%" PRId64 " s", str.data(),
@@ -809,17 +809,17 @@ LibcxxChronoTimepointDaysSummaryProvider(ValueObject &valobj, Stream &stream,
   const int chrono_timestamp_max = 376'583; // 3001-01-19Z
 #endif
 
-  const int days = ptr_sp->GetValueAsSigned(0);
-  if (days < chrono_timestamp_min || days > chrono_timestamp_max)
+  
+  if (const int days = ptr_sp->GetValueAsSigned(0); days < chrono_timestamp_min || days > chrono_timestamp_max)
     stream.Printf("timestamp=%d days", days);
 
   else {
     const std::time_t seconds = std::time_t(86400) * days;
 
     std::array<char, 128> str;
-    std::size_t size =
-        std::strftime(str.data(), str.size(), fmt, gmtime(&seconds));
-    if (size == 0)
+    
+    if (std::size_t size =
+        std::strftime(str.data(), str.size(), fmt, gmtime(&seconds)); size == 0)
       return false;
 
     stream.Printf("date=%s timestamp=%d days", str.data(), days);
@@ -852,8 +852,8 @@ bool lldb_private::formatters::LibcxxChronoMonthSummaryProvider(
   if (!ptr_sp)
     return false;
 
-  const unsigned month = ptr_sp->GetValueAsUnsigned(0);
-  if (month >= 1 && month <= 12)
+  
+  if (const unsigned month = ptr_sp->GetValueAsUnsigned(0); month >= 1 && month <= 12)
     stream << "month=" << months[month - 1];
   else
     stream.Printf("month=%u", month);
@@ -873,8 +873,8 @@ bool lldb_private::formatters::LibcxxChronoWeekdaySummaryProvider(
   if (!ptr_sp)
     return false;
 
-  const unsigned weekday = ptr_sp->GetValueAsUnsigned(0);
-  if (weekday < 7)
+  
+  if (const unsigned weekday = ptr_sp->GetValueAsUnsigned(0); weekday < 7)
     stream << "weekday=" << weekdays[weekday];
   else
     stream.Printf("weekday=%u", weekday);

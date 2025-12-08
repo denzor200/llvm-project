@@ -395,8 +395,8 @@ void LoopEmitter::categorizeIterators(
   // Finds out the tensor level that we should use to generate loops. Amongs all
   // the tensor levels, there is at most one sparse tensor level.
   for (auto [t, l] : unpackTensorLevelRange(tidLvls)) {
-    SparseIterator *it = &getCurIterator(t, l);
-    if (it->randomAccessible())
+    
+    if (SparseIterator *it = &getCurIterator(t, l); it->randomAccessible())
       raIters.push_back(it);
     else
       spIters.push_back(it);
@@ -814,8 +814,8 @@ void LoopEmitter::exitWhileLoop(OpBuilder &builder, Location loc,
   ValueRange whileRes = whileOp.getResults();
 
   for (auto [tid, lvl] : unpackTensorLevelRange(loopInfo.tidLvls)) {
-    SparseIterator &it = getCurIterator(tid, lvl);
-    if (!it.randomAccessible()) {
+    
+    if (SparseIterator &it = getCurIterator(tid, lvl); !it.randomAccessible()) {
       // Forward the sparse iterator.
       Value cmp = CMPI(eq, it.getCrd(), iv);
       it.forwardIf(builder, loc, cmp);

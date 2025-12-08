@@ -155,8 +155,8 @@ lldb::addr_t IRMemoryMap::FindSpace(size_t size) {
   // to the end of the allocations we've already reported, or use a 'sensible'
   // default if this is our first allocation.
   if (m_allocations.empty()) {
-    uint64_t alloc_address = target_sp->GetExprAllocAddress();
-    if (alloc_address > 0) {
+    
+    if (uint64_t alloc_address = target_sp->GetExprAllocAddress(); alloc_address > 0) {
       if (alloc_address >= end_of_memory) {
         lldbassert(0 && "The allocation address for expression evaluation must "
                         "be within process address space");
@@ -164,8 +164,8 @@ lldb::addr_t IRMemoryMap::FindSpace(size_t size) {
       }
       ret = alloc_address;
     } else {
-      uint32_t address_byte_size = GetAddressByteSize();
-      if (address_byte_size != UINT32_MAX) {
+      
+      if (uint32_t address_byte_size = GetAddressByteSize(); address_byte_size != UINT32_MAX) {
         switch (address_byte_size) {
         case 2:
           ret = 0x8000ull;
@@ -485,9 +485,9 @@ void IRMemoryMap::Free(lldb::addr_t process_address, Status &error) {
     return;
   }
 
-  Allocation &allocation = iter->second;
+  
 
-  switch (allocation.m_policy) {
+  switch (Allocation &allocation = iter->second; allocation.m_policy) {
   default:
   case eAllocationPolicyHostOnly: {
     lldb::ProcessSP process_sp = m_process_wp.lock();
@@ -623,9 +623,9 @@ void IRMemoryMap::WriteScalarToMemory(lldb::addr_t process_address,
 
   if (size > 0) {
     uint8_t buf[32];
-    const size_t mem_size =
-        scalar.GetAsMemoryData(buf, size, GetByteOrder(), error);
-    if (mem_size > 0) {
+    
+    if (const size_t mem_size =
+        scalar.GetAsMemoryData(buf, size, GetByteOrder(), error); mem_size > 0) {
       return WriteMemory(process_address, buf, mem_size, error);
     } else {
       error = Status::FromErrorString(
@@ -817,9 +817,9 @@ void IRMemoryMap::GetMemoryData(DataExtractor &extractor,
       return;
     }
 
-    Allocation &allocation = iter->second;
+    
 
-    switch (allocation.m_policy) {
+    switch (Allocation &allocation = iter->second; allocation.m_policy) {
     default:
       error = Status::FromErrorString(
           "Couldn't get memory data: invalid allocation policy");

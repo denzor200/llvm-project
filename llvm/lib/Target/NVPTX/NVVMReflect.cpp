@@ -202,8 +202,8 @@ void NVVMReflect::foldReflectCall(CallInst *Call, Constant *NewValue) {
 
   auto &DL = Call->getModule()->getDataLayout();
   while (!Worklist.empty()) {
-    auto *I = Worklist.pop_back_val();
-    if (auto *C = ConstantFoldInstruction(I, DL)) {
+    
+    if (auto *I = Worklist.pop_back_val(); auto *C = ConstantFoldInstruction(I, DL)) {
       ReplaceInstructionWithConst(I, C);
       if (isInstructionTriviallyDead(I))
         I->eraseFromParent();

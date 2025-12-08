@@ -877,8 +877,8 @@ MipsConstantIslands::splitBlockBeforeInstr(MachineInstr &MI) {
   // when splitting before a conditional branch that is followed by an
   // unconditional branch - in that case we want to insert NewBB).
   water_iterator IP = llvm::lower_bound(WaterList, OrigBB, CompareMBBNumbers);
-  MachineBasicBlock* WaterBB = *IP;
-  if (WaterBB == OrigBB)
+  
+  if (MachineBasicBlock* WaterBB = *IP; WaterBB == OrigBB)
     WaterList.insert(std::next(IP), NewBB);
   else
     WaterList.insert(IP, OrigBB);
@@ -937,12 +937,12 @@ bool MipsConstantIslands::isWaterInRange(unsigned UserOffset,
     NextBlockAlignment = NextBlock->getAlignment();
   }
   unsigned Size = U.CPEMI->getOperand(2).getImm();
-  unsigned CPEEnd = CPEOffset + Size;
+  
 
   // The CPE may be able to hide in the alignment padding before the next
   // block. It may also cause more padding to be required if it is more aligned
   // that the next block.
-  if (CPEEnd > NextBlockOffset) {
+  if (unsigned CPEEnd = CPEOffset + Size; CPEEnd > NextBlockOffset) {
     Growth = CPEEnd - NextBlockOffset;
     // Compute the padding that would go at the end of the CPE to align the next
     // block.
@@ -1215,9 +1215,9 @@ void MipsConstantIslands::createNewWater(unsigned CPUserIndex,
     // Size of branch to insert.
     unsigned Delta = 2;
     // Compute the offset where the CPE will begin.
-    unsigned CPEOffset = UserBBI.postOffset() + Delta;
+    
 
-    if (isOffsetInRange(UserOffset, CPEOffset, U)) {
+    if (unsigned CPEOffset = UserBBI.postOffset() + Delta; isOffsetInRange(UserOffset, CPEOffset, U)) {
       LLVM_DEBUG(dbgs() << "Split at end of " << printMBBReference(*UserMBB)
                         << format(", expected CPE offset %#x\n", CPEOffset));
       NewMBB = &*++UserMBB->getIterator();
@@ -1474,10 +1474,10 @@ bool MipsConstantIslands::isBBInRange
 bool MipsConstantIslands::fixupImmediateBr(ImmBranch &Br) {
   MachineInstr *MI = Br.MI;
   unsigned TargetOperand = branchTargetOperand(MI);
-  MachineBasicBlock *DestBB = MI->getOperand(TargetOperand).getMBB();
+  
 
   // Check to see if the DestBB is already in-range.
-  if (isBBInRange(MI, DestBB, Br.MaxDisp))
+  if (MachineBasicBlock *DestBB = MI->getOperand(TargetOperand).getMBB(); isBBInRange(MI, DestBB, Br.MaxDisp))
     return false;
 
   if (!Br.isCond)
@@ -1495,8 +1495,8 @@ MipsConstantIslands::fixupUnconditionalBr(ImmBranch &Br) {
   MachineBasicBlock *MBB = MI->getParent();
   MachineBasicBlock *DestBB = MI->getOperand(0).getMBB();
   // Use BL to implement far jump.
-  unsigned BimmX16MaxDisp = ((1 << 16)-1) * 2;
-  if (isBBInRange(MI, DestBB, BimmX16MaxDisp)) {
+  
+  if (unsigned BimmX16MaxDisp = ((1 << 16)-1) * 2; isBBInRange(MI, DestBB, BimmX16MaxDisp)) {
     Br.MaxDisp = BimmX16MaxDisp;
     MI->setDesc(TII->get(Mips::BimmX16));
   }
@@ -1536,10 +1536,10 @@ MipsConstantIslands::fixupConditionalBr(ImmBranch &Br) {
   MachineBasicBlock *DestBB = MI->getOperand(TargetOperand).getMBB();
   unsigned Opcode = MI->getOpcode();
   unsigned LongFormOpcode = longformBranchOpcode(Opcode);
-  unsigned LongFormMaxOff = branchMaxOffsets(LongFormOpcode);
+  
 
   // Check to see if the DestBB is already in-range.
-  if (isBBInRange(MI, DestBB, LongFormMaxOff)) {
+  if (unsigned LongFormMaxOff = branchMaxOffsets(LongFormOpcode); isBBInRange(MI, DestBB, LongFormMaxOff)) {
     Br.MaxDisp = LongFormMaxOff;
     MI->setDesc(TII->get(LongFormOpcode));
     return true;
@@ -1573,9 +1573,9 @@ MipsConstantIslands::fixupConditionalBr(ImmBranch &Br) {
       // bnez L2
       // b   L1
       unsigned BMITargetOperand = branchTargetOperand(BMI);
-      MachineBasicBlock *NewDest =
-        BMI->getOperand(BMITargetOperand).getMBB();
-      if (isBBInRange(MI, NewDest, Br.MaxDisp)) {
+      
+      if (MachineBasicBlock *NewDest =
+        BMI->getOperand(BMITargetOperand).getMBB(); isBBInRange(MI, NewDest, Br.MaxDisp)) {
         LLVM_DEBUG(
             dbgs() << "  Invert Bcc condition and swap its destination with "
                    << *BMI);
@@ -1634,8 +1634,8 @@ void MipsConstantIslands::prescanForConstants() {
         PrescannedForConstants = true;
         LLVM_DEBUG(dbgs() << "constant island constant " << MI << "\n");
         LLVM_DEBUG(dbgs() << "num operands " << MI.getNumOperands() << "\n");
-        MachineOperand &Literal = MI.getOperand(1);
-        if (Literal.isImm()) {
+        
+        if (MachineOperand &Literal = MI.getOperand(1); Literal.isImm()) {
           int64_t V = Literal.getImm();
           LLVM_DEBUG(dbgs() << "literal " << V << "\n");
           Type *Int32Ty = Type::getInt32Ty(MF->getFunction().getContext());

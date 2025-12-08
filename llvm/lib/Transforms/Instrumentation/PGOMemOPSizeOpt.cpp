@@ -473,8 +473,8 @@ PreservedAnalyses PGOMemOPSizeOpt::run(Function &F,
   auto &ORE = FAM.getResult<OptimizationRemarkEmitterAnalysis>(F);
   auto *DT = FAM.getCachedResult<DominatorTreeAnalysis>(F);
   auto &TLI = FAM.getResult<TargetLibraryAnalysis>(F);
-  bool Changed = PGOMemOPSizeOptImpl(F, BFI, ORE, DT, TLI);
-  if (!Changed)
+  
+  if (bool Changed = PGOMemOPSizeOptImpl(F, BFI, ORE, DT, TLI); !Changed)
     return PreservedAnalyses::all();
   auto PA = PreservedAnalyses();
   PA.preserve<DominatorTreeAnalysis>();

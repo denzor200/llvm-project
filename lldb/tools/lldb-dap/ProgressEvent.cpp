@@ -31,8 +31,8 @@ ProgressEvent::ProgressEvent(uint64_t progress_id,
   if (message)
     m_message = message->str();
 
-  const bool calculate_percentage = total != UINT64_MAX;
-  if (completed == 0) {
+  
+  if (const bool calculate_percentage = total != UINT64_MAX; completed == 0) {
     // Start event
     m_event_type = progressStart;
     // Wait a bit before reporting the start event in case in completes really

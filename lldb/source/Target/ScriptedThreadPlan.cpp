@@ -178,8 +178,8 @@ void ScriptedThreadPlan::GetDescription(Stream *s,
   LLDB_LOGF(log, "%s called on Scripted Thread Plan: %s )",
             LLVM_PRETTY_FUNCTION, m_class_name.c_str());
   if (m_implementation_sp) {
-    ScriptInterpreter *script_interp = GetScriptInterpreter();
-    if (script_interp) {
+    
+    if (ScriptInterpreter *script_interp = GetScriptInterpreter(); script_interp) {
       lldb::StreamSP stream = std::make_shared<lldb_private::StreamString>();
       llvm::Error err = m_interface->GetStopDescription(stream);
       if (err) {

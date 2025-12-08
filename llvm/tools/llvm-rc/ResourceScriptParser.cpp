@@ -751,8 +751,8 @@ Expected<MenuDefinitionList> RCParser::parseMenuExItemsList() {
     ASSIGN_OR_RETURN(ItemTypeResult, readIdentifier());
 
     bool IsMenuItem = ItemTypeResult->equals_insensitive("MENUITEM");
-    bool IsPopup = ItemTypeResult->equals_insensitive("POPUP");
-    if (!IsMenuItem && !IsPopup)
+    
+    if (bool IsPopup = ItemTypeResult->equals_insensitive("POPUP"); !IsMenuItem && !IsPopup)
       return getExpectedError("MENUITEM, POPUP, END or '}'", true);
 
     // Not a separator. Read the caption.

@@ -511,8 +511,8 @@ static void buildCostGraph(ArrayRef<Value> roots, RootOrderingGraph &graph,
         if (&p == &q)
           continue;
         // Insert or retrieve the property of edge from p to q.
-        RootOrderingEntry &entry = graph[q.root][p.root];
-        if (!entry.connector /* new edge */ || entry.cost.first > q.depth) {
+        
+        if (RootOrderingEntry &entry = graph[q.root][p.root]; !entry.connector /* new edge */ || entry.cost.first > q.depth) {
           if (!entry.connector)
             entry.cost.second = nextID++;
           entry.cost.first = q.depth;
@@ -596,8 +596,8 @@ static void visitUpward(std::vector<PositionalPredicate> &predList,
         // Traverse up a group of results.
         auto *opPos = dyn_cast<OperationPosition>(pos);
         assert(opPos && "operations and results must be interleaved");
-        bool isVariadic = isa<pdl::RangeType>(value.getType());
-        if (opIndex.index)
+        
+        if (bool isVariadic = isa<pdl::RangeType>(value.getType()); opIndex.index)
           pos = builder.getResultGroup(opPos, opIndex.index, isVariadic);
         else
           pos = builder.getAllResults(opPos);

@@ -400,10 +400,10 @@ Error SyntheticTypeNameBuilder::addDIETypeName(
   if (!UnitEntryPair)
     return Error::success();
 
-  TypeEntry *TypeEntryPtr =
-      InputUnitEntryPair.CU->getDieTypeEntry(InputUnitEntryPair.DieEntry);
+  
   // Check if DIE already has a name.
-  if (!TypeEntryPtr) {
+  if (TypeEntry *TypeEntryPtr =
+      InputUnitEntryPair.CU->getDieTypeEntry(InputUnitEntryPair.DieEntry); !TypeEntryPtr) {
     size_t NameStart = SyntheticName.size();
     if (AssignNameToTypeDescriptor) {
       if (Error Err = addParentName(*UnitEntryPair))

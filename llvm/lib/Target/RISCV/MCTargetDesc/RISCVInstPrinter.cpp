@@ -181,8 +181,8 @@ void RISCVInstPrinter::printFRMArgLegacy(const MCInst *MI, unsigned OpNo,
 void RISCVInstPrinter::printFPImmOperand(const MCInst *MI, unsigned OpNo,
                                          const MCSubtargetInfo &STI,
                                          raw_ostream &O) {
-  unsigned Imm = MI->getOperand(OpNo).getImm();
-  if (Imm == 1) {
+  
+  if (unsigned Imm = MI->getOperand(OpNo).getImm(); Imm == 1) {
     markup(O, Markup::Immediate) << "min";
   } else if (Imm == 30) {
     markup(O, Markup::Immediate) << "inf";
@@ -237,8 +237,8 @@ void RISCVInstPrinter::printXSfmmVType(const MCInst *MI, unsigned OpNo,
   assert(RISCVVType::isValidXSfmmVType(Imm));
   unsigned SEW = RISCVVType::getSEW(Imm);
   O << "e" << SEW;
-  bool AltFmt = RISCVVType::isAltFmt(Imm);
-  if (AltFmt)
+  
+  if (bool AltFmt = RISCVVType::isAltFmt(Imm); AltFmt)
     O << "alt";
   unsigned Widen = RISCVVType::getXSfmmWiden(Imm);
   O << ", w" << Widen;

@@ -315,8 +315,8 @@ public:
     IsILP32 = STI.getTargetTriple().getEnvironment() == Triple::GNUILP32;
     IsWindowsArm64EC = STI.getTargetTriple().isWindowsArm64EC();
     MCAsmParserExtension::Initialize(Parser);
-    MCStreamer &S = getParser().getStreamer();
-    if (S.getTargetStreamer() == nullptr)
+    
+    if (MCStreamer &S = getParser().getStreamer(); S.getTargetStreamer() == nullptr)
       new AArch64TargetStreamer(S);
 
     // Alias .hword/.word/.[dx]word to the target-independent
@@ -1097,9 +1097,9 @@ public:
     if (!isShiftedImm() && (!isImm() || !isa<MCConstantExpr>(getImm())))
       return DiagnosticPredicate::NoMatch;
 
-    bool IsByte = std::is_same<int8_t, std::make_signed_t<T>>::value ||
-                  std::is_same<int8_t, T>::value;
-    if (auto ShiftedImm = getShiftedVal<8>())
+    
+    if (bool IsByte = std::is_same<int8_t, std::make_signed_t<T>>::value ||
+                  std::is_same<int8_t, T>::value; auto ShiftedImm = getShiftedVal<8>())
       if (!(IsByte && ShiftedImm->second) &&
           AArch64_AM::isSVECpyImm<T>(uint64_t(ShiftedImm->first)
                                      << ShiftedImm->second))
@@ -1115,9 +1115,9 @@ public:
     if (!isShiftedImm() && (!isImm() || !isa<MCConstantExpr>(getImm())))
       return DiagnosticPredicate::NoMatch;
 
-    bool IsByte = std::is_same<int8_t, std::make_signed_t<T>>::value ||
-                  std::is_same<int8_t, T>::value;
-    if (auto ShiftedImm = getShiftedVal<8>())
+    
+    if (bool IsByte = std::is_same<int8_t, std::make_signed_t<T>>::value ||
+                  std::is_same<int8_t, T>::value; auto ShiftedImm = getShiftedVal<8>())
       if (!(IsByte && ShiftedImm->second) &&
           AArch64_AM::isSVEAddSubImm<T>(ShiftedImm->first
                                         << ShiftedImm->second))
@@ -1512,9 +1512,9 @@ public:
   template <RegKind VectorKind, unsigned NumRegs, unsigned NumElements,
             unsigned ElementWidth, unsigned RegClass>
   DiagnosticPredicate isTypedVectorListMultiple() const {
-    bool Res =
-        isTypedVectorList<VectorKind, NumRegs, NumElements, ElementWidth>();
-    if (!Res)
+    
+    if (bool Res =
+        isTypedVectorList<VectorKind, NumRegs, NumElements, ElementWidth>(); !Res)
       return DiagnosticPredicate::NoMatch;
     if (!AArch64MCRegisterClasses[RegClass].contains(VectorList.Reg))
       return DiagnosticPredicate::NearMatch;
@@ -1524,9 +1524,9 @@ public:
   template <RegKind VectorKind, unsigned NumRegs, unsigned Stride,
             unsigned ElementWidth>
   DiagnosticPredicate isTypedVectorListStrided() const {
-    bool Res = isTypedVectorList<VectorKind, NumRegs, /*NumElements*/ 0,
-                                 ElementWidth, Stride>();
-    if (!Res)
+    
+    if (bool Res = isTypedVectorList<VectorKind, NumRegs, /*NumElements*/ 0,
+                                 ElementWidth, Stride>(); !Res)
       return DiagnosticPredicate::NoMatch;
     if ((VectorList.Reg < (AArch64::Z0 + Stride)) ||
         ((VectorList.Reg >= AArch64::Z16) &&
@@ -2034,8 +2034,8 @@ public:
 
   void addAdrpLabelOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
-    const MCConstantExpr *MCE = dyn_cast<MCConstantExpr>(getImm());
-    if (!MCE)
+    
+    if (const MCConstantExpr *MCE = dyn_cast<MCConstantExpr>(getImm()); !MCE)
       addExpr(Inst, getImm());
     else
       Inst.addOperand(MCOperand::createImm(MCE->getValue() >> 12));
@@ -2319,8 +2319,8 @@ public:
   void addMOVZMovAliasOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
 
-    const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(getImm());
-    if (CE) {
+    
+    if (const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(getImm()); CE) {
       uint64_t Value = CE->getValue();
       Inst.addOperand(MCOperand::createImm((Value >> Shift) & 0xffff));
     } else {
@@ -3181,8 +3181,8 @@ ParseStatus AArch64AsmParser::tryParseSysCROperand(OperandVector &Operands) {
     return Error(S, "Expected cN operand where 0 <= N <= 15");
 
   uint32_t CRNum;
-  bool BadNum = Tok.drop_front().getAsInteger(10, CRNum);
-  if (BadNum || CRNum > 15)
+  
+  if (bool BadNum = Tok.drop_front().getAsInteger(10, CRNum); BadNum || CRNum > 15)
     return Error(S, "Expected cN operand where 0 <= N <= 15");
 
   Lex(); // Eat identifier token.
@@ -3196,10 +3196,10 @@ ParseStatus AArch64AsmParser::tryParseRPRFMOperand(OperandVector &Operands) {
   SMLoc S = getLoc();
   const AsmToken &Tok = getTok();
 
-  unsigned MaxVal = 63;
+  
 
   // Immediate case, with optional leading hash:
-  if (parseOptionalToken(AsmToken::Hash) ||
+  if (unsigned MaxVal = 63; parseOptionalToken(AsmToken::Hash) ||
       Tok.is(AsmToken::Integer)) {
     const MCExpr *ImmVal;
     if (getParser().parseExpression(ImmVal))
@@ -3255,11 +3255,11 @@ ParseStatus AArch64AsmParser::tryParsePrefetch(OperandVector &Operands) {
       return std::optional<StringRef>(Res->Name);
     return std::optional<StringRef>();
   };
-  unsigned MaxVal = IsSVEPrefetch ? 15 : 31;
+  
 
   // Either an identifier for named values or a 5-bit immediate.
   // Eat optional hash.
-  if (parseOptionalToken(AsmToken::Hash) ||
+  if (unsigned MaxVal = IsSVEPrefetch ? 15 : 31; parseOptionalToken(AsmToken::Hash) ||
       Tok.is(AsmToken::Integer)) {
     const MCExpr *ImmVal;
     if (getParser().parseExpression(ImmVal))
@@ -3700,8 +3700,8 @@ ParseStatus AArch64AsmParser::tryParseMatrixRegister(OperandVector &Operands) {
   if (Name.equals_insensitive("za") || Name.starts_with_insensitive("za.")) {
     Lex(); // eat "za[.(b|h|s|d)]"
     unsigned ElementWidth = 0;
-    auto DotPosition = Name.find('.');
-    if (DotPosition != StringRef::npos) {
+    
+    if (auto DotPosition = Name.find('.'); DotPosition != StringRef::npos) {
       const auto &KindRes =
           parseVectorKind(Name.drop_front(DotPosition), RegKind::Matrix);
       if (!KindRes)
@@ -3788,9 +3788,9 @@ AArch64AsmParser::tryParseOptionalShiftExtend(OperandVector &Operands) {
   SMLoc S = Tok.getLoc();
   Lex();
 
-  bool Hash = parseOptionalToken(AsmToken::Hash);
+  
 
-  if (!Hash && getLexer().isNot(AsmToken::Integer)) {
+  if (bool Hash = parseOptionalToken(AsmToken::Hash); !Hash && getLexer().isNot(AsmToken::Integer)) {
     if (ShOp == AArch64_AM::LSL || ShOp == AArch64_AM::LSR ||
         ShOp == AArch64_AM::ASR || ShOp == AArch64_AM::ROR ||
         ShOp == AArch64_AM::MSL) {
@@ -4145,9 +4145,9 @@ bool AArch64AsmParser::parseSysAlias(StringRef Name, SMLoc NameLoc,
       return TokError("invalid operand for prediction restriction instruction");
 
     bool hasPredres = hasAll || getSTI().hasFeature(AArch64::FeaturePredRes);
-    bool hasSpecres2 = hasAll || getSTI().hasFeature(AArch64::FeatureSPECRES2);
+    
 
-    if (Mnemonic == "cosp" && !hasSpecres2)
+    if (bool hasSpecres2 = hasAll || getSTI().hasFeature(AArch64::FeatureSPECRES2); Mnemonic == "cosp" && !hasSpecres2)
       return TokError("COSP requires: predres2");
     if (!hasPredres)
       return TokError(Mnemonic.upper() + "RCTX requires: predres");
@@ -4427,8 +4427,8 @@ ParseStatus AArch64AsmParser::tryParseSysReg(OperandVector &Operands) {
   if (PState15 && PState15->haveFeatures(getSTI().getFeatureBits()))
     PStateImm = PState15->Encoding;
   if (!PState15) {
-    auto PState1 = AArch64PState::lookupPStateImm0_1ByName(Tok.getString());
-    if (PState1 && PState1->haveFeatures(getSTI().getFeatureBits()))
+    
+    if (auto PState1 = AArch64PState::lookupPStateImm0_1ByName(Tok.getString()); PState1 && PState1->haveFeatures(getSTI().getFeatureBits()))
       PStateImm = PState1->Encoding;
   }
 
@@ -5308,8 +5308,8 @@ bool AArch64AsmParser::parseOperand(OperandVector &Operands, bool isCondCode,
     const AsmToken &Tok = getTok();
     if (Tok.is(AsmToken::Real)) {
       APFloat RealVal(APFloat::IEEEdouble(), Tok.getString());
-      uint64_t IntVal = RealVal.bitcastToAPInt().getZExtValue();
-      if (Mnemonic != "fcmp" && Mnemonic != "fcmpe" && Mnemonic != "fcmeq" &&
+      
+      if (uint64_t IntVal = RealVal.bitcastToAPInt().getZExtValue(); Mnemonic != "fcmp" && Mnemonic != "fcmpe" && Mnemonic != "fcmeq" &&
           Mnemonic != "fcmge" && Mnemonic != "fcmgt" && Mnemonic != "fcmle" &&
           Mnemonic != "fcmlt" && Mnemonic != "fcmne")
         return TokError("unexpected floating point literal");
@@ -5577,11 +5577,11 @@ bool AArch64AsmParser::parseInstruction(ParseInstructionInfo &Info,
   // FIXME: Is this the correct way to handle these? Or should the parser
   //        generate the aliased instructions directly?
   bool condCodeSecondOperand = (Head == "cset" || Head == "csetm");
-  bool condCodeThirdOperand =
-      (Head == "cinc" || Head == "cinv" || Head == "cneg");
+  
 
   // Read the remaining operands.
-  if (getLexer().isNot(AsmToken::EndOfStatement)) {
+  if (bool condCodeThirdOperand =
+      (Head == "cinc" || Head == "cinv" || Head == "cneg"); getLexer().isNot(AsmToken::EndOfStatement)) {
 
     unsigned N = 1;
     do {
@@ -6672,10 +6672,10 @@ bool AArch64AsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
 
   if (NumOperands == 4 && Tok == "lsl") {
     AArch64Operand &Op2 = static_cast<AArch64Operand &>(*Operands[2]);
-    AArch64Operand &Op3 = static_cast<AArch64Operand &>(*Operands[3]);
-    if (Op2.isScalarReg() && Op3.isImm()) {
-      const MCConstantExpr *Op3CE = dyn_cast<MCConstantExpr>(Op3.getImm());
-      if (Op3CE) {
+    
+    if (AArch64Operand &Op3 = static_cast<AArch64Operand &>(*Operands[3]); Op2.isScalarReg() && Op3.isImm()) {
+      
+      if (const MCConstantExpr *Op3CE = dyn_cast<MCConstantExpr>(Op3.getImm()); Op3CE) {
         uint64_t Op3Val = Op3CE->getValue();
         uint64_t NewOp3Val = 0;
         uint64_t NewOp4Val = 0;
@@ -6707,9 +6707,9 @@ bool AArch64AsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
 
     if (Op1.isScalarReg() && LSBOp.isImm() && WidthOp.isImm()) {
       const MCConstantExpr *LSBCE = dyn_cast<MCConstantExpr>(LSBOp.getImm());
-      const MCConstantExpr *WidthCE = dyn_cast<MCConstantExpr>(WidthOp.getImm());
+      
 
-      if (LSBCE && WidthCE) {
+      if (const MCConstantExpr *WidthCE = dyn_cast<MCConstantExpr>(WidthOp.getImm()); LSBCE && WidthCE) {
         uint64_t LSB = LSBCE->getValue();
         uint64_t Width = WidthCE->getValue();
 
@@ -6759,13 +6759,13 @@ bool AArch64AsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
     if (Tok == "bfi" || Tok == "sbfiz" || Tok == "ubfiz") {
       AArch64Operand &Op1 = static_cast<AArch64Operand &>(*Operands[1]);
       AArch64Operand &Op3 = static_cast<AArch64Operand &>(*Operands[3]);
-      AArch64Operand &Op4 = static_cast<AArch64Operand &>(*Operands[4]);
+      
 
-      if (Op1.isScalarReg() && Op3.isImm() && Op4.isImm()) {
+      if (AArch64Operand &Op4 = static_cast<AArch64Operand &>(*Operands[4]); Op1.isScalarReg() && Op3.isImm() && Op4.isImm()) {
         const MCConstantExpr *Op3CE = dyn_cast<MCConstantExpr>(Op3.getImm());
-        const MCConstantExpr *Op4CE = dyn_cast<MCConstantExpr>(Op4.getImm());
+        
 
-        if (Op3CE && Op4CE) {
+        if (const MCConstantExpr *Op4CE = dyn_cast<MCConstantExpr>(Op4.getImm()); Op3CE && Op4CE) {
           uint64_t Op3Val = Op3CE->getValue();
           uint64_t Op4Val = Op4CE->getValue();
 
@@ -6823,13 +6823,13 @@ bool AArch64AsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                (Tok == "bfxil" || Tok == "sbfx" || Tok == "ubfx")) {
       AArch64Operand &Op1 = static_cast<AArch64Operand &>(*Operands[1]);
       AArch64Operand &Op3 = static_cast<AArch64Operand &>(*Operands[3]);
-      AArch64Operand &Op4 = static_cast<AArch64Operand &>(*Operands[4]);
+      
 
-      if (Op1.isScalarReg() && Op3.isImm() && Op4.isImm()) {
+      if (AArch64Operand &Op4 = static_cast<AArch64Operand &>(*Operands[4]); Op1.isScalarReg() && Op3.isImm() && Op4.isImm()) {
         const MCConstantExpr *Op3CE = dyn_cast<MCConstantExpr>(Op3.getImm());
-        const MCConstantExpr *Op4CE = dyn_cast<MCConstantExpr>(Op4.getImm());
+        
 
-        if (Op3CE && Op4CE) {
+        if (const MCConstantExpr *Op4CE = dyn_cast<MCConstantExpr>(Op4.getImm()); Op3CE && Op4CE) {
           uint64_t Op3Val = Op3CE->getValue();
           uint64_t Op4Val = Op4CE->getValue();
 
@@ -6881,8 +6881,8 @@ bool AArch64AsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
       NumOperands == 4 && Tok == "movi") {
     AArch64Operand &Op1 = static_cast<AArch64Operand &>(*Operands[1]);
     AArch64Operand &Op2 = static_cast<AArch64Operand &>(*Operands[2]);
-    AArch64Operand &Op3 = static_cast<AArch64Operand &>(*Operands[3]);
-    if ((Op1.isToken() && Op2.isNeonVectorReg() && Op3.isImm()) ||
+    
+    if (AArch64Operand &Op3 = static_cast<AArch64Operand &>(*Operands[3]); (Op1.isToken() && Op2.isNeonVectorReg() && Op3.isImm()) ||
         (Op1.isNeonVectorReg() && Op2.isToken() && Op3.isImm())) {
       StringRef Suffix = Op1.isToken() ? Op1.getToken() : Op2.getToken();
       if (Suffix.lower() == ".2d" &&
@@ -6903,8 +6903,8 @@ bool AArch64AsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
   if (NumOperands == 3 && (Tok == "sxtw" || Tok == "uxtw")) {
     // The source register can be Wn here, but the matcher expects a
     // GPR64. Twiddle it here if necessary.
-    AArch64Operand &Op = static_cast<AArch64Operand &>(*Operands[2]);
-    if (Op.isScalarReg()) {
+    
+    if (AArch64Operand &Op = static_cast<AArch64Operand &>(*Operands[2]); Op.isScalarReg()) {
       MCRegister Reg = getXRegFromWReg(Op.getReg());
       Operands[2] = AArch64Operand::CreateReg(Reg, RegKind::Scalar,
                                               Op.getStartLoc(), Op.getEndLoc(),
@@ -6919,8 +6919,8 @@ bool AArch64AsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
             Op.getReg())) {
       // The source register can be Wn here, but the matcher expects a
       // GPR64. Twiddle it here if necessary.
-      AArch64Operand &Op = static_cast<AArch64Operand &>(*Operands[2]);
-      if (Op.isScalarReg()) {
+      
+      if (AArch64Operand &Op = static_cast<AArch64Operand &>(*Operands[2]); Op.isScalarReg()) {
         MCRegister Reg = getXRegFromWReg(Op.getReg());
         Operands[2] = AArch64Operand::CreateReg(Reg, RegKind::Scalar,
                                                 Op.getStartLoc(),
@@ -6936,8 +6936,8 @@ bool AArch64AsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
             Op.getReg())) {
       // The source register can be Wn here, but the matcher expects a
       // GPR32. Twiddle it here if necessary.
-      AArch64Operand &Op = static_cast<AArch64Operand &>(*Operands[1]);
-      if (Op.isScalarReg()) {
+      
+      if (AArch64Operand &Op = static_cast<AArch64Operand &>(*Operands[1]); Op.isScalarReg()) {
         MCRegister Reg = getWRegFromXReg(Op.getReg());
         Operands[1] = AArch64Operand::CreateReg(Reg, RegKind::Scalar,
                                                 Op.getStartLoc(),
@@ -7392,9 +7392,9 @@ bool AArch64AsmParser::ParseDirective(AsmToken DirectiveID) {
 static void ExpandCryptoAEK(const AArch64::ArchInfo &ArchInfo,
                             SmallVector<StringRef, 4> &RequestedExtensions) {
   const bool NoCrypto = llvm::is_contained(RequestedExtensions, "nocrypto");
-  const bool Crypto = llvm::is_contained(RequestedExtensions, "crypto");
+  
 
-  if (!NoCrypto && Crypto) {
+  if (const bool Crypto = llvm::is_contained(RequestedExtensions, "crypto"); !NoCrypto && Crypto) {
     // Map 'generic' (and others) to sha2 and aes, because
     // that was the traditional meaning of crypto.
     if (ArchInfo == AArch64::ARMV8_1A || ArchInfo == AArch64::ARMV8_2A ||
@@ -8575,8 +8575,8 @@ bool AArch64AsmParser::classifySymbolRef(const MCExpr *Expr,
     Expr = AE->getSubExpr();
   }
 
-  const MCSymbolRefExpr *SE = dyn_cast<MCSymbolRefExpr>(Expr);
-  if (SE) {
+  
+  if (const MCSymbolRefExpr *SE = dyn_cast<MCSymbolRefExpr>(Expr); SE) {
     // It's a simple symbol reference with no addend.
     DarwinSpec = AArch64::Specifier(SE->getKind());
     return true;

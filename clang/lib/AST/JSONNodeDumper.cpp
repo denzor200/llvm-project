@@ -850,8 +850,8 @@ void JSONNodeDumper::VisitNamedDecl(const NamedDecl *ND) {
 
     // Mangled names are not meaningful for locals, and may not be well-defined
     // in the case of VLAs.
-    auto *VD = dyn_cast<VarDecl>(ND);
-    if (VD && VD->hasLocalStorage())
+    
+    if (auto *VD = dyn_cast<VarDecl>(ND); VD && VD->hasLocalStorage())
       return;
 
     // Do not mangle template deduction guides.

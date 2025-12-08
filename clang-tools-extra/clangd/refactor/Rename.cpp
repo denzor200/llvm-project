@@ -225,8 +225,8 @@ std::optional<ReasonToReject> renameable(const NamedDecl &RenameDecl,
   }
   // We allow renaming ObjC methods although they don't have a simple
   // identifier.
-  const auto *ID = RenameDecl.getIdentifier();
-  if (!ID && !isa<ObjCMethodDecl>(&RenameDecl))
+  
+  if (const auto *ID = RenameDecl.getIdentifier(); !ID && !isa<ObjCMethodDecl>(&RenameDecl))
     return ReasonToReject::UnsupportedSymbol;
   // Filter out symbols that are unsupported in both rename modes.
   if (llvm::isa<NamespaceDecl>(&RenameDecl))
@@ -610,8 +610,8 @@ findAllSelectorPieces(llvm::ArrayRef<syntax::Token> Tokens,
     const auto &Tok = Tokens[Index];
 
     if (Closes.empty()) {
-      auto PieceCount = SelectorPieces.size();
-      if (PieceCount < NumArgs &&
+      
+      if (auto PieceCount = SelectorPieces.size(); PieceCount < NumArgs &&
           isMatchingSelectorName(Tok, Tokens[Index + 1], SM,
                                  NamePieces[PieceCount])) {
         // If 'foo:' instead of ':' (empty selector), we need to skip the ':'
@@ -1260,8 +1260,8 @@ llvm::Expected<Edit> buildRenameEdit(llvm::StringRef AbsFilePath,
 
   tooling::Replacements RenameEdit;
   for (const auto &R : OccurrencesOffsets) {
-    auto ByteLength = R.End - R.Start;
-    if (auto Err = RenameEdit.add(
+    
+    if (auto ByteLength = R.End - R.Start; auto Err = RenameEdit.add(
             tooling::Replacement(AbsFilePath, R.Start, ByteLength, R.NewName)))
       return std::move(Err);
   }

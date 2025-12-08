@@ -449,8 +449,8 @@ void SectionChunk::applyRelocation(uint8_t *off,
 
   // Compute the RVA of the relocation for relative relocations.
   uint64_t p = rva + rel.VirtualAddress;
-  uint64_t imageBase = ctx.config.imageBase;
-  switch (getArch()) {
+  
+  switch (uint64_t imageBase = ctx.config.imageBase; getArch()) {
   case Triple::x86_64:
     applyRelX64(off, rel.Type, os, s, p, imageBase);
     break;
@@ -573,8 +573,8 @@ void SectionChunk::getBaserels(std::vector<Baserel> *res) {
   // config of a hybrid ARM64X image. Its value will be set in prepareLoadConfig
   // to match the value in the EC load config, which is expected to be
   // a relocatable pointer to the __chpe_metadata symbol.
-  COFFLinkerContext &ctx = file->symtab.ctx;
-  if (ctx.config.machine == ARM64X && ctx.hybridSymtab->loadConfigSym &&
+  
+  if (COFFLinkerContext &ctx = file->symtab.ctx; ctx.config.machine == ARM64X && ctx.hybridSymtab->loadConfigSym &&
       ctx.hybridSymtab->loadConfigSym->getChunk() == this &&
       ctx.symtab.loadConfigSym &&
       ctx.hybridSymtab->loadConfigSize >=
@@ -745,10 +745,10 @@ ArrayRef<uint8_t> SectionChunk::consumeDebugMagic(ArrayRef<uint8_t> data,
     fatal("invalid section: " + sectionName);
 
   uint32_t magic = support::endian::read32le(data.data());
-  uint32_t expectedMagic = sectionName == ".debug$H"
+  
+  if (uint32_t expectedMagic = sectionName == ".debug$H"
                                ? DEBUG_HASHES_SECTION_MAGIC
-                               : DEBUG_SECTION_MAGIC;
-  if (magic != expectedMagic) {
+                               : DEBUG_SECTION_MAGIC; magic != expectedMagic) {
     warn("ignoring section " + sectionName + " with unrecognized magic 0x" +
          utohexstr(magic));
     return {};
@@ -1161,8 +1161,8 @@ void ImportThunkChunkARM64EC::writeTo(uint8_t *buf) const {
   applyArm64Addr(buf + 8, exitThunkRVA, rva + 8, 12);
   applyArm64Imm(buf + 12, exitThunkRVA & 0xfff, 0);
 
-  Defined *helper = cast<Defined>(file->symtab.ctx.config.arm64ECIcallHelper);
-  if (extended) {
+  
+  if (Defined *helper = cast<Defined>(file->symtab.ctx.config.arm64ECIcallHelper); extended) {
     // Replace last instruction with an inline range extension thunk.
     memcpy(buf + 16, arm64Thunk, sizeof(arm64Thunk));
     applyArm64Addr(buf + 16, helper->getRVA(), rva + 16, 12);
@@ -1258,8 +1258,8 @@ void DynamicRelocsChunk::finalize() {
   uint32_t prevPage = 0xfff;
 
   for (const Arm64XDynamicRelocEntry &entry : arm64xRelocs) {
-    uint32_t page = entry.offset.get() & ~0xfff;
-    if (page != prevPage) {
+    
+    if (uint32_t page = entry.offset.get() & ~0xfff; page != prevPage) {
       size = alignTo(size, sizeof(uint32_t)) +
              sizeof(coff_base_reloc_block_header);
       prevPage = page;
@@ -1295,8 +1295,8 @@ void DynamicRelocsChunk::writeTo(uint8_t *buf) const {
   coff_base_reloc_block_header *pageHeader = nullptr;
   size_t relocSize = 0;
   for (const Arm64XDynamicRelocEntry &entry : arm64xRelocs) {
-    uint32_t page = entry.offset.get() & ~0xfff;
-    if (!pageHeader || page != pageHeader->PageRVA) {
+    
+    if (uint32_t page = entry.offset.get() & ~0xfff; !pageHeader || page != pageHeader->PageRVA) {
       relocSize = alignTo(relocSize, sizeof(uint32_t));
       if (pageHeader)
         pageHeader->BlockSize =

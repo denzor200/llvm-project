@@ -508,9 +508,9 @@ static int printLineInfoForInput(bool LoadObjects, bool UseDebugObj) {
           }
           object::section_iterator Sec = *SecOrErr;
           Address.SectionIndex = Sec->getIndex();
-          uint64_t SectionLoadAddress =
-            LoadedObjInfo->getSectionLoadAddress(*Sec);
-          if (SectionLoadAddress != 0)
+          
+          if (uint64_t SectionLoadAddress =
+            LoadedObjInfo->getSectionLoadAddress(*Sec); SectionLoadAddress != 0)
             Addr += SectionLoadAddress - Sec->getAddress();
         } else if (auto SecOrErr = Sym.getSection())
           Address.SectionIndex = SecOrErr.get()->getIndex();
@@ -599,11 +599,11 @@ static int executeInput() {
   // Invalidate the instruction cache for each loaded function.
   for (auto &FM : MemMgr.FunctionMemory) {
 
-    auto &FM_MB = FM.MB;
+    
 
     // Make sure the memory is executable.
     // setExecutable will call InvalidateInstructionCache.
-    if (auto EC = sys::Memory::protectMappedMemory(FM_MB,
+    if (auto &FM_MB = FM.MB; auto EC = sys::Memory::protectMappedMemory(FM_MB,
                                                    sys::Memory::MF_READ |
                                                    sys::Memory::MF_EXEC))
       ErrorAndExit("unable to mark function executable: '" + EC.message() +
@@ -886,8 +886,8 @@ static int linkAndVerify() {
     // Now find the symbol content if possible (otherwise leave content as a
     // default-constructed StringRef).
     if (auto *SymAddr = Dyld.getSymbolLocalAddress(Symbol)) {
-      unsigned SectionID = Dyld.getSymbolSectionID(Symbol);
-      if (SectionID != ~0U) {
+      
+      if (unsigned SectionID = Dyld.getSymbolSectionID(Symbol); SectionID != ~0U) {
         char *CSymAddr = static_cast<char *>(SymAddr);
         StringRef SecContent = Dyld.getSectionContent(SectionID);
         uint64_t SymSize = SecContent.size() - (CSymAddr - SecContent.data());

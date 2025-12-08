@@ -255,8 +255,8 @@ CrossTranslationUnitContext::~CrossTranslationUnitContext() {}
 std::optional<std::string>
 CrossTranslationUnitContext::getLookupName(const Decl *D) {
   SmallString<128> DeclUSR;
-  bool Ret = index::generateUSRForDecl(D, DeclUSR);
-  if (Ret)
+  
+  if (bool Ret = index::generateUSRForDecl(D, DeclUSR); Ret)
     return {};
   return std::string(DeclUSR);
 }
@@ -269,8 +269,8 @@ CrossTranslationUnitContext::findDefInDeclContext(const DeclContext *DC,
                                                   StringRef LookupName) {
   assert(DC && "Declaration Context must not be null");
   for (const Decl *D : DC->decls()) {
-    const auto *SubDC = dyn_cast<DeclContext>(D);
-    if (SubDC)
+    
+    if (const auto *SubDC = dyn_cast<DeclContext>(D); SubDC)
       if (const auto *ND = findDefInDeclContext<T>(SubDC, LookupName))
         return ND;
 
@@ -307,13 +307,13 @@ llvm::Expected<const T *> CrossTranslationUnitContext::getCrossTUDefinitionImpl(
          &Unit->getASTContext().getSourceManager().getFileManager());
 
   const llvm::Triple &TripleTo = Context.getTargetInfo().getTriple();
-  const llvm::Triple &TripleFrom =
-      Unit->getASTContext().getTargetInfo().getTriple();
+  
   // The imported AST had been generated for a different target.
   // Some parts of the triple in the loaded ASTContext can be unknown while the
   // very same parts in the target ASTContext are known. Thus we check for the
   // known parts only.
-  if (!hasEqualKnownFields(TripleTo, TripleFrom)) {
+  if (const llvm::Triple &TripleFrom =
+      Unit->getASTContext().getTargetInfo().getTriple(); !hasEqualKnownFields(TripleTo, TripleFrom)) {
     // TODO: Pass the SourceLocation of the CallExpression for more precise
     // diagnostics.
     ++NumTripleMismatch;

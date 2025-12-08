@@ -102,8 +102,8 @@ public:
     std::string Path;
     bool isInPath(StringRef S) {
       if (Path.size() < S.size() && S.starts_with(Path)) {
-        auto LastSep = S.find_last_of('/');
-        if (LastSep == Path.size() || LastSep == Path.size() - 1)
+        
+        if (auto LastSep = S.find_last_of('/'); LastSep == Path.size() || LastSep == Path.size() - 1)
           return true;
       }
       return false;
@@ -664,8 +664,8 @@ TEST(VirtualFileSystemTest, BasicRealFSRecursiveIterationNoPush) {
     for (auto E = vfs::recursive_directory_iterator(); !EC && I != E;
          I.increment(EC)) {
       Contents.push_back(std::string(I->path()));
-      char last = I->path().back();
-      switch (last) {
+      
+      switch (char last = I->path().back(); last) {
       case 'b':
       case 'd':
       case 'f':
@@ -690,8 +690,8 @@ TEST(VirtualFileSystemTest, BasicRealFSRecursiveIterationNoPush) {
     for (auto E = vfs::recursive_directory_iterator(); !EC && I != E;
          I.increment(EC)) {
       Contents.push_back(std::string(I->path()));
-      char last = I->path().back();
-      switch (last) {
+      
+      switch (char last = I->path().back(); last) {
       case 'a':
       case 'c':
       case 'e':

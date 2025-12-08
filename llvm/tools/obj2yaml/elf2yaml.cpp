@@ -385,13 +385,13 @@ template <class ELFT> Expected<ELFYAML::Object *> ELFDumper<ELFT>::dump() {
 
   // We emit the "SectionHeaderTable" key when the order of sections in the
   // sections header table doesn't match the file order.
-  const bool SectionsSorted =
+  
+  if (const bool SectionsSorted =
       llvm::is_sorted(Chunks, [&](const std::unique_ptr<ELFYAML::Chunk> &A,
                                   const std::unique_ptr<ELFYAML::Chunk> &B) {
         return cast<ELFYAML::Section>(A.get())->OriginalSecNdx <
                cast<ELFYAML::Section>(B.get())->OriginalSecNdx;
-      });
-  if (!SectionsSorted) {
+      }); !SectionsSorted) {
     std::unique_ptr<ELFYAML::SectionHeaderTable> SHT =
         std::make_unique<ELFYAML::SectionHeaderTable>(/*IsImplicit=*/false);
     SHT->Sections.emplace();
@@ -495,8 +495,8 @@ ELFDumper<ELFT>::dumpProgramHeaders(
     // It is not possible to have a non-Section chunk, because
     // obj2yaml does not create Fill chunks.
     for (const std::unique_ptr<ELFYAML::Chunk> &C : Chunks) {
-      ELFYAML::Section &S = cast<ELFYAML::Section>(*C);
-      if (isInSegment<ELFT>(S, Sections[S.OriginalSecNdx], Phdr)) {
+      
+      if (ELFYAML::Section &S = cast<ELFYAML::Section>(*C); isInSegment<ELFT>(S, Sections[S.OriginalSecNdx], Phdr)) {
         if (!PH.FirstSec)
           PH.FirstSec = S.Name;
         PH.LastSec = S.Name;
@@ -958,8 +958,8 @@ ELFDumper<ELFT>::dumpBBAddrMapSection(const Elf_Shdr *Shdr) {
     Entries.push_back(
         {Version, Feature, /*NumBBRanges=*/{}, std::move(BBRanges)});
 
-    ELFYAML::PGOAnalysisMapEntry &PGOAnalysis = PGOAnalyses.emplace_back();
-    if (FeatureOrErr->hasPGOAnalysis()) {
+    
+    if (ELFYAML::PGOAnalysisMapEntry &PGOAnalysis = PGOAnalyses.emplace_back(); FeatureOrErr->hasPGOAnalysis()) {
       HasAnyPGOAnalysisMapEntry = true;
 
       if (FeatureOrErr->FuncEntryCount)
@@ -1256,8 +1256,8 @@ ELFDumper<ELFT>::dumpContentSection(const Elf_Shdr *Shdr) {
   if (Error E = dumpCommonSection(Shdr, *S))
     return std::move(E);
 
-  unsigned SecIndex = Shdr - &Sections[0];
-  if (SecIndex != 0 || Shdr->sh_type != ELF::SHT_NULL) {
+  
+  if (unsigned SecIndex = Shdr - &Sections[0]; SecIndex != 0 || Shdr->sh_type != ELF::SHT_NULL) {
     auto ContentOrErr = Obj.getSectionContents(*Shdr);
     if (!ContentOrErr)
       return ContentOrErr.takeError();
@@ -1402,8 +1402,8 @@ ELFDumper<ELFT>::dumpGnuHashSection(const Elf_Shdr *Shdr) {
 
   // Set just the raw binary content if we were unable to read the header
   // or when the section data is truncated or malformed.
-  uint64_t Size = Data.getData().size() - Cur.tell();
-  if (!Cur || (Size < MaskWords * AddrSize + NBuckets * 4) ||
+  
+  if (uint64_t Size = Data.getData().size() - Cur.tell(); !Cur || (Size < MaskWords * AddrSize + NBuckets * 4) ||
       (Size % 4 != 0)) {
     consumeError(Cur.takeError());
     S->Content = yaml::BinaryRef(Content);

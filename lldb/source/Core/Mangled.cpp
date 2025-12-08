@@ -163,8 +163,8 @@ GetItaniumDemangledStr(const char *M) {
 
   DemangledNameInfo info;
   llvm::ItaniumPartialDemangler ipd;
-  bool err = ipd.partialDemangle(M);
-  if (!err) {
+  
+  if (bool err = ipd.partialDemangle(M); !err) {
     // Default buffer and size (OutputBuffer will realloc in case it's too
     // small).
     size_t demangled_size = 80;

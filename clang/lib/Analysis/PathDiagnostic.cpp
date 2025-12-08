@@ -83,8 +83,8 @@ void PathPieces::flattenTo(PathPieces &Primary, PathPieces &Current,
       break;
     }
     case PathDiagnosticPiece::Macro: {
-      auto &Macro = cast<PathDiagnosticMacroPiece>(*Piece);
-      if (ShouldFlattenMacros) {
+      
+      if (auto &Macro = cast<PathDiagnosticMacroPiece>(*Piece); ShouldFlattenMacros) {
         Macro.subPieces.flattenTo(Primary, Primary, ShouldFlattenMacros);
       } else {
         Current.push_back(Piece);
@@ -207,8 +207,8 @@ void PathDiagnosticConsumer::HandlePathDiagnostic(
     // results will be consistent between runs (no reason to break ties if the
     // size is the same).
     const unsigned orig_size = orig->full_size();
-    const unsigned new_size = D->full_size();
-    if (orig_size <= new_size)
+    
+    if (const unsigned new_size = D->full_size(); orig_size <= new_size)
       return;
 
     assert(orig != D.get());
@@ -336,8 +336,8 @@ static bool compareCrossTUSourceLocs(FullSourceLoc XL, FullSourceLoc YL) {
       SM.getFileEntryRefForID(YL.getSpellingLoc().getFileID());
   if (!XFE || !YFE)
     return XFE && !YFE;
-  int NameCmp = XFE->getName().compare(YFE->getName());
-  if (NameCmp != 0)
+  
+  if (int NameCmp = XFE->getName().compare(YFE->getName()); NameCmp != 0)
     return NameCmp < 0;
   // Last resort: Compare raw file IDs that are possibly expansions.
   return XL.getFileID() < YL.getFileID();
@@ -496,8 +496,8 @@ SourceLocation PathDiagnosticLocation::getValidSourceLocation(
       // In this case, fall back to the start of the body (even if we were
       // asked for the statement end location).
       if (!Parent) {
-        const Stmt *Body = ADC->getBody();
-        if (Body)
+        
+        if (const Stmt *Body = ADC->getBody(); Body)
           L = Body->getBeginLoc();
         else
           L = ADC->getDecl()->getEndLoc();
@@ -662,8 +662,8 @@ PathDiagnosticLocation::create(const ProgramPoint& P,
                                const SourceManager &SMng) {
   const Stmt* S = nullptr;
   if (std::optional<BlockEdge> BE = P.getAs<BlockEdge>()) {
-    const CFGBlock *BSrc = BE->getSrc();
-    if (BSrc->getTerminator().isVirtualBaseBranch()) {
+    
+    if (const CFGBlock *BSrc = BE->getSrc(); BSrc->getTerminator().isVirtualBaseBranch()) {
       // TODO: VirtualBaseBranches should also appear for destructors.
       // In this case we should put the diagnostic at the end of decl.
       return PathDiagnosticLocation::createBegin(
@@ -779,8 +779,8 @@ PathDiagnosticRange
         default:
           break;
         case Stmt::DeclStmtClass: {
-          const auto *DS = cast<DeclStmt>(S);
-          if (DS->isSingleDecl()) {
+          
+          if (const auto *DS = cast<DeclStmt>(S); DS->isSingleDecl()) {
             // Should always be the case, but we'll be defensive.
             return SourceRange(DS->getBeginLoc(),
                                DS->getSingleDecl()->getLocation());
@@ -1049,10 +1049,10 @@ PathDiagnosticCallPiece::getCallExitEvent() const {
   if (!CallStackMessage.empty()) {
     Out << CallStackMessage;
   } else {
-    bool DidDescribe = describeCodeDecl(Out, Callee,
+    
+    if (bool DidDescribe = describeCodeDecl(Out, Callee,
                                         /*ExtendedDescription=*/false,
-                                        "Returning from ");
-    if (!DidDescribe)
+                                        "Returning from "); !DidDescribe)
       Out << "Returning to caller";
   }
 
@@ -1062,8 +1062,8 @@ PathDiagnosticCallPiece::getCallExitEvent() const {
 
 static void compute_path_size(const PathPieces &pieces, unsigned &size) {
   for (const auto &I : pieces) {
-    const PathDiagnosticPiece *piece = I.get();
-    if (const auto *cp = dyn_cast<PathDiagnosticCallPiece>(piece))
+    
+    if (const PathDiagnosticPiece *piece = I.get(); const auto *cp = dyn_cast<PathDiagnosticCallPiece>(piece))
       compute_path_size(cp->path, size);
     else
       ++size;

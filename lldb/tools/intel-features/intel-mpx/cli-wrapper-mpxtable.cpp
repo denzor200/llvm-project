@@ -61,9 +61,9 @@ static void PrintBTEntry(lldb::addr_t lbound, lldb::addr_t ubound,
                          uint64_t value, uint64_t meta,
                          lldb::SBCommandReturnObject &result) {
   const lldb::addr_t one_cmpl64 = ~((lldb::addr_t)0);
-  const lldb::addr_t one_cmpl32 = ~((uint32_t)0);
+  
 
-  if ((lbound == one_cmpl64 || lbound == one_cmpl32) && ubound == 0) {
+  if (const lldb::addr_t one_cmpl32 = ~((uint32_t)0); (lbound == one_cmpl64 || lbound == one_cmpl32) && ubound == 0) {
     result.Printf("Null bounds on map: pointer value = 0x%" PRIu64 "\n", value);
   } else {
     result.Printf("    lbound = 0x%" PRIu64 ",", lbound);
@@ -165,10 +165,10 @@ static bool GetBTEntry(uint64_t bndcfgu, uint64_t ptr, lldb::SBTarget &target,
   // 'size'.
   //
   std::vector<uint8_t> bt_entry_v(size * 4);
-  size_t ret = target.GetProcess().ReadMemory(
-      bt_entry_addr, static_cast<void *>(bt_entry_v.data()), size * 4, error);
+  
 
-  if ((ret != (size * 4)) || !error.Success()) {
+  if (size_t ret = target.GetProcess().ReadMemory(
+      bt_entry_addr, static_cast<void *>(bt_entry_v.data()), size * 4, error); (ret != (size * 4)) || !error.Success()) {
     result.SetError("Unsuccessful. Failed access to BT entry.");
     result.SetStatus(lldb::eReturnStatusFailed);
     return false;
@@ -235,9 +235,9 @@ static bool SetBTEntry(uint64_t bndcfgu, uint64_t ptr, lldb::addr_t lbound,
   bt_entry_v.insert(bt_entry_v.begin() + size, ubound_v.begin(),
                     ubound_v.end());
 
-  size_t ret = target.GetProcess().WriteMemory(
-      bt_entry_addr, (void *)(bt_entry_v.data()), size * 2, error);
-  if ((ret != (size * 2)) || !error.Success()) {
+  
+  if (size_t ret = target.GetProcess().WriteMemory(
+      bt_entry_addr, (void *)(bt_entry_v.data()), size * 2, error); (ret != (size * 2)) || !error.Success()) {
     result.SetError("Failed access to BT entry.");
     result.SetStatus(lldb::eReturnStatusFailed);
     return false;

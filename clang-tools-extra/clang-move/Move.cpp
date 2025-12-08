@@ -228,8 +228,8 @@ public:
   explicit ClassDeclarationMatch(ClangMoveTool *MoveTool)
       : MoveTool(MoveTool) {}
   void run(const MatchFinder::MatchResult &Result) override {
-    SourceManager *SM = &Result.Context->getSourceManager();
-    if (const auto *CMD = Result.Nodes.getNodeAs<CXXMethodDecl>("class_method"))
+    
+    if (SourceManager *SM = &Result.Context->getSourceManager(); const auto *CMD = Result.Nodes.getNodeAs<CXXMethodDecl>("class_method"))
       MatchClassMethod(CMD, SM);
     else if (const auto *VD =
                  Result.Nodes.getNodeAs<VarDecl>("class_static_var_decl"))

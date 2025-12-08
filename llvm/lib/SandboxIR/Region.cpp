@@ -78,8 +78,8 @@ void Region::setAux(ArrayRef<Instruction *> Aux) {
 void Region::setAux(unsigned Idx, Instruction *I) {
   assert((Idx >= Aux.size() || Aux[Idx] == nullptr) &&
          "There is already an Instruction at Idx in Aux!");
-  unsigned ExpectedSz = Idx + 1;
-  if (Aux.size() < ExpectedSz) {
+  
+  if (unsigned ExpectedSz = Idx + 1; Aux.size() < ExpectedSz) {
     auto SzBefore = Aux.size();
     Aux.resize(ExpectedSz);
     // Initialize the gap with nullptr.

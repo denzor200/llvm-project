@@ -49,9 +49,9 @@ static void printArgs(llvm::raw_ostream &os, llvm::ArrayRef<Remark::Arg> args) {
     os << a.key << "=";
 
     llvm::StringRef val(a.val);
-    bool needsQuote = val.contains(' ') || val.contains(',') ||
-                      val.contains('{') || val.contains('}');
-    if (needsQuote)
+    
+    if (bool needsQuote = val.contains(' ') || val.contains(',') ||
+                      val.contains('{') || val.contains('}'); needsQuote)
       os << '"' << val << '"';
     else
       os << val;

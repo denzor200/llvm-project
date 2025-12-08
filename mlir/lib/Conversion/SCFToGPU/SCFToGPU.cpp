@@ -644,13 +644,13 @@ ParallelToGpuLaunchLowering::matchAndRewrite(ParallelOp parallelOp,
   LocalAliasAnalysis aliasAnalysis;
   llvm::DenseSet<Value> writtenBuffer;
   while (!worklist.empty()) {
-    Operation *op = worklist.pop_back_val();
+    
     // Now walk over the body and clone it.
     // TODO: This is only correct if there either is no further scf.parallel
     //       nested or this code has side-effect but the memory buffer is not
     //       alias to inner loop access buffer. Otherwise we might need
     //       predication.
-    if (auto nestedParallel = dyn_cast<ParallelOp>(op)) {
+    if (Operation *op = worklist.pop_back_val(); auto nestedParallel = dyn_cast<ParallelOp>(op)) {
       // Before entering a nested scope, make sure there have been no
       // sideeffects until now or the nested operations do not access the
       // buffer written by outer scope.

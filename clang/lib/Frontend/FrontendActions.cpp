@@ -1071,8 +1071,8 @@ void PrintPreprocessedAction::ExecuteAction() {
   bool BinaryMode = false;
   if (llvm::Triple(LLVM_HOST_TRIPLE).isOSWindows()) {
     BinaryMode = true;
-    const SourceManager &SM = CI.getSourceManager();
-    if (std::optional<llvm::MemoryBufferRef> Buffer =
+    
+    if (const SourceManager &SM = CI.getSourceManager(); std::optional<llvm::MemoryBufferRef> Buffer =
             SM.getBufferOrNone(SM.getMainFileID())) {
       const char *cur = Buffer->getBufferStart();
       const char *end = Buffer->getBufferEnd();

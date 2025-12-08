@@ -28,8 +28,8 @@ static ModuleMetadataInfo collectMetadataInfo(Module &M) {
   MMDAI.DXILVersion = TT.getDXILVersion();
   MMDAI.ShaderModelVersion = TT.getOSVersion();
   MMDAI.ShaderProfile = TT.getEnvironment();
-  NamedMDNode *ValidatorVerNode = M.getNamedMetadata("dx.valver");
-  if (ValidatorVerNode) {
+  
+  if (NamedMDNode *ValidatorVerNode = M.getNamedMetadata("dx.valver"); ValidatorVerNode) {
     auto *ValVerMD = cast<MDNode>(ValidatorVerNode->getOperand(0));
     auto *MajorMD = mdconst::extract<ConstantInt>(ValVerMD->getOperand(0));
     auto *MinorMD = mdconst::extract<ConstantInt>(ValVerMD->getOperand(1));

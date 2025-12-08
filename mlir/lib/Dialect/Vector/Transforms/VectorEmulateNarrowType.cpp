@@ -1581,8 +1581,8 @@ static LogicalResult commonConversionPrecondition(PatternRewriter &rewriter,
 
   // TODO: consider relaxing this restriction in the future if we find ways
   // to really work with subbyte elements across the MLIR/LLVM boundary.
-  unsigned bitwidth = preconditionType.getElementTypeBitWidth();
-  if (bitwidth % 8 != 0)
+  
+  if (unsigned bitwidth = preconditionType.getElementTypeBitWidth(); bitwidth % 8 != 0)
     return rewriter.notifyMatchFailure(op, "bitwidth is not k * 8");
 
   return success();
@@ -1971,9 +1971,9 @@ struct RewriteBitCastOfTruncI : OpRewritePattern<vector::BitCastOp> {
     }
 
     // Finalize the rewrite.
-    bool narrowing = targetVectorType.getElementTypeBitWidth() <=
-                     shuffledElementType.getIntOrFloatBitWidth();
-    if (narrowing) {
+    
+    if (bool narrowing = targetVectorType.getElementTypeBitWidth() <=
+                     shuffledElementType.getIntOrFloatBitWidth(); narrowing) {
       if (runningResult.getType() == bitCastOp.getResultVectorType()) {
         rewriter.replaceOp(bitCastOp, runningResult);
       } else {
@@ -2036,10 +2036,10 @@ struct RewriteExtOfBitCast : OpRewritePattern<ExtOpType> {
     }
 
     // Finalize the rewrite.
-    bool narrowing =
+    
+    if (bool narrowing =
         cast<VectorType>(extOp.getOut().getType()).getElementTypeBitWidth() <=
-        shuffledElementType.getIntOrFloatBitWidth();
-    if (narrowing) {
+        shuffledElementType.getIntOrFloatBitWidth(); narrowing) {
       rewriter.replaceOpWithNewOp<arith::TruncIOp>(
           extOp, cast<VectorType>(extOp.getOut().getType()), runningResult);
     } else {

@@ -61,9 +61,9 @@ bool NVPTXReplaceImageHandles::runOnMachineFunction(MachineFunction &MF) {
   // but we need the handle access to be eliminated because they are not
   // valid instructions when image handles are disabled.
   for (MachineInstr *MI : InstrsToRemove) {
-    unsigned DefReg = MI->getOperand(0).getReg();
+    
     // Only these that are not used can be removed.
-    if (MF.getRegInfo().use_nodbg_empty(DefReg))
+    if (unsigned DefReg = MI->getOperand(0).getReg(); MF.getRegInfo().use_nodbg_empty(DefReg))
       MI->eraseFromParent();
   }
   return Changed;
@@ -1742,13 +1742,13 @@ bool NVPTXReplaceImageHandles::processInstr(MachineInstr &MI) {
   if (MCID.TSFlags & NVPTXII::IsTexFlag) {
     // This is a texture fetch, so operand 4 is a texref and operand 5 is
     // a samplerref
-    MachineOperand &TexHandle = MI.getOperand(4);
-    if (replaceImageHandle(TexHandle, MF))
+    
+    if (MachineOperand &TexHandle = MI.getOperand(4); replaceImageHandle(TexHandle, MF))
       MI.setDesc(TII->get(texRegisterToIndexOpcode(MI.getOpcode())));
 
     if (!(MCID.TSFlags & NVPTXII::IsTexModeUnifiedFlag)) {
-      MachineOperand &SampHandle = MI.getOperand(5);
-      if (replaceImageHandle(SampHandle, MF))
+      
+      if (MachineOperand &SampHandle = MI.getOperand(5); replaceImageHandle(SampHandle, MF))
         MI.setDesc(TII->get(samplerRegisterToIndexOpcode(MI.getOpcode())));
     }
 
@@ -1760,27 +1760,27 @@ bool NVPTXReplaceImageHandles::processInstr(MachineInstr &MI) {
               1);
 
     // For a surface load of vector size N, the Nth operand will be the surfref
-    MachineOperand &SurfHandle = MI.getOperand(VecSize);
+    
 
-    if (replaceImageHandle(SurfHandle, MF))
+    if (MachineOperand &SurfHandle = MI.getOperand(VecSize); replaceImageHandle(SurfHandle, MF))
       MI.setDesc(TII->get(suldRegisterToIndexOpcode(MI.getOpcode())));
 
     return true;
   }
   if (MCID.TSFlags & NVPTXII::IsSustFlag) {
     // This is a surface store, so operand 0 is a surfref
-    MachineOperand &SurfHandle = MI.getOperand(0);
+    
 
-    if (replaceImageHandle(SurfHandle, MF))
+    if (MachineOperand &SurfHandle = MI.getOperand(0); replaceImageHandle(SurfHandle, MF))
       MI.setDesc(TII->get(sustRegisterToIndexOpcode(MI.getOpcode())));
 
     return true;
   }
   if (MCID.TSFlags & NVPTXII::IsSurfTexQueryFlag) {
     // This is a query, so operand 1 is a surfref/texref
-    MachineOperand &Handle = MI.getOperand(1);
+    
 
-    if (replaceImageHandle(Handle, MF))
+    if (MachineOperand &Handle = MI.getOperand(1); replaceImageHandle(Handle, MF))
       MI.setDesc(TII->get(queryRegisterToIndexOpcode(MI.getOpcode())));
 
     return true;
@@ -1797,14 +1797,14 @@ bool NVPTXReplaceImageHandles::replaceImageHandle(MachineOperand &Op,
   assert(Op.isReg() && "Handle is not in a reg?");
 
   // Which instruction defines the handle?
-  MachineInstr &TexHandleDef = *MRI.getVRegDef(Op.getReg());
+  
 
-  switch (TexHandleDef.getOpcode()) {
+  switch (MachineInstr &TexHandleDef = *MRI.getVRegDef(Op.getReg()); TexHandleDef.getOpcode()) {
   case NVPTX::LD_i64: {
     // The handle is a parameter value being loaded, replace with the
     // parameter symbol
-    const auto &TM = static_cast<const NVPTXTargetMachine &>(MF.getTarget());
-    if (TM.getDrvInterface() == NVPTX::CUDA)
+    
+    if (const auto &TM = static_cast<const NVPTXTargetMachine &>(MF.getTarget()); TM.getDrvInterface() == NVPTX::CUDA)
       // For CUDA, we preserve the param loads coming from function arguments
       return false;
 

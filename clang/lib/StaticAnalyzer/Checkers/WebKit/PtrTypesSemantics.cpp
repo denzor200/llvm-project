@@ -703,8 +703,8 @@ public:
     if (!checkArguments(MCE))
       return false;
 
-    bool TrivialThis = Visit(MCE->getImplicitObjectArgument());
-    if (!TrivialThis)
+    
+    if (bool TrivialThis = Visit(MCE->getImplicitObjectArgument()); !TrivialThis)
       return false;
 
     auto *Callee = MCE->getMethodDecl();

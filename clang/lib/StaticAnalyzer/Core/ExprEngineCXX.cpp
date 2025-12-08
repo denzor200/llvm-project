@@ -110,9 +110,9 @@ void ExprEngine::performTrivialCopy(NodeBuilder &Bldr, ExplodedNode *Pred,
 SVal ExprEngine::makeElementRegion(ProgramStateRef State, SVal LValue,
                                    QualType &Ty, bool &IsArray, unsigned Idx) {
   SValBuilder &SVB = State->getStateManager().getSValBuilder();
-  ASTContext &Ctx = SVB.getContext();
+  
 
-  if (const ArrayType *AT = Ctx.getAsArrayType(Ty)) {
+  if (ASTContext &Ctx = SVB.getContext(); const ArrayType *AT = Ctx.getAsArrayType(Ty)) {
     while (AT) {
       Ty = AT->getElementType();
       AT = dyn_cast<ArrayType>(AT->getElementType());
@@ -135,10 +135,10 @@ SVal ExprEngine::computeObjectUnderConstruction(
 
   SValBuilder &SVB = getSValBuilder();
   MemRegionManager &MRMgr = SVB.getRegionManager();
-  ASTContext &ACtx = SVB.getContext();
+  
 
   // Compute the target region by exploring the construction context.
-  if (CC) {
+  if (ASTContext &ACtx = SVB.getContext(); CC) {
     switch (CC->getKind()) {
     case ConstructionContext::CXX17ElidedCopyVariableKind:
     case ConstructionContext::SimpleVariableKind: {
@@ -213,8 +213,8 @@ SVal ExprEngine::computeObjectUnderConstruction(
       // The temporary is to be managed by the parent stack frame.
       // So build it in the parent stack frame if we're not in the
       // top frame of the analysis.
-      const StackFrameContext *SFC = LCtx->getStackFrame();
-      if (const LocationContext *CallerLCtx = SFC->getParent()) {
+      
+      if (const StackFrameContext *SFC = LCtx->getStackFrame(); const LocationContext *CallerLCtx = SFC->getParent()) {
         auto RTC = (*SFC->getCallSiteBlock())[SFC->getIndex()]
                        .getAs<CFGCXXRecordTypedCall>();
         if (!RTC) {
@@ -326,8 +326,8 @@ SVal ExprEngine::computeObjectUnderConstruction(
       SVal Base = loc::MemRegionVal(
           MRMgr.getCXXTempObjectRegion(LCC->getInitializer(), LCtx));
 
-      const auto *CE = dyn_cast_or_null<CXXConstructExpr>(E);
-      if (getIndexOfElementToConstruct(State, CE, LCtx)) {
+      
+      if (const auto *CE = dyn_cast_or_null<CXXConstructExpr>(E); getIndexOfElementToConstruct(State, CE, LCtx)) {
         CallOpts.IsArrayCtorOrDtor = true;
         Base = State->getLValue(E->getType(), svalBuilder.makeArrayIndex(Idx),
                                 Base);
@@ -726,10 +726,10 @@ void ExprEngine::handleConstructor(const Expr *E,
         // actually make things worse. Placement new makes this tricky as well,
         // since it's then possible to be initializing one part of a multi-
         // dimensional array.
-        const CXXRecordDecl *TargetHeldRecord =
-            dyn_cast_or_null<CXXRecordDecl>(CE->getType()->getAsRecordDecl());
+        
 
-        if (!TargetHeldRecord || !TargetHeldRecord->isEmpty())
+        if (const CXXRecordDecl *TargetHeldRecord =
+            dyn_cast_or_null<CXXRecordDecl>(CE->getType()->getAsRecordDecl()); !TargetHeldRecord || !TargetHeldRecord->isEmpty())
           State = State->bindDefaultZero(Target, LCtx);
       }
 
@@ -769,8 +769,8 @@ void ExprEngine::handleConstructor(const Expr *E,
   // paths when no-return temporary destructors are used for assertions.
   ExplodedNodeSet DstEvaluatedPostProcessed;
   StmtNodeBuilder Bldr(DstEvaluated, DstEvaluatedPostProcessed, *currBldrCtx);
-  const AnalysisDeclContext *ADC = LCtx->getAnalysisDeclContext();
-  if (!ADC->getCFGBuildOptions().AddTemporaryDtors) {
+  
+  if (const AnalysisDeclContext *ADC = LCtx->getAnalysisDeclContext(); !ADC->getCFGBuildOptions().AddTemporaryDtors) {
     if (llvm::isa_and_nonnull<CXXTempObjectRegion,
                               CXXLifetimeExtendedObjectRegion>(TargetRegion) &&
         cast<CXXConstructorDecl>(Call->getDecl())

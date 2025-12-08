@@ -417,8 +417,8 @@ static void denormalizeSimpleEnumImpl(ArgumentConsumer Consumer,
                                       Option::OptionClass OptClass,
                                       unsigned TableIndex, unsigned Value) {
   assert(TableIndex < SimpleEnumValueTablesSize);
-  const SimpleEnumValueTable &Table = SimpleEnumValueTables[TableIndex];
-  if (auto MaybeEnumVal = findValueTableByValue(Table, Value)) {
+  
+  if (const SimpleEnumValueTable &Table = SimpleEnumValueTables[TableIndex]; auto MaybeEnumVal = findValueTableByValue(Table, Value)) {
     denormalizeString(Consumer, lookupStrInTable(SpellingOffset), OptClass,
                       TableIndex, MaybeEnumVal->Name);
   } else {
@@ -798,8 +798,8 @@ static bool RoundTrip(ParseFn Parse, GenerateFn Generate,
     // would reproduce the same result. Let's fail again with the real
     // invocation and diagnostics, so all side-effects of parsing are visible.
     unsigned NumWarningsBefore = Diags.getNumWarnings();
-    auto Success = Parse(RealInvocation, CommandLineArgs, Diags, Argv0);
-    if (!Success || Diags.getNumWarnings() != NumWarningsBefore)
+    
+    if (auto Success = Parse(RealInvocation, CommandLineArgs, Diags, Argv0); !Success || Diags.getNumWarnings() != NumWarningsBefore)
       return Success;
 
     // Parse with original options and diagnostics succeeded even though it
@@ -1194,9 +1194,9 @@ static void initOption(AnalyzerOptions::ConfigTable &Config,
                        unsigned DefaultVal) {
 
   OptionField = DefaultVal;
-  bool HasFailed = getStringOption(Config, Name, std::to_string(DefaultVal))
-                     .getAsInteger(0, OptionField);
-  if (Diags && HasFailed)
+  
+  if (bool HasFailed = getStringOption(Config, Name, std::to_string(DefaultVal))
+                     .getAsInteger(0, OptionField); Diags && HasFailed)
     Diags->Report(diag::err_analyzer_config_invalid_input)
       << Name << "an unsigned";
 }
@@ -1255,11 +1255,11 @@ static void parseAnalyzerConfigs(AnalyzerOptions &AnOpts,
     for (const StringRef &CheckerOrPackage : CheckersAndPackages) {
       if (Diags) {
         bool IsChecker = CheckerOrPackage.contains('.');
-        bool IsValidName = IsChecker
-                               ? llvm::is_contained(Checkers, CheckerOrPackage)
-                               : llvm::is_contained(Packages, CheckerOrPackage);
+        
 
-        if (!IsValidName)
+        if (bool IsValidName = IsChecker
+                               ? llvm::is_contained(Checkers, CheckerOrPackage)
+                               : llvm::is_contained(Packages, CheckerOrPackage); !IsValidName)
           Diags->Report(diag::err_unknown_analyzer_checker_or_package)
               << CheckerOrPackage;
       }
@@ -1403,8 +1403,8 @@ static void parseXRayInstrumentationBundle(StringRef FlagName, StringRef Bundle,
   llvm::SmallVector<StringRef, 2> BundleParts;
   llvm::SplitString(Bundle, BundleParts, ",");
   for (const auto &B : BundleParts) {
-    auto Mask = parseXRayInstrValue(B);
-    if (Mask == XRayInstrKind::None)
+    
+    if (auto Mask = parseXRayInstrValue(B); Mask == XRayInstrKind::None)
       if (B != "none")
         D.Report(diag::err_drv_invalid_value) << FlagName << Bundle;
       else
@@ -1852,7 +1852,8 @@ bool CompilerInvocation::ParseCodeGenArgs(CodeGenOptions &Opts, ArgList &Args,
        LangOpts->PICLevel == 0);
 
   if (Arg *A = Args.getLastArg(OPT_debug_info_kind_EQ)) {
-    unsigned Val =
+    
+    if (unsigned Val =
         llvm::StringSwitch<unsigned>(A->getValue())
             .Case("line-tables-only", llvm::codegenoptions::DebugLineTablesOnly)
             .Case("line-directives-only",
@@ -1861,8 +1862,7 @@ bool CompilerInvocation::ParseCodeGenArgs(CodeGenOptions &Opts, ArgList &Args,
             .Case("limited", llvm::codegenoptions::LimitedDebugInfo)
             .Case("standalone", llvm::codegenoptions::FullDebugInfo)
             .Case("unused-types", llvm::codegenoptions::UnusedTypeInfo)
-            .Default(~0U);
-    if (Val == ~0U)
+            .Default(~0U); Val == ~0U)
       Diags.Report(diag::err_drv_invalid_value) << A->getAsString(Args)
                                                 << A->getValue();
     else
@@ -2128,8 +2128,8 @@ bool CompilerInvocation::ParseCodeGenArgs(CodeGenOptions &Opts, ArgList &Args,
       Diags.Report(diag::err_drv_unsupported_opt_for_target)
           << A->getSpelling() << T.str();
 
-    const Option &O = A->getOption();
-    if (O.matches(OPT_fpcc_struct_return) ||
+    
+    if (const Option &O = A->getOption(); O.matches(OPT_fpcc_struct_return) ||
         O.matches(OPT_maix_struct_return)) {
       Opts.setStructReturnConvention(CodeGenOptions::SRCK_OnStack);
     } else {
@@ -2431,8 +2431,8 @@ static bool parseShowColorsArgs(const ArgList &Args, bool DefaultColor) {
     Colors_Auto
   } ShowColors = DefaultColor ? Colors_Auto : Colors_Off;
   for (auto *A : Args) {
-    const Option &O = A->getOption();
-    if (O.matches(options::OPT_fcolor_diagnostics)) {
+    
+    if (const Option &O = A->getOption(); O.matches(options::OPT_fcolor_diagnostics)) {
       ShowColors = Colors_On;
     } else if (O.matches(options::OPT_fno_color_diagnostics)) {
       ShowColors = Colors_Off;
@@ -3013,12 +3013,12 @@ static bool ParseFrontendArgs(FrontendOptions &Opts, ArgList &Args,
 
     if (ProgramAction == frontend::ASTDump &&
         (Opt == OPT_ast_dump_all_EQ || Opt == OPT_ast_dump_EQ)) {
-      unsigned Val = llvm::StringSwitch<unsigned>(A->getValue())
+      
+
+      if (unsigned Val = llvm::StringSwitch<unsigned>(A->getValue())
                          .CaseLower("default", ADOF_Default)
                          .CaseLower("json", ADOF_JSON)
-                         .Default(std::numeric_limits<unsigned>::max());
-
-      if (Val != std::numeric_limits<unsigned>::max())
+                         .Default(std::numeric_limits<unsigned>::max()); Val != std::numeric_limits<unsigned>::max())
         Opts.ASTDumpFormat = static_cast<ASTDumpOutputFormat>(Val);
       else {
         Diags.Report(diag::err_drv_invalid_value)
@@ -4013,8 +4013,8 @@ bool CompilerInvocation::ParseLangArgs(LangOptions &Opts, ArgList &Args,
     } else {
       // Valid standard, check to make sure language and standard are
       // compatible.
-      const LangStandard &Std = LangStandard::getLangStandardForKind(LangStd);
-      if (!IsInputCompatibleWithStandard(IK, Std)) {
+      
+      if (const LangStandard &Std = LangStandard::getLangStandardForKind(LangStd); !IsInputCompatibleWithStandard(IK, Std)) {
         Diags.Report(diag::err_drv_argument_not_allowed_with)
           << A->getAsString(Args) << GetInputKindName(IK);
       }
@@ -4576,9 +4576,9 @@ bool CompilerInvocation::ParseLangArgs(LangOptions &Opts, ArgList &Args,
         // the target shader model is at least 6.2.
         if (Args.getLastArg(OPT_fnative_half_type) ||
             Args.getLastArg(OPT_fnative_int16_type)) {
-          const LangStandard &Std =
-              LangStandard::getLangStandardForKind(Opts.LangStd);
-          if (!(Opts.LangStd >= LangStandard::lang_hlsl2018 &&
+          
+          if (const LangStandard &Std =
+              LangStandard::getLangStandardForKind(Opts.LangStd); !(Opts.LangStd >= LangStandard::lang_hlsl2018 &&
                 T.getOSVersion() >= VersionTuple(6, 2)))
             Diags.Report(diag::err_drv_hlsl_16bit_types_unsupported)
                 << "-enable-16bit-types" << true << Std.getName()
@@ -4594,9 +4594,9 @@ bool CompilerInvocation::ParseLangArgs(LangOptions &Opts, ArgList &Args,
           const char *Str = Args.getLastArg(OPT_fnative_half_type)
                                 ? "-fnative-half-type"
                                 : "-fnative-int16-type";
-          const LangStandard &Std =
-              LangStandard::getLangStandardForKind(Opts.LangStd);
-          if (!(Opts.LangStd >= LangStandard::lang_hlsl2018))
+          
+          if (const LangStandard &Std =
+              LangStandard::getLangStandardForKind(Opts.LangStd); !(Opts.LangStd >= LangStandard::lang_hlsl2018))
             Diags.Report(diag::err_drv_hlsl_16bit_types_unsupported)
                 << Str << false << Std.getName();
         }

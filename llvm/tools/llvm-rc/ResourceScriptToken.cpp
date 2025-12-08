@@ -32,8 +32,8 @@ using Kind = RCToken::Kind;
 // between our representation and StringRef's one). If Representation is
 // correct, 'true' is returned and the return value is put back in Num.
 static bool rcGetAsInteger(StringRef Representation, uint32_t &Num) {
-  size_t Length = Representation.size();
-  if (Length == 0)
+  
+  if (size_t Length = Representation.size(); Length == 0)
     return false;
   // Strip the last 'L' if unnecessary.
   if (std::toupper(Representation.back()) == 'L')

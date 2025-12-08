@@ -64,9 +64,9 @@ Thread &ThreadPlanTracer::GetThread() {
 void ThreadPlanTracer::Log() {
   SymbolContext sc;
   bool show_frame_index = false;
-  bool show_fullpaths = false;
+  
 
-  if (StreamSP stream_sp = GetLogStreamSP()) {
+  if (bool show_fullpaths = false; StreamSP stream_sp = GetLogStreamSP()) {
     GetThread().GetStackFrameAtIndex(0)->Dump(stream_sp.get(), show_frame_index,
                                               show_fullpaths);
     stream_sp->Printf("\n");
@@ -147,8 +147,8 @@ void ThreadPlanAssemblyTracer::Log() {
                Address::DumpStyleModuleWithFileAddress);
   stream_sp->PutCString(" ");
 
-  Disassembler *disassembler = GetDisassembler();
-  if (disassembler) {
+  
+  if (Disassembler *disassembler = GetDisassembler(); disassembler) {
     Status err;
     m_process.ReadMemory(pc, buffer, sizeof(buffer), err);
 
@@ -156,8 +156,8 @@ void ThreadPlanAssemblyTracer::Log() {
       DataExtractor extractor(buffer, sizeof(buffer), m_process.GetByteOrder(),
                               m_process.GetAddressByteSize());
 
-      bool data_from_file = false;
-      if (addr_valid)
+      
+      if (bool data_from_file = false; addr_valid)
         disassembler->DecodeInstructions(pc_addr, extractor, 0, 1, false,
                                          data_from_file);
       else
@@ -217,8 +217,8 @@ void ThreadPlanAssemblyTracer::Log() {
   RegisterValue reg_value;
   for (uint32_t reg_num = 0, num_registers = reg_ctx->GetRegisterCount();
        reg_num < num_registers; ++reg_num) {
-    const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoAtIndex(reg_num);
-    if (reg_ctx->ReadRegister(reg_info, reg_value)) {
+    
+    if (const RegisterInfo *reg_info = reg_ctx->GetRegisterInfoAtIndex(reg_num); reg_ctx->ReadRegister(reg_info, reg_value)) {
       assert(reg_num < m_register_values.size());
       if (m_register_values[reg_num].GetType() == RegisterValue::eTypeInvalid ||
           reg_value != m_register_values[reg_num]) {

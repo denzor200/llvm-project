@@ -1069,9 +1069,9 @@ bool IEEEFloat::isSignificandAllOnes() const {
   const unsigned NumHighBits = getNumHighBits();
   assert(NumHighBits <= integerPartWidth && NumHighBits > 0 &&
          "Can not have more high bits to fill than integerPartWidth");
-  const integerPart HighBitFill =
-    ~integerPart(0) << (integerPartWidth - NumHighBits);
-  if ((semantics->precision <= 1) || (~(Parts[PartCount - 1] | HighBitFill)))
+  
+  if (const integerPart HighBitFill =
+    ~integerPart(0) << (integerPartWidth - NumHighBits); (semantics->precision <= 1) || (~(Parts[PartCount - 1] | HighBitFill)))
     return false;
 
   return true;
@@ -1117,9 +1117,9 @@ bool IEEEFloat::isSignificandAllZeros() const {
   const unsigned NumHighBits = getNumHighBits();
   assert(NumHighBits < integerPartWidth && "Can not have more high bits to "
          "clear than integerPartWidth");
-  const integerPart HighBitMask = ~integerPart(0) >> NumHighBits;
+  
 
-  if ((semantics->precision > 1) && (Parts[PartCount - 1] & HighBitMask))
+  if (const integerPart HighBitMask = ~integerPart(0) >> NumHighBits; (semantics->precision > 1) && (Parts[PartCount - 1] & HighBitMask))
     return false;
 
   return true;
@@ -1141,8 +1141,8 @@ bool IEEEFloat::isSignificandAllZerosExceptMSB() const {
 }
 
 bool IEEEFloat::isLargest() const {
-  bool IsMaxExp = isFiniteNonZero() && exponent == semantics->maxExponent;
-  if (semantics->nonFiniteBehavior == fltNonfiniteBehavior::NanOnly &&
+  
+  if (bool IsMaxExp = isFiniteNonZero() && exponent == semantics->maxExponent; semantics->nonFiniteBehavior == fltNonfiniteBehavior::NanOnly &&
       semantics->nanEncoding == fltNanEncoding::AllOnes) {
     // The largest number by magnitude in our format will be the floating point
     // number with maximum exponent and with significand that is all ones except
@@ -1488,9 +1488,9 @@ lostFraction IEEEFloat::divideSignificand(const IEEEFloat &rhs) {
   }
 
   /* Figure out the lost fraction.  */
-  int cmp = APInt::tcCompare(dividend, divisor, partsCount);
+  
 
-  if (cmp > 0)
+  if (int cmp = APInt::tcCompare(dividend, divisor, partsCount); cmp > 0)
     lost_fraction = lfMoreThanHalf;
   else if (cmp == 0)
     lost_fraction = lfExactlyHalf;
@@ -2775,9 +2775,9 @@ APFloat::opStatus IEEEFloat::convertToSignExtendedInteger(
   }
 
   /* Step 3: check if we fit in the destination.  */
-  unsigned int omsb = APInt::tcMSB(parts.data(), dstPartsCount) + 1;
+  
 
-  if (sign) {
+  if (unsigned int omsb = APInt::tcMSB(parts.data(), dstPartsCount) + 1; sign) {
     if (!isSigned) {
       /* Negative numbers cannot be represented as unsigned.  */
       if (omsb != 0)
@@ -4346,10 +4346,10 @@ namespace {
       // significand <- significand / 10
       APInt::udivrem(significand, ten, significand, digit);
 
-      unsigned d = digit.getZExtValue();
+      
 
       // Drop trailing zeros.
-      if (inTrail && !d)
+      if (unsigned d = digit.getZExtValue(); inTrail && !d)
         exp++;
       else {
         buffer.push_back((char) ('0' + d));
@@ -4378,8 +4378,8 @@ namespace {
                             NDigits + (unsigned) exp > FormatPrecision);
       } else {
         // Power of the most significant digit.
-        int MSD = exp + (int) (NDigits - 1);
-        if (MSD >= 0) {
+        
+        if (int MSD = exp + (int) (NDigits - 1); MSD >= 0) {
           // 765e-2 == 7.65
           FormatScientific = false;
         } else {
@@ -4654,10 +4654,10 @@ APFloat::opStatus IEEEFloat::next(bool nextDown) {
       // smallest normal binade have the same exponent in our representation.
       // If there are only exponents, any increment always crosses the
       // BinadeBoundary.
-      bool WillCrossBinadeBoundary = !APFloat::hasSignificand(*semantics) ||
-                                     (!isDenormal() && isSignificandAllOnes());
+      
 
-      if (WillCrossBinadeBoundary) {
+      if (bool WillCrossBinadeBoundary = !APFloat::hasSignificand(*semantics) ||
+                                     (!isDenormal() && isSignificandAllOnes()); WillCrossBinadeBoundary) {
         integerPart *Parts = significandParts();
         APInt::tcSet(Parts, 0, partCount());
         APInt::tcSetBit(Parts, semantics->precision - 1);
@@ -5514,8 +5514,8 @@ APFloat::opStatus DoubleAPFloat::convertToSignExtendedInteger(
   // signed, N for unsigned).
   bool LoIsExact;
   const int HiExactLog2 = IntegralHi.getExactLog2Abs();
-  const unsigned PositiveOverflowWidth = IsSigned ? Width - 1 : Width;
-  if (HiExactLog2 >= 0 &&
+  
+  if (const unsigned PositiveOverflowWidth = IsSigned ? Width - 1 : Width; HiExactLog2 >= 0 &&
       static_cast<unsigned>(HiExactLog2) == PositiveOverflowWidth) {
     // If Hi and Lo have the same sign, |Hi + Lo| > |Hi|, so the sum is
     // guaranteed to overflow. E.g., for uint128_t, (2^128, 1) overflows.
@@ -5684,13 +5684,13 @@ APFloat::opStatus DoubleAPFloat::convertFromUnsignedParts(
       // counteract this, we detect the tie case and override the rounding
       // mode for Lo to rmTowardPositive.
       const unsigned ErrorActiveBits = Error.getSignificantBits() - 1;
-      const unsigned LoPrecision = getSecond().getSemantics().precision;
-      if (ErrorActiveBits > LoPrecision) {
-        const unsigned RoundingBoundary = ErrorActiveBits - LoPrecision;
+      
+      if (const unsigned LoPrecision = getSecond().getSemantics().precision; ErrorActiveBits > LoPrecision) {
+        
         // A tie occurs when the bits to be truncated are of the form 100...0.
         // This is detected by checking if the number of trailing zeros is
         // exactly one less than the number of bits being truncated.
-        if (Error.countTrailingZeros() == RoundingBoundary - 1)
+        if (const unsigned RoundingBoundary = ErrorActiveBits - LoPrecision; Error.countTrailingZeros() == RoundingBoundary - 1)
           LoRM = rmTowardPositive;
       }
     } else if (RM == rmTowardZero) {
@@ -5913,12 +5913,12 @@ DoubleAPFloat frexp(const DoubleAPFloat &Arg, int &Exp,
         const APFloat ScaledUlpOfSecond =
             scalbn(UlpOfSecond, Exp - 1, rmNearestTiesToEven);
         const bool IsMidpoint = abs(RoundingError) == ScaledUlpOfSecond;
-        const bool RoundedLoAway =
-            Second.isNegative() == RoundingError.isNegative();
+        
         // The sign of Hi and Lo disagree and we rounded Lo away: we must
         // decrease the magnitude of Second to increase the magnitude
         // First+Second.
-        if (IsMidpoint && RoundedLoAway)
+        if (const bool RoundedLoAway =
+            Second.isNegative() == RoundingError.isNegative(); IsMidpoint && RoundedLoAway)
           Second.next(/*nextDown=*/!Second.isNegative());
       }
     }

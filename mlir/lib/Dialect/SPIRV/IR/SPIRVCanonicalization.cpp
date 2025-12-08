@@ -1167,9 +1167,9 @@ spirv::BitwiseAndOp::fold(spirv::BitwiseAndOp::FoldAdaptor adaptor) {
 
     // (UConvert x : iN to iK) & <mask with N low bits set> -> UConvert x
     if (auto zext = getOperand1().getDefiningOp<spirv::UConvertOp>()) {
-      int valueBits =
-          getElementTypeOrSelf(zext.getOperand()).getIntOrFloatBitWidth();
-      if (rhsMask.zextOrTrunc(valueBits).isAllOnes())
+      
+      if (int valueBits =
+          getElementTypeOrSelf(zext.getOperand()).getIntOrFloatBitWidth(); rhsMask.zextOrTrunc(valueBits).isAllOnes())
         return getOperand1();
     }
   }
@@ -1378,13 +1378,13 @@ LogicalResult ConvertSelectionOpToSelect::canCanonicalizeSelection(
   // "Before version 1.4, Result Type must be a pointer, scalar, or vector.
   // Starting with version 1.4, Result Type can additionally be a composite type
   // other than a vector."
-  bool isScalarOrVector =
-      llvm::cast<spirv::SPIRVType>(trueBrStoreOp.getValue().getType())
-          .isScalarOrVector();
+  
 
   // Check that each `spirv.Store` uses the same pointer, memory access
   // attributes and a valid type of the value.
-  if ((trueBrStoreOp.getPtr() != falseBrStoreOp.getPtr()) ||
+  if (bool isScalarOrVector =
+      llvm::cast<spirv::SPIRVType>(trueBrStoreOp.getValue().getType())
+          .isScalarOrVector(); (trueBrStoreOp.getPtr() != falseBrStoreOp.getPtr()) ||
       !isSameAttrList(trueBrStoreOp, falseBrStoreOp) || !isScalarOrVector) {
     return failure();
   }

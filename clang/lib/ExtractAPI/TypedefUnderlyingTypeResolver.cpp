@@ -36,8 +36,8 @@ TypedefUnderlyingTypeResolver::getUnderlyingTypeDecl(QualType Type) const {
     // if this is a typedef to another typedef, use the typedef's decl for the
     // USR - this will actually be in the output, unlike a typedef to an
     // anonymous decl
-    const TypedefNameDecl *TypedefDecl = TypedefTy->getDecl();
-    if (TypedefDecl->getUnderlyingType()->isTypedefNameType())
+    
+    if (const TypedefNameDecl *TypedefDecl = TypedefTy->getDecl(); TypedefDecl->getUnderlyingType()->isTypedefNameType())
       TypeDecl = TypedefDecl;
   }
 
@@ -69,9 +69,9 @@ TypedefUnderlyingTypeResolver::getSymbolReferenceForType(QualType Type,
 
 std::string TypedefUnderlyingTypeResolver::getUSRForType(QualType Type) const {
   SmallString<128> TypeUSR;
-  const NamedDecl *TypeDecl = getUnderlyingTypeDecl(Type);
+  
 
-  if (TypeDecl)
+  if (const NamedDecl *TypeDecl = getUnderlyingTypeDecl(Type); TypeDecl)
     clang::index::generateUSRForDecl(TypeDecl, TypeUSR);
   else
     clang::index::generateUSRForType(Type, Context, TypeUSR);

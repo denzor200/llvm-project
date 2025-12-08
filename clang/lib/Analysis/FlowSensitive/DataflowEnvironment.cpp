@@ -355,8 +355,8 @@ public:
   }
 
   bool VisitReturnStmt(ReturnStmt *Return) override {
-    Expr *RetValue = Return->getRetValue();
-    if (RetValue != nullptr && RetValue->getType()->isRecordType() &&
+    
+    if (Expr *RetValue = Return->getRetValue(); RetValue != nullptr && RetValue->getType()->isRecordType() &&
         RetValue->isPRValue())
       PropagateResultObject(RetValue, LocForRecordReturnVal);
     return true;
@@ -779,8 +779,8 @@ Environment Environment::join(const Environment &EnvA, const Environment &EnvB,
   JoinedEnv.InitialTargetFunc = EnvA.InitialTargetFunc;
   JoinedEnv.InitialTargetStmt = EnvA.InitialTargetStmt;
 
-  const FunctionDecl *Func = EnvA.getCurrentFunc();
-  if (!Func) {
+  
+  if (const FunctionDecl *Func = EnvA.getCurrentFunc(); !Func) {
     JoinedEnv.ReturnVal = nullptr;
   } else {
     JoinedEnv.ReturnVal =
@@ -1105,8 +1105,8 @@ StorageLocation &Environment::createObjectInternal(const ValueDecl *D,
       D ? createStorageLocation(*D) : createStorageLocation(Ty);
 
   if (Ty->isRecordType()) {
-    auto &RecordLoc = cast<RecordStorageLocation>(Loc);
-    if (!InitExpr)
+    
+    if (auto &RecordLoc = cast<RecordStorageLocation>(Loc); !InitExpr)
       initializeFieldsWithValues(RecordLoc);
   } else {
     Value *Val = nullptr;

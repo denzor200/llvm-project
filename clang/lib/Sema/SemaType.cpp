@@ -99,9 +99,9 @@ static void diagnoseBadTypeAttribute(Sema &S, const ParsedAttr &attr,
   StringRef name = attr.getAttrName()->getName();
 
   // The GC attributes are usually written with macros;  special-case them.
-  IdentifierInfo *II =
-      attr.isArgIdent(0) ? attr.getArgAsIdent(0)->getIdentifierInfo() : nullptr;
-  if (useExpansionLoc && loc.isMacroID() && II) {
+  
+  if (IdentifierInfo *II =
+      attr.isArgIdent(0) ? attr.getArgAsIdent(0)->getIdentifierInfo() : nullptr; useExpansionLoc && loc.isMacroID() && II) {
     if (II->isStr("strong")) {
       if (S.findMacroSpelling(loc, "__strong")) name = "__strong";
     } else if (II->isStr("weak")) {
@@ -436,8 +436,8 @@ static DeclaratorChunk *maybeMovePastReturnType(Declarator &declarator,
 
   // First, look inwards past parens for a function declarator.
   for (; i != 0; --i) {
-    DeclaratorChunk &fnChunk = declarator.getTypeObject(i-1);
-    switch (fnChunk.Kind) {
+    
+    switch (DeclaratorChunk &fnChunk = declarator.getTypeObject(i-1); fnChunk.Kind) {
     case DeclaratorChunk::Paren:
       continue;
 
@@ -454,8 +454,8 @@ static DeclaratorChunk *maybeMovePastReturnType(Declarator &declarator,
     // looking for a (block-)pointer declarator.
     case DeclaratorChunk::Function:
       for (--i; i != 0; --i) {
-        DeclaratorChunk &ptrChunk = declarator.getTypeObject(i-1);
-        switch (ptrChunk.Kind) {
+        
+        switch (DeclaratorChunk &ptrChunk = declarator.getTypeObject(i-1); ptrChunk.Kind) {
         case DeclaratorChunk::Paren:
         case DeclaratorChunk::Array:
         case DeclaratorChunk::Function:
@@ -501,8 +501,8 @@ static void distributeObjCPointerTypeAttr(TypeProcessingState &state,
 
   // Move it to the outermost normal or block pointer declarator.
   for (unsigned i = state.getCurrentChunkIndex(); i != 0; --i) {
-    DeclaratorChunk &chunk = declarator.getTypeObject(i-1);
-    switch (chunk.Kind) {
+    
+    switch (DeclaratorChunk &chunk = declarator.getTypeObject(i-1); chunk.Kind) {
     case DeclaratorChunk::Pointer:
     case DeclaratorChunk::BlockPointer: {
       // But don't move an ARC ownership attribute to the return type
@@ -560,8 +560,8 @@ static void distributeObjCPointerTypeAttrFromDeclarator(
   unsigned innermost = -1U;
   bool considerDeclSpec = true;
   for (unsigned i = 0, e = declarator.getNumTypeObjects(); i != e; ++i) {
-    DeclaratorChunk &chunk = declarator.getTypeObject(i);
-    switch (chunk.Kind) {
+    
+    switch (DeclaratorChunk &chunk = declarator.getTypeObject(i); chunk.Kind) {
     case DeclaratorChunk::Pointer:
     case DeclaratorChunk::BlockPointer:
       innermost = i;
@@ -619,8 +619,8 @@ static void distributeFunctionTypeAttr(TypeProcessingState &state,
   // Try to push the attribute from the return type of a function to
   // the function itself.
   for (unsigned i = state.getCurrentChunkIndex(); i != 0; --i) {
-    DeclaratorChunk &chunk = declarator.getTypeObject(i-1);
-    switch (chunk.Kind) {
+    
+    switch (DeclaratorChunk &chunk = declarator.getTypeObject(i-1); chunk.Kind) {
     case DeclaratorChunk::Function:
       moveAttrFromListToList(attr, state.getCurrentAttributes(),
                              chunk.getAttrs());
@@ -1383,8 +1383,7 @@ static QualType ConvertDeclSpecToType(TypeProcessingState &state) {
 
   if (S.getLangOpts().OpenCL) {
     const auto &OpenCLOptions = S.getOpenCLOptions();
-    bool IsOpenCLC30Compatible =
-        S.getLangOpts().getOpenCLCompatibleVersion() == 300;
+    
     // OpenCL C v3.0 s6.3.3 - OpenCL image types require __opencl_c_images
     // support.
     // OpenCL C v3.0 s6.2.1 - OpenCL 3d image write types requires support
@@ -1392,7 +1391,8 @@ static QualType ConvertDeclSpecToType(TypeProcessingState &state) {
     // __opencl_c_3d_image_writes feature. OpenCL C v3.0 API s4.2 - For devices
     // that support OpenCL 3.0, cl_khr_3d_image_writes must be returned when and
     // only when the optional feature is supported
-    if ((Result->isImageType() || Result->isSamplerT()) &&
+    if (bool IsOpenCLC30Compatible =
+        S.getLangOpts().getOpenCLCompatibleVersion() == 300; (Result->isImageType() || Result->isSamplerT()) &&
         (IsOpenCLC30Compatible &&
          !OpenCLOptions.isSupported("__opencl_c_images", S.getLangOpts()))) {
       S.Diag(DS.getTypeSpecTypeLoc(), diag::err_opencl_requires_extension)
@@ -1410,11 +1410,11 @@ static QualType ConvertDeclSpecToType(TypeProcessingState &state) {
     }
   }
 
-  bool IsFixedPointType = DS.getTypeSpecType() == DeclSpec::TST_accum ||
-                          DS.getTypeSpecType() == DeclSpec::TST_fract;
+  
 
   // Only fixed point types can be saturated
-  if (DS.isTypeSpecSat() && !IsFixedPointType)
+  if (bool IsFixedPointType = DS.getTypeSpecType() == DeclSpec::TST_accum ||
+                          DS.getTypeSpecType() == DeclSpec::TST_fract; DS.isTypeSpecSat() && !IsFixedPointType)
     S.Diag(DS.getTypeSpecSatLoc(), diag::err_invalid_saturation_spec)
         << DS.getSpecifierName(DS.getTypeSpecType(),
                                Context.getPrintingPolicy());
@@ -2096,8 +2096,8 @@ QualType Sema::BuildArrayType(QualType T, ArraySizeModifier ASM,
 
   // Multi-dimensional arrays of WebAssembly references are not allowed.
   if (Context.getTargetInfo().getTriple().isWasm() && T->isArrayType()) {
-    const auto *ATy = dyn_cast<ArrayType>(T);
-    if (ATy && ATy->getElementType().isWebAssemblyReferenceType()) {
+    
+    if (const auto *ATy = dyn_cast<ArrayType>(T); ATy && ATy->getElementType().isWebAssemblyReferenceType()) {
       Diag(Loc, diag::err_wasm_reftype_multidimensional_array);
       return QualType();
     }
@@ -2262,12 +2262,12 @@ QualType Sema::BuildArrayType(QualType T, ArraySizeModifier ASM,
       }
 
       // Is the array too large?
-      unsigned ActiveSizeBits =
+      
+      if (unsigned ActiveSizeBits =
           (!T->isDependentType() && !T->isVariablyModifiedType() &&
            !T->isIncompleteType() && !T->isUndeducedType())
               ? ConstantArrayType::getNumAddressingBits(Context, T, ConstVal)
-              : ConstVal.getActiveBits();
-      if (ActiveSizeBits > ConstantArrayType::getMaxSizeBits(Context)) {
+              : ConstVal.getActiveBits(); ActiveSizeBits > ConstantArrayType::getMaxSizeBits(Context)) {
         Diag(ArraySize->getBeginLoc(), diag::err_array_too_large)
             << toString(ConstVal, 10, ConstVal.isSigned(),
                         /*formatAsCLiteral=*/false, /*UpperCase=*/false,
@@ -2321,8 +2321,8 @@ static bool CheckBitIntElementType(Sema &S, SourceLocation AttrLoc,
                                    const BitIntType *BIT,
                                    bool ForMatrixType = false) {
   // Only support _BitInt elements with byte-sized power of 2 NumBits.
-  unsigned NumBits = BIT->getNumBits();
-  if (!llvm::isPowerOf2_32(NumBits))
+  
+  if (unsigned NumBits = BIT->getNumBits(); !llvm::isPowerOf2_32(NumBits))
     return S.Diag(AttrLoc, diag::err_attribute_invalid_bitint_vector_type)
            << ForMatrixType;
   return false;
@@ -2410,8 +2410,8 @@ QualType Sema::BuildExtVectorType(QualType T, Expr *SizeExpr,
   // of bool aren't allowed.
   //
   // We explicitly allow bool elements in ext_vector_type for C/C++.
-  bool IsNoBoolVecLang = getLangOpts().OpenCL || getLangOpts().OpenCLCPlusPlus;
-  if ((!T->isDependentType() && !T->isIntegerType() &&
+  
+  if (bool IsNoBoolVecLang = getLangOpts().OpenCL || getLangOpts().OpenCLCPlusPlus; (!T->isDependentType() && !T->isIntegerType() &&
        !T->isRealFloatingType()) ||
       (IsNoBoolVecLang && T->isBooleanType())) {
     Diag(AttrLoc, diag::err_attribute_invalid_vector_type) << T;
@@ -2602,11 +2602,11 @@ static void checkExtParameterInfos(Sema &S, ArrayRef<QualType> paramTypes,
   auto actualCC = EPI.ExtInfo.getCC();
   enum class RequiredCC { OnlySwift, SwiftOrSwiftAsync };
   auto checkCompatible = [&](unsigned paramIndex, RequiredCC required) {
-    bool isCompatible =
+    
+    if (bool isCompatible =
         (required == RequiredCC::OnlySwift)
             ? (actualCC == CC_Swift)
-            : (actualCC == CC_Swift || actualCC == CC_SwiftAsync);
-    if (isCompatible || emittedError)
+            : (actualCC == CC_Swift || actualCC == CC_SwiftAsync); isCompatible || emittedError)
       return;
     S.Diag(getParamLoc(paramIndex), diag::err_swift_param_attr_not_swiftcall)
         << getParameterABISpelling(EPI.ExtParameterInfos[paramIndex].getABI())
@@ -2762,10 +2762,10 @@ QualType Sema::BuildMemberPointerType(QualType T, const CXXScopeSpec &SS,
 
   // Adjust the default free function calling convention to the default method
   // calling convention.
-  bool IsCtorOrDtor =
+  
+  if (bool IsCtorOrDtor =
       (Entity.getNameKind() == DeclarationName::CXXConstructorName) ||
-      (Entity.getNameKind() == DeclarationName::CXXDestructorName);
-  if (T->isFunctionType())
+      (Entity.getNameKind() == DeclarationName::CXXDestructorName); T->isFunctionType())
     adjustMemberFunctionCC(T, /*HasThisPointer=*/true, IsCtorOrDtor, Loc);
 
   return Context.getMemberPointerType(T, SS.getScopeRep(), Cls);
@@ -2827,8 +2827,8 @@ static void inferARCWriteback(TypeProcessingState &state,
   unsigned numPointers = 0;
   for (unsigned i = 0, e = declarator.getNumTypeObjects(); i != e; ++i) {
     unsigned chunkIndex = i;
-    DeclaratorChunk &chunk = declarator.getTypeObject(chunkIndex);
-    switch (chunk.Kind) {
+    
+    switch (DeclaratorChunk &chunk = declarator.getTypeObject(chunkIndex); chunk.Kind) {
     case DeclaratorChunk::Paren:
       // Ignore parens.
       break;
@@ -2963,9 +2963,9 @@ void Sema::diagnoseIgnoredQualifiers(unsigned DiagID, unsigned Quals,
 static void diagnoseRedundantReturnTypeQualifiers(Sema &S, QualType RetTy,
                                                   Declarator &D,
                                                   unsigned FunctionChunkIndex) {
-  const DeclaratorChunk::FunctionTypeInfo &FTI =
-      D.getTypeObject(FunctionChunkIndex).Fun;
-  if (FTI.hasTrailingReturnType()) {
+  
+  if (const DeclaratorChunk::FunctionTypeInfo &FTI =
+      D.getTypeObject(FunctionChunkIndex).Fun; FTI.hasTrailingReturnType()) {
     S.diagnoseIgnoredQualifiers(diag::warn_qual_return_type,
                                 RetTy.getLocalCVRQualifiers(),
                                 FTI.getTrailingReturnTypeLoc());
@@ -2975,8 +2975,8 @@ static void diagnoseRedundantReturnTypeQualifiers(Sema &S, QualType RetTy,
   for (unsigned OuterChunkIndex = FunctionChunkIndex + 1,
                 End = D.getNumTypeObjects();
        OuterChunkIndex != End; ++OuterChunkIndex) {
-    DeclaratorChunk &OuterChunk = D.getTypeObject(OuterChunkIndex);
-    switch (OuterChunk.Kind) {
+    
+    switch (DeclaratorChunk &OuterChunk = D.getTypeObject(OuterChunkIndex); OuterChunk.Kind) {
     case DeclaratorChunk::Paren:
       continue;
 
@@ -3265,8 +3265,8 @@ static QualType GetDeclSpecTypeForDeclarator(TypeProcessingState &state,
     case DeclaratorContext::Member: {
       if (D.isStaticMember() || D.isFunctionDeclarator())
         break;
-      bool Cxx = SemaRef.getLangOpts().CPlusPlus;
-      if (isa<ObjCContainerDecl>(SemaRef.CurContext)) {
+      
+      if (bool Cxx = SemaRef.getLangOpts().CPlusPlus; isa<ObjCContainerDecl>(SemaRef.CurContext)) {
         Error = 6; // Interface member.
       } else {
         switch (cast<TagDecl>(SemaRef.CurContext)->getTagKind()) {
@@ -3561,13 +3561,13 @@ static void warnAboutAmbiguousFunction(Sema &S, Declarator &D,
     // For a declaration without parameters, eg. "T var();", suggest replacing
     // the parens with an initializer to turn the declaration into a variable
     // declaration.
-    const CXXRecordDecl *RD = RT->getAsCXXRecordDecl();
+    
 
     // Empty parens mean value-initialization, and no parens mean
     // default initialization. These are equivalent if the default
     // constructor is user-provided or if zero-initialization is a
     // no-op.
-    if (RD && RD->hasDefinition() &&
+    if (const CXXRecordDecl *RD = RT->getAsCXXRecordDecl(); RD && RD->hasDefinition() &&
         (RD->isEmpty() || RD->hasUserProvidedDefaultConstructor()))
       S.Diag(DeclType.Loc, diag::note_empty_parens_default_ctor)
         << FixItHint::CreateRemoval(ParenRange);
@@ -3696,8 +3696,8 @@ static void warnAboutRedundantParens(Sema &S, Declarator &D, QualType T) {
 
   S.Diag(Paren.Loc, diag::warn_parens_disambiguated_as_variable_declaration)
       << ParenRange << D.getIdentifier();
-  auto *RD = T->getAsCXXRecordDecl();
-  if (!RD || !RD->hasDefinition() || RD->hasNonTrivialDestructor())
+  
+  if (auto *RD = T->getAsCXXRecordDecl(); !RD || !RD->hasDefinition() || RD->hasNonTrivialDestructor())
     S.Diag(Paren.Loc, diag::note_raii_guard_add_name)
         << FixItHint::CreateInsertion(Paren.Loc, " varname") << T
         << D.getIdentifier();
@@ -3901,8 +3901,8 @@ classifyPointerDeclarator(Sema &S, QualType type, Declarator &declarator,
 
   // Look through the declarator chunks to identify pointers.
   for (unsigned i = 0, n = declarator.getNumTypeObjects(); i != n; ++i) {
-    DeclaratorChunk &chunk = declarator.getTypeObject(i);
-    switch (chunk.Kind) {
+    
+    switch (DeclaratorChunk &chunk = declarator.getTypeObject(i); chunk.Kind) {
     case DeclaratorChunk::Array:
       if (numNormalPointers == 0)
         wrappingKind = PointerWrappingDeclaratorKind::Array;
@@ -4137,8 +4137,8 @@ checkNullabilityConsistency(Sema &S, SimplePointerKind pointerKind,
 
   // If we haven't seen any type nullability in this file, we won't warn now
   // about anything.
-  FileNullability &fileNullability = S.NullabilityMap[file];
-  if (!fileNullability.SawTypeNullability) {
+  
+  if (FileNullability &fileNullability = S.NullabilityMap[file]; !fileNullability.SawTypeNullability) {
     // If this is the first pointer declarator in the file, and the appropriate
     // warning is on, record it in case we need to diagnose it retroactively.
     diag::kind diagKind;
@@ -4202,8 +4202,8 @@ static bool hasOuterPointerLikeChunk(const Declarator &D, unsigned endIndex) {
   while (i != 0) {
     // Walk outwards along the declarator chunks.
     --i;
-    const DeclaratorChunk &DC = D.getTypeObject(i);
-    switch (DC.Kind) {
+    
+    switch (const DeclaratorChunk &DC = D.getTypeObject(i); DC.Kind) {
     case DeclaratorChunk::Paren:
       break;
     case DeclaratorChunk::Array:
@@ -4315,8 +4315,8 @@ static TypeSourceInfo *GetFullTypeForDeclarator(TypeProcessingState &state,
   // are allowed.
   if (auto *DT = T->getAs<DeducedType>()) {
     const AutoType *AT = T->getAs<AutoType>();
-    bool IsClassTemplateDeduction = isa<DeducedTemplateSpecializationType>(DT);
-    if ((AT && AT->isDecltypeAuto()) || IsClassTemplateDeduction) {
+    
+    if (bool IsClassTemplateDeduction = isa<DeducedTemplateSpecializationType>(DT); (AT && AT->isDecltypeAuto()) || IsClassTemplateDeduction) {
       for (unsigned I = 0, E = D.getNumTypeObjects(); I != E; ++I) {
         unsigned Index = E - I - 1;
         DeclaratorChunk &DeclChunk = D.getTypeObject(Index);
@@ -4401,8 +4401,8 @@ static TypeSourceInfo *GetFullTypeForDeclarator(TypeProcessingState &state,
     }
 
     for (unsigned i = 0, n = D.getNumTypeObjects(); i != n; ++i) {
-      DeclaratorChunk &chunk = D.getTypeObject(i);
-      switch (chunk.Kind) {
+      
+      switch (DeclaratorChunk &chunk = D.getTypeObject(i); chunk.Kind) {
       case DeclaratorChunk::Array:
       case DeclaratorChunk::Function:
       case DeclaratorChunk::Pipe:
@@ -4423,8 +4423,8 @@ static TypeSourceInfo *GetFullTypeForDeclarator(TypeProcessingState &state,
       }
     }
   } else {
-    bool isFunctionOrMethod = false;
-    switch (auto context = state.getDeclarator().getContext()) {
+    
+    switch (bool isFunctionOrMethod = false; auto context = state.getDeclarator().getContext()) {
     case DeclaratorContext::ObjCParameter:
     case DeclaratorContext::ObjCResult:
     case DeclaratorContext::Prototype:
@@ -4759,8 +4759,8 @@ static TypeSourceInfo *GetFullTypeForDeclarator(TypeProcessingState &state,
       if (chunkIndex != 0 && !ArraySize &&
           D.getDeclSpec().getAttributes().hasMSPropertyAttr()) {
         // This is a sizeless chunk. If the next is also, skip this one.
-        DeclaratorChunk &NextDeclType = D.getTypeObject(chunkIndex - 1);
-        if (NextDeclType.Kind == DeclaratorChunk::Array &&
+        
+        if (DeclaratorChunk &NextDeclType = D.getTypeObject(chunkIndex - 1); NextDeclType.Kind == DeclaratorChunk::Array &&
             !NextDeclType.Arr.NumElts)
           break;
       }
@@ -4861,8 +4861,8 @@ static TypeSourceInfo *GetFullTypeForDeclarator(TypeProcessingState &state,
                 ? dyn_cast_if_present<ParmVarDecl>(FTI.Params[0].Param)
                 : nullptr;
 
-        bool IsFunctionDecl = D.getInnermostNonParenChunk() == &DeclType;
-        if (First && First->isExplicitObjectParameter() &&
+        
+        if (bool IsFunctionDecl = D.getInnermostNonParenChunk() == &DeclType; First && First->isExplicitObjectParameter() &&
             C != DeclaratorContext::LambdaExpr &&
 
             // Either not a member or nested declarator in a member.
@@ -5454,12 +5454,12 @@ static TypeSourceInfo *GetFullTypeForDeclarator(TypeProcessingState &state,
         IsBlock = true;
         break;
       case DeclaratorChunk::Function: {
-        const DeclaratorChunk::FunctionTypeInfo &FTI = DeclType.Fun;
+        
         // We suppress the warning when there's no LParen location, as this
         // indicates the declaration was an implicit declaration, which gets
         // warned about separately via -Wimplicit-function-declaration. We also
         // suppress the warning when we know the function has a prototype.
-        if (!FTI.hasPrototype && FTI.NumParams == 0 && !FTI.isVariadic &&
+        if (const DeclaratorChunk::FunctionTypeInfo &FTI = DeclType.Fun; !FTI.hasPrototype && FTI.NumParams == 0 && !FTI.isVariadic &&
             FTI.getLParenLoc().isValid())
           S.Diag(DeclType.Loc, diag::warn_strict_prototypes)
               << IsBlock
@@ -5501,18 +5501,18 @@ static TypeSourceInfo *GetFullTypeForDeclarator(TypeProcessingState &state,
           !D.getDeclSpec().isFriendSpecified())
         Kind = Member;
     } else {
-      DeclContext *DC = S.computeDeclContext(D.getCXXScopeSpec());
-      if (!DC || DC->isRecord())
+      
+      if (DeclContext *DC = S.computeDeclContext(D.getCXXScopeSpec()); !DC || DC->isRecord())
         Kind = Member;
     }
 
     if (Kind == Member) {
       unsigned I;
       if (D.isFunctionDeclarator(I)) {
-        const DeclaratorChunk &Chunk = D.getTypeObject(I);
-        if (Chunk.Fun.NumParams) {
-          auto *P = dyn_cast_or_null<ParmVarDecl>(Chunk.Fun.Params->Param);
-          if (P && P->isExplicitObjectParameter())
+        
+        if (const DeclaratorChunk &Chunk = D.getTypeObject(I); Chunk.Fun.NumParams) {
+          
+          if (auto *P = dyn_cast_or_null<ParmVarDecl>(Chunk.Fun.Params->Param); P && P->isExplicitObjectParameter())
             Kind = ExplicitObjectMember;
         }
       }
@@ -5781,8 +5781,8 @@ static void transferARCOwnership(TypeProcessingState &state,
   int inner = -1;
   bool hasIndirection = false;
   for (unsigned i = 0, e = D.getNumTypeObjects(); i != e; ++i) {
-    DeclaratorChunk &chunk = D.getTypeObject(i);
-    switch (chunk.Kind) {
+    
+    switch (DeclaratorChunk &chunk = D.getTypeObject(i); chunk.Kind) {
     case DeclaratorChunk::Paren:
       // Ignore parens.
       break;
@@ -5810,8 +5810,8 @@ static void transferARCOwnership(TypeProcessingState &state,
   if (inner == -1)
     return;
 
-  DeclaratorChunk &chunk = D.getTypeObject(inner);
-  if (chunk.Kind == DeclaratorChunk::Pointer) {
+  
+  if (DeclaratorChunk &chunk = D.getTypeObject(inner); chunk.Kind == DeclaratorChunk::Pointer) {
     if (declSpecTy->isObjCRetainableType())
       return transferARCOwnershipToDeclSpec(S, declSpecTy, ownership);
     if (declSpecTy->isObjCObjectType() && hasIndirection)
@@ -6668,8 +6668,8 @@ static bool handleObjCOwnershipTypeAttr(TypeProcessingState &state,
     // Don't accept an ownership attribute in the declspec if it would
     // just be the return type of a block pointer.
     if (state.isProcessingDeclSpec()) {
-      Declarator &D = state.getDeclarator();
-      if (maybeMovePastReturnType(D, D.getNumTypeObjects(),
+      
+      if (Declarator &D = state.getDeclarator(); maybeMovePastReturnType(D, D.getNumTypeObjects(),
                                   /*onlyBlockPointers=*/true))
         return false;
     }
@@ -7132,9 +7132,9 @@ static bool handleMSPointerTypeQualifierAttr(TypeProcessingState &State,
 
   // Add address space to type based on its attributes.
   LangAS ASIdx = LangAS::Default;
-  uint64_t PtrWidth =
-      S.Context.getTargetInfo().getPointerWidth(LangAS::Default);
-  if (PtrWidth == 32) {
+  
+  if (uint64_t PtrWidth =
+      S.Context.getTargetInfo().getPointerWidth(LangAS::Default); PtrWidth == 32) {
     if (Attrs[attr::Ptr64])
       ASIdx = LangAS::ptr64;
     else if (Attrs[attr::UPtr])
@@ -7225,8 +7225,8 @@ static void HandleSwiftAttr(TypeProcessingState &State, TypeAttrLocation TAL,
   // cases when attribute appears before/after block's result
   // type and inside (^).
   if (TAL == TAL_DeclChunk) {
-    auto chunkIdx = State.getCurrentChunkIndex();
-    if (chunkIdx >= 1 &&
+    
+    if (auto chunkIdx = State.getCurrentChunkIndex(); chunkIdx >= 1 &&
         D.getTypeObject(chunkIdx).Kind == DeclaratorChunk::Paren) {
       moveAttrFromListToList(PAttr, State.getCurrentAttributes(),
                              D.getTypeObject(chunkIdx - 1).getAttrs());
@@ -7522,8 +7522,8 @@ static bool distributeNullabilityTypeAttr(TypeProcessingState &state,
   // Move it to the outermost pointer, member pointer, or block
   // pointer declarator.
   for (unsigned i = state.getCurrentChunkIndex(); i != 0; --i) {
-    DeclaratorChunk &chunk = declarator.getTypeObject(i-1);
-    switch (chunk.Kind) {
+    
+    switch (DeclaratorChunk &chunk = declarator.getTypeObject(i-1); chunk.Kind) {
     case DeclaratorChunk::Pointer:
     case DeclaratorChunk::BlockPointer:
     case DeclaratorChunk::MemberPointer:
@@ -8185,8 +8185,8 @@ static bool handleFunctionTypeAttr(TypeProcessingState &state, ParsedAttr &attr,
   // unprototyped function types in general, despite not necessarily having
   // much ability to diagnose it later.
   if (!supportsVariadicCall(CC)) {
-    const FunctionProtoType *FnP = dyn_cast<FunctionProtoType>(fn);
-    if (FnP && FnP->isVariadic()) {
+    
+    if (const FunctionProtoType *FnP = dyn_cast<FunctionProtoType>(fn); FnP && FnP->isVariadic()) {
       // stdcall and fastcall are ignored with a warning for GCC and MS
       // compatibility.
       if (CC == CC_X86StdCall || CC == CC_X86FastCall)
@@ -8578,8 +8578,8 @@ static void HandleArmSveVectorBitsTypeAttr(QualType &CurType, ParsedAttr &Attr,
 static void HandleArmMveStrictPolymorphismAttr(TypeProcessingState &State,
                                                QualType &CurType,
                                                ParsedAttr &Attr) {
-  const VectorType *VT = dyn_cast<VectorType>(CurType);
-  if (!VT || VT->getVectorKind() != VectorKind::Neon) {
+  
+  if (const VectorType *VT = dyn_cast<VectorType>(CurType); !VT || VT->getVectorKind() != VectorKind::Neon) {
     State.getSema().Diag(Attr.getLoc(),
                          diag::err_attribute_arm_mve_polymorphism);
     Attr.setInvalid();
@@ -8801,8 +8801,8 @@ static void HandleLifetimeBoundAttr(TypeProcessingState &State,
 static void HandleLifetimeCaptureByAttr(TypeProcessingState &State,
                                         QualType &CurType, ParsedAttr &PA) {
   if (State.getDeclarator().isDeclarationOfFunction()) {
-    auto *Attr = State.getSema().ParseLifetimeCaptureByAttr(PA, "this");
-    if (Attr)
+    
+    if (auto *Attr = State.getSema().ParseLifetimeCaptureByAttr(PA, "this"); Attr)
       CurType = State.getAttributedType(Attr, CurType, CurType);
   }
 }
@@ -8852,8 +8852,8 @@ static void processTypeAttrs(TypeProcessingState &state, QualType &type,
       // incompatibility.
       if (attr.isGNUScope()) {
         assert(attr.isStandardAttributeSyntax());
-        bool IsTypeAttr = attr.isTypeAttr();
-        if (TAL == TAL_DeclChunk) {
+        
+        if (bool IsTypeAttr = attr.isTypeAttr(); TAL == TAL_DeclChunk) {
           state.getSema().Diag(attr.getLoc(),
                                IsTypeAttr
                                    ? diag::warn_gcc_ignores_type_attr
@@ -9519,8 +9519,8 @@ bool Sema::RequireCompleteTypeImpl(SourceLocation Loc, QualType T,
         Instantiated = true;
       }
     } else {
-      CXXRecordDecl *Pattern = RD->getInstantiatedFromMemberClass();
-      if (!RD->isBeingDefined() && Pattern) {
+      
+      if (CXXRecordDecl *Pattern = RD->getInstantiatedFromMemberClass(); !RD->isBeingDefined() && Pattern) {
         MemberSpecializationInfo *MSI = RD->getMemberSpecializationInfo();
         assert(MSI && "Missing member specialization information?");
         // This record was instantiated from a class within a template.
@@ -10002,8 +10002,8 @@ static QualType ChangeIntegralSignedness(Sema &S, QualType BaseType,
   if (BaseType->isEnumeralType()) {
     QualType Underlying = GetEnumUnderlyingType(S, BaseType, Loc);
     if (auto *BitInt = dyn_cast<BitIntType>(Underlying)) {
-      unsigned int Bits = BitInt->getNumBits();
-      if (Bits > 1)
+      
+      if (unsigned int Bits = BitInt->getNumBits(); Bits > 1)
         return S.Context.getBitIntType(!IsMakeSigned, Bits);
 
       S.Diag(Loc, diag::err_make_signed_integral_only)

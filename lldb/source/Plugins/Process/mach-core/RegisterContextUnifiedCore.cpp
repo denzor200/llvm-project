@@ -117,8 +117,8 @@ RegisterContextUnifiedCore::RegisterContextUnifiedCore(
         }
         ent->GetAsDictionary()->AddIntegerItem("offset", offset);
         Status error;
-        const int bytesize = bitsize / 8;
-        switch (bytesize) {
+        
+        switch (const int bytesize = bitsize / 8; bytesize) {
         case 2: {
           Scalar value_scalar((uint16_t)value);
           value_scalar.GetAsMemoryData(m_register_data.data() + offset,

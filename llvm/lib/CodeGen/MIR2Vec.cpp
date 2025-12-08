@@ -433,8 +433,8 @@ MIR2VecVocabProvider::getVocabulary(const Module &M) {
       continue;
 
     if (auto *MF = MMI.getMachineFunction(F)) {
-      auto &Subtarget = MF->getSubtarget();
-      if (const auto *TII = Subtarget.getInstrInfo())
+      
+      if (auto &Subtarget = MF->getSubtarget(); const auto *TII = Subtarget.getInstrInfo())
         if (const auto *TRI = Subtarget.getRegisterInfo())
           return mir2vec::MIRVocabulary::create(
               std::move(OpcVocab), std::move(CommonOperandVocab),
@@ -528,8 +528,8 @@ Embedding MIREmbedder::computeEmbeddings(const MachineBasicBlock &MBB) const {
 
   // Get instruction info for opcode name resolution
   const auto &Subtarget = MF.getSubtarget();
-  const auto *TII = Subtarget.getInstrInfo();
-  if (!TII) {
+  
+  if (const auto *TII = Subtarget.getInstrInfo(); !TII) {
     MF.getFunction().getContext().emitError(
         "MIR2Vec: No TargetInstrInfo available; cannot compute embeddings");
     return MBBVector;

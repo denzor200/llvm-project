@@ -1749,21 +1749,21 @@ void ASTDeclWriter::VisitCXXMethodDecl(CXXMethodDecl *D) {
       AbbrevToUse = Writer.getDeclCXXMethodAbbrev(D->getTemplatedKind());
     else if (D->getTemplatedKind() ==
              FunctionDecl::TK_FunctionTemplateSpecialization) {
-      FunctionTemplateSpecializationInfo *FTSInfo =
-          D->getTemplateSpecializationInfo();
+      
 
-      if (FTSInfo->TemplateArguments->size() == 1) {
-        const TemplateArgument &TA = FTSInfo->TemplateArguments->get(0);
-        if (TA.getKind() == TemplateArgument::Type &&
+      if (FunctionTemplateSpecializationInfo *FTSInfo =
+          D->getTemplateSpecializationInfo(); FTSInfo->TemplateArguments->size() == 1) {
+        
+        if (const TemplateArgument &TA = FTSInfo->TemplateArguments->get(0); TA.getKind() == TemplateArgument::Type &&
             !FTSInfo->TemplateArgumentsAsWritten &&
             !FTSInfo->getMemberSpecializationInfo())
           AbbrevToUse = Writer.getDeclCXXMethodAbbrev(D->getTemplatedKind());
       }
     } else if (D->getTemplatedKind() ==
                FunctionDecl::TK_DependentFunctionTemplateSpecialization) {
-      DependentFunctionTemplateSpecializationInfo *DFTSInfo =
-          D->getDependentSpecializationInfo();
-      if (!DFTSInfo->TemplateArgumentsAsWritten)
+      
+      if (DependentFunctionTemplateSpecializationInfo *DFTSInfo =
+          D->getDependentSpecializationInfo(); !DFTSInfo->TemplateArgumentsAsWritten)
         AbbrevToUse = Writer.getDeclCXXMethodAbbrev(D->getTemplatedKind());
     }
   }
@@ -2231,8 +2231,8 @@ template <typename T>
 void ASTDeclWriter::VisitRedeclarable(Redeclarable<T> *D) {
   T *First = D->getFirstDecl();
   T *MostRecent = First->getMostRecentDecl();
-  T *DAsT = static_cast<T *>(D);
-  if (MostRecent != First) {
+  
+  if (T *DAsT = static_cast<T *>(D); MostRecent != First) {
     assert(isRedeclarableDeclKind(DAsT->getKind()) &&
            "Not considered redeclarable?");
 
@@ -2240,8 +2240,8 @@ void ASTDeclWriter::VisitRedeclarable(Redeclarable<T> *D) {
 
     // Write out a list of local redeclarations of this declaration if it's the
     // first local declaration in the chain.
-    const Decl *FirstLocal = Writer.getFirstLocalDecl(DAsT);
-    if (DAsT == FirstLocal) {
+    
+    if (const Decl *FirstLocal = Writer.getFirstLocalDecl(DAsT); DAsT == FirstLocal) {
       // Emit a list of all imported first declarations so that we can be sure
       // that all redeclarations visible to this module are before D in the
       // redecl chain.

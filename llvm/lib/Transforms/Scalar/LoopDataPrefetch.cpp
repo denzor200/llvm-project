@@ -179,9 +179,9 @@ PreservedAnalyses LoopDataPrefetchPass::run(Function &F,
   const TargetTransformInfo *TTI = &AM.getResult<TargetIRAnalysis>(F);
 
   LoopDataPrefetch LDP(AC, DT, LI, SE, TTI, ORE);
-  bool Changed = LDP.run();
+  
 
-  if (Changed) {
+  if (bool Changed = LDP.run(); Changed) {
     PreservedAnalyses PA;
     PA.preserve<DominatorTreeAnalysis>();
     PA.preserve<LoopAnalysis>();
@@ -257,10 +257,10 @@ struct Prefetch {
       Writes = isa<StoreInst>(I);
     } else {
       BasicBlock *PrefBB = InsertPt->getParent();
-      BasicBlock *InsBB = I->getParent();
-      if (PrefBB != InsBB) {
-        BasicBlock *DomBB = DT->findNearestCommonDominator(PrefBB, InsBB);
-        if (DomBB != PrefBB)
+      
+      if (BasicBlock *InsBB = I->getParent(); PrefBB != InsBB) {
+        
+        if (BasicBlock *DomBB = DT->findNearestCommonDominator(PrefBB, InsBB); DomBB != PrefBB)
           InsertPt = DomBB->getTerminator();
       }
 
@@ -354,11 +354,11 @@ bool LoopDataPrefetch::runOnLoop(Loop *L) {
       // has already been prefetched, then don't prefetch this one as well.
       bool DupPref = false;
       for (auto &Pref : Prefetches) {
-        const SCEV *PtrDiff = SE->getMinusSCEV(LSCEVAddRec, Pref.LSCEVAddRec);
-        if (const SCEVConstant *ConstPtrDiff =
+        
+        if (const SCEV *PtrDiff = SE->getMinusSCEV(LSCEVAddRec, Pref.LSCEVAddRec); const SCEVConstant *ConstPtrDiff =
             dyn_cast<SCEVConstant>(PtrDiff)) {
-          int64_t PD = std::abs(ConstPtrDiff->getValue()->getSExtValue());
-          if (PD < (int64_t) TTI->getCacheLineSize()) {
+          
+          if (int64_t PD = std::abs(ConstPtrDiff->getValue()->getSExtValue()); PD < (int64_t) TTI->getCacheLineSize()) {
             Pref.addInstruction(MemI, DT, PD);
             DupPref = true;
             break;

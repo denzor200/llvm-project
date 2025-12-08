@@ -362,8 +362,8 @@ SBProcess SBTarget::Launch(SBListener &listener, char const **argv,
                                   FileSpec(stderr_path),
                                   FileSpec(working_directory), launch_flags);
 
-    Module *exe_module = target_sp->GetExecutableModulePointer();
-    if (exe_module)
+    
+    if (Module *exe_module = target_sp->GetExecutableModulePointer(); exe_module)
       launch_info.SetExecutableFile(exe_module->GetPlatformFileSpec(), true);
     if (argv) {
       launch_info.GetArguments().AppendArguments(argv);
@@ -417,13 +417,13 @@ SBProcess SBTarget::Launch(SBLaunchInfo &sb_launch_info, SBError &error) {
     lldb_private::ProcessLaunchInfo launch_info = sb_launch_info.ref();
 
     if (!launch_info.GetExecutableFile()) {
-      Module *exe_module = target_sp->GetExecutableModulePointer();
-      if (exe_module)
+      
+      if (Module *exe_module = target_sp->GetExecutableModulePointer(); exe_module)
         launch_info.SetExecutableFile(exe_module->GetPlatformFileSpec(), true);
     }
 
-    const ArchSpec &arch_spec = target_sp->GetArchitecture();
-    if (arch_spec.IsValid())
+    
+    if (const ArchSpec &arch_spec = target_sp->GetArchitecture(); arch_spec.IsValid())
       launch_info.GetArchitecture() = arch_spec;
 
     error.SetError(target_sp->Launch(launch_info, nullptr));
@@ -562,8 +562,8 @@ SBFileSpec SBTarget::GetExecutable() {
 
   SBFileSpec exe_file_spec;
   if (TargetSP target_sp = GetSP()) {
-    Module *exe_module = target_sp->GetExecutableModulePointer();
-    if (exe_module)
+    
+    if (Module *exe_module = target_sp->GetExecutableModulePointer(); exe_module)
       exe_file_spec.SetFileSpec(exe_module->GetFileSpec());
   }
 
@@ -773,8 +773,8 @@ SBBreakpoint SBTarget::BreakpointCreateByName(const char *symbol_name,
     const bool hardware = false;
     const LazyBool skip_prologue = eLazyBoolCalculate;
     const lldb::addr_t offset = 0;
-    const bool offset_is_insn_count = false;
-    if (module_name && module_name[0]) {
+    
+    if (const bool offset_is_insn_count = false; module_name && module_name[0]) {
       FileSpecList module_spec_list;
       module_spec_list.Append(FileSpec(module_name));
       sb_bp = target_sp->CreateBreakpoint(
@@ -1762,9 +1762,9 @@ bool SBTarget::GetDescription(SBStream &description,
                               lldb::DescriptionLevel description_level) {
   LLDB_INSTRUMENT_VA(this, description, description_level);
 
-  Stream &strm = description.ref();
+  
 
-  if (TargetSP target_sp = GetSP()) {
+  if (Stream &strm = description.ref(); TargetSP target_sp = GetSP()) {
     target_sp->Dump(&strm, description_level);
   } else
     strm.PutCString("No value");
@@ -2037,8 +2037,8 @@ lldb::SBInstructionList SBTarget::ReadInstructions(lldb::SBAddress start_addr,
 
   if (TargetSP target_sp = GetSP()) {
     lldb::addr_t start_load_addr = start_addr.GetLoadAddress(*this);
-    lldb::addr_t end_load_addr = end_addr.GetLoadAddress(*this);
-    if (end_load_addr > start_load_addr) {
+    
+    if (lldb::addr_t end_load_addr = end_addr.GetLoadAddress(*this); end_load_addr > start_load_addr) {
       lldb::addr_t size = end_load_addr - start_load_addr;
 
       AddressRange range(start_load_addr, size);
@@ -2236,10 +2236,10 @@ SBError SBTarget::ClearModuleLoadAddress(lldb::SBModule module) {
   if (TargetSP target_sp = GetSP()) {
     ModuleSP module_sp(module.GetSP());
     if (module_sp) {
-      ObjectFile *objfile = module_sp->GetObjectFile();
-      if (objfile) {
-        SectionList *section_list = objfile->GetSectionList();
-        if (section_list) {
+      
+      if (ObjectFile *objfile = module_sp->GetObjectFile(); objfile) {
+        
+        if (SectionList *section_list = objfile->GetSectionList(); section_list) {
           ProcessSP process_sp(target_sp->GetProcessSP());
 
           bool changed = false;

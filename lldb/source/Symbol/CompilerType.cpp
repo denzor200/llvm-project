@@ -1098,8 +1098,8 @@ bool CompilerType::GetValueAsScalar(const lldb_private::DataExtractor &data,
       break;
     case lldb::eEncodingUint:
       if (byte_size <= sizeof(unsigned long long)) {
-        uint64_t uval64 = data.GetMaxU64(&offset, byte_size);
-        if (byte_size <= sizeof(unsigned int)) {
+        
+        if (uint64_t uval64 = data.GetMaxU64(&offset, byte_size); byte_size <= sizeof(unsigned int)) {
           value = (unsigned int)uval64;
           return true;
         } else if (byte_size <= sizeof(unsigned long)) {
@@ -1115,8 +1115,8 @@ bool CompilerType::GetValueAsScalar(const lldb_private::DataExtractor &data,
 
     case lldb::eEncodingSint:
       if (byte_size <= sizeof(long long)) {
-        int64_t sval64 = data.GetMaxS64(&offset, byte_size);
-        if (byte_size <= sizeof(int)) {
+        
+        if (int64_t sval64 = data.GetMaxS64(&offset, byte_size); byte_size <= sizeof(int)) {
           value = (int)sval64;
           return true;
         } else if (byte_size <= sizeof(long)) {

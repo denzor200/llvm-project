@@ -575,9 +575,9 @@ Thumb2SizeReduce::ReduceLoadStore(MachineBasicBlock &MBB, MachineInstr *MI,
   unsigned OffsetImm = 0;
   if (HasImmOffset) {
     OffsetImm = MI->getOperand(2).getImm();
-    unsigned MaxOffset = ((1 << ImmLimit) - 1) * Scale;
+    
 
-    if ((OffsetImm & (Scale - 1)) || OffsetImm > MaxOffset)
+    if (unsigned MaxOffset = ((1 << ImmLimit) - 1) * Scale; (OffsetImm & (Scale - 1)) || OffsetImm > MaxOffset)
       // Make sure the immediate field fits.
       return false;
   }
@@ -766,8 +766,8 @@ Thumb2SizeReduce::ReduceTo2Addr(MachineBasicBlock &MBB, MachineInstr *MI,
       if (Reg1 != Reg0)
         return false;
       // Try to commute the operands to make it a 2-address instruction.
-      MachineInstr *CommutedMI = TII->commuteInstruction(*MI);
-      if (!CommutedMI)
+      
+      if (MachineInstr *CommutedMI = TII->commuteInstruction(*MI); !CommutedMI)
         return false;
     }
   } else if (Reg0 != Reg1) {
@@ -777,17 +777,17 @@ Thumb2SizeReduce::ReduceTo2Addr(MachineBasicBlock &MBB, MachineInstr *MI,
     if (!TII->findCommutedOpIndices(*MI, CommOpIdx1, CommOpIdx2) ||
         MI->getOperand(CommOpIdx2).getReg() != Reg0)
       return false;
-    MachineInstr *CommutedMI =
-        TII->commuteInstruction(*MI, false, CommOpIdx1, CommOpIdx2);
-    if (!CommutedMI)
+    
+    if (MachineInstr *CommutedMI =
+        TII->commuteInstruction(*MI, false, CommOpIdx1, CommOpIdx2); !CommutedMI)
       return false;
   }
   if (Entry.LowRegs2 && !isARMLowRegister(Reg0))
     return false;
   if (Entry.Imm2Limit) {
     unsigned Imm = MI->getOperand(2).getImm();
-    unsigned Limit = (1 << Entry.Imm2Limit) - 1;
-    if (Imm > Limit)
+    
+    if (unsigned Limit = (1 << Entry.Imm2Limit) - 1; Imm > Limit)
       return false;
   } else {
     Register Reg2 = MI->getOperand(2).getReg();
@@ -874,8 +874,8 @@ Thumb2SizeReduce::ReduceToNarrow(MachineBasicBlock &MBB, MachineInstr *MI,
   for (unsigned i = 0, e = MCID.getNumOperands(); i != e; ++i) {
     if (MCID.operands()[i].isPredicate())
       continue;
-    const MachineOperand &MO = MI->getOperand(i);
-    if (MO.isReg()) {
+    
+    if (const MachineOperand &MO = MI->getOperand(i); MO.isReg()) {
       Register Reg = MO.getReg();
       if (!Reg || Reg == ARM::CPSR)
         continue;
@@ -952,8 +952,8 @@ Thumb2SizeReduce::ReduceToNarrow(MachineBasicBlock &MBB, MachineInstr *MI,
          MCID.getOpcode() == ARM::t2UXTH) && i == 2)
       // Skip the zero immediate operand, it's now implicit.
       continue;
-    bool isPred = (i < NumOps && MCID.operands()[i].isPredicate());
-    if (SkipPred && isPred)
+    
+    if (bool isPred = (i < NumOps && MCID.operands()[i].isPredicate()); SkipPred && isPred)
         continue;
     const MachineOperand &MO = MI->getOperand(i);
     if (MO.isReg() && MO.isImplicit() && MO.getReg() == ARM::CPSR)

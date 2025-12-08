@@ -20,8 +20,8 @@ using namespace clang;
 using namespace ento;
 
 const FunctionDecl *CheckerContext::getCalleeDecl(const CallExpr *CE) const {
-  const FunctionDecl *D = CE->getDirectCallee();
-  if (D)
+  
+  if (const FunctionDecl *D = CE->getDirectCallee(); D)
     return D;
 
   const Expr *Callee = CE->getCallee();
@@ -51,13 +51,13 @@ bool CheckerContext::isCLibraryFunction(const FunctionDecl *FD,
   // To avoid false positives (Ex: finding user defined functions with
   // similar names), only perform fuzzy name matching when it's a builtin.
   // Using a string compare is slow, we might want to switch on BuiltinID here.
-  unsigned BId = FD->getBuiltinID();
-  if (BId != 0) {
+  
+  if (unsigned BId = FD->getBuiltinID(); BId != 0) {
     if (Name.empty())
       return true;
     std::string BName = FD->getASTContext().BuiltinInfo.getName(BId);
-    size_t start = BName.find(Name);
-    if (start != StringRef::npos) {
+    
+    if (size_t start = BName.find(Name); start != StringRef::npos) {
       // Accept exact match.
       if (BName.size() == Name.size())
         return true;

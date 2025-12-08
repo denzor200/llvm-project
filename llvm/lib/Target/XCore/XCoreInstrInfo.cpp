@@ -57,8 +57,8 @@ static bool isZeroImm(const MachineOperand &op) {
 /// any side effects other than loading from the stack slot.
 Register XCoreInstrInfo::isLoadFromStackSlot(const MachineInstr &MI,
                                              int &FrameIndex) const {
-  int Opcode = MI.getOpcode();
-  if (Opcode == XCore::LDWFI)
+  
+  if (int Opcode = MI.getOpcode(); Opcode == XCore::LDWFI)
   {
     if ((MI.getOperand(1).isFI()) &&  // is a stack slot
         (MI.getOperand(2).isImm()) && // the imm is zero
@@ -77,8 +77,8 @@ Register XCoreInstrInfo::isLoadFromStackSlot(const MachineInstr &MI,
   /// any side effects other than storing to the stack slot.
 Register XCoreInstrInfo::isStoreToStackSlot(const MachineInstr &MI,
                                             int &FrameIndex) const {
-  int Opcode = MI.getOpcode();
-  if (Opcode == XCore::STWFI)
+  
+  if (int Opcode = MI.getOpcode(); Opcode == XCore::STWFI)
   {
     if ((MI.getOperand(1).isFI()) &&  // is a stack slot
         (MI.getOperand(2).isImm()) && // the imm is zero

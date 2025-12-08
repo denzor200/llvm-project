@@ -1316,9 +1316,9 @@ public:
   }
 
   void init(int num_addrs) {
-    kmp_int8 bool_result = KMP_COMPARE_AND_STORE_ACQ8(
-        &uninitialized, not_initialized, initializing);
-    if (bool_result == 0) { // Wait for initialization
+    
+    if (kmp_int8 bool_result = KMP_COMPARE_AND_STORE_ACQ8(
+        &uninitialized, not_initialized, initializing); bool_result == 0) { // Wait for initialization
       while (TCR_1(uninitialized) != initialized)
         KMP_CPU_PAUSE();
       return;

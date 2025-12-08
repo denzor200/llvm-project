@@ -217,8 +217,8 @@ private:
 
   const MCInstrDesc &getHWInstrDesc(ControlFlowInstruction CFI) const {
     unsigned Opcode = 0;
-    bool isEg = (ST->getGeneration() >= AMDGPUSubtarget::EVERGREEN);
-    switch (CFI) {
+    
+    switch (bool isEg = (ST->getGeneration() >= AMDGPUSubtarget::EVERGREEN); CFI) {
     case CF_TC:
       Opcode = isEg ? R600::CF_TC_EG : R600::CF_TC_R600;
       break;
@@ -343,10 +343,10 @@ private:
           });
 
       // Get corresponding Operand
-      MachineOperand &Operand = MI.getOperand(
-          TII->getOperandIdx(MI.getOpcode(), R600::OpName::literal));
+      
 
-      if (It != Lits.end()) {
+      if (MachineOperand &Operand = MI.getOperand(
+          TII->getOperandIdx(MI.getOpcode(), R600::OpName::literal)); It != Lits.end()) {
         // Reuse existing literal reg
         unsigned Index = It - Lits.begin();
         Src.first->setReg(LiteralRegs[Index]);
@@ -510,9 +510,9 @@ public:
         if (MI->getOpcode() == R600::CF_ALU)
           LastAlu.back() = &*MI;
         I++;
-        bool RequiresWorkAround =
-            CFStack.requiresWorkAroundForInst(MI->getOpcode());
-        switch (MI->getOpcode()) {
+        
+        switch (bool RequiresWorkAround =
+            CFStack.requiresWorkAroundForInst(MI->getOpcode()); MI->getOpcode()) {
         case R600::CF_ALU_PUSH_BEFORE:
           if (RequiresWorkAround) {
             LLVM_DEBUG(dbgs()

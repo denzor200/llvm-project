@@ -531,10 +531,10 @@ bool X86LowerAMXIntrinsics::lowerTileLoadStore(Instruction *TileLoadStore) {
   BasicBlock *End =
       SplitBlock(InsertI->getParent(), InsertI, &DTU, LI, nullptr, "continue");
   IRBuilder<> Builder(TileLoadStore);
-  Value *ResVec = createTileLoadStoreLoops<IsTileLoad>(
+  
+  if (Value *ResVec = createTileLoadStoreLoops<IsTileLoad>(
       Start, End, Builder, M, NDWord, Ptr, StrideDWord,
-      IsTileLoad ? nullptr : Tile);
-  if (IsTileLoad) {
+      IsTileLoad ? nullptr : Tile); IsTileLoad) {
     // we cannot assume there always be bitcast after tileload. So we need to
     // insert one bitcast as required
     Builder.SetInsertPoint(End, End->getFirstNonPHIIt());
@@ -650,8 +650,8 @@ PreservedAnalyses X86LowerAMXIntrinsicsPass::run(Function &F,
 
   DominatorTree &DT = FAM.getResult<DominatorTreeAnalysis>(F);
   LoopInfo &LI = FAM.getResult<LoopAnalysis>(F);
-  bool Changed = runLowerAMXIntrinsics(F, &DT, &LI);
-  if (!Changed)
+  
+  if (bool Changed = runLowerAMXIntrinsics(F, &DT, &LI); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA = PreservedAnalyses::none();
@@ -668,8 +668,8 @@ public:
   X86LowerAMXIntrinsicsLegacyPass() : FunctionPass(ID) {}
 
   bool runOnFunction(Function &F) override {
-    TargetMachine *TM = &getAnalysis<TargetPassConfig>().getTM<TargetMachine>();
-    if (!shouldRunLowerAMXIntrinsics(F, TM))
+    
+    if (TargetMachine *TM = &getAnalysis<TargetPassConfig>().getTM<TargetMachine>(); !shouldRunLowerAMXIntrinsics(F, TM))
       return false;
 
     auto *DTWP = getAnalysisIfAvailable<DominatorTreeWrapperPass>();

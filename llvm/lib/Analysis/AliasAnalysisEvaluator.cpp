@@ -297,8 +297,8 @@ AAEvaluator::~AAEvaluator() {
   }
 
   // Display the summary for mod/ref analysis
-  int64_t ModRefSum = NoModRefCount + RefCount + ModCount + ModRefCount;
-  if (ModRefSum == 0) {
+  
+  if (int64_t ModRefSum = NoModRefCount + RefCount + ModCount + ModRefCount; ModRefSum == 0) {
     errs() << "  Alias Analysis Mod/Ref Evaluator Summary: no "
               "mod/ref!\n";
   } else {

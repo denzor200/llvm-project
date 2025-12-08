@@ -106,9 +106,9 @@ MEMPROF_MEMORY_ACCESS_CALLBACK(store)
 // the executable itself. This should help if the build system is removing dead
 // code at link time.
 static NOINLINE void force_interface_symbols() {
-  volatile int fake_condition = 0; // prevent dead condition elimination.
+  // prevent dead condition elimination.
   // clang-format off
-  switch (fake_condition) {
+  switch (volatile int fake_condition = 0; fake_condition) {
     case 1: __memprof_record_access(nullptr); break;
     case 2: __memprof_record_access_range(nullptr, 0); break;
   }

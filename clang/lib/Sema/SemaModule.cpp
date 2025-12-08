@@ -748,13 +748,13 @@ void Sema::BuildModuleInclude(SourceLocation DirectiveLoc, Module *Mod) {
   // implementation detail of us building the module.
   //
   // FIXME: Should we even get ActOnAnnotModuleInclude calls for those?
-  bool IsInModuleIncludes =
-      TUKind == TU_ClangModule &&
-      getSourceManager().isWrittenInMainFile(DirectiveLoc);
+  
 
   // If we are really importing a module (not just checking layering) due to an
   // #include in the main file, synthesize an ImportDecl.
-  if (getLangOpts().Modules && !IsInModuleIncludes) {
+  if (bool IsInModuleIncludes =
+      TUKind == TU_ClangModule &&
+      getSourceManager().isWrittenInMainFile(DirectiveLoc); getLangOpts().Modules && !IsInModuleIncludes) {
     TranslationUnitDecl *TU = getASTContext().getTranslationUnitDecl();
     ImportDecl *ImportD = ImportDecl::CreateImplicit(getASTContext(), TU,
                                                      DirectiveLoc, Mod,
@@ -963,8 +963,8 @@ static bool checkExportedDecl(Sema &S, Decl *D, SourceLocation BlockStart) {
 
   //  C++20 [module.interface]p3:
   //   [...] it shall not declare a name with internal linkage.
-  bool HasName = false;
-  if (auto *ND = dyn_cast<NamedDecl>(D)) {
+  
+  if (bool HasName = false; auto *ND = dyn_cast<NamedDecl>(D)) {
     // Don't diagnose anonymous union objects; we'll diagnose their members
     // instead.
     HasName = (bool)ND->getDeclName();
@@ -1542,8 +1542,8 @@ void Sema::checkExposure(const TranslationUnitDecl *TU) {
 
   ExposureChecker Checker(*this);
 
-  Module *M = TU->getOwningModule();
-  if (M && M->isInterfaceOrPartition())
+  
+  if (Module *M = TU->getOwningModule(); M && M->isInterfaceOrPartition())
     Checker.checkExposureInContext(TU);
 
   // [basic.link]p18:

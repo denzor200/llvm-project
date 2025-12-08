@@ -182,9 +182,9 @@ std::string findLibrary(StringRef InstallName, FileManager &FM,
   };
 
   const StringRef Filename = sys::path::filename(InstallName);
-  const bool IsFramework = sys::path::parent_path(InstallName)
-                               .ends_with((Filename + ".framework").str());
-  if (IsFramework) {
+  
+  if (const bool IsFramework = sys::path::parent_path(InstallName)
+                               .ends_with((Filename + ".framework").str()); IsFramework) {
     for (const StringRef Path : FrameworkSearchPaths) {
       SmallString<PATH_MAX> FullPath(Path);
       sys::path::append(FullPath, Filename + StringRef(".framework"), Filename);
@@ -194,9 +194,9 @@ std::string findLibrary(StringRef InstallName, FileManager &FM,
   } else {
     // Copy Apple's linker behavior: If this is a .dylib inside a framework, do
     // not search -L paths.
-    bool IsEmbeddedDylib = (sys::path::extension(InstallName) == ".dylib") &&
-                           InstallName.contains(".framework/");
-    if (!IsEmbeddedDylib) {
+    
+    if (bool IsEmbeddedDylib = (sys::path::extension(InstallName) == ".dylib") &&
+                           InstallName.contains(".framework/"); !IsEmbeddedDylib) {
       for (const StringRef Path : LibrarySearchPaths) {
         SmallString<PATH_MAX> FullPath(Path);
         sys::path::append(FullPath, Filename);

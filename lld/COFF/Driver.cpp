@@ -616,8 +616,8 @@ std::optional<StringRef> LinkerDriver::findFileIfNew(StringRef filename) {
   StringRef path = findFile(filename);
 
   if (std::optional<sys::fs::UniqueID> id = getUniqueID(path)) {
-    bool seen = !visitedFiles.insert(*id).second;
-    if (seen)
+    
+    if (bool seen = !visitedFiles.insert(*id).second; seen)
       return std::nullopt;
   }
 
@@ -641,8 +641,8 @@ StringRef LinkerDriver::findLibMinGW(StringRef filename) {
 // Find library file from search path.
 StringRef LinkerDriver::findLib(StringRef filename) {
   // Add ".lib" to Filename if that has no file extension.
-  bool hasExt = filename.contains('.');
-  if (!hasExt)
+  
+  if (bool hasExt = filename.contains('.'); !hasExt)
     filename = saver().save(filename + ".lib");
   StringRef ret = findFile(filename);
   // For MinGW, if the find above didn't turn up anything, try

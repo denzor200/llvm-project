@@ -963,8 +963,8 @@ LogicalResult mlir::coalesceLoops(RewriterBase &rewriter,
     for (Value &yieldedVal : yieldedVals) {
       // The yielded value may be an iteration argument of the inner loop
       // which is about to be inlined.
-      auto iter = llvm::find(innerLoop.getRegionIterArgs(), yieldedVal);
-      if (iter != innerLoop.getRegionIterArgs().end()) {
+      
+      if (auto iter = llvm::find(innerLoop.getRegionIterArgs(), yieldedVal); iter != innerLoop.getRegionIterArgs().end()) {
         unsigned iterArgIndex = iter - innerLoop.getRegionIterArgs().begin();
         // `outerLoop` iter args identical to the `innerLoop` init args.
         assert(iterArgIndex < innerLoop.getInitArgs().size());
@@ -1032,8 +1032,8 @@ LogicalResult mlir::coalescePerfectlyNestedSCFForLoops(scf::ForOp op) {
     if (!llvm::equal(outerloop.getRegionIterArgs(), innerLoop.getInitArgs())) {
       continue;
     }
-    auto outerloopTerminator = outerloop.getBody()->getTerminator();
-    if (!llvm::equal(outerloopTerminator->getOperands(),
+    
+    if (auto outerloopTerminator = outerloop.getBody()->getTerminator(); !llvm::equal(outerloopTerminator->getOperands(),
                      innerLoop.getResults())) {
       continue;
     }
@@ -1046,10 +1046,10 @@ LogicalResult mlir::coalescePerfectlyNestedSCFForLoops(scf::ForOp op) {
   for (unsigned end = loops.size(); end > 0; --end) {
     unsigned start = 0;
     for (; start < end - 1; ++start) {
-      auto maxPos =
+      
+      if (auto maxPos =
           *std::max_element(std::next(operandsDefinedAbove.begin(), start),
-                            std::next(operandsDefinedAbove.begin(), end));
-      if (maxPos > start)
+                            std::next(operandsDefinedAbove.begin(), end)); maxPos > start)
         continue;
       if (iterArgChainStart[end - 1] > start)
         continue;
@@ -1610,8 +1610,8 @@ FailureOr<scf::ParallelOp> mlir::parallelLoopUnrollByFactors(
             "dynamic loop sizes are not supported.");
 
   for (unsigned dimIdx = firstLoopDimIdx; dimIdx < numLoops; dimIdx++) {
-    const uint64_t unrollFactor = unrollFactors[dimIdx - firstLoopDimIdx];
-    if (tripCounts[dimIdx] % unrollFactor)
+    
+    if (const uint64_t unrollFactor = unrollFactors[dimIdx - firstLoopDimIdx]; tripCounts[dimIdx] % unrollFactor)
       return rewriter.notifyMatchFailure(
           op, "Unroll factors don't divide the iteration space evenly");
   }

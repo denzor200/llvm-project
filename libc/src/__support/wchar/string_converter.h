@@ -35,8 +35,8 @@ private:
     size_t num_pushed;
     for (num_pushed = 0; !cr.isFull() && src_idx + num_pushed < src_len;
          ++num_pushed) {
-      int err = cr.push(src[src_idx + num_pushed]);
-      if (err != 0)
+      
+      if (int err = cr.push(src[src_idx + num_pushed]); err != 0)
         return Error(err);
     }
 

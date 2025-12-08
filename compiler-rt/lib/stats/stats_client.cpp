@@ -45,17 +45,17 @@ struct RegisterSanStats {
 
   RegisterSanStats() {
     typedef unsigned (*reg_func_t)(StatModule **);
-    reg_func_t reg_func = reinterpret_cast<reg_func_t>(
-        LookupSymbolFromMain("__sanitizer_stats_register"));
-    if (reg_func)
+    
+    if (reg_func_t reg_func = reinterpret_cast<reg_func_t>(
+        LookupSymbolFromMain("__sanitizer_stats_register")); reg_func)
       module_id = reg_func(&list);
   }
 
   ~RegisterSanStats() {
     typedef void (*unreg_func_t)(unsigned);
-    unreg_func_t unreg_func = reinterpret_cast<unreg_func_t>(
-        LookupSymbolFromMain("__sanitizer_stats_unregister"));
-    if (unreg_func)
+    
+    if (unreg_func_t unreg_func = reinterpret_cast<unreg_func_t>(
+        LookupSymbolFromMain("__sanitizer_stats_unregister")); unreg_func)
       unreg_func(module_id);
   }
 } reg;

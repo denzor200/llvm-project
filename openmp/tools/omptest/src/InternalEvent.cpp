@@ -33,9 +33,9 @@ std::string util::makeHexString(uint64_t Data, bool IsPointer, size_t MinBytes,
     os << "0x";
 
   // Default to 32bit (8 hex digits) width, if exceeding 64bit or zero value
-  size_t NumDigits = (MinBytes > 0 && MinBytes < 9) ? (MinBytes << 1) : 8;
+  
 
-  if (MinBytes > 0)
+  if (size_t NumDigits = (MinBytes > 0 && MinBytes < 9) ? (MinBytes << 1) : 8; MinBytes > 0)
     os << std::setfill('0') << std::setw(NumDigits);
 
   os << std::hex << Data;

@@ -729,9 +729,9 @@ void FlatLinearConstraints::getSliceBounds(unsigned offset, unsigned num,
       expr = simplifyAffineExpr(expr, numMapDims, numMapSymbols);
 
     AffineMap &lbMap = (*lbMaps)[pos];
-    AffineMap &ubMap = (*ubMaps)[pos];
+    
 
-    if (expr) {
+    if (AffineMap &ubMap = (*ubMaps)[pos]; expr) {
       lbMap = AffineMap::get(numMapDims, numMapSymbols, expr);
       ubMap = AffineMap::get(numMapDims, numMapSymbols, expr + ubAdjustment);
     } else {
@@ -967,10 +967,10 @@ std::optional<int64_t> FlatLinearConstraints::getConstantBoundOnDimSize(
 
   // Find an equality for 'pos'^th identifier that equates it to some function
   // of the symbolic identifiers (+ constant).
-  int eqPos = findEqualityToConstant(pos, /*symbolic=*/true);
+  
   // If the equality involves a local var that can not be expressed as a
   // symbolic or constant affine expression, we bail out.
-  if (eqPos != -1 && freeOfUnknownLocalVars(getEquality64(eqPos), memo)) {
+  if (int eqPos = findEqualityToConstant(pos, /*symbolic=*/true); eqPos != -1 && freeOfUnknownLocalVars(getEquality64(eqPos), memo)) {
     // This identifier can only take a single value.
     if (lb && detectAsExpr(*this, pos, eqPos, context, memo)) {
       AffineExpr equalityExpr =

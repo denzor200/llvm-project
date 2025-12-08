@@ -333,8 +333,8 @@ bool AMDGPURegBankCombinerImpl::matchFPMed3ToClamp(MachineInstr &MI,
   Register Val = Src0->getOperand(0).getReg();
 
   auto isOp3Zero = [&]() {
-    MachineInstr *Op3 = getDefIgnoringCopies(MI.getOperand(4).getReg(), MRI);
-    if (Op3->getOpcode() == TargetOpcode::G_FCONSTANT)
+    
+    if (MachineInstr *Op3 = getDefIgnoringCopies(MI.getOperand(4).getReg(), MRI); Op3->getOpcode() == TargetOpcode::G_FCONSTANT)
       return Op3->getOperand(1).getFPImm()->isExactlyValue(0.0);
     return false;
   };
@@ -424,8 +424,8 @@ bool AMDGPURegBankCombinerImpl::combineD16Load(MachineInstr &MI) const {
       if (SextLoad->getOpcode() != AMDGPU::G_SEXTLOAD)
         return false;
 
-      const MachineMemOperand *MMO = *SextLoad->memoperands_begin();
-      if (MMO->getSizeInBits().getValue() != 8)
+      
+      if (const MachineMemOperand *MMO = *SextLoad->memoperands_begin(); MMO->getSizeInBits().getValue() != 8)
         return false;
 
       return applyD16Load(AMDGPU::G_AMDGPU_LOAD_D16_LO_I8, MI, SextLoad, Dst);
@@ -455,8 +455,8 @@ bool AMDGPURegBankCombinerImpl::combineD16Load(MachineInstr &MI) const {
             m_GAnd(m_MInstr(SextLoad), m_Copy(m_SpecificICst(CleanHi16))))) {
       if (SextLoad->getOpcode() != AMDGPU::G_SEXTLOAD)
         return false;
-      const MachineMemOperand *MMO = *SextLoad->memoperands_begin();
-      if (MMO->getSizeInBits().getValue() != 8)
+      
+      if (const MachineMemOperand *MMO = *SextLoad->memoperands_begin(); MMO->getSizeInBits().getValue() != 8)
         return false;
 
       return applyD16Load(AMDGPU::G_AMDGPU_LOAD_D16_HI_I8, MI, SextLoad, Dst);

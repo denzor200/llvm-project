@@ -120,8 +120,8 @@ LLVM_LIBC_FUNCTION(float16, sinhf16, (float16 x)) {
       if (x_bits.is_inf())
         return FPBits::inf(x_bits.sign()).get_val();
 
-      int rounding_mode = fputil::quick_get_round();
-      if (rounding_mode == FE_TONEAREST ||
+      
+      if (int rounding_mode = fputil::quick_get_round(); rounding_mode == FE_TONEAREST ||
           (x_bits.is_pos() && rounding_mode == FE_UPWARD) ||
           (x_bits.is_neg() && rounding_mode == FE_DOWNWARD)) {
         fputil::set_errno_if_required(ERANGE);

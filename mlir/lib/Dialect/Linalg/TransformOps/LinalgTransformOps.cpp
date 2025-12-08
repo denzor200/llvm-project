@@ -423,8 +423,8 @@ transform::PromoteTensorOp::apply(transform::TransformRewriter &rewriter,
       return emitSilenceableError() << "non-tensor type: " << tensor;
     }
 
-    Operation *definingOp = tensor.getDefiningOp();
-    if (definingOp)
+    
+    if (Operation *definingOp = tensor.getDefiningOp(); definingOp)
       rewriter.setInsertionPointAfter(definingOp);
     else
       rewriter.setInsertionPointToStart(cast<BlockArgument>(tensor).getOwner());
@@ -537,8 +537,8 @@ DiagnosedSilenceableFailure transform::DecomposeInterfaceOp::applyToOne(
 
   rewriter.replaceOp(decomposableOp, *maybeNewResults);
   for (Value val : *maybeNewResults) {
-    Operation *definition = val.getDefiningOp();
-    if (definition)
+    
+    if (Operation *definition = val.getDefiningOp(); definition)
       results.push_back(definition);
   }
   return DiagnosedSilenceableFailure::success();
@@ -1259,14 +1259,14 @@ transform::FuseIntoContainingOp::apply(transform::TransformRewriter &rewriter,
     for (const auto &it : enumerate(remainingProducers)) {
       Operation *producerOp = it.value();
       // The containing op may be a user of producerOp: use isAncestor.
-      int64_t numUsesInContainingOp =
-          llvm::count_if(producerOp->getUsers(), [&](Operation *op) {
-            return containingOp->isAncestor(op);
-          });
+      
       // TODO: When resolving the TODO below (no duplicate ops), take an op
       // that has no use among the remaining producers. This is a topological
       // sorting.
-      if (numUsesInContainingOp > 0) {
+      if (int64_t numUsesInContainingOp =
+          llvm::count_if(producerOp->getUsers(), [&](Operation *op) {
+            return containingOp->isAncestor(op);
+          }); numUsesInContainingOp > 0) {
         if (numUsesInContainingOp == 1)
           remainingProducers.erase(remainingProducers.begin() + it.index());
         return producerOp;
@@ -1330,9 +1330,9 @@ transform::FuseIntoContainingOp::apply(transform::TransformRewriter &rewriter,
       continue;
     }
 
-    Operation *cloned =
-        cloneAndFuseFirstUse(rewriter, diag, producerOp, containingOp);
-    if (cloned) {
+    
+    if (Operation *cloned =
+        cloneAndFuseFirstUse(rewriter, diag, producerOp, containingOp); cloned) {
       LDBG() << "\nFused an use by cloning\n" << *containingOp;
       fusedOps.push_back(cloned);
       continue;
@@ -1969,8 +1969,8 @@ static bool isValidPackingPermutation(
       "applies to only pack or unpack operations");
   if (!op || permutation.empty())
     return true;
-  size_t innerRank = op.getInnerDimsPos().size();
-  if (outerOrInnerPerm == OuterOrInnerPerm::Inner)
+  
+  if (size_t innerRank = op.getInnerDimsPos().size(); outerOrInnerPerm == OuterOrInnerPerm::Inner)
     return permutation.size() == innerRank && isPermutationVector(permutation);
   // op.getOuterDimsPerm() may be empty, in which case it is identity.
   // Don't rely on it.
@@ -4407,9 +4407,9 @@ DiagnosedSilenceableFailure transform::MapCopyToThreadsOp::applyToOne(
 
   // Conservatively set the minimum viable desired bitwidth alignment.
   int64_t desiredBitAlignment = getDesiredBitAlignment();
-  int64_t eltBitwidth =
-      resultShapedType.getElementType().getIntOrFloatBitWidth();
-  if (desiredBitAlignment % eltBitwidth != 0) {
+  
+  if (int64_t eltBitwidth =
+      resultShapedType.getElementType().getIntOrFloatBitWidth(); desiredBitAlignment % eltBitwidth != 0) {
     desiredBitAlignment = eltBitwidth;
   }
 
@@ -4462,15 +4462,15 @@ DiagnosedSilenceableFailure transform::WinogradConv2DOp::applyToOne(
     transform::TransformState &state) {
   rewriter.setInsertionPoint(target);
   FailureOr<Operation *> maybeTransformed = failure();
-  bool supported = TypeSwitch<Operation *, bool>(target)
+  
+
+  if (bool supported = TypeSwitch<Operation *, bool>(target)
                        .Case([&](linalg::Conv2DNhwcFhwcOp op) {
                          maybeTransformed =
                              winogradConv2D(rewriter, op, getFmr());
                          return true;
                        })
-                       .Default([&](Operation *op) { return false; });
-
-  if (!supported) {
+                       .Default([&](Operation *op) { return false; }); !supported) {
     return emitSilenceableError()
            << "this operation is not supported to convert to Winograd Conv2D";
   }
@@ -4489,7 +4489,9 @@ DiagnosedSilenceableFailure transform::DecomposeWinogradOp::applyToOne(
     transform::TransformState &state) {
   rewriter.setInsertionPoint(target);
   FailureOr<Operation *> maybeTransformed = failure();
-  bool supported =
+  
+
+  if (bool supported =
       TypeSwitch<Operation *, bool>(target)
           .Case([&](linalg::WinogradFilterTransformOp op) {
             maybeTransformed = decomposeWinogradFilterTransformOp(rewriter, op);
@@ -4503,9 +4505,7 @@ DiagnosedSilenceableFailure transform::DecomposeWinogradOp::applyToOne(
             maybeTransformed = decomposeWinogradOutputTransformOp(rewriter, op);
             return true;
           })
-          .Default(false);
-
-  if (!supported) {
+          .Default(false); !supported) {
     DiagnosedSilenceableFailure diag =
         emitSilenceableError()
         << "this operation is not supported to decompose into other operations";

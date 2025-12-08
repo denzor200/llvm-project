@@ -233,8 +233,8 @@ MachineCombiner::getDepth(SmallVectorImpl<MachineInstr *> &InsInstrs,
         LatencyOp = TSchedModel.computeOperandLatency(DefInstr, DefIdx,
                                                       InstrPtr, UseIdx);
       } else {
-        MachineInstr *DefInstr = getOperandDef(MO);
-        if (DefInstr && (TII->getMachineCombinerTraceStrategy() !=
+        
+        if (MachineInstr *DefInstr = getOperandDef(MO); DefInstr && (TII->getMachineCombinerTraceStrategy() !=
                              MachineTraceStrategy::TS_Local ||
                          DefInstr->getParent() == &MBB)) {
           DepthOp = BlockTrace.getInstrCycles(*DefInstr).Depth;

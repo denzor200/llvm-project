@@ -953,9 +953,9 @@ SparcTargetLowering::LowerCall_32(TargetLowering::CallLoweringInfo &CLI,
       assert(VA.getLocVT() == MVT::f64 || VA.getLocVT() == MVT::v2i32);
 
       if (VA.isMemLoc()) {
-        unsigned Offset = VA.getLocMemOffset() + StackOffset;
+        
         // if it is double-word aligned, just store.
-        if (Offset % 8 == 0) {
+        if (unsigned Offset = VA.getLocMemOffset() + StackOffset; Offset % 8 == 0) {
           SDValue StackPtr = DAG.getRegister(SP::O6, MVT::i32);
           SDValue PtrOff = DAG.getIntPtrConstant(Offset, dl);
           PtrOff = DAG.getNode(ISD::ADD, dl, MVT::i32, StackPtr, PtrOff);
@@ -984,8 +984,8 @@ SparcTargetLowering::LowerCall_32(TargetLowering::CallLoweringInfo &CLI,
       if (VA.isRegLoc()) {
         RegsToPass.push_back(std::make_pair(VA.getLocReg(), Part0));
         assert(i+1 != e);
-        CCValAssign &NextVA = ArgLocs[++i];
-        if (NextVA.isRegLoc()) {
+        
+        if (CCValAssign &NextVA = ArgLocs[++i]; NextVA.isRegLoc()) {
           RegsToPass.push_back(std::make_pair(NextVA.getLocReg(), Part1));
         } else {
           // Store the second part in stack.
@@ -1157,8 +1157,8 @@ Register SparcTargetLowering::getRegisterByName(const char* RegName, LLT VT,
   // If we're directly referencing register names
   // (e.g in GCC C extension `register int r asm("g1");`),
   // make sure that said register is in the reserve list.
-  const SparcRegisterInfo *TRI = Subtarget->getRegisterInfo();
-  if (!TRI->isReservedReg(MF, Reg))
+  
+  if (const SparcRegisterInfo *TRI = Subtarget->getRegisterInfo(); !TRI->isReservedReg(MF, Reg))
     Reg = Register();
 
   return Reg;
@@ -1193,8 +1193,8 @@ static void fixupVariableFloatArgs(SmallVectorImpl<CCValAssign> &ArgLocs,
 
     if (Offset < 6*8) {
       // This argument should go in %i0-%i5.
-      unsigned IReg = SP::I0 + Offset/8;
-      if (ValTy == MVT::f64)
+      
+      if (unsigned IReg = SP::I0 + Offset/8; ValTy == MVT::f64)
         // Full register, just bitconvert into i64.
         VA = CCValAssign::getReg(VA.getValNo(), VA.getValVT(), IReg, MVT::i64,
                                  CCValAssign::BCvt);
@@ -2325,8 +2325,8 @@ SDValue SparcTargetLowering::LowerF128Compare(SDValue LHS, SDValue RHS,
                                               SelectionDAG &DAG) const {
 
   const char *LibCall = nullptr;
-  bool is64Bit = Subtarget->is64Bit();
-  switch(SPCC) {
+  
+  switch(bool is64Bit = Subtarget->is64Bit(); SPCC) {
   default: llvm_unreachable("Unhandled conditional code!");
   case SPCC::FCC_E  : LibCall = is64Bit? "_Qp_feq" : "_Q_feq"; break;
   case SPCC::FCC_NE : LibCall = is64Bit? "_Qp_fne" : "_Q_fne"; break;
@@ -2622,10 +2622,10 @@ static SDValue LowerSELECT_CC(SDValue Op, SelectionDAG &DAG,
     // are also eligible, but for f128 we can only use the specialized
     // instruction when we have hardquad.
     EVT ValType = TrueVal.getValueType();
-    bool IsEligibleType = ValType.isScalarInteger() || ValType == MVT::f32 ||
+    
+    if (bool IsEligibleType = ValType.isScalarInteger() || ValType == MVT::f32 ||
                           ValType == MVT::f64 ||
-                          (ValType == MVT::f128 && hasHardQuad);
-    if (is64Bit && isV9 && LHS.getValueType() == MVT::i64 &&
+                          (ValType == MVT::f128 && hasHardQuad); is64Bit && isV9 && LHS.getValueType() == MVT::i64 &&
         isNullConstant(RHS) && !ISD::isUnsignedIntSetCC(CC) && IsEligibleType)
       return DAG.getNode(
           SPISD::SELECT_REG, dl, TrueVal.getValueType(), TrueVal, FalseVal,
@@ -3048,8 +3048,8 @@ static SDValue LowerATOMIC_LOAD_STORE(SDValue Op, SelectionDAG &DAG) {
 
 SDValue SparcTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
                                                      SelectionDAG &DAG) const {
-  unsigned IntNo = Op.getConstantOperandVal(0);
-  switch (IntNo) {
+  
+  switch (unsigned IntNo = Op.getConstantOperandVal(0); IntNo) {
   default: return SDValue();    // Don't custom lower most intrinsics.
   case Intrinsic::thread_pointer: {
     EVT PtrVT = getPointerTy(DAG.getDataLayout());
@@ -3063,9 +3063,9 @@ LowerOperation(SDValue Op, SelectionDAG &DAG) const {
 
   bool hasHardQuad = Subtarget->hasHardQuad();
   bool isV9        = Subtarget->isV9();
-  bool is64Bit = Subtarget->is64Bit();
+  
 
-  switch (Op.getOpcode()) {
+  switch (bool is64Bit = Subtarget->is64Bit(); Op.getOpcode()) {
   default: llvm_unreachable("Should not custom lower this!");
 
   case ISD::RETURNADDR:         return LowerRETURNADDR(Op, DAG, *this,
@@ -3259,10 +3259,10 @@ TargetLowering::ConstraintWeight SparcTargetLowering::
 getSingleConstraintMatchWeight(AsmOperandInfo &info,
                                const char *constraint) const {
   ConstraintWeight weight = CW_Invalid;
-  Value *CallOperandVal = info.CallOperandVal;
+  
   // If we don't have a value, we can't do a match,
   // but allow it at the lowest weight.
-  if (!CallOperandVal)
+  if (Value *CallOperandVal = info.CallOperandVal; !CallOperandVal)
     return CW_Default;
 
   // Look at the constraint type.
@@ -3291,8 +3291,8 @@ void SparcTargetLowering::LowerAsmOperandForConstraint(
   if (Constraint.size() > 1)
     return;
 
-  char ConstraintLetter = Constraint[0];
-  switch (ConstraintLetter) {
+  
+  switch (char ConstraintLetter = Constraint[0]; ConstraintLetter) {
   default: break;
   case 'I':
     if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
@@ -3535,9 +3535,9 @@ void SparcTargetLowering::AdjustInstrPostInstrSelection(MachineInstr &MI,
 Instruction *SparcTargetLowering::emitLeadingFence(IRBuilderBase &Builder,
                                                    Instruction *Inst,
                                                    AtomicOrdering Ord) const {
-  bool HasStoreSemantics =
-      isa<AtomicCmpXchgInst, AtomicRMWInst, StoreInst>(Inst);
-  if (HasStoreSemantics && isReleaseOrStronger(Ord))
+  
+  if (bool HasStoreSemantics =
+      isa<AtomicCmpXchgInst, AtomicRMWInst, StoreInst>(Inst); HasStoreSemantics && isReleaseOrStronger(Ord))
     return Builder.CreateFence(AtomicOrdering::Release);
   return nullptr;
 }
@@ -3547,8 +3547,8 @@ Instruction *SparcTargetLowering::emitTrailingFence(IRBuilderBase &Builder,
                                                     AtomicOrdering Ord) const {
   // V8 loads already come with implicit acquire barrier so there's no need to
   // emit it again.
-  bool HasLoadSemantics = isa<AtomicCmpXchgInst, AtomicRMWInst, LoadInst>(Inst);
-  if (Subtarget->isV9() && HasLoadSemantics && isAcquireOrStronger(Ord))
+  
+  if (bool HasLoadSemantics = isa<AtomicCmpXchgInst, AtomicRMWInst, LoadInst>(Inst); Subtarget->isV9() && HasLoadSemantics && isAcquireOrStronger(Ord))
     return Builder.CreateFence(AtomicOrdering::Acquire);
 
   // SC plain stores would need a trailing full barrier.

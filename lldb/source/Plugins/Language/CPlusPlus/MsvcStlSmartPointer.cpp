@@ -35,9 +35,9 @@ bool lldb_private::formatters::MsvcStlSmartPointerSummaryProvider(
   DumpCxxSmartPtrPointerSummary(stream, *ptr_sp, options);
 
   bool success;
-  uint64_t ctrl_addr = ctrl_sp->GetValueAsUnsigned(0, &success);
+  
   // Empty control field (expired)
-  if (!success || ctrl_addr == 0)
+  if (uint64_t ctrl_addr = ctrl_sp->GetValueAsUnsigned(0, &success); !success || ctrl_addr == 0)
     return true;
 
   uint64_t uses = 0;

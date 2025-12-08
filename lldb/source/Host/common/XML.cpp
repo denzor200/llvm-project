@@ -137,8 +137,8 @@ std::string XMLNode::GetAttributeValue(const char *name,
   std::string attr_value;
 #if LLDB_ENABLE_LIBXML2
   if (IsValid()) {
-    xmlChar *value = xmlGetProp(m_node, (const xmlChar *)name);
-    if (value) {
+    
+    if (xmlChar *value = xmlGetProp(m_node, (const xmlChar *)name); value) {
       attr_value = (const char *)value;
       xmlFree(value);
     }
@@ -192,8 +192,8 @@ void XMLNode::ForEachAttribute(AttributeCallback const &callback) const {
       // check if name matches
       if (attr->name) {
         // check child is a text node
-        xmlNodePtr child = attr->children;
-        if (child->type == XML_TEXT_NODE) {
+        
+        if (xmlNodePtr child = attr->children; child->type == XML_TEXT_NODE) {
           llvm::StringRef attr_value;
           if (child->content)
             attr_value = llvm::StringRef((const char *)child->content);

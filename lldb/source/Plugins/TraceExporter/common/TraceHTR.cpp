@@ -29,8 +29,8 @@ HTRBlockMetadata::GetMostFrequentlyCalledFunction() const {
   std::optional<llvm::StringRef> max_name;
   for (const auto &it : m_func_calls) {
     ConstString name = it.first;
-    size_t ncalls = it.second;
-    if (ncalls > max_ncalls) {
+    
+    if (size_t ncalls = it.second; ncalls > max_ncalls) {
       max_ncalls = ncalls;
       max_name = name.GetStringRef();
     }
@@ -333,9 +333,9 @@ HTRBlockLayerUP lldb_private::BasicSuperBlockMerge(IHTRLayer &layer) {
       lldb::addr_t unit_id =
           layer.GetMetadataByIndex(i).GetFirstInstructionLoadAddress();
       auto isHead = heads.count(unit_id) > 0;
-      auto isTail = tails.count(unit_id) > 0;
+      
 
-      if (isHead && isTail) {
+      if (auto isTail = tails.count(unit_id) > 0; isHead && isTail) {
         // Head logic
         if (superblock_size) { // this handles (tail, head) adjacency -
                                // otherwise an empty

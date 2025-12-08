@@ -171,8 +171,8 @@ bool X86IndirectBranchTrackingPass::runOnMachineFunction(MachineFunction &MF) {
         } else if (I->isEHLabel()) {
           // Old Landingpad BB (is not Landingpad now) with
           // the old "callee" EHLabel.
-          MCSymbol *Sym = I->getOperand(0).getMCSymbol();
-          if (!MF.hasCallSiteLandingPad(Sym))
+          
+          if (MCSymbol *Sym = I->getOperand(0).getMCSymbol(); !MF.hasCallSiteLandingPad(Sym))
             continue;
           Changed |= addENDBR(MBB, std::next(I));
           break;

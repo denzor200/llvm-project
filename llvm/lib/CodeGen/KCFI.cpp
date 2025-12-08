@@ -88,8 +88,8 @@ bool KCFI::emitCheck(MachineBasicBlock &MBB,
 }
 
 bool KCFI::runOnMachineFunction(MachineFunction &MF) {
-  const Module *M = MF.getFunction().getParent();
-  if (!M->getModuleFlag("kcfi"))
+  
+  if (const Module *M = MF.getFunction().getParent(); !M->getModuleFlag("kcfi"))
     return false;
 
   const auto &SubTarget = MF.getSubtarget();

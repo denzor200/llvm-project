@@ -39,8 +39,8 @@ bool UnwindAssemblyInstEmulation::GetNonCallSiteUnwindPlanFromAssembly(
   ProcessSP process_sp(thread.GetProcess());
   if (process_sp) {
     Status error;
-    const bool force_live_memory = true;
-    if (process_sp->GetTarget().ReadMemory(
+    
+    if (const bool force_live_memory = true; process_sp->GetTarget().ReadMemory(
             range.GetBaseAddress(), function_text.data(), range.GetByteSize(),
             error, force_live_memory) != range.GetByteSize()) {
       return false;
@@ -303,9 +303,9 @@ size_t UnwindAssemblyInstEmulation::ReadMemory(
     EmulateInstruction *instruction, void *baton,
     const EmulateInstruction::Context &context, lldb::addr_t addr, void *dst,
     size_t dst_len) {
-  Log *log = GetLog(LLDBLog::Unwind);
+  
 
-  if (log && log->GetVerbose()) {
+  if (Log *log = GetLog(LLDBLog::Unwind); log && log->GetVerbose()) {
     StreamString strm;
     strm.Printf(
         "UnwindAssemblyInstEmulation::ReadMemory    (addr = 0x%16.16" PRIx64
@@ -335,9 +335,9 @@ size_t UnwindAssemblyInstEmulation::WriteMemory(
                      instruction->GetArchitecture().GetByteOrder(),
                      instruction->GetArchitecture().GetAddressByteSize());
 
-  Log *log = GetLog(LLDBLog::Unwind);
+  
 
-  if (log && log->GetVerbose()) {
+  if (Log *log = GetLog(LLDBLog::Unwind); log && log->GetVerbose()) {
     StreamString strm;
 
     strm.PutCString("UnwindAssemblyInstEmulation::WriteMemory   (");
@@ -413,9 +413,9 @@ bool UnwindAssemblyInstEmulation::ReadRegister(EmulateInstruction *instruction,
                                                RegisterValue &reg_value) {
   bool synthetic = GetRegisterValue(*reg_info, reg_value);
 
-  Log *log = GetLog(LLDBLog::Unwind);
+  
 
-  if (log && log->GetVerbose()) {
+  if (Log *log = GetLog(LLDBLog::Unwind); log && log->GetVerbose()) {
 
     StreamString strm;
     strm.Printf("UnwindAssemblyInstEmulation::ReadRegister  (name = \"%s\") => "
@@ -439,9 +439,9 @@ bool UnwindAssemblyInstEmulation::WriteRegister(
 bool UnwindAssemblyInstEmulation::WriteRegister(
     EmulateInstruction *instruction, const EmulateInstruction::Context &context,
     const RegisterInfo *reg_info, const RegisterValue &reg_value) {
-  Log *log = GetLog(LLDBLog::Unwind);
+  
 
-  if (log && log->GetVerbose()) {
+  if (Log *log = GetLog(LLDBLog::Unwind); log && log->GetVerbose()) {
 
     StreamString strm;
     strm.Printf(
@@ -527,8 +527,8 @@ bool UnwindAssemblyInstEmulation::WriteRegister(
   case EmulateInstruction::eContextPopRegisterOffStack: {
     const uint32_t reg_num =
         reg_info->kinds[m_unwind_plan_ptr->GetRegisterKind()];
-    const uint32_t generic_regnum = reg_info->kinds[eRegisterKindGeneric];
-    if (reg_num != LLDB_INVALID_REGNUM &&
+    
+    if (const uint32_t generic_regnum = reg_info->kinds[eRegisterKindGeneric]; reg_num != LLDB_INVALID_REGNUM &&
         generic_regnum != LLDB_REGNUM_GENERIC_SP) {
       switch (context.GetInfoType()) {
       case EmulateInstruction::eInfoTypeAddress:

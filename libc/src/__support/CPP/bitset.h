@@ -42,9 +42,9 @@ template <size_t NumberOfBits> struct bitset {
   // true. It assumes that Start <= End.
   LIBC_INLINE constexpr void set_range(size_t Start, size_t End) {
     size_t start_index = Start / BITS_PER_UNIT;
-    size_t end_index = End / BITS_PER_UNIT;
+    
 
-    if (start_index == end_index) {
+    if (size_t end_index = End / BITS_PER_UNIT; start_index == end_index) {
       // The reason the left shift is split into two parts (instead of just left
       // shifting by End - Start + 1) is because when a number is shifted left
       // by 64 then it wraps around to doing nothing, but shifting by 63 and the

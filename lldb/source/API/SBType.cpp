@@ -487,9 +487,9 @@ bool SBType::GetDescription(SBStream &description,
                             lldb::DescriptionLevel description_level) {
   LLDB_INSTRUMENT_VA(this, description, description_level);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_sp) {
+  if (Stream &strm = description.ref(); m_opaque_sp) {
     m_opaque_sp->GetDescription(strm, description_level);
   } else
     strm.PutCString("No value");
@@ -658,8 +658,8 @@ lldb::SBType SBType::GetTemplateArgumentType(uint32_t idx) {
     return SBType();
 
   CompilerType type;
-  const bool expand_pack = true;
-  switch(GetTemplateArgumentKind(idx)) {
+  
+  switch(const bool expand_pack = true; GetTemplateArgumentKind(idx)) {
     case eTemplateArgumentKindType:
       type = m_opaque_sp->GetCompilerType(false).GetTypeTemplateArgument(
           idx, expand_pack);
@@ -694,8 +694,8 @@ lldb::SBValue SBType::GetTemplateArgumentValue(lldb::SBTarget target,
     return {};
 
   std::optional<CompilerType::IntegralTemplateArgument> arg;
-  const bool expand_pack = true;
-  switch (GetTemplateArgumentKind(idx)) {
+  
+  switch (const bool expand_pack = true; GetTemplateArgumentKind(idx)) {
   case eTemplateArgumentKindStructuralValue:
   case eTemplateArgumentKindIntegral:
     arg = m_opaque_sp->GetCompilerType(false).GetIntegralTemplateArgument(
@@ -875,9 +875,9 @@ bool SBTypeMember::GetDescription(lldb::SBStream &description,
                                   lldb::DescriptionLevel description_level) {
   LLDB_INSTRUMENT_VA(this, description, description_level);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_up) {
+  if (Stream &strm = description.ref(); m_opaque_up) {
     const uint32_t bit_offset = m_opaque_up->GetBitOffset();
     const uint32_t byte_offset = bit_offset / 8u;
     const uint32_t byte_bit_offset = bit_offset % 8u;
@@ -1023,9 +1023,9 @@ bool SBTypeMemberFunction::GetDescription(
     lldb::SBStream &description, lldb::DescriptionLevel description_level) {
   LLDB_INSTRUMENT_VA(this, description, description_level);
 
-  Stream &strm = description.ref();
+  
 
-  if (m_opaque_sp)
+  if (Stream &strm = description.ref(); m_opaque_sp)
     return m_opaque_sp->GetDescription(strm);
 
   return false;

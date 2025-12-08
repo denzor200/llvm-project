@@ -288,9 +288,9 @@ void FunctionImportGlobalProcessing::processGlobalForThinLTO(GlobalValue &GV) {
       // contains summaries from the source modules if they are being imported.
       // We might have a non-null VI and get here even in that case if the name
       // matches one in this module (e.g. weak or appending linkage).
-      auto *GVS = dyn_cast_or_null<GlobalVarSummary>(
-          ImportIndex.findSummaryInModule(VI, M.getModuleIdentifier()));
-      if (GVS &&
+      
+      if (auto *GVS = dyn_cast_or_null<GlobalVarSummary>(
+          ImportIndex.findSummaryInModule(VI, M.getModuleIdentifier())); GVS &&
           (ImportIndex.isReadOnly(GVS) || ImportIndex.isWriteOnly(GVS))) {
         V->addAttribute("thinlto-internalize");
         // Objects referenced by writeonly GV initializer should not be
@@ -341,8 +341,8 @@ void FunctionImportGlobalProcessing::processGlobalForThinLTO(GlobalValue &GV) {
   // Remove functions imported as available externally defs from comdats,
   // as this is a declaration for the linker, and will be dropped eventually.
   // It is illegal for comdats to contain declarations.
-  auto *GO = dyn_cast<GlobalObject>(&GV);
-  if (GO && GO->isDeclarationForLinker() && GO->hasComdat()) {
+  
+  if (auto *GO = dyn_cast<GlobalObject>(&GV); GO && GO->isDeclarationForLinker() && GO->hasComdat()) {
     // The IRMover should not have placed any imported declarations in
     // a comdat, so the only declaration that should be in a comdat
     // at this point would be a definition imported as available_externally.

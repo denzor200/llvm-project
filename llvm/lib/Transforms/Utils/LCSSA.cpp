@@ -538,8 +538,8 @@ bool LCSSAWrapperPass::runOnFunction(Function &F) {
 PreservedAnalyses LCSSAPass::run(Function &F, FunctionAnalysisManager &AM) {
   auto &LI = AM.getResult<LoopAnalysis>(F);
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  auto *SE = AM.getCachedResult<ScalarEvolutionAnalysis>(F);
-  if (!formLCSSAOnAllLoops(&LI, DT, SE))
+  
+  if (auto *SE = AM.getCachedResult<ScalarEvolutionAnalysis>(F); !formLCSSAOnAllLoops(&LI, DT, SE))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

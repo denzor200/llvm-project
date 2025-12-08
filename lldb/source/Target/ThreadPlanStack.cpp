@@ -414,8 +414,8 @@ void ThreadPlanStackMap::Update(ThreadList &current_threads,
   // Now find all the new threads and add them to the map:
   if (check_for_new) {
     for (auto thread : current_threads.Threads()) {
-      lldb::tid_t cur_tid = thread->GetID();
-      if (!Find(cur_tid)) {
+      
+      if (lldb::tid_t cur_tid = thread->GetID(); !Find(cur_tid)) {
         AddThread(*thread);
         thread->QueueBasePlan(true);
       }

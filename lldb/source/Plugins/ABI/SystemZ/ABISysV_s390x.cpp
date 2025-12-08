@@ -413,9 +413,9 @@ Status ABISysV_s390x::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
     }
     lldb::offset_t offset = 0;
     if (num_bytes <= 8) {
-      uint64_t raw_value = data.GetMaxU64(&offset, num_bytes);
+      
 
-      if (reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
+      if (uint64_t raw_value = data.GetMaxU64(&offset, num_bytes); reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
         set_it_simple = true;
     } else {
       error = Status::FromErrorString(
@@ -501,8 +501,8 @@ ValueObjectSP ABISysV_s390x::GetReturnValueObjectSimple(
         return return_valobj_sp;
       uint64_t raw_value = thread.GetRegisterContext()->ReadRegisterAsUnsigned(
           reg_ctx->GetRegisterInfoByName("r2", 0), 0);
-      const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-      switch (*byte_size) {
+      
+      switch (const bool is_signed = (type_flags & eTypeIsSigned) != 0; *byte_size) {
       default:
         break;
 

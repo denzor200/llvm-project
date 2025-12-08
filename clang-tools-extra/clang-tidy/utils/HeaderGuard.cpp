@@ -32,8 +32,8 @@ public:
                    FileID PrevFID) override {
     // Record all files we enter. We'll need them to diagnose headers without
     // guards.
-    const SourceManager &SM = PP->getSourceManager();
-    if (Reason == EnterFile && FileType == SrcMgr::C_User) {
+    
+    if (const SourceManager &SM = PP->getSourceManager(); Reason == EnterFile && FileType == SrcMgr::C_User) {
       if (OptionalFileEntryRef FE =
               SM.getFileEntryRefForID(SM.getFileID(Loc))) {
         const std::string FileName = cleanPath(FE->getName());

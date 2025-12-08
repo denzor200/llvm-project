@@ -261,8 +261,8 @@ bool ThreadPlanStepInRange::ShouldStop(Event *event_ptr) {
         }
 
         if (bytes_to_skip == 0 && sc.symbol) {
-          const Architecture *arch = GetTarget().GetArchitecturePlugin();
-          if (arch) {
+          
+          if (const Architecture *arch = GetTarget().GetArchitecturePlugin(); arch) {
             Address curr_sec_addr;
             GetTarget().ResolveLoadAddress(curr_addr, curr_sec_addr);
             bytes_to_skip = arch->GetBytesToSkip(*sc.symbol, curr_sec_addr);
@@ -311,15 +311,15 @@ bool ThreadPlanStepInRange::FrameMatchesAvoidCriteria() {
   bool libraries_say_avoid = false;
 
   FileSpecList libraries_to_avoid(GetThread().GetLibrariesToAvoid());
-  size_t num_libraries = libraries_to_avoid.GetSize();
-  if (num_libraries > 0) {
+  
+  if (size_t num_libraries = libraries_to_avoid.GetSize(); num_libraries > 0) {
     SymbolContext sc(frame->GetSymbolContext(eSymbolContextModule));
     FileSpec frame_library(sc.module_sp->GetFileSpec());
 
     if (frame_library) {
       for (size_t i = 0; i < num_libraries; i++) {
-        const FileSpec &file_spec(libraries_to_avoid.GetFileSpecAtIndex(i));
-        if (FileSpec::Match(file_spec, frame_library)) {
+        
+        if (const FileSpec &file_spec(libraries_to_avoid.GetFileSpecAtIndex(i)); FileSpec::Match(file_spec, frame_library)) {
           libraries_say_avoid = true;
           break;
         }
@@ -337,10 +337,10 @@ bool ThreadPlanStepInRange::FrameMatchesAvoidCriteria() {
     SymbolContext sc = frame->GetSymbolContext(
         eSymbolContextFunction | eSymbolContextBlock | eSymbolContextSymbol);
     if (sc.symbol != nullptr) {
-      const char *frame_function_name =
+      
+      if (const char *frame_function_name =
           sc.GetFunctionName(Mangled::ePreferDemangledWithoutArguments)
-              .GetCString();
-      if (frame_function_name) {
+              .GetCString(); frame_function_name) {
         bool return_value = avoid_regexp_to_use->Execute(frame_function_name);
         if (return_value) {
           LLDB_LOGF(GetLog(LLDBLog::Step),
@@ -372,9 +372,9 @@ bool ThreadPlanStepInRange::DefaultShouldStopHereCallback(
 
   if (current_plan->GetKind() == eKindStepInRange &&
       operation == eFrameCompareYounger) {
-    ThreadPlanStepInRange *step_in_range_plan =
-        static_cast<ThreadPlanStepInRange *>(current_plan);
-    if (step_in_range_plan->m_step_into_target) {
+    
+    if (ThreadPlanStepInRange *step_in_range_plan =
+        static_cast<ThreadPlanStepInRange *>(current_plan); step_in_range_plan->m_step_into_target) {
       SymbolContext sc = frame->GetSymbolContext(
           eSymbolContextFunction | eSymbolContextBlock | eSymbolContextSymbol);
       if (sc.symbol != nullptr) {
@@ -385,9 +385,9 @@ bool ThreadPlanStepInRange::DefaultShouldStopHereCallback(
         } else {
           const char *target_name =
               step_in_range_plan->m_step_into_target.AsCString();
-          const char *function_name = sc.GetFunctionName().AsCString();
+          
 
-          if (function_name == nullptr)
+          if (const char *function_name = sc.GetFunctionName().AsCString(); function_name == nullptr)
             should_stop_here = false;
           else if (strstr(function_name, target_name) == nullptr)
             should_stop_here = false;
@@ -443,8 +443,8 @@ bool ThreadPlanStepInRange::DoPlanExplainsStop(Event *event_ptr) {
           return_value = true;
         }
       } else if (IsUsuallyUnexplainedStopReason(reason)) {
-        Log *log = GetLog(LLDBLog::Step);
-        if (log)
+        
+        if (Log *log = GetLog(LLDBLog::Step); log)
           log->PutCString("ThreadPlanStepInRange got asked if it explains the "
                           "stop for some reason other than step.");
         return_value = false;
@@ -489,8 +489,8 @@ bool ThreadPlanStepInRange::DoWillResume(lldb::StateType resume_state,
 bool ThreadPlanStepInRange::IsVirtualStep() {
   if (m_virtual_step == eLazyBoolCalculate) {
     Thread &thread = GetThread();
-    uint32_t cur_inline_depth = thread.GetCurrentInlinedDepth();
-    if (cur_inline_depth == UINT32_MAX || cur_inline_depth == 0)
+    
+    if (uint32_t cur_inline_depth = thread.GetCurrentInlinedDepth(); cur_inline_depth == UINT32_MAX || cur_inline_depth == 0)
       m_virtual_step = eLazyBoolNo;
     else
       m_virtual_step = eLazyBoolYes;

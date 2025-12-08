@@ -721,8 +721,8 @@ Error COFFPlatform::bootstrapCOFFRuntime(JITDylib &PlatformJD) {
 
   // Run static initializers collected in bootstrap stage.
   for (auto KV : JDBootstrapStates) {
-    auto &JDBState = KV.second;
-    if (auto Err = runBootstrapInitializers(JDBState))
+    
+    if (auto &JDBState = KV.second; auto Err = runBootstrapInitializers(JDBState))
       return Err;
   }
 

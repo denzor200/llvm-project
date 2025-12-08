@@ -427,8 +427,8 @@ static bool containsOnlyMatrMultAcc(isl::map PartialSchedule,
 
   auto Accesses = getAccessesInOrder(*Stmt);
   for (auto *MemA = Accesses.begin(); MemA != Accesses.end() - 1; MemA++) {
-    auto *MemAccessPtr = *MemA;
-    if (MemAccessPtr->isLatestArrayKind() && MemAccessPtr != MMI.WriteToC &&
+    
+    if (auto *MemAccessPtr = *MemA; MemAccessPtr->isLatestArrayKind() && MemAccessPtr != MMI.WriteToC &&
         !isMatMulNonScalarReadAccess(MemAccessPtr, MMI) &&
         !(MemAccessPtr->isStrideZero(MapI) &&
           MemAccessPtr->isStrideZero(MapJ) && MemAccessPtr->isStrideZero(MapK)))
@@ -965,8 +965,8 @@ getInductionVariablesSubstitution(isl::schedule_node Node,
   auto Child = Node.child(0);
   auto UnMapOldIndVar = Child.get_prefix_schedule_union_map();
   auto MapOldIndVar = isl::map::from_union_map(UnMapOldIndVar);
-  unsigned Dim = unsignedFromIslSize(MapOldIndVar.range_tuple_dim());
-  if (Dim > 9u)
+  
+  if (unsigned Dim = unsignedFromIslSize(MapOldIndVar.range_tuple_dim()); Dim > 9u)
     return MapOldIndVar.project_out(isl::dim::out, 0, Dim - 9);
   return MapOldIndVar;
 }

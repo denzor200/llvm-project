@@ -163,8 +163,8 @@ Thumb2ITBlock::MoveCopyOutOfITBlock(MachineInstr *MI,
   //   rsb   r1, 0
   //   rsb   r2, 0
   //
-  const MCInstrDesc &MCID = MI->getDesc();
-  if (MI->hasOptionalDef() &&
+  
+  if (const MCInstrDesc &MCID = MI->getDesc(); MI->hasOptionalDef() &&
       MI->getOperand(MCID.getNumOperands() - 1).getReg() == ARM::CPSR)
     return false;
 

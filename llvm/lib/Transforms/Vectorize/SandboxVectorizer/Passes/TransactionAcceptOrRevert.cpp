@@ -28,8 +28,8 @@ bool TransactionAcceptOrRevert::runOnRegion(Region &Rgn, const Analyses &A) {
                     << " (before/after/threshold: " << CostBefore << "/"
                     << CostAfter << "/" << CostThreshold << ")\n");
   // TODO: Print costs / write to remarks.
-  auto &Tracker = Rgn.getContext().getTracker();
-  if (CostAfterMinusBefore < -CostThreshold) {
+  
+  if (auto &Tracker = Rgn.getContext().getTracker(); CostAfterMinusBefore < -CostThreshold) {
     bool HasChanges = !Tracker.empty();
     Tracker.accept();
     LLVM_DEBUG(dbgs() << DEBUG_PREFIX << "*** Transaction Accept ***\n");

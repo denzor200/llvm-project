@@ -326,8 +326,8 @@ Error DataReader::readProfile(BinaryContext &BC) {
 
   uint64_t NumUnused = 0;
   for (const auto &KV : NamesToBranches) {
-    const FuncBranchData &FBD = KV.second;
-    if (!FBD.Used)
+    
+    if (const FuncBranchData &FBD = KV.second; !FBD.Used)
       ++NumUnused;
   }
   BC.setNumUnusedProfiledObjects(NumUnused);
@@ -382,8 +382,8 @@ void DataReader::readProfile(BinaryFunction &BF) {
   // instruction in a predecessor fall-through block is a call. This situation
   // should rarely happen because there are few multiple-entry functions.
   for (const BranchInfo &BI : FBD->EntryData) {
-    BinaryBasicBlock *BB = BF.getBasicBlockAtOffset(BI.To.Offset);
-    if (BB && (BB->isEntryPoint() || BB->isLandingPad())) {
+    
+    if (BinaryBasicBlock *BB = BF.getBasicBlockAtOffset(BI.To.Offset); BB && (BB->isEntryPoint() || BB->isLandingPad())) {
       uint64_t Count = BB->getExecutionCount();
       if (Count == BinaryBasicBlock::COUNT_NO_PROFILE)
         Count = 0;
@@ -492,9 +492,9 @@ bool DataReader::fetchProfileForOtherEntryPoints(BinaryFunction &BF) {
       continue;
     }
     if (BB->isEntryPoint()) {
-      uint64_t EntryAddress = BB->getOffset() + BF.getAddress();
+      
       // Look for branch data associated with this entry point
-      if (BinaryData *BD = BC.getBinaryDataAtAddress(EntryAddress)) {
+      if (uint64_t EntryAddress = BB->getOffset() + BF.getAddress(); BinaryData *BD = BC.getBinaryDataAtAddress(EntryAddress)) {
         if (FuncBranchData *Data = getBranchDataForSymbols(BD->getSymbols())) {
           FBD->appendFrom(*Data, BB->getOffset());
           Data->Used = true;
@@ -719,8 +719,8 @@ bool DataReader::recordBranch(BinaryFunction &BF, uint64_t From, uint64_t To,
     // While building the CFG we make sure these nops are attributed to the
     // previous basic block, thus we check if the destination belongs to the
     // gap past the last instruction.
-    const MCInst *LastInstr = ToBB->getLastNonPseudoInstr();
-    if (LastInstr) {
+    
+    if (const MCInst *LastInstr = ToBB->getLastNonPseudoInstr(); LastInstr) {
       const uint32_t LastInstrOffset =
           BC.MIB->getOffsetWithDefault(*LastInstr, 0);
 
@@ -785,8 +785,8 @@ bool DataReader::recordBranch(BinaryFunction &BF, uint64_t From, uint64_t To,
       return true;
 
     // Allow passthrough blocks.
-    BinaryBasicBlock *FTSuccessor = FromBB->getConditionalSuccessor(false);
-    if (FTSuccessor && FTSuccessor->succ_size() == 1 &&
+    
+    if (BinaryBasicBlock *FTSuccessor = FromBB->getConditionalSuccessor(false); FTSuccessor && FTSuccessor->succ_size() == 1 &&
         FTSuccessor->getSuccessor(ToBB->getLabel())) {
       BinaryBasicBlock::BinaryBranchInfo &FTBI =
           FTSuccessor->getBranchInfo(*ToBB);
@@ -1351,8 +1351,8 @@ DataReader::getMemDataForNamesRegex(const std::vector<StringRef> &FuncNames) {
 
 bool DataReader::hasLocalsWithFileName() const {
   for (const auto &Func : NamesToBranches) {
-    const StringRef &FuncName = Func.first;
-    if (FuncName.count('/') == 2 && FuncName[0] != '/')
+    
+    if (const StringRef &FuncName = Func.first; FuncName.count('/') == 2 && FuncName[0] != '/')
       return true;
   }
   return false;

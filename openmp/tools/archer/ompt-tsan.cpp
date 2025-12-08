@@ -702,8 +702,8 @@ static void ompt_tsan_sync_region(ompt_sync_region_t kind,
                                   ompt_data_t *parallel_data,
                                   ompt_data_t *task_data,
                                   const void *codeptr_ra) {
-  TaskData *Data = ToTaskData(task_data);
-  switch (endpoint) {
+  
+  switch (TaskData *Data = ToTaskData(task_data); endpoint) {
   case ompt_scope_begin:
   case ompt_scope_beginend:
     TsanFuncEntry(codeptr_ra);
@@ -1009,9 +1009,9 @@ static void ompt_tsan_task_schedule(ompt_data_t *first_task_data,
   //
 
   TaskData *FromTask = ToTaskData(first_task_data);
-  TaskData *ToTask = ToTaskData(second_task_data);
+  
 
-  switch (prior_task_status) {
+  switch (TaskData *ToTask = ToTaskData(second_task_data); prior_task_status) {
   case ompt_task_early_fulfill:
     TsanHappensBefore(FromTask->GetTaskPtr());
     FromTask->setFulfilled();

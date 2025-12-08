@@ -391,8 +391,8 @@ getInnerRegionEscapingValues(WarpExecuteOnLane0Op warpOp, Region &innerRegion,
     return {std::move(escapingValues), std::move(escapingValueTypes),
             std::move(escapingValueDistTypes)};
   mlir::visitUsedValuesDefinedAbove(innerRegion, [&](OpOperand *operand) {
-    Operation *parent = operand->get().getParentRegion()->getParentOp();
-    if (warpOp->isAncestor(parent)) {
+    
+    if (Operation *parent = operand->get().getParentRegion()->getParentOp(); warpOp->isAncestor(parent)) {
       if (!escapingValues.insert(operand->get()))
         return;
       Type distType = operand->get().getType();
@@ -1333,10 +1333,10 @@ struct WarpOpExtractStridedSlice : public WarpDistributionPattern {
       int64_t distributedDimOffset =
           llvm::cast<IntegerAttr>(extractOp.getOffsets()[distributedDim])
               .getInt();
-      int64_t distributedDimSize =
+      
+      if (int64_t distributedDimSize =
           llvm::cast<IntegerAttr>(extractOp.getSizes()[distributedDim])
-              .getInt();
-      if (distributedDimOffset != 0 ||
+              .getInt(); distributedDimOffset != 0 ||
           distributedDimSize != yieldedType.getDimSize(distributedDim))
         return rewriter.notifyMatchFailure(
             extractOp, "distributed dimension must be fully extracted");
@@ -2327,10 +2327,10 @@ void mlir::vector::moveScalarUniformCode(WarpExecuteOnLane0Op warpOp) {
   // Do not use walk here, as we do not want to go into nested regions and hoist
   // operations from there.
   for (auto &op : body->without_terminator()) {
-    bool hasVectorResult = llvm::any_of(op.getResults(), [](Value result) {
+    
+    if (bool hasVectorResult = llvm::any_of(op.getResults(), [](Value result) {
       return isa<VectorType>(result.getType());
-    });
-    if (!hasVectorResult && canBeHoisted(&op, isDefinedOutsideOfBody))
+    }); !hasVectorResult && canBeHoisted(&op, isDefinedOutsideOfBody))
       opsToMove.insert(&op);
   }
 

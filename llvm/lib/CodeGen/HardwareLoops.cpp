@@ -277,8 +277,8 @@ PreservedAnalyses HardwareLoopsPass::run(Function &F,
   auto &DL = F.getDataLayout();
 
   HardwareLoopsImpl Impl(SE, LI, true, DT, DL, TTI, TLI, AC, ORE, Opts);
-  bool Changed = Impl.run(F);
-  if (!Changed)
+  
+  if (bool Changed = Impl.run(F); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;
@@ -466,10 +466,10 @@ Value *HardwareLoop::InitLoopCount() {
   BasicBlock *BB = L->getLoopPreheader();
   if (UseLoopGuard && BB->getSinglePredecessor() &&
       cast<BranchInst>(BB->getTerminator())->isUnconditional()) {
-    BasicBlock *Predecessor = BB->getSinglePredecessor();
+    
     // If it's not safe to create a while loop then don't force it and create a
     // do-while loop instead
-    if (!SCEVE.isSafeToExpandAt(ExitCount, Predecessor->getTerminator()))
+    if (BasicBlock *Predecessor = BB->getSinglePredecessor(); !SCEVE.isSafeToExpandAt(ExitCount, Predecessor->getTerminator()))
         UseLoopGuard = false;
     else
         BB = Predecessor;

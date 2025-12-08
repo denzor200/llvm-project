@@ -125,8 +125,8 @@ Register SIOptimizeExecMasking::isCopyFromExec(const MachineInstr &MI) const {
   case AMDGPU::S_MOV_B64_term:
   case AMDGPU::S_MOV_B32:
   case AMDGPU::S_MOV_B32_term: {
-    const MachineOperand &Src = MI.getOperand(1);
-    if (Src.isReg() && Src.getReg() == LMC.ExecReg)
+    
+    if (const MachineOperand &Src = MI.getOperand(1); Src.isReg() && Src.getReg() == LMC.ExecReg)
       return MI.getOperand(0).getReg();
   }
   }
@@ -140,8 +140,8 @@ Register SIOptimizeExecMasking::isCopyToExec(const MachineInstr &MI) const {
   case AMDGPU::COPY:
   case AMDGPU::S_MOV_B64:
   case AMDGPU::S_MOV_B32: {
-    const MachineOperand &Dst = MI.getOperand(0);
-    if (Dst.isReg() && Dst.getReg() == LMC.ExecReg && MI.getOperand(1).isReg())
+    
+    if (const MachineOperand &Dst = MI.getOperand(0); Dst.isReg() && Dst.getReg() == LMC.ExecReg && MI.getOperand(1).isReg())
       return MI.getOperand(1).getReg();
     break;
   }
@@ -165,8 +165,8 @@ static Register isLogicalOpOnExec(const MachineInstr &MI) {
   case AMDGPU::S_NAND_B64:
   case AMDGPU::S_NOR_B64:
   case AMDGPU::S_XNOR_B64: {
-    const MachineOperand &Src1 = MI.getOperand(1);
-    if (Src1.isReg() && Src1.getReg() == AMDGPU::EXEC)
+    
+    if (const MachineOperand &Src1 = MI.getOperand(1); Src1.isReg() && Src1.getReg() == AMDGPU::EXEC)
       return MI.getOperand(0).getReg();
     const MachineOperand &Src2 = MI.getOperand(2);
     if (Src2.isReg() && Src2.getReg() == AMDGPU::EXEC)
@@ -181,8 +181,8 @@ static Register isLogicalOpOnExec(const MachineInstr &MI) {
   case AMDGPU::S_NAND_B32:
   case AMDGPU::S_NOR_B32:
   case AMDGPU::S_XNOR_B32: {
-    const MachineOperand &Src1 = MI.getOperand(1);
-    if (Src1.isReg() && Src1.getReg() == AMDGPU::EXEC_LO)
+    
+    if (const MachineOperand &Src1 = MI.getOperand(1); Src1.isReg() && Src1.getReg() == AMDGPU::EXEC_LO)
       return MI.getOperand(0).getReg();
     const MachineOperand &Src2 = MI.getOperand(2);
     if (Src2.isReg() && Src2.getReg() == AMDGPU::EXEC_LO)
@@ -520,8 +520,8 @@ bool SIOptimizeExecMasking::optimizeExecSequence() {
           break;
         }
 
-        unsigned SaveExecOp = getSaveExecOp(J->getOpcode());
-        if (SaveExecOp == AMDGPU::INSTRUCTION_LIST_END)
+        
+        if (unsigned SaveExecOp = getSaveExecOp(J->getOpcode()); SaveExecOp == AMDGPU::INSTRUCTION_LIST_END)
           break;
 
         if (ReadsCopyFromExec) {
@@ -754,9 +754,9 @@ void SIOptimizeExecMasking::tryRecordOrSaveexecXorSequence(MachineInstr &MI) {
   if (MI.getOpcode() == LMC.XorOpc && &MI != &MI.getParent()->front()) {
     const MachineOperand &XorDst = MI.getOperand(0);
     const MachineOperand &XorSrc0 = MI.getOperand(1);
-    const MachineOperand &XorSrc1 = MI.getOperand(2);
+    
 
-    if (XorDst.isReg() && XorDst.getReg() == LMC.ExecReg && XorSrc0.isReg() &&
+    if (const MachineOperand &XorSrc1 = MI.getOperand(2); XorDst.isReg() && XorDst.getReg() == LMC.ExecReg && XorSrc0.isReg() &&
         XorSrc1.isReg() &&
         (XorSrc0.getReg() == LMC.ExecReg || XorSrc1.getReg() == LMC.ExecReg)) {
 

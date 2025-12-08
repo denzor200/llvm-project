@@ -22,8 +22,8 @@ using namespace llvm;
 static std::optional<PseudoProbe>
 extractProbeFromDiscriminator(const DILocation *DIL) {
   if (DIL) {
-    auto Discriminator = DIL->getDiscriminator();
-    if (DILocation::isPseudoProbeDiscriminator(Discriminator)) {
+    
+    if (auto Discriminator = DIL->getDiscriminator(); DILocation::isPseudoProbeDiscriminator(Discriminator)) {
       PseudoProbe Probe;
       Probe.Id =
           PseudoProbeDwarfDiscriminator::extractProbeIndex(Discriminator);
@@ -85,8 +85,8 @@ void llvm::setProbeDistributionFactor(Instruction &Inst, float Factor) {
   } else if (isa<CallBase>(&Inst) && !isa<IntrinsicInst>(&Inst)) {
     if (const DebugLoc &DLoc = Inst.getDebugLoc()) {
       const DILocation *DIL = DLoc;
-      auto Discriminator = DIL->getDiscriminator();
-      if (DILocation::isPseudoProbeDiscriminator(Discriminator)) {
+      
+      if (auto Discriminator = DIL->getDiscriminator(); DILocation::isPseudoProbeDiscriminator(Discriminator)) {
         auto Index =
             PseudoProbeDwarfDiscriminator::extractProbeIndex(Discriminator);
         auto Type =

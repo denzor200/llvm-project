@@ -181,8 +181,8 @@ const char *skipHTMLQuotedString(const char *BufferPtr, const char *BufferEnd)
 
   BufferPtr++;
   for ( ; BufferPtr != BufferEnd; ++BufferPtr) {
-    const char C = *BufferPtr;
-    if (C == Quote && BufferPtr[-1] != '\\')
+    
+    if (const char C = *BufferPtr; C == Quote && BufferPtr[-1] != '\\')
       return BufferPtr;
   }
   return BufferEnd;
@@ -450,8 +450,8 @@ void Lexer::lexCommentText(Token &T) {
         formTextToken(T, TokenPtr);
         return;
       }
-      const char C = *TokenPtr;
-      if (isHTMLIdentifierStartingCharacter(C))
+      
+      if (const char C = *TokenPtr; isHTMLIdentifierStartingCharacter(C))
         setupAndLexHTMLStartTag(T);
       else if (C == '/')
         setupAndLexHTMLEndTag(T);
@@ -582,8 +582,8 @@ void Lexer::lexHTMLCharacterReference(Token &T) {
   const char *NamePtr;
   bool isNamed = false;
   bool isDecimal = false;
-  char C = *TokenPtr;
-  if (isHTMLNamedCharacterReferenceCharacter(C)) {
+  
+  if (char C = *TokenPtr; isHTMLNamedCharacterReferenceCharacter(C)) {
     NamePtr = TokenPtr;
     TokenPtr = skipNamedCharacterReference(TokenPtr, CommentEnd);
     isNamed = true;
@@ -652,8 +652,8 @@ void Lexer::setupAndLexHTMLStartTag(Token &T) {
     return;
   }
 
-  const char C = *BufferPtr;
-  if (BufferPtr != CommentEnd &&
+  
+  if (const char C = *BufferPtr; BufferPtr != CommentEnd &&
       (C == '>' || C == '/' || isVerticalWhitespace(C) ||
        isHTMLIdentifierStartingCharacter(C)))
     State = LS_HTMLStartTag;
@@ -794,8 +794,8 @@ again:
         // It might be missing because of a typo //< or /*<, or because we
         // merged this non-Doxygen comment into a bunch of Doxygen comments
         // around it: /** ... */ /* ... */ /** ... */
-        const char C = *BufferPtr;
-        if (C == '/' || C == '!')
+        
+        if (const char C = *BufferPtr; C == '/' || C == '!')
           BufferPtr++;
       }
 
@@ -824,8 +824,8 @@ again:
       BufferPtr++; // Skip star.
 
       // Skip Doxygen magic marker.
-      const char C = *BufferPtr;
-      if ((C == '*' && *(BufferPtr + 1) != '/') || C == '!')
+      
+      if (const char C = *BufferPtr; (C == '*' && *(BufferPtr + 1) != '/') || C == '!')
         BufferPtr++;
 
       // Skip less-than symbol that marks trailing comments.

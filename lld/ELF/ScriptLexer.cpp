@@ -60,8 +60,8 @@ ScriptLexer::ScriptLexer(Ctx &ctx, MemoryBufferRef mb)
 StringRef ScriptLexer::getLine() {
   StringRef s = getCurrentMB().getBuffer();
 
-  size_t pos = s.rfind('\n', prevTok.data() - s.data());
-  if (pos != StringRef::npos)
+  
+  if (size_t pos = s.rfind('\n', prevTok.data() - s.data()); pos != StringRef::npos)
     s = s.substr(pos + 1);
   return s.substr(0, s.find_first_of("\r\n"));
 }

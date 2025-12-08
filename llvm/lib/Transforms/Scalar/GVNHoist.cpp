@@ -420,8 +420,8 @@ private:
       const VNType &VN = R;
       SmallPtrSet<BasicBlock *, 2> VNBlocks;
       for (const auto &I : V) {
-        BasicBlock *BBI = I->getParent();
-        if (!hasEH(BBI))
+        
+        if (BasicBlock *BBI = I->getParent(); !hasEH(BBI))
           VNBlocks.insert(BBI);
       }
       // Compute the Post Dominance Frontiers of each basic block
@@ -556,8 +556,8 @@ unsigned int GVNHoist::rank(const Value *V) const {
 
   // Need to shift the instruction DFS by number of arguments + 3 to account
   // for the constant and argument ranking above.
-  auto Result = DFSNumber.lookup(V);
-  if (Result > 0)
+  
+  if (auto Result = DFSNumber.lookup(V); Result > 0)
     return 4 + NumFuncArgs + Result;
   // Unreachable or something else, just return a really large number.
   return ~0;
@@ -807,8 +807,8 @@ void GVNHoist::fillChiArgs(BasicBlock *BB, OutValuesType &CHIBBs,
     // Pop the stack until Top(V) = Ve.
     auto &VCHI = P->second;
     for (auto It = VCHI.begin(), E = VCHI.end(); It != E;) {
-      CHIArg &C = *It;
-      if (!C.Dest) {
+      
+      if (CHIArg &C = *It; !C.Dest) {
         auto si = RenameStack.find(C.VN);
         // The Basic Block where CHI is must dominate the value we want to
         // track in a CHI. In the PDom walk, there can be values in the

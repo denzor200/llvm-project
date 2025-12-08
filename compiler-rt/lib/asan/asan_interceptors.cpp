@@ -73,8 +73,8 @@ static inline uptr MaybeRealWcsnlen(const wchar_t* s, uptr maxlen) {
 }
 
 void SetThreadName(const char *name) {
-  AsanThread *t = GetCurrentThread();
-  if (t)
+  
+  if (AsanThread *t = GetCurrentThread(); t)
     asanThreadRegistry().SetThreadName(t->tid(), name);
 }
 
@@ -163,9 +163,9 @@ static void* mmap_interceptor(Mmap real_mmap, void *addr, SIZE_T length,
   if (length && res != (void *)-1) {
     const uptr beg = reinterpret_cast<uptr>(res);
     DCHECK(IsAligned(beg, GetPageSize()));
-    SIZE_T rounded_length = RoundUpTo(length, GetPageSize());
+    
     // Only unpoison shadow if it's an ASAN managed address.
-    if (AddrIsInMem(beg) && AddrIsInMem(beg + rounded_length - 1))
+    if (SIZE_T rounded_length = RoundUpTo(length, GetPageSize()); AddrIsInMem(beg) && AddrIsInMem(beg + rounded_length - 1))
       PoisonShadow(beg, RoundUpTo(length, GetPageSize()), 0);
   }
   return res;
@@ -175,11 +175,11 @@ template <class Munmap>
 static int munmap_interceptor(Munmap real_munmap, void *addr, SIZE_T length) {
   // We should not tag if munmap fail, but it's to late to tag after
   // real_munmap, as the pages could be mmaped by another thread.
-  const uptr beg = reinterpret_cast<uptr>(addr);
-  if (length && IsAligned(beg, GetPageSize())) {
-    SIZE_T rounded_length = RoundUpTo(length, GetPageSize());
+  
+  if (const uptr beg = reinterpret_cast<uptr>(addr); length && IsAligned(beg, GetPageSize())) {
+    
     // Protect from unmapping the shadow.
-    if (AddrIsInMem(beg) && AddrIsInMem(beg + rounded_length - 1))
+    if (SIZE_T rounded_length = RoundUpTo(length, GetPageSize()); AddrIsInMem(beg) && AddrIsInMem(beg + rounded_length - 1))
       PoisonShadow(beg, rounded_length, 0);
   }
   return real_munmap(addr, length);

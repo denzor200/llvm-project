@@ -149,10 +149,10 @@ static bool isCComplexTypeMatching(const ComplexType *const Complex,
       {BuiltinType::Double, "MPI_C_DOUBLE_COMPLEX"},
       {BuiltinType::LongDouble, "MPI_C_LONG_DOUBLE_COMPLEX"}};
 
-  const auto *Builtin =
-      Complex->getElementType().getTypePtr()->getAs<BuiltinType>();
+  
 
-  if (Builtin &&
+  if (const auto *Builtin =
+      Complex->getElementType().getTypePtr()->getAs<BuiltinType>(); Builtin &&
       !isMPITypeMatching(ComplexCMatches, Builtin->getKind(), MPIDatatype)) {
     BufferTypeName = (llvm::Twine(Builtin->getName(LO)) + " _Complex").str();
     return false;
@@ -181,12 +181,12 @@ isCXXComplexTypeMatching(const TemplateSpecializationType *const Template,
   if (Template->getAsCXXRecordDecl()->getName() != "complex")
     return true;
 
-  const auto *Builtin = Template->template_arguments()[0]
+  
+
+  if (const auto *Builtin = Template->template_arguments()[0]
                             .getAsType()
                             .getTypePtr()
-                            ->getAs<BuiltinType>();
-
-  if (Builtin &&
+                            ->getAs<BuiltinType>(); Builtin &&
       !isMPITypeMatching(ComplexCXXMatches, Builtin->getKind(), MPIDatatype)) {
     BufferTypeName =
         (llvm::Twine("complex<") + Builtin->getName(LO) + ">").str();

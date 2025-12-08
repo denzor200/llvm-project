@@ -107,8 +107,8 @@ public:
     // force a relocation.
     if (Target.getSpecifier())
       return true;
-    MCFixupKind Kind = Fixup.getKind();
-    switch ((unsigned)Kind) {
+    
+    switch (MCFixupKind Kind = Fixup.getKind(); (unsigned)Kind) {
     default:
       return false;
     case PPC::fixup_ppc_br24:
@@ -122,8 +122,8 @@ public:
           // The "other" values are stored in the last 6 bits of the second
           // byte. The traditional defines for STO values assume the full byte
           // and thus the shift to pack it.
-          unsigned Other = static_cast<const MCSymbolELF *>(A)->getOther() << 2;
-          if ((Other & ELF::STO_PPC64_LOCAL_MASK) != 0)
+          
+          if (unsigned Other = static_cast<const MCSymbolELF *>(A)->getOther() << 2; (Other & ELF::STO_PPC64_LOCAL_MASK) != 0)
             return true;
         } else if (getContext().isXCOFF()) {
           auto *S = static_cast<const MCSymbolXCOFF *>(A);

@@ -107,7 +107,9 @@ static int sectionOrder(OutputSection *osec) {
     // that certain sections are placed in a particular order, even if they
     // are also categorized as code sections. This explicit ordering takes
     // precedence over the general code section ordering.
-    int knownPriority =
+    
+
+    if (int knownPriority =
         StringSwitch<int>(osec->name)
             .Case(section_names::stubs, -4)
             .Case(section_names::stubHelper, -3)
@@ -116,9 +118,7 @@ static int sectionOrder(OutputSection *osec) {
             .Case(section_names::unwindInfo,
                   std::numeric_limits<int>::max() - 1)
             .Case(section_names::ehFrame, std::numeric_limits<int>::max())
-            .Default(0);
-
-    if (knownPriority != 0)
+            .Default(0); knownPriority != 0)
       return knownPriority;
 
     // Ensure all code sections are contiguous with `__text` for thunk

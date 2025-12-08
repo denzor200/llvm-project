@@ -117,8 +117,8 @@ namespace {
         // C++ [namespace.udir]p1:
         //   A using-directive shall not appear in class scope, but may
         //   appear in namespace scope or in block scope.
-        DeclContext *Ctx = S->getEntity();
-        if (Ctx && Ctx->isFileContext()) {
+        
+        if (DeclContext *Ctx = S->getEntity(); Ctx && Ctx->isFileContext()) {
           visit(Ctx, Ctx);
         } else if (!Ctx || Ctx->isFunctionOrMethod()) {
           for (auto *I : S->using_directives())
@@ -161,8 +161,8 @@ namespace {
       SmallVector<DeclContext*, 4> queue;
       while (true) {
         for (auto *UD : DC->using_directives()) {
-          DeclContext *NS = UD->getNominatedNamespace();
-          if (SemaRef.isVisible(UD) && visited.insert(NS).second) {
+          
+          if (DeclContext *NS = UD->getNominatedNamespace(); SemaRef.isVisible(UD) && visited.insert(NS).second) {
             addUsingDirective(UD, EffectiveDC);
             queue.push_back(NS);
           }
@@ -406,9 +406,9 @@ static bool isPreferredLookupResult(Sema &S, Sema::LookupNameKind Kind,
   if (const auto *DFD = dyn_cast<FunctionDecl>(DUnderlying)) {
     const auto *EFD = cast<FunctionDecl>(EUnderlying);
     unsigned DMin = DFD->getMinRequiredArguments();
-    unsigned EMin = EFD->getMinRequiredArguments();
+    
     // If D has more default arguments, it is preferred.
-    if (DMin != EMin)
+    if (unsigned EMin = EFD->getMinRequiredArguments(); DMin != EMin)
       return DMin < EMin;
     // FIXME: When we track visibility for default function arguments, check
     // that we pick the declaration with more visible default arguments.
@@ -418,11 +418,11 @@ static bool isPreferredLookupResult(Sema &S, Sema::LookupNameKind Kind,
   if (const auto *DTD = dyn_cast<TemplateDecl>(DUnderlying)) {
     const auto *ETD = cast<TemplateDecl>(EUnderlying);
     unsigned DMin = DTD->getTemplateParameters()->getMinRequiredArguments();
-    unsigned EMin = ETD->getTemplateParameters()->getMinRequiredArguments();
+    
     // If D has more default arguments, it is preferred. Note that default
     // arguments (and their visibility) is monotonically increasing across the
     // redeclaration chain, so this is a quick proxy for "is more recent".
-    if (DMin != EMin)
+    if (unsigned EMin = ETD->getTemplateParameters()->getMinRequiredArguments(); DMin != EMin)
       return DMin < EMin;
     // If D has more *visible* default arguments, it is preferred. Note, an
     // earlier default argument being visible does not imply that a later
@@ -440,8 +440,8 @@ static bool isPreferredLookupResult(Sema &S, Sema::LookupNameKind Kind,
   // VarDecl can have incomplete array types, prefer the one with more complete
   // array type.
   if (const auto *DVD = dyn_cast<VarDecl>(DUnderlying)) {
-    const auto *EVD = cast<VarDecl>(EUnderlying);
-    if (EVD->getType()->isIncompleteType() &&
+    
+    if (const auto *EVD = cast<VarDecl>(EUnderlying); EVD->getType()->isIncompleteType() &&
         !DVD->getType()->isIncompleteType()) {
       // Prefer the decl with a more complete type if visible.
       return S.isVisible(DVD);
@@ -1576,8 +1576,8 @@ void Sema::makeMergedDefinitionVisible(NamedDecl *ND) {
       ED && ED->isFromGlobalModule() && !ED->isScoped()) {
     for (auto *ECD : ED->enumerators()) {
       ECD->setVisibleDespiteOwningModule();
-      DeclContext *RedeclCtx = ED->getDeclContext()->getRedeclContext();
-      if (RedeclCtx->lookup(ECD->getDeclName()).empty())
+      
+      if (DeclContext *RedeclCtx = ED->getDeclContext()->getRedeclContext(); RedeclCtx->lookup(ECD->getDeclName()).empty())
         RedeclCtx->makeDeclVisibleInContext(ECD);
     }
   }
@@ -2096,11 +2096,11 @@ static NamedDecl *findAcceptableDecl(Sema &SemaRef, NamedDecl *D,
     if (RD == D)
       continue;
 
-    auto ND = cast<NamedDecl>(RD);
+    
     // FIXME: This is wrong in the case where the previous declaration is not
     // visible in the same scope as D. This needs to be done much more
     // carefully.
-    if (ND->isInIdentifierNamespace(IDNS) &&
+    if (auto ND = cast<NamedDecl>(RD); ND->isInIdentifierNamespace(IDNS) &&
         LookupResult::isAvailableForLookup(SemaRef, ND))
       return ND;
   }
@@ -2287,9 +2287,9 @@ bool Sema::LookupName(LookupResult &R, Scope *S, bool AllowBuiltinCreation,
                 break;
             } else {
               // Match based on DeclContext.
-              DeclContext *LastDC
-                = (*LastI)->getDeclContext()->getRedeclContext();
-              if (!LastDC->Equals(DC))
+              
+              if (DeclContext *LastDC
+                = (*LastI)->getDeclContext()->getRedeclContext(); !LastDC->Equals(DC))
                 break;
             }
 
@@ -2364,8 +2364,8 @@ static bool LookupQualifiedNameInUsingDirectives(Sema &S, LookupResult &R,
   // We have already looked into the initial namespace; seed the queue
   // with its using-children.
   for (auto *I : StartDC->using_directives()) {
-    NamespaceDecl *ND = I->getNominatedNamespace()->getFirstDecl();
-    if (S.isVisible(I) && Visited.insert(ND).second)
+    
+    if (NamespaceDecl *ND = I->getNominatedNamespace()->getFirstDecl(); S.isVisible(I) && Visited.insert(ND).second)
       Queue.push_back(ND);
   }
 
@@ -2412,8 +2412,8 @@ static bool LookupQualifiedNameInUsingDirectives(Sema &S, LookupResult &R,
     }
 
     for (auto *I : ND->using_directives()) {
-      NamespaceDecl *Nom = I->getNominatedNamespace();
-      if (S.isVisible(I) && Visited.insert(Nom).second)
+      
+      if (NamespaceDecl *Nom = I->getNominatedNamespace(); S.isVisible(I) && Visited.insert(Nom).second)
         Queue.push_back(Nom);
     }
   }
@@ -2943,7 +2943,7 @@ static void CollectEnclosingNamespace(Sema::AssociatedNamespaceSet &Namespaces,
   DeclContext *PrimaryCtx = Ctx->getPrimaryContext();
   Decl *PrimaryD = cast<Decl>(PrimaryCtx);
   Decl *D = cast<Decl>(Ctx);
-  ASTContext &AST = D->getASTContext();
+  
 
   // TODO: Technically it is better to insert one namespace per module. e.g.,
   //
@@ -2983,7 +2983,7 @@ static void CollectEnclosingNamespace(Sema::AssociatedNamespaceSet &Namespaces,
   // ```
   //
   // We should only insert once for all namespaces in module m.
-  if (D->isInNamedModule() &&
+  if (ASTContext &AST = D->getASTContext(); D->isInNamedModule() &&
       !AST.isInSameModule(D->getOwningModule(), PrimaryD->getOwningModule()))
     Namespaces.insert(Ctx);
   else
@@ -3732,8 +3732,8 @@ Sema::LookupLiteralOperator(Scope *S, LookupResult &R,
       }
     }
     if (FunctionTemplateDecl *FD = dyn_cast<FunctionTemplateDecl>(D)) {
-      TemplateParameterList *Params = FD->getTemplateParameters();
-      if (Params->size() == 1) {
+      
+      if (TemplateParameterList *Params = FD->getTemplateParameters(); Params->size() == 1) {
         IsTemplate = true;
         if (!Params->getParam(0)->isTemplateParameterPack() && !StringLit) {
           // Implied but not stated: user-defined integer and floating literals
@@ -4676,8 +4676,8 @@ void TypoCorrectionConsumer::addName(StringRef Name, NamedDecl *ND,
   // Use a simple length-based heuristic to determine the minimum possible
   // edit distance. If the minimum isn't good enough, bail out early.
   StringRef TypoStr = Typo->getName();
-  unsigned MinED = abs((int)Name.size() - (int)TypoStr.size());
-  if (MinED && TypoStr.size() / MinED < 3)
+  
+  if (unsigned MinED = abs((int)Name.size() - (int)TypoStr.size()); MinED && TypoStr.size() / MinED < 3)
     return;
 
   // Compute an upper bound on the allowable edit distance, so that the
@@ -4718,10 +4718,10 @@ void TypoCorrectionConsumer::addCorrection(TypoCorrection Correction) {
   if (!CList.empty() && !CList.back().isResolved())
     CList.pop_back();
   if (NamedDecl *NewND = Correction.getCorrectionDecl()) {
-    auto RI = llvm::find_if(CList, [NewND](const TypoCorrection &TypoCorr) {
+    
+    if (auto RI = llvm::find_if(CList, [NewND](const TypoCorrection &TypoCorr) {
       return TypoCorr.getCorrectionDecl() == NewND;
-    });
-    if (RI != CList.end()) {
+    }); RI != CList.end()) {
       // The Correction refers to a decl already in the list. No insertion is
       // necessary and all further cases will return.
 
@@ -4774,8 +4774,8 @@ void TypoCorrectionConsumer::addNamespaces(
   // invalid iterators into this list.
   auto &Types = SemaRef.getASTContext().getTypes();
   for (unsigned I = 0; I != Types.size(); ++I) {
-    const auto *TI = Types[I];
-    if (CXXRecordDecl *CD = TI->getAsCXXRecordDecl()) {
+    
+    if (const auto *TI = Types[I]; CXXRecordDecl *CD = TI->getAsCXXRecordDecl()) {
       CD = CD->getCanonicalDecl();
       if (!CD->isDependentType() && !CD->isAnonymousStructOrUnion() &&
           !CD->isUnion() && CD->getIdentifier() &&
@@ -4969,8 +4969,8 @@ auto TypoCorrectionConsumer::NamespaceSpecifierSet::buildContextChain(
   DeclContextList Chain;
   for (DeclContext *DC = Start->getPrimaryContext(); DC != nullptr;
        DC = DC->getLookupParent()) {
-    NamespaceDecl *ND = dyn_cast_or_null<NamespaceDecl>(DC);
-    if (!DC->isInlineNamespace() && !DC->isTransparentContext() &&
+    
+    if (NamespaceDecl *ND = dyn_cast_or_null<NamespaceDecl>(DC); !DC->isInlineNamespace() && !DC->isTransparentContext() &&
         !(ND && ND->isAnonymousNamespace()))
       Chain.push_back(DC->getPrimaryContext());
   }
@@ -5620,8 +5620,8 @@ bool FunctionCallFilterCCC::ValidateCandidate(const TypoCorrection &candidate) {
                 : dyn_cast_if_present<CXXMethodDecl>(CurContext);
         const CXXRecordDecl *CurRD =
             CurMD ? CurMD->getParent()->getCanonicalDecl() : nullptr;
-        const CXXRecordDecl *RD = MD->getParent()->getCanonicalDecl();
-        if (!CurRD || (CurRD != RD && !CurRD->isDerivedFrom(RD)))
+        
+        if (const CXXRecordDecl *RD = MD->getParent()->getCanonicalDecl(); !CurRD || (CurRD != RD && !CurRD->isDerivedFrom(RD)))
           continue;
       }
     }

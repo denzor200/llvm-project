@@ -189,8 +189,8 @@ public:
     Scaled64 getOpCostOnBranch(
         bool IsTrue, const DenseMap<const Instruction *, CostInfo> &InstCostMap,
         const TargetTransformInfo *TTI) {
-      auto *V = IsTrue ? getTrueValue() : getFalseValue();
-      if (V) {
+      
+      if (auto *V = IsTrue ? getTrueValue() : getFalseValue(); V) {
         if (auto *IV = dyn_cast<Instruction>(V)) {
           auto It = InstCostMap.find(IV);
           return It != InstCostMap.end() ? It->second.NonPredCost
@@ -436,8 +436,8 @@ void SelectOptimizeImpl::optimizeSelectsBase(Function &F,
   SelectGroups SIGroups;
   for (BasicBlock &BB : F) {
     // Base heuristics apply only to non-loops and outer loops.
-    Loop *L = LI->getLoopFor(&BB);
-    if (L && L->isInnermost())
+    
+    if (Loop *L = LI->getLoopFor(&BB); L && L->isInnermost())
       continue;
     collectSelectGroups(BB, SIGroups);
   }
@@ -480,8 +480,8 @@ static Value *getTrueOrFalseValue(
     SelectOptimizeImpl::SelectLike &SI, bool isTrue,
     SmallDenseMap<Instruction *, std::pair<Value *, Value *>, 2> &OptSelects,
     BasicBlock *B) {
-  Value *V = isTrue ? SI.getTrueValue() : SI.getFalseValue();
-  if (V) {
+  
+  if (Value *V = isTrue ? SI.getTrueValue() : SI.getFalseValue(); V) {
     if (auto *IV = dyn_cast<Instruction>(V))
       if (auto It = OptSelects.find(IV); It != OptSelects.end())
         return isTrue ? It->second.first : It->second.second;
@@ -1047,8 +1047,8 @@ bool SelectOptimizeImpl::isConvertToBranchProfitableBase(
   // to convert it to branches. We let `optimizeSelectsInnerLoops` decide if
   // conversion is profitable for innermost loops.
   auto *BB = SI.getI()->getParent();
-  auto *L = LI->getLoopFor(BB);
-  if (L && !L->isInnermost() && L->getLoopLatch() == BB &&
+  
+  if (auto *L = LI->getLoopFor(BB); L && !L->isInnermost() && L->getLoopLatch() == BB &&
       ASI.Selects.size() >= 3) {
     OR << "Converted to branch because select group in the latch block is big.";
     EmitAndPrintRemark(ORE, OR);
@@ -1197,8 +1197,8 @@ bool SelectOptimizeImpl::isSelectHighlyPredictable(const SelectLike SI) {
   uint64_t TrueWeight, FalseWeight;
   if (extractBranchWeights(SI, TrueWeight, FalseWeight)) {
     uint64_t Max = std::max(TrueWeight, FalseWeight);
-    uint64_t Sum = TrueWeight + FalseWeight;
-    if (Sum != 0) {
+    
+    if (uint64_t Sum = TrueWeight + FalseWeight; Sum != 0) {
       auto Probability = BranchProbability::getBranchProbability(Max, Sum);
       if (Probability > TTI->getPredictableBranchThreshold())
         return true;
@@ -1417,8 +1417,8 @@ SelectOptimizeImpl::getPredictedPathCost(Scaled64 TrueCost, Scaled64 FalseCost,
   Scaled64 PredPathCost;
   uint64_t TrueWeight, FalseWeight;
   if (extractBranchWeights(SI, TrueWeight, FalseWeight)) {
-    uint64_t SumWeight = TrueWeight + FalseWeight;
-    if (SumWeight != 0) {
+    
+    if (uint64_t SumWeight = TrueWeight + FalseWeight; SumWeight != 0) {
       PredPathCost = TrueCost * Scaled64::get(TrueWeight) +
                      FalseCost * Scaled64::get(FalseWeight);
       PredPathCost /= Scaled64::get(SumWeight);

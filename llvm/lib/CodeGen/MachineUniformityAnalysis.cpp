@@ -102,8 +102,8 @@ bool llvm::GenericUniformityAnalysisImpl<MachineSSAContext>::usesValueFromCycle(
     if (Reg.isPhysical())
       return true;
 
-    auto *Def = F.getRegInfo().getVRegDef(Reg);
-    if (DefCycle.contains(Def->getParent()))
+    
+    if (auto *Def = F.getRegInfo().getVRegDef(Reg); DefCycle.contains(Def->getParent()))
       return true;
   }
   return false;

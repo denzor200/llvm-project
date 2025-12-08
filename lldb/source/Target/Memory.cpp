@@ -112,10 +112,10 @@ bool MemoryCache::RemoveInvalidRange(lldb::addr_t base_addr,
                                      lldb::addr_t byte_size) {
   if (byte_size > 0) {
     std::lock_guard<std::recursive_mutex> guard(m_mutex);
-    const uint32_t idx = m_invalid_ranges.FindEntryIndexThatContains(base_addr);
-    if (idx != UINT32_MAX) {
-      const InvalidRanges::Entry *entry = m_invalid_ranges.GetEntryAtIndex(idx);
-      if (entry->GetRangeBase() == base_addr &&
+    
+    if (const uint32_t idx = m_invalid_ranges.FindEntryIndexThatContains(base_addr); idx != UINT32_MAX) {
+      
+      if (const InvalidRanges::Entry *entry = m_invalid_ranges.GetEntryAtIndex(idx); entry->GetRangeBase() == base_addr &&
           entry->GetByteSize() == byte_size)
         return m_invalid_ranges.RemoveEntryAtIndex(idx);
     }
@@ -287,8 +287,8 @@ lldb::addr_t AllocatedBlock::ReserveBlock(uint32_t size) {
   for (size_t i=0; i<free_count; ++i)
   {
     auto &free_block = m_free_blocks.GetEntryRef(i);
-    const lldb::addr_t range_size = free_block.GetByteSize();
-    if (range_size >= size)
+    
+    if (const lldb::addr_t range_size = free_block.GetByteSize(); range_size >= size)
     {
       // We found a free block that is big enough for our data. Figure out how
       // many chunks we will need and calculate the resulting block size we
@@ -296,8 +296,8 @@ lldb::addr_t AllocatedBlock::ReserveBlock(uint32_t size) {
       addr_t addr = free_block.GetRangeBase();
       size_t num_chunks = CalculateChunksNeededForSize(size);
       lldb::addr_t block_size = num_chunks * m_chunk_size;
-      lldb::addr_t bytes_left = range_size - block_size;
-      if (bytes_left == 0)
+      
+      if (lldb::addr_t bytes_left = range_size - block_size; bytes_left == 0)
       {
         // The newly allocated block will take all of the bytes in this
         // available block, so we can just add it to the allocated ranges and
@@ -330,8 +330,8 @@ lldb::addr_t AllocatedBlock::ReserveBlock(uint32_t size) {
 
 bool AllocatedBlock::FreeBlock(addr_t addr) {
   bool success = false;
-  auto entry_idx = m_reserved_blocks.FindEntryIndexThatContains(addr);
-  if (entry_idx != UINT32_MAX)
+  
+  if (auto entry_idx = m_reserved_blocks.FindEntryIndexThatContains(addr); entry_idx != UINT32_MAX)
   {
     m_free_blocks.Insert(m_reserved_blocks.GetEntryRef(entry_idx), true);
     m_reserved_blocks.RemoveEntryAtIndex(entry_idx);
@@ -367,8 +367,8 @@ AllocatedMemoryCache::AllocatePage(uint32_t byte_size, uint32_t permissions,
 
   addr_t addr = m_process.DoAllocateMemory(page_byte_size, permissions, error);
 
-  Log *log = GetLog(LLDBLog::Process);
-  if (log) {
+  
+  if (Log *log = GetLog(LLDBLog::Process); log) {
     LLDB_LOGF(log,
               "Process::DoAllocateMemory (byte_size = 0x%8.8" PRIx32
               ", permissions = %s) => 0x%16.16" PRIx64,

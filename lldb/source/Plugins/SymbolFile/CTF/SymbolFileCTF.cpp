@@ -355,8 +355,8 @@ SymbolFileCTF::CreateInteger(const CTFInteger &ctf_integer) {
           llvm::inconvertibleErrorCode());
 
     // Make sure the signing matches between the CTF and the compiler type.
-    const bool type_is_signed = (ctf_integer.encoding & IntEncoding::eSigned);
-    if (compiler_type_is_signed != type_is_signed)
+    
+    if (const bool type_is_signed = (ctf_integer.encoding & IntEncoding::eSigned); compiler_type_is_signed != type_is_signed)
       return llvm::make_error<llvm::StringError>(
           llvm::formatv("Found integer compiler type for {0} but compiler type "
                         "is {1} and {0} is {2}",

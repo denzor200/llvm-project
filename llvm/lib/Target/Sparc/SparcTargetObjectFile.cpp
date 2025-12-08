@@ -31,8 +31,8 @@ const MCExpr *SparcELFTargetObjectFile::getTTypeGlobalReference(
 
     // Add information about the stub reference to ELFMMI so that the stub
     // gets emitted by the asmprinter.
-    MachineModuleInfoImpl::StubValueTy &StubSym = ELFMMI.getGVStubEntry(SSym);
-    if (!StubSym.getPointer()) {
+    
+    if (MachineModuleInfoImpl::StubValueTy &StubSym = ELFMMI.getGVStubEntry(SSym); !StubSym.getPointer()) {
       MCSymbol *Sym = TM.getSymbol(GV);
       StubSym = MachineModuleInfoImpl::StubValueTy(Sym, !GV->hasLocalLinkage());
     }

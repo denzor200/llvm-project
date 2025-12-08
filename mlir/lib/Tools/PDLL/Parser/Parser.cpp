@@ -2803,10 +2803,10 @@ FailureOr<ast::Type> Parser::validateMemberAccess(ast::Expr *parentExpr,
       }
 
       // Handle named results.
-      const auto *it = llvm::find_if(results, [&](const auto &result) {
+      
+      if (const auto *it = llvm::find_if(results, [&](const auto &result) {
         return result.getName() == name;
-      });
-      if (it != results.end())
+      }); it != results.end())
         return it->isVariadic() ? valueRangeTy : valueTy;
     } else if (llvm::isDigit(name[0])) {
       // Allow unchecked numeric indexing of the results of unregistered
@@ -2823,8 +2823,8 @@ FailureOr<ast::Type> Parser::validateMemberAccess(ast::Expr *parentExpr,
 
     // Handle named results.
     auto elementNames = tupleType.getElementNames();
-    const auto *it = llvm::find(elementNames, name);
-    if (it != elementNames.end())
+    
+    if (const auto *it = llvm::find(elementNames, name); it != elementNames.end())
       return tupleType.getElementTypes()[it - elementNames.begin()];
   }
   return emitError(
@@ -2923,11 +2923,11 @@ void Parser::checkOperationResultTypeInferrence(SMRange loc, StringRef opName,
   // result, but don't have inference support. An elided results list can mean
   // "zero-results", and we don't want to warn when that is the expected
   // behavior.
-  bool requiresInferrence =
+  
+  if (bool requiresInferrence =
       llvm::any_of(odsOp->getResults(), [](const ods::OperandOrResult &result) {
         return !result.isVariableLength();
-      });
-  if (requiresInferrence && !odsOp->hasResultTypeInferrence()) {
+      }); requiresInferrence && !odsOp->hasResultTypeInferrence()) {
     ast::InFlightDiagnostic diag = ctx.getDiagEngine().emitWarning(
         loc,
         llvm::formatv("operation result types are marked to be inferred, but "

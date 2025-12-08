@@ -203,8 +203,8 @@ private:
     if (!LI.isLoopHeader(To))
       return false;
 
-    auto *L = LI.getLoopFor(To);
-    if (L->contains(From) && L->isLoopLatch(From))
+    
+    if (auto *L = LI.getLoopFor(To); L->contains(From) && L->isLoopLatch(From))
       return true;
 
     return false;
@@ -249,8 +249,8 @@ private:
     for (auto *B : RegionBlocks) {
       auto *Terminator = B->getTerminator();
       for (unsigned i = 0; i < Terminator->getNumSuccessors(); ++i) {
-        auto *Child = Terminator->getSuccessor(i);
-        if (RegionBlocks.count(Child) == 0)
+        
+        if (auto *Child = Terminator->getSuccessor(i); RegionBlocks.count(Child) == 0)
           Exits.insert(B);
       }
     }

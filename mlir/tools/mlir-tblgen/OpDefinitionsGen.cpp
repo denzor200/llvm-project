@@ -276,8 +276,8 @@ static inline bool hasStringAttribute(const Record &record,
 }
 
 static std::string getArgumentName(const Operator &op, int index) {
-  const auto &operand = op.getOperand(index);
-  if (!operand.name.empty())
+  
+  if (const auto &operand = op.getOperand(index); !operand.name.empty())
     return std::string(operand.name);
   return std::string(formatv("{0}_{1}", generatedArgName, index));
 }
@@ -852,15 +852,15 @@ static void populateSubstitutions(const OpOrAdaptorHelper &emitHelper,
 
   // Populate substitutions for named operands.
   for (int i = 0, e = op.getNumOperands(); i < e; ++i) {
-    auto &value = op.getOperand(i);
-    if (!value.name.empty())
+    
+    if (auto &value = op.getOperand(i); !value.name.empty())
       ctx.addSubst(value.name, emitHelper.getOperand(i).str());
   }
 
   // Populate substitutions for results.
   for (int i = 0, e = op.getNumResults(); i < e; ++i) {
-    auto &value = op.getResult(i);
-    if (!value.name.empty())
+    
+    if (auto &value = op.getResult(i); !value.name.empty())
       ctx.addSubst(value.name, emitHelper.getResult(i).str());
   }
 }
@@ -887,8 +887,8 @@ static void genNativeTraitAttrVerifier(MethodBody &body,
 
   // Verify a few traits first so that we can use getODSOperands() and
   // getODSResults() in the rest of the verifier.
-  auto &op = emitHelper.getOp();
-  if (!op.getDialect().usePropertiesForAttributes()) {
+  
+  if (auto &op = emitHelper.getOp(); !op.getDialect().usePropertiesForAttributes()) {
     if (op.getTrait("::mlir::OpTrait::AttrSizedOperandSegments")) {
       body << formatv(checkAttrSizedValueSegmentsCode, operandSegmentAttrName,
                       op.getNumOperands(), "operand",
@@ -1039,8 +1039,8 @@ while (true) {{
 
     for (const std::pair<StringRef, AttributeMetadata> &it :
          emitHelper.getAttrMetadata()) {
-      const AttributeMetadata &metadata = it.second;
-      if (!metadata.isRequired) {
+      
+      if (const AttributeMetadata &metadata = it.second; !metadata.isRequired) {
         optionalAttrs.push_back(&metadata);
         continue;
       }
@@ -1138,8 +1138,8 @@ static void genPropertyVerifier(
     std::string rawCondition = predicate.getCondition();
     if (rawCondition == "true")
       continue;
-    bool needsOp = StringRef(rawCondition).contains("$_op");
-    if (needsOp && !emitHelper.isEmittingForOp())
+    
+    if (bool needsOp = StringRef(rawCondition).contains("$_op"); needsOp && !emitHelper.isEmittingForOp())
       continue;
 
     auto scope = body.scope("{\n", "}\n", /*indent=*/true);
@@ -2059,10 +2059,10 @@ void OpEmitter::genAttrSetters() {
   auto emitAttrWithStorageType = [&](StringRef setterName, StringRef getterName,
                                      StringRef attrName, Attribute attr) {
     // This method body is trivial, so emit it inline.
-    auto *method =
+    
+    if (auto *method =
         opClass.addInlineMethod("void", setterName + "Attr",
-                                MethodParameter(attr.getStorageType(), "attr"));
-    if (method)
+                                MethodParameter(attr.getStorageType(), "attr")); method)
       emitSetAttr(method, getterName, attrName, "attr");
   };
 
@@ -2593,8 +2593,8 @@ static bool canGenerateUnwrappedBuilder(const Operator &op) {
   // different from the wrapped mlir::Attribute type to avoid redefining
   // builders. This checks for the op has at least one such native attribute.
   for (int i = 0, e = op.getNumNativeAttributes(); i < e; ++i) {
-    const NamedAttribute &namedAttr = op.getAttribute(i);
-    if (canUseUnwrappedRawValue(namedAttr.attr)) {
+    
+    if (const NamedAttribute &namedAttr = op.getAttribute(i); canUseUnwrappedRawValue(namedAttr.attr)) {
       canGenerate = true;
       break;
     }
@@ -2725,8 +2725,8 @@ void OpEmitter::genSeparateArgParamBuilder() {
         }
         interleaveComma(
             llvm::seq<int>(0, op.getNumResults()), body, [&](int i) {
-              const NamedTypeConstraint &result = op.getResult(i);
-              if (!result.isVariableLength()) {
+              
+              if (const NamedTypeConstraint &result = op.getResult(i); !result.isVariableLength()) {
                 body << "1";
               } else if (result.isOptional()) {
                 body << "(" << resultNames[i] << " ? 1 : 0)";
@@ -2753,10 +2753,10 @@ void OpEmitter::genSeparateArgParamBuilder() {
       int numResults = op.getNumResults();
       int numVariadicResults = op.getNumVariableLengthResults();
       int numNonVariadicResults = numResults - numVariadicResults;
-      bool hasVariadicResult = numVariadicResults != 0;
+      
 
       // Avoid emitting "resultTypes.size() >= 0u" which is always true.
-      if (!hasVariadicResult || numNonVariadicResults != 0)
+      if (bool hasVariadicResult = numVariadicResults != 0; !hasVariadicResult || numNonVariadicResults != 0)
         body << "  " << "assert(resultTypes.size() "
              << (hasVariadicResult ? ">=" : "==") << " "
              << numNonVariadicResults
@@ -3313,16 +3313,16 @@ void OpEmitter::buildParamList(SmallVectorImpl<MethodParameter> &paramList,
   int defaultValuedAttrStartIndex = op.getNumArgs();
   // Successors and variadic regions go at the end of the parameter list, so no
   // default arguments are possible.
-  bool hasTrailingParams = op.getNumSuccessors() || op.getNumVariadicRegions();
-  if (!hasTrailingParams) {
+  
+  if (bool hasTrailingParams = op.getNumSuccessors() || op.getNumVariadicRegions(); !hasTrailingParams) {
     // Calculate the start index from which we can attach default values in the
     // builder declaration.
     for (int i = op.getNumArgs() - 1; i >= 0; --i) {
       auto *namedAttr =
           llvm::dyn_cast_if_present<tblgen::NamedAttribute *>(op.getArg(i));
-      auto *namedProperty =
-          llvm::dyn_cast_if_present<tblgen::NamedProperty *>(op.getArg(i));
-      if (namedProperty) {
+      
+      if (auto *namedProperty =
+          llvm::dyn_cast_if_present<tblgen::NamedProperty *>(op.getArg(i)); namedProperty) {
         Property prop = namedProperty->prop;
         if (!prop.hasDefaultValue())
           break;
@@ -3670,9 +3670,9 @@ void OpEmitter::genFolderDecls() {
   paramList.emplace_back("FoldAdaptor", "adaptor");
 
   StringRef retType;
-  bool hasSingleResult =
-      op.getNumResults() == 1 && op.getNumVariableLengthResults() == 0;
-  if (hasSingleResult) {
+  
+  if (bool hasSingleResult =
+      op.getNumResults() == 1 && op.getNumVariableLengthResults() == 0; hasSingleResult) {
     retType = "::mlir::OpFoldResult";
   } else {
     paramList.emplace_back("::llvm::SmallVectorImpl<::mlir::OpFoldResult> &",
@@ -3785,8 +3785,8 @@ void OpEmitter::genSideEffectInterfaceMethods() {
     }
     if (isa<NamedProperty *>(arg))
       continue;
-    const NamedAttribute *attr = cast<NamedAttribute *>(arg);
-    if (attr->attr.getBaseAttr().isSymbolRefAttr())
+    
+    if (const NamedAttribute *attr = cast<NamedAttribute *>(arg); attr->attr.getBaseAttr().isSymbolRefAttr())
       resolveDecorators(op.getArgDecorators(i), i, EffectKind::Symbol);
   }
   /// Results.
@@ -4033,8 +4033,8 @@ void OpEmitter::genVerifier() {
   // see if we should use the mlir::verify() instead.
   auto *method = opClass.addMethod("::llvm::LogicalResult", "verifyInvariants");
   ERROR_IF_PRUNED(method, "verifyInvariants", op);
-  auto &body = method->body();
-  if (def.getValueAsBit("hasVerifier")) {
+  
+  if (auto &body = method->body(); def.getValueAsBit("hasVerifier")) {
     body << "  if(::mlir::succeeded(verifyInvariantsImpl()) && "
             "::mlir::succeeded(verify()))\n";
     body << "    return ::mlir::success();\n";
@@ -4576,9 +4576,9 @@ OpOperandAdaptorEmitter::OpOperandAdaptorEmitter(
     // actual properties type.
     paramList[1] = MethodParameter("::mlir::DictionaryAttr", "attrs");
     paramList[2] = MethodParameter("::mlir::OpaqueProperties", "properties");
-    auto *opaquePropertiesConstructor =
-        genericAdaptor.addConstructor(std::move(paramList));
-    if (useProperties) {
+    
+    if (auto *opaquePropertiesConstructor =
+        genericAdaptor.addConstructor(std::move(paramList)); useProperties) {
       opaquePropertiesConstructor->addMemberInitializer(
           genericAdaptor.getClassName(),
           "values, "

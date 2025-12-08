@@ -93,8 +93,8 @@ public:
 } // end anonymous namespace
 
 bool FixItAction::BeginSourceFileAction(CompilerInstance &CI) {
-  const FrontendOptions &FEOpts = getCompilerInstance().getFrontendOpts();
-  if (!FEOpts.FixItSuffix.empty()) {
+  
+  if (const FrontendOptions &FEOpts = getCompilerInstance().getFrontendOpts(); !FEOpts.FixItSuffix.empty()) {
     FixItOpts.reset(new FixItActionSuffixInserter(FEOpts.FixItSuffix,
                                                   FEOpts.FixWhatYouCan));
   } else {
@@ -280,8 +280,8 @@ bool RewriteIncludesAction::BeginSourceFileAction(CompilerInstance &CI) {
 
   // If we're preprocessing a module map, start by dumping the contents of the
   // module itself before switching to the input buffer.
-  auto &Input = getCurrentInput();
-  if (Input.getKind().getFormat() == InputKind::ModuleMap) {
+  
+  if (auto &Input = getCurrentInput(); Input.getKind().getFormat() == InputKind::ModuleMap) {
     if (Input.isFile()) {
       OS << "# 1 \"";
       OS.write_escaped(Input.getFile());
@@ -303,11 +303,11 @@ bool RewriteIncludesAction::BeginSourceFileAction(CompilerInstance &CI) {
 }
 
 void RewriteIncludesAction::ExecuteAction() {
-  CompilerInstance &CI = getCompilerInstance();
+  
 
   // If we're rewriting imports, emit the module build output first rather
   // than switching back and forth (potentially in the middle of a line).
-  if (CI.getPreprocessorOutputOpts().RewriteImports) {
+  if (CompilerInstance &CI = getCompilerInstance(); CI.getPreprocessorOutputOpts().RewriteImports) {
     std::string Buffer;
     llvm::raw_string_ostream OS(Buffer);
 

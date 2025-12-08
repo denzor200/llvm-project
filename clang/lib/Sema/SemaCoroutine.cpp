@@ -318,8 +318,8 @@ static Expr *maybeTailCall(Sema &S, QualType RetType, Expr *E,
                            SourceLocation Loc) {
   if (RetType->isReferenceType())
     return nullptr;
-  Type const *T = RetType.getTypePtr();
-  if (!T->isClassType() && !T->isStructureType())
+  
+  if (Type const *T = RetType.getTypePtr(); !T->isClassType() && !T->isStructureType())
     return nullptr;
 
   // FIXME: Add convertability check to coroutine_handle<>. Possibly via
@@ -779,11 +779,11 @@ static bool checkSuspensionContext(Sema &S, SourceLocation Loc,
   // That is, 'co_await' and 'co_yield' cannot appear in subexpressions of
   // \c sizeof.
   const auto ExprContext = S.currentEvaluationContext().ExprContext;
-  const bool BadContext =
+  
+  if (const bool BadContext =
       S.isUnevaluatedContext() ||
       (ExprContext != Sema::ExpressionEvaluationContextRecord::EK_Other &&
-       ExprContext != Sema::ExpressionEvaluationContextRecord::EK_VariableInit);
-  if (BadContext) {
+       ExprContext != Sema::ExpressionEvaluationContextRecord::EK_VariableInit); BadContext) {
     S.Diag(Loc, diag::err_coroutine_unevaluated_context) << Keyword;
     return false;
   }
@@ -1282,8 +1282,8 @@ static bool diagReturnOnAllocFailure(Sema &S, Expr *E,
                                      FunctionScopeInfo &Fn) {
   auto Loc = E->getExprLoc();
   if (auto *DeclRef = dyn_cast_or_null<DeclRefExpr>(E)) {
-    auto *Decl = DeclRef->getDecl();
-    if (CXXMethodDecl *Method = dyn_cast_or_null<CXXMethodDecl>(Decl)) {
+    
+    if (auto *Decl = DeclRef->getDecl(); CXXMethodDecl *Method = dyn_cast_or_null<CXXMethodDecl>(Decl)) {
       if (Method->isStatic())
         return true;
       else
@@ -1575,8 +1575,8 @@ bool CoroutineStmtBuilder::makeNewAndDeleteExpr() {
                               NewName, PromiseType);
 
   if (RequiresNoThrowAlloc) {
-    const auto *FT = OperatorNew->getType()->castAs<FunctionProtoType>();
-    if (!FT->isNothrow(/*ResultIfDependent*/ false)) {
+    
+    if (const auto *FT = OperatorNew->getType()->castAs<FunctionProtoType>(); !FT->isNothrow(/*ResultIfDependent*/ false)) {
       S.Diag(OperatorNew->getLocation(),
              diag::err_coroutine_promise_new_requires_nothrow)
           << OperatorNew;
@@ -1756,9 +1756,9 @@ bool CoroutineStmtBuilder::makeOnException() {
   assert(!IsPromiseDependentType &&
          "cannot make statement while the promise type is dependent");
 
-  const bool RequireUnhandledException = S.getLangOpts().CXXExceptions;
+  
 
-  if (!lookupMember(S, "unhandled_exception", PromiseRecordDecl, Loc)) {
+  if (const bool RequireUnhandledException = S.getLangOpts().CXXExceptions; !lookupMember(S, "unhandled_exception", PromiseRecordDecl, Loc)) {
     auto DiagID =
         RequireUnhandledException
             ? diag::err_coroutine_promise_unhandled_exception_required
@@ -2014,9 +2014,9 @@ ClassTemplateDecl *Sema::lookupCoroutineTraits(SourceLocation KwLoc,
 
   NamespaceDecl *StdSpace = getStdNamespace();
   LookupResult Result(*this, &TraitIdent, FuncLoc, LookupOrdinaryName);
-  bool Found = StdSpace && LookupQualifiedName(Result, StdSpace);
+  
 
-  if (!Found) {
+  if (bool Found = StdSpace && LookupQualifiedName(Result, StdSpace); !Found) {
     // The goggles, we found nothing!
     Diag(KwLoc, diag::err_implied_coroutine_type_not_found)
         << "std::coroutine_traits";

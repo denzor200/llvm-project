@@ -311,8 +311,8 @@ XRayLogFlushStatus fdrLoggingFlush() XRAY_NEVER_INSTRUMENT {
   });
 
   auto CleanupBuffers = at_scope_exit([] {
-    auto &TLD = getThreadLocalData();
-    if (TLD.Controller != nullptr)
+    
+    if (auto &TLD = getThreadLocalData(); TLD.Controller != nullptr)
       TLD.Controller->flush();
   });
 
@@ -426,8 +426,8 @@ static TSCAndCPU getTimestamp() XRAY_NEVER_INSTRUMENT {
   } else {
     // FIXME: This code needs refactoring as it appears in multiple locations
     timespec TS;
-    int result = clock_gettime(CLOCK_REALTIME, &TS);
-    if (result != 0) {
+    
+    if (int result = clock_gettime(CLOCK_REALTIME, &TS); result != 0) {
       Report("clock_gettime(2) return %d, errno=%d", result, int(errno));
       TS = {0, 0};
     }
@@ -442,8 +442,8 @@ thread_local atomic_uint8_t Running{0};
 static bool setupTLD(ThreadLocalData &TLD) XRAY_NEVER_INSTRUMENT {
   // Check if we're finalizing, before proceeding.
   {
-    auto Status = atomic_load(&LoggingStatus, memory_order_acquire);
-    if (Status == XRayLogInitStatus::XRAY_LOG_FINALIZING ||
+    
+    if (auto Status = atomic_load(&LoggingStatus, memory_order_acquire); Status == XRayLogInitStatus::XRAY_LOG_FINALIZING ||
         Status == XRayLogInitStatus::XRAY_LOG_FINALIZED) {
       if (TLD.Controller != nullptr) {
         TLD.Controller->flush();

@@ -428,9 +428,9 @@ public:
     for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index) {
       ModulePass *MP = getContainedPass(Index);
       MP->dumpPassStructure(Offset + 1);
-      MapVector<Pass *, legacy::FunctionPassManagerImpl *>::const_iterator I =
-          OnTheFlyManagers.find(MP);
-      if (I != OnTheFlyManagers.end())
+      
+      if (MapVector<Pass *, legacy::FunctionPassManagerImpl *>::const_iterator I =
+          OnTheFlyManagers.find(MP); I != OnTheFlyManagers.end())
         I->second->dumpPassStructure(Offset + 2);
       dumpLastUses(MP, Offset+1);
     }
@@ -578,9 +578,9 @@ PMTopLevelManager::setLastUser(ArrayRef<Pass*> AnalysisPasses, Pass *P) {
       assert(AnalysisPass && "Expected analysis pass to exist.");
       AnalysisResolver *AR = AnalysisPass->getResolver();
       assert(AR && "Expected analysis resolver to exist.");
-      unsigned APDepth = AR->getPMDataManager().getDepth();
+      
 
-      if (PDepth == APDepth)
+      if (unsigned APDepth = AR->getPMDataManager().getDepth(); PDepth == APDepth)
         LastUses.push_back(AnalysisPass);
       else if (PDepth > APDepth)
         LastPMUses.push_back(AnalysisPass);
@@ -678,8 +678,8 @@ void PMTopLevelManager::schedulePass(Pass *P) {
     const AnalysisUsage::VectorType &RequiredSet = AnUsage->getRequiredSet();
     for (const AnalysisID ID : RequiredSet) {
 
-      Pass *AnalysisPass = findAnalysisPass(ID);
-      if (!AnalysisPass) {
+      
+      if (Pass *AnalysisPass = findAnalysisPass(ID); !AnalysisPass) {
         const PassInfo *PI = findAnalysisPassInfo(ID);
 
         if (!PI) {
@@ -690,8 +690,8 @@ void PMTopLevelManager::schedulePass(Pass *P) {
           for (const AnalysisID ID2 : RequiredSet) {
             if (ID == ID2)
               break;
-            Pass *AnalysisPass2 = findAnalysisPass(ID2);
-            if (AnalysisPass2) {
+            
+            if (Pass *AnalysisPass2 = findAnalysisPass(ID2); AnalysisPass2) {
               dbgs() << "\t" << AnalysisPass2->getPassName() << "\n";
             } else {
               dbgs() << "\t"   << "Error: Required pass not found! Possible causes:"  << "\n";
@@ -1406,11 +1406,11 @@ bool FPPassManager::runOnFunction(Function &F) {
 #endif
 
       if (EmitICRemark) {
-        unsigned NewSize = F.getInstructionCount();
+        
 
         // Update the size of the function, emit a remark, and update the size
         // of the module.
-        if (NewSize != FunctionSize) {
+        if (unsigned NewSize = F.getInstructionCount(); NewSize != FunctionSize) {
           int64_t Delta = static_cast<int64_t>(NewSize) -
                           static_cast<int64_t>(FunctionSize);
           emitInstrCountChangedRemark(FP, M, Delta, InstrCount,
@@ -1519,8 +1519,8 @@ MPPassManager::runOnModule(Module &M) {
 
       if (EmitICRemark) {
         // Update the size of the module.
-        unsigned ModuleCount = M.getInstructionCount();
-        if (ModuleCount != InstrCount) {
+        
+        if (unsigned ModuleCount = M.getInstructionCount(); ModuleCount != InstrCount) {
           int64_t Delta = static_cast<int64_t>(ModuleCount) -
                           static_cast<int64_t>(InstrCount);
           emitInstrCountChangedRemark(MP, M, Delta, InstrCount,

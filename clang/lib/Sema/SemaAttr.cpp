@@ -265,8 +265,8 @@ void Sema::inferLifetimeBoundAttribute(FunctionDecl *FD) {
       } else if (CRD->getName() == "span") {
         // construct from a reference of array.
         //   span(std::type_identity_t<element_type> (&arr)[N]);
-        const auto *LRT = Param->getType()->getAs<LValueReferenceType>();
-        if (LRT && LRT->getPointeeType().IgnoreParens()->isArrayType())
+        
+        if (const auto *LRT = Param->getType()->getAs<LValueReferenceType>(); LRT && LRT->getPointeeType().IgnoreParens()->isArrayType())
           Param->addAttr(
               LifetimeBoundAttr::CreateImplicit(Context, FD->getLocation()));
       }
@@ -529,12 +529,12 @@ bool Sema::ConstantFoldAttrArgs(const AttributeCommonInfo &CI,
     Notes.clear();
     Eval.Diag = &Notes;
 
-    bool Result = E->EvaluateAsConstantExpr(Eval, Context);
+    
 
     /// Result means the expression can be folded to a constant.
     /// Note.empty() means the expression is a valid constant expression in the
     /// current language mode.
-    if (!Result || !Notes.empty()) {
+    if (bool Result = E->EvaluateAsConstantExpr(Eval, Context); !Result || !Notes.empty()) {
       Diag(E->getBeginLoc(), diag::err_attribute_argument_n_type)
           << CI << (Idx + 1) << AANT_ArgumentConstantExpr;
       for (auto &Note : Notes)
@@ -1334,8 +1334,8 @@ void Sema::AddPushedVisibilityAttribute(Decl *D) {
   if (!VisContext)
     return;
 
-  NamedDecl *ND = dyn_cast<NamedDecl>(D);
-  if (ND && ND->getExplicitVisibility(NamedDecl::VisibilityForValue))
+  
+  if (NamedDecl *ND = dyn_cast<NamedDecl>(D); ND && ND->getExplicitVisibility(NamedDecl::VisibilityForValue))
     return;
 
   VisStack *Stack = static_cast<VisStack*>(VisContext);
@@ -1496,8 +1496,8 @@ void Sema::PopPragmaVisibility(bool IsNamespaceEnd, SourceLocation EndLoc) {
   VisStack *Stack = static_cast<VisStack*>(VisContext);
 
   const std::pair<unsigned, SourceLocation> *Back = &Stack->back();
-  bool StartsWithPragma = Back->first != NoVisibility;
-  if (StartsWithPragma && IsNamespaceEnd) {
+  
+  if (bool StartsWithPragma = Back->first != NoVisibility; StartsWithPragma && IsNamespaceEnd) {
     Diag(Back->second, diag::err_pragma_push_visibility_mismatch);
     Diag(EndLoc, diag::note_surrounding_namespace_ends_here);
 

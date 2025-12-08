@@ -78,12 +78,12 @@ void DebugContainerModeling::analyzerContainerDataField(const CallExpr *CE,
   }
 
   auto State = C.getState();
-  const MemRegion *Cont = C.getSVal(CE->getArg(0)).getAsRegion();
-  if (Cont) {
-    const auto *Data = getContainerData(State, Cont);
-    if (Data) {
-      SymbolRef Field = get(Data);
-      if (Field) {
+  
+  if (const MemRegion *Cont = C.getSVal(CE->getArg(0)).getAsRegion(); Cont) {
+    
+    if (const auto *Data = getContainerData(State, Cont); Data) {
+      
+      if (SymbolRef Field = get(Data); Field) {
         State = State->BindExpr(CE, C.getLocationContext(),
                                 nonloc::SymbolVal(Field));
 

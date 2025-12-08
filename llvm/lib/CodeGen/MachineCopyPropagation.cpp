@@ -1469,8 +1469,8 @@ void MachineCopyPropagation::EliminateSpillageCopies(MachineBasicBlock &MBB) {
     LLVM_DEBUG(MI.dump());
     MachineInstr *MaybeSpill =
         Tracker.findLastSeenDefInCopy(MI, Src.asMCReg(), *TRI, *TII, UseCopyInstr);
-    bool MaybeSpillIsChained = ChainLeader.count(MaybeSpill);
-    if (!MaybeSpillIsChained && MaybeSpill &&
+    
+    if (bool MaybeSpillIsChained = ChainLeader.count(MaybeSpill); !MaybeSpillIsChained && MaybeSpill &&
         IsSpillReloadPair(*MaybeSpill, MI)) {
       // Check if we already have an existing chain. Now we have a
       // spill-reload pair.

@@ -211,8 +211,8 @@ StorageLayout::getFieldIndexAndStride(SparseTensorFieldKind kind,
   if (kind == SparseTensorFieldKind::CrdMemRef) {
     assert(lvl.has_value());
     const Level cooStart = enc.getAoSCOOStart();
-    const Level lvlRank = enc.getLvlRank();
-    if (lvl.value() >= cooStart && lvl.value() < lvlRank) {
+    
+    if (const Level lvlRank = enc.getLvlRank(); lvl.value() >= cooStart && lvl.value() < lvlRank) {
       lvl = cooStart;
       stride = lvlRank - cooStart;
     }
@@ -1301,13 +1301,13 @@ static LogicalResult verifyPackUnPack(Operation *op, bool requiresStaticShape,
     return op->emitError("the sparse-tensor must have an encoding attribute");
 
   // Verifies the trailing COO.
-  Level cooStartLvl = stt.getAoSCOOStart();
-  if (cooStartLvl < stt.getLvlRank()) {
+  
+  if (Level cooStartLvl = stt.getAoSCOOStart(); cooStartLvl < stt.getLvlRank()) {
     // We only supports trailing COO for now, must be the last input.
     auto cooTp = llvm::cast<ShapedType>(lvlTps.back());
     // The coordinates should be in shape of <? x rank>
-    unsigned expCOORank = stt.getLvlRank() - cooStartLvl;
-    if (cooTp.getRank() != 2 || expCOORank != cooTp.getShape().back()) {
+    
+    if (unsigned expCOORank = stt.getLvlRank() - cooStartLvl; cooTp.getRank() != 2 || expCOORank != cooTp.getShape().back()) {
       return op->emitError("input/output trailing COO level-ranks don't match");
     }
   }
@@ -1451,10 +1451,10 @@ LogicalResult CrdTranslateOp::fold(FoldAdaptor adaptor,
 
   // Fuse dim2lvl/lvl2dim pairs.
   auto def = getInCrds()[0].getDefiningOp<CrdTranslateOp>();
-  bool sameDef = def && llvm::all_of(getInCrds(), [def](Value v) {
+  
+  if (bool sameDef = def && llvm::all_of(getInCrds(), [def](Value v) {
                    return v.getDefiningOp() == def;
-                 });
-  if (!sameDef)
+                 }); !sameDef)
     return failure();
 
   bool oppositeDir = def.getDirection() != getDirection();
@@ -1693,15 +1693,15 @@ LogicalResult ToValuesOp::inferReturnTypes(MLIRContext *ctx,
 }
 
 LogicalResult ToSliceOffsetOp::verify() {
-  auto rank = getSlice().getType().getRank();
-  if (rank <= getDim().getSExtValue() || getDim().getSExtValue() < 0)
+  
+  if (auto rank = getSlice().getType().getRank(); rank <= getDim().getSExtValue() || getDim().getSExtValue() < 0)
     return emitError("requested dimension out of bound");
   return success();
 }
 
 LogicalResult ToSliceStrideOp::verify() {
-  auto rank = getSlice().getType().getRank();
-  if (rank <= getDim().getSExtValue() || getDim().getSExtValue() < 0)
+  
+  if (auto rank = getSlice().getType().getRank(); rank <= getDim().getSExtValue() || getDim().getSExtValue() < 0)
     return emitError("requested dimension out of bound");
   return success();
 }
@@ -1801,8 +1801,8 @@ LogicalResult UnaryOp::verify() {
 
   // Check correct number of block arguments and return type for each
   // non-empty region.
-  Region &present = getPresentRegion();
-  if (!present.empty()) {
+  
+  if (Region &present = getPresentRegion(); !present.empty()) {
     if (failed(verifyNumBlockArgs(this, present, "present",
                                   TypeRange{inputType}, outputType)))
       return failure();
@@ -1873,8 +1873,8 @@ LogicalResult ConcatenateOp::verify() {
   }
 
   for (Dimension d = 0; d < dimRank; d++) {
-    const Size dstSh = dstTp.getDimShape()[d];
-    if (d == concatDim) {
+    
+    if (const Size dstSh = dstTp.getDimShape()[d]; d == concatDim) {
       if (ShapedType::isStatic(dstSh)) {
         // If we reach here, then all inputs have static shapes.  So we
         // can use `getDimShape()[d]` instead of `*getDynamicDimSize(d)`

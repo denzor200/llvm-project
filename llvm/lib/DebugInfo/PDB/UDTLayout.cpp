@@ -120,8 +120,8 @@ uint32_t UDTLayoutBase::tailPadding() const {
   uint32_t Abs = LayoutItemBase::tailPadding();
   if (!LayoutItems.empty()) {
     const LayoutItemBase *Back = LayoutItems.back();
-    uint32_t ChildPadding = Back->LayoutItemBase::tailPadding();
-    if (Abs < ChildPadding)
+    
+    if (uint32_t ChildPadding = Back->LayoutItemBase::tailPadding(); Abs < ChildPadding)
       Abs = 0;
     else
       Abs -= ChildPadding;

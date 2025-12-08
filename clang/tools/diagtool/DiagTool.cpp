@@ -43,8 +43,8 @@ void DiagTools::printCommands(llvm::raw_ostream &out) {
   for (ToolMap::iterator it = getTools(tools)->begin(),
        ei = getTools(tools)->end(); it != ei; ++it) {
     toolNames.push_back(it->getKey());
-    unsigned len = it->getKey().size();
-    if (len > maxName)
+    
+    if (unsigned len = it->getKey().size(); len > maxName)
       maxName = len;    
   }
   llvm::sort(toolNames);

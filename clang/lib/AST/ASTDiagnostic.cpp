@@ -802,8 +802,8 @@ class TemplateDiff {
       assert(FlatTree[CurrentNode].Kind == Template &&
              "Only Template nodes can have children nodes.");
       FlatTree.push_back(DiffNode(CurrentNode));
-      DiffNode &Node = FlatTree[CurrentNode];
-      if (Node.ChildNode == 0) {
+      
+      if (DiffNode &Node = FlatTree[CurrentNode]; Node.ChildNode == 0) {
         // If a child node doesn't exist, add one.
         Node.ChildNode = NextFreeNode;
       } else {
@@ -1276,8 +1276,8 @@ class TemplateDiff {
     if (!Iter.hasDesugaredTA())
       return;
 
-    const TemplateArgument &TA = Iter.getDesugaredTA();
-    switch (TA.getKind()) {
+    
+    switch (const TemplateArgument &TA = Iter.getDesugaredTA(); TA.getKind()) {
     case TemplateArgument::StructuralValue:
       // FIXME: Diffing of structural values is not implemented.
       //        Just fall back to the expression.
@@ -1851,10 +1851,10 @@ class TemplateDiff {
       return;
     }
 
-    bool PrintType = IsValidFromInt && IsValidToInt &&
-                     !Context.hasSameType(FromIntType, ToIntType);
+    
 
-    if (!PrintTree) {
+    if (bool PrintType = IsValidFromInt && IsValidToInt &&
+                     !Context.hasSameType(FromIntType, ToIntType); !PrintTree) {
       OS << (FromDefault ? "(default) " : "");
       PrintAPSInt(FromInt, FromExpr, IsValidFromInt, FromIntType, PrintType);
     } else {

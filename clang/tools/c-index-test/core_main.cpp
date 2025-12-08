@@ -351,8 +351,8 @@ int indextest_core_main(int argc, const char **argv) {
   --argc;
 
   std::vector<const char *> CompArgs;
-  const char **DoubleDash = std::find(argv, argv + argc, StringRef("--"));
-  if (DoubleDash != argv + argc) {
+  
+  if (const char **DoubleDash = std::find(argv, argv + argc, StringRef("--")); DoubleDash != argv + argc) {
     CompArgs = std::vector<const char *>(DoubleDash + 1, argv + argc);
     argc = DoubleDash - argv;
   }

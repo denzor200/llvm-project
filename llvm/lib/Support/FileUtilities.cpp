@@ -205,10 +205,10 @@ int llvm::DiffFilesWithTolerance(StringRef NameA,
   const char *F1P = File1Start;
   const char *F2P = File2Start;
   uint64_t A_size = F1.getBufferSize();
-  uint64_t B_size = F2.getBufferSize();
+  
 
   // Are the buffers identical?  Common case: Handle this efficiently.
-  if (A_size == B_size &&
+  if (uint64_t B_size = F2.getBufferSize(); A_size == B_size &&
       std::memcmp(File1Start, File2Start, A_size) == 0)
     return 0;
 

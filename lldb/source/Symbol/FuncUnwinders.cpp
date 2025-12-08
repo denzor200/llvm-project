@@ -90,8 +90,8 @@ FuncUnwinders::GetCompactUnwindUnwindPlan(Target &target) {
   // Only continuous functions are supported.
   if (m_ranges.size() == 1) {
     Address current_pc(m_ranges[0].GetBaseAddress());
-    CompactUnwindInfo *compact_unwind = m_unwind_table.GetCompactUnwindInfo();
-    if (compact_unwind) {
+    
+    if (CompactUnwindInfo *compact_unwind = m_unwind_table.GetCompactUnwindInfo(); compact_unwind) {
       auto unwind_plan_sp =
           std::make_shared<UnwindPlan>(lldb::eRegisterKindGeneric);
       if (compact_unwind->GetUnwindPlan(target, current_pc, *unwind_plan_sp)) {
@@ -159,8 +159,8 @@ FuncUnwinders::GetArmUnwindUnwindPlan(Target &target) {
   // Only continuous functions are supported.
   if (m_ranges.size() == 1) {
     Address current_pc = m_ranges[0].GetBaseAddress();
-    ArmUnwindInfo *arm_unwind_info = m_unwind_table.GetArmUnwindInfo();
-    if (arm_unwind_info) {
+    
+    if (ArmUnwindInfo *arm_unwind_info = m_unwind_table.GetArmUnwindInfo(); arm_unwind_info) {
       auto plan_sp = std::make_shared<UnwindPlan>(lldb::eRegisterKindGeneric);
       if (arm_unwind_info->GetUnwindPlan(target, current_pc, *plan_sp))
         m_unwind_plan_arm_unwind_sp = std::move(plan_sp);

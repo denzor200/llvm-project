@@ -444,9 +444,9 @@ Status ABISysV_ppc::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
           data_error.AsCString());
     lldb::offset_t offset = 0;
     if (num_bytes <= 8) {
-      uint64_t raw_value = data.GetMaxU64(&offset, num_bytes);
+      
 
-      if (reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
+      if (uint64_t raw_value = data.GetMaxU64(&offset, num_bytes); reg_ctx->WriteRegisterFromUnsigned(reg_info, raw_value))
         set_it_simple = true;
     } else {
       error = Status::FromErrorString(
@@ -529,8 +529,8 @@ ValueObjectSP ABISysV_ppc::GetReturnValueObjectSimple(
         return return_valobj_sp;
       uint64_t raw_value = thread.GetRegisterContext()->ReadRegisterAsUnsigned(
           reg_ctx->GetRegisterInfoByName("r3", 0), 0);
-      const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-      switch (*byte_size) {
+      
+      switch (const bool is_signed = (type_flags & eTypeIsSigned) != 0; *byte_size) {
       default:
         break;
 
@@ -607,8 +607,8 @@ ValueObjectSP ABISysV_ppc::GetReturnValueObjectSimple(
     std::optional<uint64_t> byte_size =
         llvm::expectedToOptional(return_compiler_type.GetByteSize(&thread));
     if (byte_size && *byte_size > 0) {
-      const RegisterInfo *altivec_reg = reg_ctx->GetRegisterInfoByName("v2", 0);
-      if (altivec_reg) {
+      
+      if (const RegisterInfo *altivec_reg = reg_ctx->GetRegisterInfoByName("v2", 0); altivec_reg) {
         if (*byte_size <= altivec_reg->byte_size) {
           ProcessSP process_sp(thread.GetProcess());
           if (process_sp) {

@@ -767,11 +767,11 @@ bool SuspiciousCallArgumentCheck::areArgsSwapped(std::size_t Position1,
     const bool A1ToP1Dissimilar =
         !areNamesSimilar(ArgNames[Position1], ParamNames[Position1], H,
                          BoundKind::DissimilarBelow);
-    const bool A2ToP2Dissimilar =
-        !areNamesSimilar(ArgNames[Position2], ParamNames[Position2], H,
-                         BoundKind::DissimilarBelow);
+    
 
-    if ((A1ToP2Similar || A2ToP1Similar) && A1ToP1Dissimilar &&
+    if (const bool A2ToP2Dissimilar =
+        !areNamesSimilar(ArgNames[Position2], ParamNames[Position2], H,
+                         BoundKind::DissimilarBelow); (A1ToP2Similar || A2ToP1Similar) && A1ToP1Dissimilar &&
         A2ToP2Dissimilar)
       return true;
   }

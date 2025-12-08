@@ -713,9 +713,9 @@ DataExtractor ObjectFileWasm::ReadImageData(offset_t offset, uint32_t size) {
     if (process_sp) {
       auto data_up = std::make_unique<DataBufferHeap>(size, 0);
       Status readmem_error;
-      size_t bytes_read = process_sp->ReadMemory(
-          offset, data_up->GetBytes(), data_up->GetByteSize(), readmem_error);
-      if (bytes_read > 0) {
+      
+      if (size_t bytes_read = process_sp->ReadMemory(
+          offset, data_up->GetBytes(), data_up->GetByteSize(), readmem_error); bytes_read > 0) {
         DataBufferSP buffer_sp(data_up.release());
         data.SetData(buffer_sp, 0, buffer_sp->GetByteSize());
       }
@@ -767,8 +767,8 @@ void ObjectFileWasm::Dump(Stream *s) {
   ostream << "', arch = ";
   ostream << GetArchitecture().GetArchitectureName() << "\n";
 
-  SectionList *sections = GetSectionList();
-  if (sections) {
+  
+  if (SectionList *sections = GetSectionList(); sections) {
     sections->Dump(s->AsRawOstream(), s->GetIndentLevel(), nullptr, true,
                    UINT32_MAX);
   }

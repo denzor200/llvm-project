@@ -106,9 +106,9 @@ static CompilerType
 GetBuiltinTypeForPDBEncodingAndBitSize(TypeSystemClang &clang_ast,
                                        const PDBSymbolTypeBuiltin &pdb_type,
                                        Encoding encoding, uint32_t width) {
-  clang::ASTContext &ast = clang_ast.getASTContext();
+  
 
-  switch (pdb_type.getBuiltinType()) {
+  switch (clang::ASTContext &ast = clang_ast.getASTContext(); pdb_type.getBuiltinType()) {
   default:
     break;
   case PDB_BuiltinType::None:
@@ -293,8 +293,8 @@ GetClassOrFunctionParent(const llvm::pdb::PDBSymbol &symbol) {
   case PDB_SymType::Typedef:
   case PDB_SymType::BaseClass:
   case PDB_SymType::VTable: {
-    auto class_parent_id = raw.getClassParentId();
-    if (auto class_parent = session.getSymbolById(class_parent_id))
+    
+    if (auto class_parent_id = raw.getClassParentId(); auto class_parent = session.getSymbolById(class_parent_id))
       return class_parent;
     break;
   }
@@ -850,8 +850,8 @@ PDBASTParser::GetDeclForSymbol(const llvm::pdb::PDBSymbol &symbol) {
     const IPDBSession &session = symbol.getSession();
     const IPDBRawSymbol &raw = symbol.getRawSymbol();
 
-    auto class_parent_id = raw.getClassParentId();
-    if (std::unique_ptr<PDBSymbol> class_parent =
+    
+    if (auto class_parent_id = raw.getClassParentId(); std::unique_ptr<PDBSymbol> class_parent =
             session.getSymbolById(class_parent_id)) {
       auto class_parent_type = symbol_file->ResolveTypeUID(class_parent_id);
       if (!class_parent_type)
@@ -985,8 +985,8 @@ PDBASTParser::GetDeclForSymbol(const llvm::pdb::PDBSymbol &symbol) {
   }
   default: {
     // It's not a variable and not a function, check if it's a type
-    Type *type = symbol_file->ResolveTypeUID(sym_id);
-    if (!type)
+    
+    if (Type *type = symbol_file->ResolveTypeUID(sym_id); !type)
       return nullptr;
 
     return m_uid_to_decl.lookup(sym_id);

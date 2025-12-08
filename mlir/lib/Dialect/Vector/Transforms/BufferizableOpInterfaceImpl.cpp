@@ -348,8 +348,8 @@ struct YieldOpInterface
       return yieldOp->emitError("unsupported vector::YieldOp parent");
 
     // Do not bufferize if the masked op is not bufferizable.
-    Operation *maskedOp = &maskOp.getMaskRegion().front().front();
-    if (!options.dynCastBufferizableOp(maskedOp))
+    
+    if (Operation *maskedOp = &maskOp.getMaskRegion().front().front(); !options.dynCastBufferizableOp(maskedOp))
       return success();
 
     // Create a new terminator with the same number of operands. Some of these

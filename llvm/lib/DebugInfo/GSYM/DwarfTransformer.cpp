@@ -642,8 +642,8 @@ Error DwarfTransformer::convert(uint32_t NumThreads, OutputAggregator &Out) {
       return ReturnDie;
 
     if (DwarfUnit.getDWOId()) {
-      DWARFUnit *DWOCU = DwarfUnit.getNonSkeletonUnitDIE(false).getDwarfUnit();
-      if (!DWOCU->isDWOUnit())
+      
+      if (DWARFUnit *DWOCU = DwarfUnit.getNonSkeletonUnitDIE(false).getDwarfUnit(); !DWOCU->isDWOUnit())
         Out.Report(
             "warning: Unable to retrieve DWO .debug_info section for some "
             "object files. (Remove the --quiet flag for full output)",
@@ -787,8 +787,8 @@ llvm::Error DwarfTransformer::verify(StringRef GsymPath,
 
       for (size_t Idx = 0, count = LR->Locations.size(); Idx < count;
             ++Idx) {
-        const auto &gii = LR->Locations[Idx];
-        if (Idx < NumDwarfInlineInfos) {
+        
+        if (const auto &gii = LR->Locations[Idx]; Idx < NumDwarfInlineInfos) {
           const auto &dii = DwarfInlineInfos.getFrame(Idx);
           gsymFilename = LR->getSourceFile(Idx);
           // Verify function name

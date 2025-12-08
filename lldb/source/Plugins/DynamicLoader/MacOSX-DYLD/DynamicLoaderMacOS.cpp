@@ -38,18 +38,18 @@ DynamicLoader *DynamicLoaderMacOS::CreateInstance(Process *process,
   bool create = force;
   if (!create) {
     create = true;
-    Module *exe_module = process->GetTarget().GetExecutableModulePointer();
-    if (exe_module) {
-      ObjectFile *object_file = exe_module->GetObjectFile();
-      if (object_file) {
+    
+    if (Module *exe_module = process->GetTarget().GetExecutableModulePointer(); exe_module) {
+      
+      if (ObjectFile *object_file = exe_module->GetObjectFile(); object_file) {
         create = (object_file->GetStrata() == ObjectFile::eStrataUser);
       }
     }
 
     if (create) {
-      const llvm::Triple &triple_ref =
-          process->GetTarget().GetArchitecture().GetTriple();
-      switch (triple_ref.getOS()) {
+      
+      switch (const llvm::Triple &triple_ref =
+          process->GetTarget().GetArchitecture().GetTriple(); triple_ref.getOS()) {
       case llvm::Triple::Darwin:
       case llvm::Triple::MacOSX:
       case llvm::Triple::IOS:
@@ -101,8 +101,8 @@ bool DynamicLoaderMacOS::ProcessDidExec() {
       // Maybe we still have an image infos address around?  If so see
       // if that has changed, and if so we have exec'ed.
       if (m_maybe_image_infos_address != LLDB_INVALID_ADDRESS) {
-        lldb::addr_t image_infos_address = m_process->GetImageInfoAddress();
-        if (image_infos_address != m_maybe_image_infos_address) {
+        
+        if (lldb::addr_t image_infos_address = m_process->GetImageInfoAddress(); image_infos_address != m_maybe_image_infos_address) {
           // We don't really have to reset this here, since we are going to
           // call DoInitialImageFetch right away to handle the exec.  But in
           // case anybody looks at it in the meantime, it can't hurt.
@@ -117,9 +117,9 @@ bool DynamicLoaderMacOS::ProcessDidExec() {
         if (thread_sp) {
           lldb::StackFrameSP frame_sp(thread_sp->GetStackFrameAtIndex(0));
           if (frame_sp) {
-            const Symbol *symbol =
-                frame_sp->GetSymbolContext(eSymbolContextSymbol).symbol;
-            if (symbol) {
+            
+            if (const Symbol *symbol =
+                frame_sp->GetSymbolContext(eSymbolContextSymbol).symbol; symbol) {
               if (symbol->GetName() == "_dyld_start")
                 did_exec = true;
             }
@@ -300,17 +300,17 @@ bool DynamicLoaderMacOS::NotifyBreakpointHit(void *baton,
     argument_values.PushValue(headers_value);
 
     if (abi->GetArgumentValues(exe_ctx.GetThreadRef(), argument_values)) {
-      uint32_t dyld_mode =
-          argument_values.GetValueAtIndex(0)->GetScalar().UInt(-1);
-      if (dyld_mode != static_cast<uint32_t>(-1)) {
+      
+      if (uint32_t dyld_mode =
+          argument_values.GetValueAtIndex(0)->GetScalar().UInt(-1); dyld_mode != static_cast<uint32_t>(-1)) {
         // Okay the mode was right, now get the number of elements, and the
         // array of new elements...
-        uint32_t image_infos_count =
-            argument_values.GetValueAtIndex(1)->GetScalar().UInt(-1);
-        if (image_infos_count != static_cast<uint32_t>(-1)) {
-          addr_t header_array =
-              argument_values.GetValueAtIndex(2)->GetScalar().ULongLong(-1);
-          if (header_array != static_cast<uint64_t>(-1)) {
+        
+        if (uint32_t image_infos_count =
+            argument_values.GetValueAtIndex(1)->GetScalar().UInt(-1); image_infos_count != static_cast<uint32_t>(-1)) {
+          
+          if (addr_t header_array =
+              argument_values.GetValueAtIndex(2)->GetScalar().ULongLong(-1); header_array != static_cast<uint64_t>(-1)) {
             std::vector<addr_t> image_load_addresses;
             // header_array points to an array of image_infos_count elements,
             // each is
@@ -378,9 +378,9 @@ bool DynamicLoaderMacOS::NotifyBreakpointHit(void *baton,
                                              4 +        // infoArrayCount
                                              addr_size; // infoArray
               Status error;
-              addr_t notification_addr =
-                  process->ReadPointerFromMemory(notification_location, error);
-              if (!error.Success()) {
+              
+              if (addr_t notification_addr =
+                  process->ReadPointerFromMemory(notification_location, error); !error.Success()) {
                 Debugger::ReportWarning(
                     "DynamicLoaderMacOS::NotifyBreakpointHit unable "
                     "to read address of dyld-handover notification function at "
@@ -564,8 +564,8 @@ bool DynamicLoaderMacOS::SetNotificationBreakpoint() {
   // Failing that, find dyld_all_image_infos struct in memory,
   // read the notification function pointer at the offset.
   if (m_break_id == LLDB_INVALID_BREAK_ID) {
-    addr_t notification_addr = GetNotificationFuncAddrFromImageInfos();
-    if (notification_addr != LLDB_INVALID_ADDRESS) {
+    
+    if (addr_t notification_addr = GetNotificationFuncAddrFromImageInfos(); notification_addr != LLDB_INVALID_ADDRESS) {
       Address so_addr;
       // We may not have a dyld binary mapped to this address yet;
       // don't try to express the Address object as section+offset,
@@ -608,16 +608,16 @@ void DynamicLoaderMacOS::ClearDYLDHandoverBreakpoint() {
 addr_t
 DynamicLoaderMacOS::GetDyldLockVariableAddressFromModule(Module *module) {
   SymbolContext sc;
-  Target &target = m_process->GetTarget();
-  if (Symtab *symtab = module->GetSymtab()) {
+  
+  if (Target &target = m_process->GetTarget(); Symtab *symtab = module->GetSymtab()) {
     std::vector<uint32_t> match_indexes;
     ConstString g_symbol_name("_dyld_global_lock_held");
     uint32_t num_matches = 0;
     num_matches =
         symtab->AppendSymbolIndexesWithName(g_symbol_name, match_indexes);
     if (num_matches == 1) {
-      Symbol *symbol = symtab->SymbolAtIndex(match_indexes[0]);
-      if (symbol &&
+      
+      if (Symbol *symbol = symtab->SymbolAtIndex(match_indexes[0]); symbol &&
           (symbol->ValueIsAddress() || symbol->GetAddressRef().IsValid())) {
         return symbol->GetAddressRef().GetOpcodeLoadAddress(&target);
       }
@@ -655,9 +655,9 @@ Status DynamicLoaderMacOS::CanLoadImage() {
   if (symbol_address == LLDB_INVALID_ADDRESS) {
     for (ModuleSP module_sp : target.GetImages().Modules()) {
       if (module_sp) {
-        addr_t symbol_address =
-            GetDyldLockVariableAddressFromModule(module_sp.get());
-        if (symbol_address != LLDB_INVALID_ADDRESS)
+        
+        if (addr_t symbol_address =
+            GetDyldLockVariableAddressFromModule(module_sp.get()); symbol_address != LLDB_INVALID_ADDRESS)
           break;
       }
     }
@@ -669,9 +669,9 @@ Status DynamicLoaderMacOS::CanLoadImage() {
 
   if (symbol_address != LLDB_INVALID_ADDRESS) {
     {
-      int lock_held =
-          m_process->ReadUnsignedIntegerFromMemory(symbol_address, 4, 0, error);
-      if (lock_held != 0) {
+      
+      if (int lock_held =
+          m_process->ReadUnsignedIntegerFromMemory(symbol_address, 4, 0, error); lock_held != 0) {
         error =
             Status::FromErrorString("dyld lock held - unsafe to load images.");
       }

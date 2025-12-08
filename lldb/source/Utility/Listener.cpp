@@ -70,8 +70,8 @@ uint32_t Listener::StartListeningForEvents(Broadcaster *broadcaster,
     uint32_t acquired_mask =
         broadcaster->AddListener(this->shared_from_this(), event_mask);
 
-    Log *log = GetLog(LLDBLog::Events);
-    if (log != nullptr)
+    
+    if (Log *log = GetLog(LLDBLog::Events); log != nullptr)
       LLDB_LOGF(log,
                 "%p Listener::StartListeningForEvents (broadcaster = %p, "
                 "mask = 0x%8.8x) acquired_mask = 0x%8.8x for %s",
@@ -100,8 +100,8 @@ uint32_t Listener::StartListeningForEvents(Broadcaster *broadcaster,
     uint32_t acquired_mask =
         broadcaster->AddListener(this->shared_from_this(), event_mask);
 
-    Log *log = GetLog(LLDBLog::Events);
-    if (log != nullptr) {
+    
+    if (Log *log = GetLog(LLDBLog::Events); log != nullptr) {
       void **pointer = reinterpret_cast<void **>(&callback);
       LLDB_LOGF(log,
                 "%p Listener::StartListeningForEvents (broadcaster = %p, "
@@ -165,8 +165,8 @@ void Listener::BroadcasterManagerWillDestruct(BroadcasterManagerSP manager_sp) {
 }
 
 void Listener::AddEvent(EventSP &event_sp) {
-  Log *log = GetLog(LLDBLog::Events);
-  if (log != nullptr)
+  
+  if (Log *log = GetLog(LLDBLog::Events); log != nullptr)
     LLDB_LOGF(log, "%p Listener('%s')::AddEvent (event_sp = {%p})",
               static_cast<void *>(this), m_name.c_str(),
               static_cast<void *>(event_sp.get()));

@@ -129,8 +129,8 @@ ValueBoundsConstraintSet::Variable::Variable(AffineMap map,
     assert(var.map.getNumDims() == 0 && "expected only symbols");
     SmallVector<AffineExpr> symReplacements;
     for (auto valueDim : var.mapOperands) {
-      auto *it = llvm::find(this->mapOperands, valueDim);
-      if (it != this->mapOperands.end()) {
+      
+      if (auto *it = llvm::find(this->mapOperands, valueDim); it != this->mapOperands.end()) {
         // There is already a symbol for this operand.
         symReplacements.push_back(b.getAffineSymbolExpr(
             std::distance(this->mapOperands.begin(), it)));
@@ -643,8 +643,8 @@ FailureOr<int64_t> ValueBoundsConstraintSet::computeConstantBound(
   assert(pos == 0 && "expected `map` is the first column");
 
   // Compute constant bound for `valueDim`.
-  int64_t ubAdjustment = closedUB ? 0 : 1;
-  if (auto bound = cstr.cstr.getConstantBound64(type, pos))
+  
+  if (int64_t ubAdjustment = closedUB ? 0 : 1; auto bound = cstr.cstr.getConstantBound64(type, pos))
     return type == BoundType::UB ? *bound + ubAdjustment : *bound;
   return failure();
 }

@@ -75,9 +75,9 @@ INITIALIZE_PASS_END(X86TileConfig, DEBUG_TYPE, "Tile Register Configure", false,
                     false)
 
 bool X86TileConfig::runOnMachineFunction(MachineFunction &MF) {
-  X86MachineFunctionInfo *X86FI = MF.getInfo<X86MachineFunctionInfo>();
+  
   // Early exit in the common case of non-AMX code.
-  if (X86FI->getAMXProgModel() != AMXProgModelEnum::ManagedRA)
+  if (X86MachineFunctionInfo *X86FI = MF.getInfo<X86MachineFunctionInfo>(); X86FI->getAMXProgModel() != AMXProgModelEnum::ManagedRA)
     return false;
 
   const X86Subtarget &ST = MF.getSubtarget<X86Subtarget>();
@@ -129,8 +129,8 @@ bool X86TileConfig::runOnMachineFunction(MachineFunction &MF) {
     MCRegister PhysReg = VRM.getPhys(VirtReg);
     if (!PhysReg)
       continue;
-    unsigned Index = PhysReg - X86::TMM0;
-    if (!Phys2Virt[Index])
+    
+    if (unsigned Index = PhysReg - X86::TMM0; !Phys2Virt[Index])
       Phys2Virt[Index] = VirtReg;
   }
 
@@ -162,8 +162,8 @@ bool X86TileConfig::runOnMachineFunction(MachineFunction &MF) {
       int64_t Imm = INT64_MAX;
       int Offset = IsRow ? 48 + I : 16 + I * 2;
       for (auto &DefMI : MRI.def_instructions(R)) {
-        MachineBasicBlock &MBB = *DefMI.getParent();
-        if (DefMI.isMoveImmediate()) {
+        
+        if (MachineBasicBlock &MBB = *DefMI.getParent(); DefMI.isMoveImmediate()) {
           if (Imm != INT64_MAX) {
             // FIXME: We should handle this case in future.
             assert(Imm == DefMI.getOperand(1).getImm() &&
@@ -181,8 +181,8 @@ bool X86TileConfig::runOnMachineFunction(MachineFunction &MF) {
           LIS.InsertMachineInstrInMaps(*NewMI);
         } else {
           unsigned SubIdx = IsRow ? X86::sub_8bit : X86::sub_16bit;
-          unsigned RegSize = TRI->getRegSizeInBits(*MRI.getRegClass(R));
-          if ((IsRow && RegSize == 8) || (!IsRow && RegSize == 16))
+          
+          if (unsigned RegSize = TRI->getRegSizeInBits(*MRI.getRegClass(R)); (IsRow && RegSize == 8) || (!IsRow && RegSize == 16))
             SubIdx = 0;
           auto Iter = DefMI.getIterator();
           if (&MBB == &MF.front() &&

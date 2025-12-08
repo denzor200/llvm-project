@@ -303,8 +303,8 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
     Args.AddAllArgs(CmdArgs, options::OPT_bundle__loader);
     Args.AddAllArgs(CmdArgs, options::OPT_client__name);
 
-    Arg *A;
-    if ((A = Args.getLastArg(options::OPT_compatibility__version)) ||
+    
+    if (Arg *A; (A = Args.getLastArg(options::OPT_compatibility__version)) ||
         (A = Args.getLastArg(options::OPT_current__version)) ||
         (A = Args.getLastArg(options::OPT_install__name)))
       D.Diag(diag::err_drv_argument_only_allowed_with) << A->getAsString(Args)
@@ -316,8 +316,8 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
   } else {
     CmdArgs.push_back("-dylib");
 
-    Arg *A;
-    if ((A = Args.getLastArg(options::OPT_bundle)) ||
+    
+    if (Arg *A; (A = Args.getLastArg(options::OPT_bundle)) ||
         (A = Args.getLastArg(options::OPT_bundle__loader)) ||
         (A = Args.getLastArg(options::OPT_client__name)) ||
         (A = Args.getLastArg(options::OPT_force__flat__namespace)) ||
@@ -479,9 +479,9 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
       CmdArgs.push_back(Args.MakeArgString(Twine("--cs-profile-path=") + Path));
     }
 
-    auto *CodeGenDataGenArg =
-        Args.getLastArg(options::OPT_fcodegen_data_generate_EQ);
-    if (CodeGenDataGenArg)
+    
+    if (auto *CodeGenDataGenArg =
+        Args.getLastArg(options::OPT_fcodegen_data_generate_EQ); CodeGenDataGenArg)
       CmdArgs.push_back(
           Args.MakeArgString(Twine("--codegen-data-generate-path=") +
                              CodeGenDataGenArg->getValue()));
@@ -504,9 +504,9 @@ static bool checkRemarksOptions(const Driver &D, const ArgList &Args,
   // which means more than one remark file is being generated.
   bool hasMultipleInvocations =
       Args.getAllArgValues(options::OPT_arch).size() > 1;
-  bool hasExplicitOutputFile =
-      Args.getLastArg(options::OPT_foptimization_record_file_EQ);
-  if (hasMultipleInvocations && hasExplicitOutputFile) {
+  
+  if (bool hasExplicitOutputFile =
+      Args.getLastArg(options::OPT_foptimization_record_file_EQ); hasMultipleInvocations && hasExplicitOutputFile) {
     D.Diag(diag::err_drv_invalid_output_with_multiple_archs)
         << "-foptimization-record-file";
     return false;
@@ -525,8 +525,8 @@ static void renderRemarksOptions(const ArgList &Args, ArgStringList &CmdArgs,
   CmdArgs.push_back("-lto-pass-remarks-output");
   CmdArgs.push_back("-mllvm");
 
-  const Arg *A = Args.getLastArg(options::OPT_foptimization_record_file_EQ);
-  if (A) {
+  
+  if (const Arg *A = Args.getLastArg(options::OPT_foptimization_record_file_EQ); A) {
     CmdArgs.push_back(A->getValue());
   } else {
     assert(Output.isFilename() && "Unexpected ld output.");
@@ -634,8 +634,8 @@ void darwin::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   auto *CodeGenDataUseArg = Args.getLastArg(options::OPT_fcodegen_data_use_EQ);
 
   // We only allow one of them to be specified.
-  const Driver &D = getToolChain().getDriver();
-  if (CodeGenDataGenArg && CodeGenDataUseArg)
+  
+  if (const Driver &D = getToolChain().getDriver(); CodeGenDataGenArg && CodeGenDataUseArg)
     D.Diag(diag::err_drv_argument_not_allowed_with)
         << CodeGenDataGenArg->getAsString(Args)
         << CodeGenDataUseArg->getAsString(Args);
@@ -862,8 +862,8 @@ void darwin::StaticLibTool::ConstructJob(Compilation &C, const JobAction &JA,
 
   // Delete old output archive file if it already exists before generating a new
   // archive file.
-  const auto *OutputFileName = Output.getFilename();
-  if (Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
+  
+  if (const auto *OutputFileName = Output.getFilename(); Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
     if (std::error_code EC = llvm::sys::fs::remove(OutputFileName)) {
       D.Diag(diag::err_drv_unable_to_remove_file) << EC.message();
       return;
@@ -1793,8 +1793,8 @@ struct DarwinPlatform {
   /// Returns the OS version with the argument / environment variable that
   /// specified it.
   std::string getAsString(DerivedArgList &Args, const OptTable &Opts) {
-    auto &[Arg, OSVersionStr] = Arguments;
-    switch (Kind) {
+    
+    switch (auto &[Arg, OSVersionStr] = Arguments; Kind) {
     case TargetArg:
     case MTargetOSArg:
     case OSVersionArg:
@@ -2152,8 +2152,8 @@ inferDeploymentTargetFromSDK(DerivedArgList &Args,
     // Slice the version number out.
     // Version number is between the first and the last number.
     size_t StartVer = SDK.find_first_of("0123456789");
-    size_t EndVer = SDK.find_last_of("0123456789");
-    if (StartVer != StringRef::npos && EndVer > StartVer)
+    
+    if (size_t EndVer = SDK.find_last_of("0123456789"); StartVer != StringRef::npos && EndVer > StartVer)
       Version = std::string(SDK.slice(StartVer, EndVer + 1));
   }
   if (Version.empty())

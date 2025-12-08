@@ -168,9 +168,9 @@ findInsertionPoint(const Tweak::Selection &Inputs,
       break;
     if (NestedNameSpecifier Qualifier = U->getQualifier();
         Qualifier.getKind() == NestedNameSpecifier::Kind::Namespace) {
-      const auto *Namespace =
-          U->getQualifier().getAsNamespaceAndPrefix().Namespace;
-      if (Namespace->getCanonicalDecl() ==
+      
+      if (const auto *Namespace =
+          U->getQualifier().getAsNamespaceAndPrefix().Namespace; Namespace->getCanonicalDecl() ==
               QualifierToRemove.getNestedNameSpecifier()
                   .getAsNamespaceAndPrefix()
                   .Namespace->getCanonicalDecl() &&

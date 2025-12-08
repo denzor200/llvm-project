@@ -237,13 +237,13 @@ void IteratorModeling::checkPostCall(const CallEvent &Call,
 void IteratorModeling::checkBind(SVal Loc, SVal Val, const Stmt *S,
                                  bool AtDeclInit, CheckerContext &C) const {
   auto State = C.getState();
-  const auto *Pos = getIteratorPosition(State, Val);
-  if (Pos) {
+  
+  if (const auto *Pos = getIteratorPosition(State, Val); Pos) {
     State = setIteratorPosition(State, Loc, *Pos);
     C.addTransition(State);
   } else {
-    const auto *OldPos = getIteratorPosition(State, Loc);
-    if (OldPos) {
+    
+    if (const auto *OldPos = getIteratorPosition(State, Loc); OldPos) {
       State = removeIteratorPosition(State, Loc);
       C.addTransition(State);
     }
@@ -280,10 +280,10 @@ void IteratorModeling::checkPostStmt(const BinaryOperator *BO,
     // or on the RHS (eg.: 1 + it). Both cases are modeled.
     const bool IsIterOnLHS = BO->getLHS()->getType()->isPointerType();
     const Expr *const &IterExpr = IsIterOnLHS ? LHS : RHS;
-    const Expr *const &AmountExpr = IsIterOnLHS ? RHS : LHS;
+    
 
     // The non-iterator side must have an integral or enumeration type.
-    if (!AmountExpr->getType()->isIntegralOrEnumerationType())
+    if (const Expr *const &AmountExpr = IsIterOnLHS ? RHS : LHS; !AmountExpr->getType()->isIntegralOrEnumerationType())
       return;
     SVal AmountVal = IsIterOnLHS ? RVal : LVal;
     handlePtrIncrOrDecr(C, IterExpr, C.getCFGElementRef(),
@@ -436,8 +436,8 @@ IteratorModeling::handleAdvanceLikeFunction(CheckerContext &C,
 
   // If std::advance() was inlined, but a non-standard function it calls inside
   // was not, then we have to model it explicitly
-  const auto *IdInfo = cast<FunctionDecl>(Call.getDecl())->getIdentifier();
-  if (IdInfo) {
+  
+  if (const auto *IdInfo = cast<FunctionDecl>(Call.getDecl())->getIdentifier(); IdInfo) {
     if (IdInfo->getName() == "advance") {
       if (noChangeInAdvance(C, Call.getArgSVal(0), OrigExpr)) {
         (this->**Handler)(C, Call.getCFGElementRef(), Call.getReturnValue(),
@@ -736,9 +736,9 @@ void IteratorModeling::printState(raw_ostream &Out, ProgramStateRef State,
   auto SymbolMap = State->get<IteratorSymbolMap>();
   auto RegionMap = State->get<IteratorRegionMap>();
   // Use a counter to add newlines before every line except the first one.
-  unsigned Count = 0;
+  
 
-  if (!SymbolMap.isEmpty() || !RegionMap.isEmpty()) {
+  if (unsigned Count = 0; !SymbolMap.isEmpty() || !RegionMap.isEmpty()) {
     Out << Sep << "Iterator Positions :" << NL;
     for (const auto &Sym : SymbolMap) {
       if (Count++)

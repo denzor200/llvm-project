@@ -909,8 +909,8 @@ static LogicalResult inlineConvertOmpRegions(
     moduleTranslation.forgetMapping(region);
 
     if (potentialTerminator && potentialTerminator->isTerminator()) {
-      llvm::BasicBlock *block = builder.GetInsertBlock();
-      if (block->empty()) {
+      
+      if (llvm::BasicBlock *block = builder.GetInsertBlock(); block->empty()) {
         // this can happen for really simple reduction init regions e.g.
         // %0 = llvm.mlir.constant(0 : i32) : i32
         // omp.yield(%0 : i32)
@@ -1146,8 +1146,8 @@ allocReductionVars(T loop, ArrayRef<BlockArgument> reductionArgs,
   deferredStores.reserve(loop.getNumReductionVars());
 
   for (std::size_t i = 0; i < loop.getNumReductionVars(); ++i) {
-    Region &allocRegion = reductionDecls[i].getAllocRegion();
-    if (isByRefs[i]) {
+    
+    if (Region &allocRegion = reductionDecls[i].getAllocRegion(); isByRefs[i]) {
       if (allocRegion.empty())
         continue;
 
@@ -1411,10 +1411,10 @@ inlineOmpRegionCleanup(llvm::SmallVectorImpl<Region *> &cleanupRegions,
     // map the argument to the cleanup region
     Block &entry = cleanupRegion->front();
 
-    llvm::Instruction *potentialTerminator =
+    
+    if (llvm::Instruction *potentialTerminator =
         builder.GetInsertBlock()->empty() ? nullptr
-                                          : &builder.GetInsertBlock()->back();
-    if (potentialTerminator && potentialTerminator->isTerminator())
+                                          : &builder.GetInsertBlock()->back(); potentialTerminator && potentialTerminator->isTerminator())
       builder.SetInsertPoint(potentialTerminator);
     llvm::Value *privateVarValue =
         shouldLoadCleanupRegionArg
@@ -1697,13 +1697,13 @@ static LogicalResult copyFirstPrivateVars(
     SmallVectorImpl<omp::PrivateClauseOp> &privateDecls, bool insertBarrier,
     llvm::DenseMap<Value, Value> *mappedPrivateVars = nullptr) {
   // Apply copy region for firstprivate.
-  bool needsFirstprivate =
+  
+
+  if (bool needsFirstprivate =
       llvm::any_of(privateDecls, [](omp::PrivateClauseOp &privOp) {
         return privOp.getDataSharingType() ==
                omp::DataSharingClauseType::FirstPrivate;
-      });
-
-  if (!needsFirstprivate)
+      }); !needsFirstprivate)
     return success();
 
   llvm::BasicBlock *copyBlock =
@@ -2663,11 +2663,11 @@ convertOmpWsloop(Operation &opInst, llvm::IRBuilderBase &builder,
   bool noLoopMode = false;
   omp::TargetOp targetOp = wsloopOp->getParentOfType<mlir::omp::TargetOp>();
   if (targetOp) {
-    Operation *targetCapturedOp = targetOp.getInnermostCapturedOmpOp();
+    
     // We need this check because, without it, noLoopMode would be set to true
     // for every omp.wsloop nested inside a no-loop SPMD target region, even if
     // that loop is not the top-level SPMD one.
-    if (loopOp == targetCapturedOp) {
+    if (Operation *targetCapturedOp = targetOp.getInnermostCapturedOmpOp(); loopOp == targetCapturedOp) {
       omp::TargetRegionFlags kernelFlags =
           targetOp.getKernelExecFlags(targetCapturedOp);
       if (omp::bitEnumContainsAll(kernelFlags,
@@ -3498,10 +3498,10 @@ convertOmpAtomicCapture(omp::AtomicCaptureOp atomicCaptureOp,
   } else {
     isPostfixUpdate = atomicCaptureOp.getSecondOp() ==
                       atomicCaptureOp.getAtomicUpdateOp().getOperation();
-    auto &innerOpList = atomicUpdateOp.getRegion().front().getOperations();
+    
     // Find the binary update operation that uses the region argument
     // and get the expression to update
-    if (innerOpList.size() == 2) {
+    if (auto &innerOpList = atomicUpdateOp.getRegion().front().getOperations(); innerOpList.size() == 2) {
       mlir::Operation &innerOp = *atomicUpdateOp.getRegion().front().begin();
       if (!llvm::is_contained(innerOp.getOperands(),
                               atomicUpdateOp.getRegion().getArgument(0))) {
@@ -3776,8 +3776,8 @@ static bool isDeclareTargetTo(Value value) {
 static llvm::Value *
 getRefPtrIfDeclareTarget(Value value,
                          LLVM::ModuleTranslation &moduleTranslation) {
-  llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
-  if (auto gOp =
+  
+  if (llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder(); auto gOp =
           dyn_cast_or_null<LLVM::GlobalOp>(getGlobalOpFromValue(value))) {
     if (auto declareTargetGlobal =
             dyn_cast<omp::DeclareTargetInterface>(gOp.getOperation())) {
@@ -4076,10 +4076,10 @@ static void collectMapDataFromMapOperands(
       auto mapOp = cast<omp::MapInfoOp>(mapValue.getDefiningOp());
       Value offloadPtr =
           mapOp.getVarPtrPtr() ? mapOp.getVarPtrPtr() : mapOp.getVarPtr();
-      llvm::Value *origValue = moduleTranslation.lookupValue(offloadPtr);
+      
 
       // Check if map info is already present for this entry.
-      if (!findMapInfo(origValue, devInfoTy)) {
+      if (llvm::Value *origValue = moduleTranslation.lookupValue(offloadPtr); !findMapInfo(origValue, devInfoTy)) {
         mapData.OriginalValue.push_back(origValue);
         mapData.Pointers.push_back(mapData.OriginalValue.back());
         mapData.IsDeclareTarget.push_back(false);
@@ -4408,8 +4408,8 @@ static llvm::omp::OpenMPOffloadMappingFlags mapParentWithMembers(
           : llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_NONE;
 
   // Detect if this mapping uses a user-defined mapper.
-  bool hasUserMapper = mapData.Mappers[mapDataIndex] != nullptr;
-  if (hasUserMapper) {
+  
+  if (bool hasUserMapper = mapData.Mappers[mapDataIndex] != nullptr; hasUserMapper) {
     using mapFlags = llvm::omp::OpenMPOffloadMappingFlags;
     // Preserve relevant map-type bits from the parent clause. These include
     // the copy direction (TO/FROM), as well as commonly used modifiers that
@@ -4615,10 +4615,10 @@ static void processMapMembersWithParent(
     mapFlag &= ~llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TARGET_PARAM;
     mapFlag |= llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_MEMBER_OF;
     ompBuilder.setCorrectMemberOfFlag(mapFlag, memberOfFlag);
-    bool isDeclTargetTo = isDeclareTargetTo(parentClause.getVarPtr()
+    
+    if (bool isDeclTargetTo = isDeclareTargetTo(parentClause.getVarPtr()
                                                 ? parentClause.getVarPtr()
-                                                : parentClause.getVarPtrPtr());
-    if (checkIfPointerMap(memberClause) &&
+                                                : parentClause.getVarPtrPtr()); checkIfPointerMap(memberClause) &&
         (!isDeclTargetTo ||
          (targetDirective != TargetDirectiveEnumTy::TargetUpdate &&
           targetDirective != TargetDirectiveEnumTy::TargetData))) {
@@ -4745,7 +4745,7 @@ createAlteredByCaptureMap(MapInfoData &mapData,
     if (!mapData.IsDeclareTarget[i]) {
       auto mapOp = cast<omp::MapInfoOp>(mapData.MapClause[i]);
       omp::VariableCaptureKind captureKind = mapOp.getMapCaptureType();
-      bool isPtrTy = checkIfPointerMap(mapOp);
+      
 
       // Currently handles array sectioning lowerbound case, but more
       // logic may be required in the future. Clang invokes EmitLValue,
@@ -4754,7 +4754,7 @@ createAlteredByCaptureMap(MapInfoData &mapData,
       // structures or other complex types. As the general idea is that this
       // function mimics some of the logic from Clang that we require for
       // kernel argument passing from host -> device.
-      switch (captureKind) {
+      switch (bool isPtrTy = checkIfPointerMap(mapOp); captureKind) {
       case omp::VariableCaptureKind::ByRef: {
         llvm::Value *newV = mapData.Pointers[i];
         std::vector<llvm::Value *> offsetIdx = calculateBoundsOffset(
@@ -5368,8 +5368,8 @@ static void getTargetEntryUniqueInfo(llvm::TargetRegionEntryInfo &targetInfo,
   StringRef fileName = fileLoc.getFilename().getValue();
 
   llvm::sys::fs::UniqueID id;
-  uint64_t line = fileLoc.getLine();
-  if (auto ec = llvm::sys::fs::getUniqueID(fileName, id)) {
+  
+  if (uint64_t line = fileLoc.getLine(); auto ec = llvm::sys::fs::getUniqueID(fileName, id)) {
     size_t fileHash = llvm::hash_value(fileName.str());
     size_t deviceId = 0xdeadf17e;
     targetInfo =
@@ -6233,8 +6233,8 @@ convertDeclareTargetAttr(Operation *op, mlir::omp::DeclareTargetAttr attribute,
   }
 
   if (LLVM::GlobalOp gOp = dyn_cast<LLVM::GlobalOp>(op)) {
-    llvm::Module *llvmModule = moduleTranslation.getLLVMModule();
-    if (auto *gVal = llvmModule->getNamedValue(gOp.getSymName())) {
+    
+    if (llvm::Module *llvmModule = moduleTranslation.getLLVMModule(); auto *gVal = llvmModule->getNamedValue(gOp.getSymName())) {
       llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
       bool isDeclaration = gOp.isDeclaration();
       bool isExternallyVisible =
@@ -6822,8 +6822,8 @@ LogicalResult OpenMPDialectLLVMIRTranslationInterface::convertOperation(
     Operation *op, llvm::IRBuilderBase &builder,
     LLVM::ModuleTranslation &moduleTranslation) const {
 
-  llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
-  if (ompBuilder->Config.isTargetDevice()) {
+  
+  if (llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder(); ompBuilder->Config.isTargetDevice()) {
     if (isTargetDeviceOp(op)) {
       return convertTargetDeviceOp(op, builder, moduleTranslation);
     }

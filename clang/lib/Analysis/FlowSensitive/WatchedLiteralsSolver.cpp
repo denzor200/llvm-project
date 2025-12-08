@@ -170,8 +170,8 @@ public:
 
       // Look for unit clauses that contain the active variable.
       const bool unitPosLit = watchedByUnitClause(posLit(ActiveVar));
-      const bool unitNegLit = watchedByUnitClause(negLit(ActiveVar));
-      if (unitPosLit && unitNegLit) {
+      
+      if (const bool unitNegLit = watchedByUnitClause(negLit(ActiveVar)); unitPosLit && unitNegLit) {
         // We found a conflict!
 
         // Backtrack and rewind the `Level` until the most recent non-forced

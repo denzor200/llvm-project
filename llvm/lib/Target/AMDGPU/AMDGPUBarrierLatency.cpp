@@ -58,9 +58,9 @@ void BarrierLatency::apply(ScheduleDAGInstrs *DAG) {
       if (!PredDep.isBarrier())
         continue;
       SUnit *PredSU = PredDep.getSUnit();
-      MachineInstr *MI = PredSU->getInstr();
+      
       // Only consider memory loads
-      if (!MI->mayLoad() || MI->mayStore())
+      if (MachineInstr *MI = PredSU->getInstr(); !MI->mayLoad() || MI->mayStore())
         continue;
       SDep ForwardD = PredDep;
       ForwardD.setSUnit(&SU);

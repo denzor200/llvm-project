@@ -109,8 +109,8 @@ void InstrumentationRuntimeLibrary::emitBinary(BinaryContext &BC,
   };
 
   auto emitPadding = [&Streamer, &EmitOffset](unsigned Size) {
-    const uint64_t Padding = alignTo(EmitOffset, Size) - EmitOffset;
-    if (Padding) {
+    
+    if (const uint64_t Padding = alignTo(EmitOffset, Size) - EmitOffset; Padding) {
       Streamer.emitFill(Padding, 0);
       EmitOffset += Padding;
     }

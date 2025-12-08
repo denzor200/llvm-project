@@ -673,8 +673,8 @@ void ScheduleDAGLinearize::ScheduleNode(SDNode *N) {
   LLVM_DEBUG(N->dump(DAG));
   Sequence.push_back(N);
 
-  unsigned NumOps = N->getNumOperands();
-  if (unsigned NumLeft = NumOps) {
+  
+  if (unsigned NumOps = N->getNumOperands(); unsigned NumLeft = NumOps) {
     SDNode *GluedOpN = nullptr;
     do {
       const SDValue &Op = N->getOperand(NumLeft-1);
@@ -726,8 +726,8 @@ void ScheduleDAGLinearize::Schedule() {
     // Use node id to record degree.
     unsigned Degree = N->use_size();
     N->setNodeId(Degree);
-    unsigned NumVals = N->getNumValues();
-    if (NumVals && N->getValueType(NumVals-1) == MVT::Glue &&
+    
+    if (unsigned NumVals = N->getNumValues(); NumVals && N->getValueType(NumVals-1) == MVT::Glue &&
         N->hasAnyUseOfValue(NumVals-1)) {
       SDNode *User = findGluedUser(N);
       if (User) {

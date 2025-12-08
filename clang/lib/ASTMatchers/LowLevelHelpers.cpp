@@ -35,8 +35,8 @@ static void matchEachArgumentWithParamTypeImpl(
   // we skip over it here.
   unsigned ArgIndex = 0;
   if (const auto *CE = dyn_cast<CXXOperatorCallExpr>(&Node)) {
-    const auto *MD = dyn_cast_or_null<CXXMethodDecl>(CE->getDirectCallee());
-    if (MD && !MD->isExplicitObjectMemberFunction()) {
+    
+    if (const auto *MD = dyn_cast_or_null<CXXMethodDecl>(CE->getDirectCallee()); MD && !MD->isExplicitObjectMemberFunction()) {
       // This is an overloaded operator call.
       // We need to skip the first argument, which is the implicit object
       // argument of the method which should not be matched against a

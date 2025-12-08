@@ -191,8 +191,8 @@ static void getRegisterPressures(
     ScheduleDAGMI *DAG, const SIRegisterInfo *SRI) {
   // getDownwardPressure() and getUpwardPressure() make temporary changes to
   // the tracker, so we need to pass those function a non-const copy.
-  RegPressureTracker &TempTracker = const_cast<RegPressureTracker &>(RPTracker);
-  if (!GCNTrackers) {
+  
+  if (RegPressureTracker &TempTracker = const_cast<RegPressureTracker &>(RPTracker); !GCNTrackers) {
     AtTop
         ? TempTracker.getDownwardPressure(SU->getInstr(), Pressure, MaxPressure)
         : TempTracker.getUpwardPressure(SU->getInstr(), Pressure, MaxPressure);
@@ -352,8 +352,8 @@ static bool shouldCheckPending(SchedBoundary &Zone,
 static SUnit *pickOnlyChoice(SchedBoundary &Zone,
                              const TargetSchedModel *SchedModel) {
   // pickOnlyChoice() releases pending instructions and checks for new hazards.
-  SUnit *OnlyChoice = Zone.pickOnlyChoice();
-  if (!shouldCheckPending(Zone, SchedModel) || Zone.Pending.empty())
+  
+  if (SUnit *OnlyChoice = Zone.pickOnlyChoice(); !shouldCheckPending(Zone, SchedModel) || Zone.Pending.empty())
     return OnlyChoice;
 
   return nullptr;
@@ -587,8 +587,8 @@ SUnit *GCNSchedStrategy::pickNode(bool &IsTopNode) {
   if (PickedPending) {
     unsigned ReadyCycle = IsTopNode ? SU->TopReadyCycle : SU->BotReadyCycle;
     SchedBoundary &Zone = IsTopNode ? Top : Bot;
-    unsigned CurrentCycle = Zone.getCurrCycle();
-    if (ReadyCycle > CurrentCycle)
+    
+    if (unsigned CurrentCycle = Zone.getCurrCycle(); ReadyCycle > CurrentCycle)
       Zone.bumpCycle(ReadyCycle);
 
     // FIXME: checkHazard() doesn't give information about which cycle the
@@ -671,8 +671,8 @@ bool GCNSchedStrategy::tryPendingCandidate(SchedCandidate &Cand,
                   TryCand, Cand, RegCritical, TRI, DAG->MF))
     return TryCand.Reason != NoCand;
 
-  bool SameBoundary = Zone != nullptr;
-  if (SameBoundary) {
+  
+  if (bool SameBoundary = Zone != nullptr; SameBoundary) {
     TryCand.initResourceDelta(DAG, SchedModel);
     if (tryLess(TryCand.ResDelta.CritResources, Cand.ResDelta.CritResources,
                 TryCand, Cand, ResourceReduce))
@@ -835,9 +835,9 @@ bool GCNMaxMemoryClauseSchedStrategy::tryCandidate(SchedCandidate &Cand,
   unsigned TryCandZoneCluster = TryCand.AtTop ? TopClusterID : BotClusterID;
   bool CandIsClusterSucc =
       isTheSameCluster(CandZoneCluster, Cand.SU->ParentClusterIdx);
-  bool TryCandIsClusterSucc =
-      isTheSameCluster(TryCandZoneCluster, TryCand.SU->ParentClusterIdx);
-  if (tryGreater(TryCandIsClusterSucc, CandIsClusterSucc, TryCand, Cand,
+  
+  if (bool TryCandIsClusterSucc =
+      isTheSameCluster(TryCandZoneCluster, TryCand.SU->ParentClusterIdx); tryGreater(TryCandIsClusterSucc, CandIsClusterSucc, TryCand, Cand,
                  Cluster))
     return TryCand.Reason != NoCand;
 
@@ -861,15 +861,15 @@ bool GCNMaxMemoryClauseSchedStrategy::tryCandidate(SchedCandidate &Cand,
     // scheduler them too early.
     bool TryMayLoad =
         TryCand.SU->isInstr() && TryCand.SU->getInstr()->mayLoad();
-    bool CandMayLoad = Cand.SU->isInstr() && Cand.SU->getInstr()->mayLoad();
+    
 
-    if (TryMayLoad || CandMayLoad) {
+    if (bool CandMayLoad = Cand.SU->isInstr() && Cand.SU->getInstr()->mayLoad(); TryMayLoad || CandMayLoad) {
       bool TryLongLatency =
           TryCand.SU->Latency > 10 * Cand.SU->Latency && TryMayLoad;
-      bool CandLongLatency =
-          10 * TryCand.SU->Latency < Cand.SU->Latency && CandMayLoad;
+      
 
-      if (tryGreater(Zone->isTop() ? TryLongLatency : CandLongLatency,
+      if (bool CandLongLatency =
+          10 * TryCand.SU->Latency < Cand.SU->Latency && CandMayLoad; tryGreater(Zone->isTop() ? TryLongLatency : CandLongLatency,
                      Zone->isTop() ? CandLongLatency : TryLongLatency, TryCand,
                      Cand, Stall))
         return TryCand.Reason != NoCand;
@@ -996,10 +996,10 @@ void GCNScheduleDAGMILive::computeBlockPressure(unsigned RegionIdx,
   // i.e. one predecessor with one successor block.
   const MachineBasicBlock *OnlySucc = nullptr;
   if (MBB->succ_size() == 1) {
-    auto *Candidate = *MBB->succ_begin();
-    if (!Candidate->empty() && Candidate->pred_size() == 1) {
-      SlotIndexes *Ind = LIS->getSlotIndexes();
-      if (Ind->getMBBStartIdx(MBB) < Ind->getMBBStartIdx(Candidate))
+    
+    if (auto *Candidate = *MBB->succ_begin(); !Candidate->empty() && Candidate->pred_size() == 1) {
+      
+      if (SlotIndexes *Ind = LIS->getSlotIndexes(); Ind->getMBBStartIdx(MBB) < Ind->getMBBStartIdx(Candidate))
         OnlySucc = Candidate;
     }
   }
@@ -1410,9 +1410,9 @@ bool UnclusteredHighRPStage::initGCNRegion() {
   unsigned DynamicVGPRBlockSize = DAG.MFI.getDynamicVGPRBlockSize();
   // If no region has been scheduled yet, the DAG has not yet been updated with
   // the occupancy target. So retrieve it from the temporary.
-  unsigned CurrentTargetOccupancy =
-      IsAnyRegionScheduled ? DAG.MinOccupancy : TempTargetOccupancy;
-  if (!DAG.RegionsWithExcessRP[RegionIdx] &&
+  
+  if (unsigned CurrentTargetOccupancy =
+      IsAnyRegionScheduled ? DAG.MinOccupancy : TempTargetOccupancy; !DAG.RegionsWithExcessRP[RegionIdx] &&
       (CurrentTargetOccupancy <= InitialOccupancy ||
        DAG.Pressure[RegionIdx].getOccupancy(ST, DynamicVGPRBlockSize) !=
            InitialOccupancy))
@@ -1673,10 +1673,10 @@ bool GCNSchedStage::shouldRevertScheduling(unsigned WavesAfter) {
     unsigned BlocksBefore = AMDGPU::IsaInfo::getAllocatedNumVGPRBlocks(
         &ST, DAG.MFI.getDynamicVGPRBlockSize(),
         PressureBefore.getVGPRNum(false));
-    unsigned BlocksAfter = AMDGPU::IsaInfo::getAllocatedNumVGPRBlocks(
+    
+    if (unsigned BlocksAfter = AMDGPU::IsaInfo::getAllocatedNumVGPRBlocks(
         &ST, DAG.MFI.getDynamicVGPRBlockSize(),
-        PressureAfter.getVGPRNum(false));
-    if (BlocksAfter > BlocksBefore)
+        PressureAfter.getVGPRNum(false)); BlocksAfter > BlocksBefore)
       return true;
   }
 
@@ -2129,9 +2129,9 @@ void PreRARematStage::rematerialize() {
       RP = getRegPressure(DAG.MRI, DAG.LiveIns[I]);
     } else {
       GCNDownwardRPTracker RPT(*DAG.LIS);
-      auto *NonDbgMI = &*skipDebugInstructionsForward(DAG.Regions[I].first,
-                                                      DAG.Regions[I].second);
-      if (NonDbgMI == DAG.Regions[I].second) {
+      
+      if (auto *NonDbgMI = &*skipDebugInstructionsForward(DAG.Regions[I].first,
+                                                      DAG.Regions[I].second); NonDbgMI == DAG.Regions[I].second) {
         // Region is non-empty but contains only debug instructions.
         RP = getRegPressure(DAG.MRI, DAG.LiveIns[I]);
       } else {
@@ -2171,8 +2171,8 @@ void PreRARematStage::finalizeGCNSchedStage() {
   // rescheduling lowers occupancy over the one achieved just through remats, in
   // which case we do not want to rollback either (the rescheduling was already
   // reverted in PreRARematStage::shouldRevertScheduling in such cases).
-  unsigned MaxOcc = std::max(AchievedOcc, DAG.MinOccupancy);
-  if (!TargetOcc || MaxOcc >= *TargetOcc)
+  
+  if (unsigned MaxOcc = std::max(AchievedOcc, DAG.MinOccupancy); !TargetOcc || MaxOcc >= *TargetOcc)
     return;
 
   REMAT_DEBUG(dbgs() << "Rolling back all rematerializations\n");

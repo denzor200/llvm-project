@@ -103,8 +103,8 @@ void LVCodeViewReader::printRelocatedField(StringRef Label,
                                            uint32_t Offset,
                                            StringRef *RelocSym) {
   StringRef SymStorage;
-  StringRef &Symbol = RelocSym ? *RelocSym : SymStorage;
-  if (!resolveSymbolName(CoffSection, RelocOffset, Symbol))
+  
+  if (StringRef &Symbol = RelocSym ? *RelocSym : SymStorage; !resolveSymbolName(CoffSection, RelocOffset, Symbol))
     W.printSymbolOffset(Label, Symbol, Offset);
   else
     W.printHex(Label, RelocOffset);
@@ -114,8 +114,8 @@ void LVCodeViewReader::getLinkageName(const coff_section *CoffSection,
                                       uint32_t RelocOffset, uint32_t Offset,
                                       StringRef *RelocSym) {
   StringRef SymStorage;
-  StringRef &Symbol = RelocSym ? *RelocSym : SymStorage;
-  if (resolveSymbolName(CoffSection, RelocOffset, Symbol))
+  
+  if (StringRef &Symbol = RelocSym ? *RelocSym : SymStorage; resolveSymbolName(CoffSection, RelocOffset, Symbol))
     Symbol = "";
 }
 
@@ -179,9 +179,9 @@ Error LVCodeViewReader::resolveSymbol(const coff_section *CoffSection,
   const auto &Relocations = RelocMap[CoffSection];
   basic_symbol_iterator SymI = getObj().symbol_end();
   for (const RelocationRef &Relocation : Relocations) {
-    uint64_t RelocationOffset = Relocation.getOffset();
+    
 
-    if (RelocationOffset == Offset) {
+    if (uint64_t RelocationOffset = Relocation.getOffset(); RelocationOffset == Offset) {
       SymI = Relocation.getSymbol();
       break;
     }
@@ -356,8 +356,8 @@ Error LVCodeViewReader::initializeFileAndStringTables(
       break;
     }
 
-    uint32_t PaddedSize = alignTo(SubSectionSize, 4);
-    if (Error E = Reader.skip(PaddedSize - SubSectionSize))
+    
+    if (uint32_t PaddedSize = alignTo(SubSectionSize, 4); Error E = Reader.skip(PaddedSize - SubSectionSize))
       return createStringError(errorToErrorCode(std::move(E)), getFileName());
   }
 
@@ -412,8 +412,8 @@ Error LVCodeViewReader::loadTypeServer(TypeServer2Record &TS) {
   LogicalVisitor.setInput(TypeServer);
 
   LazyRandomTypeCollection &Types = types();
-  LazyRandomTypeCollection &Ids = ids();
-  if (Error Err = traverseTypes(Pdb, Types, Ids))
+  
+  if (LazyRandomTypeCollection &Ids = ids(); Error Err = traverseTypes(Pdb, Types, Ids))
     return Err;
 
   return Error::success();
@@ -985,8 +985,8 @@ Error LVCodeViewReader::createScopes(PDBFile &Pdb) {
       // one, as the container for all global symbols.
       RecordPrefix Prefix(SymbolKind::S_COMPILE3);
       CVSymbol Symbol(&Prefix, sizeof(Prefix));
-      uint32_t Offset = 0;
-      if (Error Err = Traverser.visitSymbolBegin(Symbol, Offset))
+      
+      if (uint32_t Offset = 0; Error Err = Traverser.visitSymbolBegin(Symbol, Offset))
         consumeError(std::move(Err));
       else {
         // The CodeView compile unit containing the global symbols does not

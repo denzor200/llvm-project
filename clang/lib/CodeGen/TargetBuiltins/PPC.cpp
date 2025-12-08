@@ -952,9 +952,9 @@ Value *CodeGenFunction::EmitPPCBuiltinExpr(unsigned BuiltinID,
     assert(ArgCI &&
            "Second Arg to xxextractuw intrinsic must be a constant integer!");
     const int64_t MaxIndex = 12;
-    int64_t Index = std::clamp(ArgCI->getSExtValue(), (int64_t)0, MaxIndex);
+    
 
-    if (getTarget().isLittleEndian()) {
+    if (int64_t Index = std::clamp(ArgCI->getSExtValue(), (int64_t)0, MaxIndex); getTarget().isLittleEndian()) {
       // Reverse the index.
       Index = MaxIndex - Index;
       Op1 = ConstantInt::getSigned(Int32Ty, Index);

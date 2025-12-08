@@ -93,8 +93,8 @@ bool PlatformAndroidRemoteGDBServer::LaunchGDBServer(lldb::pid_t &pid,
   Log *log = GetLog(LLDBLog::Platform);
 
   uint16_t local_port = 0;
-  const char *gdbstub_port = std::getenv("ANDROID_PLATFORM_LOCAL_GDB_PORT");
-  if (gdbstub_port)
+  
+  if (const char *gdbstub_port = std::getenv("ANDROID_PLATFORM_LOCAL_GDB_PORT"); gdbstub_port)
     local_port = std::stoi(gdbstub_port);
 
   auto error = MakeConnectURL(pid, local_port, remote_port, socket_name.c_str(),

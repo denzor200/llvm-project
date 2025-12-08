@@ -298,8 +298,8 @@ const char *GetStackOriginDescr(u32 id, uptr *pc) {
 }
 
 u32 ChainOrigin(u32 id, StackTrace *stack) {
-  MsanThread *t = GetCurrentThread();
-  if (t && t->InSignalHandler())
+  
+  if (MsanThread *t = GetCurrentThread(); t && t->InSignalHandler())
     return id;
 
   Origin o = Origin::FromRawId(id);

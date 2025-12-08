@@ -145,8 +145,8 @@ static void initializeUsedResources(InstrDesc &ID,
     }
 
     for (unsigned J = I + 1; J < E; ++J) {
-      ResourcePlusCycles &B = Worklist[J];
-      if ((NormalizedMask & B.first) == NormalizedMask) {
+      
+      if (ResourcePlusCycles &B = Worklist[J]; (NormalizedMask & B.first) == NormalizedMask) {
         B.second.CS.subtract(A.second.size() - SuperResources[A.first]);
         if (llvm::popcount(B.first) > 1)
           B.second.NumUnits++;
@@ -175,8 +175,8 @@ static void initializeUsedResources(InstrDesc &ID,
     if (llvm::popcount(RPC.first) > 1 && !RPC.second.isReserved()) {
       // Remove the leading 1 from the resource group mask.
       uint64_t Mask = RPC.first ^ llvm::bit_floor(RPC.first);
-      uint64_t MaxResourceUnits = llvm::popcount(Mask);
-      if (RPC.second.NumUnits > (unsigned)llvm::popcount(Mask)) {
+      
+      if (uint64_t MaxResourceUnits = llvm::popcount(Mask); RPC.second.NumUnits > (unsigned)llvm::popcount(Mask)) {
         RPC.second.setReserved();
         RPC.second.NumUnits = MaxResourceUnits;
       }
@@ -186,8 +186,8 @@ static void initializeUsedResources(InstrDesc &ID,
   // Identify extra buffers that are consumed through super resources.
   for (const std::pair<uint64_t, unsigned> &SR : SuperResources) {
     for (unsigned I = 1, E = NumProcResources; I < E; ++I) {
-      const MCProcResourceDesc &PR = *SM.getProcResource(I);
-      if (PR.BufferSize == -1)
+      
+      if (const MCProcResourceDesc &PR = *SM.getProcResource(I); PR.BufferSize == -1)
         continue;
 
       uint64_t Mask = ProcResourceMasks[I];
@@ -241,8 +241,8 @@ static Error verifyOperands(const MCInstrDesc &MCDesc, const MCInst &MCI) {
   unsigned I, E;
   unsigned NumExplicitDefs = MCDesc.getNumDefs();
   for (I = 0, E = MCI.getNumOperands(); NumExplicitDefs && I < E; ++I) {
-    const MCOperand &Op = MCI.getOperand(I);
-    if (Op.isReg())
+    
+    if (const MCOperand &Op = MCI.getOperand(I); Op.isReg())
       --NumExplicitDefs;
   }
 
@@ -253,8 +253,8 @@ static Error verifyOperands(const MCInstrDesc &MCDesc, const MCInst &MCI) {
 
   if (MCDesc.hasOptionalDef()) {
     // Always assume that the optional definition is the last operand.
-    const MCOperand &Op = MCI.getOperand(MCDesc.getNumOperands() - 1);
-    if (I == MCI.getNumOperands() || !Op.isReg()) {
+    
+    if (const MCOperand &Op = MCI.getOperand(MCDesc.getNumOperands() - 1); I == MCI.getNumOperands() || !Op.isReg()) {
       std::string Message =
           "expected a register operand for an optional definition. Instruction "
           "has not been correctly analyzed.";
@@ -489,8 +489,8 @@ void InstrBuilder::populateReads(InstrDesc &ID, const MCInst &MCI,
   bool AssumeDefsOnly = MCDesc.variadicOpsAreDefs();
   for (unsigned I = 0, OpIndex = MCDesc.getNumOperands();
        I < NumVariadicOps && !AssumeDefsOnly; ++I, ++OpIndex) {
-    const MCOperand &Op = MCI.getOperand(OpIndex);
-    if (!Op.isReg())
+    
+    if (const MCOperand &Op = MCI.getOperand(OpIndex); !Op.isReg())
       continue;
 
     ReadDescriptor &Read = ID.Reads[CurrentUse];
@@ -529,8 +529,8 @@ Error InstrBuilder::verifyInstrDesc(const InstrDesc &ID,
     return ErrorSuccess();
 
   bool UsesBuffers = ID.UsedBuffers;
-  bool UsesResources = !ID.Resources.empty();
-  if (!UsesBuffers && !UsesResources)
+  
+  if (bool UsesResources = !ID.Resources.empty(); !UsesBuffers && !UsesResources)
     return ErrorSuccess();
 
   // FIXME: see PR44797. We should revisit these checks and possibly move them

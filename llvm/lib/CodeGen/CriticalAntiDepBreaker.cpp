@@ -81,8 +81,8 @@ void CriticalAntiDepBreaker::StartBlock(MachineBasicBlock *BB) {
   BitVector Pristine = MFI.getPristineRegs(MF);
   for (const MCPhysReg *I = MF.getRegInfo().getCalleeSavedRegs(); *I;
        ++I) {
-    unsigned Reg = *I;
-    if (!IsReturnBlock && !Pristine.test(Reg))
+    
+    if (unsigned Reg = *I; !IsReturnBlock && !Pristine.test(Reg))
       continue;
     for (MCRegAliasIterator AI(*I, TRI, true); AI.isValid(); ++AI) {
       MCRegister Reg = *AI;
@@ -144,10 +144,10 @@ static const SDep *CriticalPathStep(const SUnit *SU) {
   for (const SDep &P : SU->Preds) {
     const SUnit *PredSU = P.getSUnit();
     unsigned PredLatency = P.getLatency();
-    unsigned PredTotalLatency = PredSU->getDepth() + PredLatency;
+    
     // In the case of a latency tie, prefer an anti-dependency edge over
     // other types of edges.
-    if (NextDepth < PredTotalLatency ||
+    if (unsigned PredTotalLatency = PredSU->getDepth() + PredLatency; NextDepth < PredTotalLatency ||
         (NextDepth == PredTotalLatency && P.getKind() == SDep::Anti)) {
       NextDepth = PredTotalLatency;
       Next = &P;
@@ -201,8 +201,8 @@ void CriticalAntiDepBreaker::PrescanInstruction(MachineInstr &MI) {
       // If an alias of the reg is used during the live range, give up.
       // Note that this allows us to skip checking if AntiDepReg
       // overlaps with any of the aliases, among other things.
-      unsigned AliasReg = (*AI).id();
-      if (Classes[AliasReg]) {
+      
+      if (unsigned AliasReg = (*AI).id(); Classes[AliasReg]) {
         Classes[AliasReg] = reinterpret_cast<TargetRegisterClass *>(-1);
         Classes[Reg.id()] = reinterpret_cast<TargetRegisterClass *>(-1);
       }
@@ -659,8 +659,8 @@ BreakAntiDependencies(const std::vector<SUnit> &SUnits,
           // If the SU for the instruction being updated has debug information
           // related to the anti-dependency register, make sure to update that
           // as well.
-          const SUnit *SU = MISUnitMap[Q->second->getParent()];
-          if (!SU) continue;
+          
+          if (const SUnit *SU = MISUnitMap[Q->second->getParent()]; !SU) continue;
           UpdateDbgValues(DbgValues, Q->second->getParent(),
                           AntiDepReg, NewReg);
         }

@@ -338,8 +338,8 @@ bool BPFAdjustOptImpl::avoidSpeculation(Instruction &I) {
       // traverse GEP inst to find Use operand index
       unsigned i, e;
       for (i = 1, e = GI->getNumOperands(); i != e; ++i) {
-        Value *V = GI->getOperand(i);
-        if (V == &I)
+        
+        if (Value *V = GI->getOperand(i); V == &I)
           break;
       }
       if (i == e)

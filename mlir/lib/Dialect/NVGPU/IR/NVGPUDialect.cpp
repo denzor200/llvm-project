@@ -212,8 +212,8 @@ static LogicalResult verifyMmaSyncOp(Operation *op,
   auto [m, n, k] = mmaShape;
 
   // verify warp-wide size for vector a
-  int64_t sparseFactor = sparse ? 2 : 1;
-  if (aShape[0] * aShape[1] * kWarpSize != m * k / sparseFactor)
+  
+  if (int64_t sparseFactor = sparse ? 2 : 1; aShape[0] * aShape[1] * kWarpSize != m * k / sparseFactor)
     return op->emitOpError()
            << "expected " << m * k << " warp-wide matrix A elements";
 
@@ -278,8 +278,8 @@ void MmaSparseSyncOp::build(::mlir::OpBuilder &odsBuilder,
 }
 
 LogicalResult MmaSparseSyncOp::verify() {
-  unsigned sparsitySelector = getSparsitySelector();
-  if (sparsitySelector > 1)
+  
+  if (unsigned sparsitySelector = getSparsitySelector(); sparsitySelector > 1)
     return emitOpError() << "sparsity selector should be 0 or 1";
   return verifyMmaSyncOp(this->getOperation(), getMatrixA(), getMatrixB(),
                          getMatrixC(), getMmaShapeAsArray(),
@@ -420,9 +420,9 @@ std::optional<InFlightDiagnostic> verifyTmaDescriptorWithMemref(
                            << descMemref << " != " << dstMemref;
   }
 
-  int lastDimBytes =
-      descMemref.getShape().back() * descMemref.getElementTypeBitWidth() / 8;
-  if (lastDimBytes % kTMALastdimByte != 0) {
+  
+  if (int lastDimBytes =
+      descMemref.getShape().back() * descMemref.getElementTypeBitWidth() / 8; lastDimBytes % kTMALastdimByte != 0) {
     return op->emitError() << "the bytes in the last dimension of the tensor "
                               "map must be a multiple of 16";
   }
@@ -674,9 +674,9 @@ LogicalResult WarpgroupMmaInitAccumulatorOp::verify() {
 
 LogicalResult RcpOp::verify() {
   RcpRoundingModeAttr rounding = getRoundingAttr();
-  bool ftz = getFtz();
+  
   // Currently, only `rcp_approx` and `ftz` is supported.
-  if (rounding.getValue() != RcpRoundingMode::APPROX || !ftz) {
+  if (bool ftz = getFtz(); rounding.getValue() != RcpRoundingMode::APPROX || !ftz) {
     return emitOpError() << "has a limitation. " << rounding
                          << " or non-ftz is not supported yet.";
   }

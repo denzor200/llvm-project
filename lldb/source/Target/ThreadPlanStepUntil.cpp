@@ -48,10 +48,10 @@ ThreadPlanStepUntil::ThreadPlanStepUntil(Thread &thread,
     if (return_frame_sp) {
       // TODO: add inline functionality
       m_return_addr = return_frame_sp->GetStackID().GetPC();
-      Breakpoint *return_bp =
-          target_sp->CreateBreakpoint(m_return_addr, true, false).get();
+      
 
-      if (return_bp != nullptr) {
+      if (Breakpoint *return_bp =
+          target_sp->CreateBreakpoint(m_return_addr, true, false).get(); return_bp != nullptr) {
         if (return_bp->IsHardware() && !return_bp->HasResolvedLocations())
           m_could_not_resolve_hw_bp = true;
         return_bp->SetThreadID(m_tid);
@@ -64,9 +64,9 @@ ThreadPlanStepUntil::ThreadPlanStepUntil(Thread &thread,
 
     // Now set breakpoints on all our return addresses:
     for (size_t i = 0; i < num_addresses; i++) {
-      Breakpoint *until_bp =
-          target_sp->CreateBreakpoint(address_list[i], true, false).get();
-      if (until_bp != nullptr) {
+      
+      if (Breakpoint *until_bp =
+          target_sp->CreateBreakpoint(address_list[i], true, false).get(); until_bp != nullptr) {
         until_bp->SetThreadID(m_tid);
         m_until_points[address_list[i]] = until_bp->GetID();
         until_bp->SetBreakpointKind("until-target");
@@ -278,14 +278,14 @@ bool ThreadPlanStepUntil::DoWillResume(StateType resume_state,
                                        bool current_plan) {
   if (current_plan) {
     Target &target = GetTarget();
-    Breakpoint *return_bp = target.GetBreakpointByID(m_return_bp_id).get();
-    if (return_bp != nullptr)
+    
+    if (Breakpoint *return_bp = target.GetBreakpointByID(m_return_bp_id).get(); return_bp != nullptr)
       return_bp->SetEnabled(true);
 
     until_collection::iterator pos, end = m_until_points.end();
     for (pos = m_until_points.begin(); pos != end; pos++) {
-      Breakpoint *until_bp = target.GetBreakpointByID((*pos).second).get();
-      if (until_bp != nullptr)
+      
+      if (Breakpoint *until_bp = target.GetBreakpointByID((*pos).second).get(); until_bp != nullptr)
         until_bp->SetEnabled(true);
     }
   }
@@ -298,14 +298,14 @@ bool ThreadPlanStepUntil::DoWillResume(StateType resume_state,
 
 bool ThreadPlanStepUntil::WillStop() {
   Target &target = GetTarget();
-  Breakpoint *return_bp = target.GetBreakpointByID(m_return_bp_id).get();
-  if (return_bp != nullptr)
+  
+  if (Breakpoint *return_bp = target.GetBreakpointByID(m_return_bp_id).get(); return_bp != nullptr)
     return_bp->SetEnabled(false);
 
   until_collection::iterator pos, end = m_until_points.end();
   for (pos = m_until_points.begin(); pos != end; pos++) {
-    Breakpoint *until_bp = target.GetBreakpointByID((*pos).second).get();
-    if (until_bp != nullptr)
+    
+    if (Breakpoint *until_bp = target.GetBreakpointByID((*pos).second).get(); until_bp != nullptr)
       until_bp->SetEnabled(false);
   }
   return true;

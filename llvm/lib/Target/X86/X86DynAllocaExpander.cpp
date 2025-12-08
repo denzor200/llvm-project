@@ -315,8 +315,8 @@ bool X86DynAllocaExpanderLegacy::runOnMachineFunction(MachineFunction &MF) {
 PreservedAnalyses
 X86DynAllocaExpanderPass::run(MachineFunction &MF,
                               MachineFunctionAnalysisManager &MFAM) {
-  bool Changed = X86DynAllocaExpander().run(MF);
-  if (!Changed)
+  
+  if (bool Changed = X86DynAllocaExpander().run(MF); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA = PreservedAnalyses::none();

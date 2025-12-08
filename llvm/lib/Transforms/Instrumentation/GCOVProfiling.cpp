@@ -388,8 +388,8 @@ namespace {
       LLVM_DEBUG(dbgs() << (Blocks.size() + 1) << " blocks\n");
 
       // Emit edges between blocks.
-      const uint32_t Outgoing = EntryBlock.OutEdges.size();
-      if (Outgoing) {
+      
+      if (const uint32_t Outgoing = EntryBlock.OutEdges.size(); Outgoing) {
         write(GCOV_TAG_ARCS);
         write(Outgoing * 2 + 1);
         write(EntryBlock.Number);
@@ -898,8 +898,8 @@ bool GCOVProfiler::emitProfileNotes(
         GlobalVariable *Counters = new GlobalVariable(
             *M, CounterTy, false, GlobalValue::InternalLinkage,
             Constant::getNullValue(CounterTy), "__llvm_gcov_ctr");
-        const llvm::Triple &Triple = M->getTargetTriple();
-        if (Triple.getObjectFormat() == llvm::Triple::XCOFF)
+        
+        if (const llvm::Triple &Triple = M->getTargetTriple(); Triple.getObjectFormat() == llvm::Triple::XCOFF)
           Counters->setSection("__llvm_gcov_ctr_section");
         CountersBySP.emplace_back(Counters, SP);
 
@@ -965,8 +965,8 @@ bool GCOVProfiler::emitProfileNotes(
     }
 
     if (EmitGCDA) {
-      const llvm::Triple &Triple = M->getTargetTriple();
-      if (Triple.getObjectFormat() == llvm::Triple::XCOFF)
+      
+      if (const llvm::Triple &Triple = M->getTargetTriple(); Triple.getObjectFormat() == llvm::Triple::XCOFF)
         emitModuleInitFunctionPtrs(CountersBySP);
       else
         emitGlobalConstructor(CountersBySP);

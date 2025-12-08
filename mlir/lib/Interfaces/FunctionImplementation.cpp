@@ -192,8 +192,8 @@ void function_interface_impl::printFunctionOp(
   printFunctionAttributes(
       p, op, {visibilityAttrName, typeAttrName, argAttrsName, resAttrsName});
   // Print the body if this is not an external function.
-  Region &body = op->getRegion(0);
-  if (!body.empty()) {
+  
+  if (Region &body = op->getRegion(0); !body.empty()) {
     p << ' ';
     p.printRegion(body, /*printEntryBlockArgs=*/false,
                   /*printBlockTerminators=*/true);

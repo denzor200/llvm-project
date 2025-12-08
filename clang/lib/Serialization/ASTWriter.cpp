@@ -1904,8 +1904,8 @@ void ASTWriter::WriteInputFiles(SourceManager &SourceMgr) {
   if (!Sysroot.empty()) {
     SmallString<128> SDKSettingsJSON = Sysroot;
     llvm::sys::path::append(SDKSettingsJSON, "SDKSettings.json");
-    FileManager &FM = PP->getFileManager();
-    if (auto FE = FM.getOptionalFileRef(SDKSettingsJSON)) {
+    
+    if (FileManager &FM = PP->getFileManager(); auto FE = FM.getOptionalFileRef(SDKSettingsJSON)) {
       InputFileEntry Entry(*FE);
       Entry.IsSystemFile = true;
       Entry.IsTransient = false;
@@ -2390,8 +2390,8 @@ void ASTWriter::WriteSourceManagerBlock(SourceManager &SourceMgr) {
     // Figure out which record code to use.
     unsigned Code;
     if (SLoc->isFile()) {
-      const SrcMgr::ContentCache *Cache = &SLoc->getFile().getContentCache();
-      if (Cache->OrigEntry) {
+      
+      if (const SrcMgr::ContentCache *Cache = &SLoc->getFile().getContentCache(); Cache->OrigEntry) {
         Code = SM_SLOC_FILE_ENTRY;
       } else
         Code = SM_SLOC_BUFFER_ENTRY;
@@ -2960,8 +2960,8 @@ unsigned ASTWriter::getLocalOrImportedSubmoduleID(const Module *Mod) {
   if (Known != SubmoduleIDs.end())
     return Known->second;
 
-  auto *Top = Mod->getTopLevelModule();
-  if (Top != WritingModule &&
+  
+  if (auto *Top = Mod->getTopLevelModule(); Top != WritingModule &&
       (getLangOpts().CompilingPCH ||
        !Top->fullModuleNameIs(StringRef(getLangOpts().CurrentModule))))
     return 0;
@@ -3840,11 +3840,11 @@ bool IsInterestingIdentifier(const IdentifierInfo *II, uint64_t MacroOffset,
                              bool IsModule, bool IsCPlusPlus) {
   bool NeedDecls = !IsModule || !IsCPlusPlus;
 
-  bool IsInteresting =
+  
+  if (bool IsInteresting =
       II->getNotableIdentifierID() != tok::NotableIdentifierKind::not_notable ||
       II->getBuiltinID() != Builtin::ID::NotBuiltin ||
-      II->getObjCKeywordID() != tok::ObjCKeywordKind::objc_not_keyword;
-  if (MacroOffset ||
+      II->getObjCKeywordID() != tok::ObjCKeywordKind::objc_not_keyword; MacroOffset ||
       (II->hasMacroDefinition() &&
        II->hasFETokenInfoChangedSinceDeserialization()) ||
       II->isPoisoned() || (!IsModule && IsInteresting) ||
@@ -4305,8 +4305,8 @@ static bool isModuleLocalDecl(NamedDecl *D) {
 }
 
 static bool isTULocalInNamedModules(NamedDecl *D) {
-  Module *NamedModule = D->getTopLevelOwningNamedModule();
-  if (!NamedModule)
+  
+  if (Module *NamedModule = D->getTopLevelOwningNamedModule(); !NamedModule)
     return false;
 
   // For none-top level decls, we choose to move it to the general visible
@@ -4801,8 +4801,8 @@ void ASTWriter::GenerateNameLookupTable(
   auto *Lookups = Chain ? Chain->getLoadedLookupTables(DC) : nullptr;
   Generator.emit(LookupTable, Trait, Lookups ? &Lookups->Table : nullptr);
 
-  const auto &ModuleLocalDecls = Trait.getModuleLocalDecls();
-  if (!ModuleLocalDecls.empty()) {
+  
+  if (const auto &ModuleLocalDecls = Trait.getModuleLocalDecls(); !ModuleLocalDecls.empty()) {
     MultiOnDiskHashTableGenerator<reader::ModuleLocalNameLookupTrait,
                                   ModuleLevelNameLookupTrait>
         ModuleLocalLookupGenerator;
@@ -4928,8 +4928,8 @@ void ASTWriter::WriteDeclContextVisibleBlock(
   // representation is the same for both cases: a declaration name,
   // followed by a size, followed by references to the visible
   // declarations that have that name.
-  StoredDeclsMap *Map = DC->buildLookup();
-  if (!Map || Map->empty())
+  
+  if (StoredDeclsMap *Map = DC->buildLookup(); !Map || Map->empty())
     return;
 
   Offsets.VisibleOffset = Stream.GetCurrentBitNo();
@@ -4976,8 +4976,8 @@ void ASTWriter::WriteDeclContextVisibleBlock(
 /// enumeration members (in C++11).
 void ASTWriter::WriteDeclContextVisibleUpdate(ASTContext &Context,
                                               const DeclContext *DC) {
-  StoredDeclsMap *Map = DC->getLookupPtr();
-  if (!Map || Map->empty())
+  
+  if (StoredDeclsMap *Map = DC->getLookupPtr(); !Map || Map->empty())
     return;
 
   // Create the on-disk hash table in a buffer.
@@ -5336,9 +5336,9 @@ bool ASTWriter::PreparePathForOutput(SmallVectorImpl<char> &Path) {
 
   // Remove a prefix to make the path relative, if relevant.
   const char *PathBegin = Path.data();
-  const char *PathPtr =
-      adjustFilenameForRelocatableAST(PathBegin, BaseDirectory);
-  if (PathPtr != PathBegin) {
+  
+  if (const char *PathPtr =
+      adjustFilenameForRelocatableAST(PathBegin, BaseDirectory); PathPtr != PathBegin) {
     Path.erase(Path.begin(), Path.begin() + (PathPtr - PathBegin));
     Changed = true;
   }
@@ -5739,8 +5739,8 @@ void ASTWriter::PrepareWritingSpecialDecls(Sema &SemaRef) {
   if (!WritingModule || !getLangOpts().CPlusPlus) {
     llvm::SmallVector<const IdentifierInfo*, 256> IIs;
     for (const auto &ID : SemaRef.PP.getIdentifierTable()) {
-      const IdentifierInfo *II = ID.second;
-      if (!Chain || !II->isFromAST() || II->hasChangedSinceDeserialization() ||
+      
+      if (const IdentifierInfo *II = ID.second; !Chain || !II->isFromAST() || II->hasChangedSinceDeserialization() ||
           II->hasFETokenInfoChangedSinceDeserialization())
         IIs.push_back(II);
     }
@@ -7354,9 +7354,9 @@ void ASTRecordWriter::AddVarDeclInit(const VarDecl *VD) {
     assert(ES->CheckedForSideEffects);
     Val |= (ES->HasConstantInitialization ? 2 : 0);
     Val |= (ES->HasConstantDestruction ? 4 : 0);
-    APValue *Evaluated = VD->getEvaluatedValue();
+    
     // If the evaluated result is constant, emit it.
-    if (Evaluated && (Evaluated->isInt() || Evaluated->isFloat()))
+    if (APValue *Evaluated = VD->getEvaluatedValue(); Evaluated && (Evaluated->isInt() || Evaluated->isFloat()))
       Val |= 8;
   }
   push_back(Val);
@@ -7393,11 +7393,11 @@ void ASTWriter::IdentifierRead(IdentifierID ID, IdentifierInfo *II) {
     return;
 
   IdentifierID &StoredID = IdentifierIDs[II];
-  unsigned OriginalModuleFileIndex = StoredID >> 32;
+  
 
   // Always keep the local identifier ID. See \p TypeRead() for more
   // information.
-  if (OriginalModuleFileIndex == 0 && StoredID)
+  if (unsigned OriginalModuleFileIndex = StoredID >> 32; OriginalModuleFileIndex == 0 && StoredID)
     return;
 
   // Otherwise, keep the highest ID since the module file comes later has
@@ -7409,10 +7409,10 @@ void ASTWriter::IdentifierRead(IdentifierID ID, IdentifierInfo *II) {
 void ASTWriter::MacroRead(serialization::MacroID ID, MacroInfo *MI) {
   // Always keep the highest ID. See \p TypeRead() for more information.
   MacroID &StoredID = MacroIDs[MI];
-  unsigned OriginalModuleFileIndex = StoredID >> 32;
+  
 
   // Always keep the local macro ID. See \p TypeRead() for more information.
-  if (OriginalModuleFileIndex == 0 && StoredID)
+  if (unsigned OriginalModuleFileIndex = StoredID >> 32; OriginalModuleFileIndex == 0 && StoredID)
     return;
 
   // Otherwise, keep the highest ID since the module file comes later has
@@ -7438,8 +7438,8 @@ void ASTWriter::TypeRead(TypeIdx Idx, QualType T) {
   // Ignore it if the type comes from the current being written module file.
   // Since the current module file being written logically has the highest
   // index.
-  unsigned ModuleFileIndex = StoredIdx.getModuleFileIndex();
-  if (ModuleFileIndex == 0 && StoredIdx.getValue())
+  
+  if (unsigned ModuleFileIndex = StoredIdx.getModuleFileIndex(); ModuleFileIndex == 0 && StoredIdx.getValue())
     return;
 
   // Otherwise, keep the highest ID since the module file comes later has
@@ -7456,8 +7456,8 @@ void ASTWriter::PredefinedDeclBuilt(PredefinedDeclIDs ID, const Decl *D) {
 
 void ASTWriter::SelectorRead(SelectorID ID, Selector S) {
   // Always keep the highest ID. See \p TypeRead() for more information.
-  SelectorID &StoredID = SelectorIDs[S];
-  if (ID > StoredID)
+  
+  if (SelectorID &StoredID = SelectorIDs[S]; ID > StoredID)
     StoredID = ID;
 }
 

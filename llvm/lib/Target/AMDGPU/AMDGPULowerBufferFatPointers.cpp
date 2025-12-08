@@ -316,8 +316,8 @@ Type *BufferFatPtrTypeLoweringBase::remapTypeImpl(Type *Ty) {
     }
   }
   if (auto *VT = dyn_cast<VectorType>(Ty)) {
-    auto *PT = dyn_cast<PointerType>(VT->getElementType());
-    if (PT && PT->getAddressSpace() == AMDGPUAS::BUFFER_FAT_POINTER) {
+    
+    if (auto *PT = dyn_cast<PointerType>(VT->getElementType()); PT && PT->getAddressSpace() == AMDGPUAS::BUFFER_FAT_POINTER) {
       return *Entry = remapVector(VT);
     }
     return *Entry = Ty;
@@ -787,8 +787,8 @@ Type *LegalizeBufferContentTypesVisitor::legalNonAggregateFor(Type *T) {
     // fail in codegen.
     return T;
   }
-  unsigned ElemSize = DL.getTypeSizeInBits(ElemTy).getFixedValue();
-  if (isPowerOf2_32(ElemSize) && ElemSize >= 16 && ElemSize <= 128) {
+  
+  if (unsigned ElemSize = DL.getTypeSizeInBits(ElemTy).getFixedValue(); isPowerOf2_32(ElemSize) && ElemSize >= 16 && ElemSize <= 128) {
     // [vectors of] anything that's 16/32/64/128 bits can be cast and split into
     // legal buffer operations.
     return T;
@@ -970,8 +970,8 @@ bool LegalizeBufferContentTypesVisitor::visitLoadImpl(
     return Changed;
   }
   if (auto *AT = dyn_cast<ArrayType>(PartType)) {
-    Type *ElemTy = AT->getElementType();
-    if (!ElemTy->isSingleValueType() || !DL.typeSizeEqualsStoreSize(ElemTy) ||
+    
+    if (Type *ElemTy = AT->getElementType(); !ElemTy->isSingleValueType() || !DL.typeSizeEqualsStoreSize(ElemTy) ||
         ElemTy->isVectorTy()) {
       TypeSize ElemStoreSize = DL.getTypeStoreSize(ElemTy);
       bool Changed = false;
@@ -1090,8 +1090,8 @@ std::pair<bool, bool> LegalizeBufferContentTypesVisitor::visitStoreImpl(
     return std::make_pair(Changed, /*ModifiedInPlace=*/false);
   }
   if (auto *AT = dyn_cast<ArrayType>(PartType)) {
-    Type *ElemTy = AT->getElementType();
-    if (!ElemTy->isSingleValueType() || !DL.typeSizeEqualsStoreSize(ElemTy) ||
+    
+    if (Type *ElemTy = AT->getElementType(); !ElemTy->isSingleValueType() || !DL.typeSizeEqualsStoreSize(ElemTy) ||
         ElemTy->isVectorTy()) {
       TypeSize ElemStoreSize = DL.getTypeStoreSize(ElemTy);
       bool Changed = false;
@@ -1407,8 +1407,8 @@ PtrParts SplitPtrStructs::getPtrParts(Value *V) {
   IRBuilder<InstSimplifyFolder>::InsertPointGuard Guard(IRB);
   if (auto *I = dyn_cast<Instruction>(V)) {
     LLVM_DEBUG(dbgs() << "Recursing to split parts of " << *I << "\n");
-    auto [Rsrc, Off] = visit(*I);
-    if (Rsrc && Off)
+    
+    if (auto [Rsrc, Off] = visit(*I); Rsrc && Off)
       return {*RsrcEntry = Rsrc, *OffEntry = Off};
     // We'll be creating the new values after the relevant instruction.
     // This instruction generates a value and so isn't a terminator.
@@ -2218,8 +2218,8 @@ static bool isRemovablePointerIntrinsic(Intrinsic::ID IID) {
 }
 
 PtrParts SplitPtrStructs::visitIntrinsicInst(IntrinsicInst &I) {
-  Intrinsic::ID IID = I.getIntrinsicID();
-  switch (IID) {
+  
+  switch (Intrinsic::ID IID = I.getIntrinsicID(); IID) {
   default:
     break;
   case Intrinsic::amdgcn_make_buffer_rsrc: {
@@ -2475,8 +2475,8 @@ bool AMDGPULowerBufferFatPointers::run(Module &M, const TargetMachine &TM) {
       continue;
     }
 
-    Type *VT = GV.getValueType();
-    if (VT != StructTM.remapType(VT)) {
+    
+    if (Type *VT = GV.getValueType(); VT != StructTM.remapType(VT)) {
       // FIXME: Use DiagnosticInfo unsupported but it requires a Function
       Ctx.emitError("global variables that contain buffer fat pointers "
                     "(address space 7 pointers) are unsupported. Use "

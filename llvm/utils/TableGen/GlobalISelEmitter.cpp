@@ -139,8 +139,8 @@ static std::string explainPredicates(const TreePatternNode &N) {
       OS << ']';
     }
 
-    int64_t MinAlign = P.getMinAlignment();
-    if (MinAlign > 0)
+    
+    if (int64_t MinAlign = P.getMinAlignment(); MinAlign > 0)
       Explanation += " MinAlign=" + utostr(MinAlign);
 
     if (P.isAtomicOrderingMonotonic())
@@ -226,8 +226,8 @@ static Error isTrivialOperatorNode(const TreePatternNode &N) {
     }
 
     if (Predicate.isLoad() || Predicate.isStore() || Predicate.isAtomic()) {
-      const ListInit *AddrSpaces = Predicate.getAddressSpaces();
-      if (AddrSpaces && !AddrSpaces->empty())
+      
+      if (const ListInit *AddrSpaces = Predicate.getAddressSpaces(); AddrSpaces && !AddrSpaces->empty())
         continue;
 
       if (Predicate.getMinAlignment() > 0)
@@ -282,8 +282,8 @@ static Expected<LLTCodeGen> getInstResultType(const TreePatternNode &Dst,
   // While we allow more than one output (both implicit and explicit defs)
   // below, we only expect one explicit def here.
   assert(Dst.getOperator()->isSubClassOf("Instruction"));
-  const CodeGenInstruction &InstInfo = Target.getInstruction(Dst.getOperator());
-  if (!InstInfo.Operands.NumDefs)
+  
+  if (const CodeGenInstruction &InstInfo = Target.getInstruction(Dst.getOperator()); !InstInfo.Operands.NumDefs)
     return failedImport("Dst pattern child needs a def");
 
   ArrayRef<TypeSetByHwMode> ChildTypes = Dst.getExtTypes();
@@ -842,8 +842,8 @@ Expected<InstructionMatcher &> GlobalISelEmitter::createAndImportSelDAGMatcher(
   }
 
   if (Src.isLeaf()) {
-    const Init *SrcInit = Src.getLeafValue();
-    if (const IntInit *SrcIntInit = dyn_cast<IntInit>(SrcInit)) {
+    
+    if (const Init *SrcInit = Src.getLeafValue(); const IntInit *SrcIntInit = dyn_cast<IntInit>(SrcInit)) {
       OperandMatcher &OM =
           InsnMatcher.addOperand(OpIdx++, Src.getName().str(), TempOpIdx);
       OM.addPredicate<LiteralIntOperandMatcher>(SrcIntInit->getValue());
@@ -869,11 +869,11 @@ Expected<InstructionMatcher &> GlobalISelEmitter::createAndImportSelDAGMatcher(
     // source.
 
     unsigned NumChildren = Src.getNumChildren();
-    bool IsFCmp = SrcGIOrNull->getName() == "G_FCMP";
+    
 
-    if (IsFCmp || SrcGIOrNull->getName() == "G_ICMP") {
-      const TreePatternNode &SrcChild = Src.getChild(NumChildren - 1);
-      if (SrcChild.isLeaf()) {
+    if (bool IsFCmp = SrcGIOrNull->getName() == "G_FCMP"; IsFCmp || SrcGIOrNull->getName() == "G_ICMP") {
+      
+      if (const TreePatternNode &SrcChild = Src.getChild(NumChildren - 1); SrcChild.isLeaf()) {
         const DefInit *DI = dyn_cast<DefInit>(SrcChild.getLeafValue());
         const Record *CCDef = DI ? DI->getDef() : nullptr;
         if (!CCDef || !CCDef->isSubClassOf("CondCode"))
@@ -968,8 +968,8 @@ static StringRef getSrcChildName(const TreePatternNode &SrcChild,
   StringRef SrcChildName = SrcChild.getName();
   if (SrcChildName.empty() && SrcChild.isLeaf()) {
     if (auto *ChildDefInit = dyn_cast<DefInit>(SrcChild.getLeafValue())) {
-      auto *ChildRec = ChildDefInit->getDef();
-      if (ChildRec->isSubClassOf("Register")) {
+      
+      if (auto *ChildRec = ChildDefInit->getDef(); ChildRec->isSubClassOf("Register")) {
         SrcChildName = ChildRec->getName();
         PhysReg = ChildRec;
       }
@@ -1019,10 +1019,10 @@ Error GlobalISelEmitter::importChildMatcher(
 
       // Add predicates, if any
       for (const TreePredicateCall &Call : SrcChild.getPredicateCalls()) {
-        const TreePredicateFn &Predicate = Call.Fn;
+        
 
         // Only handle immediate patterns for now
-        if (Predicate.isImmediatePattern()) {
+        if (const TreePredicateFn &Predicate = Call.Fn; Predicate.isImmediatePattern()) {
           OM.addPredicate<OperandImmPredicateMatcher>(Predicate);
         }
       }
@@ -1030,8 +1030,8 @@ Error GlobalISelEmitter::importChildMatcher(
       return Error::success();
     }
   } else if (auto *ChildDefInit = dyn_cast<DefInit>(SrcChild.getLeafValue())) {
-    auto *ChildRec = ChildDefInit->getDef();
-    if (ChildRec->isSubClassOf("ValueType") && !SrcChild.hasName()) {
+    
+    if (auto *ChildRec = ChildDefInit->getDef(); ChildRec->isSubClassOf("ValueType") && !SrcChild.hasName()) {
       // An unnamed ValueType as in (sext_inreg GPR:$foo, i8). GISel represents
       // this as a literal constant with the scalar size.
       MVT VT = llvm::getValueType(ChildRec);
@@ -1051,8 +1051,8 @@ Error GlobalISelEmitter::importChildMatcher(
 
   // Try look up SrcChild for a (named) predicate operand if there is any.
   if (WaitingForNamedOperands) {
-    auto &ScopedNames = SrcChild.getNamesAsPredicateArg();
-    if (!ScopedNames.empty()) {
+    
+    if (auto &ScopedNames = SrcChild.getNamesAsPredicateArg(); !ScopedNames.empty()) {
       auto PA = ScopedNames.begin();
       std::string Name = getScopedName(PA->getScope(), PA->getIdentifier());
       OM.addPredicate<RecordNamedOperandMatcher>(StoreIdxForName[Name], Name);
@@ -1073,8 +1073,8 @@ Error GlobalISelEmitter::importChildMatcher(
         return Error;
 
       for (unsigned I = 0, E = SrcChild.getNumChildren(); I != E; ++I) {
-        auto &SubOperand = SrcChild.getChild(I);
-        if (!SubOperand.getName().empty()) {
+        
+        if (auto &SubOperand = SrcChild.getChild(I); !SubOperand.getName().empty()) {
           if (auto Error = Rule.defineComplexSubOperand(
                   SubOperand.getName(), SrcChild.getOperator(), RendererID, I,
                   SrcChildName))
@@ -1372,8 +1372,8 @@ Error GlobalISelEmitter::importXFormNodeRenderer(
   const TreePatternNode &Node = N.getChild(0);
   StringRef NodeName = Node.getName();
 
-  const Record *XFormOpc = CGP.getSDNodeTransform(XFormRec).first;
-  if (XFormOpc->getName() == "timm") {
+  
+  if (const Record *XFormOpc = CGP.getSDNodeTransform(XFormRec).first; XFormOpc->getName() == "timm") {
     // If this is a TargetConstant, there won't be a corresponding
     // instruction to transform. Instead, this will refer directly to an
     // operand in an instruction's operand list.
@@ -1668,9 +1668,9 @@ Expected<action_iterator> GlobalISelEmitter::importExplicitUseRenderers(
     if (!Dst.getChild(0).isLeaf())
       return failedImport("REG_SEQUENCE child #0 is not a leaf");
 
-    const Record *RCDef =
-        Target.getInitValueAsRegClass(Dst.getChild(0).getLeafValue());
-    if (!RCDef)
+    
+    if (const Record *RCDef =
+        Target.getInitValueAsRegClass(Dst.getChild(0).getLeafValue()); !RCDef)
       return failedImport("REG_SEQUENCE child #0 could not "
                           "be coerced to a register class");
 
@@ -1679,9 +1679,9 @@ Expected<action_iterator> GlobalISelEmitter::importExplicitUseRenderers(
 
     for (unsigned I = 1; I != ExpectedDstINumUses; I += 2) {
       const TreePatternNode &ValChild = Dst.getChild(I);
-      const TreePatternNode &SubRegChild = Dst.getChild(I + 1);
+      
 
-      if (const DefInit *SubRegInit =
+      if (const TreePatternNode &SubRegChild = Dst.getChild(I + 1); const DefInit *SubRegInit =
               dyn_cast<DefInit>(SubRegChild.getLeafValue())) {
         const CodeGenSubRegIndex *SubIdx =
             CGRegs.findSubRegIdx(SubRegInit->getDef());
@@ -1735,10 +1735,10 @@ Expected<action_iterator> GlobalISelEmitter::importExplicitUseRenderers(
     unsigned InstOpNo = DstI->Operands.NumDefs + I;
 
     // Determine what to emit for this operand.
-    const Record *OperandNode = DstI->Operands[InstOpNo].Rec;
+    
 
     // If the operand has default values, introduce them now.
-    if (CGP.operandHasDefault(OperandNode) &&
+    if (const Record *OperandNode = DstI->Operands[InstOpNo].Rec; CGP.operandHasDefault(OperandNode) &&
         (InstOpNo < NonOverridableOperands || Child >= Dst.getNumChildren())) {
       // This is a predicate or optional def operand which the pattern has not
       // overridden, or which we aren't letting it override; emit the 'default
@@ -1912,10 +1912,10 @@ GlobalISelEmitter::inferRegClassFromPattern(const TreePatternNode &N) const {
   // just take the first one).
   if (N.getNumTypes() < 1)
     return nullptr;
-  const Record *OpRec = N.getOperator();
+  
 
   // We only want instructions.
-  if (!OpRec->isSubClassOf("Instruction"))
+  if (const Record *OpRec = N.getOperator(); !OpRec->isSubClassOf("Instruction"))
     return nullptr;
 
   // Don't want to try and infer things when there could potentially be more

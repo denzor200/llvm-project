@@ -317,8 +317,8 @@ void XCoreTargetCodeGenInfo::emitTargetMetadata(
   // of the container.
   for (unsigned I = 0; I != MangledDeclNames.size(); ++I) {
     auto Val = *(MangledDeclNames.begin() + I);
-    llvm::GlobalValue *GV = CGM.GetGlobalValue(Val.second);
-    if (GV) {
+    
+    if (llvm::GlobalValue *GV = CGM.GetGlobalValue(Val.second); GV) {
       const Decl *D = Val.first.getDecl()->getMostRecentDecl();
       emitTargetMD(D, GV, CGM);
     }
@@ -380,8 +380,8 @@ static bool appendRecordType(SmallStringEnc &Enc, const RecordType *RT,
 
   // We collect all encoded fields and order as necessary.
   bool IsRecursive = false;
-  const RecordDecl *RD = RT->getDecl()->getDefinition();
-  if (RD && !RD->field_empty()) {
+  
+  if (const RecordDecl *RD = RT->getDecl()->getDefinition(); RD && !RD->field_empty()) {
     // An incomplete TypeString stub is placed in the cache for this RecordType
     // so that recursive calls to this RecordType will use it whilst building a
     // complete TypeString for this RecordType.
@@ -572,8 +572,8 @@ static bool appendFunctionType(SmallStringEnc &Enc, const FunctionType *FT,
   if (const FunctionProtoType *FPT = FT->getAs<FunctionProtoType>()) {
     // N.B. we are only interested in the adjusted param types.
     auto I = FPT->param_type_begin();
-    auto E = FPT->param_type_end();
-    if (I != E) {
+    
+    if (auto E = FPT->param_type_end(); I != E) {
       do {
         if (!appendType(Enc, *I, CGM, TSC))
           return false;

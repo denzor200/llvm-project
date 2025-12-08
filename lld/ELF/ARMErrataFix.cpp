@@ -278,20 +278,20 @@ static ScanResult scanCortexA8Errata657417(InputSection *isec, uint64_t &off,
   uint16_t hw11 = *instBuf++;
   uint16_t hw12 = *instBuf++;
   uint16_t hw21 = *instBuf++;
-  uint16_t hw22 = *instBuf++;
-  if (is32bitInstruction(hw11) && is32bitInstruction(hw21)) {
+  
+  if (uint16_t hw22 = *instBuf++; is32bitInstruction(hw11) && is32bitInstruction(hw21)) {
     uint32_t instr1 = (hw11 << 16) | hw12;
-    uint32_t instr2 = (hw21 << 16) | hw22;
-    if (!is32bitBranch(instr1) && is32bitBranch(instr2)) {
+    
+    if (uint32_t instr2 = (hw21 << 16) | hw22; !is32bitBranch(instr1) && is32bitBranch(instr2)) {
       // Find a relocation for the branch if it exists. This will be used
       // to determine the target.
       uint64_t branchOff = off + 4;
-      auto relIt = llvm::find_if(isec->relocs(), [=](const Relocation &r) {
+      
+      if (auto relIt = llvm::find_if(isec->relocs(), [=](const Relocation &r) {
         return r.offset == branchOff &&
                (r.type == R_ARM_THM_JUMP19 || r.type == R_ARM_THM_JUMP24 ||
                 r.type == R_ARM_THM_CALL);
-      });
-      if (relIt != isec->relocs().end())
+      }); relIt != isec->relocs().end())
         scanRes.rel = &(*relIt);
       if (branchDestInFirstRegion(ctx, isec, branchOff, instr2, scanRes.rel)) {
         if (patchInRange(ctx, isec, branchOff, instr2)) {

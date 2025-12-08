@@ -383,9 +383,9 @@ Error XCOFFLinkGraphBuilder::processRelocations() {
              "Cannot find the target relocation block");
       Block *B = *It;
 
-      auto TargetBlockOffset = Section.getAddress() + Relocation.getOffset() -
-                               B->getAddress().getValue();
-      switch (Relocation.getType()) {
+      
+      switch (auto TargetBlockOffset = Section.getAddress() + Relocation.getOffset() -
+                               B->getAddress().getValue(); Relocation.getType()) {
       case XCOFF::R_POS:
         B->addEdge(ppc64::EdgeKind_ppc64::Pointer64, TargetBlockOffset, *S, 0);
         break;

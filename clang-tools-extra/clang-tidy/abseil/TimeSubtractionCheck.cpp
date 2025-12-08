@@ -136,8 +136,8 @@ void TimeSubtractionCheck::check(const MatchFinder::MatchResult &Result) {
   if (!Scale)
     return;
 
-  const auto *OuterCall = Result.Nodes.getNodeAs<CallExpr>("outer_call");
-  if (OuterCall) {
+  
+  if (const auto *OuterCall = Result.Nodes.getNodeAs<CallExpr>("outer_call"); OuterCall) {
     if (insideMacroDefinition(Result, OuterCall->getSourceRange()))
       return;
 
@@ -157,13 +157,13 @@ void TimeSubtractionCheck::check(const MatchFinder::MatchResult &Result) {
     // We're working with the second case of matcher, and either just need to
     // change the arguments, or perhaps remove an outer function call. In the
     // latter case (addressed first), we also need to worry about parenthesis.
-    const auto *MaybeCallArg = selectFirst<const CallExpr>(
+    
+    if (const auto *MaybeCallArg = selectFirst<const CallExpr>(
         "arg", match(expr(hasAncestor(
                          callExpr(callee(functionDecl(hasName(
                                       getDurationFactoryForScale(*Scale)))))
                              .bind("arg"))),
-                     *BinOp, *Result.Context));
-    if (MaybeCallArg && MaybeCallArg->getArg(0)->IgnoreImpCasts() == BinOp &&
+                     *BinOp, *Result.Context)); MaybeCallArg && MaybeCallArg->getArg(0)->IgnoreImpCasts() == BinOp &&
         !insideMacroDefinition(Result, MaybeCallArg->getSourceRange())) {
       // Handle the case where the matched expression is inside a call which
       // converts it from the inverse to a Duration.  In this case, we replace

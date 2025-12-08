@@ -401,11 +401,11 @@ bool CGObjCRuntime::canMessageReceiverBeNull(CodeGenFunction &CGF,
   // and the receiver is a load of self, then self is a valid object.
   if (auto curMethod =
                dyn_cast_or_null<ObjCMethodDecl>(CGF.CurCodeDecl)) {
-    auto self = curMethod->getSelfDecl();
-    if (self->getType().isConstQualified()) {
+    
+    if (auto self = curMethod->getSelfDecl(); self->getType().isConstQualified()) {
       if (auto LI = dyn_cast<llvm::LoadInst>(receiver->stripPointerCasts())) {
-        llvm::Value *selfAddr = CGF.GetAddrOfLocalVar(self).emitRawPointer(CGF);
-        if (selfAddr == LI->getPointerOperand()) {
+        
+        if (llvm::Value *selfAddr = CGF.GetAddrOfLocalVar(self).emitRawPointer(CGF); selfAddr == LI->getPointerOperand()) {
           return false;
         }
       }
@@ -431,16 +431,16 @@ void CGObjCRuntime::destroyCalleeDestroyedArguments(CodeGenFunction &CGF,
   CallArgList::const_iterator I = callArgs.begin();
   for (auto i = method->param_begin(), e = method->param_end();
          i != e; ++i, ++I) {
-    const ParmVarDecl *param = (*i);
-    if (param->hasAttr<NSConsumedAttr>()) {
+    
+    if (const ParmVarDecl *param = (*i); param->hasAttr<NSConsumedAttr>()) {
       RValue RV = I->getRValue(CGF);
       assert(RV.isScalar() &&
              "NullReturnState::complete - arg not on object");
       CGF.EmitARCRelease(RV.getScalarVal(), ARCImpreciseLifetime);
     } else {
       QualType QT = param->getType();
-      auto *RD = QT->getAsRecordDecl();
-      if (RD && RD->isParamDestroyedInCallee()) {
+      
+      if (auto *RD = QT->getAsRecordDecl(); RD && RD->isParamDestroyedInCallee()) {
         RValue RV = I->getRValue(CGF);
         QualType::DestructionKind DtorKind = QT.isDestructedType();
         switch (DtorKind) {

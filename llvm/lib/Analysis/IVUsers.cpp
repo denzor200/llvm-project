@@ -223,12 +223,12 @@ bool IVUsers::AddUsersIfInteresting(Instruction *I) {
       // hold for the post-inc value. Catch such cases by making sure the
       // transformation is invertible.
       if (OriginalISE != ISE) {
-        const SCEV *DenormalizedISE =
-            denormalizeForPostIncUse(ISE, NewUse.PostIncLoops, *SE);
+        
 
         // If we normalized the expression, but denormalization doesn't give the
         // original one, discard this user.
-        if (OriginalISE != DenormalizedISE) {
+        if (const SCEV *DenormalizedISE =
+            denormalizeForPostIncUse(ISE, NewUse.PostIncLoops, *SE); OriginalISE != DenormalizedISE) {
           LLVM_DEBUG(dbgs()
                      << "   DISCARDING (NORMALIZATION ISN'T INVERTIBLE): "
                      << *ISE << '\n');

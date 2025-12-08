@@ -252,8 +252,8 @@ public:
       if (FnDecl && ArgIndex < FnDecl->getNumParams()) {
         // Manually check attributes on argumenet since RetainSummaryManager
         // basically ignores CF_RETRUNS_RETAINED on out arguments.
-        auto *ParamDecl = FnDecl->getParamDecl(ArgIndex);
-        if (ParamDecl->hasAttr<CFReturnsRetainedAttr>())
+        
+        if (auto *ParamDecl = FnDecl->getParamDecl(ArgIndex); ParamDecl->hasAttr<CFReturnsRetainedAttr>())
           CreateOrCopyOutArguments.insert(Decl);
       } else {
         // No callee or a variadic argument.
@@ -262,8 +262,8 @@ public:
           CreateOrCopyOutArguments.insert(Decl);
       }
     }
-    auto Summary = Summaries->getSummary(AnyCall(CE));
-    switch (Summary->getRetEffect().getKind()) {
+    
+    switch (auto Summary = Summaries->getSummary(AnyCall(CE)); Summary->getRetEffect().getKind()) {
     case RetEffect::OwnedSymbol:
     case RetEffect::OwnedWhenTrackedReceiver:
       if (!CreateOrCopyFnCall.contains(CE))
@@ -390,8 +390,8 @@ public:
       return;
     }
     if (auto *CE = dyn_cast<CallExpr>(RetValue)) {
-      auto *Callee = CE->getDirectCallee();
-      if (!Callee || !isCreateOrCopyFunction(Callee))
+      
+      if (auto *Callee = CE->getDirectCallee(); !Callee || !isCreateOrCopyFunction(Callee))
         return;
       CreateOrCopyFnCall.insert(CE);
       return;
@@ -501,8 +501,8 @@ public:
         QT = QT.getCanonicalType();
         if (RTC.isUnretained(QT, true /* ignoreARC */))
           return IsOwnedResult::NotOwned;
-        auto *PointeeType = QT->getPointeeType().getTypePtrOrNull();
-        if (PointeeType && PointeeType->isVoidType())
+        
+        if (auto *PointeeType = QT->getPointeeType().getTypePtrOrNull(); PointeeType && PointeeType->isVoidType())
           return IsOwnedResult::NotOwned; // Assume reading void* as +0.
       }
       if (auto *TE = dyn_cast<CXXBindTemporaryExpr>(E)) {
@@ -534,8 +534,8 @@ public:
           auto *Cls = MD->getParent();
           if (auto *CD = dyn_cast<CXXConversionDecl>(MD)) {
             auto QT = CD->getConversionType().getCanonicalType();
-            auto *ResultType = QT.getTypePtrOrNull();
-            if (isRetainPtrOrOSPtr(safeGetName(Cls)) && ResultType &&
+            
+            if (auto *ResultType = QT.getTypePtrOrNull(); isRetainPtrOrOSPtr(safeGetName(Cls)) && ResultType &&
                 (ResultType->isPointerType() || ResultType->isReferenceType() ||
                  ResultType->isObjCObjectPointerType()))
               return IsOwnedResult::NotOwned;

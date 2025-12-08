@@ -428,8 +428,8 @@ void HandleTargetEvent(const lldb::SBEvent &event, Log *log) {
 
       llvm::StringRef module_id = p_module->id;
 
-      const bool module_exists = dap->modules.contains(module_id);
-      if (remove_module && module_exists) {
+      
+      if (const bool module_exists = dap->modules.contains(module_id); remove_module && module_exists) {
         dap->modules.erase(module_id);
         dap->Send(protocol::Event{
             "module", protocol::ModuleEventBody{
@@ -481,8 +481,8 @@ void HandleTargetEvent(const lldb::SBEvent &event, Log *log) {
 }
 
 void HandleBreakpointEvent(const lldb::SBEvent &event, Log *log) {
-  const uint32_t event_mask = event.GetType();
-  if (!(event_mask & lldb::SBTarget::eBroadcastBitBreakpointChanged))
+  
+  if (const uint32_t event_mask = event.GetType(); !(event_mask & lldb::SBTarget::eBroadcastBitBreakpointChanged))
     return;
 
   lldb::SBBreakpoint bp = lldb::SBBreakpoint::GetBreakpointFromEvent(event);
@@ -530,9 +530,9 @@ void HandleBreakpointEvent(const lldb::SBEvent &event, Log *log) {
 }
 
 void HandleThreadEvent(const lldb::SBEvent &event, Log *log) {
-  uint32_t event_type = event.GetType();
+  
 
-  if (!(event_type & lldb::SBThread::eBroadcastBitStackChanged))
+  if (uint32_t event_type = event.GetType(); !(event_type & lldb::SBThread::eBroadcastBitStackChanged))
     return;
 
   lldb::SBThread thread = lldb::SBThread::GetThreadFromEvent(event);
@@ -606,8 +606,8 @@ void EventThread(lldb::SBDebugger debugger, lldb::SBBroadcaster broadcaster,
     if (!listener.WaitForEvent(UINT32_MAX, event))
       continue;
 
-    const uint32_t event_mask = event.GetType();
-    if (lldb::SBProcess::EventIsProcessEvent(event)) {
+    
+    if (const uint32_t event_mask = event.GetType(); lldb::SBProcess::EventIsProcessEvent(event)) {
       HandleProcessEvent(event, /*&process_exited=*/done, log);
     } else if (lldb::SBTarget::EventIsTargetEvent(event)) {
       HandleTargetEvent(event, log);

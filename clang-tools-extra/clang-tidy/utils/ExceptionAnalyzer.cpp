@@ -430,8 +430,8 @@ ExceptionAnalyzer::ExceptionInfo::filterIgnoredExceptions(
   // Note: Using a 'SmallSet' with 'llvm::remove_if()' is not possible.
   // Therefore this slightly hacky implementation is required.
   for (const auto &ThrownException : ThrownExceptions) {
-    const Type *T = ThrownException.getFirst();
-    if (const auto *TD = T->getAsTagDecl()) {
+    
+    if (const Type *T = ThrownException.getFirst(); const auto *TD = T->getAsTagDecl()) {
       if (TD->getDeclName().isIdentifier()) {
         if ((IgnoreBadAlloc &&
              (TD->getName() == "bad_alloc" && TD->isInStdNamespace())) ||
@@ -511,9 +511,9 @@ ExceptionAnalyzer::throwsException(const Stmt *St,
 
   if (const auto *Throw = dyn_cast<CXXThrowExpr>(St)) {
     if (const auto *ThrownExpr = Throw->getSubExpr()) {
-      const auto *ThrownType =
-          ThrownExpr->getType()->getUnqualifiedDesugaredType();
-      if (ThrownType->isReferenceType())
+      
+      if (const auto *ThrownType =
+          ThrownExpr->getType()->getUnqualifiedDesugaredType(); ThrownType->isReferenceType())
         ThrownType = ThrownType->castAs<ReferenceType>()
                          ->getPointeeType()
                          ->getUnqualifiedDesugaredType();
@@ -529,10 +529,10 @@ ExceptionAnalyzer::throwsException(const Stmt *St,
     ExceptionInfo Uncaught =
         throwsException(Try->getTryBlock(), Caught, CallStack);
     for (unsigned I = 0; I < Try->getNumHandlers(); ++I) {
-      const CXXCatchStmt *Catch = Try->getHandler(I);
+      
 
       // Everything is caught through 'catch(...)'.
-      if (!Catch->getExceptionDecl()) {
+      if (const CXXCatchStmt *Catch = Try->getHandler(I); !Catch->getExceptionDecl()) {
         const ExceptionInfo Rethrown = throwsException(
             Catch->getHandlerBlock(), Uncaught.getExceptions(), CallStack);
         Results.merge(Rethrown);
@@ -577,8 +577,8 @@ ExceptionAnalyzer::throwsException(const Stmt *St,
     Results.merge(throwsException(Coro->getExceptionHandler(),
                                   Excs.getExceptions(), CallStack));
     for (const auto &Exception : Excs.getExceptions()) {
-      const Type *ExcType = Exception.getFirst();
-      if (const CXXRecordDecl *ThrowableRec = ExcType->getAsCXXRecordDecl()) {
+      
+      if (const Type *ExcType = Exception.getFirst(); const CXXRecordDecl *ThrowableRec = ExcType->getAsCXXRecordDecl()) {
         const ExceptionInfo DestructorExcs = throwsException(
             ThrowableRec->getDestructor(), Caught, CallStack, SourceLocation{});
         Results.merge(DestructorExcs);

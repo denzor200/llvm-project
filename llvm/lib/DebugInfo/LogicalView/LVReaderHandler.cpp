@@ -270,8 +270,8 @@ Error LVReaderHandler::handleObject(LVReaders &Readers, StringRef Filename,
   PdbSession.reset(static_cast<NativeSession *>(Session.release()));
   PdbOrObj Input = &PdbSession->getPDBFile();
   StringRef FileFormatName;
-  size_t Pos = Buffer.find_first_of("\r\n");
-  if (Pos)
+  
+  if (size_t Pos = Buffer.find_first_of("\r\n"); Pos)
     FileFormatName = Buffer.substr(0, Pos - 1);
   return createReader(Filename, Readers, Input, FileFormatName, ExePath);
 }
@@ -302,8 +302,8 @@ Error LVReaderHandler::printReaders() {
 
 Error LVReaderHandler::compareReaders() {
   LLVM_DEBUG(dbgs() << "compareReaders\n");
-  size_t ReadersCount = TheReaders.size();
-  if (options().getCompareExecute() && ReadersCount >= 2) {
+  
+  if (size_t ReadersCount = TheReaders.size(); options().getCompareExecute() && ReadersCount >= 2) {
     // If we have more than 2 readers, compare them by pairs.
     size_t ViewPairs = ReadersCount / 2;
     LVCompare Compare(OS);

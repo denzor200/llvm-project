@@ -141,8 +141,8 @@ void RegisterInfoEmitter::runEnums(raw_ostream &OS, raw_ostream &MainOS,
   if (!Namespace.empty())
     OS << "} // end namespace " << Namespace << "\n";
 
-  const auto &RegisterClasses = RegBank.getRegClasses();
-  if (!RegisterClasses.empty()) {
+  
+  if (const auto &RegisterClasses = RegBank.getRegClasses(); !RegisterClasses.empty()) {
 
     // RegisterClass enums are stored as uint16_t in the tables.
     assert(RegisterClasses.size() <= 0xffff &&
@@ -674,8 +674,8 @@ static bool combine(const CodeGenSubRegIndex *Idx,
                     SmallVectorImpl<const CodeGenSubRegIndex *> &Vec) {
   const CodeGenSubRegIndex::CompMap &Map = Idx->getComposites();
   for (const auto &I : Map) {
-    const CodeGenSubRegIndex *&Entry = Vec[I.first->EnumValue - 1];
-    if (Entry && Entry != I.second)
+    
+    if (const CodeGenSubRegIndex *&Entry = Vec[I.first->EnumValue - 1]; Entry && Entry != I.second)
       return false;
   }
 
@@ -778,8 +778,8 @@ void RegisterInfoEmitter::emitComposeSubRegIndices(raw_ostream &OS,
 
       for (unsigned i = 0, e = SubRegIndicesSize; i != e; ++i) {
         const CodeGenSubRegIndex *This = &SubRegIndices[i];
-        const CodeGenSubRegIndex *Composed = Row[i];
-        if (Composed == &IdxB) {
+        
+        if (const CodeGenSubRegIndex *Composed = Row[i]; Composed == &IdxB) {
           if (FoundReverse && FoundReverse != This) // Not unique
             break;
           FoundReverse = This;

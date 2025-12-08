@@ -472,8 +472,8 @@ memoryIsNotModifiedBetween(Instruction *FirstI, Instruction *SecondI,
       EI = B->end();
     }
     for (; BI != EI; ++BI) {
-      Instruction *I = &*BI;
-      if (I->mayWriteToMemory() && I != SecondI)
+      
+      if (Instruction *I = &*BI; I->mayWriteToMemory() && I != SecondI)
         if (isModSet(AA.getModRefInfo(I, MemLoc.getWithNewPtr(Ptr))))
           return false;
     }
@@ -516,12 +516,12 @@ static void shortenAssignment(Instruction *Inst, Value *OriginalDest,
                             DIExpression::FragmentInfo DeadFragment) {
     // createFragmentExpression expects an offset relative to the existing
     // fragment offset if there is one.
-    uint64_t RelativeOffset = DeadFragment.OffsetInBits -
+    
+    if (uint64_t RelativeOffset = DeadFragment.OffsetInBits -
                               Assign->getExpression()
                                   ->getFragmentInfo()
                                   .value_or(DIExpression::FragmentInfo(0, 0))
-                                  .OffsetInBits;
-    if (auto NewExpr = DIExpression::createFragmentExpression(
+                                  .OffsetInBits; auto NewExpr = DIExpression::createFragmentExpression(
             Assign->getExpression(), RelativeOffset, DeadFragment.SizeInBits)) {
       Assign->setExpression(*NewExpr);
       return;
@@ -650,8 +650,8 @@ static bool tryToShorten(Instruction *DeadI, int64_t &DeadStart,
     ToRemoveSize = KillingSize - uint64_t(DeadStart - KillingStart);
     // Calculate required adjustment for 'ToRemoveSize'in order to keep
     // start of the remaining store aligned on 'PerfAlign'.
-    uint64_t Off = offsetToAlignment(ToRemoveSize, PrefAlign);
-    if (Off != 0) {
+    
+    if (uint64_t Off = offsetToAlignment(ToRemoveSize, PrefAlign); Off != 0) {
       if (ToRemoveSize <= (PrefAlign.value() - Off))
         return false;
       ToRemoveSize -= PrefAlign.value() - Off;
@@ -667,8 +667,8 @@ static bool tryToShorten(Instruction *DeadI, int64_t &DeadStart,
   if (DeadIntrinsic->isAtomic()) {
     // When shortening an atomic memory intrinsic, the newly shortened
     // length must remain an integer multiple of the element size.
-    const uint32_t ElementSize = DeadIntrinsic->getElementSizeInBytes();
-    if (0 != NewSize % ElementSize)
+    
+    if (const uint32_t ElementSize = DeadIntrinsic->getElementSizeInBytes(); 0 != NewSize % ElementSize)
       return false;
   }
 
@@ -1032,8 +1032,8 @@ struct DSEState {
                           SmallVectorImpl<MemoryAccess *> &WorkList,
                           SmallPtrSetImpl<MemoryAccess *> &Visited) {
     for (Use &U : Acc->uses()) {
-      auto *MA = cast<MemoryAccess>(U.getUser());
-      if (Visited.insert(MA).second)
+      
+      if (auto *MA = cast<MemoryAccess>(U.getUser()); Visited.insert(MA).second)
         WorkList.push_back(MA);
     }
   };
@@ -1101,11 +1101,11 @@ struct DSEState {
       // In case no constant size is known, try to an IR values for the number
       // of bytes written and check if they match.
       const auto *KillingMemI = dyn_cast<MemIntrinsic>(KillingI);
-      const auto *DeadMemI = dyn_cast<MemIntrinsic>(DeadI);
-      if (KillingMemI && DeadMemI) {
+      
+      if (const auto *DeadMemI = dyn_cast<MemIntrinsic>(DeadI); KillingMemI && DeadMemI) {
         const Value *KillingV = KillingMemI->getLength();
-        const Value *DeadV = DeadMemI->getLength();
-        if (KillingV == DeadV && BatchAA.isMustAlias(DeadLoc, KillingLoc))
+        
+        if (const Value *DeadV = DeadMemI->getLength(); KillingV == DeadV && BatchAA.isMustAlias(DeadLoc, KillingLoc))
           return OW_Complete;
       }
 
@@ -1136,8 +1136,8 @@ struct DSEState {
 
     // If we hit a partial alias we may have a full overwrite
     if (AAR == AliasResult::PartialAlias && AAR.hasOffset()) {
-      int32_t Off = AAR.getOffset();
-      if (Off >= 0 && (uint64_t)Off + DeadSize <= KillingSize)
+      
+      if (int32_t Off = AAR.getOffset(); Off >= 0 && (uint64_t)Off + DeadSize <= KillingSize)
         return OW_Complete;
     }
 
@@ -1340,8 +1340,8 @@ struct DSEState {
       }
       // TODO: Checking for aliasing is expensive. Consider reducing the amount
       // of times this is called and/or caching it.
-      Instruction *UseInst = cast<MemoryUseOrDef>(UseAccess)->getMemoryInst();
-      if (isReadClobber(DefLoc, UseInst)) {
+      
+      if (Instruction *UseInst = cast<MemoryUseOrDef>(UseAccess)->getMemoryInst(); isReadClobber(DefLoc, UseInst)) {
         LLVM_DEBUG(dbgs() << "  ... hit read clobber " << *UseInst << ".\n");
         return false;
       }
@@ -1437,8 +1437,8 @@ struct DSEState {
     // would also be valid but we currently disable that to limit compile time).
     if (Current->getParent() == KillingDef->getParent())
       return true;
-    const Loop *CurrentLI = LI.getLoopFor(Current->getParent());
-    if (!ContainsIrreducibleLoops && CurrentLI &&
+    
+    if (const Loop *CurrentLI = LI.getLoopFor(Current->getParent()); !ContainsIrreducibleLoops && CurrentLI &&
         CurrentLI == LI.getLoopFor(KillingDef->getParent()))
       return true;
     // Otherwise check the memory location is invariant to any loops.
@@ -1752,8 +1752,8 @@ struct DSEState {
       //                  stores [0,1]
       if (MemoryDef *UseDef = dyn_cast<MemoryDef>(UseAccess)) {
         if (isCompleteOverwrite(MaybeDeadLoc, MaybeDeadI, UseInst)) {
-          BasicBlock *MaybeKillingBlock = UseInst->getParent();
-          if (PostOrderNumbers.find(MaybeKillingBlock)->second <
+          
+          if (BasicBlock *MaybeKillingBlock = UseInst->getParent(); PostOrderNumbers.find(MaybeKillingBlock)->second <
               PostOrderNumbers.find(MaybeDeadAccess->getBlock())->second) {
             if (!isInvisibleToCallerAfterRet(KillingUndObj)) {
               LLVM_DEBUG(dbgs()
@@ -1979,8 +1979,8 @@ struct DSEState {
         // compile-time. In practice it appears the case with multiple
         // underlying objects is very uncommon. If it turns out to be important,
         // we can use getUnderlyingObjects here instead.
-        const Value *UO = getUnderlyingObject(DefLoc->Ptr);
-        if (!isInvisibleToCallerAfterRet(UO))
+        
+        if (const Value *UO = getUnderlyingObject(DefLoc->Ptr); !isInvisibleToCallerAfterRet(UO))
           continue;
 
         if (isWriteAtEndOfFunction(Def, *DefLoc)) {
@@ -2171,11 +2171,11 @@ struct DSEState {
       return false;
 
     if (StoredConstant) {
-      Constant *InitC =
-          getInitialValueOfAllocation(DefUO, &TLI, StoredConstant->getType());
+      
       // If the clobbering access is LiveOnEntry, no instructions between them
       // can modify the memory location.
-      if (InitC && InitC == StoredConstant)
+      if (Constant *InitC =
+          getInitialValueOfAllocation(DefUO, &TLI, StoredConstant->getType()); InitC && InitC == StoredConstant)
         return MSSA.isLiveOnEntryDef(
             MSSA.getSkipSelfWalker()->getClobberingMemoryAccess(Def, BatchAA));
     }
@@ -2414,9 +2414,9 @@ DSEState::getInitializesArgMemLoc(const Instruction *I) {
     for (const auto &Arg : Args) {
       for (const auto &Range : IntersectedRanges) {
         int64_t Start = Range.getLower().getSExtValue();
-        int64_t End = Range.getUpper().getSExtValue();
+        
         // For now, we only handle locations starting at offset 0.
-        if (Start == 0)
+        if (int64_t End = Range.getUpper().getSExtValue(); Start == 0)
           Locations.push_back(MemoryLocation(CB->getArgOperand(Arg.Idx),
                                              LocationSize::precise(End - Start),
                                              CB->getAAMetadata()));
@@ -2521,11 +2521,11 @@ DSEState::eliminateDeadDefs(const MemoryLocationWrapper &KillingLocWrapper) {
       }
       if (EnablePartialStoreMerging && OR == OW_PartialEarlierWithFullLater) {
         auto *DeadSI = dyn_cast<StoreInst>(DeadLocWrapper.DefInst);
-        auto *KillingSI = dyn_cast<StoreInst>(KillingLocWrapper.DefInst);
+        
         // We are re-using tryToMergePartialOverlappingStores, which requires
         // DeadSI to dominate KillingSI.
         // TODO: implement tryToMergeParialOverlappingStores using MemorySSA.
-        if (DeadSI && KillingSI && DT.dominates(DeadSI, KillingSI)) {
+        if (auto *KillingSI = dyn_cast<StoreInst>(KillingLocWrapper.DefInst); DeadSI && KillingSI && DT.dominates(DeadSI, KillingSI)) {
           if (Constant *Merged = tryToMergePartialOverlappingStores(
                   KillingSI, DeadSI, KillingOffset, DeadOffset, DL, BatchAA,
                   &DT)) {
@@ -2539,8 +2539,8 @@ DSEState::eliminateDeadDefs(const MemoryLocationWrapper &KillingLocWrapper) {
             // Remove killing store and remove any outstanding overlap
             // intervals for the updated store.
             deleteDeadInstruction(KillingSI, &Deleted);
-            auto I = IOLs.find(DeadSI->getParent());
-            if (I != IOLs.end())
+            
+            if (auto I = IOLs.find(DeadSI->getParent()); I != IOLs.end())
               I->second.erase(DeadSI);
             break;
           }

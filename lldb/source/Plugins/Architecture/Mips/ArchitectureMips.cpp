@@ -135,9 +135,9 @@ Instruction *ArchitectureMips::GetInstructionAtAddress(
 
   uint32_t arch_flags = m_arch.GetFlags();
   bool IsMips16 = arch_flags & ArchSpec::eMIPSAse_mips16;
-  bool IsMicromips = arch_flags & ArchSpec::eMIPSAse_micromips;
+  
 
-  if (loop_count > 3) {
+  if (bool IsMicromips = arch_flags & ArchSpec::eMIPSAse_micromips; loop_count > 3) {
     // Scan previous 6 bytes
     if (IsMips16 | IsMicromips)
       loop_count = 3;
@@ -165,8 +165,8 @@ Instruction *ArchitectureMips::GetInstructionAtAddress(
     disasm_sp->ParseInstructions(target, addr,
                                  {Disassembler::Limit::Bytes, i * 2}, nullptr);
 
-    uint32_t num_insns = disasm_sp->GetInstructionList().GetSize();
-    if (num_insns) {
+    
+    if (uint32_t num_insns = disasm_sp->GetInstructionList().GetSize(); num_insns) {
       prev_insn = disasm_sp->GetInstructionList().GetInstructionAtIndex(0);
       insn_size = prev_insn->GetOpcode().GetByteSize();
       if (i == 1 && insn_size == 2) {

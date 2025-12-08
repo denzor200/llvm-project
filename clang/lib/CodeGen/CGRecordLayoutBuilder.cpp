@@ -428,10 +428,10 @@ CGRecordLowering::accumulateBitFields(bool isNonVirtualBaseType,
         continue;
       }
       uint64_t BitOffset = getFieldBitOffset(*Field);
-      llvm::Type *Type = Types.ConvertTypeForMem(Field->getType());
+      
       // If we don't have a run yet, or don't live within the previous run's
       // allocated storage then we allocate some storage and start a new run.
-      if (Run == FieldEnd || BitOffset >= Tail) {
+      if (llvm::Type *Type = Types.ConvertTypeForMem(Field->getType()); Run == FieldEnd || BitOffset >= Tail) {
         Run = Field;
         StartBitOffset = BitOffset;
         Tail = StartBitOffset + DataLayout.getTypeAllocSizeInBits(Type);
@@ -537,8 +537,8 @@ CGRecordLowering::accumulateBitFields(bool isNonVirtualBaseType,
     bool Barrier = false;
 
     if (Field != FieldEnd && Field->isBitField()) {
-      uint64_t BitOffset = getFieldBitOffset(*Field);
-      if (Begin == FieldEnd) {
+      
+      if (uint64_t BitOffset = getFieldBitOffset(*Field); Begin == FieldEnd) {
         // Beginning a new span.
         Begin = Field;
         BestEnd = Begin;
@@ -731,8 +731,8 @@ void CGRecordLowering::accumulateBases() {
 
     // Bases can be zero-sized even if not technically empty if they
     // contain only a trailing array member.
-    const CXXRecordDecl *BaseDecl = Base.getType()->getAsCXXRecordDecl();
-    if (!isEmptyRecordForLayout(Context, Base.getType()) &&
+    
+    if (const CXXRecordDecl *BaseDecl = Base.getType()->getAsCXXRecordDecl(); !isEmptyRecordForLayout(Context, Base.getType()) &&
         !Context.getASTRecordLayout(BaseDecl).getNonVirtualSize().isZero())
       Members.push_back(MemberInfo(Layout.getBaseClassOffset(BaseDecl),
           MemberInfo::Base, getStorageType(BaseDecl), BaseDecl));
@@ -919,8 +919,8 @@ void CGRecordLowering::accumulateVBases() {
 
 bool CGRecordLowering::hasOwnStorage(const CXXRecordDecl *Decl,
                                      const CXXRecordDecl *Query) const {
-  const ASTRecordLayout &DeclLayout = Context.getASTRecordLayout(Decl);
-  if (DeclLayout.isPrimaryBaseVirtual() && DeclLayout.getPrimaryBase() == Query)
+  
+  if (const ASTRecordLayout &DeclLayout = Context.getASTRecordLayout(Decl); DeclLayout.isPrimaryBaseVirtual() && DeclLayout.getPrimaryBase() == Query)
     return false;
   for (const auto &Base : Decl->bases())
     if (!hasOwnStorage(Base.getType()->getAsCXXRecordDecl(), Query))

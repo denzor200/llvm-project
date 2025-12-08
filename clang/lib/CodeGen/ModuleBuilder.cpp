@@ -53,8 +53,8 @@ namespace {
         ++Self.HandlingTopLevelDecls;
       }
       ~HandlingTopLevelDeclRAII() {
-        unsigned Level = --Self.HandlingTopLevelDecls;
-        if (Level == 0 && EmitDeferred)
+        
+        if (unsigned Level = --Self.HandlingTopLevelDecls; Level == 0 && EmitDeferred)
           Self.EmitDeferredDecls();
       }
     };
@@ -156,8 +156,8 @@ namespace {
 
       M->setTargetTriple(Ctx->getTargetInfo().getTriple());
       M->setDataLayout(Ctx->getTargetInfo().getDataLayoutString());
-      const auto &SDKVersion = Ctx->getTargetInfo().getSDKVersion();
-      if (!SDKVersion.empty())
+      
+      if (const auto &SDKVersion = Ctx->getTargetInfo().getSDKVersion(); !SDKVersion.empty())
         M->setSDKVersion(SDKVersion);
       if (const auto *TVT = Ctx->getTargetInfo().getDarwinTargetVariantTriple())
         M->setDarwinTargetVariantTriple(TVT->getTriple());

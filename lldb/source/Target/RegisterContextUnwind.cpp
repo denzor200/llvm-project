@@ -829,9 +829,9 @@ RegisterContextUnwind::GetFullUnwindPlanForFrame() {
        (m_sym_ctx.function == nullptr && m_sym_ctx.symbol == nullptr)) &&
       m_behaves_like_zeroth_frame && m_current_pc.IsValid()) {
     uint32_t permissions;
-    addr_t current_pc_addr =
-        m_current_pc.GetLoadAddress(exe_ctx.GetTargetPtr());
-    if (current_pc_addr == 0 ||
+    
+    if (addr_t current_pc_addr =
+        m_current_pc.GetLoadAddress(exe_ctx.GetTargetPtr()); current_pc_addr == 0 ||
         (process &&
          process->GetLoadAddressPermissions(current_pc_addr, permissions) &&
          (permissions & ePermissionsExecutable) == 0)) {
@@ -878,9 +878,9 @@ RegisterContextUnwind::GetFullUnwindPlanForFrame() {
         return plan_up;
     }
 
-    ArmUnwindInfo *arm_exidx =
-        pc_module_sp->GetUnwindTable().GetArmUnwindInfo();
-    if (arm_exidx) {
+    
+    if (ArmUnwindInfo *arm_exidx =
+        pc_module_sp->GetUnwindTable().GetArmUnwindInfo(); arm_exidx) {
       auto unwind_plan_sp =
           std::make_shared<UnwindPlan>(lldb::eRegisterKindGeneric);
       if (arm_exidx->GetUnwindPlan(exe_ctx.GetTargetRef(), m_current_pc,
@@ -1187,9 +1187,9 @@ bool RegisterContextUnwind::WriteRegisterValueToRegisterLocation(
         m_thread.GetRegisterContext()->WriteRegister(other_reg_info, value);
   } break;
   case UnwindLLDB::ConcreteRegisterLocation::eRegisterInRegister: {
-    const RegisterInfo *other_reg_info =
-        GetRegisterInfoAtIndex(regloc.location.register_number);
-    if (IsFrameZero()) {
+    
+    if (const RegisterInfo *other_reg_info =
+        GetRegisterInfoAtIndex(regloc.location.register_number); IsFrameZero()) {
       success =
           m_thread.GetRegisterContext()->WriteRegister(other_reg_info, value);
     } else {
@@ -1478,9 +1478,9 @@ RegisterContextUnwind::GetAbstractRegisterLocation(uint32_t lldb_regnum,
   // the ABI willset volatile registers to the undefined state.
   ABI *abi = process ? process->GetABI().get() : nullptr;
   if (abi) {
-    const RegisterInfo *reg_info =
-        GetRegisterInfoAtIndex(regnum.GetAsKind(eRegisterKindLLDB));
-    if (reg_info &&
+    
+    if (const RegisterInfo *reg_info =
+        GetRegisterInfoAtIndex(regnum.GetAsKind(eRegisterKindLLDB)); reg_info &&
         abi->GetFallbackRegisterLocation(reg_info, unwindplan_regloc)) {
       if (!unwindplan_regloc.IsUndefined())
         UnwindLogMsg(
@@ -1748,9 +1748,9 @@ UnwindPlanSP RegisterContextUnwind::TryAdoptArchitectureUnwindPlan() {
       UnwindLogMsg(
           "Replacing Full Unwindplan with Architecture UnwindPlan, '%s'",
           m_full_unwind_plan_sp->GetSourceName().AsCString());
-      const UnwindPlan::Row *active_row =
-          m_full_unwind_plan_sp->GetRowForFunctionOffset(m_current_offset);
-      if (active_row) {
+      
+      if (const UnwindPlan::Row *active_row =
+          m_full_unwind_plan_sp->GetRowForFunctionOffset(m_current_offset); active_row) {
         StreamString active_row_strm;
         active_row->Dump(active_row_strm, m_full_unwind_plan_sp.get(),
                          &m_thread,
@@ -1811,9 +1811,9 @@ bool RegisterContextUnwind::TryFallbackUnwindPlan() {
   if (SavedLocationForRegister(pc_regnum.GetAsKind(eRegisterKindLLDB),
                                regloc) ==
       UnwindLLDB::RegisterSearchResult::eRegisterFound) {
-    const RegisterInfo *reg_info =
-        GetRegisterInfoAtIndex(pc_regnum.GetAsKind(eRegisterKindLLDB));
-    if (reg_info) {
+    
+    if (const RegisterInfo *reg_info =
+        GetRegisterInfoAtIndex(pc_regnum.GetAsKind(eRegisterKindLLDB)); reg_info) {
       RegisterValue reg_value;
       if (ReadRegisterValueFromRegisterLocation(regloc, reg_info, reg_value)) {
         old_caller_pc_value = reg_value.GetAsUInt64();
@@ -1847,11 +1847,11 @@ bool RegisterContextUnwind::TryFallbackUnwindPlan() {
 
   m_full_unwind_plan_sp = m_fallback_unwind_plan_sp;
 
-  const UnwindPlan::Row *active_row =
-      m_fallback_unwind_plan_sp->GetRowForFunctionOffset(
-          m_current_offset_backed_up_one);
+  
 
-  if (active_row &&
+  if (const UnwindPlan::Row *active_row =
+      m_fallback_unwind_plan_sp->GetRowForFunctionOffset(
+          m_current_offset_backed_up_one); active_row &&
       active_row->GetCFAValue().GetValueType() !=
           UnwindPlan::Row::FAValue::unspecified) {
     addr_t new_cfa;
@@ -1873,9 +1873,9 @@ bool RegisterContextUnwind::TryFallbackUnwindPlan() {
     if (SavedLocationForRegister(pc_regnum.GetAsKind(eRegisterKindLLDB),
                                  regloc) ==
         UnwindLLDB::RegisterSearchResult::eRegisterFound) {
-      const RegisterInfo *reg_info =
-          GetRegisterInfoAtIndex(pc_regnum.GetAsKind(eRegisterKindLLDB));
-      if (reg_info) {
+      
+      if (const RegisterInfo *reg_info =
+          GetRegisterInfoAtIndex(pc_regnum.GetAsKind(eRegisterKindLLDB)); reg_info) {
         RegisterValue reg_value;
         if (ReadRegisterValueFromRegisterLocation(regloc, reg_info,
                                                   reg_value)) {
@@ -1934,10 +1934,10 @@ bool RegisterContextUnwind::ForceSwitchToFallbackUnwindPlan() {
     return false;
   }
 
-  const UnwindPlan::Row *active_row =
-      m_fallback_unwind_plan_sp->GetRowForFunctionOffset(m_current_offset);
+  
 
-  if (active_row &&
+  if (const UnwindPlan::Row *active_row =
+      m_fallback_unwind_plan_sp->GetRowForFunctionOffset(m_current_offset); active_row &&
       active_row->GetCFAValue().GetValueType() !=
           UnwindPlan::Row::FAValue::unspecified) {
     addr_t new_cfa;
@@ -2009,9 +2009,9 @@ void RegisterContextUnwind::PropagateTrapHandlerFlagFromUnwindPlan(
 
     ExecutionContext exe_ctx(m_thread.shared_from_this());
     Process *process = exe_ctx.GetProcessPtr();
-    Target *target = &process->GetTarget();
+    
 
-    if (m_sym_ctx_valid) {
+    if (Target *target = &process->GetTarget(); m_sym_ctx_valid) {
       m_start_pc = m_sym_ctx.GetFunctionOrSymbolAddress();
       m_current_offset = m_current_pc.GetLoadAddress(target) -
                          m_start_pc.GetLoadAddress(target);
@@ -2301,8 +2301,8 @@ bool RegisterContextUnwind::ReadRegister(const RegisterInfo *reg_info,
   bool result = ReadRegisterValueFromRegisterLocation(regloc, reg_info, value);
   if (result) {
     if (is_pc_regnum && value.GetType() == RegisterValue::eTypeUInt64) {
-      addr_t reg_value = value.GetAsUInt64(LLDB_INVALID_ADDRESS);
-      if (reg_value != LLDB_INVALID_ADDRESS) {
+      
+      if (addr_t reg_value = value.GetAsUInt64(LLDB_INVALID_ADDRESS); reg_value != LLDB_INVALID_ADDRESS) {
         if (ABISP abi_sp = m_thread.GetProcess()->GetABI())
           value = abi_sp->FixCodeAddress(reg_value);
       }

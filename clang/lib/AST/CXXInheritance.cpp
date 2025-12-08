@@ -246,9 +246,9 @@ bool CXXBasePaths::lookupInBases(ASTContext &Context,
     } else if (VisitBase) {
       CXXRecordDecl *BaseRecord = nullptr;
       if (LookupInDependent) {
-        const TemplateSpecializationType *TST =
-            BaseSpec.getType()->getAs<TemplateSpecializationType>();
-        if (!TST) {
+        
+        if (const TemplateSpecializationType *TST =
+            BaseSpec.getType()->getAs<TemplateSpecializationType>(); !TST) {
           BaseRecord = BaseSpec.getType()->getAsCXXRecordDecl();
         } else {
           TemplateName TN = TST->getTemplateName();
@@ -401,9 +401,9 @@ bool CXXRecordDecl::hasMemberName(DeclarationName Name) const {
 
 void OverridingMethods::add(unsigned OverriddenSubobject,
                             UniqueVirtualMethod Overriding) {
-  SmallVectorImpl<UniqueVirtualMethod> &SubobjectOverrides
-    = Overrides[OverriddenSubobject];
-  if (!llvm::is_contained(SubobjectOverrides, Overriding))
+  
+  if (SmallVectorImpl<UniqueVirtualMethod> &SubobjectOverrides
+    = Overrides[OverriddenSubobject]; !llvm::is_contained(SubobjectOverrides, Overriding))
     SubobjectOverrides.push_back(Overriding);
 }
 
@@ -617,20 +617,20 @@ static void
 AddIndirectPrimaryBases(const CXXRecordDecl *RD, ASTContext &Context,
                         CXXIndirectPrimaryBaseSet& Bases) {
   // If the record has a virtual primary base class, add it to our set.
-  const ASTRecordLayout &Layout = Context.getASTRecordLayout(RD);
-  if (Layout.isPrimaryBaseVirtual())
+  
+  if (const ASTRecordLayout &Layout = Context.getASTRecordLayout(RD); Layout.isPrimaryBaseVirtual())
     Bases.insert(Layout.getPrimaryBase());
 
   for (const auto &I : RD->bases()) {
     assert(!I.getType()->isDependentType() &&
            "Cannot get indirect primary bases for class with dependent bases.");
 
-    const CXXRecordDecl *BaseDecl =
-        cast<CXXRecordDecl>(I.getType()->getAsRecordDecl());
+    
 
     // Only bases with virtual bases participate in computing the
     // indirect primary virtual base classes.
-    if (BaseDecl->getNumVBases())
+    if (const CXXRecordDecl *BaseDecl =
+        cast<CXXRecordDecl>(I.getType()->getAsRecordDecl()); BaseDecl->getNumVBases())
       AddIndirectPrimaryBases(BaseDecl, Context, Bases);
   }
 
@@ -647,12 +647,12 @@ CXXRecordDecl::getIndirectPrimaryBases(CXXIndirectPrimaryBaseSet& Bases) const {
     assert(!I.getType()->isDependentType() &&
            "Cannot get indirect primary bases for class with dependent bases.");
 
-    const CXXRecordDecl *BaseDecl =
-        cast<CXXRecordDecl>(I.getType()->getAsRecordDecl());
+    
 
     // Only bases with virtual bases participate in computing the
     // indirect primary virtual base classes.
-    if (BaseDecl->getNumVBases())
+    if (const CXXRecordDecl *BaseDecl =
+        cast<CXXRecordDecl>(I.getType()->getAsRecordDecl()); BaseDecl->getNumVBases())
       AddIndirectPrimaryBases(BaseDecl, Context, Bases);
   }
 }

@@ -183,7 +183,9 @@ struct AffineInlinerInterface : public DialectInlinerInterface {
 
       // Assuming the inlined region is valid, we only need to check if the
       // inlining would change it.
-      bool remainsValid =
+      
+
+      if (bool remainsValid =
           llvm::TypeSwitch<Operation *, bool>(&op)
               .Case<AffineApplyOp, AffineReadOpInterface,
                     AffineWriteOpInterface>([&](auto op) {
@@ -192,9 +194,7 @@ struct AffineInlinerInterface : public DialectInlinerInterface {
               .Default([](Operation *) {
                 // Conservatively disallow inlining ops we cannot reason about.
                 return false;
-              });
-
-      if (!remainsValid)
+              }); !remainsValid)
         return false;
     }
 
@@ -434,8 +434,8 @@ static bool isTopLevelValueOrAbove(Value value, Region *region) {
   do {
     if (parentRegion == region)
       return true;
-    Operation *regionOp = region->getParentOp();
-    if (regionOp->hasTrait<OpTrait::IsIsolatedFromAbove>())
+    
+    if (Operation *regionOp = region->getParentOp(); regionOp->hasTrait<OpTrait::IsIsolatedFromAbove>())
       break;
     region = region->getParentOp()->getParentRegion();
   } while (region);
@@ -1247,13 +1247,13 @@ static LogicalResult replaceAffineDelinearizeIndexInverseExpression(
   // Blank out dead dimensions and symbols
   for (AffineExpr e : resToExpr) {
     if (auto d = dyn_cast<AffineDimExpr>(e)) {
-      unsigned pos = d.getPosition();
-      if (!map->isFunctionOfDim(pos))
+      
+      if (unsigned pos = d.getPosition(); !map->isFunctionOfDim(pos))
         dims[pos] = nullptr;
     }
     if (auto s = dyn_cast<AffineSymbolExpr>(e)) {
-      unsigned pos = s.getPosition();
-      if (!map->isFunctionOfSymbol(pos))
+      
+      if (unsigned pos = s.getPosition(); !map->isFunctionOfSymbol(pos))
         syms[pos] = nullptr;
     }
   }
@@ -2017,10 +2017,10 @@ LogicalResult AffineDmaStartOp::verifyInvariantsImpl() {
   if (!llvm::isa<MemRefType>(getOperand(getTagMemRefOperandIndex()).getType()))
     return emitOpError("expected DMA tag to be of memref type");
 
-  unsigned numInputsAllMaps = getSrcMap().getNumInputs() +
+  
+  if (unsigned numInputsAllMaps = getSrcMap().getNumInputs() +
                               getDstMap().getNumInputs() +
-                              getTagMap().getNumInputs();
-  if (getNumOperands() != numInputsAllMaps + 3 + 1 &&
+                              getTagMap().getNumInputs(); getNumOperands() != numInputsAllMaps + 3 + 1 &&
       getNumOperands() != numInputsAllMaps + 3 + 1 + 2) {
     return emitOpError("incorrect number of operands");
   }
@@ -2251,8 +2251,8 @@ void AffineForOp::build(OpBuilder &builder, OperationState &result, int64_t lb,
 LogicalResult AffineForOp::verifyRegions() {
   // Check that the body defines as single block argument for the induction
   // variable.
-  auto *body = getBody();
-  if (body->getNumArguments() == 0 || !body->getArgument(0).getType().isIndex())
+  
+  if (auto *body = getBody(); body->getNumArguments() == 0 || !body->getArgument(0).getType().isIndex())
     return emitOpError("expected body to have a single index argument for the "
                        "induction variable");
 
@@ -2348,9 +2348,9 @@ static ParseResult parseBound(bool isLower, OperationState &result,
           p.getNameLoc(),
           "dim operand count and affine map dim count must match");
 
-    unsigned numDimAndSymbolOperands =
-        result.operands.size() - currentNumOperands;
-    if (numDims + map.getNumSymbols() != numDimAndSymbolOperands)
+    
+    if (unsigned numDimAndSymbolOperands =
+        result.operands.size() - currentNumOperands; numDims + map.getNumSymbols() != numDimAndSymbolOperands)
       return p.emitError(
           p.getNameLoc(),
           "symbol operand count and affine map symbol count must match");
@@ -3248,8 +3248,8 @@ void AffineIfOp::print(OpAsmPrinter &p) {
                 /*printBlockTerminators=*/getNumResults());
 
   // Print the 'else' regions if it has any blocks.
-  auto &elseRegion = this->getElseRegion();
-  if (!elseRegion.empty()) {
+  
+  if (auto &elseRegion = this->getElseRegion(); !elseRegion.empty()) {
     p << " else ";
     p.printRegion(elseRegion,
                   /*printEntryBlockArgs=*/false,
@@ -3291,8 +3291,8 @@ void AffineIfOp::build(OpBuilder &builder, OperationState &result,
   if (resultTypes.empty())
     AffineIfOp::ensureTerminator(*thenRegion, builder, result.location);
 
-  Region *elseRegion = result.addRegion();
-  if (withElseRegion) {
+  
+  if (Region *elseRegion = result.addRegion(); withElseRegion) {
     builder.createBlock(elseRegion);
     if (resultTypes.empty())
       AffineIfOp::ensureTerminator(*elseRegion, builder, result.location);
@@ -4270,8 +4270,8 @@ static bool isResultTypeMatchAtomicRMWKind(Type resultType,
 }
 
 LogicalResult AffineParallelOp::verify() {
-  auto numDims = getNumDims();
-  if (getLowerBoundsGroups().getNumElements() != numDims ||
+  
+  if (auto numDims = getNumDims(); getLowerBoundsGroups().getNumElements() != numDims ||
       getUpperBoundsGroups().getNumElements() != numDims ||
       getSteps().size() != numDims || getBody()->getNumArguments() != numDims) {
     return emitOpError() << "the number of region arguments ("
@@ -4386,8 +4386,8 @@ static void printMinMaxBound(OpAsmPrinter &p, AffineMapAttr mapAttr,
     if (start != 0)
       p << ", ";
 
-    unsigned size = groupSize.getZExtValue();
-    if (size == 1) {
+    
+    if (unsigned size = groupSize.getZExtValue(); size == 1) {
       p.printAffineExprOfSSAIds(map.getResult(start), dimOperands, symOperands);
       ++start;
     } else {
@@ -4409,8 +4409,8 @@ void AffineParallelOp::print(OpAsmPrinter &p) {
                    getUpperBoundsOperands(), "min");
   p << ')';
   SmallVector<int64_t, 8> steps = getSteps();
-  bool elideSteps = llvm::all_of(steps, [](int64_t step) { return step == 1; });
-  if (!elideSteps) {
+  
+  if (bool elideSteps = llvm::all_of(steps, [](int64_t step) { return step == 1; }); !elideSteps) {
     p << " step (";
     llvm::interleaveComma(steps, p);
     p << ')';
@@ -4942,8 +4942,8 @@ LogicalResult AffineDelinearizeIndexOp::verify() {
     return emitOpError("should return an index for each basis element and up "
                        "to one extra index");
 
-  auto dynamicMarkersCount = llvm::count_if(staticBasis, ShapedType::isDynamic);
-  if (static_cast<size_t>(dynamicMarkersCount) != getDynamicBasis().size())
+  
+  if (auto dynamicMarkersCount = llvm::count_if(staticBasis, ShapedType::isDynamic); static_cast<size_t>(dynamicMarkersCount) != getDynamicBasis().size())
     return emitOpError(
         "mismatch between dynamic and static basis (kDynamic marker but no "
         "corresponding dynamic basis entry) -- this can only happen due to an "
@@ -5296,8 +5296,8 @@ void AffineLinearizeIndexOp::build(OpBuilder &odsBuilder,
 
 LogicalResult AffineLinearizeIndexOp::verify() {
   size_t numIndexes = getMultiIndex().size();
-  size_t numBasisElems = getStaticBasis().size();
-  if (numIndexes != numBasisElems && numIndexes != numBasisElems + 1)
+  
+  if (size_t numBasisElems = getStaticBasis().size(); numIndexes != numBasisElems && numIndexes != numBasisElems + 1)
     return emitOpError("should be passed a basis element for each index except "
                        "possibly the first");
 
@@ -5541,9 +5541,9 @@ public:
       OpFoldResult firstLinBound = linBasis[linArgIdx];
       bool boundsMatch = firstDelinBound == firstLinBound;
       bool bothAtFront = linArgIdx == 0 && delinArgIdx == 0;
-      bool knownByDisjoint =
-          linearizeOp.getDisjoint() && delinArgIdx == 0 && !firstDelinBound;
-      if (!boundsMatch && !bothAtFront && !knownByDisjoint) {
+      
+      if (bool knownByDisjoint =
+          linearizeOp.getDisjoint() && delinArgIdx == 0 && !firstDelinBound; !boundsMatch && !bothAtFront && !knownByDisjoint) {
         linArgIdx++;
         continue;
       }

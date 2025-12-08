@@ -317,8 +317,8 @@ bool LLVMUserExpression::PrepareToExecuteJITExpression(
           m_can_interpret ? IRMemoryMap::eAllocationPolicyHostOnly
                           : IRMemoryMap::eAllocationPolicyMirror;
 
-      const bool zero_memory = false;
-      if (auto address_or_error = m_execution_unit_sp->Malloc(
+      
+      if (const bool zero_memory = false; auto address_or_error = m_execution_unit_sp->Malloc(
               m_materializer_up->GetStructByteSize(),
               m_materializer_up->GetStructAlignment(),
               lldb::ePermissionsReadable | lldb::ePermissionsWritable, policy,

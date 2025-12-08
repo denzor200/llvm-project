@@ -844,7 +844,7 @@ public:
     // We can't generate private memrefs if their size can't be computed.
     if (!getMemRefIntOrFloatEltSizeInBytes(cast<MemRefType>(memref.getType())))
       return false;
-    const Node *consumerNode = mdg->getNode(consumerId);
+    
     // If `memref` is an escaping one, do not create a private memref
     // for the below scenarios, since doing so will leave the escaping
     // memref unmodified as all the writes originally meant for the
@@ -852,7 +852,7 @@ public:
     // 1. The source is to be removed after fusion,
     // OR
     // 2. The destination writes to `memref`.
-    if (srcEscapingMemRefs.count(memref) > 0 &&
+    if (const Node *consumerNode = mdg->getNode(consumerId); srcEscapingMemRefs.count(memref) > 0 &&
         (removeSrcNode || consumerNode->getStoreOpCount(memref) > 0))
       return false;
 

@@ -366,15 +366,15 @@ static Error mergeNamespaces(xmlNodePtr OriginalNode,
       DominantNode == OriginalNode ? AdditionalNode : OriginalNode;
   if (DominantNode == OriginalNode) {
     if (OriginalDefinedDefaultHref) {
-      xmlNsPtr NonDominantDefinedDefault =
-          getNamespaceWithPrefix(nullptr, NonDominantNode);
+      
       // In this case, both the nodes defined a default namespace.  However
       // the lower priority node ended up having a higher priority default
       // definition.  This can occur if the higher priority node is prefix
       // namespace defined.  In this case we have to define an explicit
       // prefix for the overridden definition and apply it to all children
       // who relied on that definition.
-      if (NonDominantDefinedDefault &&
+      if (xmlNsPtr NonDominantDefinedDefault =
+          getNamespaceWithPrefix(nullptr, NonDominantNode); NonDominantDefinedDefault &&
           namespaceOverrides(NonDominantDefinedDefault->href,
                              OriginalDefinedDefaultHref)) {
         Expected<xmlNsPtr> EC =
@@ -512,8 +512,8 @@ static Error treeMerge(xmlNodePtr OriginalRoot, xmlNodePtr AdditionalRoot) {
   xmlNodePtr AdditionalFirstChild = AdditionalRoot->children;
   xmlNode StoreNext;
   for (xmlNodePtr Child = AdditionalFirstChild; Child; Child = Child->next) {
-    xmlNodePtr OriginalChildWithName;
-    if (!isMergeableElement(Child->name) ||
+    
+    if (xmlNodePtr OriginalChildWithName; !isMergeableElement(Child->name) ||
         !(OriginalChildWithName =
               getChildWithName(OriginalRoot, Child->name)) ||
         !hasRecognizedNamespace(Child)) {
@@ -572,8 +572,8 @@ static void checkAndStripPrefixes(xmlNodePtr Node,
     checkAndStripPrefixes(Child, RequiredPrefixes);
   }
   if (Node->ns && Node->ns->prefix != nullptr) {
-    xmlNsPtr ClosestDefault = getClosestDefault(Node);
-    if (ClosestDefault &&
+    
+    if (xmlNsPtr ClosestDefault = getClosestDefault(Node); ClosestDefault &&
         xmlStringsEqual(ClosestDefault->href, Node->ns->href)) {
       Node->ns = ClosestDefault;
     } else if (!llvm::is_contained(RequiredPrefixes, Node->ns)) {
@@ -583,8 +583,8 @@ static void checkAndStripPrefixes(xmlNodePtr Node,
   for (xmlAttrPtr Attribute = Node->properties; Attribute;
        Attribute = Attribute->next) {
     if (Attribute->ns && Attribute->ns->prefix != nullptr) {
-      xmlNsPtr ClosestDefault = getClosestDefault(Node);
-      if (ClosestDefault &&
+      
+      if (xmlNsPtr ClosestDefault = getClosestDefault(Node); ClosestDefault &&
           xmlStringsEqual(ClosestDefault->href, Attribute->ns->href)) {
         Attribute->ns = ClosestDefault;
       } else if (!llvm::is_contained(RequiredPrefixes, Node->ns)) {

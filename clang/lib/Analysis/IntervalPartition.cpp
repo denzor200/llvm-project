@@ -75,10 +75,10 @@ static BuildResult<Node> buildInterval(llvm::BitVector &Partitioned,
 
     // Check whether all predecessors are in the interval, in which case `B`
     // is included as well.
-    bool AllInInterval = llvm::all_of(B->preds(), [&](const Node *P) {
+    
+    if (bool AllInInterval = llvm::all_of(B->preds(), [&](const Node *P) {
       return llvm::is_contained(Interval.Nodes, P);
-    });
-    if (AllInInterval) {
+    }); AllInInterval) {
       Interval.Nodes.push_back(B);
       Partitioned.set(ID);
       for (const Node *S : B->succs())

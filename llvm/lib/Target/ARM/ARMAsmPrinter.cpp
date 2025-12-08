@@ -68,9 +68,9 @@ void ARMAsmPrinter::emitFunctionBodyEnd() {
 }
 
 void ARMAsmPrinter::emitFunctionEntryLabel() {
-  auto &TS =
-      static_cast<ARMTargetStreamer &>(*OutStreamer->getTargetStreamer());
-  if (AFI->isThumbFunction()) {
+  
+  if (auto &TS =
+      static_cast<ARMTargetStreamer &>(*OutStreamer->getTargetStreamer()); AFI->isThumbFunction()) {
     TS.emitCode16();
     TS.emitThumbFunc(CurrentFnSym);
   } else {
@@ -217,9 +217,9 @@ void ARMAsmPrinter::PrintSymbolOperand(const MachineOperand &MO,
 
 void ARMAsmPrinter::printOperand(const MachineInstr *MI, int OpNum,
                                  raw_ostream &O) {
-  const MachineOperand &MO = MI->getOperand(OpNum);
+  
 
-  switch (MO.getType()) {
+  switch (const MachineOperand &MO = MI->getOperand(OpNum); MO.getType()) {
   default: llvm_unreachable("<unknown operand type>");
   case MachineOperand::MO_Register: {
     Register Reg = MO.getReg();
@@ -235,8 +235,8 @@ void ARMAsmPrinter::printOperand(const MachineInstr *MI, int OpNum,
   }
   case MachineOperand::MO_Immediate: {
     O << '#';
-    unsigned TF = MO.getTargetFlags();
-    if (TF == ARMII::MO_LO16)
+    
+    if (unsigned TF = MO.getTargetFlags(); TF == ARMII::MO_LO16)
       O << ":lower16:";
     else if (TF == ARMII::MO_HI16)
       O << ":upper16:";
@@ -493,11 +493,11 @@ void ARMAsmPrinter::emitInlineAsmEnd(const MCSubtargetInfo &StartInfo,
                                      const MCSubtargetInfo *EndInfo) const {
   // If either end mode is unknown (EndInfo == NULL) or different than
   // the start mode, then restore the start mode.
-  const bool WasThumb = isThumb(StartInfo);
-  if (!EndInfo || WasThumb != isThumb(*EndInfo)) {
-    auto &TS =
-        static_cast<ARMTargetStreamer &>(*OutStreamer->getTargetStreamer());
-    if (WasThumb)
+  
+  if (const bool WasThumb = isThumb(StartInfo); !EndInfo || WasThumb != isThumb(*EndInfo)) {
+    
+    if (auto &TS =
+        static_cast<ARMTargetStreamer &>(*OutStreamer->getTargetStreamer()); WasThumb)
       TS.emitCode16();
     else
       TS.emitCode32();
@@ -804,9 +804,9 @@ void ARMAsmPrinter::emitAttributes() {
       ATS.emitAttribute(ARMBuildAttrs::ABI_enum_size, EnumBuildAttr);
     }
 
-    auto *PACValue = mdconst::extract_or_null<ConstantInt>(
-        SourceModule->getModuleFlag("sign-return-address"));
-    if (PACValue && PACValue->isOne()) {
+    
+    if (auto *PACValue = mdconst::extract_or_null<ConstantInt>(
+        SourceModule->getModuleFlag("sign-return-address")); PACValue && PACValue->isOne()) {
       // If "+pacbti" is used as an architecture extension,
       // Tag_PAC_extension is emitted in
       // ARMTargetStreamer::emitTargetAttributes().
@@ -883,12 +883,12 @@ static uint8_t getModifierSpecifier(ARMCP::ARMCPModifier Modifier) {
 
 MCSymbol *ARMAsmPrinter::GetARMGVSymbol(const GlobalValue *GV,
                                         unsigned char TargetFlags) {
-  const Triple &TT = TM.getTargetTriple();
-  if (TT.isOSBinFormatMachO()) {
-    bool IsIndirect =
-        (TargetFlags & ARMII::MO_NONLAZY) && getTM().isGVIndirectSymbol(GV);
+  
+  if (const Triple &TT = TM.getTargetTriple(); TT.isOSBinFormatMachO()) {
+    
 
-    if (!IsIndirect)
+    if (bool IsIndirect =
+        (TargetFlags & ARMII::MO_NONLAZY) && getTM().isGVIndirectSymbol(GV); !IsIndirect)
       return getSymbol(GV);
 
     // FIXME: Remove this when Darwin transition to @GOT like syntax.
@@ -906,9 +906,9 @@ MCSymbol *ARMAsmPrinter::GetARMGVSymbol(const GlobalValue *GV,
   } else if (TT.isOSBinFormatCOFF()) {
     assert(TT.isOSWindows() && "Windows is the only supported COFF target");
 
-    bool IsIndirect =
-        (TargetFlags & (ARMII::MO_DLLIMPORT | ARMII::MO_COFFSTUB));
-    if (!IsIndirect)
+    
+    if (bool IsIndirect =
+        (TargetFlags & (ARMII::MO_DLLIMPORT | ARMII::MO_COFFSTUB)); !IsIndirect)
       return getSymbol(GV);
 
     SmallString<128> Name;
@@ -923,10 +923,10 @@ MCSymbol *ARMAsmPrinter::GetARMGVSymbol(const GlobalValue *GV,
     if (TargetFlags & ARMII::MO_COFFSTUB) {
       MachineModuleInfoCOFF &MMICOFF =
           MMI->getObjFileInfo<MachineModuleInfoCOFF>();
-      MachineModuleInfoImpl::StubValueTy &StubSym =
-          MMICOFF.getGVStubEntry(MCSym);
+      
 
-      if (!StubSym.getPointer())
+      if (MachineModuleInfoImpl::StubValueTy &StubSym =
+          MMICOFF.getGVStubEntry(MCSym); !StubSym.getPointer())
         StubSym = MachineModuleInfoImpl::StubValueTy(getSymbol(GV), true);
     }
 
@@ -1047,8 +1047,8 @@ void ARMAsmPrinter::emitJumpTableAddrs(const MachineInstr *MI) {
     //    .word (LBB1 - LJTI_0_0)
     const MCExpr *Expr = MCSymbolRefExpr::create(MBB->getSymbol(), OutContext);
 
-    const ARMSubtarget &STI = MF->getSubtarget<ARMSubtarget>();
-    if (isPositionIndependent() || STI.isROPI())
+    
+    if (const ARMSubtarget &STI = MF->getSubtarget<ARMSubtarget>(); isPositionIndependent() || STI.isROPI())
       Expr = MCBinaryExpr::createSub(Expr, MCSymbolRefExpr::create(JTISymbol,
                                                                    OutContext),
                                      OutContext);
@@ -1097,8 +1097,8 @@ void ARMAsmPrinter::emitJumpTableTBInst(const MachineInstr *MI,
   const MachineOperand &MO1 = MI->getOperand(1);
   unsigned JTI = MO1.getIndex();
 
-  const ARMSubtarget &STI = MF->getSubtarget<ARMSubtarget>();
-  if (STI.isThumb1Only())
+  
+  if (const ARMSubtarget &STI = MF->getSubtarget<ARMSubtarget>(); STI.isThumb1Only())
     emitAlignment(Align(4));
 
   MCSymbol *JTISymbol = GetARMJTIPICJumpTableLabel(JTI);
@@ -1400,8 +1400,8 @@ void ARMAsmPrinter::EmitUnwindingInstruction(const MachineInstr *MI) {
       MI->print(errs());
       llvm_unreachable("Unsupported opcode for unwinding information");
     } else {
-      int64_t Offset = 0;
-      switch (Opc) {
+      
+      switch (int64_t Offset = 0; Opc) {
       case ARM::tMOVr:
         // If a Thumb1 function spills r8-r11, we copy the values to low
         // registers before pushing them. Record the copy so we can emit the

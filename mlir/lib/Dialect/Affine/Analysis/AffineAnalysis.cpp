@@ -475,8 +475,8 @@ LogicalResult MemRefAccess::getAccessRelation(IntegerRelation &rel) const {
     const Identifier domainIdi = Identifier(domain.getValue(i));
     const Identifier *findBegin = rel.getIds(VarKind::SetDim).begin() + i;
     const Identifier *findEnd = rel.getIds(VarKind::SetDim).end();
-    const Identifier *itr = std::find(findBegin, findEnd, domainIdi);
-    if (itr != findEnd) {
+    
+    if (const Identifier *itr = std::find(findBegin, findEnd, domainIdi); itr != findEnd) {
       rel.swapVar(i, i + std::distance(findBegin, itr));
     } else {
       ++inserts;

@@ -102,12 +102,12 @@ int main(int argc, char **argv) {
     return true;
   };
 
-  bool HasUnknownOptions = false;
+  
   for (const Arg *A : Args.filtered(OPT_UNKNOWN)) {
     HasUnknownOptions = true;
     llvm::errs() << "Unknown option `" << A->getAsString(Args) << "'\n";
   }
-  if (HasUnknownOptions) {
+  if (bool HasUnknownOptions = false; HasUnknownOptions) {
     llvm::errs() << "See `OptSubcommand --help`.\n";
     return 1;
   }

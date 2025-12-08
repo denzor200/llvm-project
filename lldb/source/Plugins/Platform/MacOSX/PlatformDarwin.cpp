@@ -215,8 +215,8 @@ FileSpecList PlatformDarwin::LocateExecutableScriptingResources(
 
     if (module_spec) {
       if (SymbolFile *symfile = module.GetSymbolFile()) {
-        ObjectFile *objfile = symfile->GetObjectFile();
-        if (objfile) {
+        
+        if (ObjectFile *objfile = symfile->GetObjectFile(); objfile) {
           FileSpec symfile_spec(objfile->GetFileSpec());
           if (symfile_spec &&
               llvm::StringRef(symfile_spec.GetPath())
@@ -240,9 +240,9 @@ FileSpecList PlatformDarwin::LocateExecutableScriptingResources(
               llvm::replace(module_basename, '.', '_');
               llvm::replace(module_basename, ' ', '_');
               llvm::replace(module_basename, '-', '_');
-              ScriptInterpreter *script_interpreter =
-                  target->GetDebugger().GetScriptInterpreter();
-              if (script_interpreter &&
+              
+              if (ScriptInterpreter *script_interpreter =
+                  target->GetDebugger().GetScriptInterpreter(); script_interpreter &&
                   script_interpreter->IsReservedWord(module_basename.c_str())) {
                 module_basename.insert(module_basename.begin(), '_');
                 was_keyword = true;
@@ -271,10 +271,10 @@ FileSpecList PlatformDarwin::LocateExecutableScriptingResources(
               // that the file as-is shall not be loaded
               if (module_basename != original_module_basename &&
                   FileSystem::Instance().Exists(orig_script_fspec)) {
-                const char *reason_for_complaint =
+                
+                if (const char *reason_for_complaint =
                     was_keyword ? "conflicts with a keyword"
-                                : "contains reserved characters";
-                if (FileSystem::Instance().Exists(script_fspec))
+                                : "contains reserved characters"; FileSystem::Instance().Exists(script_fspec))
                   feedback_stream.Printf(
                       "warning: the symbol file '%s' contains a debug "
                       "script. However, its name"
@@ -380,10 +380,10 @@ Status PlatformDarwin::GetSharedModule(
           char new_path[PATH_MAX];
           size_t num_module_search_paths = module_search_paths.GetSize();
           for (size_t i = 0; i < num_module_search_paths; ++i) {
-            const size_t search_path_len =
+            
+            if (const size_t search_path_len =
                 module_search_paths.GetFileSpecAtIndex(i).GetPath(
-                    new_path, sizeof(new_path));
-            if (search_path_len < sizeof(new_path)) {
+                    new_path, sizeof(new_path)); search_path_len < sizeof(new_path)) {
               snprintf(new_path + search_path_len,
                        sizeof(new_path) - search_path_len, "/%s",
                        platform_path + bundle_directory_len);
@@ -632,8 +632,8 @@ static FileSpec GetXcodeSelectPath() {
                                 std::chrono::seconds(2), // short timeout
                                 false);                  // don't run in a shell
       if (status.Success() && exit_status == 0 && !command_output.empty()) {
-        size_t first_non_newline = command_output.find_last_not_of("\r\n");
-        if (first_non_newline != std::string::npos) {
+        
+        if (size_t first_non_newline = command_output.find_last_not_of("\r\n"); first_non_newline != std::string::npos) {
           command_output.erase(first_non_newline + 1);
         }
         g_xcode_select_filespec = FileSpec(command_output);
@@ -1112,8 +1112,8 @@ void PlatformDarwin::AddClangModuleCompilationOptionsForSDKType(
     // from the object file
     ModuleSP exe_module_sp = target->GetExecutableModule();
     if (exe_module_sp) {
-      ObjectFile *object_file = exe_module_sp->GetObjectFile();
-      if (object_file)
+      
+      if (ObjectFile *object_file = exe_module_sp->GetObjectFile(); object_file)
         version = object_file->GetMinimumOSVersion();
     }
   }
@@ -1292,8 +1292,8 @@ PlatformDarwin::LaunchProcess(lldb_private::ProcessLaunchInfo &launch_info) {
   // LLDB *not* to muck with the OS_ACTIVITY_DT_MODE flag when they
   // specifically want it unset.
   const char *disable_env_var = "IDE_DISABLED_OS_ACTIVITY_DT_MODE";
-  auto &env_vars = launch_info.GetEnvironment();
-  if (!env_vars.count(disable_env_var)) {
+  
+  if (auto &env_vars = launch_info.GetEnvironment(); !env_vars.count(disable_env_var)) {
     // We want to make sure that OS_ACTIVITY_DT_MODE is set so that we get
     // os_log and NSLog messages mirrored to the target process stderr.
     env_vars.try_emplace("OS_ACTIVITY_DT_MODE", "enable");

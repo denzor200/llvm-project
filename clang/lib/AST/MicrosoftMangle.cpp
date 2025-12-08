@@ -255,10 +255,10 @@ public:
     unsigned LambdaManglingNumber = Lambda->getLambdaManglingNumber();
     unsigned LambdaId;
     const ParmVarDecl *Parm = dyn_cast_or_null<ParmVarDecl>(LambdaContextDecl);
-    const FunctionDecl *Func =
-        Parm ? dyn_cast<FunctionDecl>(Parm->getDeclContext()) : nullptr;
+    
 
-    if (Func) {
+    if (const FunctionDecl *Func =
+        Parm ? dyn_cast<FunctionDecl>(Parm->getDeclContext()) : nullptr; Func) {
       unsigned DefaultArgNo =
           Func->getNumParams() - Parm->getFunctionScopeIndex();
       Name += llvm::utostr(DefaultArgNo);
@@ -504,8 +504,8 @@ MicrosoftMangleContextImpl::MicrosoftMangleContextImpl(ASTContext &Context,
   // hash at any time without breaking compatibility with old versions of clang.
   // The generated names are intended to look similar to what MSVC generates,
   // which are something like "?A0x01234567@".
-  SourceManager &SM = Context.getSourceManager();
-  if (OptionalFileEntryRef FE = SM.getFileEntryRefForID(SM.getMainFileID())) {
+  
+  if (SourceManager &SM = Context.getSourceManager(); OptionalFileEntryRef FE = SM.getFileEntryRefForID(SM.getMainFileID())) {
     // Truncate the hash so we get 8 characters of hexadecimal.
     uint32_t TruncatedHash = uint32_t(xxh3_64bits(FE->getName()));
     AnonymousNamespaceHash = llvm::utohexstr(TruncatedHash);
@@ -548,8 +548,8 @@ bool MicrosoftMangleContextImpl::shouldMangleCXXName(const NamedDecl *D) {
   if (!getASTContext().getLangOpts().CPlusPlus)
     return false;
 
-  const VarDecl *VD = dyn_cast<VarDecl>(D);
-  if (VD && !isa<DecompositionDecl>(D)) {
+  
+  if (const VarDecl *VD = dyn_cast<VarDecl>(D); VD && !isa<DecompositionDecl>(D)) {
     // C variables are not mangled.
     if (VD->isExternC())
       return false;
@@ -637,12 +637,12 @@ void MicrosoftCXXNameMangler::mangleFunctionEncoding(GlobalDecl GD,
 
   // We should never ever see a FunctionNoProtoType at this point.
   // We don't even know how to mangle their types anyway :).
-  const FunctionProtoType *FT = FD->getType()->castAs<FunctionProtoType>();
+  
 
   // extern "C" functions can hold entities that must be mangled.
   // As it stands, these functions still need to get expressed in the full
   // external name.  They have their class and type omitted, replaced with '9'.
-  if (ShouldMangle) {
+  if (const FunctionProtoType *FT = FD->getType()->castAs<FunctionProtoType>(); ShouldMangle) {
     // We would like to mangle all extern "C" functions using this additional
     // component but this would break compatibility with MSVC's behavior.
     // Instead, do this when we know that compatibility isn't important (in
@@ -1134,9 +1134,9 @@ void MicrosoftCXXNameMangler::mangleUnqualifiedName(GlobalDecl GD,
 
         // Memoize back reference for this type if one exist, else memoize
         // the mangling itself.
-        BackRefVec::iterator StringFound =
-            llvm::find(NameBackReferences, TemplateMangling);
-        if (StringFound != NameBackReferences.end()) {
+        
+        if (BackRefVec::iterator StringFound =
+            llvm::find(NameBackReferences, TemplateMangling); StringFound != NameBackReferences.end()) {
           TemplateArgBackReferences[ND] =
               StringFound - NameBackReferences.begin();
         } else {
@@ -1163,12 +1163,12 @@ void MicrosoftCXXNameMangler::mangleUnqualifiedName(GlobalDecl GD,
                   ->getTemplatedDecl()
                   ->hasAttr<CUDAGlobalAttr>())) &&
             GD.getKernelReferenceKind() == KernelReferenceKind::Stub;
-        bool IsOCLDeviceStub =
+        
+        if (bool IsOCLDeviceStub =
             ND && isa<FunctionDecl>(ND) &&
             DeviceKernelAttr::isOpenCLSpelling(
                 ND->getAttr<DeviceKernelAttr>()) &&
-            GD.getKernelReferenceKind() == KernelReferenceKind::Stub;
-        if (IsDeviceStub)
+            GD.getKernelReferenceKind() == KernelReferenceKind::Stub; IsDeviceStub)
           mangleSourceName(
               (llvm::Twine("__device_stub__") + II->getName()).str());
         else if (IsOCLDeviceStub)
@@ -1250,10 +1250,10 @@ void MicrosoftCXXNameMangler::mangleUnqualifiedName(GlobalDecl GD,
           unsigned LambdaId;
           const ParmVarDecl *Parm =
               dyn_cast_or_null<ParmVarDecl>(LambdaContextDecl);
-          const FunctionDecl *Func =
-              Parm ? dyn_cast<FunctionDecl>(Parm->getDeclContext()) : nullptr;
+          
 
-          if (Func) {
+          if (const FunctionDecl *Func =
+              Parm ? dyn_cast<FunctionDecl>(Parm->getDeclContext()) : nullptr; Func) {
             unsigned DefaultArgNo =
                 Func->getNumParams() - Parm->getFunctionScopeIndex();
             Name += llvm::utostr(DefaultArgNo);
@@ -1637,8 +1637,8 @@ void MicrosoftCXXNameMangler::mangleOperatorName(OverloadedOperatorKind OO,
 
 void MicrosoftCXXNameMangler::mangleSourceName(StringRef Name) {
   // <source name> ::= <identifier> @
-  BackRefVec::iterator Found = llvm::find(NameBackReferences, Name);
-  if (Found == NameBackReferences.end()) {
+  
+  if (BackRefVec::iterator Found = llvm::find(NameBackReferences, Name); Found == NameBackReferences.end()) {
     if (NameBackReferences.size() < 10)
       NameBackReferences.push_back(std::string(Name));
     Out << Name << '@';
@@ -1812,8 +1812,8 @@ void MicrosoftCXXNameMangler::mangleTemplateArg(const TemplateDecl *TD,
           cast<ValueDecl>(ND), cast<NonTypeTemplateParmDecl>(Parm),
           TA.getParamTypeForDecl());
     } else if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(ND)) {
-      const CXXMethodDecl *MD = dyn_cast<CXXMethodDecl>(FD);
-      if (MD && MD->isInstance()) {
+      
+      if (const CXXMethodDecl *MD = dyn_cast<CXXMethodDecl>(FD); MD && MD->isInstance()) {
         mangleMemberFunctionPointer(MD->getParent()->getMostRecentDecl(), MD,
                                     cast<NonTypeTemplateParmDecl>(Parm),
                                     TA.getParamTypeForDecl());
@@ -1969,8 +1969,8 @@ void MicrosoftCXXNameMangler::mangleTemplateArgValue(QualType T,
     // see test CodeGen/ms_mangler_templatearg_opte
     if (V.isLValueOnePastTheEnd()) {
       Out << "5E";
-      auto *VD = Base.dyn_cast<const ValueDecl *>();
-      if (VD)
+      
+      if (auto *VD = Base.dyn_cast<const ValueDecl *>(); VD)
         mangle(VD);
       Out << "@";
       return;
@@ -2061,8 +2061,8 @@ void MicrosoftCXXNameMangler::mangleTemplateArgValue(QualType T,
 
     const CXXRecordDecl *RD =
         T->castAs<MemberPointerType>()->getMostRecentCXXRecordDecl();
-    const ValueDecl *D = V.getMemberPointerDecl();
-    if (TAK == TplArgKind::ClassNTTP) {
+    
+    if (const ValueDecl *D = V.getMemberPointerDecl(); TAK == TplArgKind::ClassNTTP) {
       if (T->isMemberDataPointerType())
         mangleMemberDataPointerInClassNTTP(RD, D);
       else
@@ -2281,10 +2281,10 @@ void MicrosoftCXXNameMangler::mangleQualifiers(Qualifiers Quals,
   //         ::= 3 # ?
   //         ::= 4 # ?
   //         ::= 5 # not really based
-  bool HasConst = Quals.hasConst(),
-       HasVolatile = Quals.hasVolatile();
+  
 
-  if (!IsMember) {
+  if (bool HasConst = Quals.hasConst(),
+       HasVolatile = Quals.hasVolatile(); !IsMember) {
     if (HasConst && HasVolatile) {
       Out << 'D';
     } else if (HasVolatile) {
@@ -2330,9 +2330,9 @@ MicrosoftCXXNameMangler::mangleRefQualifier(RefQualifierKind RefQualifier) {
 void MicrosoftCXXNameMangler::manglePointerExtQualifiers(Qualifiers Quals,
                                                          QualType PointeeType) {
   // Check if this is a default 64-bit pointer or has __ptr64 qualifier.
-  bool is64Bit = PointeeType.isNull() ? PointersAre64Bit :
-      is64BitPointer(PointeeType.getQualifiers());
-  if (is64Bit && (PointeeType.isNull() || !PointeeType->isFunctionType()))
+  
+  if (bool is64Bit = PointeeType.isNull() ? PointersAre64Bit :
+      is64BitPointer(PointeeType.getQualifiers()); is64Bit && (PointeeType.isNull() || !PointeeType->isFunctionType()))
     Out << 'E';
 
   if (Quals.hasRestrict())
@@ -2359,10 +2359,10 @@ void MicrosoftCXXNameMangler::manglePointerCVQualifiers(Qualifiers Quals) {
   //                         ::= Q  # const
   //                         ::= R  # volatile
   //                         ::= S  # const volatile
-  bool HasConst = Quals.hasConst(),
-       HasVolatile = Quals.hasVolatile();
+  
 
-  if (HasConst && HasVolatile) {
+  if (bool HasConst = Quals.hasConst(),
+       HasVolatile = Quals.hasVolatile(); HasConst && HasVolatile) {
     Out << 'S';
   } else if (HasVolatile) {
     Out << 'R';
@@ -2414,8 +2414,8 @@ void MicrosoftCXXNameMangler::mangleFunctionArgumentType(QualType T,
     // See if it's worth creating a back reference.
     // Only types longer than 1 character are considered
     // and only 10 back references slots are available:
-    bool LongerThanOneChar = (Out.tell() - OutSizeBefore > 1);
-    if (LongerThanOneChar && FunArgBackReferences.size() < 10) {
+    
+    if (bool LongerThanOneChar = (Out.tell() - OutSizeBefore > 1); LongerThanOneChar && FunArgBackReferences.size() < 10) {
       size_t Size = FunArgBackReferences.size();
       FunArgBackReferences[TypePtr] = Size;
     }
@@ -2553,8 +2553,8 @@ void MicrosoftCXXNameMangler::mangleAutoReturnType(QualType T,
     llvm_unreachable("QMM_Escape unexpected");
   }
 
-  const Type *ty = T.getTypePtr();
-  switch (ty->getTypeClass()) {
+  
+  switch (const Type *ty = T.getTypePtr(); ty->getTypeClass()) {
   case Type::MemberPointer:
     mangleAutoReturnType(cast<MemberPointerType>(ty), Quals);
     break;
@@ -3474,8 +3474,8 @@ void MicrosoftCXXNameMangler::mangleType(const ComplexType *T, Qualifiers,
 // (It doesn't matter for Objective-C types and the like that cl.exe doesn't
 // support.)
 bool MicrosoftCXXNameMangler::isArtificialTagType(QualType T) const {
-  const Type *ty = T.getTypePtr();
-  switch (ty->getTypeClass()) {
+  
+  switch (const Type *ty = T.getTypePtr(); ty->getTypeClass()) {
   default:
     return false;
 
@@ -4328,8 +4328,8 @@ void MicrosoftMangleContextImpl::mangleStringLiteral(const StringLiteral *SL,
     } else {
       const char SpecialChars[] = {',', '/',  '\\', ':',  '.',
                                    ' ', '\n', '\t', '\'', '-'};
-      const char *Pos = llvm::find(SpecialChars, Byte);
-      if (Pos != std::end(SpecialChars)) {
+      
+      if (const char *Pos = llvm::find(SpecialChars, Byte); Pos != std::end(SpecialChars)) {
         Mangler.getStream() << '?' << (Pos - std::begin(SpecialChars));
       } else {
         Mangler.getStream() << "?$";

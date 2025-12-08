@@ -74,8 +74,8 @@ void DwarfExpression::addOpPiece(unsigned SizeInBits, unsigned OffsetInBits) {
   if (!SizeInBits)
     return;
 
-  const unsigned SizeOfByte = 8;
-  if (OffsetInBits > 0 || SizeInBits % SizeOfByte) {
+  
+  if (const unsigned SizeOfByte = 8; OffsetInBits > 0 || SizeInBits % SizeOfByte) {
     emitOp(dwarf::DW_OP_bit_piece);
     emitUnsigned(SizeInBits);
     emitUnsigned(OffsetInBits);
@@ -106,8 +106,8 @@ bool DwarfExpression::addMachineReg(const TargetRegisterInfo &TRI,
       return true;
     }
     // Try getting dwarf register for virtual register anyway, eg. for NVPTX.
-    int64_t Reg = TRI.getDwarfRegNumForVirtReg(MachineReg, false);
-    if (Reg > 0) {
+    
+    if (int64_t Reg = TRI.getDwarfRegNumForVirtReg(MachineReg, false); Reg > 0) {
       DwarfRegs.push_back(Register::createRegister(Reg, nullptr));
       return true;
     }
@@ -239,8 +239,8 @@ void DwarfExpression::addUnsignedConstant(const APInt &Value) {
 void DwarfExpression::addConstantFP(const APFloat &APF, const AsmPrinter &AP) {
   assert(isImplicitLocation() || isUnknownLocation());
   APInt API = APF.bitcastToAPInt();
-  int NumBytes = API.getBitWidth() / 8;
-  if (NumBytes == 4 /*float*/ || NumBytes == 8 /*double*/) {
+  
+  if (int NumBytes = API.getBitWidth() / 8; NumBytes == 4 /*float*/ || NumBytes == 8 /*double*/) {
     // FIXME: Add support for `long double`.
     emitOp(dwarf::DW_OP_implicit_value);
     emitUnsigned(NumBytes /*Size of the block in bytes*/);
@@ -364,8 +364,8 @@ bool DwarfExpression::addMachineRegExpression(const TargetRegisterInfo &TRI,
   // [Reg, DW_OP_plus_uconst, Offset] --> [DW_OP_breg, Offset].
   if (Op && (Op->getOp() == dwarf::DW_OP_plus_uconst)) {
     uint64_t Offset = Op->getArg(0);
-    uint64_t IntMax = static_cast<uint64_t>(std::numeric_limits<int>::max());
-    if (Offset <= IntMax) {
+    
+    if (uint64_t IntMax = static_cast<uint64_t>(std::numeric_limits<int>::max()); Offset <= IntMax) {
       SignedOffset = Offset;
       ExprCursor.take();
     }

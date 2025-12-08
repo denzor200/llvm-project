@@ -211,19 +211,19 @@ static Value createLinalgBodyCalculationForElementwiseOp(
       Type intermediateType;
       // Compute the maximum value that can occur in the intermediate buffer.
       const int32_t inputBitWidth = elementTy.getIntOrFloatBitWidth();
-      int intermediateBitWidth = 64;
+      
 
-      if (hasInZp && hasOutZp) {
+      if (int intermediateBitWidth = 64; hasInZp && hasOutZp) {
         // Compute the maximum value that can occur in the intermediate buffer.
         const int64_t zpAdd = inZp + outZp;
-        const int64_t maxValue =
-            APInt::getSignedMaxValue(inputBitWidth).getSExtValue() +
-            std::abs(zpAdd) + 1;
+        
 
         // Convert that maximum value into the maximum bitwidth needed to
         // represent it. We assume 48-bit numbers may be supported further in
         // the pipeline.
-        if (maxValue <= APInt::getSignedMaxValue(16).getSExtValue()) {
+        if (const int64_t maxValue =
+            APInt::getSignedMaxValue(inputBitWidth).getSExtValue() +
+            std::abs(zpAdd) + 1; maxValue <= APInt::getSignedMaxValue(16).getSExtValue()) {
           intermediateBitWidth = 16;
         } else if (maxValue <= APInt::getSignedMaxValue(32).getSExtValue()) {
           intermediateBitWidth = 32;
@@ -295,8 +295,8 @@ static Value createLinalgBodyCalculationForElementwiseOp(
   // tosa::ArithmeticRightShiftOp
   if (isa<tosa::ArithmeticRightShiftOp>(op) && isa<IntegerType>(elementTy)) {
     auto result = arith::ShRSIOp::create(rewriter, loc, resultTypes, args);
-    auto round = cast<BoolAttr>(op->getAttr("round")).getValue();
-    if (!round) {
+    
+    if (auto round = cast<BoolAttr>(op->getAttr("round")).getValue(); !round) {
       return result;
     }
 
@@ -775,8 +775,8 @@ computeTargetSize(PatternRewriter &rewriter, Location loc, IndexPool &indexPool,
   // dimension, that is the target size. An occurrence of an additional static
   // dimension greater than 1 with a different value is undefined behavior.
   for (auto operand : operands) {
-    auto size = cast<RankedTensorType>(operand.getType()).getDimSize(dim);
-    if (ShapedType::isStatic(size) && size > 1)
+    
+    if (auto size = cast<RankedTensorType>(operand.getType()).getDimSize(dim); ShapedType::isStatic(size) && size > 1)
       return {rewriter.getIndexAttr(size), operand};
   }
 
@@ -1762,9 +1762,9 @@ public:
     auto inputH = inputTy.getDimSize(1);
     auto inputW = inputTy.getDimSize(2);
     auto outputH = resultTy.getDimSize(1);
-    auto outputW = resultTy.getDimSize(2);
+    
 
-    if (inputH != 1 || inputW != 1 || outputH != 1 || outputW != 1)
+    if (auto outputW = resultTy.getDimSize(2); inputH != 1 || inputW != 1 || outputH != 1 || outputW != 1)
       return rewriter.notifyMatchFailure(
           op, "tosa.resize is not a pure 1x1->1x1 image operation");
 
@@ -2180,8 +2180,8 @@ public:
           y1x0 = arith::ExtSIOp::create(b, resultETy, y1x0);
           y1x1 = arith::ExtSIOp::create(b, resultETy, y1x1);
 
-          const int64_t deltaBitwidth = dx.getType().getIntOrFloatBitWidth();
-          if (resultETy.getIntOrFloatBitWidth() > deltaBitwidth) {
+          
+          if (const int64_t deltaBitwidth = dx.getType().getIntOrFloatBitWidth(); resultETy.getIntOrFloatBitWidth() > deltaBitwidth) {
             dx = arith::ExtSIOp::create(b, resultETy, dx);
             dy = arith::ExtSIOp::create(b, resultETy, dy);
           }

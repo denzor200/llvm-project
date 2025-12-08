@@ -53,8 +53,8 @@ static int getPrecedence(MCBinaryExpr::Opcode Op) {
 // needed.
 void MCExpr::print(raw_ostream &OS, const MCAsmInfo *MAI,
                    int SurroundingPrec) const {
-  constexpr int MaxPrec = 9;
-  switch (getKind()) {
+  
+  switch (constexpr int MaxPrec = 9; getKind()) {
   case MCExpr::Target:
     return cast<MCTargetExpr>(this)->printImpl(OS, MAI);
   case MCExpr::Constant: {

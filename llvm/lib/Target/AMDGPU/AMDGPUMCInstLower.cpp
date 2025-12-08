@@ -93,8 +93,8 @@ bool AMDGPUMCInstLower::lowerOperand(const MachineOperand &MO,
     MCSymbol *Sym = Ctx.getOrCreateSymbol(SymbolName);
     const MCExpr *Expr =
         MCSymbolRefExpr::create(Sym, getSpecifier(MO.getTargetFlags()), Ctx);
-    int64_t Offset = MO.getOffset();
-    if (Offset != 0) {
+    
+    if (int64_t Offset = MO.getOffset(); Offset != 0) {
       Expr = MCBinaryExpr::createAdd(Expr,
                                      MCConstantExpr::create(Offset, Ctx), Ctx);
     }
@@ -183,8 +183,8 @@ void AMDGPUMCInstLower::lowerT16FmaMixFP16(const MachineInstr *MI,
 
   int VDstIdx = AMDGPU::getNamedOperandIdx(Opcode, llvm::AMDGPU::OpName::vdst);
   const MachineOperand &VDst = MI->getOperand(VDstIdx);
-  bool IsHi = AMDGPU::isHi16Reg(VDst.getReg(), TRI);
-  switch (Opcode) {
+  
+  switch (bool IsHi = AMDGPU::isHi16Reg(VDst.getReg(), TRI); Opcode) {
   case AMDGPU::V_FMA_MIX_F16_t16:
     Opcode = IsHi ? AMDGPU::V_FMA_MIXHI_F16 : AMDGPU::V_FMA_MIXLO_F16;
     break;

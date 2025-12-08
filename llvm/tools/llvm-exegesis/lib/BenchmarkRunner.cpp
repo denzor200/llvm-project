@@ -67,8 +67,8 @@ BenchmarkRunner::~BenchmarkRunner() = default;
 void BenchmarkRunner::FunctionExecutor::accumulateCounterValues(
     const SmallVectorImpl<int64_t> &NewValues,
     SmallVectorImpl<int64_t> *Result) {
-  const size_t NumValues = std::max(NewValues.size(), Result->size());
-  if (NumValues > Result->size())
+  
+  if (const size_t NumValues = std::max(NewValues.size(), Result->size()); NumValues > Result->size())
     Result->resize(NumValues, 0);
   for (size_t I = 0, End = NewValues.size(); I < End; ++I)
     (*Result)[I] += NewValues[I];
@@ -119,8 +119,8 @@ private:
 
   static void accumulateCounterValues(const SmallVector<int64_t, 4> &NewValues,
                                       SmallVector<int64_t, 4> *Result) {
-    const size_t NumValues = std::max(NewValues.size(), Result->size());
-    if (NumValues > Result->size())
+    
+    if (const size_t NumValues = std::max(NewValues.size(), Result->size()); NumValues > Result->size())
       Result->resize(NumValues, 0);
     for (size_t I = 0, End = NewValues.size(); I < End; ++I)
       (*Result)[I] += NewValues[I];
@@ -252,9 +252,9 @@ private:
 
     Message.msg_controllen = CMSG_SPACE(sizeof(FD));
 
-    ssize_t BytesWritten = sendmsg(SocketFD, &Message, 0);
+    
 
-    if (BytesWritten < 0)
+    if (ssize_t BytesWritten = sendmsg(SocketFD, &Message, 0); BytesWritten < 0)
       return make_error<Failure>("Failed to write FD to socket: " +
                                  Twine(strerror(errno)));
 
@@ -268,9 +268,9 @@ private:
     Message.msg_control = ControlBuffer;
     Message.msg_controllen = sizeof(ControlBuffer);
 
-    ssize_t BytesRead = recvmsg(SocketFD, &Message, 0);
+    
 
-    if (BytesRead < 0)
+    if (ssize_t BytesRead = recvmsg(SocketFD, &Message, 0); BytesRead < 0)
       return make_error<Failure>("Failed to read FD from socket: " +
                                  Twine(strerror(errno)));
 
@@ -433,8 +433,8 @@ private:
       ArrayRef<const char *> ValidationCounters,
       SmallVectorImpl<int64_t> &ValidationCounterValues) const {
     int PipeFiles[2];
-    int PipeSuccessOrErr = socketpair(AF_UNIX, SOCK_DGRAM, 0, PipeFiles);
-    if (PipeSuccessOrErr != 0) {
+    
+    if (int PipeSuccessOrErr = socketpair(AF_UNIX, SOCK_DGRAM, 0, PipeFiles); PipeSuccessOrErr != 0) {
       return make_error<Failure>(
           "Failed to create a pipe for interprocess communication between "
           "llvm-exegesis and the benchmarking subprocess: " +

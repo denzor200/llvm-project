@@ -144,9 +144,9 @@ static bool hasAllNBitUsers(const MachineInstr &OrigMI,
 
     for (auto &UserOp : MRI.use_nodbg_operands(DestReg)) {
       const MachineInstr *UserMI = UserOp.getParent();
-      unsigned OpIdx = UserOp.getOperandNo();
+      
 
-      switch (UserMI->getOpcode()) {
+      switch (unsigned OpIdx = UserOp.getOperandNo(); UserMI->getOpcode()) {
       default:
         if (vectorPseudoHasAllNBitUsers(UserOp, Bits))
           break;
@@ -213,8 +213,8 @@ static bool hasAllNBitUsers(const MachineInstr &OrigMI,
         // If we are shifting right by less than Bits, and users don't demand
         // any bits that were shifted into [Bits-1:0], then we can consider this
         // as an N-Bit user.
-        unsigned ShAmt = UserMI->getOperand(2).getImm();
-        if (Bits > ShAmt) {
+        
+        if (unsigned ShAmt = UserMI->getOperand(2).getImm(); Bits > ShAmt) {
           Worklist.emplace_back(UserMI, Bits - ShAmt);
           break;
         }
@@ -239,15 +239,15 @@ static bool hasAllNBitUsers(const MachineInstr &OrigMI,
       }
 
       case RISCV::ANDI: {
-        uint64_t Imm = UserMI->getOperand(2).getImm();
-        if (Bits >= (unsigned)llvm::bit_width(Imm))
+        
+        if (uint64_t Imm = UserMI->getOperand(2).getImm(); Bits >= (unsigned)llvm::bit_width(Imm))
           break;
         Worklist.emplace_back(UserMI, Bits);
         break;
       }
       case RISCV::ORI: {
-        uint64_t Imm = UserMI->getOperand(2).getImm();
-        if (Bits >= (unsigned)llvm::bit_width<uint64_t>(~Imm))
+        
+        if (uint64_t Imm = UserMI->getOperand(2).getImm(); Bits >= (unsigned)llvm::bit_width<uint64_t>(~Imm))
           break;
         Worklist.emplace_back(UserMI, Bits);
         break;
@@ -360,9 +360,9 @@ static bool hasAllNBitUsers(const MachineInstr &OrigMI,
       case RISCV::TH_EXT:
       case RISCV::TH_EXTU:
         unsigned Msb = UserMI->getOperand(2).getImm();
-        unsigned Lsb = UserMI->getOperand(3).getImm();
+        
         // Behavior of Msb < Lsb is not well documented.
-        if (Msb >= Lsb && Bits > Msb)
+        if (unsigned Lsb = UserMI->getOperand(3).getImm(); Msb >= Lsb && Bits > Msb)
           break;
         return false;
       }
@@ -380,10 +380,10 @@ static bool hasAllWUsers(const MachineInstr &OrigMI, const RISCVSubtarget &ST,
 // This function returns true if the machine instruction always outputs a value
 // where bits 63:32 match bit 31.
 static bool isSignExtendingOpW(const MachineInstr &MI, unsigned OpNo) {
-  uint64_t TSFlags = MI.getDesc().TSFlags;
+  
 
   // Instructions that can be determined from opcode are marked in tablegen.
-  if (TSFlags & RISCVII::IsSignExtendingOpWMask)
+  if (uint64_t TSFlags = MI.getDesc().TSFlags; TSFlags & RISCVII::IsSignExtendingOpWMask)
     return true;
 
   // Special cases that require checking operands.
@@ -474,12 +474,12 @@ static bool isSignExtendedW(Register SrcReg, const RISCVSubtarget &ST,
       return false;
     case RISCV::COPY: {
       const MachineFunction *MF = MI->getMF();
-      const RISCVMachineFunctionInfo *RVFI =
-          MF->getInfo<RISCVMachineFunctionInfo>();
+      
 
       // If this is the entry block and the register is livein, see if we know
       // it is sign extended.
-      if (MI->getParent() == &MF->front()) {
+      if (const RISCVMachineFunctionInfo *RVFI =
+          MF->getInfo<RISCVMachineFunctionInfo>(); MI->getParent() == &MF->front()) {
         Register VReg = MI->getOperand(0).getReg();
         if (MF->getRegInfo().isLiveIn(VReg) && RVFI->isSExt32Register(VReg))
           continue;

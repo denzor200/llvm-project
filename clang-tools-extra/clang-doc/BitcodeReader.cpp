@@ -1115,8 +1115,8 @@ ClangDocBitcodeReader::readBitcode() {
     Expected<unsigned> MaybeID = Stream.ReadSubBlockID();
     if (!MaybeID)
       return MaybeID.takeError();
-    unsigned ID = MaybeID.get();
-    switch (ID) {
+    
+    switch (unsigned ID = MaybeID.get(); ID) {
     // NamedType and Comment blocks should not appear at the top level
     case BI_TYPE_BLOCK_ID:
     case BI_FIELD_TYPE_BLOCK_ID:

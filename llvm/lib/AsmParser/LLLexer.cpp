@@ -175,8 +175,8 @@ LLLexer::LLLexer(StringRef StartBuf, SourceMgr &SM, SMDiagnostic &Err,
 }
 
 int LLLexer::getNextChar() {
-  char CurChar = *CurPtr++;
-  switch (CurChar) {
+  
+  switch (char CurChar = *CurPtr++; CurChar) {
   default: return (unsigned char)CurChar;
   case 0:
     // A nul character in the stream is either the end of the current buffer or
@@ -196,8 +196,8 @@ lltok::Kind LLLexer::LexToken() {
   while (true) {
     TokStart = CurPtr;
 
-    int CurChar = getNextChar();
-    switch (CurChar) {
+    
+    switch (int CurChar = getNextChar(); CurChar) {
     default:
       // Handle letters: [a-zA-Z_]
       if (isalpha(static_cast<unsigned char>(CurChar)) || CurChar == '_')
@@ -273,8 +273,8 @@ void LLLexer::SkipLineComment() {
 /// was an error.
 bool LLLexer::SkipCComment() {
   while (true) {
-    int CurChar = getNextChar();
-    switch (CurChar) {
+    
+    switch (int CurChar = getNextChar(); CurChar) {
     case EOF:
       LexError("unterminated comment");
       return true;
@@ -356,8 +356,8 @@ lltok::Kind LLLexer::ReadString(lltok::Kind kind) {
 
 /// ReadVarName - Read the rest of a token containing a variable name.
 bool LLLexer::ReadVarName() {
-  const char *NameStart = CurPtr;
-  if (isalpha(static_cast<unsigned char>(CurPtr[0])) ||
+  
+  if (const char *NameStart = CurPtr; isalpha(static_cast<unsigned char>(CurPtr[0])) ||
       CurPtr[0] == '-' || CurPtr[0] == '$' ||
       CurPtr[0] == '.' || CurPtr[0] == '_') {
     ++CurPtr;
@@ -1056,8 +1056,8 @@ lltok::Kind LLLexer::LexIdentifier() {
       return lltok::Error;
     }
     APInt Tmp(bits, HexStr, 16);
-    uint32_t activeBits = Tmp.getActiveBits();
-    if (activeBits > 0 && activeBits < bits)
+    
+    if (uint32_t activeBits = Tmp.getActiveBits(); activeBits > 0 && activeBits < bits)
       Tmp = Tmp.trunc(activeBits);
     APSIntVal = APSInt(Tmp, TokStart[0] == 'u');
     return lltok::APSInt;

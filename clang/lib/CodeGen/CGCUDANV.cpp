@@ -683,12 +683,12 @@ llvm::Function *CGNVCUDARuntime::makeRegisterGlobalsFn() {
     assert((!Var->isDeclaration() || Info.Flags.isManaged()) &&
            "External variables should not show up here, except HIP managed "
            "variables");
-    llvm::Constant *VarName = makeConstantString(getDeviceSideName(Info.D));
-    switch (Info.Flags.getKind()) {
+    
+    switch (llvm::Constant *VarName = makeConstantString(getDeviceSideName(Info.D)); Info.Flags.getKind()) {
     case DeviceVarFlags::Variable: {
-      uint64_t VarSize =
-          CGM.getDataLayout().getTypeAllocSize(Var->getValueType());
-      if (Info.Flags.isManaged()) {
+      
+      if (uint64_t VarSize =
+          CGM.getDataLayout().getTypeAllocSize(Var->getValueType()); Info.Flags.isManaged()) {
         assert(Var->getName().ends_with(".managed") &&
                "HIP managed variables not transformed");
         auto *ManagedVar = CGM.getModule().getNamedGlobal(
@@ -1132,8 +1132,8 @@ void CGNVCUDARuntime::handleVarRegistration(const VarDecl *D,
     // also registered with CUDA runtime.
     const auto *TD = cast<ClassTemplateSpecializationDecl>(
         D->getType()->castAsCXXRecordDecl());
-    const TemplateArgumentList &Args = TD->getTemplateArgs();
-    if (TD->hasAttr<CUDADeviceBuiltinSurfaceTypeAttr>()) {
+    
+    if (const TemplateArgumentList &Args = TD->getTemplateArgs(); TD->hasAttr<CUDADeviceBuiltinSurfaceTypeAttr>()) {
       assert(Args.size() == 2 &&
              "Unexpected number of template arguments of CUDA device "
              "builtin surface type.");
@@ -1159,8 +1159,8 @@ void CGNVCUDARuntime::handleVarRegistration(const VarDecl *D,
 // the address of managed memory which will be allocated by the runtime.
 void CGNVCUDARuntime::transformManagedVars() {
   for (auto &&Info : DeviceVars) {
-    llvm::GlobalVariable *Var = Info.Var;
-    if (Info.Flags.getKind() == DeviceVarFlags::Variable &&
+    
+    if (llvm::GlobalVariable *Var = Info.Var; Info.Flags.getKind() == DeviceVarFlags::Variable &&
         Info.Flags.isManaged()) {
       auto *ManagedVar = new llvm::GlobalVariable(
           CGM.getModule(), Var->getType(),
@@ -1211,7 +1211,8 @@ void CGNVCUDARuntime::createOffloadingEntries() {
   for (VarInfo &I : DeviceVars) {
     uint64_t VarSize =
         CGM.getDataLayout().getTypeAllocSize(I.Var->getValueType());
-    int32_t Flags =
+    
+    if (int32_t Flags =
         (I.Flags.isExtern()
              ? static_cast<int32_t>(llvm::offloading::OffloadGlobalExtern)
              : 0) |
@@ -1220,8 +1221,7 @@ void CGNVCUDARuntime::createOffloadingEntries() {
              : 0) |
         (I.Flags.isNormalized()
              ? static_cast<int32_t>(llvm::offloading::OffloadGlobalNormalized)
-             : 0);
-    if (I.Flags.getKind() == DeviceVarFlags::Variable) {
+             : 0); I.Flags.getKind() == DeviceVarFlags::Variable) {
       if (I.Flags.isManaged()) {
         assert(I.Var->getName().ends_with(".managed") &&
                "HIP managed variables not transformed");
@@ -1324,8 +1324,8 @@ llvm::GlobalValue *CGNVCUDARuntime::getKernelHandle(llvm::Function *F,
   Var->setDSOLocal(F->isDSOLocal());
   Var->setVisibility(F->getVisibility());
   auto *FD = cast<FunctionDecl>(GD.getDecl());
-  auto *FT = FD->getPrimaryTemplate();
-  if (!FT || FT->isThisDeclarationADefinition())
+  
+  if (auto *FT = FD->getPrimaryTemplate(); !FT || FT->isThisDeclarationADefinition())
     CGM.maybeSetTrivialComdat(*FD, *Var);
   KernelHandles[F->getName()] = Var;
   KernelStubs[Var] = F;

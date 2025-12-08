@@ -22,8 +22,8 @@ namespace clang::tidy::modernize {
 namespace {
 
 AST_MATCHER(Type, sugaredNullptrType) {
-  const Type *DesugaredType = Node.getUnqualifiedDesugaredType();
-  if (const auto *BT = dyn_cast<BuiltinType>(DesugaredType))
+  
+  if (const Type *DesugaredType = Node.getUnqualifiedDesugaredType(); const auto *BT = dyn_cast<BuiltinType>(DesugaredType))
     return BT->getKind() == BuiltinType::NullPtr;
   return false;
 }
@@ -166,8 +166,8 @@ public:
       return true;
     Visited = true;
 
-    const ImplicitCastExpr *Cast = dyn_cast<ImplicitCastExpr>(S);
-    if (Cast && (Cast->getCastKind() == CK_NullToPointer ||
+    
+    if (const ImplicitCastExpr *Cast = dyn_cast<ImplicitCastExpr>(S); Cast && (Cast->getCastKind() == CK_NullToPointer ||
                  Cast->getCastKind() == CK_NullToMemberPointer))
       CastFound = true;
 

@@ -641,8 +641,8 @@ namespace {
         AllocatedResults.ContainerUSR = clang_getCString(CursorUSR);
         clang_disposeString(CursorUSR);
 
-        const Type *type = baseType.getTypePtrOrNull();
-        if (type) {
+        
+        if (const Type *type = baseType.getTypePtrOrNull(); type) {
           AllocatedResults.ContainerIsIncomplete = type->isIncompleteType();
         }
         else {

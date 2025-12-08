@@ -363,7 +363,8 @@ void setTags(clangd::Diag &D) {
       diag::warn_property_method_deprecated,
       diag::warn_vector_mode_deprecated,
   };
-  static const auto *UnusedDiags = new llvm::DenseSet<unsigned>{
+  
+  if (static const auto *UnusedDiags = new llvm::DenseSet<unsigned>{
       diag::warn_opencl_attr_deprecated_ignored,
       diag::warn_pragma_attribute_unused,
       diag::warn_unused_but_set_parameter,
@@ -381,8 +382,7 @@ void setTags(clangd::Diag &D) {
       diag::warn_unused_property_backing_ivar,
       diag::warn_unused_template,
       diag::warn_unused_variable,
-  };
-  if (DeprecatedDiags->contains(D.ID)) {
+  }; DeprecatedDiags->contains(D.ID)) {
     D.Tags.push_back(DiagnosticTag::Deprecated);
   } else if (UnusedDiags->contains(D.ID)) {
     D.Tags.push_back(DiagnosticTag::Unnecessary);

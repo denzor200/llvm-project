@@ -408,9 +408,9 @@ bool MachineLICMImpl::run(MachineFunction &MF) {
 
   SmallVector<MachineLoop *, 8> Worklist(MLI->begin(), MLI->end());
   while (!Worklist.empty()) {
-    MachineLoop *CurLoop = Worklist.pop_back_val();
+    
 
-    if (!PreRegAlloc) {
+    if (MachineLoop *CurLoop = Worklist.pop_back_val(); !PreRegAlloc) {
       HoistRegionPostRA(CurLoop);
     } else {
       // CSEMap is initialized for loop header when the first instruction is
@@ -605,8 +605,8 @@ void MachineLICMImpl::HoistRegionPostRA(MachineLoop *CurLoop) {
   for (MachineBasicBlock *BB : CurLoop->getBlocks()) {
     // If the header of the loop containing this basic block is a landing pad,
     // then don't try to hoist instructions out of this loop.
-    const MachineLoop *ML = MLI->getLoopFor(BB);
-    if (ML && ML->getHeader()->isEHPad()) continue;
+    
+    if (const MachineLoop *ML = MLI->getLoopFor(BB); ML && ML->getHeader()->isEHPad()) continue;
 
     // Conservatively treat live-in's as an external def.
     // FIXME: That means a reload that're reused in successor block(s) will not
@@ -828,8 +828,8 @@ void MachineLICMImpl::HoistOutOfLoop(MachineDomTreeNode *HeaderN,
 
     // If the header of the loop containing this basic block is a landing pad,
     // then don't try to hoist instructions out of this loop.
-    const MachineLoop *ML = MLI->getLoopFor(BB);
-    if (ML && ML->getHeader()->isEHPad())
+    
+    if (const MachineLoop *ML = MLI->getLoopFor(BB); ML && ML->getHeader()->isEHPad())
       continue;
 
     // If this subregion is not in the top level loop at all, exit.
@@ -886,8 +886,8 @@ void MachineLICMImpl::HoistOutOfLoop(MachineDomTreeNode *HeaderN,
 
         while (!InnerLoopWorkList.empty()) {
           MachineLoop *InnerLoop = InnerLoopWorkList.pop_back_val();
-          MachineBasicBlock *InnerLoopPreheader = InnerLoop->getLoopPreheader();
-          if (InnerLoopPreheader) {
+          
+          if (MachineBasicBlock *InnerLoopPreheader = InnerLoop->getLoopPreheader(); InnerLoopPreheader) {
             HoistRes = Hoist(&MI, InnerLoopPreheader, InnerLoop);
             if (HoistRes & HoistResult::Hoisted)
               break;
@@ -972,8 +972,8 @@ MachineLICMImpl::calcRegisterCost(const MachineInstr *MI, bool ConsiderSeen,
     if (MO.isDef())
       RCCost = W.RegWeight;
     else {
-      bool isKill = isOperandKill(MO, MRI);
-      if (isNew && !isKill && ConsiderUnseenAsDef)
+      
+      if (bool isKill = isOperandKill(MO, MRI); isNew && !isKill && ConsiderUnseenAsDef)
         // Haven't seen this, it must be a livein.
         RCCost = W.RegWeight;
       else if (!isNew && isKill)
@@ -1597,10 +1597,10 @@ bool MachineLICMImpl::MayCSE(MachineInstr *MI) {
 /// It returns true if the instruction is hoisted.
 unsigned MachineLICMImpl::Hoist(MachineInstr *MI, MachineBasicBlock *Preheader,
                                 MachineLoop *CurLoop) {
-  MachineBasicBlock *SrcBlock = MI->getParent();
+  
 
   // Disable the instruction hoisting due to block hotness
-  if ((DisableHoistingToHotterBlocks == UseBFI::All ||
+  if (MachineBasicBlock *SrcBlock = MI->getParent(); (DisableHoistingToHotterBlocks == UseBFI::All ||
       (DisableHoistingToHotterBlocks == UseBFI::PGO && HasProfileData)) &&
       isTgtHotterThanSrc(SrcBlock, Preheader)) {
     ++NumNotHoistedDueToHotness;
@@ -1729,8 +1729,8 @@ bool MachineLICMImpl::isTgtHotterThanSrc(MachineBasicBlock *SrcBlock,
 template <typename DerivedT, bool PreRegAlloc>
 PreservedAnalyses MachineLICMBasePass<DerivedT, PreRegAlloc>::run(
     MachineFunction &MF, MachineFunctionAnalysisManager &MFAM) {
-  bool Changed = MachineLICMImpl(PreRegAlloc, nullptr, &MFAM).run(MF);
-  if (!Changed)
+  
+  if (bool Changed = MachineLICMImpl(PreRegAlloc, nullptr, &MFAM).run(MF); !Changed)
     return PreservedAnalyses::all();
   auto PA = getMachineFunctionPassPreservedAnalyses();
   PA.preserve<MachineLoopAnalysis>();

@@ -269,9 +269,9 @@ void X86AsmPrinter::PrintSymbolOperand(const MachineOperand &MO,
     if (MO.getTargetFlags() == X86II::MO_DARWIN_NONLAZY ||
         MO.getTargetFlags() == X86II::MO_DARWIN_NONLAZY_PIC_BASE) {
       MCSymbol *Sym = getSymbolWithGlobalValueBase(GV, "$non_lazy_ptr");
-      MachineModuleInfoImpl::StubValueTy &StubSym =
-          MMI->getObjFileInfo<MachineModuleInfoMachO>().getGVStubEntry(Sym);
-      if (!StubSym.getPointer())
+      
+      if (MachineModuleInfoImpl::StubValueTy &StubSym =
+          MMI->getObjFileInfo<MachineModuleInfoMachO>().getGVStubEntry(Sym); !StubSym.getPointer())
         StubSym = MachineModuleInfoImpl::StubValueTy(getSymbol(GV),
                                                      !GV->hasInternalLinkage());
     }
@@ -336,8 +336,8 @@ void X86AsmPrinter::PrintSymbolOperand(const MachineOperand &MO,
 void X86AsmPrinter::PrintOperand(const MachineInstr *MI, unsigned OpNo,
                                  raw_ostream &O) {
   const MachineOperand &MO = MI->getOperand(OpNo);
-  const bool IsATT = MI->getInlineAsmDialect() == InlineAsm::AD_ATT;
-  switch (MO.getType()) {
+  
+  switch (const bool IsATT = MI->getInlineAsmDialect() == InlineAsm::AD_ATT; MO.getType()) {
   default: llvm_unreachable("unknown operand type!");
   case MachineOperand::MO_Register: {
     if (IsATT)
@@ -399,8 +399,8 @@ void X86AsmPrinter::PrintModifiedOperand(const MachineInstr *MI, unsigned OpNo,
 /// example, a $ is not emitted.
 void X86AsmPrinter::PrintPCRelImm(const MachineInstr *MI, unsigned OpNo,
                                   raw_ostream &O) {
-  const MachineOperand &MO = MI->getOperand(OpNo);
-  switch (MO.getType()) {
+  
+  switch (const MachineOperand &MO = MI->getOperand(OpNo); MO.getType()) {
   default: llvm_unreachable("Unknown pcrel immediate operand");
   case MachineOperand::MO_Register:
     // pc-relativeness was handled when computing the value in the reg.
@@ -433,8 +433,8 @@ void X86AsmPrinter::PrintLeaMemReference(const MachineInstr *MI, unsigned OpNo,
   default:
     llvm_unreachable("unknown operand type!");
   case MachineOperand::MO_Immediate: {
-    int DispVal = DispSpec.getImm();
-    if (DispVal || !HasParenPart)
+    
+    if (int DispVal = DispSpec.getImm(); DispVal || !HasParenPart)
       O << DispVal;
     break;
   }
@@ -458,8 +458,8 @@ void X86AsmPrinter::PrintLeaMemReference(const MachineInstr *MI, unsigned OpNo,
     if (IndexReg.getReg()) {
       O << ',';
       PrintModifiedOperand(MI, OpNo + X86::AddrIndexReg, O, Modifier);
-      unsigned ScaleVal = MI->getOperand(OpNo + X86::AddrScaleAmt).getImm();
-      if (ScaleVal != 1)
+      
+      if (unsigned ScaleVal = MI->getOperand(OpNo + X86::AddrScaleAmt).getImm(); ScaleVal != 1)
         O << ',' << ScaleVal;
     }
     O << ')';
@@ -502,8 +502,8 @@ void X86AsmPrinter::emitBasicBlockEnd(const MachineBasicBlock &MBB) {
 void X86AsmPrinter::PrintMemReference(const MachineInstr *MI, unsigned OpNo,
                                       raw_ostream &O, StringRef Modifier) {
   assert(isMem(*MI, OpNo) && "Invalid memory reference!");
-  const MachineOperand &Segment = MI->getOperand(OpNo + X86::AddrSegmentReg);
-  if (Segment.getReg()) {
+  
+  if (const MachineOperand &Segment = MI->getOperand(OpNo + X86::AddrSegmentReg); Segment.getReg()) {
     PrintModifiedOperand(MI, OpNo + X86::AddrSegmentReg, O, Modifier);
     O << ':';
   }
@@ -557,8 +557,8 @@ void X86AsmPrinter::PrintIntelMemReference(const MachineInstr *MI,
     // X86IntelInstPrinter::printMemReference.
     PrintSymbolOperand(DispSpec, O);
   } else {
-    int64_t DispVal = DispSpec.getImm();
-    if (DispVal || (!IndexReg.getReg() && !HasBaseReg)) {
+    
+    if (int64_t DispVal = DispSpec.getImm(); DispVal || (!IndexReg.getReg() && !HasBaseReg)) {
       if (NeedPlus) {
         if (DispVal > 0)
           O << " + ";

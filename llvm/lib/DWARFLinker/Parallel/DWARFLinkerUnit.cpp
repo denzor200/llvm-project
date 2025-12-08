@@ -20,9 +20,9 @@ void DwarfUnit::assignAbbrev(DIEAbbrev &Abbrev) {
   Abbrev.Profile(ID);
   void *InsertToken;
 
-  DIEAbbrev *InSet = AbbreviationsSet.FindNodeOrInsertPos(ID, InsertToken);
+  
   // If it's newly added.
-  if (InSet) {
+  if (DIEAbbrev *InSet = AbbreviationsSet.FindNodeOrInsertPos(ID, InsertToken); InSet) {
     // Assign existing abbreviation number.
     Abbrev.setNumber(InSet->getNumber());
   } else {

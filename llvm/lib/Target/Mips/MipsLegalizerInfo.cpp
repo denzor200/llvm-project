@@ -396,9 +396,9 @@ bool MipsLegalizerInfo::legalizeCustom(
 
       if (MemSize <= 4) {
         // This is anyextending load, use 4 byte lwr/lwl.
-        auto *Load4MMO = MF.getMachineMemOperand(MMOBase, 0, 4);
+        
 
-        if (Size == 32)
+        if (auto *Load4MMO = MF.getMachineMemOperand(MMOBase, 0, 4); Size == 32)
           MIRBuilder.buildLoad(Val, BaseAddr, *Load4MMO);
         else {
           auto Load = MIRBuilder.buildLoad(s32, BaseAddr, *Load4MMO);
@@ -507,9 +507,9 @@ static bool MSA2OpIntrinsicToGeneric(MachineInstr &MI, unsigned Opcode,
 bool MipsLegalizerInfo::legalizeIntrinsic(LegalizerHelper &Helper,
                                           MachineInstr &MI) const {
   MachineIRBuilder &MIRBuilder = Helper.MIRBuilder;
-  const MipsSubtarget &ST = MI.getMF()->getSubtarget<MipsSubtarget>();
+  
 
-  switch (cast<GIntrinsic>(MI).getIntrinsicID()) {
+  switch (const MipsSubtarget &ST = MI.getMF()->getSubtarget<MipsSubtarget>(); cast<GIntrinsic>(MI).getIntrinsicID()) {
   case Intrinsic::vacopy: {
     MachinePointerInfo MPO;
     LLT PtrTy = LLT::pointer(0, 32);

@@ -140,8 +140,8 @@ sqrt(InType x) {
            current_bit >>= 1) {
         r <<= 1;
         // 2*y(n - 1) + 2^(-n-1)
-        InStorageType tmp = static_cast<InStorageType>((y << 1) + current_bit);
-        if (r >= tmp) {
+        
+        if (InStorageType tmp = static_cast<InStorageType>((y << 1) + current_bit); r >= tmp) {
           r -= tmp;
           y += current_bit;
         }
@@ -150,8 +150,8 @@ sqrt(InType x) {
       // We compute one more iteration in order to round correctly.
       r <<= 2;
       y <<= 2;
-      InStorageType tmp = y + 1;
-      if (r >= tmp) {
+      
+      if (InStorageType tmp = y + 1; r >= tmp) {
         r -= tmp;
         // Rounding bit.
         y |= 2;

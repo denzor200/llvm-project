@@ -137,9 +137,9 @@ SymbolCache::createSymbolForModifiedType(codeview::TypeIndex ModifierTI,
 
   // Make sure we create and cache a record for the unmodified type.
   SymIndexId UnmodifiedId = findSymbolByTypeIndex(Record.ModifiedType);
-  NativeRawSymbol &UnmodifiedNRS = *Cache[UnmodifiedId];
+  
 
-  switch (UnmodifiedNRS.getSymTag()) {
+  switch (NativeRawSymbol &UnmodifiedNRS = *Cache[UnmodifiedId]; UnmodifiedNRS.getSymTag()) {
   case PDB_SymType::Enum:
     return createSymbol<NativeTypeEnum>(
         static_cast<NativeTypeEnum &>(UnmodifiedNRS), std::move(Record));

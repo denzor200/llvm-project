@@ -62,8 +62,8 @@ static Function *globalInitUsesExternalBA(GlobalVariable *GV) {
     Done.insert(V);
 
     if (BlockAddress *BA = dyn_cast<BlockAddress>(V)) {
-      Function *F = BA->getFunction();
-      if (F->isDeclaration())
+      
+      if (Function *F = BA->getFunction(); F->isDeclaration())
         return F;
     }
 
@@ -158,8 +158,8 @@ std::unique_ptr<Module> BugDriver::extractLoop(Module *M) {
   // Check to see if we created any new functions.  If not, no loops were
   // extracted and we should return null.  Limit the number of loops we extract
   // to avoid taking forever.
-  static unsigned NumExtracted = 32;
-  if (M->size() == NewM->size() || --NumExtracted == 0) {
+  
+  if (static unsigned NumExtracted = 32; M->size() == NewM->size() || --NumExtracted == 0) {
     return nullptr;
   } else {
     assert(M->size() < NewM->size() && "Loop extract removed functions?");
@@ -327,8 +327,8 @@ llvm::splitFunctionsOutOfModule(Module *M, const std::vector<Function *> &F,
 
   // Try to split the global initializers evenly
   for (GlobalVariable &I : M->globals()) {
-    GlobalVariable *GV = cast<GlobalVariable>(NewVMap[&I]);
-    if (Function *TestFn = globalInitUsesExternalBA(&I)) {
+    
+    if (GlobalVariable *GV = cast<GlobalVariable>(NewVMap[&I]); Function *TestFn = globalInitUsesExternalBA(&I)) {
       if (Function *SafeFn = globalInitUsesExternalBA(GV)) {
         errs() << "*** Error: when reducing functions, encountered "
                   "the global '";

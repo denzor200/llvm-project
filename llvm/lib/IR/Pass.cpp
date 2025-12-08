@@ -84,8 +84,8 @@ void Pass::dumpPassStructure(unsigned Offset) {
 /// Registration templates, but can be overloaded directly.
 StringRef Pass::getPassName() const {
   AnalysisID AID =  getPassID();
-  const PassInfo *PI = PassRegistry::getPassRegistry()->getPassInfo(AID);
-  if (PI)
+  
+  if (const PassInfo *PI = PassRegistry::getPassRegistry()->getPassInfo(AID); PI)
     return PI->getPassName();
   return "Unnamed pass: implement Pass::getPassName()";
 }
@@ -94,8 +94,8 @@ StringRef Pass::getPassName() const {
 /// corresponding to that used to enable the pass in opt
 StringRef Pass::getPassArgument() const {
   AnalysisID AID = getPassID();
-  const PassInfo *PI = Pass::lookupPassInfo(AID);
-  if (PI)
+  
+  if (const PassInfo *PI = Pass::lookupPassInfo(AID); PI)
     return PI->getPassArgument();
   return "";
 }
@@ -274,9 +274,9 @@ void AnalysisUsage::setPreservesCFG() {
 }
 
 AnalysisUsage &AnalysisUsage::addPreserved(StringRef Arg) {
-  const PassInfo *PI = Pass::lookupPassInfo(Arg);
+  
   // If the pass exists, preserve it. Otherwise silently do nothing.
-  if (PI)
+  if (const PassInfo *PI = Pass::lookupPassInfo(Arg); PI)
     pushUnique(Preserved, PI->getTypeInfo());
   return *this;
 }

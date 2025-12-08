@@ -152,8 +152,8 @@ void LinkerDriver::parseMerge(StringRef s) {
   if (from == ".reloc" || to == ".reloc")
     Fatal(ctx) << "/merge: cannot merge '.reloc' with any section";
   auto pair = ctx.config.merge.insert(std::make_pair(from, to));
-  bool inserted = pair.second;
-  if (!inserted) {
+  
+  if (bool inserted = pair.second; !inserted) {
     StringRef existing = pair.first->second;
     if (existing != to)
       Warn(ctx) << s << ": already merged into " << existing;

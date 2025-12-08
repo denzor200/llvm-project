@@ -1118,9 +1118,9 @@ TargetLoweringBase::getTypeConversion(LLVMContext &Context, EVT VT) const {
   // Handle Extended Scalar Types.
   if (!VT.isVector()) {
     assert(VT.isInteger() && "Float types must be simple");
-    unsigned BitSize = VT.getSizeInBits();
+    
     // First promote to a power-of-two size, then expand if necessary.
-    if (BitSize < 8 || !isPowerOf2_32(BitSize)) {
+    if (unsigned BitSize = VT.getSizeInBits(); BitSize < 8 || !isPowerOf2_32(BitSize)) {
       EVT NVT = VT.getRoundIntegerType(Context);
       assert(NVT != VT && "Unable to round integer VT");
       LegalizeKind NextStep = getTypeConversion(Context, NVT);
@@ -1519,9 +1519,9 @@ void TargetLoweringBase::computeRegisterProperties(
   if (!isTypeLegal(MVT::f16)) {
     // Allow targets to control how we legalize half.
     bool SoftPromoteHalfType = softPromoteHalfType();
-    bool UseFPRegsForHalfType = !SoftPromoteHalfType || useFPRegsForHalfType();
+    
 
-    if (!UseFPRegsForHalfType) {
+    if (bool UseFPRegsForHalfType = !SoftPromoteHalfType || useFPRegsForHalfType(); !UseFPRegsForHalfType) {
       NumRegistersForVT[MVT::f16] = NumRegistersForVT[MVT::i16];
       RegisterTypeForVT[MVT::f16] = RegisterTypeForVT[MVT::i16];
     } else {
@@ -1813,8 +1813,8 @@ void llvm::GetReturnInfo(CallingConv::ID CC, Type *ReturnType,
                          const TargetLowering &TLI, const DataLayout &DL) {
   SmallVector<Type *, 4> Types;
   ComputeValueTypes(DL, ReturnType, Types);
-  unsigned NumValues = Types.size();
-  if (NumValues == 0) return;
+  
+  if (unsigned NumValues = Types.size(); NumValues == 0) return;
 
   for (Type *Ty : Types) {
     EVT VT = TLI.getValueType(DL, Ty);
@@ -1862,8 +1862,8 @@ bool TargetLoweringBase::allowsMemoryAccessForAlignment(
   // would be to implement this check directly (make this a virtual function).
   // For example, the ABI alignment may change based on software platform while
   // this function should only be affected by hardware implementation.
-  Type *Ty = VT.getTypeForEVT(Context);
-  if (VT.isZeroSized() || Alignment >= DL.getABITypeAlign(Ty)) {
+  
+  if (Type *Ty = VT.getTypeForEVT(Context); VT.isZeroSized() || Alignment >= DL.getABITypeAlign(Ty)) {
     // Assume that an access that meets the ABI-specified alignment is fast.
     if (Fast != nullptr)
       *Fast = 1;
@@ -2015,9 +2015,9 @@ TargetLoweringBase::getDefaultSafeStackPointerLocation(IRBuilderBase &IRB,
       dyn_cast_or_null<GlobalVariable>(M->getNamedValue(UnsafeStackPtrVar));
 
   const DataLayout &DL = M->getDataLayout();
-  PointerType *StackPtrTy = DL.getAllocaPtrType(M->getContext());
+  
 
-  if (!UnsafeStackPtr) {
+  if (PointerType *StackPtrTy = DL.getAllocaPtrType(M->getContext()); !UnsafeStackPtr) {
     auto TLSModel = UseTLS ?
         GlobalValue::InitialExecTLSModel :
         GlobalValue::NotThreadLocal;
@@ -2267,8 +2267,8 @@ static bool parseRefinementStep(StringRef In, size_t &Position,
   // Allow exactly one numeric character for the additional refinement
   // step parameter.
   if (RefStepString.size() == 1) {
-    char RefStepChar = RefStepString[0];
-    if (isDigit(RefStepChar)) {
+    
+    if (char RefStepChar = RefStepString[0]; isDigit(RefStepChar)) {
       Value = RefStepChar - '0';
       return true;
     }
@@ -2285,10 +2285,10 @@ static int getOpEnabled(bool IsSqrt, EVT VT, StringRef Override) {
 
   SmallVector<StringRef, 4> OverrideVector;
   Override.split(OverrideVector, ',');
-  unsigned NumArgs = OverrideVector.size();
+  
 
   // Check if "all", "none", or "default" was specified.
-  if (NumArgs == 1) {
+  if (unsigned NumArgs = OverrideVector.size(); NumArgs == 1) {
     // Look for an optional setting of the number of refinement steps needed
     // for this type of reciprocal operation.
     size_t RefPos;
@@ -2345,10 +2345,10 @@ static int getOpRefinementSteps(bool IsSqrt, EVT VT, StringRef Override) {
 
   SmallVector<StringRef, 4> OverrideVector;
   Override.split(OverrideVector, ',');
-  unsigned NumArgs = OverrideVector.size();
+  
 
   // Check if "all", "default", or "none" was specified.
-  if (NumArgs == 1) {
+  if (unsigned NumArgs = OverrideVector.size(); NumArgs == 1) {
     // Look for an optional setting of the number of refinement steps needed
     // for this type of reciprocal operation.
     size_t RefPos;
@@ -2497,9 +2497,9 @@ TargetLoweringBase::getAtomicMemOperandFlags(const Instruction &AI,
 MachineMemOperand::Flags TargetLoweringBase::getVPIntrinsicMemOperandFlags(
     const VPIntrinsic &VPIntrin) const {
   MachineMemOperand::Flags Flags = MachineMemOperand::MONone;
-  Intrinsic::ID IntrinID = VPIntrin.getIntrinsicID();
+  
 
-  switch (IntrinID) {
+  switch (Intrinsic::ID IntrinID = VPIntrin.getIntrinsicID(); IntrinID) {
   default:
     llvm_unreachable("unexpected intrinsic. Existing code may be appropriate "
                      "for it, but support must be explicitly enabled");

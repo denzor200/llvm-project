@@ -154,8 +154,8 @@ getSymbolLocations(ObjFile *file, uint32_t symIndex, size_t maxStrings) {
 
       std::optional<std::pair<StringRef, uint32_t>> fileLine =
           getFileLine(sc, r.VirtualAddress);
-      Symbol *sym = getSymbol(sc, r.VirtualAddress);
-      if (fileLine)
+      
+      if (Symbol *sym = getSymbol(sc, r.VirtualAddress); fileLine)
         locations.push_back({sym, *fileLine});
       else if (sym)
         locations.push_back({sym, {"", 0}});
@@ -235,8 +235,8 @@ void SymbolTable::reportUndefinedSymbol(const UndefinedDiag &undefDiag) {
   // Hints
   StringRef name = undefDiag.sym->getName();
   if (name.consume_front("__imp_")) {
-    Symbol *imp = find(name);
-    if (imp && imp->isLazy()) {
+    
+    if (Symbol *imp = find(name); imp && imp->isLazy()) {
       diag << "\nNOTE: a relevant symbol '" << imp->getName()
            << "' is available in " << toString(imp->getFile())
            << " but cannot be used because it is not an import library.";
@@ -356,8 +356,8 @@ bool SymbolTable::handleMinGWAutomaticImport(Symbol *sym, StringRef name) {
   DefinedRegular *refptr =
       dyn_cast_or_null<DefinedRegular>(find((".refptr." + name).str()));
   if (refptr && refptr->getChunk()->getSize() == ctx.config.wordsize) {
-    SectionChunk *sc = dyn_cast_or_null<SectionChunk>(refptr->getChunk());
-    if (sc && sc->getRelocs().size() == 1 && *sc->symbols().begin() == sym) {
+    
+    if (SectionChunk *sc = dyn_cast_or_null<SectionChunk>(refptr->getChunk()); sc && sc->getRelocs().size() == 1 && *sc->symbols().begin() == sym) {
       Log(ctx) << "Replacing .refptr." << name << " with " << imp->getName();
       refptr->getChunk()->live = false;
       refptr->replaceKeepingName(imp, impSize);
@@ -436,8 +436,8 @@ void SymbolTable::reportUnresolvable() {
       continue;
     StringRef name = undef->getName();
     if (name.starts_with("__imp_")) {
-      Symbol *imp = find(name.substr(strlen("__imp_")));
-      if (Defined *def = dyn_cast_or_null<Defined>(imp)) {
+      
+      if (Symbol *imp = find(name.substr(strlen("__imp_"))); Defined *def = dyn_cast_or_null<Defined>(imp)) {
         def->isUsedInRegularObj = true;
         continue;
       }
@@ -648,8 +648,8 @@ void SymbolTable::initializeECThunks() {
     if (file->getMachineType() != AMD64)
       return;
     for (auto &sym : file->getMutableSymbols()) {
-      auto impSym = dyn_cast_or_null<DefinedImportData>(sym);
-      if (impSym && impSym->file->impchkThunk && sym == impSym->file->impECSym)
+      
+      if (auto impSym = dyn_cast_or_null<DefinedImportData>(sym); impSym && impSym->file->impchkThunk && sym == impSym->file->impECSym)
         sym = impSym->file->impSym;
     }
   });
@@ -709,16 +709,16 @@ Symbol *SymbolTable::addGCRoot(StringRef name, bool aliasEC) {
   if (aliasEC && isEC()) {
     if (std::optional<std::string> mangledName =
             getArm64ECMangledFunctionName(name)) {
-      auto u = dyn_cast<Undefined>(b);
-      if (u && !u->weakAlias) {
+      
+      if (auto u = dyn_cast<Undefined>(b); u && !u->weakAlias) {
         Symbol *t = addUndefined(saver().save(*mangledName));
         u->setWeakAlias(t, true);
       }
     } else if (std::optional<std::string> demangledName =
                    getArm64ECDemangledFunctionName(name)) {
       Symbol *us = addUndefined(saver().save(*demangledName));
-      auto u = dyn_cast<Undefined>(us);
-      if (u && !u->weakAlias)
+      
+      if (auto u = dyn_cast<Undefined>(us); u && !u->weakAlias)
         u->setWeakAlias(b, true);
     }
   }
@@ -773,8 +773,8 @@ void SymbolTable::addLazyArchive(ArchiveFile *f, const Archive::Symbol &sym) {
     replaceSymbol<LazyArchive>(s, f, sym);
     return;
   }
-  auto *u = dyn_cast<Undefined>(s);
-  if (!u || (u->weakAlias && !u->isECAlias(machine)) || s->pendingArchiveLoad)
+  
+  if (auto *u = dyn_cast<Undefined>(s); !u || (u->weakAlias && !u->isECAlias(machine)) || s->pendingArchiveLoad)
     return;
   s->pendingArchiveLoad = true;
   f->addMember(sym);
@@ -789,8 +789,8 @@ void SymbolTable::addLazyObject(InputFile *f, StringRef n) {
     replaceSymbol<LazyObject>(s, f, n);
     return;
   }
-  auto *u = dyn_cast<Undefined>(s);
-  if (!u || (u->weakAlias && !u->isECAlias(machine)) || s->pendingArchiveLoad)
+  
+  if (auto *u = dyn_cast<Undefined>(s); !u || (u->weakAlias && !u->isECAlias(machine)) || s->pendingArchiveLoad)
     return;
   s->pendingArchiveLoad = true;
   f->lazy = false;
@@ -804,8 +804,8 @@ void SymbolTable::addLazyDLLSymbol(DLLFile *f, DLLFile::Symbol *sym,
     replaceSymbol<LazyDLLSymbol>(s, f, sym, n);
     return;
   }
-  auto *u = dyn_cast<Undefined>(s);
-  if (!u || (u->weakAlias && !u->isECAlias(machine)) || s->pendingArchiveLoad)
+  
+  if (auto *u = dyn_cast<Undefined>(s); !u || (u->weakAlias && !u->isECAlias(machine)) || s->pendingArchiveLoad)
     return;
   s->pendingArchiveLoad = true;
   f->makeImport(sym);
@@ -862,8 +862,8 @@ void SymbolTable::reportDuplicate(Symbol *existing, InputFile *newFile,
                                                     : DiagLevel::Err);
   diag << "duplicate symbol: " << printSymbol(existing);
 
-  DefinedRegular *d = dyn_cast<DefinedRegular>(existing);
-  if (d && isa<ObjFile>(d->getFile())) {
+  
+  if (DefinedRegular *d = dyn_cast<DefinedRegular>(existing); d && isa<ObjFile>(d->getFile())) {
     diag << getSourceLocation(d->getFile(), d->getChunk(), d->getValue(),
                               existing->getName());
   } else {
@@ -1250,8 +1250,8 @@ void SymbolTable::fixupExports() {
   std::vector<Export> v;
   for (Export &e : exports) {
     auto pair = map.insert(std::make_pair(e.exportName, std::make_pair(&e, 0)));
-    bool inserted = pair.second;
-    if (inserted) {
+    
+    if (bool inserted = pair.second; inserted) {
       pair.first->second.second = v.size();
       v.push_back(e);
       continue;

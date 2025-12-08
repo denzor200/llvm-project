@@ -1320,9 +1320,9 @@ std::vector<InstructionTemplate> ExegesisX86Target::generateInstructionVariants(
   VariableChoices.resize(Instr.Variables.size());
   for (auto I : zip(Instr.Variables, VariableChoices)) {
     const Variable &Var = std::get<0>(I);
-    SmallVectorImpl<MCOperand> &Choices = std::get<1>(I);
+    
 
-    switch (Instr.getPrimaryOperand(Var).getExplicitOperandInfo().OperandType) {
+    switch (SmallVectorImpl<MCOperand> &Choices = std::get<1>(I); Instr.getPrimaryOperand(Var).getExplicitOperandInfo().OperandType) {
     default:
       // We don't wish to explicitly explore this variable.
       Choices.emplace_back(); // But add invalid MCOperand to simplify logic.

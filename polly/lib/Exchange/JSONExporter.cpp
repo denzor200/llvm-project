@@ -207,10 +207,10 @@ static bool importContext(Scop &S, const json::Object &JScop) {
   }
 
   unsigned OldContextDim = unsignedFromIslSize(OldContext.dim(isl::dim::param));
-  unsigned NewContextDim = unsignedFromIslSize(NewContext.dim(isl::dim::param));
+  
 
   // Check if the imported context has the right number of parameters.
-  if (OldContextDim != NewContextDim) {
+  if (unsigned NewContextDim = unsignedFromIslSize(NewContext.dim(isl::dim::param)); OldContextDim != NewContextDim) {
     errs() << "Imported context has the wrong number of parameters : "
            << "Found " << NewContextDim << " Expected " << OldContextDim
            << "\n";
@@ -400,8 +400,8 @@ importAccesses(Scop &S, const json::Object &JScop, const DataLayout &DL,
         NewOutId = isl_map_get_tuple_id(NewAccessMap, isl_dim_out);
         auto *SAI = S.getArrayInfoByName(isl_id_get_name(NewOutId));
         isl_id *OutId = isl_map_get_tuple_id(CurrentAccessMap, isl_dim_out);
-        auto *OutSAI = ScopArrayInfo::getFromId(isl::manage(OutId));
-        if (!SAI || SAI->getElementType() != OutSAI->getElementType()) {
+        
+        if (auto *OutSAI = ScopArrayInfo::getFromId(isl::manage(OutId)); !SAI || SAI->getElementType() != OutSAI->getElementType()) {
           errs() << "JScop file contains access function with undeclared "
                     "ScopArrayInfo\n";
           isl_map_free(CurrentAccessMap);
@@ -547,8 +547,8 @@ static bool areArraysEqual(ScopArrayInfo *SAI, const json::Object &Array) {
 
   for (unsigned i = 1; i < Array.getArray("sizes")->size(); i++) {
     SAI->getDimensionSize(i)->print(RawStringOstream);
-    const json::Array &SizesArray = *Array.getArray("sizes");
-    if (Buffer != SizesArray[i].getAsString().value())
+    
+    if (const json::Array &SizesArray = *Array.getArray("sizes"); Buffer != SizesArray[i].getAsString().value())
       return false;
     Buffer.clear();
   }

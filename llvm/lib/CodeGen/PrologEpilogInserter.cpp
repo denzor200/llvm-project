@@ -367,9 +367,9 @@ bool PEILegacy::runOnMachineFunction(MachineFunction &MF) {
 PreservedAnalyses
 PrologEpilogInserterPass::run(MachineFunction &MF,
                               MachineFunctionAnalysisManager &MFAM) {
-  MachineOptimizationRemarkEmitter &ORE =
-      MFAM.getResult<MachineOptimizationRemarkEmitterAnalysis>(MF);
-  if (!PEIImpl(&ORE).run(MF))
+  
+  if (MachineOptimizationRemarkEmitter &ORE =
+      MFAM.getResult<MachineOptimizationRemarkEmitterAnalysis>(MF); !PEIImpl(&ORE).run(MF))
     return PreservedAnalyses::all();
 
   return getMachineFunctionPassPreservedAnalyses()
@@ -387,11 +387,11 @@ void PEIImpl::calculateCallFrameInfo(MachineFunction &MF) {
 
   // Get the function call frame set-up and tear-down instruction opcode
   unsigned FrameSetupOpcode = TII.getCallFrameSetupOpcode();
-  unsigned FrameDestroyOpcode = TII.getCallFrameDestroyOpcode();
+  
 
   // Early exit for targets which have no call frame setup/destroy pseudo
   // instructions.
-  if (FrameSetupOpcode == ~0u && FrameDestroyOpcode == ~0u)
+  if (unsigned FrameDestroyOpcode = TII.getCallFrameDestroyOpcode(); FrameSetupOpcode == ~0u && FrameDestroyOpcode == ~0u)
     return;
 
   // (Re-)Compute the MaxCallFrameSize.
@@ -422,13 +422,13 @@ void PEIImpl::calculateCallFrameInfo(MachineFunction &MF) {
 /// Compute the sets of entry and return blocks for saving and restoring
 /// callee-saved registers, and placing prolog and epilog code.
 void PEIImpl::calculateSaveRestoreBlocks(MachineFunction &MF) {
-  const MachineFrameInfo &MFI = MF.getFrameInfo();
+  
   // Even when we do not change any CSR, we still want to insert the
   // prologue and epilogue of the function.
   // So set the save points for those.
 
   // Use the points found by shrink-wrapping, if any.
-  if (!MFI.getSavePoints().empty()) {
+  if (const MachineFrameInfo &MFI = MF.getFrameInfo(); !MFI.getSavePoints().empty()) {
     assert(MFI.getSavePoints().size() == 1 &&
            "Multiple save points are not yet supported!");
     const auto &SavePoint = *MFI.getSavePoints().begin();
@@ -436,11 +436,11 @@ void PEIImpl::calculateSaveRestoreBlocks(MachineFunction &MF) {
     assert(MFI.getRestorePoints().size() == 1 &&
            "Multiple restore points are not yet supported!");
     const auto &RestorePoint = *MFI.getRestorePoints().begin();
-    MachineBasicBlock *RestoreBlock = RestorePoint.first;
+    
     // If RestoreBlock does not have any successor and is not a return block
     // then the end point is unreachable and we do not need to insert any
     // epilogue.
-    if (!RestoreBlock->succ_empty() || RestoreBlock->isReturnBlock())
+    if (MachineBasicBlock *RestoreBlock = RestorePoint.first; !RestoreBlock->succ_empty() || RestoreBlock->isReturnBlock())
       RestoreBlocks.push_back(RestoreBlock);
     return;
   }
@@ -471,8 +471,8 @@ static void assignCalleeSavedSpillSlots(MachineFunction &F,
 
   std::vector<CalleeSavedInfo> CSI;
   for (unsigned i = 0; CSRegs[i]; ++i) {
-    unsigned Reg = CSRegs[i];
-    if (SavedRegs.test(Reg)) {
+    
+    if (unsigned Reg = CSRegs[i]; SavedRegs.test(Reg)) {
       bool SavedSuper = false;
       for (const MCPhysReg &SuperReg : RegInfo->superregs(Reg)) {
         // Some backends set all aliases for some registers as saved, such as
@@ -525,8 +525,8 @@ static void assignCalleeSavedSpillSlots(MachineFunction &F,
              FixedSlot->Reg != Reg)
         ++FixedSlot;
 
-      unsigned Size = RegInfo->getSpillSize(*RC);
-      if (FixedSlot == FixedSpillSlots + NumFixedSpillSlots) {
+      
+      if (unsigned Size = RegInfo->getSpillSize(*RC); FixedSlot == FixedSpillSlots + NumFixedSpillSlots) {
         // Nope, just spill it anywhere convenient.
         Align Alignment = RegInfo->getSpillAlign(*RC);
         // We may not be able to satisfy the desired alignment specification of
@@ -820,8 +820,8 @@ static inline bool scavengeStackSlot(MachineFrameInfo &MFI, int FrameIdx,
        FreeStart = StackBytesFree.find_next(FreeStart)) {
 
     // Check that free space has suitable alignment.
-    unsigned ObjStart = StackGrowsDown ? FreeStart + ObjSize : FreeStart;
-    if (alignTo(ObjStart, ObjAlign) != ObjStart)
+    
+    if (unsigned ObjStart = StackGrowsDown ? FreeStart + ObjSize : FreeStart; alignTo(ObjStart, ObjAlign) != ObjStart)
       continue;
 
     if (FreeStart + ObjSize > StackBytesFree.size())
@@ -1413,8 +1413,8 @@ void PEIImpl::replaceFrameIndices(MachineFunction &MF) {
 bool PEIImpl::replaceFrameIndexDebugInstr(MachineFunction &MF, MachineInstr &MI,
                                           unsigned OpIdx, int SPAdj) {
   const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering();
-  const TargetRegisterInfo &TRI = *MF.getSubtarget().getRegisterInfo();
-  if (MI.isDebugValue()) {
+  
+  if (const TargetRegisterInfo &TRI = *MF.getSubtarget().getRegisterInfo(); MI.isDebugValue()) {
 
     MachineOperand &Op = MI.getOperand(OpIdx);
     assert(MI.isDebugOperand(&Op) &&

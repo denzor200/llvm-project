@@ -85,8 +85,8 @@ bool GDBRemoteRegisterContext::ReadRegister(const RegisterInfo *reg_info,
                                             RegisterValue &value) {
   // Read the register
   if (ReadRegisterBytes(reg_info)) {
-    const uint32_t reg = reg_info->kinds[eRegisterKindLLDB];
-    if (m_reg_valid[reg] == false)
+    
+    if (const uint32_t reg = reg_info->kinds[eRegisterKindLLDB]; m_reg_valid[reg] == false)
       return false;
     if (reg_info->value_regs &&
         reg_info->value_regs[0] != LLDB_INVALID_REGNUM &&
@@ -192,9 +192,9 @@ bool GDBRemoteRegisterContext::PrivateSetRegisterValue(uint32_t reg,
 bool GDBRemoteRegisterContext::GetPrimordialRegister(
     const RegisterInfo *reg_info, GDBRemoteCommunicationClient &gdb_comm) {
   const uint32_t lldb_reg = reg_info->kinds[eRegisterKindLLDB];
-  const uint32_t remote_reg = reg_info->kinds[eRegisterKindProcessPlugin];
+  
 
-  if (DataBufferSP buffer_sp =
+  if (const uint32_t remote_reg = reg_info->kinds[eRegisterKindProcessPlugin]; DataBufferSP buffer_sp =
           gdb_comm.ReadRegister(m_thread.GetProtocolID(), remote_reg))
     return PrivateSetRegisterValue(
         lldb_reg, llvm::ArrayRef<uint8_t>(buffer_sp->GetBytes(),
@@ -206,8 +206,8 @@ bool GDBRemoteRegisterContext::ReadRegisterBytes(const RegisterInfo *reg_info) {
   ExecutionContext exe_ctx(CalculateThread());
 
   Process *process = exe_ctx.GetProcessPtr();
-  Thread *thread = exe_ctx.GetThreadPtr();
-  if (process == nullptr || thread == nullptr)
+  
+  if (Thread *thread = exe_ctx.GetThreadPtr(); process == nullptr || thread == nullptr)
     return false;
 
   GDBRemoteCommunicationClient &gdb_comm(
@@ -354,8 +354,8 @@ bool GDBRemoteRegisterContext::WriteRegisterBytes(const RegisterInfo *reg_info,
   ExecutionContext exe_ctx(CalculateThread());
 
   Process *process = exe_ctx.GetProcessPtr();
-  Thread *thread = exe_ctx.GetThreadPtr();
-  if (process == nullptr || thread == nullptr)
+  
+  if (Thread *thread = exe_ctx.GetThreadPtr(); process == nullptr || thread == nullptr)
     return false;
 
   GDBRemoteCommunicationClient &gdb_comm(
@@ -451,8 +451,8 @@ bool GDBRemoteRegisterContext::WriteRegisterBytes(const RegisterInfo *reg_info,
         return success;
       }
     } else {
-      Log *log(GetLog(GDBRLog::Thread | GDBRLog::Packets));
-      if (log) {
+      
+      if (Log *log(GetLog(GDBRLog::Thread | GDBRLog::Packets)); log) {
         if (log->GetVerbose()) {
           StreamString strm;
           process->DumpPluginHistory(strm);
@@ -496,13 +496,13 @@ bool GDBRemoteRegisterContext::ReadAllRegisterValues(
 
 bool GDBRemoteRegisterContext::WriteAllRegisterValues(
     const RegisterCheckpoint &reg_checkpoint) {
-  uint32_t save_id = reg_checkpoint.GetID();
-  if (save_id != 0) {
+  
+  if (uint32_t save_id = reg_checkpoint.GetID(); save_id != 0) {
     ExecutionContext exe_ctx(CalculateThread());
 
     Process *process = exe_ctx.GetProcessPtr();
-    Thread *thread = exe_ctx.GetThreadPtr();
-    if (process == nullptr || thread == nullptr)
+    
+    if (Thread *thread = exe_ctx.GetThreadPtr(); process == nullptr || thread == nullptr)
       return false;
 
     GDBRemoteCommunicationClient &gdb_comm(
@@ -519,8 +519,8 @@ bool GDBRemoteRegisterContext::ReadAllRegisterValues(
   ExecutionContext exe_ctx(CalculateThread());
 
   Process *process = exe_ctx.GetProcessPtr();
-  Thread *thread = exe_ctx.GetThreadPtr();
-  if (process == nullptr || thread == nullptr)
+  
+  if (Thread *thread = exe_ctx.GetThreadPtr(); process == nullptr || thread == nullptr)
     return false;
 
   GDBRemoteCommunicationClient &gdb_comm(
@@ -560,8 +560,8 @@ bool GDBRemoteRegisterContext::ReadAllRegisterValues(
     return true;
   } else {
 
-    Log *log(GetLog(GDBRLog::Thread | GDBRLog::Packets));
-    if (log) {
+    
+    if (Log *log(GetLog(GDBRLog::Thread | GDBRLog::Packets)); log) {
       if (log->GetVerbose()) {
         StreamString strm;
         process->DumpPluginHistory(strm);
@@ -588,8 +588,8 @@ bool GDBRemoteRegisterContext::WriteAllRegisterValues(
   ExecutionContext exe_ctx(CalculateThread());
 
   Process *process = exe_ctx.GetProcessPtr();
-  Thread *thread = exe_ctx.GetThreadPtr();
-  if (process == nullptr || thread == nullptr)
+  
+  if (Thread *thread = exe_ctx.GetThreadPtr(); process == nullptr || thread == nullptr)
     return false;
 
   GDBRemoteCommunicationClient &gdb_comm(
@@ -735,8 +735,8 @@ bool GDBRemoteRegisterContext::WriteAllRegisterValues(
       return num_restored > 0;
     }
   } else {
-    Log *log(GetLog(GDBRLog::Thread | GDBRLog::Packets));
-    if (log) {
+    
+    if (Log *log(GetLog(GDBRLog::Thread | GDBRLog::Packets)); log) {
       if (log->GetVerbose()) {
         StreamString strm;
         process->DumpPluginHistory(strm);
@@ -768,9 +768,9 @@ bool GDBRemoteRegisterContext::RegisterWriteCausesReconfigure(
 
 bool GDBRemoteRegisterContext::ReconfigureRegisterInfo() {
   ExecutionContext exe_ctx(CalculateThread());
-  const Architecture *architecture =
-      exe_ctx.GetProcessRef().GetTarget().GetArchitecturePlugin();
-  if (architecture)
+  
+  if (const Architecture *architecture =
+      exe_ctx.GetProcessRef().GetTarget().GetArchitecturePlugin(); architecture)
     return architecture->ReconfigureRegisterInfo(*(m_reg_info_sp.get()),
                                                  m_reg_data, *this);
   return false;

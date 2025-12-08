@@ -187,13 +187,13 @@ ClangExpressionDeclMap::TargetInfo ClangExpressionDeclMap::GetTargetInfo() {
 
   ExecutionContext &exe_ctx = m_parser_vars->m_exe_ctx;
 
-  Process *process = exe_ctx.GetProcessPtr();
-  if (process) {
+  
+  if (Process *process = exe_ctx.GetProcessPtr(); process) {
     ret.byte_order = process->GetByteOrder();
     ret.address_byte_size = process->GetAddressByteSize();
   } else {
-    Target *target = exe_ctx.GetTargetPtr();
-    if (target) {
+    
+    if (Target *target = exe_ctx.GetTargetPtr(); target) {
       ret.byte_order = target->GetArchitecture().GetByteOrder();
       ret.address_byte_size = target->GetArchitecture().GetAddressByteSize();
     }
@@ -604,9 +604,9 @@ addr_t ClangExpressionDeclMap::GetSymbolAddress(Target &target,
   }
 
   if (symbol_load_addr == LLDB_INVALID_ADDRESS && process) {
-    ObjCLanguageRuntime *runtime = ObjCLanguageRuntime::Get(*process);
+    
 
-    if (runtime) {
+    if (ObjCLanguageRuntime *runtime = ObjCLanguageRuntime::Get(*process); runtime) {
       symbol_load_addr = runtime->LookupRuntimeSymbol(name);
     }
   }
@@ -992,9 +992,9 @@ void ClangExpressionDeclMap::LookupLocalVarNamespace(
   if (!frame_decl_context)
     return;
 
-  TypeSystemClang *frame_ast = llvm::dyn_cast_or_null<TypeSystemClang>(
-      frame_decl_context.GetTypeSystem());
-  if (!frame_ast)
+  
+  if (TypeSystemClang *frame_ast = llvm::dyn_cast_or_null<TypeSystemClang>(
+      frame_decl_context.GetTypeSystem()); !frame_ast)
     return;
 
   clang::NamespaceDecl *namespace_decl =
@@ -1318,9 +1318,9 @@ bool ClangExpressionDeclMap::LookupFunction(
       for (const CompilerDecl &compiler_decl : decls_from_modules) {
         clang::Decl *decl = ClangUtil::GetDecl(compiler_decl);
         if (llvm::isa<clang::FunctionDecl>(decl)) {
-          clang::NamedDecl *copied_decl =
-              llvm::cast_or_null<FunctionDecl>(CopyDecl(decl));
-          if (copied_decl) {
+          
+          if (clang::NamedDecl *copied_decl =
+              llvm::cast_or_null<FunctionDecl>(CopyDecl(decl)); copied_decl) {
             context.AddNamedDecl(copied_decl);
             found_function_with_type_info = true;
           }
@@ -1404,11 +1404,11 @@ void ClangExpressionDeclMap::FindExternalVisibleDecls(
     llvm::StringRef reg_name = name.GetStringRef().substr(1);
 
     if (m_parser_vars->m_exe_ctx.GetRegisterContext()) {
-      const RegisterInfo *reg_info(
-          m_parser_vars->m_exe_ctx.GetRegisterContext()->GetRegisterInfoByName(
-              reg_name));
+      
 
-      if (reg_info) {
+      if (const RegisterInfo *reg_info(
+          m_parser_vars->m_exe_ctx.GetRegisterContext()->GetRegisterInfoByName(
+              reg_name)); reg_info) {
         LLDB_LOG(log, "  CEDM::FEVD Found register {0}", reg_info->name);
 
         AddOneRegister(context, reg_info);
@@ -1417,9 +1417,9 @@ void ClangExpressionDeclMap::FindExternalVisibleDecls(
     return;
   }
 
-  bool local_var_lookup = !namespace_decl || (namespace_decl.GetName() ==
-                                              g_lldb_local_vars_namespace_cstr);
-  if (frame && local_var_lookup)
+  
+  if (bool local_var_lookup = !namespace_decl || (namespace_decl.GetName() ==
+                                              g_lldb_local_vars_namespace_cstr); frame && local_var_lookup)
     if (LookupLocalVariable(context, name, sym_ctx, namespace_decl))
       return;
 
@@ -1537,9 +1537,9 @@ bool ClangExpressionDeclMap::GetVariableValue(VariableSP &var,
     Address so_addr(var_location.GetScalar().ULongLong(),
                     var_sc.module_sp->GetSectionList());
 
-    lldb::addr_t load_addr = so_addr.GetLoadAddress(target);
+    
 
-    if (load_addr != LLDB_INVALID_ADDRESS) {
+    if (lldb::addr_t load_addr = so_addr.GetLoadAddress(target); load_addr != LLDB_INVALID_ADDRESS) {
       var_location.GetScalar() = load_addr;
       var_location.SetValueType(Value::ValueType::LoadAddress);
     }
@@ -1821,16 +1821,16 @@ void ClangExpressionDeclMap::AddOneFunction(NameSearchContext &context,
         clang::DeclContext *src_decl_context =
             (clang::DeclContext *)function->GetDeclContext()
                 .GetOpaqueDeclContext();
-        clang::FunctionDecl *src_function_decl =
-            llvm::dyn_cast_or_null<clang::FunctionDecl>(src_decl_context);
-        if (src_function_decl &&
+        
+        if (clang::FunctionDecl *src_function_decl =
+            llvm::dyn_cast_or_null<clang::FunctionDecl>(src_decl_context); src_function_decl &&
             src_function_decl->getTemplateSpecializationInfo()) {
           clang::FunctionTemplateDecl *function_template =
               src_function_decl->getTemplateSpecializationInfo()->getTemplate();
-          clang::FunctionTemplateDecl *copied_function_template =
+          
+          if (clang::FunctionTemplateDecl *copied_function_template =
               llvm::dyn_cast_or_null<clang::FunctionTemplateDecl>(
-                  CopyDecl(function_template));
-          if (copied_function_template) {
+                  CopyDecl(function_template)); copied_function_template) {
             if (log) {
               StreamString ss;
 

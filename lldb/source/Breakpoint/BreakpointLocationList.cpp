@@ -318,8 +318,8 @@ void BreakpointLocationList::Compact() {
   lldb::break_id_t highest_id = 0;
 
   for (BreakpointLocationSP loc_sp : m_locations) {
-    lldb::break_id_t cur_id = loc_sp->GetID();
-    if (cur_id > highest_id)
+    
+    if (lldb::break_id_t cur_id = loc_sp->GetID(); cur_id > highest_id)
       highest_id = cur_id;
   }
   m_next_id = highest_id;

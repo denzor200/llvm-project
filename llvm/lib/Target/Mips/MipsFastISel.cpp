@@ -370,8 +370,8 @@ unsigned MipsFastISel::materialize32BitInt(int64_t Imm,
     return ResultReg;
   }
   unsigned Lo = Imm & 0xFFFF;
-  unsigned Hi = (Imm >> 16) & 0xFFFF;
-  if (Lo) {
+  
+  if (unsigned Hi = (Imm >> 16) & 0xFFFF; Lo) {
     // Both Lo and Hi have nonzero bits.
     Register TmpReg = createResultReg(RC);
     emitInst(Mips::LUi, TmpReg).addImm(Hi);
@@ -385,8 +385,8 @@ unsigned MipsFastISel::materialize32BitInt(int64_t Imm,
 unsigned MipsFastISel::materializeFP(const ConstantFP *CFP, MVT VT) {
   if (UnsupportedFPMode)
     return 0;
-  int64_t Imm = CFP->getValueAPF().bitcastToAPInt().getZExtValue();
-  if (VT == MVT::f32) {
+  
+  if (int64_t Imm = CFP->getValueAPF().bitcastToAPInt().getZExtValue(); VT == MVT::f32) {
     const TargetRegisterClass *RC = &Mips::FGR32RegClass;
     Register DestReg = createResultReg(RC);
     unsigned TempReg = materialize32BitInt(Imm, &Mips::GPR32RegClass);
@@ -411,9 +411,9 @@ unsigned MipsFastISel::materializeGV(const GlobalValue *GV, MVT VT) {
   const TargetRegisterClass *RC = &Mips::GPR32RegClass;
   Register DestReg = createResultReg(RC);
   const GlobalVariable *GVar = dyn_cast<GlobalVariable>(GV);
-  bool IsThreadLocal = GVar && GVar->isThreadLocal();
+  
   // TLS not supported at this time.
-  if (IsThreadLocal)
+  if (bool IsThreadLocal = GVar && GVar->isThreadLocal(); IsThreadLocal)
     return 0;
   emitInst(Mips::LW, DestReg)
       .addReg(MFI->getGlobalBaseReg(*MF))
@@ -487,8 +487,8 @@ bool MipsFastISel::computeAddress(const Value *Obj, Address &Addr) {
     gep_type_iterator GTI = gep_type_begin(U);
     for (User::const_op_iterator i = U->op_begin() + 1, e = U->op_end(); i != e;
          ++i, ++GTI) {
-      const Value *Op = *i;
-      if (StructType *STy = GTI.getStructTypeOrNull()) {
+      
+      if (const Value *Op = *i; StructType *STy = GTI.getStructTypeOrNull()) {
         const StructLayout *SL = DL.getStructLayout(STy);
         unsigned Idx = cast<ConstantInt>(Op)->getZExtValue();
         TmpOffset += SL->getElementOffset(Idx);
@@ -702,8 +702,8 @@ bool MipsFastISel::emitCmp(unsigned ResultReg, const CmpInst *CI) {
     if (UnsupportedFPMode)
       return false;
     bool IsFloat = Left->getType()->isFloatTy();
-    bool IsDouble = Left->getType()->isDoubleTy();
-    if (!IsFloat && !IsDouble)
+    
+    if (bool IsDouble = Left->getType()->isDoubleTy(); !IsFloat && !IsDouble)
       return false;
     unsigned Opc, CondMovOpc;
     switch (P) {
@@ -1109,8 +1109,8 @@ bool MipsFastISel::selectFPToInt(const Instruction *I, bool IsSigned) {
   if (!IsSigned)
     return false; // We don't handle this case yet. There is no native
                   // instruction for this but it can be synthesized.
-  Type *DstTy = I->getType();
-  if (!isTypeLegal(DstTy, DstVT))
+  
+  if (Type *DstTy = I->getType(); !isTypeLegal(DstTy, DstVT))
     return false;
 
   if (DstVT != MVT::i32)
@@ -1993,8 +1993,8 @@ bool MipsFastISel::selectShift(const Instruction *I) {
       return false;
 
     MVT Op0MVT = TLI.getValueType(DL, Op0->getType(), true).getSimpleVT();
-    bool IsZExt = Opcode == Instruction::LShr;
-    if (!emitIntExt(Op0MVT, Op0Reg, MVT::i32, TempReg, IsZExt))
+    
+    if (bool IsZExt = Opcode == Instruction::LShr; !emitIntExt(Op0MVT, Op0Reg, MVT::i32, TempReg, IsZExt))
       return false;
 
     Op0Reg = TempReg;

@@ -907,10 +907,10 @@ void MicrosoftCXXABI::emitVirtualObjectDelete(CodeGenFunction &CGF,
           getContext().getLangOpts())) {
     bool UseGlobalDelete = DE->isGlobalDelete();
     CXXDtorType DtorType = UseGlobalDelete ? Dtor_Complete : Dtor_Deleting;
-    llvm::Value *MDThis =
+    
+    if (llvm::Value *MDThis =
         EmitVirtualDestructorCall(CGF, Dtor, DtorType, Ptr, DE,
-                                  /*CallOrInvoke=*/nullptr);
-    if (UseGlobalDelete)
+                                  /*CallOrInvoke=*/nullptr); UseGlobalDelete)
       CGF.EmitDeleteCall(DE->getOperatorDelete(), MDThis, ElementType);
   } else {
     EmitVirtualDestructorCall(CGF, Dtor, Dtor_Deleting, Ptr, DE,
@@ -972,8 +972,8 @@ MicrosoftCXXABI::performBaseAdjustment(CodeGenFunction &CGF, Address Value,
   // actually a polymorphic class.
   const CXXRecordDecl *PolymorphicBase = nullptr;
   for (auto &Base : SrcDecl->vbases()) {
-    const CXXRecordDecl *BaseDecl = Base.getType()->getAsCXXRecordDecl();
-    if (Context.getASTRecordLayout(BaseDecl).hasExtendableVFPtr()) {
+    
+    if (const CXXRecordDecl *BaseDecl = Base.getType()->getAsCXXRecordDecl(); Context.getASTRecordLayout(BaseDecl).hasExtendableVFPtr()) {
       PolymorphicBase = BaseDecl;
       break;
     }
@@ -1564,8 +1564,8 @@ void MicrosoftCXXABI::addImplicitStructorParams(CodeGenFunction &CGF,
         ImplicitParamKind::Other);
     // The 'most_derived' parameter goes second if the ctor is variadic and last
     // if it's not.  Dtors can't be variadic.
-    const FunctionProtoType *FPT = MD->getType()->castAs<FunctionProtoType>();
-    if (FPT->isVariadic())
+    
+    if (const FunctionProtoType *FPT = MD->getType()->castAs<FunctionProtoType>(); FPT->isVariadic())
       Params.insert(Params.begin() + 1, IsMostDerived);
     else
       Params.push_back(IsMostDerived);
@@ -2154,8 +2154,8 @@ void MicrosoftCXXABI::emitVirtualInheritanceTables(const CXXRecordDecl *RD) {
   const VBTableGlobals &VBGlobals = enumerateVBTables(RD);
   for (unsigned I = 0, E = VBGlobals.VBTables->size(); I != E; ++I) {
     const std::unique_ptr<VPtrInfo>& VBT = (*VBGlobals.VBTables)[I];
-    llvm::GlobalVariable *GV = VBGlobals.Globals[I];
-    if (GV->isDeclaration())
+    
+    if (llvm::GlobalVariable *GV = VBGlobals.Globals[I]; GV->isDeclaration())
       emitVBTableDefinition(*VBT, RD, GV);
   }
 }
@@ -2989,8 +2989,8 @@ MicrosoftCXXABI::EmitMemberFunctionPointer(const CXXMethodDecl *MD) {
 
   unsigned VBTableIndex = 0;
   llvm::Constant *FirstField;
-  const FunctionProtoType *FPT = MD->getType()->castAs<FunctionProtoType>();
-  if (!MD->isVirtual()) {
+  
+  if (const FunctionProtoType *FPT = MD->getType()->castAs<FunctionProtoType>(); !MD->isVirtual()) {
     llvm::Type *Ty;
     // Check whether the function has a computable LLVM signature.
     if (Types.isFuncTypeConvertible(FPT)) {
@@ -3065,8 +3065,8 @@ MicrosoftCXXABI::EmitMemberPointerComparison(CodeGenFunction &CGF,
   for (unsigned I = 1, E = LType->getNumElements(); I != E; ++I) {
     llvm::Value *LF = Builder.CreateExtractValue(L, I);
     llvm::Value *RF = Builder.CreateExtractValue(R, I);
-    llvm::Value *Cmp = Builder.CreateICmp(Eq, LF, RF, "memptr.cmp.rest");
-    if (Res)
+    
+    if (llvm::Value *Cmp = Builder.CreateICmp(Eq, LF, RF, "memptr.cmp.rest"); Res)
       Res = Builder.CreateBinOp(And, Res, Cmp);
     else
       Res = Cmp;
@@ -3426,9 +3426,9 @@ llvm::Value *MicrosoftCXXABI::EmitNonNullMemberPointerConversion(
       inheritanceModelHasVBTableOffsetField(SrcInheritance)) {
     if (llvm::GlobalVariable *VDispMap =
             getAddrOfVirtualDisplacementMap(SrcRD, DstRD)) {
-      llvm::Value *VBIndex = Builder.CreateExactUDiv(
-          VirtualBaseAdjustmentOffset, llvm::ConstantInt::get(CGM.IntTy, 4));
-      if (IsConstant) {
+      
+      if (llvm::Value *VBIndex = Builder.CreateExactUDiv(
+          VirtualBaseAdjustmentOffset, llvm::ConstantInt::get(CGM.IntTy, 4)); IsConstant) {
         llvm::Constant *Mapping = VDispMap->getInitializer();
         VirtualBaseAdjustmentOffset =
             Mapping->getAggregateElement(cast<llvm::Constant>(VBIndex));

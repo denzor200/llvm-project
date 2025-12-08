@@ -646,8 +646,8 @@ public:
     ::wresize(m_window, size.height, size.width);
   }
   void MoveWindow(const Point &origin) {
-    const bool moving_window = origin != GetParentOrigin();
-    if (m_is_subwin && moving_window) {
+    
+    if (const bool moving_window = origin != GetParentOrigin(); m_is_subwin && moving_window) {
       // Can't move subwindows, must delete and re-create
       Size size = GetSize();
       Reset(::subwin(m_parent->m_window, size.height, size.width, origin.y,
@@ -659,8 +659,8 @@ public:
   }
 
   void SetBounds(const Rect &bounds) {
-    const bool moving_window = bounds.origin != GetParentOrigin();
-    if (m_is_subwin && moving_window) {
+    
+    if (const bool moving_window = bounds.origin != GetParentOrigin(); m_is_subwin && moving_window) {
       // Can't move subwindows, must delete and re-create
       Reset(::subwin(m_parent->m_window, bounds.size.height, bounds.size.width,
                      bounds.origin.y, bounds.origin.x),
@@ -773,9 +773,9 @@ public:
 
     if (bottom_message && bottom_message[0]) {
       int bottom_message_length = strlen(bottom_message);
-      int x = GetWidth() - 3 - (bottom_message_length + 2);
+      
 
-      if (x > 0) {
+      if (int x = GetWidth() - 3 - (bottom_message_length + 2); x > 0) {
         MoveCursor(x, GetHeight() - 1);
         PutChar('[');
         PutCString(bottom_message);
@@ -801,8 +801,8 @@ public:
   bool CreateHelpSubwindow() {
     if (m_delegate_sp) {
       const char *text = m_delegate_sp->WindowDelegateGetHelpText();
-      KeyHelp *key_help = m_delegate_sp->WindowDelegateGetKeyHelp();
-      if ((text && text[0]) || key_help) {
+      
+      if (KeyHelp *key_help = m_delegate_sp->WindowDelegateGetKeyHelp(); (text && text[0]) || key_help) {
         std::unique_ptr<HelpDialogDelegate> help_delegate_up(
             new HelpDialogDelegate(text, key_help));
         const size_t num_lines = help_delegate_up->GetNumLines();
@@ -831,8 +831,8 @@ public:
           }
         }
         WindowSP help_window_sp;
-        Window *parent_window = GetParent();
-        if (parent_window)
+        
+        if (Window *parent_window = GetParent(); parent_window)
           help_window_sp = parent_window->CreateSubWindow("Help", bounds, true);
         else
           help_window_sp = CreateSubWindow("Help", bounds, true);
@@ -2833,8 +2833,8 @@ public:
     // If the key wasn't handled and one of the fields is selected, pass the key
     // to that field.
     if (m_selection_type == SelectionType::Field) {
-      FieldDelegate *field = m_delegate_sp->GetField(m_selection_index);
-      if (field->FieldDelegateHandleChar(key) == eKeyHandled)
+      
+      if (FieldDelegate *field = m_delegate_sp->GetField(m_selection_index); field->FieldDelegateHandleChar(key) == eKeyHandled)
         return eKeyHandled;
     }
 
@@ -3026,8 +3026,8 @@ public:
   void Attach(Window &window) {
     ClearError();
 
-    bool all_fields_are_valid = CheckFieldsValidity();
-    if (!all_fields_are_valid)
+    
+    if (bool all_fields_are_valid = CheckFieldsValidity(); !all_fields_are_valid)
       return;
 
     bool process_is_running = StopRunningProcess();
@@ -3210,8 +3210,8 @@ public:
   void CreateTarget(Window &window) {
     ClearError();
 
-    bool all_fields_are_valid = CheckFieldsValidity();
-    if (!all_fields_are_valid)
+    
+    if (bool all_fields_are_valid = CheckFieldsValidity(); !all_fields_are_valid)
       return;
 
     TargetSP target_sp = GetTarget();
@@ -3586,8 +3586,8 @@ public:
   void Launch(Window &window) {
     ClearError();
 
-    bool all_fields_are_valid = CheckFieldsValidity();
-    if (!all_fields_are_valid)
+    
+    if (bool all_fields_are_valid = CheckFieldsValidity(); !all_fields_are_valid)
       return;
 
     bool process_is_running = StopRunningProcess();
@@ -3709,8 +3709,8 @@ public:
     }
 
     int height = surface.GetHeight();
-    int last_visible_match = GetLastVisibleMatch(height);
-    if (m_selected_match > last_visible_match) {
+    
+    if (int last_visible_match = GetLastVisibleMatch(height); m_selected_match > last_visible_match) {
       m_first_visible_match = m_selected_match - height + 1;
     }
   }
@@ -4023,8 +4023,8 @@ void Menu::DrawMenuTitle(Window &window, bool highlight) {
   if (m_type == Type::Separator) {
     window.MoveCursor(0, window.GetCursorY());
     window.PutChar(ACS_LTEE);
-    int width = window.GetWidth();
-    if (width > 2) {
+    
+    if (int width = window.GetWidth(); width > 2) {
       width -= 2;
       for (int i = 0; i < width; ++i)
         window.PutChar(ACS_HLINE);
@@ -4040,8 +4040,8 @@ void Menu::DrawMenuTitle(Window &window, bool highlight) {
       size_t lower_pos = m_name.find(tolower(shortcut_key));
       size_t upper_pos = m_name.find(toupper(shortcut_key));
       const char *name = m_name.c_str();
-      size_t pos = std::min<size_t>(lower_pos, upper_pos);
-      if (pos != std::string::npos) {
+      
+      if (size_t pos = std::min<size_t>(lower_pos, upper_pos); pos != std::string::npos) {
         underlined_shortcut = true;
         if (pos > 0) {
           window.PutCString(name, pos);
@@ -4248,8 +4248,8 @@ HandleCharResult Menu::WindowDelegateHandleChar(Window &window, int key) {
 
     default:
       for (size_t i = 0; i < num_submenus; ++i) {
-        Menu *menu = submenus[i].get();
-        if (menu->GetKeyValue() == key) {
+        
+        if (Menu *menu = submenus[i].get(); menu->GetKeyValue() == key) {
           SetSelectedSubmenuIndex(i);
           window.GetParent()->RemoveSubWindow(&window);
           if (menu->Action() == MenuActionResult::Quit)
@@ -4378,8 +4378,8 @@ public:
             listener_sp->GetEvent(event_sp, std::chrono::seconds(0));
 
             if (event_sp) {
-              Broadcaster *broadcaster = event_sp->GetBroadcaster();
-              if (broadcaster) {
+              
+              if (Broadcaster *broadcaster = event_sp->GetBroadcaster(); broadcaster) {
                 // uint32_t event_type = event_sp->GetType();
                 ConstString broadcaster_class(
                     broadcaster->GetBroadcasterClass());
@@ -4512,8 +4512,8 @@ struct Row {
 
   std::vector<Row> &GetChildren() {
     ProcessSP process_sp = value.GetProcessSP();
-    auto stop_id = process_sp->GetStopID();
-    if (process_sp && stop_id != children_stop_id) {
+    
+    if (auto stop_id = process_sp->GetStopID(); process_sp && stop_id != children_stop_id) {
       children_stop_id = stop_id;
       calculated_children = false;
     }
@@ -4813,8 +4813,8 @@ public:
       return nullptr;
     if (IsExpanded()) {
       for (auto &item : m_children) {
-        TreeItem *selected_item_ptr = item.GetItemForRowIndex(row_idx);
-        if (selected_item_ptr)
+        
+        if (TreeItem *selected_item_ptr = item.GetItemForRowIndex(row_idx); selected_item_ptr)
           return selected_item_ptr;
       }
     }
@@ -5052,8 +5052,8 @@ public:
   ~FrameTreeDelegate() override = default;
 
   void TreeDelegateDrawTreeItem(TreeItem &item, Window &window) override {
-    Thread *thread = (Thread *)item.GetUserData();
-    if (thread) {
+    
+    if (Thread *thread = (Thread *)item.GetUserData(); thread) {
       const uint64_t frame_idx = item.GetIdentifier();
       StackFrameSP frame_sp = thread->GetStackFrameAtIndex(frame_idx);
       if (frame_sp) {
@@ -5075,8 +5075,8 @@ public:
   }
 
   bool TreeDelegateItemSelected(TreeItem &item) override {
-    Thread *thread = (Thread *)item.GetUserData();
-    if (thread) {
+    
+    if (Thread *thread = (Thread *)item.GetUserData(); thread) {
       thread->GetProcess()->GetThreadList().SetSelectedThreadByID(
           thread->GetID());
       const uint64_t frame_idx = item.GetIdentifier();
@@ -5396,8 +5396,8 @@ public:
       Address resolved_address;
       resolved_address.SetLoadAddress(breakpoint_site->GetLoadAddress(),
                                       &breakpoint_location->GetTarget());
-      Symbol *resolved_symbol = resolved_address.CalculateSymbolContextSymbol();
-      if (resolved_symbol) {
+      
+      if (Symbol *resolved_symbol = resolved_address.CalculateSymbolContextSymbol(); resolved_symbol) {
         StreamString indirect_target_stream;
         indirect_target_stream.PutCString("indirect target = ");
         indirect_target_stream.PutCString(
@@ -5566,12 +5566,12 @@ public:
     window.DrawTitleBox(window.GetName());
 
     const int num_visible_rows = NumVisibleRows();
-    const int num_rows = CalculateTotalNumberRows(m_rows);
+    
 
     // If we unexpanded while having something selected our total number of
     // rows is less than the num visible rows, then make sure we show all the
     // rows by setting the first visible row accordingly.
-    if (m_first_visible_row > 0 && num_rows < num_visible_rows)
+    if (const int num_rows = CalculateTotalNumberRows(m_rows); m_first_visible_row > 0 && num_rows < num_visible_rows)
       m_first_visible_row = 0;
 
     // Make sure the selected row is always visible
@@ -5851,8 +5851,8 @@ protected:
       }
 
       if (row.expanded) {
-        auto &children = row.GetChildren();
-        if (!children.empty()) {
+        
+        if (auto &children = row.GetChildren(); !children.empty()) {
           DisplayRows(window, children, options);
         }
       }
@@ -5876,10 +5876,10 @@ protected:
       else {
         --row_index;
         if (row.expanded) {
-          auto &children = row.GetChildren();
-          if (!children.empty()) {
-            Row *result = GetRowForRowIndexImpl(children, row_index);
-            if (result)
+          
+          if (auto &children = row.GetChildren(); !children.empty()) {
+            
+            if (Row *result = GetRowForRowIndexImpl(children, row_index); result)
               return result;
           }
         }
@@ -5932,8 +5932,8 @@ public:
       if (m_frame_block != frame_block) {
         m_frame_block = frame_block;
 
-        VariableList *locals = frame->GetVariableList(true, nullptr);
-        if (locals) {
+        
+        if (VariableList *locals = frame->GetVariableList(true, nullptr); locals) {
           const DynamicValueType use_dynamic = eDynamicDontRunTarget;
           for (const VariableSP &local_sp : *locals) {
             ValueObjectSP value_sp =
@@ -5995,8 +5995,8 @@ public:
         SetValues(value_list);
       }
     } else {
-      Process *process = exe_ctx.GetProcessPtr();
-      if (process && process->IsAlive())
+      
+      if (Process *process = exe_ctx.GetProcessPtr(); process && process->IsAlive())
         return true; // Don't do any updating if we are running
       else {
         // Update the values with an empty list if there is no process or the
@@ -6260,9 +6260,9 @@ HandleCharResult HelpDialogDelegate::WindowDelegateHandleChar(Window &window,
                                                               int key) {
   bool done = false;
   const size_t num_lines = m_text.GetSize();
-  const size_t num_visible_lines = window.GetHeight() - 2;
+  
 
-  if (num_lines <= num_visible_lines) {
+  if (const size_t num_visible_lines = window.GetHeight() - 2; num_lines <= num_visible_lines) {
     done = true;
     // If we have all lines visible and don't need scrolling, then any key
     // press will cause us to exit
@@ -6418,8 +6418,8 @@ public:
       ExecutionContext exe_ctx =
           m_debugger.GetCommandInterpreter().GetExecutionContext();
       if (exe_ctx.HasThreadScope()) {
-        Process *process = exe_ctx.GetProcessPtr();
-        if (process && process->IsAlive() &&
+        
+        if (Process *process = exe_ctx.GetProcessPtr(); process && process->IsAlive() &&
             StateIsStoppedState(process->GetState(), true))
           exe_ctx.GetThreadRef().StepIn(true);
       }
@@ -6430,8 +6430,8 @@ public:
       ExecutionContext exe_ctx =
           m_debugger.GetCommandInterpreter().GetExecutionContext();
       if (exe_ctx.HasThreadScope()) {
-        Process *process = exe_ctx.GetProcessPtr();
-        if (process && process->IsAlive() &&
+        
+        if (Process *process = exe_ctx.GetProcessPtr(); process && process->IsAlive() &&
             StateIsStoppedState(process->GetState(), true)) {
           Thread *thread = exe_ctx.GetThreadPtr();
           uint32_t frame_idx =
@@ -6446,8 +6446,8 @@ public:
       ExecutionContext exe_ctx =
           m_debugger.GetCommandInterpreter().GetExecutionContext();
       if (exe_ctx.HasThreadScope()) {
-        Process *process = exe_ctx.GetProcessPtr();
-        if (process && process->IsAlive() &&
+        
+        if (Process *process = exe_ctx.GetProcessPtr(); process && process->IsAlive() &&
             StateIsStoppedState(process->GetState(), true))
           exe_ctx.GetThreadRef().StepOver(true);
       }
@@ -6483,8 +6483,8 @@ public:
       ExecutionContext exe_ctx =
           m_debugger.GetCommandInterpreter().GetExecutionContext();
       if (exe_ctx.HasProcessScope()) {
-        Process *process = exe_ctx.GetProcessPtr();
-        if (process && process->IsAlive() &&
+        
+        if (Process *process = exe_ctx.GetProcessPtr(); process && process->IsAlive() &&
             StateIsStoppedState(process->GetState(), true))
           process->Resume();
       }
@@ -6495,8 +6495,8 @@ public:
       ExecutionContext exe_ctx =
           m_debugger.GetCommandInterpreter().GetExecutionContext();
       if (exe_ctx.HasProcessScope()) {
-        Process *process = exe_ctx.GetProcessPtr();
-        if (process && process->IsAlive())
+        
+        if (Process *process = exe_ctx.GetProcessPtr(); process && process->IsAlive())
           process->Destroy(false);
       }
     }
@@ -6506,8 +6506,8 @@ public:
       ExecutionContext exe_ctx =
           m_debugger.GetCommandInterpreter().GetExecutionContext();
       if (exe_ctx.HasProcessScope()) {
-        Process *process = exe_ctx.GetProcessPtr();
-        if (process && process->IsAlive())
+        
+        if (Process *process = exe_ctx.GetProcessPtr(); process && process->IsAlive())
           process->Halt();
       }
     }
@@ -6518,8 +6518,8 @@ public:
       ExecutionContext exe_ctx =
           m_debugger.GetCommandInterpreter().GetExecutionContext();
       if (exe_ctx.HasProcessScope()) {
-        Process *process = exe_ctx.GetProcessPtr();
-        if (process && process->IsAlive())
+        
+        if (Process *process = exe_ctx.GetProcessPtr(); process && process->IsAlive())
           process->Detach(menu.GetIdentifier() ==
                           eMenuID_ProcessDetachSuspended);
       }
@@ -6533,8 +6533,8 @@ public:
       Menus &submenus = menu.GetSubmenus();
       ExecutionContext exe_ctx =
           m_debugger.GetCommandInterpreter().GetExecutionContext();
-      Process *process = exe_ctx.GetProcessPtr();
-      if (process && process->IsAlive() &&
+      
+      if (Process *process = exe_ctx.GetProcessPtr(); process && process->IsAlive() &&
           StateIsStoppedState(process->GetState(), true)) {
         if (submenus.size() == 7)
           menu.AddSubmenu(std::make_shared<Menu>(Menu::Type::Separator));
@@ -6555,8 +6555,8 @@ public:
           if (thread_name && thread_name[0])
             thread_menu_title.Printf(" %s", thread_name);
           else {
-            const char *queue_name = thread_sp->GetQueueName();
-            if (queue_name && queue_name[0])
+            
+            if (const char *queue_name = thread_sp->GetQueueName(); queue_name && queue_name[0])
               thread_menu_title.Printf(" %s", queue_name);
           }
           menu.AddSubmenu(std::make_shared<Menu>(
@@ -6764,8 +6764,8 @@ public:
                             exe_ctx.GetTargetPtr()));
       } else if (state == eStateExited) {
         const char *exit_desc = process->GetExitDescription();
-        const int exit_status = process->GetExitStatus();
-        if (exit_desc && exit_desc[0])
+        
+        if (const int exit_status = process->GetExitStatus(); exit_desc && exit_desc[0])
           window.Printf(" with status = %i (%s)", exit_status, exit_desc);
         else
           window.Printf(" with status = %i", exit_status);
@@ -6933,8 +6933,8 @@ public:
 
         if (!m_file_sp || m_file_sp->GetNumLines() == 0) {
           // Show disassembly
-          bool prefer_file_cache = false;
-          if (m_sc.function) {
+          
+          if (bool prefer_file_cache = false; m_sc.function) {
             if (m_disassembly_scope != m_sc.function) {
               m_disassembly_scope = m_sc.function;
               m_disassembly_sp = m_sc.function->GetInstructions(
@@ -6969,8 +6969,8 @@ public:
       window.MoveCursor(1, 1);
       window.PutChar(' ');
       window.PutCStringTruncated(1, m_title.GetString().str().c_str());
-      int x = window.GetCursorX();
-      if (x < window_width - 1) {
+      
+      if (int x = window.GetCursorX(); x < window_width - 1) {
         window.Printf("%*s", window_width - x - 1, "");
       }
       window.AttributeOff(A_REVERSE);
@@ -7003,8 +7003,8 @@ public:
       }
 
       for (size_t i = 0; i < num_visible_lines; ++i) {
-        const uint32_t curr_line = m_first_visible_line + i;
-        if (curr_line < num_source_lines) {
+        
+        if (const uint32_t curr_line = m_first_visible_line + i; curr_line < num_source_lines) {
           const int line_y = m_min_y + i;
           window.MoveCursor(1, line_y);
           const bool is_pc_line = curr_line == m_pc_line;
@@ -7064,11 +7064,11 @@ public:
             if (thread)
               stop_info_sp = thread->GetStopInfo();
             if (stop_info_sp) {
-              const char *stop_description = stop_info_sp->GetDescription();
-              if (stop_description && stop_description[0]) {
+              
+              if (const char *stop_description = stop_info_sp->GetDescription(); stop_description && stop_description[0]) {
                 size_t stop_description_len = strlen(stop_description);
-                int desc_x = window_width - stop_description_len - 16;
-                if (desc_x - window.GetCursorX() > 0)
+                
+                if (int desc_x = window_width - stop_description_len - 16; desc_x - window.GetCursorX() > 0)
                   window.Printf("%*s", desc_x - window.GetCursorX(), "");
                 window.MoveCursor(window_width - stop_description_len - 16,
                                   line_y);
@@ -7089,8 +7089,8 @@ public:
         }
       }
     } else {
-      size_t num_disassembly_lines = GetNumDisassemblyLines();
-      if (num_disassembly_lines > 0) {
+      
+      if (size_t num_disassembly_lines = GetNumDisassemblyLines(); num_disassembly_lines > 0) {
         // Display disassembly
         BreakpointAddrs bp_file_addrs;
         Target *target = exe_ctx.GetTargetPtr();
@@ -7211,11 +7211,11 @@ public:
             if (thread)
               stop_info_sp = thread->GetStopInfo();
             if (stop_info_sp) {
-              const char *stop_description = stop_info_sp->GetDescription();
-              if (stop_description && stop_description[0]) {
+              
+              if (const char *stop_description = stop_info_sp->GetDescription(); stop_description && stop_description[0]) {
                 size_t stop_description_len = strlen(stop_description);
-                int desc_x = window_width - stop_description_len - 16;
-                if (desc_x - window.GetCursorX() > 0)
+                
+                if (int desc_x = window_width - stop_description_len - 16; desc_x - window.GetCursorX() > 0)
                   window.Printf("%*s", desc_x - window.GetCursorX(), "");
                 window.MoveCursor(window_width - stop_description_len - 15,
                                   line_y);
@@ -7257,9 +7257,9 @@ public:
 
   HandleCharResult WindowDelegateHandleChar(Window &window, int c) override {
     const uint32_t num_visible_lines = NumVisibleLines();
-    const size_t num_lines = GetNumLines();
+    
 
-    switch (c) {
+    switch (const size_t num_lines = GetNumLines(); c) {
     case ',':
     case KEY_PPAGE:
       // Page up key
@@ -7508,9 +7508,9 @@ public:
           BreakpointLocationSP bp_loc_sp =
               bp_sp->GetLocationAtIndex(bp_loc_idx);
           LineEntry bp_loc_line_entry;
-          const lldb::addr_t file_addr =
-              bp_loc_sp->GetAddress().GetFileAddress();
-          if (file_addr == addr.GetFileAddress()) {
+          
+          if (const lldb::addr_t file_addr =
+              bp_loc_sp->GetAddress().GetFileAddress(); file_addr == addr.GetFileAddress()) {
             bool removed =
                 exe_ctx.GetTargetRef().RemoveBreakpointByID(bp_sp->GetID());
             assert(removed);

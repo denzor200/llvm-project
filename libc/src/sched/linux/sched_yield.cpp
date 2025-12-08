@@ -18,9 +18,9 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, sched_yield, ()) {
-  int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_sched_yield);
+  
   // As of writing this, yield() cannot fail
-  if (ret < 0) {
+  if (int ret = LIBC_NAMESPACE::syscall_impl<int>(SYS_sched_yield); ret < 0) {
     libc_errno = -ret;
     return -1;
   }

@@ -149,8 +149,8 @@ static ProfilingData *getThreadLocalData() XRAY_NEVER_INSTRUMENT {
 }
 
 static void cleanupTLD() XRAY_NEVER_INSTRUMENT {
-  auto FCT = atomic_exchange(&TLD.FCT, 0, memory_order_acq_rel);
-  if (FCT == reinterpret_cast<uptr>(reinterpret_cast<FunctionCallTrie *>(
+  
+  if (auto FCT = atomic_exchange(&TLD.FCT, 0, memory_order_acq_rel); FCT == reinterpret_cast<uptr>(reinterpret_cast<FunctionCallTrie *>(
                  &FunctionCallTrieStorage)))
     reinterpret_cast<FunctionCallTrie *>(FCT)->~FunctionCallTrie();
 
@@ -219,10 +219,10 @@ XRayLogFlushStatus profilingFlush() XRAY_NEVER_INSTRUMENT {
     return XRayLogFlushStatus::XRAY_LOG_NOT_FLUSHING;
   }
 
-  s32 Previous = atomic_exchange(&ProfilerLogFlushStatus,
+  
+  if (s32 Previous = atomic_exchange(&ProfilerLogFlushStatus,
                                  XRayLogFlushStatus::XRAY_LOG_FLUSHING,
-                                 memory_order_acq_rel);
-  if (Previous == XRayLogFlushStatus::XRAY_LOG_FLUSHING) {
+                                 memory_order_acq_rel); Previous == XRayLogFlushStatus::XRAY_LOG_FLUSHING) {
     if (Verbosity())
       Report("Not flushing profiles, implementation still flushing.\n");
     return XRayLogFlushStatus::XRAY_LOG_FLUSHING;
@@ -238,8 +238,8 @@ XRayLogFlushStatus profilingFlush() XRAY_NEVER_INSTRUMENT {
       if (Verbosity())
         Report("profiling: No data to flush.\n");
     } else {
-      LogWriter *LW = LogWriter::Open();
-      if (LW == nullptr) {
+      
+      if (LogWriter *LW = LogWriter::Open(); LW == nullptr) {
         if (Verbosity())
           Report("profiling: Failed to flush to file, dropping data.\n");
       } else {
@@ -288,8 +288,8 @@ void profilingHandleArg0(int32_t FuncId,
   if (T == nullptr)
     return;
 
-  auto FCT = reinterpret_cast<FunctionCallTrie *>(atomic_load_relaxed(&T->FCT));
-  switch (Entry) {
+  
+  switch (auto FCT = reinterpret_cast<FunctionCallTrie *>(atomic_load_relaxed(&T->FCT)); Entry) {
   case XRayEntryType::ENTRY:
   case XRayEntryType::LOG_ARGS_ENTRY:
     FCT->enterFunction(FuncId, TSC, CPU);

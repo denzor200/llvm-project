@@ -54,8 +54,8 @@ void HexagonMCChecker::init() {
   if (HexagonMCInstrInfo::isBundle(MCB))
     // Unfurl a bundle.
     for (auto const &I : HexagonMCInstrInfo::bundleInstructions(MCB)) {
-      MCInst const &Inst = *I.getInst();
-      if (HexagonMCInstrInfo::isDuplex(MCII, Inst)) {
+      
+      if (MCInst const &Inst = *I.getInst(); HexagonMCInstrInfo::isDuplex(MCII, Inst)) {
         init(*Inst.getOperand(0).getInst());
         init(*Inst.getOperand(1).getInst());
       } else
@@ -272,8 +272,8 @@ static bool isDuplexAGroup(unsigned Opcode) {
 static bool isNeitherAnorX(MCInstrInfo const &MCII, MCInst const &ID) {
   if (HexagonMCInstrInfo::isFloat(MCII, ID))
     return true;
-  unsigned Type = HexagonMCInstrInfo::getType(MCII, ID);
-  switch (Type) {
+  
+  switch (unsigned Type = HexagonMCInstrInfo::getType(MCII, ID); Type) {
   case HexagonII::TypeALU32_2op:
   case HexagonII::TypeALU32_3op:
   case HexagonII::TypeALU32_ADDI:
@@ -345,8 +345,8 @@ bool HexagonMCChecker::checkCOFMax1() {
       BranchLocations.push_back(&I);
   }
   for (unsigned J = 0, N = BranchLocations.size(); J < N; ++J) {
-    MCInst const &I = *BranchLocations[J];
-    if (HexagonMCInstrInfo::isCofMax1(MCII, I)) {
+    
+    if (MCInst const &I = *BranchLocations[J]; HexagonMCInstrInfo::isCofMax1(MCII, I)) {
       bool Relax1 = HexagonMCInstrInfo::isCofRelax1(MCII, I);
       bool Relax2 = HexagonMCInstrInfo::isCofRelax2(MCII, I);
       if (N > 1 && !Relax1 && !Relax2) {
@@ -547,8 +547,8 @@ bool HexagonMCChecker::registerUsed(MCRegister Register) {
     for (unsigned j = HexagonMCInstrInfo::getDesc(MCII, I).getNumDefs(),
                   n = I.getNumOperands();
          j < n; ++j) {
-      MCOperand const &Operand = I.getOperand(j);
-      if (Operand.isReg() && Operand.getReg() == Register)
+      
+      if (MCOperand const &Operand = I.getOperand(j); Operand.isReg() && Operand.getReg() == Register)
         return true;
     }
   return false;
@@ -716,10 +716,10 @@ bool HexagonMCChecker::checkValidTmpDst() {
     return HexagonMCInstrInfo::hasTmpDst(MCII, I) ||
            HexagonMCInstrInfo::hasHvxTmp(MCII, I);
   };
-  unsigned HasTmpCount =
-      llvm::count_if(HexagonMCInstrInfo::bundleInstructions(MCII, MCB), HasTmp);
+  
 
-  if (HasTmpCount > 1) {
+  if (unsigned HasTmpCount =
+      llvm::count_if(HexagonMCInstrInfo::bundleInstructions(MCII, MCB), HasTmp); HasTmpCount > 1) {
     reportError(
         MCB.getLoc(),
         "this packet has more than one HVX vtmp/.tmp destination instruction");
@@ -787,8 +787,8 @@ void HexagonMCChecker::reportError(SMLoc Loc, Twine const &Msg) {
 
 void HexagonMCChecker::reportNote(SMLoc Loc, llvm::Twine const &Msg) {
   if (ReportErrors) {
-    auto SM = Context.getSourceManager();
-    if (SM)
+    
+    if (auto SM = Context.getSourceManager(); SM)
       SM->PrintMessage(Loc, SourceMgr::DK_Note, Msg);
   }
 }
@@ -800,9 +800,9 @@ void HexagonMCChecker::reportWarning(Twine const &Msg) {
 
 bool HexagonMCChecker::checkLegalVecRegPair() {
   const bool IsPermitted = STI.hasFeature(Hexagon::ArchV67);
-  const bool HasReversePairs = ReversePairs.size() != 0;
+  
 
-  if (!IsPermitted && HasReversePairs) {
+  if (const bool HasReversePairs = ReversePairs.size() != 0; !IsPermitted && HasReversePairs) {
     for (auto R : ReversePairs)
       reportError("register pair `" + Twine(RI.getName(R)) +
                   "' is not permitted for this architecture");
@@ -815,9 +815,9 @@ bool HexagonMCChecker::checkLegalVecRegPair() {
 bool HexagonMCChecker::checkHVXAccum()
 {
   for (const auto &I : HexagonMCInstrInfo::bundleInstructions(MCII, MCB)) {
-    bool IsTarget =
-        HexagonMCInstrInfo::isAccumulator(MCII, I) && I.getOperand(0).isReg();
-    if (!IsTarget)
+    
+    if (bool IsTarget =
+        HexagonMCInstrInfo::isAccumulator(MCII, I) && I.getOperand(0).isReg(); !IsTarget)
       continue;
     MCRegister R = I.getOperand(0).getReg();
     TmpDefsIterator It = TmpDefs.find(R);

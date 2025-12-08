@@ -61,7 +61,8 @@ static Node *ResolveFPOProgram(llvm::StringRef program,
   for (auto it = parsed.begin(), end = parsed.end(); it != end; ++it) {
     // Emplace valid dependent subtrees to make target assignment independent
     // from predecessors. Resolve all other SymbolNodes as registers.
-    bool success =
+    
+    if (bool success =
         ResolveSymbols(it->second, [&](SymbolNode &symbol) -> Node * {
           for (const auto &pair : llvm::make_range(parsed.begin(), it)) {
             if (pair.first == symbol.GetName())
@@ -75,8 +76,7 @@ static Node *ResolveFPOProgram(llvm::StringRef program,
             return nullptr;
 
           return MakeNode<RegisterNode>(alloc, reg_num);
-        });
-    if (!success)
+        }); !success)
       return nullptr;
 
     if (it->first == register_name) {

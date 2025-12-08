@@ -36,8 +36,8 @@ static EditGenerator rewrite(RangeSelector Call, RangeSelector Builder) {
     SourceLocation Begin = CallRange->getBegin();
 
     // This will result in just a warning and no edit.
-    const bool InMacro = CallRange->getBegin().isMacroID();
-    if (InMacro) {
+    
+    if (const bool InMacro = CallRange->getBegin().isMacroID(); InMacro) {
       while (SM.isMacroArgExpansion(Begin))
         Begin = SM.getImmediateExpansionRange(Begin).getBegin();
       Edit WarnOnly;

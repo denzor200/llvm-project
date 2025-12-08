@@ -160,9 +160,9 @@ bool ABIMacOSX_arm64::GetArgumentValues(Thread &thread,
         // Arguments 1-6 are in x0-x5...
         const RegisterInfo *reg_info = nullptr;
         // Search by generic ID first, then fall back to by name
-        uint32_t arg_reg_num = reg_ctx->ConvertRegisterKindToRegisterNumber(
-            eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG1 + value_idx);
-        if (arg_reg_num != LLDB_INVALID_REGNUM) {
+        
+        if (uint32_t arg_reg_num = reg_ctx->ConvertRegisterKindToRegisterNumber(
+            eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG1 + value_idx); arg_reg_num != LLDB_INVALID_REGNUM) {
           reg_info = reg_ctx->GetRegisterInfoAtIndex(arg_reg_num);
         } else {
           switch (value_idx) {
@@ -250,9 +250,9 @@ ABIMacOSX_arm64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
 
   Thread *thread = frame_sp->GetThread().get();
 
-  RegisterContext *reg_ctx = thread->GetRegisterContext().get();
+  
 
-  if (reg_ctx) {
+  if (RegisterContext *reg_ctx = thread->GetRegisterContext().get(); reg_ctx) {
     DataExtractor data;
     Status data_error;
     const uint64_t byte_size = new_value_sp->GetData(data, data_error);
@@ -269,16 +269,16 @@ ABIMacOSX_arm64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
         // Extract the register context so we can read arguments from registers
         lldb::offset_t offset = 0;
         if (byte_size <= 16) {
-          const RegisterInfo *x0_info = reg_ctx->GetRegisterInfoByName("x0", 0);
-          if (byte_size <= 8) {
-            uint64_t raw_value = data.GetMaxU64(&offset, byte_size);
+          
+          if (const RegisterInfo *x0_info = reg_ctx->GetRegisterInfoByName("x0", 0); byte_size <= 8) {
+            
 
-            if (!reg_ctx->WriteRegisterFromUnsigned(x0_info, raw_value))
+            if (uint64_t raw_value = data.GetMaxU64(&offset, byte_size); !reg_ctx->WriteRegisterFromUnsigned(x0_info, raw_value))
               error = Status::FromErrorString("failed to write register x0");
           } else {
-            uint64_t raw_value = data.GetMaxU64(&offset, 8);
+            
 
-            if (reg_ctx->WriteRegisterFromUnsigned(x0_info, raw_value)) {
+            if (uint64_t raw_value = data.GetMaxU64(&offset, 8); reg_ctx->WriteRegisterFromUnsigned(x0_info, raw_value)) {
               const RegisterInfo *x1_info =
                   reg_ctx->GetRegisterInfoByName("x1", 0);
               raw_value = data.GetMaxU64(&offset, byte_size - offset);
@@ -298,9 +298,9 @@ ABIMacOSX_arm64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
           error = Status::FromErrorString(
               "returning complex float values are not supported");
         } else {
-          const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0);
+          
 
-          if (v0_info) {
+          if (const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0); v0_info) {
             if (byte_size <= 16) {
               RegisterValue reg_value;
               error = reg_value.SetValueFromData(*v0_info, data, 0, true);
@@ -320,9 +320,9 @@ ABIMacOSX_arm64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
       }
     } else if (type_flags & eTypeIsVector) {
       if (byte_size > 0) {
-        const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0);
+        
 
-        if (v0_info) {
+        if (const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0); v0_info) {
           if (byte_size <= v0_info->byte_size) {
             RegisterValue reg_value;
             error = reg_value.SetValueFromData(*v0_info, data, 0, true);
@@ -448,9 +448,9 @@ static bool LoadValueFromConsecutiveGPRRegisters(
   Status error;
 
   CompilerType base_type;
-  const uint32_t homogeneous_count =
-      value_type.IsHomogeneousAggregate(&base_type);
-  if (homogeneous_count > 0 && homogeneous_count <= 8) {
+  
+  if (const uint32_t homogeneous_count =
+      value_type.IsHomogeneousAggregate(&base_type); homogeneous_count > 0 && homogeneous_count <= 8) {
     // Make sure we have enough registers
     if (NSRN < 8 && (8 - NSRN) >= homogeneous_count) {
       if (!base_type)
@@ -603,23 +603,23 @@ ValueObjectSP ABIMacOSX_arm64::GetReturnValueObjectImpl(
     if (type_flags & eTypeIsInteger || type_flags & eTypeIsPointer) {
       // Extract the register context so we can read arguments from registers
       if (*byte_size <= 8) {
-        const RegisterInfo *x0_reg_info =
-            reg_ctx->GetRegisterInfoByName("x0", 0);
-        if (x0_reg_info) {
+        
+        if (const RegisterInfo *x0_reg_info =
+            reg_ctx->GetRegisterInfoByName("x0", 0); x0_reg_info) {
           uint64_t raw_value =
               thread.GetRegisterContext()->ReadRegisterAsUnsigned(x0_reg_info,
                                                                   0);
-          const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-          switch (*byte_size) {
+          
+          switch (const bool is_signed = (type_flags & eTypeIsSigned) != 0; *byte_size) {
           default:
             break;
           case 16: // uint128_t
             // In register x0 and x1
             {
-              const RegisterInfo *x1_reg_info =
-                  reg_ctx->GetRegisterInfoByName("x1", 0);
+              
 
-              if (x1_reg_info) {
+              if (const RegisterInfo *x1_reg_info =
+                  reg_ctx->GetRegisterInfoByName("x1", 0); x1_reg_info) {
                 if (*byte_size <=
                     x0_reg_info->byte_size + x1_reg_info->byte_size) {
                   std::unique_ptr<DataBufferHeap> heap_data_up(
@@ -718,9 +718,9 @@ ValueObjectSP ABIMacOSX_arm64::GetReturnValueObjectImpl(
   } else if (type_flags & eTypeIsVector) {
     if (*byte_size > 0) {
 
-      const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0);
+      
 
-      if (v0_info) {
+      if (const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0); v0_info) {
         if (*byte_size <= v0_info->byte_size) {
           std::unique_ptr<DataBufferHeap> heap_data_up(
               new DataBufferHeap(*byte_size, 0));
@@ -746,8 +746,8 @@ ValueObjectSP ABIMacOSX_arm64::GetReturnValueObjectImpl(
 
     uint32_t NGRN = 0; // Search ABI docs for NGRN
     uint32_t NSRN = 0; // Search ABI docs for NSRN
-    const bool is_return_value = true;
-    if (LoadValueFromConsecutiveGPRRegisters(
+    
+    if (const bool is_return_value = true; LoadValueFromConsecutiveGPRRegisters(
             exe_ctx, reg_ctx, return_compiler_type, is_return_value, NGRN, NSRN,
             data)) {
       return_valobj_sp = ValueObjectConstResult::Create(
@@ -772,9 +772,9 @@ static addr_t DoFixAddr(addr_t addr, bool is_code, ProcessSP process_sp) {
     mask = tbi_mask;
 
   if (addr & pac_sign_extension) {
-    addr_t highmem_mask = is_code ? process_sp->GetHighmemCodeAddressMask()
-                                  : process_sp->GetHighmemCodeAddressMask();
-    if (highmem_mask != LLDB_INVALID_ADDRESS_MASK)
+    
+    if (addr_t highmem_mask = is_code ? process_sp->GetHighmemCodeAddressMask()
+                                  : process_sp->GetHighmemCodeAddressMask(); highmem_mask != LLDB_INVALID_ADDRESS_MASK)
       return addr | highmem_mask;
     return addr | mask;
   }

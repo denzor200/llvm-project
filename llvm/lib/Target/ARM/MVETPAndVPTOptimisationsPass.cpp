@@ -329,8 +329,8 @@ bool MVETPAndVPTOptimisations::MergeLoopEnd(MachineLoop *ML) {
   // Check if there is an illegal instruction (a call) in the low overhead loop
   // and if so revert it now before we get any further. While loops also need to
   // check the preheaders, but can be reverted to a DLS loop if needed.
-  auto *PreHeader = ML->getLoopPreheader();
-  if (LoopStart->getOpcode() == ARM::t2WhileLoopStartLR && PreHeader)
+  
+  if (auto *PreHeader = ML->getLoopPreheader(); LoopStart->getOpcode() == ARM::t2WhileLoopStartLR && PreHeader)
     LoopStart = CheckForLRUseInPredecessors(PreHeader, LoopStart);
 
   for (MachineBasicBlock *MBB : ML->blocks()) {
@@ -945,8 +945,8 @@ bool MVETPAndVPTOptimisations::ReplaceConstByVPNOTs(MachineBasicBlock &MBB,
 
     // Find the Immediate used by the copy.
     auto getImm = [&](Register GPR) -> unsigned {
-      MachineInstr *Def = MRI->getVRegDef(GPR);
-      if (Def && (Def->getOpcode() == ARM::t2MOVi ||
+      
+      if (MachineInstr *Def = MRI->getVRegDef(GPR); Def && (Def->getOpcode() == ARM::t2MOVi ||
                   Def->getOpcode() == ARM::t2MOVi16))
         return Def->getOperand(1).getImm();
       return -1U;

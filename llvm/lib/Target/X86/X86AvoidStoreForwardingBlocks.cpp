@@ -389,7 +389,8 @@ void X86AvoidSFBPass::buildCopy(MachineInstr *LoadInst, unsigned NLoadOpcode,
 
   Register Reg1 =
       MRI->createVirtualRegister(TII->getRegClass(TII->get(NLoadOpcode), 0));
-  MachineInstr *NewLoad =
+  
+  if (MachineInstr *NewLoad =
       BuildMI(*MBB, LoadInst, LoadInst->getDebugLoc(), TII->get(NLoadOpcode),
               Reg1)
           .add(LoadBase)
@@ -398,8 +399,7 @@ void X86AvoidSFBPass::buildCopy(MachineInstr *LoadInst, unsigned NLoadOpcode,
           .addImm(LoadDisp)
           .addReg(X86::NoRegister)
           .addMemOperand(
-              MBB->getParent()->getMachineMemOperand(LMMO, LMMOffset, Size));
-  if (LoadBase.isReg())
+              MBB->getParent()->getMachineMemOperand(LMMO, LMMOffset, Size)); LoadBase.isReg())
     getBaseOperand(NewLoad).setIsKill(false);
   LLVM_DEBUG(NewLoad->dump());
   // If the load and store are consecutive, use the loadInst location to
@@ -538,9 +538,9 @@ void X86AvoidSFBPass::findPotentiallylBlockedCopies(MachineFunction &MF) {
         continue;
       for (MachineOperand &StoreMO :
            llvm::make_early_inc_range(MRI->use_nodbg_operands(DefVR))) {
-        MachineInstr &StoreMI = *StoreMO.getParent();
+        
         // Skip cases where the memcpy may overlap.
-        if (StoreMI.getParent() == MI.getParent() &&
+        if (MachineInstr &StoreMI = *StoreMO.getParent(); StoreMI.getParent() == MI.getParent() &&
             isPotentialBlockedMemCpyPair(MI.getOpcode(), StoreMI.getOpcode()) &&
             isRelevantAddressingMode(&MI) &&
             isRelevantAddressingMode(&StoreMI) &&
@@ -642,8 +642,8 @@ removeRedundantBlockingStores(DisplacementSizeMap &BlockingStoresDispSizeMap) {
     unsigned CurrSize = DispSizePair.second;
     while (DispSizeStack.size()) {
       int64_t PrevDisp = DispSizeStack.back().first;
-      unsigned PrevSize = DispSizeStack.back().second;
-      if (CurrDisp + CurrSize > PrevDisp + PrevSize)
+      
+      if (unsigned PrevSize = DispSizeStack.back().second; CurrDisp + CurrSize > PrevDisp + PrevSize)
         break;
       DispSizeStack.pop_back();
     }
@@ -683,12 +683,12 @@ bool X86AvoidSFBPass::runOnMachineFunction(MachineFunction &MF) {
           !isRelevantAddressingMode(PBInst) || !PBInst->hasOneMemOperand())
         continue;
       int64_t PBstDispImm = getDispOperand(PBInst).getImm();
-      unsigned PBstSize = (*PBInst->memoperands_begin())->getSize().getValue();
+      
       // This check doesn't cover all cases, but it will suffice for now.
       // TODO: take branch probability into consideration, if the blocking
       // store is in an unreached block, breaking the memcopy could lose
       // performance.
-      if (hasSameBaseOpValue(LoadInst, PBInst) &&
+      if (unsigned PBstSize = (*PBInst->memoperands_begin())->getSize().getValue(); hasSameBaseOpValue(LoadInst, PBInst) &&
           isBlockingStore(LdDispImm, getRegSizeInBytes(LoadInst), PBstDispImm,
                           PBstSize))
         updateBlockingStoresDispSizeMap(BlockingStoresDispSizeMap, PBstDispImm,

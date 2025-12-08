@@ -62,8 +62,8 @@ static inline uint64_t getValueFromBitsInit(const BitsInit *B, const Record &R) 
 
   uint64_t Value = 0;
   for (unsigned i = 0, e = B->getNumBits(); i != e; ++i) {
-    const auto *Bit = dyn_cast<BitInit>(B->getBit(i));
-    if (Bit)
+    
+    if (const auto *Bit = dyn_cast<BitInit>(B->getBit(i)); Bit)
       Value |= uint64_t(Bit->getValue()) << i;
     else
       PrintFatalError(R.getLoc(),

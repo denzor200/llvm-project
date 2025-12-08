@@ -627,8 +627,8 @@ static void printBits(raw_ostream &OS, ArrayRef<uint8_t> Bytes, size_t StartBit,
   assert(StartBit + NumBits <= Bytes.size() * 8u);
   for (size_t I = StartBit, E = StartBit + NumBits; I != E; ++I) {
     uint8_t Byte = Bytes[I / 8];
-    size_t ByteOffset = I % 8;
-    if (size_t ByteShift = 8 - ByteOffset - 1)
+    
+    if (size_t ByteOffset = I % 8; size_t ByteShift = 8 - ByteOffset - 1)
       Byte >>= ByteShift;
     OS << (Byte & 0x1 ? '1' : '0');
   }
@@ -997,8 +997,8 @@ Error TrieVisitor::visit() {
     SubtrieSlotValue Slot = Root.load(I);
     if (!Slot)
       continue;
-    uint64_t Offset = Slot.isSubtrie() ? Slot.asSubtrie() : Slot.asData();
-    if (Offset >= (uint64_t)Trie.getRegion().size())
+    
+    if (uint64_t Offset = Slot.isSubtrie() ? Slot.asSubtrie() : Slot.asData(); Offset >= (uint64_t)Trie.getRegion().size())
       return createInvalidTrieError(Offset, "slot points out of bound");
     std::string SubtriePrefix;
     appendIndexBits(SubtriePrefix, I, NumSlots);
@@ -1070,8 +1070,8 @@ Error TrieVisitor::traverseTrieNode(SubtrieHandle Node, StringRef Prefix) {
     SubtrieSlotValue Slot = Node.load(I);
     if (!Slot)
       continue;
-    uint64_t Offset = Slot.isSubtrie() ? Slot.asSubtrie() : Slot.asData();
-    if (Offset >= (uint64_t)Trie.getRegion().size())
+    
+    if (uint64_t Offset = Slot.isSubtrie() ? Slot.asSubtrie() : Slot.asData(); Offset >= (uint64_t)Trie.getRegion().size())
       return createInvalidTrieError(Offset, "slot points out of bound");
     std::string SubtriePrefix = Prefix.str();
     appendIndexBits(SubtriePrefix, I, NumSlots);

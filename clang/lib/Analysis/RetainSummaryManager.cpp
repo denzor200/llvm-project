@@ -244,8 +244,8 @@ RetainSummaryManager::getSummaryForOSObject(const FunctionDecl *FD,
          "Requesting a summary for an OSObject but OSObjects are not tracked");
 
   if (RetTy->isPointerType()) {
-    const CXXRecordDecl *PD = RetTy->getPointeeType()->getAsCXXRecordDecl();
-    if (PD && isOSObjectSubclass(PD)) {
+    
+    if (const CXXRecordDecl *PD = RetTy->getPointeeType()->getAsCXXRecordDecl(); PD && isOSObjectSubclass(PD)) {
       if (isOSObjectDynamicCast(FName) || isOSObjectRequiredCast(FName) ||
           isOSObjectThisCast(FName))
         return getDefaultSummary();
@@ -269,8 +269,8 @@ RetainSummaryManager::getSummaryForOSObject(const FunctionDecl *FD,
   }
 
   if (const auto *MD = dyn_cast<CXXMethodDecl>(FD)) {
-    const CXXRecordDecl *Parent = MD->getParent();
-    if (Parent && isOSObjectSubclass(Parent)) {
+    
+    if (const CXXRecordDecl *Parent = MD->getParent(); Parent && isOSObjectSubclass(Parent)) {
       if (FName == "release" || FName == "taggedRelease")
         return getOSSummaryReleaseRule(FD);
 
@@ -675,8 +675,8 @@ RetainSummaryManager::getSummary(AnyCall C,
     // FIXME: These calls are currently unsupported.
     return getPersistentStopSummary();
   case AnyCall::ObjCMethod: {
-    const auto *ME = cast_or_null<ObjCMessageExpr>(C.getExpr());
-    if (!ME) {
+    
+    if (const auto *ME = cast_or_null<ObjCMessageExpr>(C.getExpr()); !ME) {
       Summ = getMethodSummary(cast<ObjCMethodDecl>(C.getDecl()));
     } else if (ME->isInstanceMessage()) {
       Summ = getInstanceMethodSummary(ME, ReceiverType);
@@ -762,16 +762,16 @@ RetainSummaryManager::canEval(const CallExpr *CE, const FunctionDecl *FD,
       }
     }
 
-    const FunctionDecl* FDD = FD->getDefinition();
-    if (FDD && isTrustedReferenceCountImplementation(FDD)) {
+    
+    if (const FunctionDecl* FDD = FD->getDefinition(); FDD && isTrustedReferenceCountImplementation(FDD)) {
       hasTrustedImplementationAnnotation = true;
       return BehaviorSummary::Identity;
     }
   }
 
   if (const auto *MD = dyn_cast<CXXMethodDecl>(FD)) {
-    const CXXRecordDecl *Parent = MD->getParent();
-    if (TrackOSObjects && Parent && isOSObjectSubclass(Parent))
+    
+    if (const CXXRecordDecl *Parent = MD->getParent(); TrackOSObjects && Parent && isOSObjectSubclass(Parent))
       if (FName == "release" || FName == "retain")
         return BehaviorSummary::NoOp;
   }
@@ -788,8 +788,8 @@ RetainSummaryManager::getUnarySummary(const FunctionType* FT,
 
   // Verify that this is *really* a unary function.  This can
   // happen if people do weird things.
-  const FunctionProtoType* FTP = dyn_cast<FunctionProtoType>(FT);
-  if (!FTP || FTP->getNumParams() != 1)
+  
+  if (const FunctionProtoType* FTP = dyn_cast<FunctionProtoType>(FT); !FTP || FTP->getNumParams() != 1)
     return getPersistentStopSummary();
 
   ArgEffect Effect(AE, ObjKind::CF);
@@ -888,8 +888,8 @@ RetainSummaryManager::getRetEffectFromAnnotations(QualType RetTy,
 static bool hasTypedefNamed(QualType QT,
                             StringRef Name) {
   while (auto *T = QT->getAs<TypedefType>()) {
-    const auto &Context = T->getDecl()->getASTContext();
-    if (T->getDecl()->getIdentifier() == &Context.Idents.get(Name))
+    
+    if (const auto &Context = T->getDecl()->getASTContext(); T->getDecl()->getIdentifier() == &Context.Idents.get(Name))
       return true;
     QT = T->getDecl()->getUnderlyingType();
   }
@@ -960,8 +960,8 @@ bool RetainSummaryManager::applyParamAnnotationEffect(
 
   if (const auto *MD = dyn_cast<CXXMethodDecl>(FD)) {
     for (const auto *OD : MD->overridden_methods()) {
-      const ParmVarDecl *OP = OD->parameters()[parm_idx];
-      if (applyParamAnnotationEffect(OP, parm_idx, OD, Template))
+      
+      if (const ParmVarDecl *OP = OD->parameters()[parm_idx]; applyParamAnnotationEffect(OP, parm_idx, OD, Template))
         return true;
     }
   }

@@ -168,14 +168,14 @@ std::unique_ptr<Module> llvm::CloneModule(
     // We already dealt with undefined aliases above.
     if (!ShouldCloneDefinition(&I))
       continue;
-    GlobalAlias *GA = cast<GlobalAlias>(VMap[&I]);
-    if (const Constant *C = I.getAliasee())
+    
+    if (GlobalAlias *GA = cast<GlobalAlias>(VMap[&I]); const Constant *C = I.getAliasee())
       GA->setAliasee(MapValue(C, VMap));
   }
 
   for (const GlobalIFunc &I : M.ifuncs()) {
-    GlobalIFunc *GI = cast<GlobalIFunc>(VMap[&I]);
-    if (const Constant *Resolver = I.getResolver())
+    
+    if (GlobalIFunc *GI = cast<GlobalIFunc>(VMap[&I]); const Constant *Resolver = I.getResolver())
       GI->setResolver(MapValue(Resolver, VMap));
   }
 

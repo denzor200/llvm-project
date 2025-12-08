@@ -147,9 +147,9 @@ size_t SectionLoadList::SetSectionUnloaded(const lldb::SectionSP &section_sp) {
   size_t unload_count = 0;
 
   if (section_sp) {
-    Log *log = GetLog(LLDBLog::DynamicLoader);
+    
 
-    if (log && log->GetVerbose()) {
+    if (Log *log = GetLog(LLDBLog::DynamicLoader); log && log->GetVerbose()) {
       ModuleSP module_sp = section_sp->GetModule();
       std::string module_name("<Unknown>");
       if (module_sp) {
@@ -182,9 +182,9 @@ size_t SectionLoadList::SetSectionUnloaded(const lldb::SectionSP &section_sp) {
 
 bool SectionLoadList::SetSectionUnloaded(const lldb::SectionSP &section_sp,
                                          addr_t load_addr) {
-  Log *log = GetLog(LLDBLog::DynamicLoader);
+  
 
-  if (log && log->GetVerbose()) {
+  if (Log *log = GetLog(LLDBLog::DynamicLoader); log && log->GetVerbose()) {
     ModuleSP module_sp = section_sp->GetModule();
     std::string module_name("<Unknown>");
     if (module_sp) {
@@ -226,10 +226,10 @@ bool SectionLoadList::ResolveLoadAddress(addr_t load_addr, Address &so_addr,
     if (pos != m_addr_to_sect.end()) {
       if (load_addr != pos->first && pos != m_addr_to_sect.begin())
         --pos;
-      const addr_t pos_load_addr = pos->first;
-      if (load_addr >= pos_load_addr) {
-        addr_t offset = load_addr - pos_load_addr;
-        if (offset < pos->second->GetByteSize() + (allow_section_end ? 1 : 0)) {
+      
+      if (const addr_t pos_load_addr = pos->first; load_addr >= pos_load_addr) {
+        
+        if (addr_t offset = load_addr - pos_load_addr; offset < pos->second->GetByteSize() + (allow_section_end ? 1 : 0)) {
           // We have found the top level section, now we need to find the
           // deepest child section.
           return pos->second->ResolveContainedAddress(offset, so_addr,
@@ -242,8 +242,8 @@ bool SectionLoadList::ResolveLoadAddress(addr_t load_addr, Address &so_addr,
       addr_to_sect_collection::const_reverse_iterator rpos =
           m_addr_to_sect.rbegin();
       if (load_addr >= rpos->first) {
-        addr_t offset = load_addr - rpos->first;
-        if (offset <
+        
+        if (addr_t offset = load_addr - rpos->first; offset <
             rpos->second->GetByteSize() + (allow_section_end ? 1 : 0)) {
           // We have found the top level section, now we need to find the
           // deepest child section.

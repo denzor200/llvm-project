@@ -265,8 +265,8 @@ public:
 
     std::string LoopString = "";
     bool IsLoop0 = HexagonMCInstrInfo::isInnerLoop(Inst);
-    bool IsLoop1 = HexagonMCInstrInfo::isOuterLoop(Inst);
-    if (IsLoop0) {
+    
+    if (bool IsLoop1 = HexagonMCInstrInfo::isOuterLoop(Inst); IsLoop0) {
       LoopString += (IsLoop1 ? " :endloop01" : " :endloop0");
     } else if (IsLoop1) {
       LoopString += " :endloop1";

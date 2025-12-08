@@ -135,8 +135,8 @@ static std::string FunctionToString(const Value &V, const void *Ptr) {
 
   // Get __clang_Interpreter_SetValueNoAlloc(void *This, void *OutVal, void
   // *OpaqueType, void *Val);
-  const FunctionDecl *FD = nullptr;
-  if (auto *InterfaceCall = llvm::dyn_cast<CallExpr>(TLSD->getStmt())) {
+  
+  if (const FunctionDecl *FD = nullptr; auto *InterfaceCall = llvm::dyn_cast<CallExpr>(TLSD->getStmt())) {
     const auto *Arg = InterfaceCall->getArg(/*Val*/ 3);
     // Get rid of cast nodes.
     while (const CastExpr *CastE = llvm::dyn_cast<CastExpr>(Arg))
@@ -194,8 +194,8 @@ std::string Interpreter::ValueDataToString(const Value &V) const {
 
     // Treat null terminated char arrays as strings basically.
     if (ElemTy->isCharType()) {
-      char last = *(char *)(((uintptr_t)V.getPtr()) + ElemCount * ElemSize - 1);
-      if (last == '\0')
+      
+      if (char last = *(char *)(((uintptr_t)V.getPtr()) + ElemCount * ElemSize - 1); last == '\0')
         return CharPtrToString((char *)V.getPtr());
     }
 

@@ -995,9 +995,9 @@ void ELFState<ELFT>::initSymtabSectionHeader(Elf_Shdr &SHeader,
   ELFYAML::RawContentSection *RawSec =
       dyn_cast_or_null<ELFYAML::RawContentSection>(YAMLSec);
   if (RawSec && (RawSec->Content || RawSec->Size)) {
-    bool HasSymbolsDescription =
-        (IsStatic && Doc.Symbols) || (!IsStatic && Doc.DynamicSymbols);
-    if (HasSymbolsDescription) {
+    
+    if (bool HasSymbolsDescription =
+        (IsStatic && Doc.Symbols) || (!IsStatic && Doc.DynamicSymbols); HasSymbolsDescription) {
       StringRef Property = (IsStatic ? "`Symbols`" : "`DynamicSymbols`");
       if (RawSec->Content)
         reportError("cannot specify both `Content` and " + Property +
@@ -1305,9 +1305,9 @@ void ELFState<ELFT>::writeSectionContent(
                      Shift);
   for (const ELFYAML::Relocation &Rel : *Section.Relocations) {
     const bool IsDynamic = Section.Link && (*Section.Link == ".dynsym");
-    uint32_t CurSymIdx =
-        Rel.Symbol ? toSymbolIndex(*Rel.Symbol, Section.Name, IsDynamic) : 0;
-    if (IsCrel) {
+    
+    if (uint32_t CurSymIdx =
+        Rel.Symbol ? toSymbolIndex(*Rel.Symbol, Section.Name, IsDynamic) : 0; IsCrel) {
       // The delta offset and flags member may be larger than uint64_t. Special
       // case the first byte (3 flag bits and 4 offset bits). Other ULEB128
       // bytes encode the remaining delta offset bits.
@@ -2028,8 +2028,8 @@ template <class ELFT> void ELFState<ELFT>::buildSectionIndex() {
   for (const ELFYAML::Section *S : Sections) {
     ++SecNdx;
 
-    size_t Index = ReorderMap.empty() ? SecNdx : ReorderMap.lookup(S->Name);
-    if (!SN2I.addName(S->Name, Index))
+    
+    if (size_t Index = ReorderMap.empty() ? SecNdx : ReorderMap.lookup(S->Name); !SN2I.addName(S->Name, Index))
       llvm_unreachable("buildSectionIndex() failed");
 
     if (!ExcludedSectionHeaders.count(S->Name))
@@ -2040,8 +2040,8 @@ template <class ELFT> void ELFState<ELFT>::buildSectionIndex() {
 template <class ELFT> void ELFState<ELFT>::buildSymbolIndexes() {
   auto Build = [this](ArrayRef<ELFYAML::Symbol> V, NameToIdxMap &Map) {
     for (size_t I = 0, S = V.size(); I < S; ++I) {
-      const ELFYAML::Symbol &Sym = V[I];
-      if (!Sym.Name.empty() && !Map.addName(Sym.Name, I + 1))
+      
+      if (const ELFYAML::Symbol &Sym = V[I]; !Sym.Name.empty() && !Map.addName(Sym.Name, I + 1))
         reportError("repeated symbol name: '" + Sym.Name + "'");
     }
   };
@@ -2168,8 +2168,8 @@ namespace yaml {
 bool yaml2elf(llvm::ELFYAML::Object &Doc, raw_ostream &Out, ErrorHandler EH,
               uint64_t MaxSize) {
   bool IsLE = Doc.Header.Data == ELFYAML::ELF_ELFDATA(ELF::ELFDATA2LSB);
-  bool Is64Bit = Doc.Header.Class == ELFYAML::ELF_ELFCLASS(ELF::ELFCLASS64);
-  if (Is64Bit) {
+  
+  if (bool Is64Bit = Doc.Header.Class == ELFYAML::ELF_ELFCLASS(ELF::ELFCLASS64); Is64Bit) {
     if (IsLE)
       return ELFState<object::ELF64LE>::writeELF(Out, Doc, EH, MaxSize);
     return ELFState<object::ELF64BE>::writeELF(Out, Doc, EH, MaxSize);

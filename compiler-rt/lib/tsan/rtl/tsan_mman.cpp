@@ -416,15 +416,15 @@ uptr user_alloc_usable_size_fast(const void *p) {
 }
 
 void invoke_malloc_hook(void *ptr, uptr size) {
-  ThreadState *thr = cur_thread();
-  if (ctx == 0 || !ctx->initialized || thr->ignore_interceptors)
+  
+  if (ThreadState *thr = cur_thread(); ctx == 0 || !ctx->initialized || thr->ignore_interceptors)
     return;
   RunMallocHooks(ptr, size);
 }
 
 void invoke_free_hook(void *ptr) {
-  ThreadState *thr = cur_thread();
-  if (ctx == 0 || !ctx->initialized || thr->ignore_interceptors)
+  
+  if (ThreadState *thr = cur_thread(); ctx == 0 || !ctx->initialized || thr->ignore_interceptors)
     return;
   RunFreeHooks(ptr);
 }

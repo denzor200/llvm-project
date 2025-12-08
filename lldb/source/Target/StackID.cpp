@@ -71,7 +71,7 @@ bool lldb_private::operator!=(const StackID &lhs, const StackID &rhs) {
 
 bool lldb_private::operator<(const StackID &lhs, const StackID &rhs) {
   const lldb::addr_t lhs_cfa = lhs.GetCallFrameAddressWithoutMetadata();
-  const lldb::addr_t rhs_cfa = rhs.GetCallFrameAddressWithoutMetadata();
+  
 
   // FIXME: We are assuming that the stacks grow downward in memory.  That's not
   // necessary, but true on
@@ -82,7 +82,7 @@ bool lldb_private::operator<(const StackID &lhs, const StackID &rhs) {
   // constructor. But I'm not going to waste a bool per StackID on this till we
   // need it.
 
-  if (lhs_cfa != rhs_cfa)
+  if (const lldb::addr_t rhs_cfa = rhs.GetCallFrameAddressWithoutMetadata(); lhs_cfa != rhs_cfa)
     return lhs_cfa < rhs_cfa;
 
   SymbolContextScope *lhs_scope = lhs.GetSymbolContextScope();

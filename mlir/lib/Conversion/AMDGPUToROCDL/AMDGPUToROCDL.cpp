@@ -417,9 +417,9 @@ struct RawBufferOpLowering : public ConvertOpToLLVMPattern<GpuOp> {
 
     llvm::SmallVector<Type, 1> resultTypes(gpuOp->getNumResults(),
                                            llvmBufferValType);
-    Operation *lowered = Intrinsic::create(rewriter, loc, resultTypes, args,
-                                           ArrayRef<NamedAttribute>());
-    if (lowered->getNumResults() == 1) {
+    
+    if (Operation *lowered = Intrinsic::create(rewriter, loc, resultTypes, args,
+                                           ArrayRef<NamedAttribute>()); lowered->getNumResults() == 1) {
       Value replacement = lowered->getResult(0);
       if (llvmBufferValType != llvmWantedDataType) {
         replacement = LLVM::BitcastOp::create(rewriter, loc, llvmWantedDataType,
@@ -701,8 +701,8 @@ static void wmmaPushInputOperand(
   // for int8. This is because, in LLVM, fp8 type is converted to int8, so the
   // fp8/int8 information is lost during the conversion process.
   auto mlirInputType = cast<VectorType>(mlirInput.getType());
-  bool isInputInteger = mlirInputType.getElementType().isInteger();
-  if (isInputInteger) {
+  
+  if (bool isInputInteger = mlirInputType.getElementType().isInteger(); isInputInteger) {
     // if element type is 8-bit signed or unsigned, ignore the isUnsigned flag
     bool localIsUnsigned = isUnsigned;
     if (elemType.isUnsignedInteger()) {
@@ -1142,10 +1142,10 @@ static std::optional<StringRef> wmmaOpToIntrinsic(WMMAOp wmma,
 
   const uint32_t k = wmma.getK();
   const bool isRDNA3 = chipset.majorVersion == 11;
-  const bool isRDNA4 = chipset.majorVersion == 12 && chipset.minorVersion == 0;
+  
 
   // Handle RDNA3 and RDNA4.
-  if (isRDNA3 || isRDNA4)
+  if (const bool isRDNA4 = chipset.majorVersion == 12 && chipset.minorVersion == 0; isRDNA3 || isRDNA4)
     return wmmaOpToIntrinsicRDNA(elemSourceType, elemBSourceType, elemDestType,
                                  k, isRDNA3);
 

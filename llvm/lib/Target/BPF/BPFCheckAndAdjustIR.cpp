@@ -290,8 +290,8 @@ static bool sinkMinMaxInBB(BasicBlock &BB,
 
     Value *Replacement;
     Value *LHS = Builder.CreateICmp(P, X, A);
-    Value *RHS = Builder.CreateICmp(P, X, B);
-    if ((IsLess && IsMin) || (IsGreater && IsMax))
+    
+    if (Value *RHS = Builder.CreateICmp(P, X, B); (IsLess && IsMin) || (IsGreater && IsMax))
       // x < min(a, b) -> x < a && x < b
       // x > max(a, b) -> x > a && x > b
       Replacement = Builder.CreateLogicalAnd(LHS, RHS);

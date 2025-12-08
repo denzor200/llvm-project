@@ -1491,9 +1491,9 @@ void DAGTypeLegalizer::IncrementPointer(MemSDNode *N, EVT MemVT,
                                         MachinePointerInfo &MPI, SDValue &Ptr,
                                         uint64_t *ScaledOffset) {
   SDLoc DL(N);
-  unsigned IncrementSize = MemVT.getSizeInBits().getKnownMinValue() / 8;
+  
 
-  if (MemVT.isScalableVector()) {
+  if (unsigned IncrementSize = MemVT.getSizeInBits().getKnownMinValue() / 8; MemVT.isScalableVector()) {
     SDValue BytesIncrement = DAG.getVScale(
         DL, Ptr.getValueType(),
         APInt(Ptr.getValueSizeInBits().getFixedValue(), IncrementSize));
@@ -2091,8 +2091,8 @@ void DAGTypeLegalizer::SplitVecRes_INSERT_VECTOR_ELT(SDNode *N, SDValue &Lo,
 
   if (ConstantSDNode *CIdx = dyn_cast<ConstantSDNode>(Idx)) {
     unsigned IdxVal = CIdx->getZExtValue();
-    unsigned LoNumElts = Lo.getValueType().getVectorMinNumElements();
-    if (IdxVal < LoNumElts) {
+    
+    if (unsigned LoNumElts = Lo.getValueType().getVectorMinNumElements(); IdxVal < LoNumElts) {
       Lo = DAG.getNode(ISD::INSERT_VECTOR_ELT, dl,
                        Lo.getValueType(), Lo, Elt, Idx);
       return;
@@ -2577,11 +2577,11 @@ void DAGTypeLegalizer::SplitVecRes_Gather(MemSDNode *N, SDValue &Lo,
     std::tie(IndexLo, IndexHi) = DAG.SplitVector(Ops.Index, dl);
 
   MachineMemOperand::Flags MMOFlags = N->getMemOperand()->getFlags();
-  MachineMemOperand *MMO = DAG.getMachineFunction().getMachineMemOperand(
-      N->getPointerInfo(), MMOFlags, LocationSize::beforeOrAfterPointer(),
-      Alignment, N->getAAInfo(), N->getRanges());
+  
 
-  if (auto *MGT = dyn_cast<MaskedGatherSDNode>(N)) {
+  if (MachineMemOperand *MMO = DAG.getMachineFunction().getMachineMemOperand(
+      N->getPointerInfo(), MMOFlags, LocationSize::beforeOrAfterPointer(),
+      Alignment, N->getAAInfo(), N->getRanges()); auto *MGT = dyn_cast<MaskedGatherSDNode>(N)) {
     SDValue PassThru = MGT->getPassThru();
     SDValue PassThruLo, PassThruHi;
     if (getTypeAction(PassThru.getValueType()) ==
@@ -2926,8 +2926,8 @@ void DAGTypeLegalizer::SplitVecRes_VECTOR_SHUFFLE(ShuffleVectorSDNode *N,
     for (unsigned I = 0; I < NewElts; ++I) {
       if (Mask[I] == PoisonMaskElem)
         continue;
-      unsigned Idx = Mask[I];
-      if (Idx >= NewElts)
+      
+      if (unsigned Idx = Mask[I]; Idx >= NewElts)
         Ops[I] = Input2.getOperand(Idx - NewElts);
       else
         Ops[I] = Input1.getOperand(Idx);
@@ -2949,8 +2949,8 @@ void DAGTypeLegalizer::SplitVecRes_VECTOR_SHUFFLE(ShuffleVectorSDNode *N,
     MapVector<std::pair<SDValue, SDValue>, SmallVector<unsigned>> ShufflesIdxs;
     for (unsigned Idx = 0; Idx < std::size(Inputs); ++Idx) {
       SDValue Input = Inputs[Idx];
-      auto *Shuffle = dyn_cast<ShuffleVectorSDNode>(Input.getNode());
-      if (!Shuffle ||
+      
+      if (auto *Shuffle = dyn_cast<ShuffleVectorSDNode>(Input.getNode()); !Shuffle ||
           Input.getOperand(0).getValueType() != Input.getValueType())
         continue;
       ShufflesIdxs[std::make_pair(Input.getOperand(0), Input.getOperand(1))]
@@ -3074,8 +3074,8 @@ void DAGTypeLegalizer::SplitVecRes_VECTOR_SHUFFLE(ShuffleVectorSDNode *N,
           for (int &Idx : Mask) {
             if (Idx == PoisonMaskElem)
               continue;
-            unsigned SrcRegIdx = Idx / NewElts;
-            if (SrcRegIdx != I)
+            
+            if (unsigned SrcRegIdx = Idx / NewElts; SrcRegIdx != I)
               continue;
             int MaskElt = Shuffle->getMaskElt(Idx % NewElts);
             if (MaskElt == PoisonMaskElem) {
@@ -3107,8 +3107,8 @@ void DAGTypeLegalizer::SplitVecRes_VECTOR_SHUFFLE(ShuffleVectorSDNode *N,
             for (int &Idx : Mask) {
               if (Idx == PoisonMaskElem)
                 continue;
-              unsigned SrcRegIdx = Idx / NewElts;
-              if (SrcRegIdx != I)
+              
+              if (unsigned SrcRegIdx = Idx / NewElts; SrcRegIdx != I)
                 continue;
               int MaskElt = Shuffle->getMaskElt(Idx % NewElts);
               if (MaskElt == PoisonMaskElem) {
@@ -4029,9 +4029,9 @@ SDValue DAGTypeLegalizer::SplitVecOp_EXTRACT_VECTOR_ELT(SDNode *N) {
     SDValue Lo, Hi;
     GetSplitVector(Vec, Lo, Hi);
 
-    uint64_t LoElts = Lo.getValueType().getVectorMinNumElements();
+    
 
-    if (IdxVal < LoElts)
+    if (uint64_t LoElts = Lo.getValueType().getVectorMinNumElements(); IdxVal < LoElts)
       return SDValue(DAG.UpdateNodeOperands(N, Lo, Idx), 0);
     else if (!Vec.getValueType().isScalableVector())
       return SDValue(DAG.UpdateNodeOperands(N, Hi,
@@ -5992,9 +5992,9 @@ SDValue DAGTypeLegalizer::WidenVecRes_BITCAST(SDNode *N) {
 
   unsigned WidenSize = WidenVT.getSizeInBits();
   unsigned InSize = InVT.getSizeInBits();
-  unsigned InScalarSize = InVT.getScalarSizeInBits();
+  
   // x86mmx is not an acceptable vector element type, so don't try.
-  if (WidenSize % InScalarSize == 0 && InVT != MVT::x86mmx) {
+  if (unsigned InScalarSize = InVT.getScalarSizeInBits(); WidenSize % InScalarSize == 0 && InVT != MVT::x86mmx) {
     // Determine new input vector type.  The new input vector type will use
     // the same element type (if its a vector) or use the input type as a
     // vector.  It is the same size as the type to widen to.
@@ -6084,8 +6084,8 @@ SDValue DAGTypeLegalizer::WidenVecRes_CONCAT_VECTORS(SDNode *N) {
   bool InputWidened = false; // Indicates we need to widen the input.
   if (getTypeAction(InVT) != TargetLowering::TypeWidenVector) {
     unsigned WidenNumElts = WidenVT.getVectorMinNumElements();
-    unsigned NumInElts = InVT.getVectorMinNumElements();
-    if (WidenNumElts % NumInElts == 0) {
+    
+    if (unsigned NumInElts = InVT.getVectorMinNumElements(); WidenNumElts % NumInElts == 0) {
       // Add undef vectors to widen to correct length.
       unsigned NumConcat = WidenNumElts / NumInElts;
       SDValue UndefVal = DAG.getPOISON(InVT);
@@ -6643,8 +6643,8 @@ SDValue DAGTypeLegalizer::convertMask(SDValue InMask, EVT MaskVT,
   // extend or truncate is needed.
   LLVMContext &Ctx = *DAG.getContext();
   unsigned MaskScalarBits = MaskVT.getScalarSizeInBits();
-  unsigned ToMaskScalBits = ToMaskVT.getScalarSizeInBits();
-  if (MaskScalarBits < ToMaskScalBits) {
+  
+  if (unsigned ToMaskScalBits = ToMaskVT.getScalarSizeInBits(); MaskScalarBits < ToMaskScalBits) {
     EVT ExtVT = EVT::getVectorVT(Ctx, ToMaskVT.getVectorElementType(),
                                  MaskVT.getVectorNumElements());
     Mask = DAG.getNode(ISD::SIGN_EXTEND, SDLoc(Mask), ExtVT, Mask);
@@ -6858,8 +6858,8 @@ SDValue DAGTypeLegalizer::WidenVecRes_VECTOR_SHUFFLE(ShuffleVectorSDNode *N) {
   // Adjust mask based on new input vector length.
   SmallVector<int, 16> NewMask(WidenNumElts, -1);
   for (unsigned i = 0; i != NumElts; ++i) {
-    int Idx = N->getMaskElt(i);
-    if (Idx < (int)NumElts)
+    
+    if (int Idx = N->getMaskElt(i); Idx < (int)NumElts)
       NewMask[i] = Idx;
     else
       NewMask[i] = Idx - NumElts + WidenNumElts;
@@ -7394,8 +7394,8 @@ SDValue DAGTypeLegalizer::WidenVecOp_BITCAST(SDNode *N) {
   // having to copy via memory.
   if (VT.isVector()) {
     EVT EltVT = VT.getVectorElementType();
-    unsigned EltSize = EltVT.getFixedSizeInBits();
-    if (InWidenSize.isKnownMultipleOf(EltSize)) {
+    
+    if (unsigned EltSize = EltVT.getFixedSizeInBits(); InWidenSize.isKnownMultipleOf(EltSize)) {
       ElementCount NewNumElts =
           (InWidenVT.getVectorElementCount() * InWidenVT.getScalarSizeInBits())
               .divideCoefficientBy(EltSize);
@@ -7481,8 +7481,8 @@ SDValue DAGTypeLegalizer::WidenVecOp_INSERT_SUBVECTOR(SDNode *N) {
     Attribute Attr = DAG.getMachineFunction().getFunction().getFnAttribute(
         Attribute::VScaleRange);
     if (Attr.isValid()) {
-      unsigned VScaleMin = Attr.getVScaleRangeMin();
-      if (VT.getSizeInBits().getKnownMinValue() * VScaleMin >=
+      
+      if (unsigned VScaleMin = Attr.getVScaleRangeMin(); VT.getSizeInBits().getKnownMinValue() * VScaleMin >=
           SubVT.getFixedSizeInBits())
         IndicesValid = true;
     }

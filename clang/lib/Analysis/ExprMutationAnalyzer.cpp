@@ -57,8 +57,8 @@ static bool canExprResolveTo(const Expr *Source, const Expr *Target) {
   // below.
   const auto ConditionalOperatorM = [Target](const Expr *E) {
     if (const auto *CO = dyn_cast<AbstractConditionalOperator>(E)) {
-      const auto *TE = CO->getTrueExpr()->IgnoreParens();
-      if (TE && canExprResolveTo(TE, Target))
+      
+      if (const auto *TE = CO->getTrueExpr()->IgnoreParens(); TE && canExprResolveTo(TE, Target))
         return true;
       const auto *FE = CO->getFalseExpr()->IgnoreParens();
       if (FE && canExprResolveTo(FE, Target))
@@ -327,8 +327,8 @@ ExprMutationAnalyzer::Analyzer::tryEachDeclRef(const Decl *Dec,
               .bind(NodeID<Expr>::value)),
       Stm, Context);
   for (const auto &RefNodes : Refs) {
-    const auto *E = RefNodes.getNodeAs<Expr>(NodeID<Expr>::value);
-    if ((this->*Finder)(E))
+    
+    if (const auto *E = RefNodes.getNodeAs<Expr>(NodeID<Expr>::value); (this->*Finder)(E))
       return E;
   }
   return nullptr;
@@ -708,10 +708,10 @@ ExprMutationAnalyzer::Analyzer::findFunctionArgMutation(const Expr *Exp) {
       if (!RefType->getPointeeType().getQualifiers() &&
           isa<TemplateTypeParmType>(
               RefType->getPointeeType().getCanonicalType())) {
-        FunctionParmMutationAnalyzer *Analyzer =
+        
+        if (FunctionParmMutationAnalyzer *Analyzer =
             FunctionParmMutationAnalyzer::getFunctionParmMutationAnalyzer(
-                *Func, Context, Memorized);
-        if (Analyzer->findMutation(Parm))
+                *Func, Context, Memorized); Analyzer->findMutation(Parm))
           return Exp;
         continue;
       }
@@ -740,13 +740,13 @@ ExprMutationAnalyzer::Analyzer::findPointeeValueMutation(const Expr *Exp) {
 
 const Stmt *
 ExprMutationAnalyzer::Analyzer::findPointeeMemberMutation(const Expr *Exp) {
-  const Stmt *MemberCallExpr = selectFirst<Stmt>(
+  
+  if (const Stmt *MemberCallExpr = selectFirst<Stmt>(
       "stmt", match(stmt(forEachDescendant(
                         cxxMemberCallExpr(on(canResolveToExprPointee(Exp)),
                                           unless(isConstCallee()))
                             .bind("stmt"))),
-                    Stm, Context));
-  if (MemberCallExpr)
+                    Stm, Context)); MemberCallExpr)
     return MemberCallExpr;
   const auto Matches = match(
       stmt(forEachDescendant(

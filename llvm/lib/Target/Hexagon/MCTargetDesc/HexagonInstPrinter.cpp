@@ -52,8 +52,8 @@ void HexagonInstPrinter::printOperand(MCInst const *MI, unsigned OpNo,
   if (HexagonMCInstrInfo::getExtendableOp(MII, *MI) == OpNo &&
       (HasExtender || HexagonMCInstrInfo::isConstExtended(MII, *MI)))
     O << "#";
-  MCOperand const &MO = MI->getOperand(OpNo);
-  if (MO.isReg()) {
+  
+  if (MCOperand const &MO = MI->getOperand(OpNo); MO.isReg()) {
     O << getRegisterName(MO.getReg());
   } else if (MO.isExpr()) {
     int64_t Value;

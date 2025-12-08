@@ -72,8 +72,8 @@ void LVRange::addEntry(LVScope *Scope) {
   if (const LVLocations *Locations = Scope->getRanges())
     for (const LVLocation *Location : *Locations) {
       LVAddress LowPC = Location->getLowerAddress();
-      LVAddress HighPC = Location->getUpperAddress();
-      if (!hasEntry(LowPC, HighPC))
+      
+      if (LVAddress HighPC = Location->getUpperAddress(); !hasEntry(LowPC, HighPC))
         // Add the pair of addresses.
         addEntry(Scope, LowPC, HighPC);
     }

@@ -731,9 +731,9 @@ public:
   bool VisitFunctionDecl(FunctionDecl *D) {
     if (D->isOverloadedOperator()) {
       const auto AddOpDeclToken = [&](SourceLocation Loc) {
-        auto &Token = H.addToken(Loc, HighlightingKind::Operator)
-                          .addModifier(HighlightingModifier::Declaration);
-        if (D->isThisDeclarationADefinition())
+        
+        if (auto &Token = H.addToken(Loc, HighlightingKind::Operator)
+                          .addModifier(HighlightingModifier::Declaration); D->isThisDeclarationADefinition())
           Token.addModifier(HighlightingModifier::Definition);
       };
       const auto Range = D->getNameInfo().getCXXOperatorNameRange();
@@ -762,15 +762,15 @@ public:
   }
 
   bool VisitUnaryOperator(UnaryOperator *Op) {
-    auto &Token = H.addToken(Op->getOperatorLoc(), HighlightingKind::Operator);
-    if (Op->getSubExpr()->isTypeDependent())
+    
+    if (auto &Token = H.addToken(Op->getOperatorLoc(), HighlightingKind::Operator); Op->getSubExpr()->isTypeDependent())
       Token.addModifier(HighlightingModifier::UserDefined);
     return true;
   }
 
   bool VisitBinaryOperator(BinaryOperator *Op) {
-    auto &Token = H.addToken(Op->getOperatorLoc(), HighlightingKind::Operator);
-    if (Op->getLHS()->isTypeDependent() || Op->getRHS()->isTypeDependent())
+    
+    if (auto &Token = H.addToken(Op->getOperatorLoc(), HighlightingKind::Operator); Op->getLHS()->isTypeDependent() || Op->getRHS()->isTypeDependent())
       Token.addModifier(HighlightingModifier::UserDefined);
     return true;
   }
@@ -782,15 +782,15 @@ public:
   }
 
   bool VisitCXXNewExpr(CXXNewExpr *E) {
-    auto &Token = H.addToken(E->getBeginLoc(), HighlightingKind::Operator);
-    if (isa_and_present<CXXMethodDecl>(E->getOperatorNew()))
+    
+    if (auto &Token = H.addToken(E->getBeginLoc(), HighlightingKind::Operator); isa_and_present<CXXMethodDecl>(E->getOperatorNew()))
       Token.addModifier(HighlightingModifier::UserDefined);
     return true;
   }
 
   bool VisitCXXDeleteExpr(CXXDeleteExpr *E) {
-    auto &Token = H.addToken(E->getBeginLoc(), HighlightingKind::Operator);
-    if (isa_and_present<CXXMethodDecl>(E->getOperatorDelete()))
+    
+    if (auto &Token = H.addToken(E->getBeginLoc(), HighlightingKind::Operator); isa_and_present<CXXMethodDecl>(E->getOperatorDelete()))
       Token.addModifier(HighlightingModifier::UserDefined);
     return true;
   }
@@ -835,8 +835,8 @@ public:
     // FIXME The condition T->idDependentType() could be relaxed a bit,
     // e.g. std::vector<T>& is dependent but we would want to highlight it
     bool IsRef = T->isLValueReferenceType();
-    bool IsPtr = T->isPointerType();
-    if ((!IsRef && !IsPtr) || T->getPointeeType().isConstQualified() ||
+    
+    if (bool IsPtr = T->isPointerType(); (!IsRef && !IsPtr) || T->getPointeeType().isConstQualified() ||
         T->isDependentType()) {
       return;
     }
@@ -1039,9 +1039,9 @@ public:
     H.addAngleBracketTokens(E->getLAngleLoc(), E->getRAngleLoc());
     if (!E->decls().empty())
       return true; // handled by findExplicitReferences.
-    auto &Tok = H.addToken(E->getNameLoc(), HighlightingKind::Unknown)
-                    .addModifier(HighlightingModifier::DependentName);
-    if (llvm::isa<UnresolvedMemberExpr>(E))
+    
+    if (auto &Tok = H.addToken(E->getNameLoc(), HighlightingKind::Unknown)
+                    .addModifier(HighlightingModifier::DependentName); llvm::isa<UnresolvedMemberExpr>(E))
       Tok.addModifier(HighlightingModifier::ClassScope);
     // other case is UnresolvedLookupExpr, scope is unknown.
     return true;

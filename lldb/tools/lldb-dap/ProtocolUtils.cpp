@@ -139,9 +139,9 @@ std::optional<protocol::Module> CreateModule(const lldb::SBTarget &target,
     p_module.addressRange = llvm::formatv("{0:x}", raw_address);
 
   std::array<uint32_t, 3> version_nums{};
-  const uint32_t num_versions =
-      module.GetVersion(version_nums.data(), version_nums.size());
-  if (num_versions > 0) {
+  
+  if (const uint32_t num_versions =
+      module.GetVersion(version_nums.data(), version_nums.size()); num_versions > 0) {
     p_module.version = llvm::formatv(
         "{:$[.]}", llvm::make_range(version_nums.begin(),
                                     version_nums.begin() + num_versions));
@@ -300,9 +300,9 @@ Variable CreateVariable(lldb::SBValue v, int64_t var_ref, bool format_hex,
   if (lldb::addr_t addr = v.GetLoadAddress(); addr != LLDB_INVALID_ADDRESS)
     var.memoryReference = addr;
 
-  bool is_readonly = v.GetType().IsAggregateType() ||
-                     v.GetValueType() == lldb::eValueTypeRegisterSet;
-  if (is_readonly) {
+  
+  if (bool is_readonly = v.GetType().IsAggregateType() ||
+                     v.GetValueType() == lldb::eValueTypeRegisterSet; is_readonly) {
     if (!var.presentationHint)
       var.presentationHint = {VariablePresentationHint()};
     var.presentationHint->attributes.push_back("readOnly");

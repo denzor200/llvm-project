@@ -116,8 +116,8 @@ bool RVVType::verifyType() const {
     return false;
   if (IsTuple && (1 << std::max(0, LMUL.Log2LMUL)) * NF > 8)
     return false;
-  unsigned V = *Scale;
-  switch (ElementBitwidth) {
+  
+  switch (unsigned V = *Scale; ElementBitwidth) {
   case 1:
   case 8:
     // Check Scale is 1,2,4,8,16,32,64
@@ -412,8 +412,8 @@ PrototypeDescriptor::parsePrototypeDescriptor(
     return PD;
 
   // Handle base type modifier
-  auto PType = PrototypeDescriptorStr.back();
-  switch (PType) {
+  
+  switch (auto PType = PrototypeDescriptorStr.back(); PType) {
   case 'e':
     PT = BaseTypeModifier::Scalar;
     break;
@@ -1043,8 +1043,8 @@ llvm::SmallVector<PrototypeDescriptor> RVVIntrinsic::computeBuiltinTypes(
     bool HasMaskedOffOperand, bool HasVL, unsigned NF,
     PolicyScheme DefaultScheme, Policy PolicyAttrs, bool IsTuple) {
   SmallVector<PrototypeDescriptor> NewPrototype(Prototype);
-  bool HasPassthruOp = DefaultScheme == PolicyScheme::HasPassthruOperand;
-  if (IsMasked) {
+  
+  if (bool HasPassthruOp = DefaultScheme == PolicyScheme::HasPassthruOperand; IsMasked) {
     // If HasMaskedOffOperand, insert result type as first input operand if
     // need.
     if (HasMaskedOffOperand && !PolicyAttrs.isTAMAPolicy()) {

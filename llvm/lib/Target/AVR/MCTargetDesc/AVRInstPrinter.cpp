@@ -35,12 +35,12 @@ namespace llvm {
 void AVRInstPrinter::printInst(const MCInst *MI, uint64_t Address,
                                StringRef Annot, const MCSubtargetInfo &STI,
                                raw_ostream &O) {
-  unsigned Opcode = MI->getOpcode();
+  
 
   // First handle load and store instructions with postinc or predec
   // of the form "ld reg, X+".
   // TODO: We should be able to rewrite this using TableGen data.
-  switch (Opcode) {
+  switch (unsigned Opcode = MI->getOpcode(); Opcode) {
   case AVR::LDRdPtr:
   case AVR::LDRdPtrPi:
   case AVR::LDRdPtrPd:
@@ -101,14 +101,14 @@ const char *AVRInstPrinter::getPrettyRegisterName(MCRegister Reg,
 void AVRInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                   raw_ostream &O) {
   const MCOperandInfo &MOI = this->MII.get(MI->getOpcode()).operands()[OpNo];
-  const MCOperand &Op = MI->getOperand(OpNo);
+  
 
-  if (Op.isReg()) {
-    bool isPtrReg = (MOI.RegClass == AVR::PTRREGSRegClassID) ||
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isReg()) {
+    
+
+    if (bool isPtrReg = (MOI.RegClass == AVR::PTRREGSRegClassID) ||
                     (MOI.RegClass == AVR::PTRDISPREGSRegClassID) ||
-                    (MOI.RegClass == AVR::ZREGRegClassID);
-
-    if (isPtrReg) {
+                    (MOI.RegClass == AVR::ZREGRegClassID); isPtrReg) {
       O << getRegisterName(Op.getReg(), AVR::ptr);
     } else {
       O << getPrettyRegisterName(Op.getReg(), MRI);
@@ -135,9 +135,9 @@ void AVRInstPrinter::printPCRelImm(const MCInst *MI, unsigned OpNo,
     return;
   }
 
-  const MCOperand &Op = MI->getOperand(OpNo);
+  
 
-  if (Op.isImm()) {
+  if (const MCOperand &Op = MI->getOperand(OpNo); Op.isImm()) {
     int64_t Imm = Op.getImm();
     O << '.';
 

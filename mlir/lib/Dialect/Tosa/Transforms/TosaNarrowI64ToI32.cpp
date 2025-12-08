@@ -136,8 +136,8 @@ class ConvertArgMaxOpWithBoundsChecking
     if (!inputType || !inputType.isStaticDim(axis))
       return rewriter.notifyMatchFailure(
           op, "Requires a static axis dimension for bounds checking.");
-    const int64_t axisDim = inputType.getDimSize(axis);
-    if (axisDim >= std::numeric_limits<int32_t>::max())
+    
+    if (const int64_t axisDim = inputType.getDimSize(axis); axisDim >= std::numeric_limits<int32_t>::max())
       return rewriter.notifyMatchFailure(
           op, "Axis dimension is too large to narrow safely.");
 

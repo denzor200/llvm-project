@@ -176,8 +176,8 @@ struct UnrollCreateNdOp : public UnrollPattern<xegpu::CreateNdDescOp> {
     SmallVector<Value> newOps;
 
     auto newTdescTy = getUnrolledTypes(tdescTy, *targetShape)[0];
-    bool hasOffsets = op.getMixedOffsets().size() != 0;
-    if (!hasOffsets) {
+    
+    if (bool hasOffsets = op.getMixedOffsets().size() != 0; !hasOffsets) {
       auto newOp = xegpu::CreateNdDescOp::create(
           rewriter, loc, newTdescTy, op.getSource(), op.getMixedSizes(),
           op.getMixedStrides());
@@ -911,8 +911,8 @@ struct UnrollUpdateOffsetOp : public UnrollPattern<xegpu::UpdateOffsetOp> {
     SmallVector<Type> convertedOffsetTypes;
     SmallVector<Value> convertedOffsetVec;
     SmallVector<Value> newOps;
-    int64_t originalChunkSize = tdescTy.getChunkSizeAsInt();
-    if (originalChunkSize > 1) {
+    
+    if (int64_t originalChunkSize = tdescTy.getChunkSizeAsInt(); originalChunkSize > 1) {
       auto targetOffsetShape = ArrayRef<int64_t>(*targetShape).drop_back();
       convertedOffsetTypes = getUnrolledTypes(offsetVecTy, targetOffsetShape);
 

@@ -435,8 +435,8 @@ LogicalResult OpaqueAttr::verify(function_ref<InFlightDiagnostic()> emitError,
     return emitError() << "invalid dialect namespace '" << dialect << "'";
 
   // Check that the dialect is actually registered.
-  MLIRContext *context = dialect.getContext();
-  if (!context->allowsUnregisteredDialects() &&
+  
+  if (MLIRContext *context = dialect.getContext(); !context->allowsUnregisteredDialects() &&
       !context->getLoadedDialect(dialect.strref())) {
     return emitError()
            << "#" << dialect << "<\"" << attrData << "\"> : " << type
@@ -1089,8 +1089,8 @@ bool DenseElementsAttr::isValidRawBuffer(ShapedType type,
     // Check for a splat, or a buffer equal to the number of elements which
     // consists of either all 0's or all 1's.
     if (rawBuffer.size() == 1) {
-      auto rawByte = static_cast<uint8_t>(rawBuffer[0]);
-      if (rawByte == 0 || rawByte == 0xff) {
+      
+      if (auto rawByte = static_cast<uint8_t>(rawBuffer[0]); rawByte == 0 || rawByte == 0xff) {
         detectedSplat = true;
         return true;
       }
@@ -1118,8 +1118,8 @@ static bool isValidIntOrFloat(Type type, int64_t dataEltSize, bool isInt,
                               bool isSigned) {
   // Make sure that the data element size is the same as the type element width.
   auto denseEltBitWidth = getDenseElementBitWidth(type);
-  auto dataSize = static_cast<size_t>(dataEltSize * CHAR_BIT);
-  if (denseEltBitWidth != dataSize) {
+  
+  if (auto dataSize = static_cast<size_t>(dataEltSize * CHAR_BIT); denseEltBitWidth != dataSize) {
     LDBG() << "expected dense element bit width " << denseEltBitWidth
            << " to match data size " << dataSize << " for type " << type;
     return false;

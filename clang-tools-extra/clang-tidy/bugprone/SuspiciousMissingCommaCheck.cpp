@@ -43,8 +43,8 @@ static bool isConcatenatedLiteralsOnPurpose(ASTContext *Ctx,
     const SourceLocation Token = Lit->getStrTokenLoc(TokNum);
     const FileID FID = SM.getFileID(Token);
     const unsigned int Indent = SM.getSpellingColumnNumber(Token);
-    const unsigned int Line = SM.getSpellingLineNumber(Token);
-    if (FID != BaseFID || Line != BaseLine + TokNum || Indent <= BaseIndent) {
+    
+    if (const unsigned int Line = SM.getSpellingLineNumber(Token); FID != BaseFID || Line != BaseLine + TokNum || Indent <= BaseIndent) {
       IndentedCorrectly = false;
       break;
     }
@@ -107,8 +107,8 @@ void SuspiciousMissingCommaCheck::check(
   // Count the number of occurrence of concatenated string literal.
   unsigned int Count = 0;
   for (unsigned int I = 0; I < Size; ++I) {
-    const Expr *Child = InitializerList->getInit(I)->IgnoreImpCasts();
-    if (const auto *Literal = dyn_cast<StringLiteral>(Child)) {
+    
+    if (const Expr *Child = InitializerList->getInit(I)->IgnoreImpCasts(); const auto *Literal = dyn_cast<StringLiteral>(Child)) {
       if (Literal->getNumConcatenated() > 1)
         ++Count;
     }

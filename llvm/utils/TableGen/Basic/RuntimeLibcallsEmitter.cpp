@@ -177,8 +177,8 @@ constructPerfectHashTable(ArrayRef<RuntimeLibcallImpl> Keywords,
 
     bool Found = false;
     for (int J = 0; J < Collisions; ++J) {
-      unsigned &Entry = Lookup[Idx + J];
-      if (Entry == 0) {
+      
+      if (unsigned &Entry = Lookup[Idx + J]; Entry == 0) {
         Entry = TableValue;
         Found = true;
         break;

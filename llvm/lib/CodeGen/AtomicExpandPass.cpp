@@ -436,8 +436,8 @@ PreservedAnalyses AtomicExpandPass::run(Function &F,
                                         FunctionAnalysisManager &AM) {
   AtomicExpandImpl AE;
 
-  bool Changed = AE.run(F, TM);
-  if (!Changed)
+  
+  if (bool Changed = AE.run(F, TM); !Changed)
     return PreservedAnalyses::all();
 
   return PreservedAnalyses::none();
@@ -686,8 +686,8 @@ bool AtomicExpandImpl::tryExpandAtomicRMW(AtomicRMWInst *AI) {
     return false;
   case TargetLoweringBase::AtomicExpansionKind::LLSC: {
     unsigned MinCASSize = TLI->getMinCmpXchgSizeInBits() / 8;
-    unsigned ValueSize = getAtomicOpSize(AI);
-    if (ValueSize < MinCASSize) {
+    
+    if (unsigned ValueSize = getAtomicOpSize(AI); ValueSize < MinCASSize) {
       expandPartwordAtomicRMW(AI,
                               TargetLoweringBase::AtomicExpansionKind::LLSC);
     } else {
@@ -702,8 +702,8 @@ bool AtomicExpandImpl::tryExpandAtomicRMW(AtomicRMWInst *AI) {
   }
   case TargetLoweringBase::AtomicExpansionKind::CmpXChg: {
     unsigned MinCASSize = TLI->getMinCmpXchgSizeInBits() / 8;
-    unsigned ValueSize = getAtomicOpSize(AI);
-    if (ValueSize < MinCASSize) {
+    
+    if (unsigned ValueSize = getAtomicOpSize(AI); ValueSize < MinCASSize) {
       expandPartwordAtomicRMW(AI,
                               TargetLoweringBase::AtomicExpansionKind::CmpXChg);
     } else {
@@ -725,8 +725,8 @@ bool AtomicExpandImpl::tryExpandAtomicRMW(AtomicRMWInst *AI) {
   }
   case TargetLoweringBase::AtomicExpansionKind::MaskedIntrinsic: {
     unsigned MinCASSize = TLI->getMinCmpXchgSizeInBits() / 8;
-    unsigned ValueSize = getAtomicOpSize(AI);
-    if (ValueSize < MinCASSize) {
+    
+    if (unsigned ValueSize = getAtomicOpSize(AI); ValueSize < MinCASSize) {
       AtomicRMWInst::BinOp Op = AI->getOperation();
       // Widen And/Or/Xor and give the target another chance at expanding it.
       if (Op == AtomicRMWInst::Or || Op == AtomicRMWInst::Xor ||
@@ -1699,9 +1699,9 @@ Value *AtomicExpandImpl::insertRMWCmpXchgLoop(
 
 bool AtomicExpandImpl::tryExpandAtomicCmpXchg(AtomicCmpXchgInst *CI) {
   unsigned MinCASSize = TLI->getMinCmpXchgSizeInBits() / 8;
-  unsigned ValueSize = getAtomicOpSize(CI);
+  
 
-  switch (TLI->shouldExpandAtomicCmpXchgInIR(CI)) {
+  switch (unsigned ValueSize = getAtomicOpSize(CI); TLI->shouldExpandAtomicCmpXchgInIR(CI)) {
   default:
     llvm_unreachable("Unhandled case in tryExpandAtomicCmpXchg");
   case TargetLoweringBase::AtomicExpansionKind::None:
@@ -1772,10 +1772,10 @@ void AtomicExpandImpl::expandAtomicLoadToLibcall(LoadInst *I) {
       RTLIB::ATOMIC_LOAD_4, RTLIB::ATOMIC_LOAD_8, RTLIB::ATOMIC_LOAD_16};
   unsigned Size = getAtomicOpSize(I);
 
-  bool expanded = expandAtomicOpToLibcall(
+  
+  if (bool expanded = expandAtomicOpToLibcall(
       I, Size, I->getAlign(), I->getPointerOperand(), nullptr, nullptr,
-      I->getOrdering(), AtomicOrdering::NotAtomic, Libcalls);
-  if (!expanded)
+      I->getOrdering(), AtomicOrdering::NotAtomic, Libcalls); !expanded)
     handleFailure(*I, "unsupported atomic load");
 }
 
@@ -1785,10 +1785,10 @@ void AtomicExpandImpl::expandAtomicStoreToLibcall(StoreInst *I) {
       RTLIB::ATOMIC_STORE_4, RTLIB::ATOMIC_STORE_8, RTLIB::ATOMIC_STORE_16};
   unsigned Size = getAtomicOpSize(I);
 
-  bool expanded = expandAtomicOpToLibcall(
+  
+  if (bool expanded = expandAtomicOpToLibcall(
       I, Size, I->getAlign(), I->getPointerOperand(), I->getValueOperand(),
-      nullptr, I->getOrdering(), AtomicOrdering::NotAtomic, Libcalls);
-  if (!expanded)
+      nullptr, I->getOrdering(), AtomicOrdering::NotAtomic, Libcalls); !expanded)
     handleFailure(*I, "unsupported atomic store");
 }
 
@@ -1799,11 +1799,11 @@ void AtomicExpandImpl::expandAtomicCASToLibcall(AtomicCmpXchgInst *I) {
       RTLIB::ATOMIC_COMPARE_EXCHANGE_8, RTLIB::ATOMIC_COMPARE_EXCHANGE_16};
   unsigned Size = getAtomicOpSize(I);
 
-  bool expanded = expandAtomicOpToLibcall(
+  
+  if (bool expanded = expandAtomicOpToLibcall(
       I, Size, I->getAlign(), I->getPointerOperand(), I->getNewValOperand(),
       I->getCompareOperand(), I->getSuccessOrdering(), I->getFailureOrdering(),
-      Libcalls);
-  if (!expanded)
+      Libcalls); !expanded)
     handleFailure(*I, "unsupported cmpxchg");
 }
 

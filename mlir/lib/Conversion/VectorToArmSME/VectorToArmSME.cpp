@@ -705,8 +705,8 @@ struct ExtractFromCreateMaskToPselLowering
     };
 
     auto rowsBaseSize = maskType.getDimSize(0);
-    auto colsBaseSize = maskType.getDimSize(1);
-    if (!isSVEPredicateSize(rowsBaseSize) || !isSVEPredicateSize(colsBaseSize))
+    
+    if (auto colsBaseSize = maskType.getDimSize(1); !isSVEPredicateSize(rowsBaseSize) || !isSVEPredicateSize(colsBaseSize))
       return rewriter.notifyMatchFailure(
           createMaskOp, "mask dimensions not SVE predicate-sized");
 

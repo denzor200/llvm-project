@@ -228,8 +228,8 @@ void WebAssemblyDAGToDAGISel::Select(SDNode *Node) {
   }
 
   case ISD::INTRINSIC_WO_CHAIN: {
-    unsigned IntNo = Node->getConstantOperandVal(0);
-    switch (IntNo) {
+    
+    switch (unsigned IntNo = Node->getConstantOperandVal(0); IntNo) {
     case Intrinsic::wasm_tls_size: {
       MachineSDNode *TLSSize = CurDAG->getMachineNode(
           GlobalGetIns, DL, PtrVT,
@@ -339,8 +339,8 @@ void WebAssemblyDAGToDAGISel::Select(SDNode *Node) {
   }
 
   case ISD::INTRINSIC_VOID: {
-    unsigned IntNo = Node->getConstantOperandVal(1);
-    switch (IntNo) {
+    
+    switch (unsigned IntNo = Node->getConstantOperandVal(1); IntNo) {
     case Intrinsic::wasm_throw: {
       int Tag = Node->getConstantOperandVal(2);
       SDValue SymNode = getTagSymNode(Tag, CurDAG);

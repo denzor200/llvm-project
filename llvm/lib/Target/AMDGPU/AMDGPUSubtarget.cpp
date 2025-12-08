@@ -100,11 +100,11 @@ std::pair<unsigned, unsigned> AMDGPUSubtarget::getOccupancyWithWorkGroupSizes(
     // Look for a potential smaller group size than the maximum which decreases
     // the concurrent number of waves on the CU for the same number of
     // concurrent workgroups on the CU.
-    unsigned MinWavesPerCUForWGSize =
-        divideCeil(WaveSlotsPerCU, MinWGsPerCU + 1) * MinWGsPerCU;
-    if (MinWavesPerCU > MinWavesPerCUForWGSize) {
-      unsigned ExcessSlots = MinWavesPerCU - MinWavesPerCUForWGSize;
-      if (unsigned ExcessSlotsPerWG = ExcessSlots / MinWGsPerCU) {
+    
+    if (unsigned MinWavesPerCUForWGSize =
+        divideCeil(WaveSlotsPerCU, MinWGsPerCU + 1) * MinWGsPerCU; MinWavesPerCU > MinWavesPerCUForWGSize) {
+      
+      if (unsigned ExcessSlots = MinWavesPerCU - MinWavesPerCUForWGSize; unsigned ExcessSlotsPerWG = ExcessSlots / MinWGsPerCU) {
         // There may exist a smaller group size than the maximum that achieves
         // the minimum number of waves per CU. This group size is the largest
         // possible size that requires MaxWavesPerWG - E waves where E is
@@ -236,8 +236,8 @@ AMDGPUSubtarget::getWavesPerEU(std::pair<unsigned, unsigned> FlatWorkGroupSizes,
 std::optional<unsigned>
 AMDGPUSubtarget::getReqdWorkGroupSize(const Function &Kernel,
                                       unsigned Dim) const {
-  auto *Node = Kernel.getMetadata("reqd_work_group_size");
-  if (Node && Node->getNumOperands() == 3)
+  
+  if (auto *Node = Kernel.getMetadata("reqd_work_group_size"); Node && Node->getNumOperands() == 3)
     return mdconst::extract<ConstantInt>(Node->getOperand(Dim))->getZExtValue();
   return std::nullopt;
 }
@@ -289,8 +289,8 @@ bool AMDGPUSubtarget::makeLIDRangeMetadata(Instruction *I) const {
 
   // If reqd_work_group_size is present it narrows value down.
   if (auto *CI = dyn_cast<CallInst>(I)) {
-    const Function *F = CI->getCalledFunction();
-    if (F) {
+    
+    if (const Function *F = CI->getCalledFunction(); F) {
       unsigned Dim = UINT_MAX;
       switch (F->getIntrinsicID()) {
       case Intrinsic::amdgcn_workitem_id_x:
@@ -404,8 +404,8 @@ unsigned AMDGPUSubtarget::getKernArgSegmentSize(const Function &F,
   unsigned ExplicitOffset = getExplicitKernelArgOffset();
 
   uint64_t TotalSize = ExplicitOffset + ExplicitArgBytes;
-  unsigned ImplicitBytes = getImplicitArgNumBytes(F);
-  if (ImplicitBytes != 0) {
+  
+  if (unsigned ImplicitBytes = getImplicitArgNumBytes(F); ImplicitBytes != 0) {
     const Align Alignment = getAlignmentForImplicitArgPtr();
     TotalSize = alignTo(ExplicitArgBytes, Alignment) + ImplicitBytes;
     MaxAlign = std::max(MaxAlign, Alignment);

@@ -378,9 +378,9 @@ BitVector PPCRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   markSuperRegs(Reserved, PPC::VRSAVE);
 
   const PPCFunctionInfo *FuncInfo = MF.getInfo<PPCFunctionInfo>();
-  bool UsesTOCBasePtr = FuncInfo->usesTOCBasePtr();
+  
   // The SVR4 ABI reserves r2 and r13
-  if (Subtarget.isSVR4ABI() || Subtarget.isAIXABI()) {
+  if (bool UsesTOCBasePtr = FuncInfo->usesTOCBasePtr(); Subtarget.isSVR4ABI() || Subtarget.isAIXABI()) {
     // We only reserve r2 if we need to use the TOC pointer. If we have no
     // explicit uses of the TOC pointer (meaning we're a leaf function with
     // no constant-pool loads, etc.) and we have no potential uses inside an
@@ -461,9 +461,9 @@ bool PPCRegisterInfo::requiresFrameIndexScavenging(const MachineFunction &MF) co
   // We will require the use of X-Forms because the frame is larger than what
   // can be represented in signed 16 bits that fit in the immediate of a D-Form.
   // If we need an X-Form then we need a register to store the address offset.
-  unsigned FrameSize = MFI.getStackSize();
+  
   // Signed 16 bits means that the FrameSize cannot be more than 15 bits.
-  if (FrameSize & ~0x7FFF) {
+  if (unsigned FrameSize = MFI.getStackSize(); FrameSize & ~0x7FFF) {
     LLVM_DEBUG(dbgs() << "TRUE - Frame size is too large for D-Form.\n");
     return true;
   }
@@ -634,9 +634,9 @@ PPCRegisterInfo::getCrossCopyRegClass(const TargetRegisterClass *RC) const {
 unsigned PPCRegisterInfo::getRegPressureLimit(const TargetRegisterClass *RC,
                                               MachineFunction &MF) const {
   const PPCFrameLowering *TFI = getFrameLowering(MF);
-  const unsigned DefaultSafety = 1;
+  
 
-  switch (RC->getID()) {
+  switch (const unsigned DefaultSafety = 1; RC->getID()) {
   default:
     return 0;
   case PPC::G8RC_NOX0RegClassID:
@@ -653,18 +653,18 @@ unsigned PPCRegisterInfo::getRegPressureLimit(const TargetRegisterClass *RC,
     return 32 - DefaultSafety;
   case PPC::VFRCRegClassID:
   case PPC::VRRCRegClassID: {
-    const PPCSubtarget &Subtarget = MF.getSubtarget<PPCSubtarget>();
+    
     // Vector registers VR20-VR31 are reserved and cannot be used in the default
     // Altivec ABI on AIX.
-    if (!TM.getAIXExtendedAltivecABI() && Subtarget.isAIXABI())
+    if (const PPCSubtarget &Subtarget = MF.getSubtarget<PPCSubtarget>(); !TM.getAIXExtendedAltivecABI() && Subtarget.isAIXABI())
       return 20 - DefaultSafety;
   }
     return 32 - DefaultSafety;
   case PPC::VSFRCRegClassID:
   case PPC::VSSRCRegClassID:
   case PPC::VSRCRegClassID: {
-    const PPCSubtarget &Subtarget = MF.getSubtarget<PPCSubtarget>();
-    if (!TM.getAIXExtendedAltivecABI() && Subtarget.isAIXABI())
+    
+    if (const PPCSubtarget &Subtarget = MF.getSubtarget<PPCSubtarget>(); !TM.getAIXExtendedAltivecABI() && Subtarget.isAIXABI())
       // Vector registers VR20-VR31 are reserved and cannot be used in the
       // default Altivec ABI on AIX.
       return 52 - DefaultSafety;
@@ -1923,9 +1923,9 @@ PPCRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 }
 
 Register PPCRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
-  const PPCFrameLowering *TFI = getFrameLowering(MF);
+  
 
-  if (!TM.isPPC64())
+  if (const PPCFrameLowering *TFI = getFrameLowering(MF); !TM.isPPC64())
     return TFI->hasFP(MF) ? PPC::R31 : PPC::R1;
   else
     return TFI->hasFP(MF) ? PPC::X31 : PPC::X1;

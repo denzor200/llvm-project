@@ -1058,8 +1058,8 @@ bool Parser::ConsumeAndStoreFunctionPrologue(CachedTokens &Toks) {
       if (!getLangOpts().CPlusPlus11)
         return false;
 
-      const Token &PreviousToken = Toks[Toks.size() - 2];
-      if (!MightBeTemplateArgument &&
+      
+      if (const Token &PreviousToken = Toks[Toks.size() - 2]; !MightBeTemplateArgument &&
           !PreviousToken.isOneOf(tok::identifier, tok::greater,
                                  tok::greatergreater)) {
         // If the opening brace is not preceded by one of these tokens, we are

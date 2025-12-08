@@ -160,9 +160,9 @@ bool CoreEngine::ExecuteWorkList(const LocationContext *L, unsigned MaxSteps,
     }
     return MaxSteps - Steps;
   };
-  const unsigned STUSteps = ProcessWList(MaxSteps);
+  
 
-  if (CTUWList) {
+  if (const unsigned STUSteps = ProcessWList(MaxSteps); CTUWList) {
     NumSTUSteps += STUSteps;
     const unsigned MinCTUSteps =
         this->ExprEng.getAnalysisManager().options.CTUMaxNodesMin;

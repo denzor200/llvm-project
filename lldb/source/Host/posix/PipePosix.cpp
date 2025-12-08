@@ -151,8 +151,8 @@ Status PipePosix::OpenAsReader(llvm::StringRef name) {
   int flags = O_RDONLY | O_NONBLOCK | O_CLOEXEC;
 
   Status error;
-  int fd = FileSystem::Instance().Open(name.str().c_str(), flags);
-  if (fd != -1)
+  
+  if (int fd = FileSystem::Instance().Open(name.str().c_str(), flags); fd != -1)
     m_fds[READ] = fd;
   else
     error = Status::FromErrno();
@@ -182,11 +182,11 @@ llvm::Error PipePosix::OpenAsWriter(llvm::StringRef name,
     }
 
     errno = 0;
-    int fd = ::open(name.str().c_str(), flags);
-    if (fd == -1) {
-      const auto errno_copy = errno;
+    
+    if (int fd = ::open(name.str().c_str(), flags); fd == -1) {
+      
       // We may get ENXIO if a reader side of the pipe hasn't opened yet.
-      if (errno_copy != ENXIO && errno_copy != EINTR)
+      if (const auto errno_copy = errno; errno_copy != ENXIO && errno_copy != EINTR)
         return llvm::errorCodeToError(
             std::error_code(errno_copy, std::generic_category()));
 

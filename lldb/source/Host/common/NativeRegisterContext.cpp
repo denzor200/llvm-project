@@ -58,19 +58,19 @@ NativeRegisterContext::GetRegisterInfoByName(llvm::StringRef reg_name,
   // Generic register names take precedence over specific register names.
   // For example, on x86 we want "sp" to refer to the complete RSP/ESP register
   // rather than the 16-bit SP pseudo-register.
-  uint32_t generic_reg = Args::StringToGenericRegister(reg_name);
-  if (generic_reg != LLDB_INVALID_REGNUM) {
-    const RegisterInfo *reg_info =
-        GetRegisterInfo(eRegisterKindGeneric, generic_reg);
-    if (reg_info)
+  
+  if (uint32_t generic_reg = Args::StringToGenericRegister(reg_name); generic_reg != LLDB_INVALID_REGNUM) {
+    
+    if (const RegisterInfo *reg_info =
+        GetRegisterInfo(eRegisterKindGeneric, generic_reg); reg_info)
       return reg_info;
   }
 
   const uint32_t num_registers = GetRegisterCount();
   for (uint32_t reg = start_idx; reg < num_registers; ++reg) {
-    const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg);
+    
 
-    if (reg_name.equals_insensitive(reg_info->name) ||
+    if (const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg); reg_name.equals_insensitive(reg_info->name) ||
         reg_name.equals_insensitive(reg_info->alt_name))
       return reg_info;
   }
@@ -87,8 +87,8 @@ const RegisterInfo *NativeRegisterContext::GetRegisterInfo(uint32_t kind,
 }
 
 const char *NativeRegisterContext::GetRegisterName(uint32_t reg) {
-  const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg);
-  if (reg_info)
+  
+  if (const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg); reg_info)
     return reg_info->name;
   return nullptr;
 }
@@ -106,9 +106,9 @@ const char *NativeRegisterContext::GetRegisterSetNameForRegisterAtIndex(
 
     for (uint32_t reg_num_index = 0; reg_num_index < reg_set->num_registers;
          ++reg_num_index) {
-      const uint32_t reg_num = reg_set->registers[reg_num_index];
+      
       // FIXME double check we're checking the right register kind here.
-      if (reg_info->kinds[RegisterKind::eRegisterKindLLDB] == reg_num) {
+      if (const uint32_t reg_num = reg_set->registers[reg_num_index]; reg_info->kinds[RegisterKind::eRegisterKindLLDB] == reg_num) {
         // The given register is a member of this register set.  Return the
         // register set name.
         return reg_set->name;
@@ -193,9 +193,9 @@ NativeRegisterContext::ReadRegisterAsUnsigned(uint32_t reg,
 uint64_t
 NativeRegisterContext::ReadRegisterAsUnsigned(const RegisterInfo *reg_info,
                                               lldb::addr_t fail_value) {
-  Log *log = GetLog(LLDBLog::Thread);
+  
 
-  if (reg_info) {
+  if (Log *log = GetLog(LLDBLog::Thread); reg_info) {
     RegisterValue value;
     Status error = ReadRegister(reg_info, value);
     if (error.Success()) {
@@ -331,9 +331,9 @@ Status NativeRegisterContext::ReadRegisterValueFromMemory(
   //   |AABB| Address contents
   //   |AABB0000| Register contents [on little-endian hardware]
   //   |0000AABB| Register contents [on big-endian hardware]
-  const size_t dst_len = reg_info->byte_size;
+  
 
-  if (src_len > dst_len) {
+  if (const size_t dst_len = reg_info->byte_size; src_len > dst_len) {
     error = Status::FromErrorStringWithFormat(
         "%" PRIu64 " bytes is too big to store in register %s (%" PRIu64
         " bytes)",
@@ -386,10 +386,10 @@ Status NativeRegisterContext::WriteRegisterValueToMemory(
   // TODO: we might need to add a parameter to this function in case the byte
   // order of the memory data doesn't match the process. For now we are
   // assuming they are the same.
-  const size_t bytes_copied = reg_value.GetAsMemoryData(
-      *reg_info, dst.data(), dst_len, process.GetByteOrder(), error);
+  
 
-  if (error.Success()) {
+  if (const size_t bytes_copied = reg_value.GetAsMemoryData(
+      *reg_info, dst.data(), dst_len, process.GetByteOrder(), error); error.Success()) {
     if (bytes_copied == 0) {
       error = Status::FromErrorString("byte copy failed.");
     } else {
@@ -419,9 +419,9 @@ NativeRegisterContext::ConvertRegisterKindToRegisterNumber(uint32_t kind,
 
   assert(kind < kNumRegisterKinds);
   for (uint32_t reg_idx = 0; reg_idx < num_regs; ++reg_idx) {
-    const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg_idx);
+    
 
-    if (reg_info->kinds[kind] == num)
+    if (const RegisterInfo *reg_info = GetRegisterInfoAtIndex(reg_idx); reg_info->kinds[kind] == num)
       return reg_idx;
   }
 

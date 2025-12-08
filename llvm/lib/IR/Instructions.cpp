@@ -494,9 +494,9 @@ CallBase::getFnAttrOnCalledFunction(StringRef Kind) const;
 template <typename AK>
 Attribute CallBase::getParamAttrOnCalledFunction(unsigned ArgNo,
                                                  AK Kind) const {
-  Value *V = getCalledOperand();
+  
 
-  if (auto *F = dyn_cast<Function>(V))
+  if (Value *V = getCalledOperand(); auto *F = dyn_cast<Function>(V))
     return F->getAttributes().getParamAttr(ArgNo, Kind);
 
   return Attribute();
@@ -2210,8 +2210,8 @@ bool ShuffleVectorInst::isIdentityWithExtract() const {
     return false;
 
   int NumOpElts = cast<FixedVectorType>(Op<0>()->getType())->getNumElements();
-  int NumMaskElts = cast<FixedVectorType>(getType())->getNumElements();
-  if (NumMaskElts >= NumOpElts)
+  
+  if (int NumMaskElts = cast<FixedVectorType>(getType())->getNumElements(); NumMaskElts >= NumOpElts)
     return false;
 
   return isIdentityMaskImpl(getShuffleMask(), NumOpElts);
@@ -2893,17 +2893,17 @@ unsigned CastInst::isEliminableCastPair(Instruction::CastOps firstOp,
   // merging. However, any pair of bitcasts are allowed.
   bool IsFirstBitcast  = (firstOp == Instruction::BitCast);
   bool IsSecondBitcast = (secondOp == Instruction::BitCast);
-  bool AreBothBitcasts = IsFirstBitcast && IsSecondBitcast;
+  
 
   // Check if any of the casts convert scalars <-> vectors.
-  if ((IsFirstBitcast  && isa<VectorType>(SrcTy) != isa<VectorType>(MidTy)) ||
+  if (bool AreBothBitcasts = IsFirstBitcast && IsSecondBitcast; (IsFirstBitcast  && isa<VectorType>(SrcTy) != isa<VectorType>(MidTy)) ||
       (IsSecondBitcast && isa<VectorType>(MidTy) != isa<VectorType>(DstTy)))
     if (!AreBothBitcasts)
       return 0;
 
-  int ElimCase = CastResults[firstOp-Instruction::CastOpsBegin]
-                            [secondOp-Instruction::CastOpsBegin];
-  switch (ElimCase) {
+  
+  switch (int ElimCase = CastResults[firstOp-Instruction::CastOpsBegin]
+                            [secondOp-Instruction::CastOpsBegin]; ElimCase) {
     case 0:
       // Categorically disallowed.
       return 0;
@@ -2943,8 +2943,8 @@ unsigned CastInst::isEliminableCastPair(Instruction::CastOps firstOp,
 
       // Cannot simplify if the intermediate integer size is smaller than the
       // pointer size.
-      unsigned MidSize = MidTy->getScalarSizeInBits();
-      if (!DL || MidSize < DL->getPointerTypeSizeInBits(SrcTy))
+      
+      if (unsigned MidSize = MidTy->getScalarSizeInBits(); !DL || MidSize < DL->getPointerTypeSizeInBits(SrcTy))
         return 0;
 
       return Instruction::BitCast;
@@ -3241,11 +3241,11 @@ CastInst::getCastOpcode(
   // counts that don't call getElementType above.
   unsigned SrcBits =
       SrcTy->getPrimitiveSizeInBits().getFixedValue(); // 0 for ptr
-  unsigned DestBits =
-      DestTy->getPrimitiveSizeInBits().getFixedValue(); // 0 for ptr
+  // 0 for ptr
 
   // Run through the possibilities ...
-  if (DestTy->isIntegerTy()) {                      // Casting to integral
+  if (unsigned DestBits =
+      DestTy->getPrimitiveSizeInBits().getFixedValue(); DestTy->isIntegerTy()) {                      // Casting to integral
     if (SrcTy->isIntegerTy()) {                     // Casting from integral
       if (DestBits < SrcBits)
         return Trunc;                               // int -> smaller int
@@ -3571,8 +3571,8 @@ bool CmpInst::isEquality(Predicate P) {
 // floating-point constant.
 static bool hasNonZeroFPOperands(const CmpInst *Cmp) {
   auto *LHS = dyn_cast<Constant>(Cmp->getOperand(0));
-  auto *RHS = dyn_cast<Constant>(Cmp->getOperand(1));
-  if (auto *Const = LHS ? LHS : RHS) {
+  
+  if (auto *RHS = dyn_cast<Constant>(Cmp->getOperand(1)); auto *Const = LHS ? LHS : RHS) {
     using namespace llvm::PatternMatch;
     return match(Const, m_NonZeroNotDenormalFP());
   }
@@ -4226,8 +4226,8 @@ void SwitchInstProfUpdateWrapper::setSuccessorWeight(
     Weights = SmallVector<uint32_t, 8>(SI.getNumSuccessors(), 0);
 
   if (Weights) {
-    auto &OldW = (*Weights)[idx];
-    if (*W != OldW) {
+    
+    if (auto &OldW = (*Weights)[idx]; *W != OldW) {
       Changed = true;
       OldW = *W;
     }

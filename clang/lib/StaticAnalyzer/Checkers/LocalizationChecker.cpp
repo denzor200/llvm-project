@@ -664,10 +664,10 @@ bool NonLocalizedStringChecker::isAnnotatedAsTakingLocalized(
 /// Returns true if the given SVal is marked as Localized in the program state
 bool NonLocalizedStringChecker::hasLocalizedState(SVal S,
                                                   CheckerContext &C) const {
-  const MemRegion *mt = S.getAsRegion();
-  if (mt) {
-    const LocalizedState *LS = C.getState()->get<LocalizedMemMap>(mt);
-    if (LS && LS->isLocalized())
+  
+  if (const MemRegion *mt = S.getAsRegion(); mt) {
+    
+    if (const LocalizedState *LS = C.getState()->get<LocalizedMemMap>(mt); LS && LS->isLocalized())
       return true;
   }
   return false;
@@ -677,10 +677,10 @@ bool NonLocalizedStringChecker::hasLocalizedState(SVal S,
 /// state
 bool NonLocalizedStringChecker::hasNonLocalizedState(SVal S,
                                                      CheckerContext &C) const {
-  const MemRegion *mt = S.getAsRegion();
-  if (mt) {
-    const LocalizedState *LS = C.getState()->get<LocalizedMemMap>(mt);
-    if (LS && LS->isNonLocalized())
+  
+  if (const MemRegion *mt = S.getAsRegion(); mt) {
+    
+    if (const LocalizedState *LS = C.getState()->get<LocalizedMemMap>(mt); LS && LS->isNonLocalized())
       return true;
   }
   return false;
@@ -689,8 +689,8 @@ bool NonLocalizedStringChecker::hasNonLocalizedState(SVal S,
 /// Marks the given SVal as Localized in the program state
 void NonLocalizedStringChecker::setLocalizedState(const SVal S,
                                                   CheckerContext &C) const {
-  const MemRegion *mt = S.getAsRegion();
-  if (mt) {
+  
+  if (const MemRegion *mt = S.getAsRegion(); mt) {
     ProgramStateRef State =
         C.getState()->set<LocalizedMemMap>(mt, LocalizedState::getLocalized());
     C.addTransition(State);
@@ -700,8 +700,8 @@ void NonLocalizedStringChecker::setLocalizedState(const SVal S,
 /// Marks the given SVal as NonLocalized in the program state
 void NonLocalizedStringChecker::setNonLocalizedState(const SVal S,
                                                      CheckerContext &C) const {
-  const MemRegion *mt = S.getAsRegion();
-  if (mt) {
+  
+  if (const MemRegion *mt = S.getAsRegion(); mt) {
     ProgramStateRef State = C.getState()->set<LocalizedMemMap>(
         mt, LocalizedState::getNonLocalized());
     C.addTransition(State);
@@ -814,9 +814,9 @@ void NonLocalizedStringChecker::checkPreObjCMessage(const ObjCMethodCall &msg,
 
     SVal svTitle = msg.getReceiverSVal();
 
-    bool isNonLocalized = hasNonLocalizedState(svTitle, C);
+    
 
-    if (isNonLocalized) {
+    if (bool isNonLocalized = hasNonLocalizedState(svTitle, C); isNonLocalized) {
       reportLocalizationError(svTitle, msg, C);
     }
   }
@@ -947,9 +947,9 @@ void NonLocalizedStringChecker::checkPostCall(const CallEvent &Call,
     if (IsAggressive) {
       setNonLocalizedState(sv, C);
     } else {
-      const SymbolicRegion *SymReg =
-          dyn_cast_or_null<SymbolicRegion>(sv.getAsRegion());
-      if (!SymReg)
+      
+      if (const SymbolicRegion *SymReg =
+          dyn_cast_or_null<SymbolicRegion>(sv.getAsRegion()); !SymReg)
         setNonLocalizedState(sv, C);
     }
   }
@@ -1235,8 +1235,8 @@ bool PluralMisuseChecker::MethodCrawler::isCheckingPlurality(
   // Accounts for when a VarDecl represents a BinaryOperator
   if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(Condition)) {
     if (const VarDecl *VD = dyn_cast<VarDecl>(DRE->getDecl())) {
-      const Expr *InitExpr = VD->getInit();
-      if (InitExpr) {
+      
+      if (const Expr *InitExpr = VD->getInit(); InitExpr) {
         if (const BinaryOperator *B =
                 dyn_cast<BinaryOperator>(InitExpr->IgnoreParenImpCasts())) {
           BO = B;
@@ -1361,8 +1361,8 @@ bool PluralMisuseChecker::MethodCrawler::TraverseConditionalOperator(
 
 bool PluralMisuseChecker::MethodCrawler::VisitConditionalOperator(
     ConditionalOperator *C) {
-  const Expr *Condition = C->getCond()->IgnoreParenImpCasts();
-  if (isCheckingPlurality(Condition)) {
+  
+  if (const Expr *Condition = C->getCond()->IgnoreParenImpCasts(); isCheckingPlurality(Condition)) {
     MatchingStatements.push_back(C);
     InMatchingStatement = true;
   } else {

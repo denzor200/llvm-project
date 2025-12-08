@@ -222,8 +222,8 @@ void SampleProfileProber::findUnreachableBlocks(
 void SampleProfileProber::findInvokeNormalDests(
     DenseSet<BasicBlock *> &InvokeNormalDests) {
   for (auto &BB : *F) {
-    auto *TI = BB.getTerminator();
-    if (auto *II = dyn_cast<InvokeInst>(TI)) {
+    
+    if (auto *TI = BB.getTerminator(); auto *II = dyn_cast<InvokeInst>(TI)) {
       auto *ND = II->getNormalDest();
       InvokeNormalDests.insert(ND);
 
@@ -487,8 +487,8 @@ void PseudoProbeUpdatePass::runOnFunction(Function &F,
     for (auto &I : Block) {
       if (std::optional<PseudoProbe> Probe = extractProbe(I)) {
         uint64_t Hash = computeCallStackHash(I);
-        float Sum = ProbeFactors[{Probe->Id, Hash}];
-        if (Sum != 0)
+        
+        if (float Sum = ProbeFactors[{Probe->Id, Hash}]; Sum != 0)
           setProbeDistributionFactor(I, BBProfileCount(&Block) / Sum);
       }
     }

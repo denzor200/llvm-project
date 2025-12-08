@@ -166,8 +166,8 @@ bool SemaOpenACC::DiagnoseAllowedOnceClauses(
 
   OpenACCClauseKind Dealiased = dealiasClauseKind(CK);
 
-  const LLVMClauseLists &Lists = getListsForDirective(DK);
-  if (!Lists.AllowedOnce.isSet(CK))
+  
+  if (const LLVMClauseLists &Lists = getListsForDirective(DK); !Lists.AllowedOnce.isSet(CK))
     return false;
 
   auto Res = llvm::find_if(Clauses, [=](const OpenACCClause *C) {

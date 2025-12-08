@@ -1224,10 +1224,10 @@ highlightLines(StringRef FileData, unsigned StartLineNumber,
   Lexer L{FID, *Buff, SM, LangOpts};
   L.SetKeepWhitespaceMode(true);
 
-  const char *FirstLineStart =
+  
+  if (const char *FirstLineStart =
       FileData.data() +
-      SM.getDecomposedLoc(SM.translateLineCol(FID, StartLineNumber, 1)).second;
-  if (const char *CheckPoint = PP->getCheckPoint(FID, FirstLineStart)) {
+      SM.getDecomposedLoc(SM.translateLineCol(FID, StartLineNumber, 1)).second; const char *CheckPoint = PP->getCheckPoint(FID, FirstLineStart)) {
     assert(CheckPoint >= Buff->getBufferStart() &&
            CheckPoint <= Buff->getBufferEnd());
     assert(CheckPoint <= FirstLineStart);
@@ -1327,10 +1327,10 @@ highlightLines(StringRef FileData, unsigned StartLineNumber,
       // This line is done.
       if (I == Spelling.size() || isVerticalWhitespace(Spelling[I])) {
         if (L >= StartLineNumber) {
-          SmallVector<TextDiagnostic::StyleRange> &LineRanges =
-              SnippetRanges[L - StartLineNumber];
+          
 
-          if (L == TokenStartLine) // First line
+          if (SmallVector<TextDiagnostic::StyleRange> &LineRanges =
+              SnippetRanges[L - StartLineNumber]; L == TokenStartLine) // First line
             appendStyle(LineRanges, T, StartCol.V, LineLength);
           else if (L == TokenEndLine) // Last line
             appendStyle(LineRanges, T, 0, EndCol.V);
@@ -1564,11 +1564,11 @@ void TextDiagnostic::emitSnippet(StringRef SourceLine,
       }
 
       // Apply syntax highlighting information.
-      const auto *CharStyle = llvm::find_if(Styles, [I](const StyleRange &R) {
-        return (R.Start < I && R.End >= I);
-      });
+      
 
-      if (CharStyle != Styles.end()) {
+      if (const auto *CharStyle = llvm::find_if(Styles, [I](const StyleRange &R) {
+        return (R.Start < I && R.End >= I);
+      }); CharStyle != Styles.end()) {
         if (!CurrentColor ||
             (CurrentColor && *CurrentColor != CharStyle->Color)) {
           OS.changeColor(CharStyle->Color);

@@ -24,8 +24,8 @@ SemaSystemZ::SemaSystemZ(Sema &S) : SemaBase(S) {}
 bool SemaSystemZ::CheckSystemZBuiltinFunctionCall(unsigned BuiltinID,
                                                   CallExpr *TheCall) {
   if (BuiltinID == SystemZ::BI__builtin_tabort) {
-    Expr *Arg = TheCall->getArg(0);
-    if (std::optional<llvm::APSInt> AbortCode =
+    
+    if (Expr *Arg = TheCall->getArg(0); std::optional<llvm::APSInt> AbortCode =
             Arg->getIntegerConstantExpr(getASTContext()))
       if (AbortCode->getSExtValue() >= 0 && AbortCode->getSExtValue() < 256)
         return Diag(Arg->getBeginLoc(), diag::err_systemz_invalid_tabort_code)

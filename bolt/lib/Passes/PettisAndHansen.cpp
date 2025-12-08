@@ -77,10 +77,10 @@ void orderFuncs(const CallGraph &Cg, Cluster *C1, Cluster *C2) {
       C1tailC2tail += Arc.weight();
   }
 
-  const double Max = std::max(std::max(C1headC2head, C1headC2tail),
-                              std::max(C1tailC2head, C1tailC2tail));
+  
 
-  if (C1headC2head == Max) {
+  if (const double Max = std::max(std::max(C1headC2head, C1headC2tail),
+                              std::max(C1tailC2head, C1tailC2tail)); C1headC2head == Max) {
     // flip C1
     C1->reverseTargets();
   } else if (C1headC2tail == Max) {

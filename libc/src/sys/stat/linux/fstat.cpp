@@ -19,8 +19,8 @@
 namespace LIBC_NAMESPACE_DECL {
 
 LLVM_LIBC_FUNCTION(int, fstat, (int fd, struct stat *statbuf)) {
-  int err = statx(fd, "", AT_EMPTY_PATH, statbuf);
-  if (err != 0) {
+  
+  if (int err = statx(fd, "", AT_EMPTY_PATH, statbuf); err != 0) {
     libc_errno = err;
     return -1;
   }

@@ -621,7 +621,8 @@ void PPCTargetInfo::setFeatureEnabled(llvm::StringMap<bool> &Features,
       Features["spe"] = true;
     // If we're enabling any of the vsx based features then enable vsx and
     // altivec. We'll diagnose any problems later.
-    bool FeatureHasVSX = llvm::StringSwitch<bool>(Name)
+    
+    if (bool FeatureHasVSX = llvm::StringSwitch<bool>(Name)
                              .Case("vsx", true)
                              .Case("direct-move", true)
                              .Case("power8-vector", true)
@@ -630,8 +631,7 @@ void PPCTargetInfo::setFeatureEnabled(llvm::StringMap<bool> &Features,
                              .Case("power10-vector", true)
                              .Case("float128", true)
                              .Case("mma", true)
-                             .Default(false);
-    if (FeatureHasVSX)
+                             .Default(false); FeatureHasVSX)
       Features["vsx"] = Features["altivec"] = true;
     if (Name == "power9-vector")
       Features["power8-vector"] = true;

@@ -465,8 +465,8 @@ void DivisionRepr::removeDuplicateDivs(
 
       // Merge divisions at position `j` into division at position `i`. If
       // merge fails, do not merge these divs.
-      bool mergeResult = merge(i, j);
-      if (!mergeResult)
+      
+      if (bool mergeResult = merge(i, j); !mergeResult)
         continue;
 
       // Update division information to reflect merging.

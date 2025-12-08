@@ -729,9 +729,9 @@ LLVM_LIBC_FUNCTION(float, powf, (float x, float y)) {
         int lsb = (x_abs == 0) ? 0 : cpp::countr_zero(x_abs);
         lsb = (lsb > FloatBits::FRACTION_LEN) ? FloatBits::FRACTION_LEN : lsb;
         int extra_bits = FloatBits::TOTAL_LEN - 2 - lsb - msb;
-        int iter = static_cast<int>(y);
+        
 
-        if (extra_bits * iter <= FloatBits::FRACTION_LEN + 2) {
+        if (int iter = static_cast<int>(y); extra_bits * iter <= FloatBits::FRACTION_LEN + 2) {
           // The result is either exact or exactly half-way.
           // But it is exactly representable in double precision.
           double x_d = static_cast<double>(x);

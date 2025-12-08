@@ -43,8 +43,8 @@ void FunctionInfo::Dump(Stream *s, bool show_fullpaths) const {
 }
 
 int FunctionInfo::Compare(const FunctionInfo &a, const FunctionInfo &b) {
-  int result = ConstString::Compare(a.GetName(), b.GetName());
-  if (result)
+  
+  if (int result = ConstString::Compare(a.GetName(), b.GetName()); result)
     return result;
 
   return Declaration::Compare(a.m_declaration, b.m_declaration);
@@ -169,8 +169,8 @@ void DirectCallEdge::ParseSymbolFileAndResolve(ModuleList &images) {
     ConstString callee_name{lazy_callee.symbol_name};
     SymbolContextList sc_list;
     images.FindFunctionSymbols(callee_name, eFunctionNameTypeAuto, sc_list);
-    size_t num_matches = sc_list.GetSize();
-    if (num_matches == 0 || !sc_list[0].symbol) {
+    
+    if (size_t num_matches = sc_list.GetSize(); num_matches == 0 || !sc_list[0].symbol) {
       LLDB_LOG(log,
                "DirectCallEdge: Found no symbols for {0}, cannot resolve it",
                callee_name);
@@ -569,8 +569,8 @@ Type *Function::GetType() {
 const Type *Function::GetType() const { return m_type; }
 
 CompilerType Function::GetCompilerType() {
-  Type *function_type = GetType();
-  if (function_type)
+  
+  if (Type *function_type = GetType(); function_type)
     return function_type->GetFullCompilerType();
   return CompilerType();
 }
@@ -580,9 +580,9 @@ uint32_t Function::GetPrologueByteSize() {
       m_flags.IsClear(flagsCalculatedPrologueSize)) {
     m_flags.Set(flagsCalculatedPrologueSize);
     LineTable *line_table = m_comp_unit->GetLineTable();
-    uint32_t prologue_end_line_idx = 0;
+    
 
-    if (line_table) {
+    if (uint32_t prologue_end_line_idx = 0; line_table) {
       LineEntry first_line_entry;
       uint32_t first_line_entry_idx = UINT32_MAX;
       if (line_table->FindLineEntryByAddress(GetAddress(), first_line_entry,

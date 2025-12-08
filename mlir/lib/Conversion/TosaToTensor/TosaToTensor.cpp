@@ -83,12 +83,12 @@ TensorType inferReshapeExpandedType(TensorType inputType,
         return totalSize / totalSizeNoPlaceholder;
       });
 
-  bool resultIsStatic = ShapedType::isStaticShape(resultShape);
+  
 
   // A syntactic restriction in 'tensor.expand_shape' forbids a dynamically
   // shaped input from being reshaped into a statically shaped result. We may
   // simply turn the first result dimension dynamic to address this.
-  if (!inputIsStatic && resultIsStatic)
+  if (bool resultIsStatic = ShapedType::isStaticShape(resultShape); !inputIsStatic && resultIsStatic)
     resultShape[0] = ShapedType::kDynamic;
 
   // The 'tensor.expand_shape' op also forbids a statically shaped input from
@@ -321,8 +321,8 @@ public:
         rewriter.getDenseI64ArrayAttr(strides));
 
     // Remove const_shape ops when it no longer has use point.
-    Operation *startConstShape = sliceOp.getStart().getDefiningOp();
-    if (startConstShape->getResult(0).hasOneUse())
+    
+    if (Operation *startConstShape = sliceOp.getStart().getDefiningOp(); startConstShape->getResult(0).hasOneUse())
       rewriter.eraseOp(startConstShape);
 
     Operation *sizeConstShape = sliceOp.getSize().getDefiningOp();

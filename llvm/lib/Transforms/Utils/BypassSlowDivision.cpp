@@ -263,9 +263,9 @@ QuotRemWithBB FastDivInsertionTask::createSlowBB(BasicBlock *SuccessorBB) {
   Builder.SetCurrentDebugLocation(SlowDivOrRem->getDebugLoc());
 
   Value *Dividend = SlowDivOrRem->getOperand(0);
-  Value *Divisor = SlowDivOrRem->getOperand(1);
+  
 
-  if (isSignedOp()) {
+  if (Value *Divisor = SlowDivOrRem->getOperand(1); isSignedOp()) {
     DivRemPair.Quotient = Builder.CreateSDiv(Dividend, Divisor);
     DivRemPair.Remainder = Builder.CreateSRem(Dividend, Divisor);
   } else {

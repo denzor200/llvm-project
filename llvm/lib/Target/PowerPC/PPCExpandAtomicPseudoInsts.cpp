@@ -50,8 +50,8 @@ static void PairedCopy(const PPCInstrInfo *TII, MachineBasicBlock &MBB,
                        Register Dest0, Register Dest1, Register Src0,
                        Register Src1) {
   const MCInstrDesc &OR = TII->get(PPC::OR8);
-  const MCInstrDesc &XOR = TII->get(PPC::XOR8);
-  if (Dest0 == Src1 && Dest1 == Src0) {
+  
+  if (const MCInstrDesc &XOR = TII->get(PPC::XOR8); Dest0 == Src1 && Dest1 == Src0) {
     // The most tricky case, swapping values.
     BuildMI(MBB, MBBI, DL, XOR, Dest0).addReg(Dest0).addReg(Dest1);
     BuildMI(MBB, MBBI, DL, XOR, Dest1).addReg(Dest0).addReg(Dest1);

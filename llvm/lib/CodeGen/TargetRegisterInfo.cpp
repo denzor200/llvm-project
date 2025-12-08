@@ -66,8 +66,8 @@ bool TargetRegisterInfo::shouldRegionSplitForVirtReg(
     const MachineFunction &MF, const LiveInterval &VirtReg) const {
   const TargetInstrInfo *TII = MF.getSubtarget().getInstrInfo();
   const MachineRegisterInfo &MRI = MF.getRegInfo();
-  MachineInstr *MI = MRI.getUniqueVRegDef(VirtReg.reg());
-  if (MI && TII->isTriviallyReMaterializable(*MI) &&
+  
+  if (MachineInstr *MI = MRI.getUniqueVRegDef(VirtReg.reg()); MI && TII->isTriviallyReMaterializable(*MI) &&
       VirtReg.size() > HugeSizeForSplit)
     return false;
   return true;
@@ -192,8 +192,8 @@ TargetRegisterInfo::getAllocatableClass(const TargetRegisterClass *RC) const {
 
   for (BitMaskClassIterator It(RC->getSubClassMask(), *this); It.isValid();
        ++It) {
-    const TargetRegisterClass *SubRC = getRegClass(It.getID());
-    if (SubRC->isAllocatable())
+    
+    if (const TargetRegisterClass *SubRC = getRegClass(It.getID()); SubRC->isAllocatable())
       return SubRC;
   }
   return nullptr;
@@ -291,8 +291,8 @@ BitVector TargetRegisterInfo::getAllocatableSet(const MachineFunction &MF,
   BitVector Allocatable(getNumRegs());
   if (RC) {
     // A register class with no allocatable subclass returns an empty set.
-    const TargetRegisterClass *SubClass = getAllocatableClass(RC);
-    if (SubClass)
+    
+    if (const TargetRegisterClass *SubClass = getAllocatableClass(RC); SubClass)
       getAllocatableSetForRC(MF, SubClass, Allocatable);
   } else {
     for (const TargetRegisterClass *C : regclasses())
@@ -498,9 +498,9 @@ bool TargetRegisterInfo::isCalleeSavedPhysReg(
     MCRegister PhysReg, const MachineFunction &MF) const {
   if (!PhysReg)
     return false;
-  const uint32_t *callerPreservedRegs =
-      getCallPreservedMask(MF, MF.getFunction().getCallingConv());
-  if (callerPreservedRegs) {
+  
+  if (const uint32_t *callerPreservedRegs =
+      getCallPreservedMask(MF, MF.getFunction().getCallingConv()); callerPreservedRegs) {
     assert(PhysReg.isPhysical() && "Expected physical register");
     return (callerPreservedRegs[PhysReg.id() / 32] >> PhysReg.id() % 32) & 1;
   }
@@ -603,8 +603,8 @@ bool TargetRegisterInfo::getCoveringSubRegIndexes(
         continue;
 
       // Try to cover as many of the remaining lanes as possible.
-      const int Cover = (SubRegMask & LanesLeft).getNumLanes();
-      if (Cover > BestCover) {
+      
+      if (const int Cover = (SubRegMask & LanesLeft).getNumLanes(); Cover > BestCover) {
         BestCover = Cover;
         BestIdx = Idx;
       }

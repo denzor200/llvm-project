@@ -32,8 +32,8 @@ bool tryToFindPtrOrigin(
     if (auto *DRE = dyn_cast<DeclRefExpr>(E)) {
       if (auto *VD = dyn_cast_or_null<VarDecl>(DRE->getDecl())) {
         auto QT = VD->getType();
-        auto IsImmortal = safeGetName(VD) == "NSApp";
-        if (VD->hasGlobalStorage() && (IsImmortal || QT.isConstQualified()))
+        
+        if (auto IsImmortal = safeGetName(VD) == "NSApp"; VD->hasGlobalStorage() && (IsImmortal || QT.isConstQualified()))
           return callback(E, true);
         if (VD->hasGlobalStorage() && isSafeGlobalDecl(VD))
           return callback(E, true);
@@ -177,8 +177,8 @@ bool tryToFindPtrOrigin(
         if (auto *MemberExpr = dyn_cast<CXXDependentScopeMemberExpr>(CalleeE)) {
           auto *Base = MemberExpr->getBase();
           auto MemberName = MemberExpr->getMember().getAsString();
-          bool IsGetter = MemberName == "get" || MemberName == "ptr";
-          if (Base && isSafePtrType(Base->getType()) && IsGetter)
+          
+          if (bool IsGetter = MemberName == "get" || MemberName == "ptr"; Base && isSafePtrType(Base->getType()) && IsGetter)
             return callback(E, true);
         }
       }
@@ -240,8 +240,8 @@ bool tryToFindPtrOrigin(
 bool isASafeCallArg(const Expr *E) {
   assert(E);
   if (auto *Ref = dyn_cast<DeclRefExpr>(E)) {
-    auto *FoundDecl = Ref->getFoundDecl();
-    if (auto *D = dyn_cast_or_null<VarDecl>(FoundDecl)) {
+    
+    if (auto *FoundDecl = Ref->getFoundDecl(); auto *D = dyn_cast_or_null<VarDecl>(FoundDecl)) {
       if (isa<ParmVarDecl>(D) || D->isLocalVarDecl())
         return true;
       if (auto *ImplicitP = dyn_cast<ImplicitParamDecl>(D)) {

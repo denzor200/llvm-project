@@ -633,10 +633,10 @@ void ExprEngine::VisitDeclStmt(const DeclStmt *DS, ExplodedNode *Pred,
        I!=E; ++I) {
     ExplodedNode *N = *I;
     ProgramStateRef state = N->getState();
-    const LocationContext *LC = N->getLocationContext();
+    
 
     // Decls without InitExpr are not initialized explicitly.
-    if (const Expr *InitEx = VD->getInit()) {
+    if (const LocationContext *LC = N->getLocationContext(); const Expr *InitEx = VD->getInit()) {
 
       // Note in the state that the initialization has occurred.
       ExplodedNode *UpdatedN = N;
@@ -965,8 +965,8 @@ void ExprEngine::VisitUnaryOperator(const UnaryOperator* U, ExplodedNode *Pred,
 
     case UO_AddrOf: {
       // Process pointer-to-member address operation.
-      const Expr *Ex = U->getSubExpr()->IgnoreParens();
-      if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(Ex)) {
+      
+      if (const Expr *Ex = U->getSubExpr()->IgnoreParens(); const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(Ex)) {
         const ValueDecl *VD = DRE->getDecl();
 
         if (isa<CXXMethodDecl, FieldDecl, IndirectFieldDecl>(VD)) {

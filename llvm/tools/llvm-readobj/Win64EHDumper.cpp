@@ -144,10 +144,10 @@ static object::SymbolRef getPreferredSymbol(const COFFObjectFile &COFF,
         CS.getValue() <= CoffSym.getValue() + SymbolOffset &&
         CS.getStorageClass() != COFF::IMAGE_SYM_CLASS_LABEL &&
         CS.getSectionDefinition() == nullptr) {
-      uint32_t Offset = CoffSym.getValue() + SymbolOffset - CS.getValue();
+      
       // For the end of a range, don't pick a symbol with a zero offset;
       // prefer a symbol with a small positive offset.
-      if (Offset <= SymbolOffset && (!IsRangeEnd || Offset > 0)) {
+      if (uint32_t Offset = CoffSym.getValue() + SymbolOffset - CS.getValue(); Offset <= SymbolOffset && (!IsRangeEnd || Offset > 0)) {
         SymbolOffset = Offset;
         Sym = S;
         CoffSym = CS;
@@ -231,9 +231,9 @@ static const object::coff_section *
 getSectionContaining(const COFFObjectFile &COFF, uint64_t VA) {
   for (const auto &Section : COFF.sections()) {
     uint64_t Address = Section.getAddress();
-    uint64_t Size = Section.getSize();
+    
 
-    if (VA >= Address && (VA - Address) <= Size)
+    if (uint64_t Size = Section.getSize(); VA >= Address && (VA - Address) <= Size)
       return COFF.getCOFFSection(Section);
   }
   return nullptr;
@@ -364,8 +364,8 @@ void Dumper::printUnwindInfo(const Context &Ctx, const coff_section *Section,
     }
   }
 
-  uint64_t LSDAOffset = Offset + getOffsetOfLSDA(UI);
-  if (UI.getFlags() & (UNW_ExceptionHandler | UNW_TerminateHandler)) {
+  
+  if (uint64_t LSDAOffset = Offset + getOffsetOfLSDA(UI); UI.getFlags() & (UNW_ExceptionHandler | UNW_TerminateHandler)) {
     SW.printString("Handler",
                    formatSymbol(Ctx, Section, LSDAOffset,
                                 UI.getLanguageSpecificHandlerOffset()));

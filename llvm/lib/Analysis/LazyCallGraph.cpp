@@ -1640,8 +1640,8 @@ void LazyCallGraph::addSplitFunction(Function &OriginalFunction,
 
   SCC *NewC = nullptr;
   for (Edge &E : *NewN) {
-    Node &EN = E.getNode();
-    if (EK == Edge::Kind::Call && E.isCall() && lookupSCC(EN) == OriginalC) {
+    
+    if (Node &EN = E.getNode(); EK == Edge::Kind::Call && E.isCall() && lookupSCC(EN) == OriginalC) {
       // If the edge to the new function is a call edge and there is a call edge
       // from the new function to any function in the original function's SCC,
       // it is in the same SCC (and RefSCC) as the original function.
@@ -1653,8 +1653,8 @@ void LazyCallGraph::addSplitFunction(Function &OriginalFunction,
 
   if (!NewC) {
     for (Edge &E : *NewN) {
-      Node &EN = E.getNode();
-      if (lookupRefSCC(EN) == OriginalRC) {
+      
+      if (Node &EN = E.getNode(); lookupRefSCC(EN) == OriginalRC) {
         // If there is any edge from the new function to any function in the
         // original function's RefSCC, it is in the same RefSCC as the original
         // function but a new SCC.

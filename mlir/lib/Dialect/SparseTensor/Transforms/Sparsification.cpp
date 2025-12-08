@@ -703,8 +703,8 @@ static void genInvariants(CodegenEnv &env, OpBuilder &builder, ExprId exp,
     // because custom reduction lhs may occur several times in the IR,
     // we have a built-in safety for only initializing and wrapping-up
     // the scalarized reduction once.
-    OpOperand *lhs = op.getDpsInitOperand(0);
-    if (lhs == &t) {
+    
+    if (OpOperand *lhs = op.getDpsInitOperand(0); lhs == &t) {
       // Start or end a scalarized reduction.
       if (isStart) {
         if (env.isCustomReduc()) {
@@ -1284,8 +1284,8 @@ static void genStmt(CodegenEnv &env, RewriterBase &rewriter, ExprId exp,
 
   // When using sparse-iterator-based loops, we only need one loops, as
   // opposed to a loop sequence, to cover all the iterator spaces.
-  const unsigned lsize = env.set(lts).size();
-  if (env.generatingSparseIterator()) {
+  
+  if (const unsigned lsize = env.set(lts).size(); env.generatingSparseIterator()) {
     // Get the largest lattice point and start a loop.
     const LatPointId li = env.set(lts)[0];
     auto [loop, isSingleCond] =
@@ -1296,9 +1296,9 @@ static void genStmt(CodegenEnv &env, RewriterBase &rewriter, ExprId exp,
     // the iterator.
     for (unsigned j = 0; j < lsize; j++) {
       const LatPointId lj = env.set(lts)[j];
-      const ExprId ej = env.lat(lj).exp;
+      
       // Recurse into body of each branch.
-      if (!isSingleCond) {
+      if (const ExprId ej = env.lat(lj).exp; !isSingleCond) {
         env.genLoopBoundary([&, curr, j, li, lj](MutableArrayRef<Value> reduc) {
           genCoIterationCase(env, rewriter, /*caseIdx*/ j, li, lj, reduc);
           genStmt(env, rewriter, ej, curr + 1);
@@ -1333,8 +1333,8 @@ static void genStmt(CodegenEnv &env, RewriterBase &rewriter, ExprId exp,
       // iterator.
       for (unsigned j = 0; j < lsize; j++) {
         const LatPointId lj = env.set(lts)[j];
-        const ExprId ej = env.lat(lj).exp;
-        if (li == lj || env.merger().latGT(li, lj)) {
+        
+        if (const ExprId ej = env.lat(lj).exp; li == lj || env.merger().latGT(li, lj)) {
           // Recurse into body of each branch.
           if (!isSingleCond) {
             scf::IfOp ifOp = genIf(env, rewriter, curr, lj);

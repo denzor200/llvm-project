@@ -328,8 +328,8 @@ unsigned Decl::getTemplateDepth() const {
   // If this is a dependent lambda, there might be an enclosing variable
   // template. In this case, the next step is not the parent DeclContext (or
   // even a DeclContext at all).
-  auto *RD = dyn_cast<CXXRecordDecl>(this);
-  if (RD && RD->isDependentLambda())
+  
+  if (auto *RD = dyn_cast<CXXRecordDecl>(this); RD && RD->isDependentLambda())
     if (Decl *Context = RD->getLambdaContextDecl())
       return Context->getTemplateDepth();
 
@@ -573,8 +573,8 @@ unsigned Decl::getMaxAlignment() const {
 }
 
 bool Decl::isUsed(bool CheckUsedAttr) const {
-  const Decl *CanonD = getCanonicalDecl();
-  if (CanonD->Used)
+  
+  if (const Decl *CanonD = getCanonicalDecl(); CanonD->Used)
     return true;
 
   // Check for used attribute.
@@ -652,8 +652,8 @@ static StringRef getRealizedPlatform(const AvailabilityAttr *A,
   StringRef RealizedPlatform = A->getPlatform()->getName();
   if (!Context.getLangOpts().AppExt)
     return RealizedPlatform;
-  size_t suffix = RealizedPlatform.rfind("_app_extension");
-  if (suffix != StringRef::npos)
+  
+  if (size_t suffix = RealizedPlatform.rfind("_app_extension"); suffix != StringRef::npos)
     return RealizedPlatform.slice(0, suffix);
   return RealizedPlatform;
 }
@@ -1773,8 +1773,8 @@ void DeclContext::removeDecl(Decl *D) {
 
     auto *DC = D->getDeclContext();
     do {
-      StoredDeclsMap *Map = DC->getPrimaryContext()->LookupPtr;
-      if (Map) {
+      
+      if (StoredDeclsMap *Map = DC->getPrimaryContext()->LookupPtr; Map) {
         StoredDeclsMap::iterator Pos = Map->find(ND->getDeclName());
         assert(Pos != Map->end() && "no lookup entry for decl");
         StoredDeclsList &List = Pos->second;
@@ -1976,8 +1976,8 @@ DeclContext::noload_lookup(DeclarationName Name) {
   if (getDeclKind() == Decl::LinkageSpec || getDeclKind() == Decl::Export)
     return getParent()->noload_lookup(Name);
 
-  DeclContext *PrimaryContext = getPrimaryContext();
-  if (PrimaryContext != this)
+  
+  if (DeclContext *PrimaryContext = getPrimaryContext(); PrimaryContext != this)
     return PrimaryContext->noload_lookup(Name);
 
   loadLazyLocalLexicalLookups();

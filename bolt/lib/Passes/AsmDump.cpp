@@ -37,8 +37,8 @@ namespace llvm {
 namespace bolt {
 
 void dumpCFI(const BinaryFunction &BF, const MCInst &Instr, AsmPrinter &MAP) {
-  const MCCFIInstruction *CFIInstr = BF.getCFIFor(Instr);
-  switch (CFIInstr->getOperation()) {
+  
+  switch (const MCCFIInstruction *CFIInstr = BF.getCFIFor(Instr); CFIInstr->getOperation()) {
   // Skip unsupported CFI instructions.
   case MCCFIInstruction::OpRememberState:
   case MCCFIInstruction::OpRestoreState:

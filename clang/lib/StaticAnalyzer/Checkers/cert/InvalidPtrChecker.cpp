@@ -259,8 +259,8 @@ void InvalidPtrChecker::checkPostCall(const CallEvent &Call,
 
   // Model 'getenv' calls
   if (GetEnvCall.matches(Call)) {
-    const MemRegion *Region = Call.getReturnValue().getAsRegion();
-    if (Region) {
+    
+    if (const MemRegion *Region = Call.getReturnValue().getAsRegion(); Region) {
       State = State->add<GetenvEnvPtrRegions>(Region);
       C.addTransition(State);
     }

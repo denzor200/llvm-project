@@ -78,8 +78,8 @@ bool ThreadMemory::CalculateStopInfo() {
     ProcessSP process_sp(GetProcess());
 
     if (process_sp) {
-      OperatingSystem *os = process_sp->GetOperatingSystem();
-      if (os) {
+      
+      if (OperatingSystem *os = process_sp->GetOperatingSystem(); os) {
         SetStopInfo(os->CreateThreadStopReason(this));
         return true;
       }

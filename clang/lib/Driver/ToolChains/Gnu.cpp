@@ -188,9 +188,9 @@ void tools::gcc::Preprocessor::RenderExtraToolArgs(
 
 void tools::gcc::Compiler::RenderExtraToolArgs(const JobAction &JA,
                                                ArgStringList &CmdArgs) const {
-  const Driver &D = getToolChain().getDriver();
+  
 
-  switch (JA.getType()) {
+  switch (const Driver &D = getToolChain().getDriver(); JA.getType()) {
   // If -flto, etc. are present then make sure not to force assembly output.
   case types::TY_LLVM_IR:
   case types::TY_LTO_IR:
@@ -254,8 +254,8 @@ void tools::gnutools::StaticLibTool::ConstructJob(
 
   // Delete old output archive file if it already exists before generating a new
   // archive file.
-  auto OutputFileName = Output.getFilename();
-  if (Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
+  
+  if (auto OutputFileName = Output.getFilename(); Output.isFilename() && llvm::sys::fs::exists(OutputFileName)) {
     if (std::error_code EC = llvm::sys::fs::remove(OutputFileName)) {
       D.Diag(diag::err_drv_unable_to_remove_file) << EC.message();
       return;
@@ -500,12 +500,12 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
                          Args.hasArg(options::OPT_pthreads);
 
       // Use the static OpenMP runtime with -static-openmp
-      bool StaticOpenMP = Args.hasArg(options::OPT_static_openmp) &&
-                          !Args.hasArg(options::OPT_static);
+      
 
       // FIXME: Only pass GompNeedsRT = true for platforms with libgomp that
       // require librt. Most modern Linux platforms do, but some may not.
-      if (addOpenMPRuntime(C, CmdArgs, ToolChain, Args, StaticOpenMP,
+      if (bool StaticOpenMP = Args.hasArg(options::OPT_static_openmp) &&
+                          !Args.hasArg(options::OPT_static); addOpenMPRuntime(C, CmdArgs, ToolChain, Args, StaticOpenMP,
                            JA.isHostOffloading(Action::OFK_OpenMP),
                            /* GompNeedsRT= */ true))
         // OpenMP runtimes implies pthreads when using the GNU toolchain.
@@ -2058,8 +2058,8 @@ Generic_GCC::GCCVersion Generic_GCC::GCCVersion::Parse(StringRef VersionText) {
 
 static llvm::StringRef getGCCToolchainDir(const ArgList &Args,
                                           llvm::StringRef SysRoot) {
-  const Arg *A = Args.getLastArg(options::OPT_gcc_toolchain);
-  if (A)
+  
+  if (const Arg *A = Args.getLastArg(options::OPT_gcc_toolchain); A)
     return A->getValue();
 
   // If we have a SysRoot, ignore GCC_INSTALL_PREFIX.
@@ -3183,8 +3183,8 @@ void Generic_GCC::AddMultilibIncludeArgs(const ArgList &DriverArgs,
                               Twine(LibPath) + "/../" + GCCTriple.str() +
                                   "/include");
 
-  const auto &Callback = Multilibs.includeDirsCallback();
-  if (Callback) {
+  
+  if (const auto &Callback = Multilibs.includeDirsCallback(); Callback) {
     for (const auto &Path : Callback(GCCInstallation.getMultilib()))
       addExternCSystemIncludeIfExists(DriverArgs, CC1Args,
                                       GCCInstallation.getInstallPath() + Path);

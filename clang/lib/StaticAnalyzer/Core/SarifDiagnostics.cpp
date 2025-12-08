@@ -200,8 +200,8 @@ SarifDiagnostics::createResult(const PathDiagnostic *Diag,
   std::string HtmlReportURL;
   if (FM && !FM->empty()) {
     // Find the HTML report that was generated for this issue, if one exists.
-    PDFileEntry::ConsumerFiles *Files = FM->getFiles(*Diag);
-    if (Files) {
+    
+    if (PDFileEntry::ConsumerFiles *Files = FM->getFiles(*Diag); Files) {
       auto HtmlFile = llvm::find_if(*Files, [](const auto &File) {
         return File.first == HTML_DIAGNOSTICS_NAME;
       });

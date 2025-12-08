@@ -490,10 +490,10 @@ calculateMemoryRequirements(Value accessedPtr, bool isNontemporal,
   }
 
   auto ptrType = cast<spirv::PointerType>(accessedPtr.getType());
-  bool mayOmitAlignment =
+  
+  if (bool mayOmitAlignment =
       !preferredAlignment &&
-      ptrType.getStorageClass() != spirv::StorageClass::PhysicalStorageBuffer;
-  if (mayOmitAlignment) {
+      ptrType.getStorageClass() != spirv::StorageClass::PhysicalStorageBuffer; mayOmitAlignment) {
     if (memoryAccess == spirv::MemoryAccess::None) {
       return MemoryRequirements{spirv::MemoryAccessAttr{}, IntegerAttr{}};
     }

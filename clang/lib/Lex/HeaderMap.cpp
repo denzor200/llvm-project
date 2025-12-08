@@ -47,8 +47,8 @@ static inline unsigned HashHMapKey(StringRef Str) {
 /// into the string error argument and returns null.
 std::unique_ptr<HeaderMap> HeaderMap::Create(FileEntryRef FE, FileManager &FM) {
   // If the file is too small to be a header map, ignore it.
-  unsigned FileSize = FE.getSize();
-  if (FileSize <= sizeof(HMapHeader)) return nullptr;
+  
+  if (unsigned FileSize = FE.getSize(); FileSize <= sizeof(HMapHeader)) return nullptr;
 
   auto FileBuffer =
       FM.getBufferForFile(FE, /*IsVolatile=*/false,

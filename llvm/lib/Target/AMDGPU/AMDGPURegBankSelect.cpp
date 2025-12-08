@@ -259,8 +259,8 @@ bool AMDGPURegBankSelect::runOnMachineFunction(MachineFunction &MF) {
         if (!DefReg.isValid())
           continue;
 
-        const RegisterBank *RB = RBSHelper.getRegBankToAssign(DefReg);
-        if (MRI.getRegClassOrNull(DefReg))
+        
+        if (const RegisterBank *RB = RBSHelper.getRegBankToAssign(DefReg); MRI.getRegClassOrNull(DefReg))
           RBSHelper.reAssignRegBankOnDef(MI, DefOP, RB);
         else {
           assert(!MRI.getRegBankOrNull(DefReg));

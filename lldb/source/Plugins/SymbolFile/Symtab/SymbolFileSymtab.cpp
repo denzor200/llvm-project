@@ -58,8 +58,8 @@ SymbolFileSymtab::SymbolFileSymtab(ObjectFileSP objfile_sp)
 uint32_t SymbolFileSymtab::CalculateAbilities() {
   uint32_t abilities = 0;
   if (m_objfile_sp) {
-    const Symtab *symtab = m_objfile_sp->GetSymtab();
-    if (symtab) {
+    
+    if (const Symtab *symtab = m_objfile_sp->GetSymtab(); symtab) {
       // The snippet of code below will get the indexes the module symbol table
       // entries that are code, data, or function related (debug info), sort
       // them by value (address) and dump the sorted symbols.
@@ -117,9 +117,9 @@ CompUnitSP SymbolFileSymtab::ParseCompileUnitAtIndex(uint32_t idx) {
   // If we don't have any source file symbols we will just have one compile
   // unit for the entire object file
   if (idx < m_source_indexes.size()) {
-    const Symbol *cu_symbol =
-        m_objfile_sp->GetSymtab()->SymbolAtIndex(m_source_indexes[idx]);
-    if (cu_symbol)
+    
+    if (const Symbol *cu_symbol =
+        m_objfile_sp->GetSymtab()->SymbolAtIndex(m_source_indexes[idx]); cu_symbol)
       cu_sp = std::make_shared<CompileUnit>(m_objfile_sp->GetModule(), nullptr,
                                             cu_symbol->GetName().AsCString(), 0,
                                             eLanguageTypeUnknown, eLazyBoolNo);
@@ -137,7 +137,7 @@ size_t SymbolFileSymtab::ParseFunctions(CompileUnit &comp_unit) {
   // We must at least have a valid compile unit
   const Symtab *symtab = m_objfile_sp->GetSymtab();
   const Symbol *curr_symbol = nullptr;
-  const Symbol *next_symbol = nullptr;
+  
   //  const char *prefix = m_objfile_sp->SymbolPrefix();
   //  if (prefix == NULL)
   //      prefix == "";
@@ -146,7 +146,7 @@ size_t SymbolFileSymtab::ParseFunctions(CompileUnit &comp_unit) {
 
   // If we don't have any source file symbols we will just have one compile
   // unit for the entire object file
-  if (m_source_indexes.empty()) {
+  if (const Symbol *next_symbol = nullptr; m_source_indexes.empty()) {
     // The only time we will have a user ID of zero is when we don't have and
     // source file symbols and we declare one compile unit for the entire
     // object file
@@ -167,8 +167,8 @@ size_t SymbolFileSymtab::ParseFunctions(CompileUnit &comp_unit) {
           // discontiguous)
           AddressRange func_range(curr_symbol->GetAddress(), 0);
           if (func_range.GetBaseAddress().IsSectionOffset()) {
-            uint32_t symbol_size = curr_symbol->GetByteSize();
-            if (symbol_size != 0 && !curr_symbol->GetSizeIsSibling())
+            
+            if (uint32_t symbol_size = curr_symbol->GetByteSize(); symbol_size != 0 && !curr_symbol->GetSizeIsSibling())
               func_range.SetByteSize(symbol_size);
             else if (idx + 1 < num_indexes) {
               next_symbol = symtab->SymbolAtIndex(m_code_indexes[idx + 1]);

@@ -34,8 +34,8 @@ static inline uptr MaybeRealStrnlen(const char *s, uptr maxlen) {
 }
 
 void SetThreadName(const char *name) {
-  MemprofThread *t = GetCurrentThread();
-  if (t)
+  
+  if (MemprofThread *t = GetCurrentThread(); t)
     memprofThreadRegistry().SetThreadName(t->tid(), name);
 }
 

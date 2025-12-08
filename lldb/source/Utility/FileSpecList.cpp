@@ -80,8 +80,8 @@ static size_t FindFileIndex(size_t start_idx, const FileSpec &file_spec,
   bool compare_filename_only = file_spec.GetDirectory().IsEmpty();
 
   for (size_t idx = start_idx; idx < num_files; ++idx) {
-    const FileSpec &ith = get_ith(idx);
-    if (compare_filename_only) {
+    
+    if (const FileSpec &ith = get_ith(idx); compare_filename_only) {
       if (ConstString::Equals(ith.GetFilename(), file_spec.GetFilename(),
                               file_spec.IsCaseSensitive() ||
                                   ith.IsCaseSensitive()))
@@ -153,9 +153,9 @@ IsCompatibleResult IsCompatible(const FileSpec &curr_file,
         return a.empty() || a.ends_with("/");
       return false;
     };
-    const bool case_sensitive =
-        file_spec_case_sensitive || curr_file.IsCaseSensitive();
-    if (is_suffix(curr_file_dir, file_spec_dir, case_sensitive) ||
+    
+    if (const bool case_sensitive =
+        file_spec_case_sensitive || curr_file.IsCaseSensitive(); is_suffix(curr_file_dir, file_spec_dir, case_sensitive) ||
         is_suffix(file_spec_dir, curr_file_dir, case_sensitive))
       return IsCompatibleResult::kBothDirectoryAndFileMatch;
   }

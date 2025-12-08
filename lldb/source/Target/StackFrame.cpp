@@ -205,8 +205,8 @@ const Address &StackFrame::GetFrameCodeAddress() {
     if (thread_sp) {
       TargetSP target_sp(thread_sp->CalculateTarget());
       if (target_sp) {
-        const bool allow_section_end = true;
-        if (m_frame_code_addr.SetOpcodeLoadAddress(
+        
+        if (const bool allow_section_end = true; m_frame_code_addr.SetOpcodeLoadAddress(
                 m_frame_code_addr.GetOffset(), target_sp.get(),
                 AddressClass::eCode, allow_section_end)) {
           ModuleSP module_sp(m_frame_code_addr.GetModule());
@@ -232,8 +232,8 @@ Address StackFrame::GetFrameCodeAddressForSymbolication() {
   if (m_behaves_like_zeroth_frame)
     return lookup_addr;
 
-  addr_t offset = lookup_addr.GetOffset();
-  if (offset > 0) {
+  
+  if (addr_t offset = lookup_addr.GetOffset(); offset > 0) {
     lookup_addr.SetOffset(offset - 1);
   } else {
     // lookup_addr is the start of a section.  We need do the math on the
@@ -284,8 +284,8 @@ Block *StackFrame::GetFrameBlock() {
     GetSymbolContext(eSymbolContextBlock);
 
   if (m_sc.block) {
-    Block *inline_block = m_sc.block->GetContainingInlinedBlock();
-    if (inline_block) {
+    
+    if (Block *inline_block = m_sc.block->GetContainingInlinedBlock(); inline_block) {
       // Use the block with the inlined function info as the frame block we
       // want this frame to have only the variables for the inlined function
       // and its non-inlined block child blocks.
@@ -435,9 +435,9 @@ VariableList *StackFrame::GetVariableList(bool get_file_globals,
     m_flags.Set(RESOLVED_VARIABLES);
     m_variable_list_sp = std::make_shared<VariableList>();
 
-    Block *frame_block = GetFrameBlock();
+    
 
-    if (frame_block) {
+    if (Block *frame_block = GetFrameBlock(); frame_block) {
       const bool get_child_variables = true;
       const bool can_create = true;
       const bool stop_if_child_block_is_inlined_function = true;
@@ -469,8 +469,8 @@ VariableList *StackFrame::GetVariableList(bool get_file_globals,
     // don't have variables that the user might need to know about.
     GetSymbolContext(eSymbolContextEverything);
     if (m_sc.module_sp) {
-      SymbolFile *sym_file = m_sc.module_sp->GetSymbolFile();
-      if (sym_file)
+      
+      if (SymbolFile *sym_file = m_sc.module_sp->GetSymbolFile(); sym_file)
         *error_ptr = sym_file->GetFrameVariableError(*this);
     }
   }
@@ -517,8 +517,8 @@ ValueObjectSP StackFrame::GetValueForVariableExpressionPath(
     VariableSP &var_sp, Status &error) {
   ExecutionContext exe_ctx;
   CalculateExecutionContext(exe_ctx);
-  bool use_DIL = exe_ctx.GetTargetRef().GetUseDIL(&exe_ctx);
-  if (use_DIL)
+  
+  if (bool use_DIL = exe_ctx.GetTargetRef().GetUseDIL(&exe_ctx); use_DIL)
     return DILGetValueForVariableExpressionPath(var_expr, use_dynamic, options,
                                                 var_sp, error);
 
@@ -690,8 +690,8 @@ ValueObjectSP StackFrame::LegacyGetValueForVariableExpressionPath(
     // Calculate the next separator index ahead of time
     ValueObjectSP child_valobj_sp;
     const char separator_type = var_expr[0];
-    bool expr_is_ptr = false;
-    switch (separator_type) {
+    
+    switch (bool expr_is_ptr = false; separator_type) {
     case '-':
       expr_is_ptr = true;
       if (var_expr.size() >= 2 && var_expr[1] != '>')
@@ -700,9 +700,9 @@ ValueObjectSP StackFrame::LegacyGetValueForVariableExpressionPath(
       if (no_fragile_ivar) {
         // Make sure we aren't trying to deref an objective
         // C ivar if this is not allowed
-        const uint32_t pointer_type_flags =
-            valobj_sp->GetCompilerType().GetTypeInfo(nullptr);
-        if ((pointer_type_flags & eTypeIsObjC) &&
+        
+        if (const uint32_t pointer_type_flags =
+            valobj_sp->GetCompilerType().GetTypeInfo(nullptr); (pointer_type_flags & eTypeIsObjC) &&
             (pointer_type_flags & eTypeIsPointer)) {
           // This was an objective C object pointer and it was requested we
           // skip any fragile ivars so return nothing here
@@ -745,9 +745,9 @@ ValueObjectSP StackFrame::LegacyGetValueForVariableExpressionPath(
         // We either have a pointer type and need to verify valobj_sp is a
         // pointer, or we have a member of a class/union/struct being accessed
         // with the . syntax and need to verify we don't have a pointer.
-        const bool actual_is_ptr = valobj_sp->IsPointerType();
+        
 
-        if (actual_is_ptr != expr_is_ptr) {
+        if (const bool actual_is_ptr = valobj_sp->IsPointerType(); actual_is_ptr != expr_is_ptr) {
           // Incorrect use of "." with a pointer, or "->" with a
           // class/union/struct instance or reference.
           valobj_sp->GetExpressionPath(var_expr_path_strm);
@@ -1225,13 +1225,13 @@ StackFrame::GetValueObjectForFrameVariable(const VariableSP &variable_sp,
     if (IsHistorical()) {
       return valobj_sp;
     }
-    VariableList *var_list = GetVariableList(true, nullptr);
-    if (var_list) {
+    
+    if (VariableList *var_list = GetVariableList(true, nullptr); var_list) {
       // Make sure the variable is a frame variable
       const uint32_t var_idx =
           var_list->FindIndexForVariable(variable_sp.get());
-      const uint32_t num_variables = var_list->GetSize();
-      if (var_idx < num_variables) {
+      
+      if (const uint32_t num_variables = var_list->GetSize(); var_idx < num_variables) {
         valobj_sp =
             m_variable_list_value_objects.GetValueObjectAtIndex(var_idx);
         if (!valobj_sp) {
@@ -1293,11 +1293,11 @@ const char *StackFrame::GetFunctionName() {
   SymbolContext sc = GetSymbolContext(
       eSymbolContextFunction | eSymbolContextBlock | eSymbolContextSymbol);
   if (sc.block) {
-    Block *inlined_block = sc.block->GetContainingInlinedBlock();
-    if (inlined_block) {
-      const InlineFunctionInfo *inlined_info =
-          inlined_block->GetInlinedFunctionInfo();
-      if (inlined_info)
+    
+    if (Block *inlined_block = sc.block->GetContainingInlinedBlock(); inlined_block) {
+      
+      if (const InlineFunctionInfo *inlined_info =
+          inlined_block->GetInlinedFunctionInfo(); inlined_info)
         name = inlined_info->GetName().AsCString();
     }
   }
@@ -1320,11 +1320,11 @@ const char *StackFrame::GetDisplayFunctionName() {
   SymbolContext sc = GetSymbolContext(
       eSymbolContextFunction | eSymbolContextBlock | eSymbolContextSymbol);
   if (sc.block) {
-    Block *inlined_block = sc.block->GetContainingInlinedBlock();
-    if (inlined_block) {
-      const InlineFunctionInfo *inlined_info =
-          inlined_block->GetInlinedFunctionInfo();
-      if (inlined_info)
+    
+    if (Block *inlined_block = sc.block->GetContainingInlinedBlock(); inlined_block) {
+      
+      if (const InlineFunctionInfo *inlined_info =
+          inlined_block->GetInlinedFunctionInfo(); inlined_info)
         name = inlined_info->GetDisplayName().AsCString();
     }
   }
@@ -1342,8 +1342,8 @@ const char *StackFrame::GetDisplayFunctionName() {
 }
 
 SourceLanguage StackFrame::GetLanguage() {
-  CompileUnit *cu = GetSymbolContext(eSymbolContextCompUnit).comp_unit;
-  if (cu)
+  
+  if (CompileUnit *cu = GetSymbolContext(eSymbolContextCompUnit).comp_unit; cu)
     return SourceLanguage{cu->GetLanguage()};
   return {};
 }
@@ -1545,10 +1545,10 @@ ValueObjectSP GetValueForOffset(StackFrame &frame, ValueObjectSP &parent,
     }
 
     int64_t child_offset = child_sp->GetByteOffset();
-    int64_t child_size =
-        llvm::expectedToOptional(child_sp->GetByteSize()).value_or(0);
+    
 
-    if (offset >= child_offset && offset < (child_offset + child_size)) {
+    if (int64_t child_size =
+        llvm::expectedToOptional(child_sp->GetByteSize()).value_or(0); offset >= child_offset && offset < (child_offset + child_size)) {
       return GetValueForOffset(frame, child_sp, offset - child_offset);
     }
   }
@@ -1875,9 +1875,9 @@ lldb::ValueObjectSP StackFrame::FindVariable(ConstString name) {
   if (sc.block) {
     const bool can_create = true;
     const bool get_parent_variables = true;
-    const bool stop_if_block_is_inlined_function = true;
+    
 
-    if (sc.block->AppendVariables(
+    if (const bool stop_if_block_is_inlined_function = true; sc.block->AppendVariables(
             can_create, get_parent_variables, stop_if_block_is_inlined_function,
             [this](Variable *v) { return v->IsInScope(this); },
             &variable_list)) {
@@ -1943,8 +1943,8 @@ void StackFrame::DumpUsingSettingsFormat(Stream *strm, bool show_unique,
 
   const FormatEntity::Entry *frame_format = nullptr;
   FormatEntity::Entry format_entry;
-  Target *target = exe_ctx.GetTargetPtr();
-  if (target) {
+  
+  if (Target *target = exe_ctx.GetTargetPtr(); target) {
     if (show_unique) {
       format_entry = target->GetDebugger().GetFrameFormatUnique();
       frame_format = &format_entry;
@@ -2044,8 +2044,8 @@ bool StackFrame::GetStatus(Stream &strm, bool show_frame_info, bool show_source,
     ExecutionContext exe_ctx(shared_from_this());
     bool have_source = false, have_debuginfo = false;
     lldb::StopDisassemblyType disasm_display = lldb::eStopDisassemblyTypeNever;
-    Target *target = exe_ctx.GetTargetPtr();
-    if (target) {
+    
+    if (Target *target = exe_ctx.GetTargetPtr(); target) {
       Debugger &debugger = target->GetDebugger();
       const uint32_t source_lines_before =
           debugger.GetStopSourceLineCount(true);
@@ -2063,11 +2063,11 @@ bool StackFrame::GetStatus(Stream &strm, bool show_frame_info, bool show_source,
             m_sc.function->GetStartLineSourceInfo(source_file_sp, start_line);
           }
 
-          size_t num_lines =
+          
+          if (size_t num_lines =
               target->GetSourceManager().DisplaySourceLinesWithLineNumbers(
                   source_file_sp, start_line, m_sc.line_entry.column,
-                  source_lines_before, source_lines_after, "->", &strm);
-          if (num_lines != 0)
+                  source_lines_before, source_lines_after, "->", &strm); num_lines != 0)
             have_source = true;
           // TODO: Give here a one time warning if source file is missing.
           if (!m_sc.line_entry.line)
@@ -2091,8 +2091,8 @@ bool StackFrame::GetStatus(Stream &strm, bool show_frame_info, bool show_source,
 
       case lldb::eStopDisassemblyTypeAlways:
         if (target) {
-          const uint32_t disasm_lines = debugger.GetDisassemblyLineCount();
-          if (disasm_lines > 0) {
+          
+          if (const uint32_t disasm_lines = debugger.GetDisassemblyLineCount(); disasm_lines > 0) {
             const ArchSpec &target_arch = target->GetArchitecture();
             const char *plugin_name = nullptr;
             const char *flavor = nullptr;

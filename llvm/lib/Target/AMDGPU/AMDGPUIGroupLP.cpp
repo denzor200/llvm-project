@@ -376,10 +376,10 @@ void PipelineSolver::reset() {
     for (auto &SG : SyncPipeline) {
       SmallVector<SUnit *, 32> TempCollection = SG.Collection;
       SG.Collection.clear();
-      auto *SchedBarr = llvm::find_if(TempCollection, [](SUnit *SU) {
+      
+      if (auto *SchedBarr = llvm::find_if(TempCollection, [](SUnit *SU) {
         return SU->getInstr()->getOpcode() == AMDGPU::SCHED_GROUP_BARRIER;
-      });
-      if (SchedBarr != TempCollection.end())
+      }); SchedBarr != TempCollection.end())
         SG.Collection.push_back(*SchedBarr);
     }
   }
@@ -496,9 +496,9 @@ void PipelineSolver::removeEdges(
     SUnit *Pred = PredSuccPair.first;
     SUnit *Succ = PredSuccPair.second;
 
-    auto *Match = llvm::find_if(
-        Succ->Preds, [&Pred](SDep &P) { return P.getSUnit() == Pred; });
-    if (Match != Succ->Preds.end()) {
+    
+    if (auto *Match = llvm::find_if(
+        Succ->Preds, [&Pred](SDep &P) { return P.getSUnit() == Pred; }); Match != Succ->Preds.end()) {
       assert(Match->isArtificial());
       Succ->removePred(*Match);
     }
@@ -681,8 +681,8 @@ bool PipelineSolver::solveExact() {
   bool FinishedExploring = false;
   if (CurrCost < BestCost || BestCost == -1) {
     if (solveExact()) {
-      bool FinishedExploring = BestCost != 0;
-      if (!FinishedExploring)
+      
+      if (bool FinishedExploring = BestCost != 0; !FinishedExploring)
         return true;
     }
   }
@@ -1044,19 +1044,19 @@ private:
       if (!SyncPipe.size())
         return false;
 
-      auto SuccSize = llvm::count_if(SU->Succs, [](const SDep &Succ) {
+      
+      if (auto SuccSize = llvm::count_if(SU->Succs, [](const SDep &Succ) {
         return Succ.getKind() == SDep::Data;
-      });
-      if (SuccSize >= Size)
+      }); SuccSize >= Size)
         return false;
 
       if (HasIntermediary) {
         for (auto Succ : SU->Succs) {
-          auto SuccSize =
+          
+          if (auto SuccSize =
               llvm::count_if(Succ.getSUnit()->Succs, [](const SDep &SuccSucc) {
                 return SuccSucc.getKind() == SDep::Data;
-              });
-          if (SuccSize >= Size)
+              }); SuccSize >= Size)
             return false;
         }
       }
@@ -1084,19 +1084,19 @@ private:
       if (!SyncPipe.size())
         return false;
 
-      auto SuccSize = llvm::count_if(SU->Succs, [](const SDep &Succ) {
+      
+      if (auto SuccSize = llvm::count_if(SU->Succs, [](const SDep &Succ) {
         return Succ.getKind() == SDep::Data;
-      });
-      if (SuccSize >= Size)
+      }); SuccSize >= Size)
         return true;
 
       if (HasIntermediary) {
         for (auto Succ : SU->Succs) {
-          auto SuccSize =
+          
+          if (auto SuccSize =
               llvm::count_if(Succ.getSUnit()->Succs, [](const SDep &SuccSucc) {
                 return SuccSucc.getKind() == SDep::Data;
-              });
-          if (SuccSize >= Size)
+              }); SuccSize >= Size)
             return true;
         }
       }
@@ -1288,8 +1288,8 @@ private:
     bool apply(const SUnit *SU, const ArrayRef<SUnit *> Collection,
                SmallVectorImpl<SchedGroup> &SyncPipe) override {
 
-      auto *DAG = SyncPipe[0].DAG;
-      if (Cache->empty()) {
+      
+      if (auto *DAG = SyncPipe[0].DAG; Cache->empty()) {
         for (auto &SU : DAG->SUnits)
           if (TII->isTRANS(SU.getInstr()->getOpcode())) {
             Cache->push_back(&SU);
@@ -1865,8 +1865,8 @@ private:
                SmallVectorImpl<SchedGroup> &SyncPipe) override {
       if (!SyncPipe.size())
         return false;
-      int MFMAsFound = 0;
-      if (!Cache->size()) {
+      
+      if (int MFMAsFound = 0; !Cache->size()) {
         for (auto &Elt : SyncPipe[0].DAG->SUnits) {
           if (TII->isMFMAorWMMA(*Elt.getInstr())) {
             ++MFMAsFound;
@@ -1895,16 +1895,16 @@ private:
   public:
     bool apply(const SUnit *SU, const ArrayRef<SUnit *> Collection,
                SmallVectorImpl<SchedGroup> &SyncPipe) override {
-      auto *MI = SU->getInstr();
-      if (MI->getOpcode() != AMDGPU::V_PERM_B32_e64)
+      
+      if (auto *MI = SU->getInstr(); MI->getOpcode() != AMDGPU::V_PERM_B32_e64)
         return false;
 
       bool FitsInGroup = false;
       // Does the VALU have a DS_WRITE successor
       if (!Collection.size()) {
         for (auto &Succ : SU->Succs) {
-          SUnit *SuccUnit = Succ.getSUnit();
-          if (TII->isDS(*SuccUnit->getInstr()) &&
+          
+          if (SUnit *SuccUnit = Succ.getSUnit(); TII->isDS(*SuccUnit->getInstr()) &&
               SuccUnit->getInstr()->mayStore()) {
             Cache->push_back(SuccUnit);
             FitsInGroup = true;
@@ -2077,8 +2077,8 @@ bool MFMASmallGemmSingleWaveOpt::applyIGLPStrategy(
          "DSWCounters should be zero in pre-RA scheduling!");
   SmallVector<SUnit *, 6> DSWithPerms;
   for (auto &SU : DAG->SUnits) {
-    auto *I = SU.getInstr();
-    if (TII->isMFMAorWMMA(*I))
+    
+    if (auto *I = SU.getInstr(); TII->isMFMAorWMMA(*I))
       ++MFMACount;
     else if (TII->isDS(*I)) {
       if (I->mayLoad())
@@ -2555,8 +2555,8 @@ void SchedGroup::initSchedGroup(SUnitsToCandidateSGsMap &SyncedInstrs) {
 }
 
 void IGroupLPDAGMutation::apply(ScheduleDAGInstrs *DAGInstrs) {
-  const TargetSchedModel *TSchedModel = DAGInstrs->getSchedModel();
-  if (!TSchedModel || DAGInstrs->SUnits.empty())
+  
+  if (const TargetSchedModel *TSchedModel = DAGInstrs->getSchedModel(); !TSchedModel || DAGInstrs->SUnits.empty())
     return;
 
   LLVM_DEBUG(dbgs() << "Applying IGroupLPDAGMutation...\n");
@@ -2569,9 +2569,9 @@ void IGroupLPDAGMutation::apply(ScheduleDAGInstrs *DAGInstrs) {
   bool FoundIGLP = false;
   bool ShouldApplyIGLP = false;
   for (auto R = DAG->SUnits.rbegin(), E = DAG->SUnits.rend(); R != E; ++R) {
-    unsigned Opc = R->getInstr()->getOpcode();
+    
     // SCHED_[GROUP_]BARRIER and IGLP are mutually exclusive.
-    if (Opc == AMDGPU::SCHED_BARRIER) {
+    if (unsigned Opc = R->getInstr()->getOpcode(); Opc == AMDGPU::SCHED_BARRIER) {
       addSchedBarrierEdges(*R);
       FoundSB = true;
     } else if (Opc == AMDGPU::SCHED_GROUP_BARRIER) {

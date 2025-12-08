@@ -274,9 +274,9 @@ lldb::thread_result_t ThreadedCommunication::ReadThread() {
   bool done = false;
   bool disconnect = false;
   while (!done && m_read_thread_enabled) {
-    size_t bytes_read = ReadFromConnection(
-        buf, sizeof(buf), std::chrono::seconds(5), status, &error);
-    if (bytes_read > 0 || status == eConnectionStatusEndOfFile)
+    
+    if (size_t bytes_read = ReadFromConnection(
+        buf, sizeof(buf), std::chrono::seconds(5), status, &error); bytes_read > 0 || status == eConnectionStatusEndOfFile)
       AppendBytesToCache(buf, bytes_read, true, status);
 
     switch (status) {

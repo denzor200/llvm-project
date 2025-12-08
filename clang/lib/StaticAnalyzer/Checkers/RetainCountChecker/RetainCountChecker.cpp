@@ -51,29 +51,29 @@ void RefVal::print(raw_ostream &Out) const {
     default: llvm_unreachable("Invalid RefVal kind");
     case Owned: {
       Out << "Owned";
-      unsigned cnt = getCount();
-      if (cnt) Out << " (+ " << cnt << ")";
+      
+      if (unsigned cnt = getCount(); cnt) Out << " (+ " << cnt << ")";
       break;
     }
 
     case NotOwned: {
       Out << "NotOwned";
-      unsigned cnt = getCount();
-      if (cnt) Out << " (+ " << cnt << ")";
+      
+      if (unsigned cnt = getCount(); cnt) Out << " (+ " << cnt << ")";
       break;
     }
 
     case ReturnedOwned: {
       Out << "ReturnedOwned";
-      unsigned cnt = getCount();
-      if (cnt) Out << " (+ " << cnt << ")";
+      
+      if (unsigned cnt = getCount(); cnt) Out << " (+ " << cnt << ")";
       break;
     }
 
     case ReturnedNotOwned: {
       Out << "ReturnedNotOwned";
-      unsigned cnt = getCount();
-      if (cnt) Out << " (+ " << cnt << ")";
+      
+      if (unsigned cnt = getCount(); cnt) Out << " (+ " << cnt << ")";
       break;
     }
 
@@ -711,8 +711,8 @@ ProgramStateRef RetainCountChecker::updateSymbol(ProgramStateRef state,
                                                  ArgEffect AE,
                                                  RefVal::Kind &hasErr,
                                                  CheckerContext &C) const {
-  bool IgnoreRetainMsg = (bool)C.getASTContext().getLangOpts().ObjCAutoRefCount;
-  if (AE.getObjKind() == ObjKind::ObjC && IgnoreRetainMsg) {
+  
+  if (bool IgnoreRetainMsg = (bool)C.getASTContext().getLangOpts().ObjCAutoRefCount; AE.getObjKind() == ObjKind::ObjC && IgnoreRetainMsg) {
     switch (AE.getKind()) {
     default:
       break;
@@ -840,9 +840,9 @@ ProgramStateRef RetainCountChecker::updateSymbol(ProgramStateRef state,
 const RefCountBug &
 RetainCountChecker::errorKindToBugKind(RefVal::Kind ErrorKind,
                                        SymbolRef Sym) const {
-  const RefCountFrontend &FE = getPreferredFrontend();
+  
 
-  switch (ErrorKind) {
+  switch (const RefCountFrontend &FE = getPreferredFrontend(); ErrorKind) {
     case RefVal::ErrorUseAfterRelease:
       return FE.UseAfterRelease;
     case RefVal::ErrorReleaseNotOwned:
@@ -1010,8 +1010,8 @@ ExplodedNode * RetainCountChecker::processReturn(const ReturnStmt *S,
     }
 
     case RefVal::NotOwned: {
-      unsigned cnt = X.getCount();
-      if (cnt) {
+      
+      if (unsigned cnt = X.getCount(); cnt) {
         X.setCount(cnt - 1);
         X = X ^ RefVal::ReturnedOwned;
       } else {
@@ -1138,11 +1138,11 @@ ExplodedNode * RetainCountChecker::checkReturnWithRetEffect(const ReturnStmt *S,
 void RetainCountChecker::checkBind(SVal loc, SVal val, const Stmt *S,
                                    bool AtDeclInit, CheckerContext &C) const {
   ProgramStateRef state = C.getState();
-  const MemRegion *MR = loc.getAsRegion();
+  
 
   // Find all symbols referenced by 'val' that we are tracking
   // and stop tracking them.
-  if (MR && shouldEscapeRegion(state, MR)) {
+  if (const MemRegion *MR = loc.getAsRegion(); MR && shouldEscapeRegion(state, MR)) {
     state = state->scanReachableSymbols<StopTrackingCallback>(val).getState();
     C.addTransition(state);
   }
@@ -1312,9 +1312,9 @@ RetainCountChecker::processLeaks(ProgramStateRef state,
                                  ExplodedNode *Pred) const {
   // Generate an intermediate node representing the leak point.
   ExplodedNode *N = Ctx.addTransition(state, Pred);
-  const LangOptions &LOpts = Ctx.getASTContext().getLangOpts();
+  
 
-  if (N) {
+  if (const LangOptions &LOpts = Ctx.getASTContext().getLangOpts(); N) {
     const RefCountFrontend &FE = getPreferredFrontend();
     const RefCountBug &BT = Pred ? FE.LeakWithinFunction : FE.LeakAtReturn;
 
@@ -1347,8 +1347,8 @@ void RetainCountChecker::checkBeginFunction(CheckerContext &Ctx) const {
     SymbolRef Sym = state->getSVal(state->getRegion(Param, LCtx)).getAsSymbol();
 
     QualType Ty = Param->getType();
-    const ArgEffect *AE = CalleeSideArgEffects.lookup(idx);
-    if (AE) {
+    
+    if (const ArgEffect *AE = CalleeSideArgEffects.lookup(idx); AE) {
       ObjKind K = AE->getObjKind();
       if (K == ObjKind::Generalized || K == ObjKind::OS ||
           (TrackNSCFStartParam && (K == ObjKind::ObjC || K == ObjKind::CF))) {
@@ -1412,8 +1412,8 @@ void RetainCountChecker::checkDeadSymbols(SymbolReaper &SymReaper,
 
   // Update counts from autorelease pools
   for (const auto &I: state->get<RefBindings>()) {
-    SymbolRef Sym = I.first;
-    if (SymReaper.isDead(Sym)) {
+    
+    if (SymbolRef Sym = I.first; SymReaper.isDead(Sym)) {
       const RefVal &V = I.second;
       state = handleAutoreleaseCounts(state, Pred, C, Sym, V);
       if (!state)

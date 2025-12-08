@@ -128,8 +128,8 @@ bool SymbolFileOnDemand::ParseIsOptimized(CompileUnit &comp_unit) {
     Log *log = GetLog();
     LLDB_LOG(log, "[{0}] {1} is skipped", GetSymbolFileName(), __FUNCTION__);
     if (log) {
-      bool optimized = m_sym_file_impl->ParseIsOptimized(comp_unit);
-      if (optimized) {
+      
+      if (bool optimized = m_sym_file_impl->ParseIsOptimized(comp_unit); optimized) {
         LLDB_LOG(log, "Would return optimized if hydrated.");
       }
     }
@@ -155,9 +155,9 @@ bool SymbolFileOnDemand::ParseImportedModules(
     LLDB_LOG(log, "[{0}] {1} is skipped", GetSymbolFileName(), __FUNCTION__);
     if (log) {
       std::vector<SourceModule> tmp_imported_modules;
-      bool succeed =
-          m_sym_file_impl->ParseImportedModules(sc, tmp_imported_modules);
-      if (succeed)
+      
+      if (bool succeed =
+          m_sym_file_impl->ParseImportedModules(sc, tmp_imported_modules); succeed)
         LLDB_LOG(log, "{0} imported modules would be parsed if hydrated.",
                  tmp_imported_modules.size());
     }
@@ -189,8 +189,8 @@ Type *SymbolFileOnDemand::ResolveTypeUID(lldb::user_id_t type_uid) {
     Log *log = GetLog();
     LLDB_LOG(log, "[{0}] {1} is skipped", GetSymbolFileName(), __FUNCTION__);
     if (log) {
-      Type *resolved_type = m_sym_file_impl->ResolveTypeUID(type_uid);
-      if (resolved_type)
+      
+      if (Type *resolved_type = m_sym_file_impl->ResolveTypeUID(type_uid); resolved_type)
         LLDB_LOG(log, "Type would be parsed for {0} if hydrated.", type_uid);
     }
     return nullptr;

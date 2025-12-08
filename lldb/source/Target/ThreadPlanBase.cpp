@@ -61,8 +61,8 @@ bool ThreadPlanBase::DoPlanExplainsStop(Event *event_ptr) {
 Vote ThreadPlanBase::ShouldReportStop(Event *event_ptr) {
   StopInfoSP stop_info_sp = GetThread().GetStopInfo();
   if (stop_info_sp) {
-    bool should_notify = stop_info_sp->ShouldNotify(event_ptr);
-    if (should_notify)
+    
+    if (bool should_notify = stop_info_sp->ShouldNotify(event_ptr); should_notify)
       return eVoteYes;
     else
       return eVoteNoOpinion;

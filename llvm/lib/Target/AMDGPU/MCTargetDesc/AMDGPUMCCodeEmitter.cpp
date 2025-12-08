@@ -123,8 +123,8 @@ static uint32_t getIntInlineImmEncoding(IntTy Imm) {
 }
 
 static uint32_t getLit16Encoding(uint16_t Val, const MCSubtargetInfo &STI) {
-  uint16_t IntImm = getIntInlineImmEncoding(static_cast<int16_t>(Val));
-  if (IntImm != 0)
+  
+  if (uint16_t IntImm = getIntInlineImmEncoding(static_cast<int16_t>(Val)); IntImm != 0)
     return IntImm;
 
   if (Val == 0x3800) // 0.5
@@ -159,8 +159,8 @@ static uint32_t getLit16Encoding(uint16_t Val, const MCSubtargetInfo &STI) {
 }
 
 static uint32_t getLitBF16Encoding(uint16_t Val) {
-  uint16_t IntImm = getIntInlineImmEncoding(static_cast<int16_t>(Val));
-  if (IntImm != 0)
+  
+  if (uint16_t IntImm = getIntInlineImmEncoding(static_cast<int16_t>(Val)); IntImm != 0)
     return IntImm;
 
   // clang-format off
@@ -180,8 +180,8 @@ static uint32_t getLitBF16Encoding(uint16_t Val) {
 }
 
 static uint32_t getLit32Encoding(uint32_t Val, const MCSubtargetInfo &STI) {
-  uint32_t IntImm = getIntInlineImmEncoding(static_cast<int32_t>(Val));
-  if (IntImm != 0)
+  
+  if (uint32_t IntImm = getIntInlineImmEncoding(static_cast<int32_t>(Val)); IntImm != 0)
     return IntImm;
 
   if (Val == llvm::bit_cast<uint32_t>(0.5f))
@@ -221,8 +221,8 @@ static uint32_t getLit16IntEncoding(uint32_t Val, const MCSubtargetInfo &STI) {
 
 static uint32_t getLit64Encoding(const MCInstrDesc &Desc, uint64_t Val,
                                  const MCSubtargetInfo &STI, bool IsFP) {
-  uint32_t IntImm = getIntInlineImmEncoding(static_cast<int64_t>(Val));
-  if (IntImm != 0)
+  
+  if (uint32_t IntImm = getIntInlineImmEncoding(static_cast<int64_t>(Val)); IntImm != 0)
     return IntImm;
 
   if (Val == llvm::bit_cast<uint64_t>(0.5))
@@ -493,9 +493,9 @@ void AMDGPUMCCodeEmitter::getSOPPBrEncoding(const MCInst &MI, unsigned OpNo,
                                             APInt &Op,
                                             SmallVectorImpl<MCFixup> &Fixups,
                                             const MCSubtargetInfo &STI) const {
-  const MCOperand &MO = MI.getOperand(OpNo);
+  
 
-  if (MO.isExpr()) {
+  if (const MCOperand &MO = MI.getOperand(OpNo); MO.isExpr()) {
     const MCExpr *Expr = MO.getExpr();
     addFixup(Fixups, 0, Expr, AMDGPU::fixup_si_sopp_br, true);
     Op = APInt::getZero(96);
@@ -521,9 +521,9 @@ void AMDGPUMCCodeEmitter::getSDWASrcEncoding(const MCInst &MI, unsigned OpNo,
 
   uint64_t RegEnc = 0;
 
-  const MCOperand &MO = MI.getOperand(OpNo);
+  
 
-  if (MO.isReg()) {
+  if (const MCOperand &MO = MI.getOperand(OpNo); MO.isReg()) {
     MCRegister Reg = MO.getReg();
     RegEnc |= MRI.getEncodingValue(Reg);
     RegEnc &= SDWA9EncValues::SRC_VGPR_MASK;
@@ -640,9 +640,9 @@ void AMDGPUMCCodeEmitter::getMachineOpValueT16(
   if ((int)OpNo == AMDGPU::getNamedOperandIdx(MI.getOpcode(),
                                               AMDGPU::OpName::src0_modifiers)) {
     SrcMOIdx = AMDGPU::getNamedOperandIdx(MI.getOpcode(), AMDGPU::OpName::src0);
-    int VDstMOIdx =
-        AMDGPU::getNamedOperandIdx(MI.getOpcode(), AMDGPU::OpName::vdst);
-    if (VDstMOIdx != -1) {
+    
+    if (int VDstMOIdx =
+        AMDGPU::getNamedOperandIdx(MI.getOpcode(), AMDGPU::OpName::vdst); VDstMOIdx != -1) {
       auto DstReg = MI.getOperand(VDstMOIdx).getReg();
       if (AMDGPU::isHi16Reg(DstReg, MRI))
         Op |= SISrcMods::DST_OP_SEL;
@@ -713,11 +713,11 @@ void AMDGPUMCCodeEmitter::getMachineOpValueCommon(
     addFixup(Fixups, Offset, MO.getExpr(), Kind, PCRel);
   }
 
-  const MCInstrDesc &Desc = MCII.get(MI.getOpcode());
-  if (AMDGPU::isSISrcOperand(Desc, OpNo)) {
-    bool HasMandatoryLiteral =
-        AMDGPU::hasNamedOperand(MI.getOpcode(), AMDGPU::OpName::imm);
-    if (auto Enc = getLitEncoding(Desc, MO, OpNo, STI, HasMandatoryLiteral)) {
+  
+  if (const MCInstrDesc &Desc = MCII.get(MI.getOpcode()); AMDGPU::isSISrcOperand(Desc, OpNo)) {
+    
+    if (bool HasMandatoryLiteral =
+        AMDGPU::hasNamedOperand(MI.getOpcode(), AMDGPU::OpName::imm); auto Enc = getLitEncoding(Desc, MO, OpNo, STI, HasMandatoryLiteral)) {
       Op = *Enc;
       return;
     }

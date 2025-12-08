@@ -100,9 +100,9 @@ public:
 
 private:
   EntryT &get(std::string &Key) {
-    auto *It = find_if(Container,
-                       [&Key](EntryT &Input) { return Input.first == Key; });
-    if (It != Container.end())
+    
+    if (auto *It = find_if(Container,
+                       [&Key](EntryT &Input) { return Input.first == Key; }); It != Container.end())
       return *It;
     Container.push_back(EntryT(Key, {}));
     return Container.back();
@@ -268,8 +268,8 @@ Expected<FileType> getVersion(const Object *File) {
   auto VersionOrErr = getRequiredValue<int64_t, FileType>(
       TBDKey::TBDVersion, File, &Object::getInteger,
       [](int64_t Val) -> std::optional<FileType> {
-        unsigned Result = Val;
-        if (Result != 5)
+        
+        if (unsigned Result = Val; Result != 5)
           return std::nullopt;
         return FileType::TBD_V5;
       });
@@ -558,8 +558,8 @@ Expected<PackedVersion> getPackedVersion(const Object *File, TBDKey Key) {
 
     auto ValidatePV = [](StringRef Version) -> std::optional<PackedVersion> {
       PackedVersion PV;
-      auto [success, truncated] = PV.parse64(Version);
-      if (!success || truncated)
+      
+      if (auto [success, truncated] = PV.parse64(Version); !success || truncated)
         return std::nullopt;
       return PV;
     };

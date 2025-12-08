@@ -122,10 +122,10 @@ LogicalResult IntegerRangeAnalysis::visitOperation(
     // them [-inf, inf] so we don't circle around infinitely often (because
     // the dataflow analysis in MLIR doesn't attempt to work out trip counts
     // and often can't).
-    bool isYieldedResult = llvm::any_of(v.getUsers(), [](Operation *op) {
+    
+    if (bool isYieldedResult = llvm::any_of(v.getUsers(), [](Operation *op) {
       return op->hasTrait<OpTrait::IsTerminator>();
-    });
-    if (isYieldedResult && !oldRange.isUninitialized() &&
+    }); isYieldedResult && !oldRange.isUninitialized() &&
         !(lattice->getValue() == oldRange)) {
       LDBG() << "Loop variant loop result detected";
       changed |= lattice->join(IntegerValueRange::getMaxRange(v));
@@ -165,10 +165,10 @@ void IntegerRangeAnalysis::visitNonControlFlowArguments(
       // them [-inf, inf] so we don't circle around infinitely often (because
       // the dataflow analysis in MLIR doesn't attempt to work out trip counts
       // and often can't).
-      bool isYieldedValue = llvm::any_of(v.getUsers(), [](Operation *op) {
+      
+      if (bool isYieldedValue = llvm::any_of(v.getUsers(), [](Operation *op) {
         return op->hasTrait<OpTrait::IsTerminator>();
-      });
-      if (isYieldedValue && !oldRange.isUninitialized() &&
+      }); isYieldedValue && !oldRange.isUninitialized() &&
           !(lattice->getValue() == oldRange)) {
         LDBG() << "Loop variant loop result detected";
         changed |= lattice->join(IntegerValueRange::getMaxRange(v));
@@ -191,9 +191,9 @@ void IntegerRangeAnalysis::visitNonControlFlowArguments(
         if (auto bound = dyn_cast_or_null<IntegerAttr>(attr))
           return bound.getValue();
       } else if (auto value = llvm::dyn_cast_if_present<Value>(*loopBound)) {
-        const IntegerValueRangeLattice *lattice =
-            getLatticeElementFor(getProgramPointBefore(block), value);
-        if (lattice != nullptr && !lattice->getValue().isUninitialized())
+        
+        if (const IntegerValueRangeLattice *lattice =
+            getLatticeElementFor(getProgramPointBefore(block), value); lattice != nullptr && !lattice->getValue().isUninitialized())
           return getUpper ? lattice->getValue().getValue().smax()
                           : lattice->getValue().getValue().smin();
       }

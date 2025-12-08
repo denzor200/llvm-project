@@ -55,8 +55,8 @@ bool ChromiumCheckModel::transfer(const CFGElement &Element, Environment &Env) {
   auto CS = Element.getAs<CFGStmt>();
   if (!CS)
     return false;
-  auto Stmt = CS->getStmt();
-  if (const auto *Call = dyn_cast<CallExpr>(Stmt)) {
+  
+  if (auto Stmt = CS->getStmt(); const auto *Call = dyn_cast<CallExpr>(Stmt)) {
     if (const auto *M =
             dyn_cast_or_null<CXXMethodDecl>(Call->getDirectCallee())) {
       if (isCheckLikeMethod(CheckDecls, *M)) {

@@ -109,9 +109,9 @@ FailureOr<AffineApplyOp> mlir::affine::decompose(RewriterBase &rewriter,
       !isa<AffineBinaryOpExpr>(binExpr.getRHS()))
     return rewriter.notifyMatchFailure(op, "terminal affine.apply");
 
-  bool supportedKind = ((binExpr.getKind() == AffineExprKind::Add) ||
-                        (binExpr.getKind() == AffineExprKind::Mul));
-  if (!supportedKind)
+  
+  if (bool supportedKind = ((binExpr.getKind() == AffineExprKind::Add) ||
+                        (binExpr.getKind() == AffineExprKind::Mul)); !supportedKind)
     return rewriter.notifyMatchFailure(
         op, "only add or mul binary expr can be reassociated");
 

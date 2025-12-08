@@ -454,8 +454,8 @@ bool X86CmovConverterPass::checkForProfitableCmovCandidates(
           if (!MO.isReg() || !MO.isUse())
             continue;
           Register Reg = MO.getReg();
-          auto &RDM = RegDefMaps[Reg.isVirtual()];
-          if (MachineInstr *DefMI = RDM.lookup(Reg)) {
+          
+          if (auto &RDM = RegDefMaps[Reg.isVirtual()]; MachineInstr *DefMI = RDM.lookup(Reg)) {
             OperandToDefMap[&MO] = DefMI;
             DepthInfo Info = DepthMap.lookup(DefMI);
             MIDepth = std::max(MIDepth, Info.Depth);
@@ -553,8 +553,8 @@ bool X86CmovConverterPass::checkForProfitableCmovCandidates(
       // used with tree-search like algorithm, where the branch is unpredicted.
       auto UIs = MRI->use_instructions(MI->defs().begin()->getReg());
       if (hasSingleElement(UIs)) {
-        unsigned Op = UIs.begin()->getOpcode();
-        if (Op == X86::MOV64rm || Op == X86::MOV32rm) {
+        
+        if (unsigned Op = UIs.begin()->getOpcode(); Op == X86::MOV64rm || Op == X86::MOV32rm) {
           WorthOpGroup = false;
           break;
         }
@@ -562,10 +562,10 @@ bool X86CmovConverterPass::checkForProfitableCmovCandidates(
 
       unsigned CondCost =
           DepthMap[OperandToDefMap.lookup(&MI->getOperand(4))].Depth;
-      unsigned ValCost = getDepthOfOptCmov(
+      
+      if (unsigned ValCost = getDepthOfOptCmov(
           DepthMap[OperandToDefMap.lookup(&MI->getOperand(1))].Depth,
-          DepthMap[OperandToDefMap.lookup(&MI->getOperand(2))].Depth);
-      if (ValCost > CondCost || (CondCost - ValCost) * 4 < MispredictPenalty) {
+          DepthMap[OperandToDefMap.lookup(&MI->getOperand(2))].Depth); ValCost > CondCost || (CondCost - ValCost) * 4 < MispredictPenalty) {
         WorthOpGroup = false;
         break;
       }

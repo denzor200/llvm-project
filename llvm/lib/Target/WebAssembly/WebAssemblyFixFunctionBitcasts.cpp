@@ -72,8 +72,8 @@ static void findUses(Value *V, Function &F,
     else if (auto *A = dyn_cast<GlobalAlias>(U))
       findUses(A, F, Uses);
     else if (auto *CB = dyn_cast<CallBase>(U)) {
-      Value *Callee = CB->getCalledOperand();
-      if (Callee != V)
+      
+      if (Value *Callee = CB->getCalledOperand(); Callee != V)
         // Skip calls where the function isn't the callee
         continue;
       if (CB->getFunctionType() == F.getValueType())
@@ -136,9 +136,9 @@ static Function *createWrapper(Function *F, FunctionType *Ty) {
 
   for (; AI != AE && PI != PE; ++AI, ++PI) {
     Type *ArgType = AI->getType();
-    Type *ParamType = *PI;
+    
 
-    if (ArgType == ParamType) {
+    if (Type *ParamType = *PI; ArgType == ParamType) {
       Args.push_back(&*AI);
     } else {
       if (CastInst::isBitOrNoopPointerCastable(ArgType, ParamType, DL)) {
@@ -165,10 +165,10 @@ static Function *createWrapper(Function *F, FunctionType *Ty) {
       for (; AI != AE; ++AI)
         Args.push_back(&*AI);
 
-    CallInst *Call = Builder.CreateCall(F, Args);
+    
 
     // Determine what value to return.
-    if (RtnType->isVoidTy()) {
+    if (CallInst *Call = Builder.CreateCall(F, Args); RtnType->isVoidTy()) {
       Builder.CreateRetVoid();
     } else if (ExpectedRtnType->isVoidTy()) {
       LLVM_DEBUG(dbgs() << "Creating dummy return: " << *RtnType << "\n");
@@ -243,9 +243,9 @@ bool FixFunctionBitcasts::runOnModule(Module &M) {
       Main = &F;
       LLVMContext &C = M.getContext();
       Type *MainArgTys[] = {Type::getInt32Ty(C), PointerType::get(C, 0)};
-      FunctionType *MainTy = FunctionType::get(Type::getInt32Ty(C), MainArgTys,
-                                               /*isVarArg=*/false);
-      if (shouldFixMainFunction(F.getFunctionType(), MainTy)) {
+      
+      if (FunctionType *MainTy = FunctionType::get(Type::getInt32Ty(C), MainArgTys,
+                                               /*isVarArg=*/false); shouldFixMainFunction(F.getFunctionType(), MainTy)) {
         LLVM_DEBUG(dbgs() << "Found `main` function with incorrect type: "
                           << *F.getFunctionType() << "\n");
         Value *Args[] = {PoisonValue::get(MainArgTys[0]),

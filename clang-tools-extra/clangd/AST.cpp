@@ -536,8 +536,8 @@ public:
     if (CurLoc != SearchedLocation)
       return true;
 
-    const AutoType *AT = D->getReturnType()->getContainedAutoType();
-    if (AT && !AT->getDeducedType().isNull()) {
+    
+    if (const AutoType *AT = D->getReturnType()->getContainedAutoType(); AT && !AT->getDeducedType().isNull()) {
       DeducedType = AT->getDeducedType();
     } else if (auto *DT = dyn_cast<DecltypeType>(D->getReturnType())) {
       // auto in a trailing return type just points to a DecltypeType and
@@ -783,8 +783,8 @@ const TemplateTypeParmType *getUnderlyingPackType(const ParmVarDecl *Param) {
   if (auto *RT = dyn_cast<ReferenceType>(PlainType))
     PlainType = RT->getPointeeTypeAsWritten().getTypePtr();
   if (const auto *SubstType = dyn_cast<SubstTemplateTypeParmType>(PlainType)) {
-    const auto *ReplacedParameter = SubstType->getReplacedParameter();
-    if (ReplacedParameter->isParameterPack()) {
+    
+    if (const auto *ReplacedParameter = SubstType->getReplacedParameter(); ReplacedParameter->isParameterPack()) {
       return ReplacedParameter->getTypeForDecl()
           ->castAs<TemplateTypeParmType>();
     }
@@ -818,16 +818,16 @@ public:
         PackType{getUnderlyingPackType(Parameters.front())} {}
 
   bool VisitCallExpr(CallExpr *E) {
-    auto *Callee = getCalleeDeclOrUniqueOverload(E);
-    if (Callee) {
+    
+    if (auto *Callee = getCalleeDeclOrUniqueOverload(E); Callee) {
       handleCall(Callee, E->arguments());
     }
     return !Info.has_value();
   }
 
   bool VisitCXXConstructExpr(CXXConstructExpr *E) {
-    auto *Callee = E->getConstructor();
-    if (Callee) {
+    
+    if (auto *Callee = E->getConstructor(); Callee) {
       handleCall(Callee, E->arguments());
     }
     return !Info.has_value();
@@ -966,8 +966,8 @@ private:
       if (Const->getConstructor()->isCopyOrMoveConstructor())
         E = Const->getArg(0)->IgnoreImplicitAsWritten();
     if (const auto *Call = dyn_cast<CallExpr>(E)) {
-      const auto Callee = Call->getBuiltinCallee();
-      if (Callee == Builtin::BIforward) {
+      
+      if (const auto Callee = Call->getBuiltinCallee(); Callee == Builtin::BIforward) {
         return dyn_cast<DeclRefExpr>(
             Call->getArg(0)->IgnoreImplicitAsWritten());
       }
@@ -1021,8 +1021,8 @@ resolveForwardingParameters(const FunctionDecl *D, unsigned MaxDepth) {
       // If we are recursing into a previously encountered function: Abort
       if (CurrentFunction) {
         if (const auto *Template = CurrentFunction->getPrimaryTemplate()) {
-          bool NewFunction = SeenTemplates.insert(Template).second;
-          if (!NewFunction) {
+          
+          if (bool NewFunction = SeenTemplates.insert(Template).second; !NewFunction) {
             return {Parameters.begin(), Parameters.end()};
           }
         }

@@ -346,12 +346,12 @@ TailDuplication::aggressiveDuplicate(BinaryBasicBlock &BB,
     CurrBB = SuccBB;
   }
   // Don't duplicate if its too much code
-  unsigned DuplicationByteCount = std::accumulate(
+  
+  if (unsigned DuplicationByteCount = std::accumulate(
       std::begin(BlocksToDuplicate), std::end(BlocksToDuplicate), 0,
       [](int value, BinaryBasicBlock *p) {
         return value + p->getOriginalSize();
-      });
-  if (DuplicationByteCount > opts::TailDuplicationMaximumDuplication) {
+      }); DuplicationByteCount > opts::TailDuplicationMaximumDuplication) {
     LLVM_DEBUG(dbgs() << "Aggressive tail duplication: duplication byte count ("
                       << DuplicationByteCount << ") exceeds maximum "
                       << opts::TailDuplicationMaximumDuplication << '\n';);
@@ -488,8 +488,8 @@ TailDuplication::cacheDuplicate(const MCCodeEmitter *Emitter,
     return BlocksToDuplicate;
   }
   // Do not append basic blocks after the last hot block in the current layout
-  auto NextBlock = BF.getLayout().getBasicBlockAfter(Pred);
-  if (NextBlock == nullptr || (!Pred->isCold() && NextBlock->isCold())) {
+  
+  if (auto NextBlock = BF.getLayout().getBasicBlockAfter(Pred); NextBlock == nullptr || (!Pred->isCold() && NextBlock->isCold())) {
     return BlocksToDuplicate;
   }
 
@@ -618,10 +618,10 @@ void TailDuplication::runOnFunction(BinaryFunction &Function) {
 
     if (opts::TailDuplicationConstCopyPropagation) {
       constantAndCopyPropagate(*BB, DuplicatedBlocks);
-      BinaryBasicBlock *FirstBB = BlocksToDuplicate[0];
-      if (FirstBB->pred_size() == 1) {
-        BinaryBasicBlock *PredBB = *FirstBB->pred_begin();
-        if (PredBB->succ_size() == 1)
+      
+      if (BinaryBasicBlock *FirstBB = BlocksToDuplicate[0]; FirstBB->pred_size() == 1) {
+        
+        if (BinaryBasicBlock *PredBB = *FirstBB->pred_begin(); PredBB->succ_size() == 1)
           constantAndCopyPropagate(*PredBB, BlocksToDuplicate);
       }
     }

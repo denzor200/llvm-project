@@ -138,8 +138,8 @@ bool CXXTypeidExpr::isPotentiallyEvaluated() const {
   // C++11 [expr.typeid]p3:
   //   When typeid is applied to an expression other than a glvalue of
   //   polymorphic class type, [...] the expression is an unevaluated operand.
-  const Expr *E = getExprOperand();
-  if (const CXXRecordDecl *RD = E->getType()->getAsCXXRecordDecl())
+  
+  if (const Expr *E = getExprOperand(); const CXXRecordDecl *RD = E->getType()->getAsCXXRecordDecl())
     if (RD->isPolymorphic() && E->isGLValue())
       return true;
 
@@ -148,8 +148,8 @@ bool CXXTypeidExpr::isPotentiallyEvaluated() const {
 
 bool CXXTypeidExpr::isMostDerived(const ASTContext &Context) const {
   assert(!isTypeOperand() && "Cannot call isMostDerived for typeid(type)");
-  const Expr *E = getExprOperand()->IgnoreParenNoopCasts(Context);
-  if (const auto *DRE = dyn_cast<DeclRefExpr>(E)) {
+  
+  if (const Expr *E = getExprOperand()->IgnoreParenNoopCasts(Context); const auto *DRE = dyn_cast<DeclRefExpr>(E)) {
     QualType Ty = DRE->getDecl()->getType();
     if (!Ty->isPointerOrReferenceType())
       return true;
@@ -400,8 +400,8 @@ static bool UnresolvedLookupExprIsVariableOrConceptParameterPack(
     UnresolvedSetIterator Begin, UnresolvedSetIterator End) {
   if (std::distance(Begin, End) != 1)
     return false;
-  NamedDecl *ND = *Begin;
-  if (const auto *TTP = llvm::dyn_cast<TemplateTemplateParmDecl>(ND))
+  
+  if (NamedDecl *ND = *Begin; const auto *TTP = llvm::dyn_cast<TemplateTemplateParmDecl>(ND))
     return TTP->isParameterPack();
   return false;
 }
@@ -587,8 +587,8 @@ SourceLocation CXXConstructExpr::getEndLoc() const {
 
   SourceLocation End = getLocation();
   for (unsigned I = getNumArgs(); I > 0; --I) {
-    const Expr *Arg = getArg(I-1);
-    if (!Arg->isDefaultArgument()) {
+    
+    if (const Expr *Arg = getArg(I-1); !Arg->isDefaultArgument()) {
       SourceLocation NewEnd = Arg->getEndLoc();
       if (NewEnd.isValid()) {
         End = NewEnd;

@@ -138,8 +138,8 @@ bool VPlanSlp::areVectorizable(ArrayRef<VPValue *> Operands) const {
   const Instruction *OriginalInstr =
       cast<VPInstruction>(Operands[0])->getUnderlyingInstr();
   unsigned Opcode = OriginalInstr->getOpcode();
-  unsigned Width = OriginalInstr->getType()->getPrimitiveSizeInBits();
-  if (!all_of(Operands, [Opcode, Width](VPValue *Op) {
+  
+  if (unsigned Width = OriginalInstr->getType()->getPrimitiveSizeInBits(); !all_of(Operands, [Opcode, Width](VPValue *Op) {
         const Instruction *I = cast<VPInstruction>(Op)->getUnderlyingInstr();
         return I->getOpcode() == Opcode &&
                I->getType()->getPrimitiveSizeInBits() == Width;
@@ -226,9 +226,9 @@ static bool areCommutative(ArrayRef<VPValue *> Values) {
 static SmallVector<SmallVector<VPValue *, 4>, 4>
 getOperands(ArrayRef<VPValue *> Values) {
   SmallVector<SmallVector<VPValue *, 4>, 4> Result;
-  auto *VPI = cast<VPInstruction>(Values[0]);
+  
 
-  switch (VPI->getOpcode()) {
+  switch (auto *VPI = cast<VPInstruction>(Values[0]); VPI->getOpcode()) {
   case Instruction::Load:
     llvm_unreachable("Loads terminate a tree, no need to get operands");
   case Instruction::Store:
@@ -303,8 +303,8 @@ VPlanSlp::getBest(OpMode Mode, VPValue *Last,
                     << *cast<VPInstruction>(Last)->getUnderlyingInstr() << " ");
   for (auto *Candidate : Candidates) {
     auto *LastI = cast<VPInstruction>(Last);
-    auto *CandidateI = cast<VPInstruction>(Candidate);
-    if (areConsecutiveOrMatch(LastI, CandidateI, IAI)) {
+    
+    if (auto *CandidateI = cast<VPInstruction>(Candidate); areConsecutiveOrMatch(LastI, CandidateI, IAI)) {
       LLVM_DEBUG(dbgs() << *cast<VPInstruction>(Candidate)->getUnderlyingInstr()
                         << " ");
       BestCandidates.push_back(Candidate);

@@ -200,8 +200,8 @@ bool CodeEmitterGen::addCodeToMergeInOperand(const Record *R,
     } else {
       uint64_t OpMask = maskTrailingOnes<uint64_t>(N) << LoBit;
       OS << Indent << "Value |= (op & " << format_hex(OpMask, 0) << ')';
-      int OpShift = BeginInstBit - BeginVarBit;
-      if (OpShift > 0)
+      
+      if (int OpShift = BeginInstBit - BeginVarBit; OpShift > 0)
         OS << " << " << OpShift;
       else if (OpShift < 0)
         OS << " >> " << -OpShift;

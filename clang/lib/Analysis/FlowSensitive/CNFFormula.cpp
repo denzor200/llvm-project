@@ -181,9 +181,9 @@ CNFFormula buildCNF(const llvm::ArrayRef<const Formula *> &Formulas,
       break;
     case Formula::And: {
       const Variable LHS = GetVar(F->operands()[0]);
-      const Variable RHS = GetVar(F->operands()[1]);
+      
 
-      if (LHS == RHS) {
+      if (const Variable RHS = GetVar(F->operands()[1]); LHS == RHS) {
         // `X <=> (A ^ A)` is equivalent to `(!X v A) ^ (X v !A)` which is
         // already in conjunctive normal form. Below we add each of the
         // conjuncts of the latter expression to the result.
@@ -201,9 +201,9 @@ CNFFormula buildCNF(const llvm::ArrayRef<const Formula *> &Formulas,
     }
     case Formula::Or: {
       const Variable LHS = GetVar(F->operands()[0]);
-      const Variable RHS = GetVar(F->operands()[1]);
+      
 
-      if (LHS == RHS) {
+      if (const Variable RHS = GetVar(F->operands()[1]); LHS == RHS) {
         // `X <=> (A v A)` is equivalent to `(!X v A) ^ (X v !A)` which is
         // already in conjunctive normal form. Below we add each of the
         // conjuncts of the latter expression to the result.

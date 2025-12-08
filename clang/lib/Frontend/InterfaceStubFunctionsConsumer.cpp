@@ -211,9 +211,9 @@ class InterfaceStubFunctionsConsumer : public ASTConsumer {
       // Bail on any VarDecl that either has no named symbol.
       if (!ND->getIdentifier())
         return true;
-      const auto *VD = cast<VarDecl>(ND);
+      
       // Bail on any VarDecl that is a dependent or templated type.
-      if (VD->isTemplated() || VD->getType()->isDependentType())
+      if (const auto *VD = cast<VarDecl>(ND); VD->isTemplated() || VD->getType()->isDependentType())
         return true;
       if (WriteNamedDecl(ND, Symbols, RDO))
         return true;

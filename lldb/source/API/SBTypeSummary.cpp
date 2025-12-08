@@ -220,8 +220,8 @@ const char *SBTypeSummary::GetData() {
   if (ScriptSummaryFormat *script_summary_ptr =
           llvm::dyn_cast<ScriptSummaryFormat>(m_opaque_sp.get())) {
     const char *fname = script_summary_ptr->GetFunctionName();
-    const char *ftext = script_summary_ptr->GetPythonScript();
-    if (ftext && *ftext)
+    
+    if (const char *ftext = script_summary_ptr->GetPythonScript(); ftext && *ftext)
       return ConstString(ftext).GetCString();
     return ConstString(fname).GetCString();
   } else if (StringSummaryFormat *string_summary_ptr =

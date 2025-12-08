@@ -186,9 +186,9 @@ Status MainLoopPosix::RunImpl::Poll() {
     pfd.revents = 0;
     read_fds.push_back(pfd);
   }
-  int ready = StartPoll(read_fds, loop.GetNextWakeupTime());
+  
 
-  if (ready == -1 && errno != EINTR)
+  if (int ready = StartPoll(read_fds, loop.GetNextWakeupTime()); ready == -1 && errno != EINTR)
     return Status(errno, eErrorTypePOSIX);
 
   return Status();
@@ -253,9 +253,9 @@ MainLoopPosix::RegisterReadObject(const IOObjectSP &object_sp,
     return nullptr;
   }
 
-  const bool inserted =
-      m_read_fds.insert({object_sp->GetWaitableHandle(), callback}).second;
-  if (!inserted) {
+  
+  if (const bool inserted =
+      m_read_fds.insert({object_sp->GetWaitableHandle(), callback}).second; !inserted) {
     error = Status::FromErrorStringWithFormat(
         "File descriptor %d already monitored.",
         object_sp->GetWaitableHandle());

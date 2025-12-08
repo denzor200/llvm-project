@@ -317,8 +317,8 @@ PreservedAnalyses RISCVCodeGenPreparePass::run(Function &F,
                                                FunctionAnalysisManager &FAM) {
   DominatorTree *DT = &FAM.getResult<DominatorTreeAnalysis>(F);
   auto ST = &TM->getSubtarget<RISCVSubtarget>(F);
-  bool Changed = RISCVCodeGenPrepare(F, DT, ST).run();
-  if (!Changed)
+  
+  if (bool Changed = RISCVCodeGenPrepare(F, DT, ST).run(); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA = PreservedAnalyses::none();

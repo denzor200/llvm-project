@@ -347,8 +347,8 @@ ThunkArgInfo AArch64Arm64ECCallLowering::canonicalizeThunkType(
     Type *ElementTy = T->getArrayElementType();
     uint64_t ElementCnt = T->getArrayNumElements();
     uint64_t ElementSizePerBytes = DL.getTypeSizeInBits(ElementTy) / 8;
-    uint64_t TotalSizeBytes = ElementCnt * ElementSizePerBytes;
-    if (ElementTy->isHalfTy() || ElementTy->isFloatTy() ||
+    
+    if (uint64_t TotalSizeBytes = ElementCnt * ElementSizePerBytes; ElementTy->isHalfTy() || ElementTy->isFloatTy() ||
         ElementTy->isDoubleTy()) {
       if (ElementTy->isHalfTy())
         // Prefix with `llvm` since MSVC doesn't specify `_Float16`
@@ -831,9 +831,9 @@ bool AArch64Arm64ECCallLowering::runOnModule(Module &Mod) {
 
   for (Function &F : Mod) {
     if (F.hasPersonalityFn()) {
-      GlobalValue *PersFn =
-          cast<GlobalValue>(F.getPersonalityFn()->stripPointerCasts());
-      if (PersFn->getValueType() && PersFn->getValueType()->isFunctionTy()) {
+      
+      if (GlobalValue *PersFn =
+          cast<GlobalValue>(F.getPersonalityFn()->stripPointerCasts()); PersFn->getValueType() && PersFn->getValueType()->isFunctionTy()) {
         if (std::optional<std::string> MangledName =
                 getArm64ECMangledFunctionName(*PersFn)) {
           PersFn->setName(MangledName.value());

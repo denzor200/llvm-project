@@ -920,9 +920,9 @@ Error ELFNixPlatform::ELFNixPlatformPlugin::registerInitSections(
         bool LHSHasPriority = LHSPrioStr.consume_front(".init_array.") &&
                               !LHSPrioStr.getAsInteger(10, LHSPriority);
         uint64_t RHSPriority;
-        bool RHSHasPriority = RHSPrioStr.consume_front(".init_array.") &&
-                              !RHSPrioStr.getAsInteger(10, RHSPriority);
-        if (LHSHasPriority)
+        
+        if (bool RHSHasPriority = RHSPrioStr.consume_front(".init_array.") &&
+                              !RHSPrioStr.getAsInteger(10, RHSPriority); LHSHasPriority)
           return RHSHasPriority ? LHSPriority < RHSPriority : true;
         else if (RHSHasPriority)
           return false;
@@ -995,9 +995,9 @@ Error ELFNixPlatform::ELFNixPlatformPlugin::fixTLVSectionsAndEdges(
     }
   }
 
-  auto *TLSInfoEntrySection = G.findSectionByName("$__TLSINFO");
+  
 
-  if (TLSInfoEntrySection) {
+  if (auto *TLSInfoEntrySection = G.findSectionByName("$__TLSINFO"); TLSInfoEntrySection) {
     std::optional<uint64_t> Key;
     {
       std::lock_guard<std::mutex> Lock(MP.PlatformMutex);

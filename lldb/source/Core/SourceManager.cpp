@@ -416,8 +416,8 @@ SourceManager::GetDefaultFileAndLine() {
       // no executable, then we will try again later when there is one.
       // Otherwise, if we can't find it we won't look again, somebody will have
       // to set it (for instance when we stop somewhere...)
-      Module *executable_ptr = target_sp->GetExecutableModulePointer();
-      if (executable_ptr) {
+      
+      if (Module *executable_ptr = target_sp->GetExecutableModulePointer(); executable_ptr) {
         SymbolContextList sc_list;
         ConstString main_name("main");
 
@@ -520,8 +520,8 @@ void SourceManager::File::CommonInitializerImpl(SupportFileNSP support_file_nsp,
                   SymbolContextItem(eSymbolContextModule |
                                     eSymbolContextCompUnit),
                   sc_list);
-          bool got_multiple = false;
-          if (num_matches != 0) {
+          
+          if (bool got_multiple = false; num_matches != 0) {
             if (num_matches > 1) {
               CompileUnit *test_cu = nullptr;
               for (const SymbolContext &sc : sc_list) {
@@ -605,8 +605,8 @@ const char *SourceManager::File::PeekLineData(uint32_t line) {
   if (!LineIsValid(line))
     return nullptr;
 
-  size_t line_offset = GetLineOffset(line);
-  if (line_offset < m_data_sp->GetByteSize())
+  
+  if (size_t line_offset = GetLineOffset(line); line_offset < m_data_sp->GetByteSize())
     return (const char *)m_data_sp->GetBytes() + line_offset;
   return nullptr;
 }
@@ -627,8 +627,8 @@ uint32_t SourceManager::File::GetLineLength(uint32_t line,
       const char *line_start =
           (const char *)m_data_sp->GetBytes() + start_offset;
       while (length > 0) {
-        const char last_char = line_start[length - 1];
-        if ((last_char == '\r') || (last_char == '\n'))
+        
+        if (const char last_char = line_start[length - 1]; (last_char == '\r') || (last_char == '\n'))
           --length;
         else
           break;
@@ -702,8 +702,8 @@ size_t SourceManager::File::DisplaySourceLines(uint32_t line,
 
   const uint32_t start_line =
       line <= context_before ? 1 : line - context_before;
-  const uint32_t start_line_offset = GetLineOffset(start_line);
-  if (start_line_offset != UINT32_MAX) {
+  
+  if (const uint32_t start_line_offset = GetLineOffset(start_line); start_line_offset != UINT32_MAX) {
     const uint32_t end_line = line + context_after;
     uint32_t end_line_offset = GetLineOffset(end_line + 1);
     if (end_line_offset == UINT32_MAX)
@@ -767,8 +767,8 @@ bool SourceManager::File::CalculateLineOffsets(uint32_t line) {
       if (m_data_sp.get() == nullptr)
         return false;
 
-      const char *start = (const char *)m_data_sp->GetBytes();
-      if (start) {
+      
+      if (const char *start = (const char *)m_data_sp->GetBytes(); start) {
         const char *end = start + m_data_sp->GetByteSize();
 
         // Calculate all line offsets from scratch
@@ -778,11 +778,11 @@ bool SourceManager::File::CalculateLineOffsets(uint32_t line) {
         m_offsets.push_back(UINT32_MAX);
         const char *s;
         for (s = start; s < end; ++s) {
-          char curr_ch = *s;
-          if (is_newline_char(curr_ch)) {
+          
+          if (char curr_ch = *s; is_newline_char(curr_ch)) {
             if (s + 1 < end) {
-              char next_ch = s[1];
-              if (is_newline_char(next_ch)) {
+              
+              if (char next_ch = s[1]; is_newline_char(next_ch)) {
                 if (curr_ch != next_ch)
                   ++s;
               }

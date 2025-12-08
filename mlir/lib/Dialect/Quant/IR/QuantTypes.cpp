@@ -63,9 +63,9 @@ QuantizedType::verifyInvariants(function_ref<InFlightDiagnostic()> emitError,
       (flags & QuantizationFlags::Signed) == QuantizationFlags::Signed;
   int64_t defaultIntegerMin =
       getDefaultMinimumForInteger(isSigned, integralWidth);
-  int64_t defaultIntegerMax =
-      getDefaultMaximumForInteger(isSigned, integralWidth);
-  if (storageTypeMax - storageTypeMin <= 0 ||
+  
+  if (int64_t defaultIntegerMax =
+      getDefaultMaximumForInteger(isSigned, integralWidth); storageTypeMax - storageTypeMin <= 0 ||
       storageTypeMin < defaultIntegerMin ||
       storageTypeMax > defaultIntegerMax) {
     return emitError() << "illegal storage min and storage max: ("

@@ -73,9 +73,9 @@ inline static unsigned getHexagonRegisterPair(unsigned Reg,
 
 void HexagonAsmPrinter::printOperand(const MachineInstr *MI, unsigned OpNo,
                                      raw_ostream &O) {
-  const MachineOperand &MO = MI->getOperand(OpNo);
+  
 
-  switch (MO.getType()) {
+  switch (const MachineOperand &MO = MI->getOperand(OpNo); MO.getType()) {
   default:
     llvm_unreachable ("<unknown operand type>");
   case MachineOperand::MO_Register:
@@ -267,9 +267,9 @@ void HexagonAsmPrinter::HexagonProcessInstruction(MCInst &Inst,
   const MCRegisterInfo *RI = OutStreamer->getContext().getRegisterInfo();
   const MachineFunction &MF = *MI.getParent()->getParent();
   auto &HRI = *MF.getSubtarget<HexagonSubtarget>().getRegisterInfo();
-  unsigned VectorSize = HRI.getRegSizeInBits(Hexagon::HvxVRRegClass) / 8;
+  
 
-  switch (Inst.getOpcode()) {
+  switch (unsigned VectorSize = HRI.getRegSizeInBits(Hexagon::HvxVRRegClass) / 8; Inst.getOpcode()) {
   default:
     return;
 
@@ -374,8 +374,8 @@ void HexagonAsmPrinter::HexagonProcessInstruction(MCInst &Inst,
   case Hexagon::M2_vrcmpys_acc_s1: {
     MCOperand &Rt = Inst.getOperand(3);
     assert(Rt.isReg() && "Expected register and none was found");
-    unsigned Reg = RI->getEncodingValue(Rt.getReg());
-    if (Reg & 1)
+    
+    if (unsigned Reg = RI->getEncodingValue(Rt.getReg()); Reg & 1)
       MappedInst.setOpcode(Hexagon::M2_vrcmpys_acc_s1_h);
     else
       MappedInst.setOpcode(Hexagon::M2_vrcmpys_acc_s1_l);
@@ -385,8 +385,8 @@ void HexagonAsmPrinter::HexagonProcessInstruction(MCInst &Inst,
   case Hexagon::M2_vrcmpys_s1: {
     MCOperand &Rt = Inst.getOperand(2);
     assert(Rt.isReg() && "Expected register and none was found");
-    unsigned Reg = RI->getEncodingValue(Rt.getReg());
-    if (Reg & 1)
+    
+    if (unsigned Reg = RI->getEncodingValue(Rt.getReg()); Reg & 1)
       MappedInst.setOpcode(Hexagon::M2_vrcmpys_s1_h);
     else
       MappedInst.setOpcode(Hexagon::M2_vrcmpys_s1_l);
@@ -397,8 +397,8 @@ void HexagonAsmPrinter::HexagonProcessInstruction(MCInst &Inst,
   case Hexagon::M2_vrcmpys_s1rp: {
     MCOperand &Rt = Inst.getOperand(2);
     assert(Rt.isReg() && "Expected register and none was found");
-    unsigned Reg = RI->getEncodingValue(Rt.getReg());
-    if (Reg & 1)
+    
+    if (unsigned Reg = RI->getEncodingValue(Rt.getReg()); Reg & 1)
       MappedInst.setOpcode(Hexagon::M2_vrcmpys_s1rp_h);
     else
       MappedInst.setOpcode(Hexagon::M2_vrcmpys_s1rp_l);
@@ -409,8 +409,8 @@ void HexagonAsmPrinter::HexagonProcessInstruction(MCInst &Inst,
   case Hexagon::A4_boundscheck: {
     MCOperand &Rs = Inst.getOperand(1);
     assert(Rs.isReg() && "Expected register and none was found");
-    unsigned Reg = RI->getEncodingValue(Rs.getReg());
-    if (Reg & 1) // Odd mapped to raw:hi, regpair is rodd:odd-1, like r3:2
+    
+    if (unsigned Reg = RI->getEncodingValue(Rs.getReg()); Reg & 1) // Odd mapped to raw:hi, regpair is rodd:odd-1, like r3:2
       MappedInst.setOpcode(Hexagon::A4_boundscheck_hi);
     else         // raw:lo
       MappedInst.setOpcode(Hexagon::A4_boundscheck_lo);
@@ -520,8 +520,8 @@ void HexagonAsmPrinter::HexagonProcessInstruction(MCInst &Inst,
     TmpInst.setOpcode(Hexagon::A2_combineii);
     TmpInst.addOperand(Rdd);
     int64_t Imm;
-    bool Success = MO.getExpr()->evaluateAsAbsolute(Imm);
-    if (Success && Imm < 0) {
+    
+    if (bool Success = MO.getExpr()->evaluateAsAbsolute(Imm); Success && Imm < 0) {
       const MCExpr *MOne = MCConstantExpr::create(-1, OutContext);
       const HexagonMCExpr *E = HexagonMCExpr::create(MOne, OutContext);
       TmpInst.addOperand(MCOperand::createExpr(E));
@@ -594,8 +594,8 @@ void HexagonAsmPrinter::HexagonProcessInstruction(MCInst &Inst,
   case Hexagon::A2_addsp: {
     MCOperand &Rt = Inst.getOperand(1);
     assert(Rt.isReg() && "Expected register and none was found");
-    unsigned Reg = RI->getEncodingValue(Rt.getReg());
-    if (Reg & 1)
+    
+    if (unsigned Reg = RI->getEncodingValue(Rt.getReg()); Reg & 1)
       MappedInst.setOpcode(Hexagon::A2_addsph);
     else
       MappedInst.setOpcode(Hexagon::A2_addspl);
@@ -781,9 +781,9 @@ void HexagonAsmPrinter::emitStartOfAsmFile(Module &M) {
 }
 
 void HexagonAsmPrinter::emitEndOfAsmFile(Module &M) {
-  HexagonTargetStreamer &HTS =
-      static_cast<HexagonTargetStreamer &>(*OutStreamer->getTargetStreamer());
-  if (TM.getTargetTriple().isOSBinFormatELF())
+  
+  if (HexagonTargetStreamer &HTS =
+      static_cast<HexagonTargetStreamer &>(*OutStreamer->getTargetStreamer()); TM.getTargetTriple().isOSBinFormatELF())
     HTS.finishAttributeSection();
 }
 

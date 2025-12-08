@@ -371,8 +371,8 @@ static llvm::Expected<PollyPassOptions> parsePollyOptions(StringRef Params,
   // on/off later.
   for (PassPhase P : llvm::enum_seq_inclusive(PassPhase::PassPhaseFirst,
                                               PassPhase::PassPhaseLast)) {
-    bool Enabled = PassEnabled[static_cast<size_t>(P)].value_or(false);
-    if (!Enabled)
+    
+    if (bool Enabled = PassEnabled[static_cast<size_t>(P)].value_or(false); !Enabled)
       continue;
 
     if (static_cast<size_t>(PassPhase::Detection) < static_cast<size_t>(P))

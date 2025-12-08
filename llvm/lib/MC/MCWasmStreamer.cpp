@@ -38,9 +38,9 @@ void MCWasmStreamer::emitLabel(MCSymbol *S, SMLoc Loc) {
   auto *Symbol = static_cast<MCSymbolWasm *>(S);
   MCObjectStreamer::emitLabel(Symbol, Loc);
 
-  const MCSectionWasm &Section =
-      static_cast<const MCSectionWasm &>(*getCurrentSectionOnly());
-  if (Section.getSegmentFlags() & wasm::WASM_SEG_FLAG_TLS)
+  
+  if (const MCSectionWasm &Section =
+      static_cast<const MCSectionWasm &>(*getCurrentSectionOnly()); Section.getSegmentFlags() & wasm::WASM_SEG_FLAG_TLS)
     Symbol->setTLS();
 }
 
@@ -49,17 +49,17 @@ void MCWasmStreamer::emitLabelAtPos(MCSymbol *S, SMLoc Loc, MCFragment &F,
   auto *Symbol = static_cast<MCSymbolWasm *>(S);
   MCObjectStreamer::emitLabelAtPos(Symbol, Loc, F, Offset);
 
-  const MCSectionWasm &Section =
-      static_cast<const MCSectionWasm &>(*getCurrentSectionOnly());
-  if (Section.getSegmentFlags() & wasm::WASM_SEG_FLAG_TLS)
+  
+  if (const MCSectionWasm &Section =
+      static_cast<const MCSectionWasm &>(*getCurrentSectionOnly()); Section.getSegmentFlags() & wasm::WASM_SEG_FLAG_TLS)
     Symbol->setTLS();
 }
 
 void MCWasmStreamer::changeSection(MCSection *Section, uint32_t Subsection) {
   MCAssembler &Asm = getAssembler();
   auto *SectionWasm = static_cast<const MCSectionWasm *>(Section);
-  const MCSymbol *Grp = SectionWasm->getGroup();
-  if (Grp)
+  
+  if (const MCSymbol *Grp = SectionWasm->getGroup(); Grp)
     Asm.registerSymbol(*Grp);
 
   this->MCObjectStreamer::changeSection(Section, Subsection);

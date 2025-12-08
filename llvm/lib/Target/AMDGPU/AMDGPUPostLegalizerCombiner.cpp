@@ -382,8 +382,8 @@ bool AMDGPUPostLegalizerCombinerImpl::matchCombineSignExtendInReg(
   // Check if the first operand of the sign extension is a subword buffer load
   // instruction.
   MachineInstr *LoadMI = MRI.getVRegDef(LoadReg);
-  int64_t Width = MI.getOperand(2).getImm();
-  switch (LoadMI->getOpcode()) {
+  
+  switch (int64_t Width = MI.getOperand(2).getImm(); LoadMI->getOpcode()) {
   case AMDGPU::G_AMDGPU_BUFFER_LOAD_UBYTE:
     MatchData = {LoadMI, AMDGPU::G_AMDGPU_BUFFER_LOAD_SBYTE};
     return Width == 8;

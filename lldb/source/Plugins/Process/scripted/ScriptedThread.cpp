@@ -117,10 +117,10 @@ RegisterContextSP ScriptedThread::GetRegisterContext() {
 
 RegisterContextSP
 ScriptedThread::CreateRegisterContextForFrame(StackFrame *frame) {
-  const uint32_t concrete_frame_idx =
-      frame ? frame->GetConcreteFrameIndex() : 0;
+  
 
-  if (concrete_frame_idx)
+  if (const uint32_t concrete_frame_idx =
+      frame ? frame->GetConcreteFrameIndex() : 0; concrete_frame_idx)
     return GetUnwinder().CreateRegisterContextForFrame(frame);
 
   lldb::RegisterContextSP reg_ctx_sp;
@@ -295,8 +295,8 @@ bool ScriptedThread::CalculateStopInfo() {
   // need to hit the breakpoint when we resume.  This will be cleared
   // if we CreateStopReasonWithBreakpointSiteID.
   if (RegisterContextSP reg_ctx_sp = GetRegisterContext()) {
-    addr_t pc = reg_ctx_sp->GetPC();
-    if (BreakpointSiteSP bp_site_sp =
+    
+    if (addr_t pc = reg_ctx_sp->GetPC(); BreakpointSiteSP bp_site_sp =
             GetProcess()->GetBreakpointSiteList().FindByAddress(pc))
       if (bp_site_sp->IsEnabled())
         SetThreadStoppedAtUnexecutedBP(pc);

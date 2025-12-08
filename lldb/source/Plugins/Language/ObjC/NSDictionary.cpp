@@ -1110,8 +1110,8 @@ lldb_private::formatters::GenericNSDictionaryMSyntheticFrontEnd<D32,
     return lldb::ChildCacheState::eRefetch;
   m_ptr_size = process_sp->GetAddressByteSize();
   m_order = process_sp->GetByteOrder();
-  uint64_t data_location = valobj_sp->GetValueAsUnsigned(0) + m_ptr_size;
-  if (m_ptr_size == 4) {
+  
+  if (uint64_t data_location = valobj_sp->GetValueAsUnsigned(0) + m_ptr_size; m_ptr_size == 4) {
     m_data_32 = new D32();
     process_sp->ReadMemory(data_location, m_data_32, sizeof(D32),
                            error);
@@ -1268,8 +1268,8 @@ lldb::ChildCacheState lldb_private::formatters::Foundation1100::
     return lldb::ChildCacheState::eRefetch;
   m_ptr_size = process_sp->GetAddressByteSize();
   m_order = process_sp->GetByteOrder();
-  uint64_t data_location = valobj_sp->GetValueAsUnsigned(0) + m_ptr_size;
-  if (m_ptr_size == 4) {
+  
+  if (uint64_t data_location = valobj_sp->GetValueAsUnsigned(0) + m_ptr_size; m_ptr_size == 4) {
     m_data_32 = new DataDescriptor_32();
     process_sp->ReadMemory(data_location, m_data_32, sizeof(DataDescriptor_32),
                            error);

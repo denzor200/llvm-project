@@ -99,8 +99,8 @@ Expected<std::vector<BenchmarkMeasure>> LatencyBenchmarkRunner::runMeasurements(
       AccumulatedValues.push_back(ExpectedCounterValues.get()[0]);
     } else {
       // We'll keep the reading with lowest variance (ie., most stable)
-      double Variance = computeVariance(*ExpectedCounterValues);
-      if (MinVariance > Variance) {
+      
+      if (double Variance = computeVariance(*ExpectedCounterValues); MinVariance > Variance) {
         AccumulatedValues = std::move(ExpectedCounterValues.get());
         MinVariance = Variance;
       }

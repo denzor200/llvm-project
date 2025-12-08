@@ -836,9 +836,9 @@ MLEvictAdvisor::getLIFeatureComponents(const LiveInterval &LI) const {
 
     auto *MBB = MI->getParent();
     auto *Loop = Loops.getLoopFor(MBB);
-    bool IsExiting = Loop ? Loop->isLoopExiting(MBB) : false;
+    
 
-    if (Writes && IsExiting && LIS->isLiveOutOfMBB(LI, MBB))
+    if (bool IsExiting = Loop ? Loop->isLoopExiting(MBB) : false; Writes && IsExiting && LIS->isLiveOutOfMBB(LI, MBB))
       Ret.IndVarUpdates += Freq;
 
     if (MI->isCopy() && VirtRegAuxInfo::copyHint(MI, LI.reg(), TRI, *MRI))

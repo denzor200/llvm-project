@@ -1003,12 +1003,12 @@ bool EmulateInstructionMIPS::SetInstruction(const Opcode &insn_opcode,
       uint64_t next_inst_addr = (m_addr & (~1ull)) + current_inst_size;
       Address next_addr(next_inst_addr);
 
-      const size_t bytes_read = target->ReadMemory(
+      
+
+      if (const size_t bytes_read = target->ReadMemory(
           next_addr,                           /* Address of next instruction */
           buf, sizeof(uint32_t), error, false, /* force_live_memory */
-          &load_addr);
-
-      if (bytes_read == 0)
+          &load_addr); bytes_read == 0)
         return true;
 
       DataExtractor data(buf, sizeof(uint32_t), GetByteOrder(),

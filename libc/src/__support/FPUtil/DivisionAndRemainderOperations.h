@@ -88,8 +88,8 @@ LIBC_INLINE T remquo(T x, T y, int &q) {
   // appropriately and some directed tests added.
   T native_remainder(remainder);
   T absy = ybits.get_val();
-  int cmp = remainder.mul2(1).cmp(normaly);
-  if (cmp > 0) {
+  
+  if (int cmp = remainder.mul2(1).cmp(normaly); cmp > 0) {
     q = q + 1;
     if (x >= T(0.0))
       native_remainder = native_remainder - absy;

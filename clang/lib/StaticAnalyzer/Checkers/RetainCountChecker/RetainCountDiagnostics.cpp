@@ -135,8 +135,8 @@ static std::optional<std::string> findMetaClassAlloc(const Expr *Callee) {
   if (const auto *ME = dyn_cast<MemberExpr>(Callee)) {
     if (ME->getMemberDecl()->getNameAsString() != "alloc")
       return std::nullopt;
-    const Expr *This = ME->getBase()->IgnoreParenImpCasts();
-    if (const auto *DRE = dyn_cast<DeclRefExpr>(This)) {
+    
+    if (const Expr *This = ME->getBase()->IgnoreParenImpCasts(); const auto *DRE = dyn_cast<DeclRefExpr>(This)) {
       const ValueDecl *VD = DRE->getDecl();
       if (VD->getNameAsString() != "metaClass")
         return std::nullopt;
@@ -405,8 +405,8 @@ PathDiagnosticPieceRef
 RefCountReportVisitor::VisitNode(const ExplodedNode *N, BugReporterContext &BRC,
                                  PathSensitiveBugReport &BR) {
   const SourceManager &SM = BRC.getSourceManager();
-  CallEventManager &CEMgr = BRC.getStateManager().getCallEventManager();
-  if (auto CE = N->getLocationAs<CallExitBegin>())
+  
+  if (CallEventManager &CEMgr = BRC.getStateManager().getCallEventManager(); auto CE = N->getLocationAs<CallExitBegin>())
     if (auto PD = annotateConsumedSummaryMismatch(N, *CE, SM, CEMgr))
       return PD;
 
@@ -497,9 +497,9 @@ RefCountReportVisitor::VisitNode(const ExplodedNode *N, BugReporterContext &BRC,
   if (Tag == &RetainCountChecker::getDeallocSentTag()) {
     // We only have summaries attached to nodes after evaluating CallExpr and
     // ObjCMessageExprs.
-    const Stmt *S = N->getLocation().castAs<StmtPoint>().getStmt();
+    
 
-    if (const CallExpr *CE = dyn_cast<CallExpr>(S)) {
+    if (const Stmt *S = N->getLocation().castAs<StmtPoint>().getStmt(); const CallExpr *CE = dyn_cast<CallExpr>(S)) {
       // Iterate through the parameter expressions and see if the symbol
       // was ever passed as an argument.
       unsigned i = 0;
@@ -569,8 +569,8 @@ public:
 
   bool HandleBinding(StoreManager &SMgr, Store Store, const MemRegion *R,
                      SVal Val) override {
-    SymbolRef SymV = Val.getAsLocSymbol();
-    if (!SymV || SymV != Sym)
+    
+    if (SymbolRef SymV = Val.getAsLocSymbol(); !SymV || SymV != Sym)
       return true;
 
     if (isa<NonParamVarRegion>(R))
@@ -633,10 +633,10 @@ static AllocationInfo GetAllocationSite(ProgramStateManager &StateMgr,
     StateMgr.iterBindings(St, FB);
 
     if (FB) {
-      const MemRegion *R = FB.getRegion();
+      
       // Do not show local variables belonging to a function other than
       // where the error is reported.
-      if (const auto *MR = R->getMemorySpaceAs<StackSpaceRegion>(St))
+      if (const MemRegion *R = FB.getRegion(); const auto *MR = R->getMemorySpaceAs<StackSpaceRegion>(St))
         if (MR->getStackFrame() == LeakContext->getStackFrame())
           FirstBinding = R;
     }
@@ -658,10 +658,10 @@ static AllocationInfo GetAllocationSite(ProgramStateManager &StateMgr,
     // init method's location context.
     if (!InitMethodContext)
       if (auto CEP = N->getLocation().getAs<CallEnter>()) {
-        const Stmt *CE = CEP->getCallExpr();
-        if (const auto *ME = dyn_cast_or_null<ObjCMessageExpr>(CE)) {
-          const Stmt *RecExpr = ME->getInstanceReceiver();
-          if (RecExpr) {
+        
+        if (const Stmt *CE = CEP->getCallExpr(); const auto *ME = dyn_cast_or_null<ObjCMessageExpr>(CE)) {
+          
+          if (const Stmt *RecExpr = ME->getInstanceReceiver(); RecExpr) {
             SVal RecV = St->getSVal(RecExpr, NContext);
             if (ME->getMethodFamily() == OMF_init && RecV.getAsSymbol() == Sym)
               InitMethodContext = CEP->getCalleeContext();

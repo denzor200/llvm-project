@@ -218,9 +218,9 @@ getFirstLoadCommandInfo(const MachOObjectFile &Obj) {
 static Expected<MachOObjectFile::LoadCommandInfo>
 getNextLoadCommandInfo(const MachOObjectFile &Obj, uint32_t LoadCommandIndex,
                        const MachOObjectFile::LoadCommandInfo &L) {
-  unsigned HeaderSize = Obj.is64Bit() ? sizeof(MachO::mach_header_64)
-                                      : sizeof(MachO::mach_header);
-  if (L.Ptr + L.C.cmdsize + sizeof(MachO::load_command) >
+  
+  if (unsigned HeaderSize = Obj.is64Bit() ? sizeof(MachO::mach_header_64)
+                                      : sizeof(MachO::mach_header); L.Ptr + L.C.cmdsize + sizeof(MachO::load_command) >
       Obj.getData().data() + Obj.getMachOFilesetEntryOffset() + HeaderSize +
           Obj.getHeader().sizeofcmds)
     return malformedError("load command " + Twine(LoadCommandIndex + 1) +
@@ -257,8 +257,8 @@ static Error checkOverlappingElement(std::list<MachOElement> &Elements,
     return Error::success();
 
   for (auto it = Elements.begin(); it != Elements.end(); ++it) {
-    const auto &E = *it;
-    if ((Offset >= E.Offset && Offset < E.Offset + E.Size) ||
+    
+    if (const auto &E = *it; (Offset >= E.Offset && Offset < E.Offset + E.Size) ||
         (Offset + Size > E.Offset && Offset + Size < E.Offset + E.Size) ||
         (Offset <= E.Offset && Offset + Size >= E.Offset + E.Size))
       return malformedError(Twine(Name) + " at offset " + Twine(Offset) +
@@ -268,8 +268,8 @@ static Error checkOverlappingElement(std::list<MachOElement> &Elements,
     auto nt = it;
     nt++;
     if (nt != Elements.end()) {
-      const auto &N = *nt;
-      if (Offset + Size <= N.Offset) {
+      
+      if (const auto &N = *nt; Offset + Size <= N.Offset) {
         Elements.insert(nt, {Offset, Size, Name});
         return Error::success();
       }
@@ -1746,8 +1746,8 @@ Error MachOObjectFile::checkSymbolTable() const {
       if ((Flags & MachO::MH_TWOLEVEL) == MachO::MH_TWOLEVEL &&
           (((NType & MachO::N_TYPE) == MachO::N_UNDF && NValue == 0) ||
            (NType & MachO::N_TYPE) == MachO::N_PBUD)) {
-            uint32_t LibraryOrdinal = MachO::GET_LIBRARY_ORDINAL(NDesc);
-            if (LibraryOrdinal != 0 &&
+            
+            if (uint32_t LibraryOrdinal = MachO::GET_LIBRARY_ORDINAL(NDesc); LibraryOrdinal != 0 &&
                 LibraryOrdinal != MachO::EXECUTABLE_ORDINAL &&
                 LibraryOrdinal != MachO::DYNAMIC_LOOKUP_ORDINAL &&
                 LibraryOrdinal - 1 >= Libraries.size() ) {
@@ -1827,8 +1827,8 @@ Expected<uint64_t> MachOObjectFile::getSymbolAddress(DataRefImpl Sym) const {
 }
 
 uint32_t MachOObjectFile::getSymbolAlignment(DataRefImpl DRI) const {
-  uint32_t Flags = cantFail(getSymbolFlags(DRI));
-  if (Flags & SymbolRef::SF_Common) {
+  
+  if (uint32_t Flags = cantFail(getSymbolFlags(DRI)); Flags & SymbolRef::SF_Common) {
     MachO::nlist_base Entry = getSymbolTableEntryBase(*this, DRI);
     return 1 << MachO::GET_COMM_ALIGN(Entry.n_desc);
   }
@@ -2105,8 +2105,8 @@ ArrayRef<uint8_t> getSegmentContents(const MachOObjectFile &Obj,
     consumeError(SegmentOrErr.takeError());
     return {};
   }
-  auto &Segment = SegmentOrErr.get();
-  if (StringRef(Segment.segname, 16).starts_with(SegmentName))
+  
+  if (auto &Segment = SegmentOrErr.get(); StringRef(Segment.segname, 16).starts_with(SegmentName))
     return arrayRefFromStringRef(Obj.getData().slice(
         Segment.fileoff, Segment.fileoff + Segment.filesize));
   return {};
@@ -2271,8 +2271,8 @@ MachOObjectFile::getRelocationSymbol(DataRefImpl Rel) const {
     return symbol_end();
 
   uint32_t SymbolIdx = getPlainRelocationSymbolNum(RE);
-  bool isExtern = getPlainRelocationExternal(RE);
-  if (!isExtern)
+  
+  if (bool isExtern = getPlainRelocationExternal(RE); !isExtern)
     return symbol_end();
 
   MachO::symtab_command S = getSymtabLoadCommand();
@@ -2300,9 +2300,9 @@ void MachOObjectFile::getRelocationTypeName(
   StringRef res;
   uint64_t RType = getRelocationType(Rel);
 
-  unsigned Arch = this->getArch();
+  
 
-  switch (Arch) {
+  switch (unsigned Arch = this->getArch(); Arch) {
     case Triple::x86: {
       static const char *const Table[] =  {
         "GENERIC_RELOC_VANILLA",
@@ -3000,8 +3000,8 @@ uint64_t ExportEntry::other() const {
 }
 
 StringRef ExportEntry::otherName() const {
-  const char* ImportName = Stack.back().ImportName;
-  if (ImportName)
+  
+  if (const char* ImportName = Stack.back().ImportName; ImportName)
     return StringRef(ImportName);
   return StringRef();
 }
@@ -3046,8 +3046,8 @@ void ExportEntry::pushNode(uint64_t offset) {
       moveToEnd();
       return;
     }
-    uint64_t Kind = State.Flags & MachO::EXPORT_SYMBOL_FLAGS_KIND_MASK;
-    if (State.Flags != 0 &&
+    
+    if (uint64_t Kind = State.Flags & MachO::EXPORT_SYMBOL_FLAGS_KIND_MASK; State.Flags != 0 &&
         (Kind != MachO::EXPORT_SYMBOL_FLAGS_KIND_REGULAR &&
          Kind != MachO::EXPORT_SYMBOL_FLAGS_KIND_ABSOLUTE &&
          Kind != MachO::EXPORT_SYMBOL_FLAGS_KIND_THREAD_LOCAL)) {
@@ -3228,8 +3228,8 @@ void ExportEntry::moveNext() {
 
   Stack.pop_back();
   while (!Stack.empty()) {
-    NodeState &Top = Stack.back();
-    if (Top.NextChildIndex < Top.ChildCount) {
+    
+    if (NodeState &Top = Stack.back(); Top.NextChildIndex < Top.ChildCount) {
       pushDownUntilBottom();
       // Now at the next export node.
       return;
@@ -5097,9 +5097,9 @@ MachOObjectFile::getChainedFixupsSegments() const {
   const char *SegOffsPtr =
       Contents + Header.starts_offset +
       offsetof(MachO::dyld_chained_starts_in_image, seg_info_offset);
-  const char *SegOffsEnd =
-      SegOffsPtr + ImageStarts.seg_count * sizeof(uint32_t);
-  if (SegOffsEnd > Contents + DyldChainedFixups.datasize)
+  
+  if (const char *SegOffsEnd =
+      SegOffsPtr + ImageStarts.seg_count * sizeof(uint32_t); SegOffsEnd > Contents + DyldChainedFixups.datasize)
     return malformedError(
         "bad chained fixups: seg_info_offset extends past end");
 

@@ -141,8 +141,8 @@ void clang::ParseAST(Sema &S, bool PrintStats, bool SkipFunctionBodies) {
     CleanupParser(ParseOP.get());
 
   S.getPreprocessor().EnterMainSourceFile();
-  ExternalASTSource *External = S.getASTContext().getExternalSource();
-  if (External)
+  
+  if (ExternalASTSource *External = S.getASTContext().getExternalSource(); External)
     External->StartTranslationUnit(Consumer);
 
   // If a PCH through header is specified that does not have an include in
@@ -154,8 +154,8 @@ void clang::ParseAST(Sema &S, bool PrintStats, bool SkipFunctionBodies) {
     llvm::TimeTraceScope TimeScope("Frontend", [&]() {
       llvm::TimeTraceMetadata M;
       if (llvm::isTimeTraceVerbose()) {
-        const SourceManager &SM = S.getSourceManager();
-        if (const auto *FE = SM.getFileEntryForID(SM.getMainFileID()))
+        
+        if (const SourceManager &SM = S.getSourceManager(); const auto *FE = SM.getFileEntryForID(SM.getMainFileID()))
           M.File = FE->tryGetRealPathName();
       }
       return M;

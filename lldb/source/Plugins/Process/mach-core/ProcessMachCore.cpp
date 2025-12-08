@@ -100,8 +100,8 @@ bool ProcessMachCore::CanDebug(lldb::TargetSP target_sp,
                                              nullptr, nullptr));
 
     if (m_core_module_sp) {
-      ObjectFile *core_objfile = m_core_module_sp->GetObjectFile();
-      if (core_objfile && core_objfile->GetType() == ObjectFile::eTypeCoreFile)
+      
+      if (ObjectFile *core_objfile = m_core_module_sp->GetObjectFile(); core_objfile && core_objfile->GetType() == ObjectFile::eTypeCoreFile)
         return true;
     }
   }
@@ -189,8 +189,8 @@ void ProcessMachCore::CreateMemoryRegions() {
   bool ranges_are_sorted = true;
   addr_t vm_addr = 0;
   for (uint32_t i = 0; i < num_sections; ++i) {
-    Section *section = section_list->GetSectionAtIndex(i).get();
-    if (section && section->GetFileSize() > 0) {
+    
+    if (Section *section = section_list->GetSectionAtIndex(i).get(); section && section->GetFileSize() > 0) {
       lldb::addr_t section_vm_addr = section->GetFileAddress();
       FileRange file_range(section->GetFileOffset(), section->GetFileSize());
       VMRangeToFileOffset::Entry range_entry(
@@ -199,9 +199,9 @@ void ProcessMachCore::CreateMemoryRegions() {
       if (vm_addr > section_vm_addr)
         ranges_are_sorted = false;
       vm_addr = section->GetFileAddress();
-      VMRangeToFileOffset::Entry *last_entry = m_core_aranges.Back();
+      
 
-      if (last_entry &&
+      if (VMRangeToFileOffset::Entry *last_entry = m_core_aranges.Back(); last_entry &&
           last_entry->GetRangeEnd() == range_entry.GetRangeBase() &&
           last_entry->data.GetRangeEnd() == range_entry.data.GetRangeBase()) {
         last_entry->SetRangeEnd(range_entry.GetRangeEnd());
@@ -240,13 +240,13 @@ bool ProcessMachCore::LoadBinaryViaLowmemUUID() {
                                       0xC0,      0};
 
   for (uint64_t addr : lowmem_uuid_addresses) {
-    const VMRangeToFileOffset::Entry *core_memory_entry =
-        m_core_aranges.FindEntryThatContains(addr);
-    if (core_memory_entry) {
+    
+    if (const VMRangeToFileOffset::Entry *core_memory_entry =
+        m_core_aranges.FindEntryThatContains(addr); core_memory_entry) {
       const addr_t offset = addr - core_memory_entry->GetRangeBase();
-      const addr_t bytes_left = core_memory_entry->GetRangeEnd() - addr;
+      
       // (4-bytes 'uuid' + 12 bytes pad for align + 16 bytes uuid_t) == 32 bytes
-      if (bytes_left >= 32) {
+      if (const addr_t bytes_left = core_memory_entry->GetRangeEnd() - addr; bytes_left >= 32) {
         char strbuf[4];
         if (core_objfile->CopyData(
                 core_memory_entry->data.GetRangeBase() + offset, 4, &strbuf) &&
@@ -267,8 +267,8 @@ bool ProcessMachCore::LoadBinaryViaLowmemUUID() {
               const bool force_symbol_search = true;
               const bool notify = true;
               const bool set_address_in_target = true;
-              const bool allow_memory_image_last_resort = false;
-              if (DynamicLoader::LoadBinaryWithUUIDAndAddress(
+              
+              if (const bool allow_memory_image_last_resort = false; DynamicLoader::LoadBinaryWithUUIDAndAddress(
                       this, llvm::StringRef(), uuid, 0, value_is_offset,
                       force_symbol_search, notify, set_address_in_target,
                       allow_memory_image_last_resort)) {
@@ -329,8 +329,8 @@ bool ProcessMachCore::LoadBinariesViaMetadata() {
       const bool force_symbol_search = true;
       const bool notify = true;
       const bool set_address_in_target = true;
-      const bool allow_memory_image_last_resort = false;
-      if (DynamicLoader::LoadBinaryWithUUIDAndAddress(
+      
+      if (const bool allow_memory_image_last_resort = false; DynamicLoader::LoadBinaryWithUUIDAndAddress(
               this, llvm::StringRef(), objfile_binary_uuid,
               objfile_binary_value, objfile_binary_value_is_offset,
               force_symbol_search, notify, set_address_in_target,
@@ -358,8 +358,8 @@ bool ProcessMachCore::LoadBinariesViaMetadata() {
       found_binary_spec_in_metadata = true;
     }
     if (corefile_identifier.find("stext=") != std::string::npos) {
-      size_t p = corefile_identifier.find("stext=") + strlen("stext=");
-      if (corefile_identifier[p] == '0' && corefile_identifier[p + 1] == 'x') {
+      
+      if (size_t p = corefile_identifier.find("stext=") + strlen("stext="); corefile_identifier[p] == '0' && corefile_identifier[p + 1] == 'x') {
         ident_binary_addr =
             ::strtoul(corefile_identifier.c_str() + p, nullptr, 16);
         if (log)
@@ -387,8 +387,8 @@ bool ProcessMachCore::LoadBinariesViaMetadata() {
       const bool force_symbol_search = true;
       const bool notify = true;
       const bool set_address_in_target = true;
-      const bool allow_memory_image_last_resort = false;
-      if (DynamicLoader::LoadBinaryWithUUIDAndAddress(
+      
+      if (const bool allow_memory_image_last_resort = false; DynamicLoader::LoadBinaryWithUUIDAndAddress(
               this, llvm::StringRef(), ident_uuid, ident_binary_addr,
               value_is_offset, force_symbol_search, notify,
               set_address_in_target, allow_memory_image_last_resort)) {
@@ -508,8 +508,8 @@ void ProcessMachCore::LoadBinariesViaExhaustiveSearch() {
 void ProcessMachCore::LoadBinariesAndSetDYLD() {
   Log *log(GetLog(LLDBLog::DynamicLoader | LLDBLog::Process));
 
-  bool found_binary_spec_in_metadata = LoadBinariesViaMetadata();
-  if (!found_binary_spec_in_metadata)
+  
+  if (bool found_binary_spec_in_metadata = LoadBinariesViaMetadata(); !found_binary_spec_in_metadata)
     LoadBinariesViaExhaustiveSearch();
 
   if (m_dyld_plugin_name.empty()) {
@@ -656,9 +656,9 @@ bool ProcessMachCore::DoUpdateThreadList(ThreadList &old_thread_list,
   if (old_thread_list.GetSize(false) == 0) {
     // Make up the thread the first time this is called so we can setup our one
     // and only core thread state.
-    ObjectFile *core_objfile = m_core_module_sp->GetObjectFile();
+    
 
-    if (core_objfile) {
+    if (ObjectFile *core_objfile = m_core_module_sp->GetObjectFile(); core_objfile) {
       const uint32_t num_threads = core_objfile->GetNumThreadContexts();
       std::vector<lldb::tid_t> tids;
       if (core_objfile->GetCorefileThreadExtraInfos(tids)) {
@@ -744,10 +744,10 @@ size_t ProcessMachCore::DoReadMemory(addr_t addr, void *buf, size_t size,
     // the address space, but not in the file data.
     while (bytes_read < size) {
       const addr_t curr_addr = addr + bytes_read;
-      const VMRangeToFileOffset::Entry *core_memory_entry =
-          m_core_aranges.FindEntryThatContains(curr_addr);
+      
 
-      if (core_memory_entry) {
+      if (const VMRangeToFileOffset::Entry *core_memory_entry =
+          m_core_aranges.FindEntryThatContains(curr_addr); core_memory_entry) {
         const addr_t offset = curr_addr - core_memory_entry->GetRangeBase();
         const addr_t bytes_left = core_memory_entry->GetRangeEnd() - curr_addr;
         const size_t bytes_to_read =
@@ -774,9 +774,9 @@ size_t ProcessMachCore::DoReadMemory(addr_t addr, void *buf, size_t size,
 Status ProcessMachCore::DoGetMemoryRegionInfo(addr_t load_addr,
                                               MemoryRegionInfo &region_info) {
   region_info.Clear();
-  const VMRangeToPermissions::Entry *permission_entry =
-      m_core_range_infos.FindEntryThatContainsOrFollows(load_addr);
-  if (permission_entry) {
+  
+  if (const VMRangeToPermissions::Entry *permission_entry =
+      m_core_range_infos.FindEntryThatContainsOrFollows(load_addr); permission_entry) {
     if (permission_entry->Contains(load_addr)) {
       region_info.GetRange().SetRangeBase(permission_entry->GetRangeBase());
       region_info.GetRange().SetRangeEnd(permission_entry->GetRangeEnd());

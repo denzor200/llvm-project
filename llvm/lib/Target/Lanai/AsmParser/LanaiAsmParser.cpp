@@ -248,8 +248,8 @@ public:
     if (!isImm())
       return false;
 
-    const MCConstantExpr *ConstExpr = dyn_cast<MCConstantExpr>(Imm.Value);
-    if (ConstExpr) {
+    
+    if (const MCConstantExpr *ConstExpr = dyn_cast<MCConstantExpr>(Imm.Value); ConstExpr) {
       int64_t Value = ConstExpr->getValue();
       // Check if in the form 0xXYZWffff
       return (Value != 0) && ((Value & ~0xffff0000) == 0xffff);
@@ -309,8 +309,8 @@ public:
     if (!isImm())
       return false;
 
-    const MCConstantExpr *ConstExpr = dyn_cast<MCConstantExpr>(Imm.Value);
-    if (ConstExpr) {
+    
+    if (const MCConstantExpr *ConstExpr = dyn_cast<MCConstantExpr>(Imm.Value); ConstExpr) {
       int64_t Value = ConstExpr->getValue();
       // Check if in the form 0xffffXYZW
       return ((Value & ~0xffff) == 0xffff0000);
@@ -1075,13 +1075,13 @@ StringRef LanaiAsmParser::splitMnemonic(StringRef Name, SMLoc NameLoc,
       (!Mnemonic.ends_with(".f") && !Mnemonic.starts_with("st"))) {
     LPCC::CondCode CondCode = LPCC::suffixToLanaiCondCode(Mnemonic);
     if (CondCode != LPCC::UNKNOWN) {
-      size_t Next = Mnemonic.rfind('.', Name.size());
+      
       // 'sel' doesn't use a predicate operand whose printer adds the period,
       // but instead has the period as part of the identifier (i.e., 'sel.' is
       // expected by the generated matcher). If the mnemonic starts with 'sel'
       // then include the period as part of the mnemonic, else don't include it
       // as part of the mnemonic.
-      if (Mnemonic.starts_with("sel")) {
+      if (size_t Next = Mnemonic.rfind('.', Name.size()); Mnemonic.starts_with("sel")) {
         Mnemonic = Mnemonic.substr(0, Next + 1);
       } else {
         Mnemonic = Mnemonic.substr(0, Next);

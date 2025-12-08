@@ -177,8 +177,8 @@ DecodeStatus BPFDisassembler::getInstruction(MCInst &Instr, uint64_t &Size,
   if (Result == MCDisassembler::Fail) return MCDisassembler::Fail;
 
   uint8_t InstClass = getInstClass(Insn);
-  uint8_t InstMode = getInstMode(Insn);
-  if ((InstClass == BPF_LDX || InstClass == BPF_STX) &&
+  
+  if (uint8_t InstMode = getInstMode(Insn); (InstClass == BPF_LDX || InstClass == BPF_STX) &&
       getInstSize(Insn) != BPF_DW &&
       (InstMode == BPF_MEM || InstMode == BPF_ATOMIC) &&
       STI.hasFeature(BPF::ALU32))

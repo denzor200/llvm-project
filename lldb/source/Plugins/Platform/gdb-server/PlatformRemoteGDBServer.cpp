@@ -379,8 +379,8 @@ Status PlatformRemoteGDBServer::LaunchProcess(ProcessLaunchInfo &launch_info) {
     }
   }
 
-  const auto pid = m_gdb_client_up->GetCurrentProcessID(false);
-  if (pid != LLDB_INVALID_PROCESS_ID) {
+  
+  if (const auto pid = m_gdb_client_up->GetCurrentProcessID(false); pid != LLDB_INVALID_PROCESS_ID) {
     launch_info.SetProcessID(pid);
     LLDB_LOGF(log,
               "PlatformRemoteGDBServer::%s() pid %" PRIu64

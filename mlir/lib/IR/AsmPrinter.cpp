@@ -1707,11 +1707,11 @@ void SSANameState::numberValuesInOp(Operation &op) {
     if (!opAsmOpInterfaceUsed) {
       // If the OpAsmOpInterface didn't set a name, and all results have
       // OpAsmTypeInterface, get names from types.
-      bool allHaveOpAsmTypeInterface =
+      
+      if (bool allHaveOpAsmTypeInterface =
           llvm::all_of(op.getResultTypes(), [&](Type type) {
             return isa<OpAsmTypeInterface>(type);
-          });
-      if (allHaveOpAsmTypeInterface) {
+          }); allHaveOpAsmTypeInterface) {
         for (OpResult result : op.getResults()) {
           auto interface = cast<OpAsmTypeInterface>(result.getType());
           interface.getAsmName(
@@ -1721,8 +1721,8 @@ void SSANameState::numberValuesInOp(Operation &op) {
     }
   }
 
-  unsigned numResults = op.getNumResults();
-  if (numResults == 0) {
+  
+  if (unsigned numResults = op.getNumResults(); numResults == 0) {
     // If value users should be printed, operations with no result need an id.
     if (printerFlags.shouldPrintValueUsers()) {
       if (operationIDs.try_emplace(&op, nextValueID).second)
@@ -2221,8 +2221,8 @@ static void printFloatValue(const APFloat &apValue, raw_ostream &os,
   // make sure that we only output it in exponential format if we can parse
   // the value back and get the same value.
   bool isInf = apValue.isInfinity();
-  bool isNaN = apValue.isNaN();
-  if (!isInf && !isNaN) {
+  
+  if (bool isNaN = apValue.isNaN(); !isInf && !isNaN) {
     SmallString<128> strValue;
     apValue.toString(strValue, /*FormatPrecision=*/6, /*FormatMaxPadding=*/0,
                      /*TruncateZero=*/false);
@@ -3042,16 +3042,16 @@ void AsmPrinter::Impl::printAffineExprInternal(
   const char *binopSpelling = nullptr;
   switch (expr.getKind()) {
   case AffineExprKind::SymbolId: {
-    unsigned pos = cast<AffineSymbolExpr>(expr).getPosition();
-    if (printValueName)
+    
+    if (unsigned pos = cast<AffineSymbolExpr>(expr).getPosition(); printValueName)
       printValueName(pos, /*isSymbol=*/true);
     else
       os << 's' << pos;
     return;
   }
   case AffineExprKind::DimId: {
-    unsigned pos = cast<AffineDimExpr>(expr).getPosition();
-    if (printValueName)
+    
+    if (unsigned pos = cast<AffineDimExpr>(expr).getPosition(); printValueName)
       printValueName(pos, /*isSymbol=*/false);
     else
       os << 'd' << pos;
@@ -3611,8 +3611,8 @@ void OperationPrinter::printFullOp(Operation *op) {
 }
 
 void OperationPrinter::printUsersComment(Operation *op) {
-  unsigned numResults = op->getNumResults();
-  if (!numResults && op->getNumOperands()) {
+  
+  if (unsigned numResults = op->getNumResults(); !numResults && op->getNumOperands()) {
     os << " // id: ";
     printOperationID(op);
   } else if (numResults && op->use_empty()) {

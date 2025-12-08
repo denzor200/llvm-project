@@ -295,8 +295,8 @@ protected:
 
       while (!StopMakeThread) {
         char Token;
-        ssize_t Ret = read(RWFd, &Token, 1);
-        if (Ret == 1) {
+        
+        if (ssize_t Ret = read(RWFd, &Token, 1); Ret == 1) {
           LLVM_DEBUG(dbgs() << "[MakeProxy] Read token '" << Token
                             << "' to recycle.\n");
           // A client released a token, 'make' makes it available again.

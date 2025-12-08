@@ -54,8 +54,8 @@ void TargetSchedModel::init(const TargetSubtargetInfo *TSInfo,
   ResourceFactors.resize(NumRes);
   ResourceLCM = SchedModel.IssueWidth;
   for (unsigned Idx = 0; Idx < NumRes; ++Idx) {
-    unsigned NumUnits = SchedModel.getProcResource(Idx)->NumUnits;
-    if (NumUnits > 0)
+    
+    if (unsigned NumUnits = SchedModel.getProcResource(Idx)->NumUnits; NumUnits > 0)
       ResourceLCM = std::lcm(ResourceLCM, NumUnits);
   }
   MicroOpFactor = ResourceLCM / SchedModel.IssueWidth;
@@ -141,8 +141,8 @@ resolveSchedClass(const MachineInstr *MI) const {
 static unsigned findDefIdx(const MachineInstr *MI, unsigned DefOperIdx) {
   unsigned DefIdx = 0;
   for (unsigned i = 0; i != DefOperIdx; ++i) {
-    const MachineOperand &MO = MI->getOperand(i);
-    if (MO.isReg() && MO.isDef())
+    
+    if (const MachineOperand &MO = MI->getOperand(i); MO.isReg() && MO.isDef())
       ++DefIdx;
   }
   return DefIdx;
@@ -157,8 +157,8 @@ static unsigned findDefIdx(const MachineInstr *MI, unsigned DefOperIdx) {
 static unsigned findUseIdx(const MachineInstr *MI, unsigned UseOperIdx) {
   unsigned UseIdx = 0;
   for (unsigned i = 0; i != UseOperIdx; ++i) {
-    const MachineOperand &MO = MI->getOperand(i);
-    if (MO.isReg() && MO.readsReg() && !MO.isDef())
+    
+    if (const MachineOperand &MO = MI->getOperand(i); MO.isReg() && MO.readsReg() && !MO.isDef())
       ++UseIdx;
   }
   return UseIdx;
@@ -259,8 +259,8 @@ TargetSchedModel::computeInstrLatency(const MachineInstr *MI,
     return TII->getInstrLatency(&InstrItins, *MI);
 
   if (hasInstrSchedModel()) {
-    const MCSchedClassDesc *SCDesc = resolveSchedClass(MI);
-    if (SCDesc->isValid())
+    
+    if (const MCSchedClassDesc *SCDesc = resolveSchedClass(MI); SCDesc->isValid())
       return computeInstrLatency(*SCDesc);
   }
   return TII->defaultDefLatency(SchedModel, *MI);
@@ -282,15 +282,15 @@ computeOutputLatency(const MachineInstr *DefMI, unsigned DefOperIdx,
   // for predicated defs.
   Register Reg = DefMI->getOperand(DefOperIdx).getReg();
   const MachineFunction &MF = *DefMI->getMF();
-  const TargetRegisterInfo *TRI = MF.getSubtarget().getRegisterInfo();
-  if (!DepMI->readsRegister(Reg, TRI) && TII->isPredicated(*DepMI))
+  
+  if (const TargetRegisterInfo *TRI = MF.getSubtarget().getRegisterInfo(); !DepMI->readsRegister(Reg, TRI) && TII->isPredicated(*DepMI))
     return computeInstrLatency(DefMI);
 
   // If we have a per operand scheduling model, check if this def is writing
   // an unbuffered resource. If so, it treated like an in-order cpu.
   if (hasInstrSchedModel()) {
-    const MCSchedClassDesc *SCDesc = resolveSchedClass(DefMI);
-    if (SCDesc->isValid()) {
+    
+    if (const MCSchedClassDesc *SCDesc = resolveSchedClass(DefMI); SCDesc->isValid()) {
       for (const MCWriteProcResEntry *PRI = STI->getWriteProcResBegin(SCDesc),
              *PRE = STI->getWriteProcResEnd(SCDesc); PRI != PRE; ++PRI) {
         if (!SchedModel.getProcResource(PRI->ProcResourceIdx)->BufferSize)
@@ -322,8 +322,8 @@ TargetSchedModel::computeReciprocalThroughput(unsigned Opcode) const {
     return MCSchedModel::getReciprocalThroughput(SchedClass,
                                                  *getInstrItineraries());
   if (hasInstrSchedModel()) {
-    const MCSchedClassDesc &SCDesc = *SchedModel.getSchedClassDesc(SchedClass);
-    if (SCDesc.isValid() && !SCDesc.isVariant())
+    
+    if (const MCSchedClassDesc &SCDesc = *SchedModel.getSchedClassDesc(SchedClass); SCDesc.isValid() && !SCDesc.isVariant())
       return MCSchedModel::getReciprocalThroughput(*STI, SCDesc);
   }
 

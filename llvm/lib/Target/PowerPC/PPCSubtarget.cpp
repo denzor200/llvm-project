@@ -219,8 +219,8 @@ CodeModel::Model PPCSubtarget::getCodeModel(const TargetMachine &TM,
   assert(GV && "Unexpected NULL GlobalValue");
   const GlobalVariable *GlobalVar =
       [](const GlobalValue *GV) -> const GlobalVariable * {
-    const GlobalVariable *Var = dyn_cast<GlobalVariable>(GV);
-    if (Var)
+    
+    if (const GlobalVariable *Var = dyn_cast<GlobalVariable>(GV); Var)
       return Var;
 
     const GlobalAlias *Alias = dyn_cast<GlobalAlias>(GV);

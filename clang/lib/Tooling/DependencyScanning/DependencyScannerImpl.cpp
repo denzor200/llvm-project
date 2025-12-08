@@ -316,8 +316,8 @@ class ScanningDependencyDirectivesGetter : public DependencyDirectivesGetter {
 public:
   ScanningDependencyDirectivesGetter(FileManager &FileMgr) : DepFS(nullptr) {
     FileMgr.getVirtualFileSystem().visit([&](llvm::vfs::FileSystem &FS) {
-      auto *DFS = llvm::dyn_cast<DependencyScanningWorkerFilesystem>(&FS);
-      if (DFS) {
+      
+      if (auto *DFS = llvm::dyn_cast<DependencyScanningWorkerFilesystem>(&FS); DFS) {
         assert(!DepFS && "Found multiple scanning VFSs");
         DepFS = DFS;
       }
@@ -395,10 +395,10 @@ dependencies::buildCompilation(ArrayRef<std::string> ArgStrs,
       "clang LLVM compiler", FS);
   Driver->setTitle("clang_based_tool");
 
-  bool CLMode = driver::IsClangCL(
-      driver::getDriverMode(Argv[0], ArrayRef(Argv).slice(1)));
+  
 
-  if (llvm::Error E =
+  if (bool CLMode = driver::IsClangCL(
+      driver::getDriverMode(Argv[0], ArrayRef(Argv).slice(1))); llvm::Error E =
           driver::expandResponseFiles(Argv, CLMode, Alloc, FS.get())) {
     Diags.Report(diag::err_drv_expand_response_file)
         << llvm::toString(std::move(E));

@@ -225,8 +225,8 @@ class CHRScope {
     auto TailIt =
         std::stable_partition(Subs.begin(), Subs.end(), [&](CHRScope *Sub) {
           assert(Sub && "null Sub");
-          Region *Parent = Sub->getParentRegion();
-          if (TailRegionSet.count(Parent))
+          
+          if (Region *Parent = Sub->getParentRegion(); TailRegionSet.count(Parent))
             return false;
 
           assert(llvm::any_of(
@@ -303,8 +303,8 @@ class CHR {
   // what the following functions do.
 
   void findScopes(SmallVectorImpl<CHRScope *> &Output) {
-    Region *R = RI.getTopLevelRegion();
-    if (CHRScope *Scope = findScopes(R, nullptr, nullptr, Output)) {
+    
+    if (Region *R = RI.getTopLevelRegion(); CHRScope *Scope = findScopes(R, nullptr, nullptr, Output)) {
       Output.push_back(Scope);
     }
   }
@@ -726,8 +726,8 @@ CHRScope * CHR::findScope(Region *R) {
     CHR_DEBUG(dbgs() << "Exit null\n");
   // Exclude cases where Entry is part of a subregion (hence it doesn't belong
   // to this region).
-  bool EntryInSubregion = RI.getRegionFor(Entry) != R;
-  if (EntryInSubregion)
+  
+  if (bool EntryInSubregion = RI.getRegionFor(Entry) != R; EntryInSubregion)
     return nullptr;
   // Exclude loops
   for (BasicBlock *Pred : predecessors(Entry))
@@ -911,9 +911,9 @@ void CHR::checkScopeHoistable(CHRScope *Scope) {
     CHR_DEBUG(dbgs() << "InsertPoint " << *InsertPoint << "\n");
     if (RI.HasBranch && InsertPoint != Branch) {
       DenseMap<Instruction *, bool> Visited;
-      bool IsHoistable = checkHoistValue(Branch->getCondition(), InsertPoint,
-                                         DT, Unhoistables, nullptr, Visited);
-      if (!IsHoistable) {
+      
+      if (bool IsHoistable = checkHoistValue(Branch->getCondition(), InsertPoint,
+                                         DT, Unhoistables, nullptr, Visited); !IsHoistable) {
         // If the branch isn't hoistable, drop the selects in the entry
         // block, preferring the branch, which makes the branch the hoist
         // point.
@@ -1232,8 +1232,8 @@ SmallVector<CHRScope *, 8> CHR::splitScope(
   }
   SmallVector<CHRScope *, 8> Result;
   for (size_t I = 0; I < Splits.size(); ++I) {
-    CHRScope *Split = Splits[I];
-    if (SplitsSplitFromOuter[I]) {
+    
+    if (CHRScope *Split = Splits[I]; SplitsSplitFromOuter[I]) {
       // Split from the outer.
       Output.push_back(Split);
       Split->BranchInsertPoint = SplitsInsertPoints[I];
@@ -1426,8 +1426,8 @@ static void hoistValue(Value *V, Instruction *HoistPoint, Region *R,
                        DominatorTree &DT) {
   auto IT = HoistStopMap.find(R);
   assert(IT != HoistStopMap.end() && "Region must be in hoist stop map");
-  DenseSet<Instruction *> &HoistStops = IT->second;
-  if (auto *I = dyn_cast<Instruction>(V)) {
+  
+  if (DenseSet<Instruction *> &HoistStops = IT->second; auto *I = dyn_cast<Instruction>(V)) {
     if (I == HoistPoint)
       return;
     if (HoistStops.count(I))
@@ -1474,16 +1474,16 @@ static void hoistScopeConditions(CHRScope *Scope, Instruction *HoistPoint,
   for (const RegInfo &RI : Scope->CHRRegions) {
     Region *R = RI.R;
     bool IsTrueBiased = Scope->TrueBiasedRegions.count(R);
-    bool IsFalseBiased = Scope->FalseBiasedRegions.count(R);
-    if (RI.HasBranch && (IsTrueBiased || IsFalseBiased)) {
+    
+    if (bool IsFalseBiased = Scope->FalseBiasedRegions.count(R); RI.HasBranch && (IsTrueBiased || IsFalseBiased)) {
       auto *BI = cast<BranchInst>(R->getEntry()->getTerminator());
       hoistValue(BI->getCondition(), HoistPoint, R, Scope->HoistStopMap,
                  HoistedSet, TrivialPHIs, DT);
     }
     for (SelectInst *SI : RI.Selects) {
       bool IsTrueBiased = Scope->TrueBiasedSelects.count(SI);
-      bool IsFalseBiased = Scope->FalseBiasedSelects.count(SI);
-      if (!(IsTrueBiased || IsFalseBiased))
+      
+      if (bool IsFalseBiased = Scope->FalseBiasedSelects.count(SI); !(IsTrueBiased || IsFalseBiased))
         continue;
       hoistValue(SI->getCondition(), HoistPoint, R, Scope->HoistStopMap,
                  HoistedSet, TrivialPHIs, DT);
@@ -1650,8 +1650,8 @@ assertBranchOrSelectConditionHoisted(CHRScope *Scope,
   for (RegInfo &RI : Scope->CHRRegions) {
     Region *R = RI.R;
     bool IsTrueBiased = Scope->TrueBiasedRegions.count(R);
-    bool IsFalseBiased = Scope->FalseBiasedRegions.count(R);
-    if (RI.HasBranch && (IsTrueBiased || IsFalseBiased)) {
+    
+    if (bool IsFalseBiased = Scope->FalseBiasedRegions.count(R); RI.HasBranch && (IsTrueBiased || IsFalseBiased)) {
       auto *BI = cast<BranchInst>(R->getEntry()->getTerminator());
       Value *V = BI->getCondition();
       CHR_DEBUG(dbgs() << *V << "\n");
@@ -1664,8 +1664,8 @@ assertBranchOrSelectConditionHoisted(CHRScope *Scope,
     }
     for (SelectInst *SI : RI.Selects) {
       bool IsTrueBiased = Scope->TrueBiasedSelects.count(SI);
-      bool IsFalseBiased = Scope->FalseBiasedSelects.count(SI);
-      if (!(IsTrueBiased || IsFalseBiased))
+      
+      if (bool IsFalseBiased = Scope->FalseBiasedSelects.count(SI); !(IsTrueBiased || IsFalseBiased))
         continue;
       Value *V = SI->getCondition();
       CHR_DEBUG(dbgs() << *V << "\n");
@@ -1873,8 +1873,8 @@ void CHR::fixupBranchesAndSelects(CHRScope *Scope,
   uint64_t NumCHRedBranches = 0;
   IRBuilder<> IRB(PreEntryBlock->getTerminator());
   for (RegInfo &RI : Scope->CHRRegions) {
-    Region *R = RI.R;
-    if (RI.HasBranch) {
+    
+    if (Region *R = RI.R; RI.HasBranch) {
       fixupBranch(R, Scope, IRB, MergedCondition, CHRBranchBias);
       ++NumCHRedBranches;
     }
@@ -1980,8 +1980,8 @@ void CHR::addToMergedCondition(bool IsTrueBiased, Value *Cond,
     // If Cond is an icmp and all users of V except for BranchOrSelect is a
     // branch, negate the icmp predicate and swap the branch targets and avoid
     // inserting an Xor to negate Cond.
-    auto *ICmp = dyn_cast<ICmpInst>(Cond);
-    if (!ICmp ||
+    
+    if (auto *ICmp = dyn_cast<ICmpInst>(Cond); !ICmp ||
         !negateICmpIfUsedByBranchOrSelectOnly(ICmp, BranchOrSelect, Scope))
       Cond = IRB.CreateXor(ConstantInt::getTrue(F.getContext()), Cond);
   }

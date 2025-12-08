@@ -328,8 +328,8 @@ void BreakpointResolver::AddLocation(SearchFilter &filter,
   if (skip_prologue && sc.function) {
     Address prologue_addr = sc.function->GetAddress();
     if (prologue_addr.IsValid() && (line_start == prologue_addr)) {
-      const uint32_t prologue_byte_size = sc.function->GetPrologueByteSize();
-      if (prologue_byte_size) {
+      
+      if (const uint32_t prologue_byte_size = sc.function->GetPrologueByteSize(); prologue_byte_size) {
         prologue_addr.Slide(prologue_byte_size);
 
         if (filter.AddressPasses(prologue_addr)) {

@@ -50,8 +50,8 @@ bool ThrowByValueCatchByReferenceCheck::isFunctionParameter(
 
 bool ThrowByValueCatchByReferenceCheck::isCatchVariable(
     const DeclRefExpr *DeclRefExpr) {
-  auto *ValueDecl = DeclRefExpr->getDecl();
-  if (auto *VarDecl = dyn_cast<clang::VarDecl>(ValueDecl))
+  
+  if (auto *ValueDecl = DeclRefExpr->getDecl(); auto *VarDecl = dyn_cast<clang::VarDecl>(ValueDecl))
     return VarDecl->isExceptionVariable();
   return false;
 }
@@ -76,8 +76,8 @@ void ThrowByValueCatchByReferenceCheck::diagnoseThrowLocations(
     if (isa<StringLiteral>(Inner))
       return;
     // If it's a variable from a catch statement, we return as well.
-    auto *DeclRef = dyn_cast<DeclRefExpr>(Inner);
-    if (DeclRef && isCatchVariable(DeclRef)) {
+    
+    if (auto *DeclRef = dyn_cast<DeclRefExpr>(Inner); DeclRef && isCatchVariable(DeclRef)) {
       return;
     }
     diag(SubExpr->getBeginLoc(), "throw expression throws a pointer; it should "
@@ -100,11 +100,11 @@ void ThrowByValueCatchByReferenceCheck::diagnoseThrowLocations(
     bool Emit = false;
     auto *CurrentSubExpr = SubExpr->IgnoreImpCasts();
     const auto *VariableReference = dyn_cast<DeclRefExpr>(CurrentSubExpr);
-    const auto *ConstructorCall = dyn_cast<CXXConstructExpr>(CurrentSubExpr);
+    
     // If we have a DeclRefExpr, we flag for emitting a diagnosis message in
     // case the referenced variable is neither a function parameter nor a
     // variable declared in the catch statement.
-    if (VariableReference)
+    if (const auto *ConstructorCall = dyn_cast<CXXConstructExpr>(CurrentSubExpr); VariableReference)
       Emit = !isFunctionOrCatchVar(VariableReference);
     else if (ConstructorCall &&
              ConstructorCall->getConstructor()->isCopyOrMoveConstructor()) {
@@ -135,23 +135,23 @@ void ThrowByValueCatchByReferenceCheck::diagnoseCatchLocations(
   auto CaughtType = CatchStmt->getCaughtType();
   if (CaughtType.isNull())
     return;
-  auto *VarDecl = CatchStmt->getExceptionDecl();
-  if (const auto *PT = CaughtType.getCanonicalType()->getAs<PointerType>()) {
-    const char *DiagMsgCatchReference =
-        "catch handler catches a pointer value; "
-        "should throw a non-pointer value and "
-        "catch by reference instead";
+  
+  if (auto *VarDecl = CatchStmt->getExceptionDecl(); const auto *PT = CaughtType.getCanonicalType()->getAs<PointerType>()) {
+    
     // We do not diagnose when catching pointer to strings since we also allow
     // throwing string literals.
-    if (!PT->getPointeeType()->isAnyCharacterType())
+    if (const char *DiagMsgCatchReference =
+        "catch handler catches a pointer value; "
+        "should throw a non-pointer value and "
+        "catch by reference instead"; !PT->getPointeeType()->isAnyCharacterType())
       diag(VarDecl->getBeginLoc(), DiagMsgCatchReference);
   } else if (!CaughtType->isReferenceType()) {
-    const char *DiagMsgCatchReference = "catch handler catches by value; "
-                                        "should catch by reference instead";
+    
     // If it's not a pointer and not a reference then it must be caught "by
     // value". In this case we should emit a diagnosis message unless the type
     // is trivial.
-    if (!CaughtType.isTrivialType(Context)) {
+    if (const char *DiagMsgCatchReference = "catch handler catches by value; "
+                                        "should catch by reference instead"; !CaughtType.isTrivialType(Context)) {
       diag(VarDecl->getBeginLoc(), DiagMsgCatchReference);
     } else if (WarnOnLargeObject) {
       // If the type is trivial, then catching it by reference is not dangerous.

@@ -440,8 +440,8 @@ struct SwapVectorExtractOfArithExtend
       return rewriter.notifyMatchFailure(extractOp,
                                          "extracted type is not a vector type");
 
-    auto numScalableDims = resultType.getNumScalableDims();
-    if (numScalableDims != 1)
+    
+    if (auto numScalableDims = resultType.getNumScalableDims(); numScalableDims != 1)
       return rewriter.notifyMatchFailure(
           extractOp, "extracted type is not a 1-D scalable vector type");
 

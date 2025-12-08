@@ -276,10 +276,10 @@ uint64_t RegBankSelect::getRepairCost(
     // into a new virtual register.
     // We would also need to propagate this information in the
     // repairing placement.
-    unsigned Cost = RBI->copyCost(*DesiredRegBank, *CurRegBank,
-                                  RBI->getSizeInBits(MO.getReg(), *MRI, *TRI));
+    
     // TODO: use a dedicated constant for ImpossibleCost.
-    if (Cost != std::numeric_limits<unsigned>::max())
+    if (unsigned Cost = RBI->copyCost(*DesiredRegBank, *CurRegBank,
+                                  RBI->getSizeInBits(MO.getReg(), *MRI, *TRI)); Cost != std::numeric_limits<unsigned>::max())
       return Cost;
     // Return the legalization cost of that repairing.
   }
@@ -560,9 +560,9 @@ RegBankSelect::MappingCost RegBankSelect::computeMapping(
         assert(CostForInsertPt + Bias > CostForInsertPt &&
                "Repairing + split bias overflows");
         CostForInsertPt += Bias;
-        uint64_t PtCost = InsertPt->frequency(*this) * CostForInsertPt;
+        
         // Check if we just overflowed.
-        if ((Saturated = PtCost < CostForInsertPt))
+        if (uint64_t PtCost = InsertPt->frequency(*this) * CostForInsertPt; (Saturated = PtCost < CostForInsertPt))
           Cost.saturate();
         else
           Saturated = Cost.addNonLocalCost(PtCost);
@@ -633,8 +633,8 @@ bool RegBankSelect::applyMapping(
 bool RegBankSelect::assignInstr(MachineInstr &MI) {
   LLVM_DEBUG(dbgs() << "Assign: " << MI);
 
-  unsigned Opc = MI.getOpcode();
-  if (isPreISelGenericOptimizationHint(Opc)) {
+  
+  if (unsigned Opc = MI.getOpcode(); isPreISelGenericOptimizationHint(Opc)) {
     assert((Opc == TargetOpcode::G_ASSERT_ZEXT ||
             Opc == TargetOpcode::G_ASSERT_SEXT ||
             Opc == TargetOpcode::G_ASSERT_ALIGN) &&

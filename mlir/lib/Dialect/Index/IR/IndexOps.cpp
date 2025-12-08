@@ -665,9 +665,9 @@ OpFoldResult CmpOp::fold(FoldAdaptor adaptor) {
   if (lhs && rhs) {
     // Perform the comparison in 64-bit and 32-bit.
     bool result64 = compareIndices(lhs.getValue(), rhs.getValue(), getPred());
-    bool result32 = compareIndices(lhs.getValue().trunc(32),
-                                   rhs.getValue().trunc(32), getPred());
-    if (result64 == result32)
+    
+    if (bool result32 = compareIndices(lhs.getValue().trunc(32),
+                                   rhs.getValue().trunc(32), getPred()); result64 == result32)
       return BoolAttr::get(getContext(), result64);
   }
 
@@ -702,9 +702,9 @@ LogicalResult CmpOp::canonicalize(CmpOp op, PatternRewriter &rewriter) {
 
   bool rhsIsZero = matchPattern(op.getRhs(), m_Constant(&cmpRhs)) &&
                    cmpRhs.getValue().isZero();
-  bool lhsIsZero = matchPattern(op.getLhs(), m_Constant(&cmpLhs)) &&
-                   cmpLhs.getValue().isZero();
-  if (!rhsIsZero && !lhsIsZero)
+  
+  if (bool lhsIsZero = matchPattern(op.getLhs(), m_Constant(&cmpLhs)) &&
+                   cmpLhs.getValue().isZero(); !rhsIsZero && !lhsIsZero)
     return rewriter.notifyMatchFailure(op.getLoc(),
                                        "cmp is not comparing something with 0");
   SubOp subOp = rhsIsZero ? op.getLhs().getDefiningOp<index::SubOp>()

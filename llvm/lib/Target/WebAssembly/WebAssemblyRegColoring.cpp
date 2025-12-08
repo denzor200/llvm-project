@@ -204,8 +204,8 @@ static void undefInvalidDbgValues(
           // registers' live ranges because if their live ranges overlapped they
           // would have not been selected as a coalescing candidate in the first
           // place.
-          auto *SegmentIt = OtherLI->find(Slot);
-          if (SegmentIt != OtherLI->end() && SegmentIt->contains(Slot)) {
+          
+          if (auto *SegmentIt = OtherLI->find(Slot); SegmentIt != OtherLI->end() && SegmentIt->contains(Slot)) {
             LLVM_DEBUG(dbgs() << "Undefed: " << *DbgValue << "\n");
             DbgValue->setDebugValueUndef();
             LastUndefResult = true;
@@ -288,10 +288,10 @@ bool WebAssemblyRegColoring::runOnMachineFunction(MachineFunction &MF) {
     LiveInterval *LI = SortedIntervals[I];
     Register Old = LI->reg();
     size_t Color = I;
-    const TargetRegisterClass *RC = MRI->getRegClass(Old);
+    
 
     // Check if it's possible to reuse any of the used colors.
-    if (!MRI->isLiveIn(Old))
+    if (const TargetRegisterClass *RC = MRI->getRegClass(Old); !MRI->isLiveIn(Old))
       for (unsigned C : UsedColors.set_bits()) {
         if (MRI->getRegClass(SortedIntervals[C]->reg()) != RC)
           continue;
@@ -323,8 +323,8 @@ bool WebAssemblyRegColoring::runOnMachineFunction(MachineFunction &MF) {
   // Rewrite register operands.
   for (size_t I = 0, E = SortedIntervals.size(); I < E; ++I) {
     Register Old = SortedIntervals[I]->reg();
-    unsigned New = SlotMapping[I];
-    if (Old != New)
+    
+    if (unsigned New = SlotMapping[I]; Old != New)
       MRI->replaceRegWith(Old, New);
   }
   return true;

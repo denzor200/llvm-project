@@ -33,8 +33,8 @@ using clang::analyze_format_string::ConversionSpecifier;
 /// unsigned, rather than explicit signed char or unsigned char types.
 static bool isRealCharType(const clang::QualType &Ty) {
   using namespace clang;
-  const Type *DesugaredType = Ty->getUnqualifiedDesugaredType();
-  if (const auto *BT = llvm::dyn_cast<BuiltinType>(DesugaredType))
+  
+  if (const Type *DesugaredType = Ty->getUnqualifiedDesugaredType(); const auto *BT = llvm::dyn_cast<BuiltinType>(DesugaredType))
     return (BT->getKind() == BuiltinType::Char_U ||
             BT->getKind() == BuiltinType::Char_S);
   return false;
@@ -252,8 +252,8 @@ FormatStringConverter::formatStringContainsUnreplaceableMacro(
 
   for (auto I = FormatExpr->tokloc_begin(), E = FormatExpr->tokloc_end();
        I != E; ++I) {
-    const SourceLocation &TokenLoc = *I;
-    if (TokenLoc.isMacroID()) {
+    
+    if (const SourceLocation &TokenLoc = *I; TokenLoc.isMacroID()) {
       const StringRef MacroName =
           Lexer::getImmediateMacroName(TokenLoc, SM, PP.getLangOpts());
 
@@ -269,9 +269,9 @@ FormatStringConverter::formatStringContainsUnreplaceableMacro(
         if (!MaybeFileEntry)
           return MacroName;
 
-        HeaderSearch &HS = PP.getHeaderSearchInfo();
+        
         // Check if the file is a system header
-        if (!isSystem(HS.getFileDirFlavor(*MaybeFileEntry)) ||
+        if (HeaderSearch &HS = PP.getHeaderSearchInfo(); !isSystem(HS.getFileDirFlavor(*MaybeFileEntry)) ||
             llvm::sys::path::filename(MaybeFileEntry->getName()) !=
                 "inttypes.h")
           return MacroName;

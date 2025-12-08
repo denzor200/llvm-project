@@ -412,9 +412,9 @@ static void emitAtomicCmpXchg(CodeGenFunction &CGF, AtomicExpr *E, bool IsWeak,
   // Update the memory at Expected with Old's value.
   llvm::Type *ExpectedType = ExpectedResult.getElementType();
   const llvm::DataLayout &DL = CGF.CGM.getDataLayout();
-  uint64_t ExpectedSizeInBytes = DL.getTypeStoreSize(ExpectedType);
+  
 
-  if (ExpectedSizeInBytes == Size) {
+  if (uint64_t ExpectedSizeInBytes = DL.getTypeStoreSize(ExpectedType); ExpectedSizeInBytes == Size) {
     // Sizes match: store directly
     auto *I = CGF.Builder.CreateStore(Old, ExpectedResult);
     CGF.addInstToCurrentSourceAtom(I, Old);
@@ -453,8 +453,8 @@ static void emitAtomicCmpXchgFailureSet(
     llvm::AtomicOrdering SuccessOrder, llvm::SyncScope::ID Scope) {
   llvm::AtomicOrdering FailureOrder;
   if (llvm::ConstantInt *FO = dyn_cast<llvm::ConstantInt>(FailureOrderVal)) {
-    auto FOS = FO->getSExtValue();
-    if (!llvm::isValidAtomicOrderingCABI(FOS))
+    
+    if (auto FOS = FO->getSExtValue(); !llvm::isValidAtomicOrderingCABI(FOS))
       FailureOrder = llvm::AtomicOrdering::Monotonic;
     else
       switch ((llvm::AtomicOrderingCABI)FOS) {
@@ -527,9 +527,9 @@ static llvm::Value *EmitPostAtomicMinMax(CGBuilderTy &Builder,
                                          bool IsSigned,
                                          llvm::Value *OldVal,
                                          llvm::Value *RHS) {
-  const bool IsFP = OldVal->getType()->isFloatingPointTy();
+  
 
-  if (IsFP) {
+  if (const bool IsFP = OldVal->getType()->isFloatingPointTy(); IsFP) {
     llvm::Intrinsic::ID IID = (Op == AtomicExpr::AO__atomic_max_fetch ||
                                Op == AtomicExpr::AO__scoped_atomic_max_fetch)
                                   ? llvm::Intrinsic::maxnum
@@ -1332,10 +1332,10 @@ RValue CodeGenFunction::EmitAtomicExpr(AtomicExpr *E) {
                 E->getOp() == AtomicExpr::AO__scoped_atomic_load_n;
 
   if (isa<llvm::ConstantInt>(Order)) {
-    auto ord = cast<llvm::ConstantInt>(Order)->getZExtValue();
+    
     // We should not ever get to a case where the ordering isn't a valid C ABI
     // value, but it's hard to enforce that in general.
-    if (llvm::isValidAtomicOrderingCABI(ord))
+    if (auto ord = cast<llvm::ConstantInt>(Order)->getZExtValue(); llvm::isValidAtomicOrderingCABI(ord))
       switch ((llvm::AtomicOrderingCABI)ord) {
       case llvm::AtomicOrderingCABI::relaxed:
         EmitAtomicOp(*this, E, Dest, Ptr, Val1, Val2, OriginalVal1, IsWeak,
@@ -1720,10 +1720,10 @@ llvm::Value *AtomicInfo::convertRValueToInt(RValue RVal, bool CmpXchg) const {
     if (!shouldCastToInt(Value->getType(), CmpXchg))
       return CGF.EmitToMemory(Value, ValueTy);
     else {
-      llvm::IntegerType *InputIntTy = llvm::IntegerType::get(
+      
+      if (llvm::IntegerType *InputIntTy = llvm::IntegerType::get(
           CGF.getLLVMContext(),
-          LVal.isSimple() ? getValueSizeInBits() : getAtomicSizeInBits());
-      if (llvm::BitCastInst::isBitCastable(Value->getType(), InputIntTy))
+          LVal.isSimple() ? getValueSizeInBits() : getAtomicSizeInBits()); llvm::BitCastInst::isBitCastable(Value->getType(), InputIntTy))
         return CGF.Builder.CreateBitCast(Value, InputIntTy);
     }
   }

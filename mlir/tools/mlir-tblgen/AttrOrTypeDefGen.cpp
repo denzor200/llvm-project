@@ -738,14 +738,14 @@ void DefGen::emitHashKey() {
 }
 
 void DefGen::emitConstruct() {
-  Method *construct = storageCls->addMethod(
+  
+  if (Method *construct = storageCls->addMethod(
       strfmt("{0} *", def.getStorageClassName()), "construct",
       def.hasStorageCustomConstructor() ? Method::StaticDeclaration
                                         : Method::StaticInline,
       MethodParameter(strfmt("::mlir::{0}StorageAllocator &", valueType),
                       "allocator"),
-      MethodParameter("KeyTy &&", "tblgenKey"));
-  if (!def.hasStorageCustomConstructor()) {
+      MethodParameter("KeyTy &&", "tblgenKey")); !def.hasStorageCustomConstructor()) {
     auto &body = construct->body().indent();
     for (const auto &it : llvm::enumerate(params)) {
       body << formatv("auto {0} = std::move(std::get<{1}>(tblgenKey));\n",

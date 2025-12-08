@@ -369,8 +369,8 @@ public:
     assert(sub != &SubCommand::getAll() &&
            "SubCommand::getAll() should not be registered");
     for (auto &E : SubCommand::getAll().OptionsMap) {
-      Option *O = E.second;
-      if ((O->isPositional() || O->isSink() || O->isConsumeAfter()) ||
+      
+      if (Option *O = E.second; (O->isPositional() || O->isSink() || O->isConsumeAfter()) ||
           O->hasArgStr())
         addOption(O, sub);
       else
@@ -615,9 +615,9 @@ static Option *LookupNearestOption(StringRef Arg,
     bool PermitValue = O->getValueExpectedFlag() != cl::ValueDisallowed;
     StringRef Flag = PermitValue ? LHS : Arg;
     for (const auto &Name : OptionNames) {
-      unsigned Distance = StringRef(Name).edit_distance(
-          Flag, /*AllowReplacements=*/true, /*MaxEditDistance=*/BestDistance);
-      if (!Best || Distance < BestDistance) {
+      
+      if (unsigned Distance = StringRef(Name).edit_distance(
+          Flag, /*AllowReplacements=*/true, /*MaxEditDistance=*/BestDistance); !Best || Distance < BestDistance) {
         Best = O;
         BestDistance = Distance;
         if (RHS.empty() || !PermitValue)
@@ -922,8 +922,8 @@ static size_t parseBackslash(StringRef Src, size_t I, SmallString<128> &Token) {
     ++BackslashCount;
   } while (I != E && Src[I] == '\\');
 
-  bool FollowedByDoubleQuote = (I != E && Src[I] == '"');
-  if (FollowedByDoubleQuote) {
+  
+  if (bool FollowedByDoubleQuote = (I != E && Src[I] == '"'); FollowedByDoubleQuote) {
     Token.append(BackslashCount / 2, '\\');
     if (BackslashCount % 2 == 0)
       return I - 1;
@@ -1625,13 +1625,13 @@ bool CommandLineParser::ParseCommandLineOptions(
     std::string NearestHandlerString;
     StringRef Value;
     StringRef ArgName = "";
-    bool HaveDoubleDash = false;
+    
 
     // Check to see if this is a positional argument.  This argument is
     // considered to be positional if it doesn't start with '-', if it is "-"
     // itself, or if we have seen "--" already.
     //
-    if (argv[i][0] != '-' || argv[i][1] == 0 || DashDashFound) {
+    if (bool HaveDoubleDash = false; argv[i][0] != '-' || argv[i][1] == 0 || DashDashFound) {
       // Positional argument!
       if (ActivePositionalArg) {
         ProvidePositionalOption(ActivePositionalArg, StringRef(argv[i]), i);

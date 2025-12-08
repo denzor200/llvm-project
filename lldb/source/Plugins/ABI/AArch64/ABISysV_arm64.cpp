@@ -291,9 +291,9 @@ Status ABISysV_arm64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
 
   Thread *thread = frame_sp->GetThread().get();
 
-  RegisterContext *reg_ctx = thread->GetRegisterContext().get();
+  
 
-  if (reg_ctx) {
+  if (RegisterContext *reg_ctx = thread->GetRegisterContext().get(); reg_ctx) {
     DataExtractor data;
     Status data_error;
     const uint64_t byte_size = new_value_sp->GetData(data, data_error);
@@ -310,17 +310,17 @@ Status ABISysV_arm64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
         // Extract the register context so we can read arguments from registers
         lldb::offset_t offset = 0;
         if (byte_size <= 16) {
-          const RegisterInfo *x0_info = reg_ctx->GetRegisterInfo(
-              eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG1);
-          if (byte_size <= 8) {
-            uint64_t raw_value = data.GetMaxU64(&offset, byte_size);
+          
+          if (const RegisterInfo *x0_info = reg_ctx->GetRegisterInfo(
+              eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG1); byte_size <= 8) {
+            
 
-            if (!reg_ctx->WriteRegisterFromUnsigned(x0_info, raw_value))
+            if (uint64_t raw_value = data.GetMaxU64(&offset, byte_size); !reg_ctx->WriteRegisterFromUnsigned(x0_info, raw_value))
               error = Status::FromErrorString("failed to write register x0");
           } else {
-            uint64_t raw_value = data.GetMaxU64(&offset, 8);
+            
 
-            if (reg_ctx->WriteRegisterFromUnsigned(x0_info, raw_value)) {
+            if (uint64_t raw_value = data.GetMaxU64(&offset, 8); reg_ctx->WriteRegisterFromUnsigned(x0_info, raw_value)) {
               const RegisterInfo *x1_info = reg_ctx->GetRegisterInfo(
                   eRegisterKindGeneric, LLDB_REGNUM_GENERIC_ARG2);
               raw_value = data.GetMaxU64(&offset, byte_size - offset);
@@ -340,9 +340,9 @@ Status ABISysV_arm64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
           error = Status::FromErrorString(
               "returning complex float values are not supported");
         } else {
-          const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0);
+          
 
-          if (v0_info) {
+          if (const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0); v0_info) {
             if (byte_size <= 16) {
               RegisterValue reg_value;
               error = reg_value.SetValueFromData(*v0_info, data, 0, true);
@@ -362,9 +362,9 @@ Status ABISysV_arm64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
       }
     } else if (type_flags & eTypeIsVector) {
       if (byte_size > 0) {
-        const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0);
+        
 
-        if (v0_info) {
+        if (const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0); v0_info) {
           if (byte_size <= v0_info->byte_size) {
             RegisterValue reg_value;
             error = reg_value.SetValueFromData(*v0_info, data, 0, true);
@@ -492,9 +492,9 @@ static bool LoadValueFromConsecutiveGPRRegisters(
   Status error;
 
   CompilerType base_type;
-  const uint32_t homogeneous_count =
-      value_type.IsHomogeneousAggregate(&base_type);
-  if (homogeneous_count > 0 && homogeneous_count <= 8) {
+  
+  if (const uint32_t homogeneous_count =
+      value_type.IsHomogeneousAggregate(&base_type); homogeneous_count > 0 && homogeneous_count <= 8) {
     // Make sure we have enough registers
     if (NSRN < 8 && (8 - NSRN) >= homogeneous_count) {
       if (!base_type)
@@ -649,8 +649,8 @@ ValueObjectSP ABISysV_arm64::GetReturnValueObjectImpl(
           uint64_t raw_value =
               thread.GetRegisterContext()->ReadRegisterAsUnsigned(x0_reg_info,
                                                                   0);
-          const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-          switch (*byte_size) {
+          
+          switch (const bool is_signed = (type_flags & eTypeIsSigned) != 0; *byte_size) {
           default:
             break;
           case 16: // uint128_t
@@ -758,9 +758,9 @@ ValueObjectSP ABISysV_arm64::GetReturnValueObjectImpl(
           thread.GetStackFrameAtIndex(0).get(), value, ConstString(""));
   } else if (type_flags & eTypeIsVector && *byte_size <= 16) {
     if (*byte_size > 0) {
-      const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0);
+      
 
-      if (v0_info) {
+      if (const RegisterInfo *v0_info = reg_ctx->GetRegisterInfoByName("v0", 0); v0_info) {
         std::unique_ptr<DataBufferHeap> heap_data_up(
             new DataBufferHeap(*byte_size, 0));
         const ByteOrder byte_order = exe_ctx.GetProcessRef().GetByteOrder();
@@ -784,8 +784,8 @@ ValueObjectSP ABISysV_arm64::GetReturnValueObjectImpl(
 
     uint32_t NGRN = 0; // Search ABI docs for NGRN
     uint32_t NSRN = 0; // Search ABI docs for NSRN
-    const bool is_return_value = true;
-    if (LoadValueFromConsecutiveGPRRegisters(
+    
+    if (const bool is_return_value = true; LoadValueFromConsecutiveGPRRegisters(
             exe_ctx, reg_ctx, return_compiler_type, is_return_value, NGRN, NSRN,
             data)) {
       return_valobj_sp = ValueObjectConstResult::Create(
@@ -821,12 +821,12 @@ static lldb::addr_t ReadLinuxProcessAddressMask(lldb::ProcessSP process_sp,
     // below and merge it with default address mask calculated above.
     lldb::RegisterContextSP reg_ctx_sp = thread_sp->GetRegisterContext();
     if (reg_ctx_sp) {
-      const RegisterInfo *reg_info =
-          reg_ctx_sp->GetRegisterInfoByName(reg_name, 0);
-      if (reg_info) {
-        lldb::addr_t mask_reg_val = reg_ctx_sp->ReadRegisterAsUnsigned(
-            reg_info->kinds[eRegisterKindLLDB], LLDB_INVALID_ADDRESS);
-        if (mask_reg_val != LLDB_INVALID_ADDRESS)
+      
+      if (const RegisterInfo *reg_info =
+          reg_ctx_sp->GetRegisterInfoByName(reg_name, 0); reg_info) {
+        
+        if (lldb::addr_t mask_reg_val = reg_ctx_sp->ReadRegisterAsUnsigned(
+            reg_info->kinds[eRegisterKindLLDB], LLDB_INVALID_ADDRESS); mask_reg_val != LLDB_INVALID_ADDRESS)
           address_mask |= mask_reg_val;
       }
     }

@@ -918,8 +918,8 @@ static bool isLikelyIdentifier(llvm::StringRef Word, llvm::StringRef Before,
   // Don't search too far back.
   // This duplicates clang's doxygen parser, revisit if it gets complicated.
   Before = Before.take_back(100); // Don't search too far back.
-  auto Pos = Before.find_last_of("\\@");
-  if (Pos != llvm::StringRef::npos) {
+  
+  if (auto Pos = Before.find_last_of("\\@"); Pos != llvm::StringRef::npos) {
     llvm::StringRef Tag = Before.substr(Pos + 1).rtrim(' ');
     if (Tag == "p" || Tag == "c" || Tag == "class" || Tag == "tparam" ||
         Tag == "param" || Tag == "param[in]" || Tag == "param[out]" ||

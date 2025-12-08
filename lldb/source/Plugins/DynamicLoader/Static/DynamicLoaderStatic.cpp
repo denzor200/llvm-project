@@ -46,10 +46,10 @@ DynamicLoader *DynamicLoaderStatic::CreateInstance(Process *process,
   }
 
   if (!create) {
-    Module *exe_module = process->GetTarget().GetExecutableModulePointer();
-    if (exe_module) {
-      ObjectFile *object_file = exe_module->GetObjectFile();
-      if (object_file) {
+    
+    if (Module *exe_module = process->GetTarget().GetExecutableModulePointer(); exe_module) {
+      
+      if (ObjectFile *object_file = exe_module->GetObjectFile(); object_file) {
         create = (object_file->GetStrata() == ObjectFile::eStrataRawImage);
       }
     }
@@ -95,10 +95,10 @@ void DynamicLoaderStatic::LoadAllImagesAtFileAddresses() {
       // and we don't want to mutate that.
       // For a module with no load addresses set, set the load addresses
       // to slide == 0, the same as the file addresses, in the target.
-      ObjectFile *image_object_file = module_sp->GetObjectFile();
-      if (image_object_file) {
-        SectionList *section_list = image_object_file->GetSectionList();
-        if (section_list) {
+      
+      if (ObjectFile *image_object_file = module_sp->GetObjectFile(); image_object_file) {
+        
+        if (SectionList *section_list = image_object_file->GetSectionList(); section_list) {
           const size_t num_sections = section_list->GetSize();
           for (size_t sect_idx = 0; sect_idx < num_sections; ++sect_idx) {
             SectionSP section_sp(section_list->GetSectionAtIndex(sect_idx));

@@ -377,8 +377,8 @@ mlir::test::TestWrongNumberOfMultiResultsOp::applyToOne(
     transform::TransformRewriter &rewriter, Operation *target,
     transform::ApplyToEachResultList &results,
     transform::TransformState &state) {
-  static int count = 0;
-  if (count++ == 0) {
+  
+  if (static int count = 0; count++ == 0) {
     OperationState opState(target->getLoc(), "foo");
     results.push_back(OpBuilder(target).create(opState));
   }
@@ -812,9 +812,9 @@ DiagnosedSilenceableFailure mlir::test::TestInitializerExtensionOp::apply(
     transform::TransformResults &results, transform::TransformState &state) {
   std::string opName =
       this->getOperationName().str() + "_" + getTypeAttr().str();
-  TransformStateInitializerExtension *initExt =
-      state.getExtension<TransformStateInitializerExtension>();
-  if (!initExt) {
+  
+  if (TransformStateInitializerExtension *initExt =
+      state.getExtension<TransformStateInitializerExtension>(); !initExt) {
     emitRemark() << "\nSpecified extension not found, adding a new one!\n";
     SmallVector<std::string> opCollection = {opName};
     state.addExtension<TransformStateInitializerExtension>(1, opCollection);

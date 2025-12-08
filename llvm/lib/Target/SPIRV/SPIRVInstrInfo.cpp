@@ -75,8 +75,8 @@ bool SPIRVInstrInfo::isInlineAsmDefInstr(const MachineInstr &MI) const {
 }
 
 bool SPIRVInstrInfo::isTypeDeclInstr(const MachineInstr &MI) const {
-  auto &MRI = MI.getMF()->getRegInfo();
-  if (MI.getNumDefs() >= 1 && MI.getOperand(0).isReg()) {
+  
+  if (auto &MRI = MI.getMF()->getRegInfo(); MI.getNumDefs() >= 1 && MI.getOperand(0).isReg()) {
     auto DefRegClass = MRI.getRegClassOrNull(MI.getOperand(0).getReg());
     return DefRegClass && DefRegClass->getID() == SPIRV::TYPERegClass.getID();
   } else {

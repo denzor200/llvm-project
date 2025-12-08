@@ -106,8 +106,8 @@ static std::optional<Type> recordToType(MLIRContext *ctx,
 
   // Float types
   if (predRec.isSubClassOf("F")) {
-    auto width = predRec.getValueAsInt("bitwidth");
-    switch (width) {
+    
+    switch (auto width = predRec.getValueAsInt("bitwidth"); width) {
     case 16:
       return Float16Type::get(ctx);
     case 32:

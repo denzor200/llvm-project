@@ -741,8 +741,8 @@ static void interpretValues(const MachineInstr *CurMI,
         Register RegLoc = ParamValue->first.getReg();
         Register SP = TLI.getStackPointerRegisterToSaveRestore();
         Register FP = TRI.getFrameRegister(*MF);
-        bool IsSPorFP = (RegLoc == SP) || (RegLoc == FP);
-        if (!IsRegClobberedInMeantime(RegLoc) &&
+        
+        if (bool IsSPorFP = (RegLoc == SP) || (RegLoc == FP); !IsRegClobberedInMeantime(RegLoc) &&
             (TRI.isCalleeSavedPhysReg(RegLoc, *MF) || IsSPorFP)) {
           MachineLocation MLoc(RegLoc, /*Indirect=*/IsSPorFP);
           finishCallSiteParams(MLoc, ParamValue->second,
@@ -1233,8 +1233,8 @@ void DwarfDebug::beginModule(Module *M) {
       // already know about the variable and it isn't adding a constant
       // expression.
       auto &GVMapEntry = GVMap[GVE->getVariable()];
-      auto *Expr = GVE->getExpression();
-      if (!GVMapEntry.size() || (Expr && Expr->isConstant()))
+      
+      if (auto *Expr = GVE->getExpression(); !GVMapEntry.size() || (Expr && Expr->isConstant()))
         GVMapEntry.push_back({nullptr, Expr});
     }
 
@@ -1323,9 +1323,9 @@ void DwarfDebug::finalizeModuleInfo() {
       // hash to avoid the case where two (almost) empty compile units have the
       // same contents. This can happen if link-time optimization removes nearly
       // all (unused) code from a CU.
-      uint64_t ID =
-          DIEHash(Asm, &TheCU).computeCUSignature(DWOName, TheCU.getUnitDie());
-      if (getDwarfVersion() >= 5) {
+      
+      if (uint64_t ID =
+          DIEHash(Asm, &TheCU).computeCUSignature(DWOName, TheCU.getUnitDie()); getDwarfVersion() >= 5) {
         TheCU.setDWOId(ID);
         SkCU->setDWOId(ID);
       } else {
@@ -1576,9 +1576,9 @@ void DwarfDebug::collectVariableInfoFromMFTable(
     // already know.
     if (DbgVariable *PreviousLoc = MFVars.lookup(Var)) {
       auto *PreviousMMI = std::get_if<Loc::MMI>(PreviousLoc);
-      auto *PreviousEntryValue = std::get_if<Loc::EntryValue>(PreviousLoc);
+      
       // Previous and new locations are both stack slots (MMI).
-      if (PreviousMMI && VI.inStackSlot())
+      if (auto *PreviousEntryValue = std::get_if<Loc::EntryValue>(PreviousLoc); PreviousMMI && VI.inStackSlot())
         PreviousMMI->addFrameIndexExpr(VI.Expr, VI.getStackSlot());
       // Previous and new locations are both entry values.
       else if (PreviousEntryValue && VI.inEntryValueRegister())
@@ -1649,8 +1649,8 @@ static bool validThroughout(LexicalScopes &LScopes,
       // (sub)scope as the DBG_VALUE.
       if (DL->getScope() == PredDL->getScope())
         return false;
-      auto *PredScope = LScopes.findLexicalScope(PredDL);
-      if (!PredScope || LScope->dominates(PredScope))
+      
+      if (auto *PredScope = LScopes.findLexicalScope(PredDL); !PredScope || LScope->dominates(PredScope))
         return false;
     }
   }
@@ -1938,9 +1938,9 @@ void DwarfDebug::collectEntityInfo(DwarfCompileUnit &TheCU,
     bool SingleValueWithClobber =
         HistSize == 2 && HistoryMapEntries[1].isClobber();
     if (HistSize == 1 || SingleValueWithClobber) {
-      const auto *End =
-          SingleValueWithClobber ? HistoryMapEntries[1].getInstr() : nullptr;
-      if (validThroughout(LScopes, MInsn, End, getInstOrdering())) {
+      
+      if (const auto *End =
+          SingleValueWithClobber ? HistoryMapEntries[1].getInstr() : nullptr; validThroughout(LScopes, MInsn, End, getInstOrdering())) {
         RegVar->emplace<Loc::Single>(MInsn);
         continue;
       }
@@ -2008,8 +2008,8 @@ void DwarfDebug::collectEntityInfo(DwarfCompileUnit &TheCU,
     if (isa<DILocalVariable>(DN) || isa<DILabel>(DN)) {
       if (!Processed.insert(InlinedEntity(DN, nullptr)).second)
         continue;
-      LexicalScope *LexS = LScopes.findLexicalScope(LS);
-      if (LexS)
+      
+      if (LexicalScope *LexS = LScopes.findLexicalScope(LS); LexS)
         createConcreteEntity(TheCU, *LexS, DN, nullptr);
     } else {
       LocalDeclsPerLS[LS].insert(DN);
@@ -2043,10 +2043,10 @@ void DwarfDebug::beginInstruction(const MachineInstr *MI) {
       MI->isCandidateForAdditionalCallInfo(MachineInstr::AnyInBundle) &&
       (!MI->hasDelaySlot() || delaySlotSupported(*MI))) {
     const TargetInstrInfo *TII = MF.getSubtarget().getInstrInfo();
-    bool IsTail = TII->isTailCall(*MI);
+    
     // For tail calls, we need the address of the branch instruction for
     // DW_AT_call_pc.
-    if (IsTail)
+    if (bool IsTail = TII->isTailCall(*MI); IsTail)
       requestLabelBeforeInsn(MI);
     // For non-tail calls, we need the return address for the call for
     // DW_AT_call_return_pc. Under GDB tuning, this information is needed for
@@ -2095,8 +2095,8 @@ void DwarfDebug::beginInstruction(const MachineInstr *MI) {
   unsigned Flags = 0;
 
   if (MI->getFlag(MachineInstr::FrameDestroy) && DL) {
-    const MachineBasicBlock *MBB = MI->getParent();
-    if (MBB && (MBB != EpilogBeginBlock)) {
+    
+    if (const MachineBasicBlock *MBB = MI->getParent(); MBB && (MBB != EpilogBeginBlock)) {
       // First time FrameDestroy has been seen in this basic block
       EpilogBeginBlock = MBB;
       Flags |= DWARF2_FLAG_EPILOGUE_BEGIN;
@@ -2199,8 +2199,8 @@ void DwarfDebug::beginInstruction(const MachineInstr *MI) {
   } else {
     // If the line changed, we call that a new statement; unless we went to
     // line 0 and came back, in which case it is not a new statement.
-    unsigned OldLine = PrevInstLoc ? PrevInstLoc.getLine() : LastAsmLine;
-    if (DL.getLine() && (DL.getLine() != OldLine || ForceIsStmt))
+    
+    if (unsigned OldLine = PrevInstLoc ? PrevInstLoc.getLine() : LastAsmLine; DL.getLine() && (DL.getLine() != OldLine || ForceIsStmt))
       Flags |= DWARF2_FLAG_IS_STMT;
   }
 
@@ -2391,18 +2391,18 @@ DwarfDebug::emitInitialLocDirective(const MachineFunction &MF, unsigned CUID) {
 
   std::pair<const MachineInstr *, bool> PrologEnd = findPrologueEndLoc(&MF);
   const MachineInstr *PrologEndLoc = PrologEnd.first;
-  bool IsEmptyPrologue = PrologEnd.second;
+  
 
   // If the prolog is empty, no need to generate scope line for the proc.
-  if (IsEmptyPrologue) {
+  if (bool IsEmptyPrologue = PrologEnd.second; IsEmptyPrologue) {
     // If there's nowhere to put a prologue_end flag, emit a scope line in case
     // there are simply no source locations anywhere in the function.
     if (PrologEndLoc) {
       // Avoid trying to assign prologue_end to a line-zero location.
       // Instructions with no DebugLoc at all are fine, they'll be given the
       // scope line nuumber.
-      const DebugLoc &DL = PrologEndLoc->getDebugLoc();
-      if (!DL || DL->getLine() != 0)
+      
+      if (const DebugLoc &DL = PrologEndLoc->getDebugLoc(); !DL || DL->getLine() != 0)
         return PrologEndLoc;
 
       // Later, don't place the prologue_end flag on this line-zero location.
@@ -2641,12 +2641,12 @@ void DwarfDebug::findForceIsStmtInstrs(const MachineFunction *MF) {
     {
       MachineBasicBlock *TBB = nullptr, *FBB = nullptr;
       SmallVector<MachineOperand, 4> Cond;
-      bool AnalyzeFailed = TII->analyzeBranch(*MBB, TBB, FBB, Cond);
+      
       // For a conditional branch followed by unconditional branch where the
       // unconditional branch has a DebugLoc, that loc is the outgoing loc to
       // the the false destination only; otherwise, both destinations share an
       // outgoing loc.
-      if (!AnalyzeFailed && !Cond.empty() && FBB != nullptr &&
+      if (bool AnalyzeFailed = TII->analyzeBranch(*MBB, TBB, FBB, Cond); !AnalyzeFailed && !Cond.empty() && FBB != nullptr &&
           MBB->back().getDebugLoc() && MBB->back().getDebugLoc()->getLine()) {
         unsigned FBBLine = MBB->back().getDebugLoc()->getLine();
         assert(MIIt->isBranch() && "Bad result from analyzeBranch?");
@@ -2954,8 +2954,8 @@ static dwarf::PubIndexEntryDescriptor computeIndexValue(DwarfUnit *CU,
   // We could have a specification DIE that has our most of our knowledge,
   // look for that now.
   if (DIEValue SpecVal = Die->findAttribute(dwarf::DW_AT_specification)) {
-    DIE &SpecDIE = SpecVal.getDIEEntry().getEntry();
-    if (SpecDIE.findAttribute(dwarf::DW_AT_external))
+    
+    if (DIE &SpecDIE = SpecVal.getDIEEntry().getEntry(); SpecDIE.findAttribute(dwarf::DW_AT_external))
       Linkage = dwarf::GIEL_EXTERNAL;
   } else if (Die->findAttribute(dwarf::DW_AT_external))
     Linkage = dwarf::GIEL_EXTERNAL;
@@ -3141,8 +3141,8 @@ void DwarfDebug::emitDebugLocValue(const AsmPrinter &AP, const DIBasicType *BT,
 
     DwarfExpr.beginEntryValueExpression(ExprCursor);
 
-    const TargetRegisterInfo &TRI = *AP.MF->getSubtarget().getRegisterInfo();
-    if (!DwarfExpr.addMachineRegExpression(TRI, ExprCursor, Location.getReg()))
+    
+    if (const TargetRegisterInfo &TRI = *AP.MF->getSubtarget().getRegisterInfo(); !DwarfExpr.addMachineRegExpression(TRI, ExprCursor, Location.getReg()))
       return;
     return DwarfExpr.addExpression(std::move(ExprCursor));
   }
@@ -3164,8 +3164,8 @@ void DwarfDebug::emitDebugLocValue(const AsmPrinter &AP, const DIBasicType *BT,
       if (Location.isIndirect())
         DwarfExpr.setMemoryLocationKind();
 
-      const TargetRegisterInfo &TRI = *AP.MF->getSubtarget().getRegisterInfo();
-      if (!DwarfExpr.addMachineRegExpression(TRI, Cursor, Location.getReg()))
+      
+      if (const TargetRegisterInfo &TRI = *AP.MF->getSubtarget().getRegisterInfo(); !DwarfExpr.addMachineRegExpression(TRI, Cursor, Location.getReg()))
         return false;
     } else if (Entry.isTargetIndexLocation()) {
       TargetIndexLocation Loc = Entry.getTargetIndexLocation();
@@ -3229,8 +3229,8 @@ void DebugLocEntry::finalize(const AsmPrinter &AP,
   DebugLocStream::EntryBuilder Entry(List, Begin, End);
   BufferByteStreamer Streamer = Entry.getStreamer();
   DebugLocDwarfExpression DwarfExpr(AP.getDwarfVersion(), Streamer, TheCU);
-  const DbgValueLoc &Value = Values[0];
-  if (Value.isFragment()) {
+  
+  if (const DbgValueLoc &Value = Values[0]; Value.isFragment()) {
     // Emit all fragments that belong to the same variable and range.
     assert(llvm::all_of(Values, [](DbgValueLoc P) {
           return P.isFragment();
@@ -3344,8 +3344,8 @@ emitRangeList(DwarfDebug &DD, AsmPrinter *Asm, MCSymbol *Sym, const Ranges &R,
       Base = nullptr;
     } else if (!Base && ShouldUseBaseAddress) {
       const MCSymbol *Begin = P.second.front()->Begin;
-      const MCSymbol *NewBase = DD.getSectionLabel(&Begin->getSection());
-      if (!UseDwarf5) {
+      
+      if (const MCSymbol *NewBase = DD.getSectionLabel(&Begin->getSection()); !UseDwarf5) {
         Base = NewBase;
         BaseIsSet = true;
         Asm->OutStreamer->emitIntValue(-1, Size);
@@ -3553,10 +3553,10 @@ void DwarfDebug::emitDebugARanges() {
     const MCSymbol *StartSym = List[0].Sym;
     for (size_t n = 1, e = List.size(); n < e; n++) {
       const SymbolCU &Prev = List[n - 1];
-      const SymbolCU &Cur = List[n];
+      
 
       // Try and build the longest span we can within the same CU.
-      if (Cur.CU != Prev.CU) {
+      if (const SymbolCU &Cur = List[n]; Cur.CU != Prev.CU) {
         ArangeSpan Span;
         Span.Start = StartSym;
         Span.End = Cur.Sym;
@@ -3793,8 +3793,8 @@ void DwarfDebug::emitMacroFileImpl(
   Asm->OutStreamer->AddComment("Line Number");
   Asm->emitULEB128(MF.getLine());
   Asm->OutStreamer->AddComment("File Number");
-  DIFile &F = *MF.getFile();
-  if (useSplitDwarf())
+  
+  if (DIFile &F = *MF.getFile(); useSplitDwarf())
     Asm->emitULEB128(getDwoLineTable(U)->getFile(
         F.getDirectory(), F.getFilename(), getMD5AsBytes(&F),
         Asm->OutContext.getDwarfVersion(), F.getSource()));
@@ -4193,10 +4193,10 @@ void DwarfDebug::beginCodeAlignment(const MachineBasicBlock &MBB) {
     return;
 
   auto *SP = MBB.getParent()->getFunction().getSubprogram();
-  bool NoDebug =
-      !SP || SP->getUnit()->getEmissionKind() == DICompileUnit::NoDebug;
+  
 
-  if (NoDebug)
+  if (bool NoDebug =
+      !SP || SP->getUnit()->getEmissionKind() == DICompileUnit::NoDebug; NoDebug)
     return;
 
   auto PrevLoc = Asm->OutStreamer->getContext().getCurrentDwarfLoc();

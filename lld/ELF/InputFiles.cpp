@@ -91,8 +91,8 @@ static ELFKind getELFKind(Ctx &ctx, MemoryBufferRef mb, StringRef archiveName) {
   if (size != ELFCLASS32 && size != ELFCLASS64)
     report("corrupted ELF file: invalid file class");
 
-  size_t bufSize = mb.getBuffer().size();
-  if ((size == ELFCLASS32 && bufSize < sizeof(Elf32_Ehdr)) ||
+  
+  if (size_t bufSize = mb.getBuffer().size(); (size == ELFCLASS32 && bufSize < sizeof(Elf32_Ehdr)) ||
       (size == ELFCLASS64 && bufSize < sizeof(Elf64_Ehdr)))
     report("corrupted ELF file: file is too short");
 
@@ -605,11 +605,11 @@ template <class ELFT> void ObjFile<ELFT>::parse(bool ignoreComdats) {
       if (flag && flag != GRP_COMDAT)
         Fatal(ctx) << this << ": unsupported SHT_GROUP format";
 
-      bool keepGroup = !flag || ignoreComdats ||
+      
+      if (bool keepGroup = !flag || ignoreComdats ||
                        ctx.symtab->comdatGroups
                            .try_emplace(CachedHashStringRef(signature), this)
-                           .second;
-      if (keepGroup) {
+                           .second; keepGroup) {
         if (!ctx.arg.resolveGroups)
           sections[i] = createInputSection(
               i, sec, check(obj.getSectionName(sec, shstrtab)));
@@ -1209,8 +1209,8 @@ void ObjFile<ELFT>::initializeSymbols(const object::ELFFile<ELFT> &obj) {
   SmallVector<unsigned, 32> undefineds;
   for (size_t i = firstGlobal, end = eSyms.size(); i != end; ++i) {
     const Elf_Sym &eSym = eSyms[i];
-    uint32_t secIdx = eSym.st_shndx;
-    if (secIdx == SHN_UNDEF) {
+    
+    if (uint32_t secIdx = eSym.st_shndx; secIdx == SHN_UNDEF) {
       undefineds.push_back(i);
       continue;
     }

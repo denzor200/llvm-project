@@ -731,8 +731,8 @@ static AddressRegs getRegs(unsigned Opc, const SIInstrInfo &TII) {
   }
 
   if (TII.isImage(Opc)) {
-    int VAddr0Idx = AMDGPU::getNamedOperandIdx(Opc, AMDGPU::OpName::vaddr0);
-    if (VAddr0Idx >= 0) {
+    
+    if (int VAddr0Idx = AMDGPU::getNamedOperandIdx(Opc, AMDGPU::OpName::vaddr0); VAddr0Idx >= 0) {
       AMDGPU::OpName RsrcName =
           TII.isMIMG(Opc) ? AMDGPU::OpName::srsrc : AMDGPU::OpName::rsrc;
       int RsrcIdx = AMDGPU::getNamedOperandIdx(Opc, RsrcName);
@@ -1008,9 +1008,9 @@ bool SILoadStoreOptimizer::dmasksCanBeCombined(const CombineInfo &CI,
 
   // Ignore instructions with tfe/lwe set.
   const auto *TFEOp = TII.getNamedOperand(*CI.I, AMDGPU::OpName::tfe);
-  const auto *LWEOp = TII.getNamedOperand(*CI.I, AMDGPU::OpName::lwe);
+  
 
-  if ((TFEOp && TFEOp->getImm()) || (LWEOp && LWEOp->getImm()))
+  if (const auto *LWEOp = TII.getNamedOperand(*CI.I, AMDGPU::OpName::lwe); (TFEOp && TFEOp->getImm()) || (LWEOp && LWEOp->getImm()))
     return false;
 
   // Check other optional immediate operands for equality.
@@ -1095,10 +1095,10 @@ bool SILoadStoreOptimizer::offsetsCanBeCombined(CombineInfo &CI,
 
     const llvm::AMDGPU::GcnBufferFormatInfo *Info0 =
         llvm::AMDGPU::getGcnBufferFormatInfo(CI.Format, STI);
-    const llvm::AMDGPU::GcnBufferFormatInfo *Info1 =
-        llvm::AMDGPU::getGcnBufferFormatInfo(Paired.Format, STI);
+    
 
-    if (Info0->BitsPerComp != Info1->BitsPerComp ||
+    if (const llvm::AMDGPU::GcnBufferFormatInfo *Info1 =
+        llvm::AMDGPU::getGcnBufferFormatInfo(Paired.Format, STI); Info0->BitsPerComp != Info1->BitsPerComp ||
         Info0->NumFormat != Info1->NumFormat)
       return false;
 
@@ -1188,8 +1188,8 @@ bool SILoadStoreOptimizer::offsetsCanBeCombined(CombineInfo &CI,
   uint32_t Min = std::min(EltOffset0, EltOffset1);
   uint32_t Max = std::max(EltOffset0, EltOffset1);
 
-  const uint32_t Mask = maskTrailingOnes<uint32_t>(8) * 64;
-  if (((Max - Min) & ~Mask) == 0) {
+  
+  if (const uint32_t Mask = maskTrailingOnes<uint32_t>(8) * 64; ((Max - Min) & ~Mask) == 0) {
     if (Modify) {
       // From the range of values we could use for BaseOff, choose the one that
       // is aligned to the highest power of two, to maximise the chance that
@@ -1225,8 +1225,8 @@ bool SILoadStoreOptimizer::offsetsCanBeCombined(CombineInfo &CI,
 bool SILoadStoreOptimizer::widthsFit(const GCNSubtarget &STM,
                                      const CombineInfo &CI,
                                      const CombineInfo &Paired) {
-  const unsigned Width = (CI.Width + Paired.Width);
-  switch (CI.InstClass) {
+  
+  switch (const unsigned Width = (CI.Width + Paired.Width); CI.InstClass) {
   default:
     return (Width <= 4) && (STM.hasDwordx3LoadStores() || (Width != 3));
   case S_BUFFER_LOAD_IMM:
@@ -1865,9 +1865,9 @@ static bool needsConstrainedOpcode(const GCNSubtarget &STM,
 
 unsigned SILoadStoreOptimizer::getNewOpcode(const CombineInfo &CI,
                                             const CombineInfo &Paired) {
-  const unsigned Width = CI.Width + Paired.Width;
+  
 
-  switch (getCommonInstClass(CI, Paired)) {
+  switch (const unsigned Width = CI.Width + Paired.Width; getCommonInstClass(CI, Paired)) {
   default:
     assert(CI.InstClass == BUFFER_LOAD || CI.InstClass == BUFFER_STORE);
     // FIXME: Handle d16 correctly
@@ -1883,9 +1883,9 @@ unsigned SILoadStoreOptimizer::getNewOpcode(const CombineInfo &CI,
   case S_BUFFER_LOAD_IMM: {
     // If XNACK is enabled, use the constrained opcodes when the first load is
     // under-aligned.
-    bool NeedsConstrainedOpc =
-        needsConstrainedOpcode(*STM, CI.I->memoperands(), Width);
-    switch (Width) {
+    
+    switch (bool NeedsConstrainedOpc =
+        needsConstrainedOpcode(*STM, CI.I->memoperands(), Width); Width) {
     default:
       return 0;
     case 2:
@@ -1905,9 +1905,9 @@ unsigned SILoadStoreOptimizer::getNewOpcode(const CombineInfo &CI,
   case S_BUFFER_LOAD_SGPR_IMM: {
     // If XNACK is enabled, use the constrained opcodes when the first load is
     // under-aligned.
-    bool NeedsConstrainedOpc =
-        needsConstrainedOpcode(*STM, CI.I->memoperands(), Width);
-    switch (Width) {
+    
+    switch (bool NeedsConstrainedOpc =
+        needsConstrainedOpcode(*STM, CI.I->memoperands(), Width); Width) {
     default:
       return 0;
     case 2:
@@ -1927,9 +1927,9 @@ unsigned SILoadStoreOptimizer::getNewOpcode(const CombineInfo &CI,
   case S_LOAD_IMM: {
     // If XNACK is enabled, use the constrained opcodes when the first load is
     // under-aligned.
-    bool NeedsConstrainedOpc =
-        needsConstrainedOpcode(*STM, CI.I->memoperands(), Width);
-    switch (Width) {
+    
+    switch (bool NeedsConstrainedOpc =
+        needsConstrainedOpcode(*STM, CI.I->memoperands(), Width); Width) {
     default:
       return 0;
     case 2:
@@ -2515,9 +2515,9 @@ SILoadStoreOptimizer::collectMergeableInsts(
       continue;
 
     if (InstClass == TBUFFER_LOAD || InstClass == TBUFFER_STORE) {
-      const MachineOperand *Fmt =
-          TII->getNamedOperand(MI, AMDGPU::OpName::format);
-      if (!AMDGPU::getGcnBufferFormatInfo(Fmt->getImm(), *STM)) {
+      
+      if (const MachineOperand *Fmt =
+          TII->getNamedOperand(MI, AMDGPU::OpName::format); !AMDGPU::getGcnBufferFormatInfo(Fmt->getImm(), *STM)) {
         LLVM_DEBUG(dbgs() << "Skip tbuffer with unknown format: " << MI);
         continue;
       }
@@ -2760,8 +2760,8 @@ SILoadStoreOptimizerPass::run(MachineFunction &MF,
                   .getManager();
   AAResults &AA = FAM.getResult<AAManager>(MF.getFunction());
 
-  bool Changed = SILoadStoreOptimizer(&AA).run(MF);
-  if (!Changed)
+  
+  if (bool Changed = SILoadStoreOptimizer(&AA).run(MF); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA = getMachineFunctionPassPreservedAnalyses();

@@ -84,12 +84,12 @@ static void updateAssignmentLevel(
                  member(fieldDecl(indexNotLessThan(Field->getFieldIndex()))));
   auto DeclMatcher = declRefExpr(
       to(valueDecl(unless(parmVarDecl()), hasDeclContext(equalsNode(Ctor)))));
-  const bool HasDependence = !match(expr(anyOf(MemberMatcher, DeclMatcher,
+  
+  if (const bool HasDependence = !match(expr(anyOf(MemberMatcher, DeclMatcher,
                                                hasDescendant(MemberMatcher),
                                                hasDescendant(DeclMatcher))),
                                     *Init, Field->getASTContext())
-                                  .empty();
-  if (HasDependence) {
+                                  .empty(); HasDependence) {
     It->second = AssignedLevel::HasDependence;
     return;
   }

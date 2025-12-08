@@ -1289,10 +1289,10 @@ SBThread SBThread::GetExtendedBacktraceThread(const char *type) {
       ThreadSP real_thread(exe_ctx->GetThreadSP());
       if (real_thread) {
         ConstString type_const(type);
-        Process *process = exe_ctx->GetProcessPtr();
-        if (process) {
-          SystemRuntime *runtime = process->GetSystemRuntime();
-          if (runtime) {
+        
+        if (Process *process = exe_ctx->GetProcessPtr(); process) {
+          
+          if (SystemRuntime *runtime = process->GetSystemRuntime(); runtime) {
             ThreadSP new_thread_sp(
                 runtime->GetExtendedBacktraceThread(real_thread, type_const));
             if (new_thread_sp) {

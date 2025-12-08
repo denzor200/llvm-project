@@ -261,8 +261,8 @@ public:
       // Note: assignemnt to built-in type isn't derived from CallExpr.
       if (MemberOp->getOperator() ==
           OO_Equal) { // Ignore assignment to Ref/RefPtr.
-        auto *callee = MemberOp->getDirectCallee();
-        if (auto *calleeDecl = dyn_cast<CXXMethodDecl>(callee)) {
+        
+        if (auto *callee = MemberOp->getDirectCallee(); auto *calleeDecl = dyn_cast<CXXMethodDecl>(callee)) {
           if (const CXXRecordDecl *classDecl = calleeDecl->getParent()) {
             if (isSafePtr(classDecl))
               return true;

@@ -892,11 +892,11 @@ Stmt *BodyFarm::getBody(const ObjCMethodDecl *D) {
 
   // If the property was defined in an extension, search the extensions for
   // overrides.
-  const ObjCInterfaceDecl *OID = D->getClassInterface();
-  if (dyn_cast<ObjCInterfaceDecl>(D->getParent()) != OID)
+  
+  if (const ObjCInterfaceDecl *OID = D->getClassInterface(); dyn_cast<ObjCInterfaceDecl>(D->getParent()) != OID)
     for (auto *Ext : OID->known_extensions()) {
-      auto *OMD = Ext->getInstanceMethod(D->getSelector());
-      if (OMD && !OMD->isImplicit())
+      
+      if (auto *OMD = Ext->getInstanceMethod(D->getSelector()); OMD && !OMD->isImplicit())
         return nullptr;
     }
 

@@ -196,10 +196,10 @@ struct DropRedundantRankExpansionOnInsertSliceOfExtractSlice final
         break;
 
       bool isExtractDropped = extractDroppedDims[extractDimPos];
-      bool isInsertDropped = insertDroppedDims[insertDimPos];
+      
       // Match if both sides drop/keep the dim. Advance and match the next dim
       // of insert_slice.
-      if (isExtractDropped == isInsertDropped) {
+      if (bool isInsertDropped = insertDroppedDims[insertDimPos]; isExtractDropped == isInsertDropped) {
         insertDimPos += 1;
       } else if (!isExtractDropped && isInsertDropped) {
         // Not enough extract dropped dims to match the insert dropped dims.

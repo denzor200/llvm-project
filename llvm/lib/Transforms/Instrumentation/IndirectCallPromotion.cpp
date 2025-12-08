@@ -895,10 +895,10 @@ bool IndirectCallPromoter::processFunction(ProfileSummaryInfo *PSI) {
         *CB, ICallProfDataRef, TotalCount, NumCandidates);
 
     VTableGUIDCountsMap VTableGUIDCounts;
-    Instruction *VPtr =
-        computeVTableInfos(CB, VTableGUIDCounts, PromotionCandidates);
+    
 
-    if (isProfitableToCompareVTables(*CB, PromotionCandidates))
+    if (Instruction *VPtr =
+        computeVTableInfos(CB, VTableGUIDCounts, PromotionCandidates); isProfitableToCompareVTables(*CB, PromotionCandidates))
       Changed |= tryToPromoteWithVTableCmp(*CB, VPtr, PromotionCandidates,
                                            TotalCount, NumCandidates,
                                            ICallProfDataRef, VTableGUIDCounts);
@@ -1108,9 +1108,9 @@ static bool promoteIndirectCalls(Module &M, ProfileSummaryInfo *PSI, bool InLTO,
 
 PreservedAnalyses PGOIndirectCallPromotion::run(Module &M,
                                                 ModuleAnalysisManager &MAM) {
-  ProfileSummaryInfo *PSI = &MAM.getResult<ProfileSummaryAnalysis>(M);
+  
 
-  if (!promoteIndirectCalls(M, PSI, InLTO | ICPLTOMode,
+  if (ProfileSummaryInfo *PSI = &MAM.getResult<ProfileSummaryAnalysis>(M); !promoteIndirectCalls(M, PSI, InLTO | ICPLTOMode,
                             SamplePGO | ICPSamplePGOMode, MAM))
     return PreservedAnalyses::all();
 

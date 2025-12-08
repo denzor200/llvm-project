@@ -70,8 +70,8 @@ protected:
       return Res;
     }
 
-    BinaryBasicBlock *Target = getInternalCallTarget(Func, Point);
-    if (!Target)
+    
+    if (BinaryBasicBlock *Target = getInternalCallTarget(Func, Point); !Target)
       return Res;
 
     Res.first -= 8;

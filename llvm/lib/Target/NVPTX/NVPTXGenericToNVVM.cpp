@@ -229,8 +229,8 @@ Value *GenericToNVVM::remapConstantExpr(Module *M, Function *F, ConstantExpr *C,
 
   // If any of the operands has been modified, construct the instruction with
   // the converted operands.
-  unsigned Opcode = C->getOpcode();
-  switch (Opcode) {
+  
+  switch (unsigned Opcode = C->getOpcode(); Opcode) {
   case Instruction::ExtractElement:
     // ExtractElementConstantExpr
     return Builder.CreateExtractElement(NewOperands[0], NewOperands[1]);

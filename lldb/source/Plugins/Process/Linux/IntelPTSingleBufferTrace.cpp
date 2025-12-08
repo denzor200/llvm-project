@@ -131,8 +131,8 @@ static Error CheckPsbPeriod(size_t psb_period) {
   error << "Invalid psb_period. Valid values are: 0";
   uint32_t mask = valid_values.get();
   while (mask) {
-    int index = __builtin_ctz(mask);
-    if (index > 0)
+    
+    if (int index = __builtin_ctz(mask); index > 0)
       error << ", " << index;
     // clear the lowest bit
     mask &= mask - 1;

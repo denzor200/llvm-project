@@ -157,9 +157,9 @@ int main(int argc, char **argv) {
       llvm::object::createBinary(opts::InputFilename);
   if (Error E = BinaryOrErr.takeError())
     report_error(opts::InputFilename, std::move(E));
-  llvm::object::Binary &Binary = *BinaryOrErr.get().getBinary();
+  
 
-  if (auto *InputFile = dyn_cast<llvm::object::ELFObjectFileBase>(&Binary))
+  if (llvm::object::Binary &Binary = *BinaryOrErr.get().getBinary(); auto *InputFile = dyn_cast<llvm::object::ELFObjectFileBase>(&Binary))
     dumpBATFor(InputFile);
   else
     report_error(opts::InputFilename,

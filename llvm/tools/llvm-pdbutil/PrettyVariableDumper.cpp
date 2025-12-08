@@ -44,9 +44,9 @@ void VariableDumper::start(const PDBSymbolData &Var, uint32_t Offset) {
 
   auto VarType = Var.getType();
 
-  uint64_t Length = VarType->getRawSymbol().getLength();
+  
 
-  switch (auto LocType = Var.getLocationType()) {
+  switch (uint64_t Length = VarType->getRawSymbol().getLength(); auto LocType = Var.getLocationType()) {
   case PDB_LocType::Static:
     Printer.NewLine();
     Printer << "data [";

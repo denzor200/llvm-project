@@ -36,8 +36,8 @@ private:
 // Traverses upwards searchign for the operation mapped by the symbol.
 static Operation *getFromSymbol(Operation *baseOp, SymbolRefAttr symbol) {
   for (auto *op = baseOp; op; op = op->getParentOp()) {
-    auto *lookup = SymbolTable::lookupNearestSymbolFrom(op, symbol);
-    if (lookup)
+    
+    if (auto *lookup = SymbolTable::lookupNearestSymbolFrom(op, symbol); lookup)
       return lookup;
   }
   return nullptr;

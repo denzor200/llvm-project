@@ -691,15 +691,15 @@ Status ABISysV_mips64::SetReturnValueObject(lldb::StackFrameSP &frame_sp,
       lldb::offset_t offset = 0;
 
       if (num_bytes <= 16) {
-        const RegisterInfo *r2_info = reg_ctx->GetRegisterInfoByName("r2", 0);
-        if (num_bytes <= 8) {
-          uint64_t raw_value = data.GetMaxU64(&offset, num_bytes);
+        
+        if (const RegisterInfo *r2_info = reg_ctx->GetRegisterInfoByName("r2", 0); num_bytes <= 8) {
+          
 
-          if (!reg_ctx->WriteRegisterFromUnsigned(r2_info, raw_value))
+          if (uint64_t raw_value = data.GetMaxU64(&offset, num_bytes); !reg_ctx->WriteRegisterFromUnsigned(r2_info, raw_value))
             error = Status::FromErrorString("failed to write register r2");
         } else {
-          uint64_t raw_value = data.GetMaxU64(&offset, 8);
-          if (reg_ctx->WriteRegisterFromUnsigned(r2_info, raw_value)) {
+          
+          if (uint64_t raw_value = data.GetMaxU64(&offset, 8); reg_ctx->WriteRegisterFromUnsigned(r2_info, raw_value)) {
             const RegisterInfo *r3_info =
                 reg_ctx->GetRegisterInfoByName("r3", 0);
             raw_value = data.GetMaxU64(&offset, num_bytes - offset);
@@ -772,8 +772,8 @@ ValueObjectSP ABISysV_mips64::GetReturnValueObjectImpl(
 
       uint64_t raw_value = reg_ctx->ReadRegisterAsUnsigned(r2_info, 0);
 
-      const bool is_signed = (type_flags & eTypeIsSigned) != 0;
-      switch (*byte_size) {
+      
+      switch (const bool is_signed = (type_flags & eTypeIsSigned) != 0; *byte_size) {
       default:
         break;
 
@@ -1039,9 +1039,9 @@ ValueObjectSP ABISysV_mips64::GetReturnValueObjectImpl(
         if (!field_byte_width || *field_byte_width == 0)
           break;
 
-        uint32_t field_byte_offset = field_bit_offset / 8;
+        
 
-        if (field_compiler_type.IsIntegerOrEnumerationType(is_signed) ||
+        if (uint32_t field_byte_offset = field_bit_offset / 8; field_compiler_type.IsIntegerOrEnumerationType(is_signed) ||
             field_compiler_type.IsPointerType() ||
             field_compiler_type.IsFloatingPointType(is_complex)) {
           padding = field_byte_offset - integer_bytes;
@@ -1089,20 +1089,20 @@ ValueObjectSP ABISysV_mips64::GetReturnValueObjectImpl(
       if (use_r2) {
         reg_ctx->ReadRegister(r2_info, r2_value);
 
-        const size_t bytes_copied = r2_value.GetAsMemoryData(
+        
+        if (const size_t bytes_copied = r2_value.GetAsMemoryData(
             *r2_info, data_sp->GetBytes(), r2_info->byte_size,
-            target_byte_order, error);
-        if (bytes_copied != r2_info->byte_size)
+            target_byte_order, error); bytes_copied != r2_info->byte_size)
           return return_valobj_sp;
         sucess = true;
       }
       if (use_r3) {
         reg_ctx->ReadRegister(r3_info, r3_value);
-        const size_t bytes_copied = r3_value.GetAsMemoryData(
-            *r3_info, data_sp->GetBytes() + r2_info->byte_size,
-            r3_info->byte_size, target_byte_order, error);
+        
 
-        if (bytes_copied != r3_info->byte_size)
+        if (const size_t bytes_copied = r3_value.GetAsMemoryData(
+            *r3_info, data_sp->GetBytes() + r2_info->byte_size,
+            r3_info->byte_size, target_byte_order, error); bytes_copied != r3_info->byte_size)
           return return_valobj_sp;
         sucess = true;
       }

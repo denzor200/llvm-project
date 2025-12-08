@@ -177,9 +177,9 @@ void GDBJITRegistrationListener::notifyObjectLoaded(
   std::lock_guard<llvm::sys::Mutex> locked(JITDebugLock);
   assert(!ObjectBufferMap.contains(K) &&
          "Second attempt to perform debug registration.");
-  jit_code_entry* JITCodeEntry = new jit_code_entry();
+  
 
-  if (!JITCodeEntry) {
+  if (jit_code_entry* JITCodeEntry = new jit_code_entry(); !JITCodeEntry) {
     llvm::report_fatal_error(
       "Allocation failed when registering a JIT entry!\n");
   } else {

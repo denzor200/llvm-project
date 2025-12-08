@@ -109,14 +109,14 @@ void AssemblerConstantPools::emitAll(MCStreamer &Streamer) {
 }
 
 void AssemblerConstantPools::emitForCurrentSection(MCStreamer &Streamer) {
-  MCSection *Section = Streamer.getCurrentSectionOnly();
-  if (ConstantPool *CP = getConstantPool(Section))
+  
+  if (MCSection *Section = Streamer.getCurrentSectionOnly(); ConstantPool *CP = getConstantPool(Section))
     emitConstantPool(Streamer, Section, *CP);
 }
 
 void AssemblerConstantPools::clearCacheForCurrentSection(MCStreamer &Streamer) {
-  MCSection *Section = Streamer.getCurrentSectionOnly();
-  if (ConstantPool *CP = getConstantPool(Section))
+  
+  if (MCSection *Section = Streamer.getCurrentSectionOnly(); ConstantPool *CP = getConstantPool(Section))
     CP->clearCache();
 }
 

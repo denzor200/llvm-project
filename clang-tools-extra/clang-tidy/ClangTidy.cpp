@@ -137,8 +137,8 @@ public:
       for (const FileByteRange &FBR : Error.Message.Ranges)
         Diag << getRange(FBR);
       // FIXME: explore options to support interactive fix selection.
-      const llvm::StringMap<Replacements> *ChosenFix = nullptr;
-      if (ApplyFixes != FB_NoFix &&
+      
+      if (const llvm::StringMap<Replacements> *ChosenFix = nullptr; ApplyFixes != FB_NoFix &&
           (ChosenFix = getFixIt(Error, ApplyFixes == FB_FixNotes))) {
         for (const auto &FileAndReplacements : *ChosenFix) {
           for (const auto &Repl : FileAndReplacements.second) {
@@ -160,10 +160,10 @@ public:
                            << llvm::toString(std::move(Err)) << "\n";
               const unsigned NewOffset =
                   Replacements.getShiftedCodePosition(R.getOffset());
-              const unsigned NewLength = Replacements.getShiftedCodePosition(
+              
+              if (const unsigned NewLength = Replacements.getShiftedCodePosition(
                                              R.getOffset() + R.getLength()) -
-                                         NewOffset;
-              if (NewLength == R.getLength()) {
+                                         NewOffset; NewLength == R.getLength()) {
                 R = Replacement(R.getFilePath(), NewOffset, NewLength,
                                 R.getReplacementText());
                 Replacements = Replacements.merge(tooling::Replacements(R));
@@ -384,13 +384,13 @@ static CheckersList getAnalyzerCheckersAndPackages(ClangTidyContext &Context,
 
   const auto &RegisteredCheckers =
       AnalyzerOptions::getRegisteredCheckers(IncludeExperimental);
-  const bool AnalyzerChecksEnabled =
+  
+
+  if (const bool AnalyzerChecksEnabled =
       llvm::any_of(RegisteredCheckers, [&](StringRef CheckName) -> bool {
         return Context.isCheckEnabled(
             (AnalyzerCheckNamePrefix + CheckName).str());
-      });
-
-  if (!AnalyzerChecksEnabled)
+      }); !AnalyzerChecksEnabled)
     return List;
 
   // List all static analyzer checkers that our filter enables.

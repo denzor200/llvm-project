@@ -99,8 +99,8 @@ bool UpdatedOnX86AvoidTrailingCallPass(MachineFunction &MF) {
   for (MachineBasicBlock &MBB : MF) {
     // Look for basic blocks that precede funclet entries or are at the end of
     // the function.
-    MachineBasicBlock *NextMBB = MBB.getNextNode();
-    if (NextMBB && !NextMBB->isEHFuncletEntry())
+    
+    if (MachineBasicBlock *NextMBB = MBB.getNextNode(); NextMBB && !NextMBB->isEHFuncletEntry())
       continue;
 
     // Find the last real instruction in this block.
@@ -145,8 +145,8 @@ bool X86AvoidTrailingCallLegacyPass::runOnMachineFunction(MachineFunction &MF) {
 PreservedAnalyses
 X86AvoidTrailingCallPass::run(MachineFunction &MF,
                               MachineFunctionAnalysisManager &MFAM) {
-  bool Changed = UpdatedOnX86AvoidTrailingCallPass(MF);
-  if (!Changed)
+  
+  if (bool Changed = UpdatedOnX86AvoidTrailingCallPass(MF); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA = PreservedAnalyses::none();

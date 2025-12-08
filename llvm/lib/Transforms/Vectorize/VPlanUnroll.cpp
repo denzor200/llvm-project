@@ -325,8 +325,8 @@ void UnrollState::unrollRecipeByUF(VPRecipeBase &R) {
 }
 
 void UnrollState::unrollBlock(VPBlockBase *VPB) {
-  auto *VPR = dyn_cast<VPRegionBlock>(VPB);
-  if (VPR) {
+  
+  if (auto *VPR = dyn_cast<VPRegionBlock>(VPB); VPR) {
     if (VPR->isReplicator())
       return unrollReplicateRegionByUF(VPR);
 
@@ -394,8 +394,8 @@ void UnrollState::unrollBlock(VPBlockBase *VPB) {
       continue;
     }
 
-    auto *SingleDef = dyn_cast<VPSingleDefRecipe>(&R);
-    if (SingleDef && vputils::isUniformAcrossVFsAndUFs(SingleDef)) {
+    
+    if (auto *SingleDef = dyn_cast<VPSingleDefRecipe>(&R); SingleDef && vputils::isUniformAcrossVFsAndUFs(SingleDef)) {
       addUniformForAllParts(SingleDef);
       continue;
     }
@@ -417,8 +417,8 @@ void VPlanTransforms::unrollByUF(VPlan &Plan, unsigned UF) {
     // Remove recipes that are redundant after unrolling.
     for (VPBasicBlock *VPBB : VPBlockUtils::blocksOnly<VPBasicBlock>(Iter)) {
       for (VPRecipeBase &R : make_early_inc_range(*VPBB)) {
-        auto *VPI = dyn_cast<VPInstruction>(&R);
-        if (VPI &&
+        
+        if (auto *VPI = dyn_cast<VPInstruction>(&R); VPI &&
             VPI->getOpcode() == VPInstruction::CanonicalIVIncrementForPart &&
             VPI->getNumOperands() == 1) {
           VPI->replaceAllUsesWith(VPI->getOperand(0));

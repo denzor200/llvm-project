@@ -300,8 +300,8 @@ template <typename T> static bool containsNullptr(const T &Collection) {
 
 static std::string getLabel(const GraphDiffRenderer::GraphT::EdgeValueType &E,
                             GraphDiffRenderer::StatType EL) {
-  auto &EdgeAttr = E.second;
-  switch (EL) {
+  
+  switch (auto &EdgeAttr = E.second; EL) {
   case GraphDiffRenderer::StatType::NONE:
     return "";
   default:
@@ -319,8 +319,8 @@ static std::string getLabel(const GraphDiffRenderer::GraphT::EdgeValueType &E,
 static std::string getLabel(const GraphDiffRenderer::GraphT::VertexValueType &V,
                             GraphDiffRenderer::StatType VL, int TrunLen) {
   const auto &VertexId = V.first;
-  const auto &VertexAttr = V.second;
-  switch (VL) {
+  
+  switch (const auto &VertexAttr = V.second; VL) {
   case GraphDiffRenderer::StatType::NONE:
     return std::string(
         formatv(R"({0})", truncateString(VertexId, TrunLen).str()));
@@ -340,8 +340,8 @@ static std::string getLabel(const GraphDiffRenderer::GraphT::VertexValueType &V,
 
 static double getLineWidth(const GraphDiffRenderer::GraphT::EdgeValueType &E,
                            GraphDiffRenderer::StatType EL) {
-  auto &EdgeAttr = E.second;
-  switch (EL) {
+  
+  switch (auto &EdgeAttr = E.second; EL) {
   case GraphDiffRenderer::StatType::NONE:
     return 1.0;
   default:

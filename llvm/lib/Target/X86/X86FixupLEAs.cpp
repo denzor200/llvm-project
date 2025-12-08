@@ -413,14 +413,14 @@ FixupLEAPass::searchALUInst(MachineBasicBlock::iterator &I,
 
     // Check if the lea dest register is used in an add/sub instruction only.
     for (unsigned I = 0, E = CurInst->getNumOperands(); I != E; ++I) {
-      MachineOperand &Opnd = CurInst->getOperand(I);
-      if (Opnd.isReg()) {
+      
+      if (MachineOperand &Opnd = CurInst->getOperand(I); Opnd.isReg()) {
         if (Opnd.getReg() == DestReg) {
           if (Opnd.isDef() || !Opnd.isKill())
             return MachineBasicBlock::iterator();
 
-          unsigned AluOpcode = CurInst->getOpcode();
-          if (AluOpcode != AddOpcode && AluOpcode != SubOpcode)
+          
+          if (unsigned AluOpcode = CurInst->getOpcode(); AluOpcode != AddOpcode && AluOpcode != SubOpcode)
             return MachineBasicBlock::iterator();
 
           MachineOperand &Opnd2 = CurInst->getOperand(3 - I);
@@ -554,9 +554,9 @@ bool FixupLEAPass::optTwoAddrLEA(MachineBasicBlock::iterator &I,
   const MachineOperand &Scale =   MI.getOperand(1 + X86::AddrScaleAmt);
   const MachineOperand &Index =   MI.getOperand(1 + X86::AddrIndexReg);
   const MachineOperand &Disp =    MI.getOperand(1 + X86::AddrDisp);
-  const MachineOperand &Segment = MI.getOperand(1 + X86::AddrSegmentReg);
+  
 
-  if (Segment.getReg().isValid() || !Disp.isImm() || Scale.getImm() > 1 ||
+  if (const MachineOperand &Segment = MI.getOperand(1 + X86::AddrSegmentReg); Segment.getReg().isValid() || !Disp.isImm() || Scale.getImm() > 1 ||
       MBB.computeRegisterLiveness(TRI, X86::EFLAGS, I) !=
           MachineBasicBlock::LQR_Dead)
     return false;
@@ -608,9 +608,9 @@ bool FixupLEAPass::optTwoAddrLEA(MachineBasicBlock::iterator &I,
     // lea  %reg, -1(%reg)
     if (OptIncDec && (Disp.getImm() == 1 || Disp.getImm() == -1)) {
       bool IsINC = Disp.getImm() == 1;
-      unsigned NewOpcode = getINCDECFromLEA(MI.getOpcode(), IsINC);
+      
 
-      if (MI.getOpcode() == X86::LEA64_32r) {
+      if (unsigned NewOpcode = getINCDECFromLEA(MI.getOpcode(), IsINC); MI.getOpcode() == X86::LEA64_32r) {
         // TODO: Do we need the super register implicit use?
         NewMI = BuildMI(MBB, I, MI.getDebugLoc(), TII->get(NewOpcode), DestReg)
           .addReg(BaseReg).addReg(Base.getReg(), RegState::Implicit);
@@ -619,8 +619,8 @@ bool FixupLEAPass::optTwoAddrLEA(MachineBasicBlock::iterator &I,
           .addReg(BaseReg);
       }
     } else {
-      unsigned NewOpcode = getADDriFromLEA(MI.getOpcode(), Disp);
-      if (MI.getOpcode() == X86::LEA64_32r) {
+      
+      if (unsigned NewOpcode = getADDriFromLEA(MI.getOpcode(), Disp); MI.getOpcode() == X86::LEA64_32r) {
         // TODO: Do we need the super register implicit use?
         NewMI = BuildMI(MBB, I, MI.getDebugLoc(), TII->get(NewOpcode), DestReg)
           .addReg(BaseReg).addImm(Disp.getImm())
@@ -650,11 +650,11 @@ void FixupLEAPass::processInstruction(MachineBasicBlock::iterator &I,
   // Process a load, store, or LEA instruction.
   MachineInstr &MI = *I;
   const MCInstrDesc &Desc = MI.getDesc();
-  int AddrOffset = X86II::getMemoryOperandNo(Desc.TSFlags);
-  if (AddrOffset >= 0) {
+  
+  if (int AddrOffset = X86II::getMemoryOperandNo(Desc.TSFlags); AddrOffset >= 0) {
     AddrOffset += X86II::getOperandBias(Desc);
-    MachineOperand &p = MI.getOperand(AddrOffset + X86::AddrBaseReg);
-    if (p.isReg() && p.getReg() != X86::ESP) {
+    
+    if (MachineOperand &p = MI.getOperand(AddrOffset + X86::AddrBaseReg); p.isReg() && p.getReg() != X86::ESP) {
       seekLEAFixup(p, I, MBB);
     }
     MachineOperand &q = MI.getOperand(AddrOffset + X86::AddrIndexReg);
@@ -669,8 +669,8 @@ void FixupLEAPass::seekLEAFixup(MachineOperand &p,
                                 MachineBasicBlock &MBB) {
   MachineBasicBlock::iterator MBI = searchBackwards(p, I, MBB);
   if (MBI != MachineBasicBlock::iterator()) {
-    MachineInstr *NewMI = postRAConvertToLEA(MBB, MBI);
-    if (NewMI) {
+    
+    if (MachineInstr *NewMI = postRAConvertToLEA(MBB, MBI); NewMI) {
       ++NumLEAs;
       LLVM_DEBUG(dbgs() << "FixLEA: Candidate to replace:"; MBI->dump(););
       // now to replace with an equivalent LEA...
@@ -694,9 +694,9 @@ void FixupLEAPass::processInstructionForSlowLEA(MachineBasicBlock::iterator &I,
   const MachineOperand &Scale =   MI.getOperand(1 + X86::AddrScaleAmt);
   const MachineOperand &Index =   MI.getOperand(1 + X86::AddrIndexReg);
   const MachineOperand &Offset =  MI.getOperand(1 + X86::AddrDisp);
-  const MachineOperand &Segment = MI.getOperand(1 + X86::AddrSegmentReg);
+  
 
-  if (Segment.getReg().isValid() || !Offset.isImm() ||
+  if (const MachineOperand &Segment = MI.getOperand(1 + X86::AddrSegmentReg); Segment.getReg().isValid() || !Offset.isImm() ||
       MBB.computeRegisterLiveness(TRI, X86::EFLAGS, I, 4) !=
           MachineBasicBlock::LQR_Dead)
     return;

@@ -111,8 +111,8 @@ ConstantRange ConstantRange::makeAllowedICmpRegion(CmpInst::Predicate Pred,
   if (CR.isEmptySet())
     return CR;
 
-  uint32_t W = CR.getBitWidth();
-  switch (Pred) {
+  
+  switch (uint32_t W = CR.getBitWidth(); Pred) {
   default:
     llvm_unreachable("Invalid ICmp predicate to makeAllowedICmpRegion()");
   case CmpInst::ICMP_EQ:
@@ -334,9 +334,9 @@ ConstantRange::makeGuaranteedNoWrapRegion(Instruction::BinaryOps BinOp,
          "NoWrapKind invalid!");
 
   bool Unsigned = NoWrapKind == OBO::NoUnsignedWrap;
-  unsigned BitWidth = Other.getBitWidth();
+  
 
-  switch (BinOp) {
+  switch (unsigned BitWidth = Other.getBitWidth(); BinOp) {
   default:
     llvm_unreachable("Unsupported binary op");
 

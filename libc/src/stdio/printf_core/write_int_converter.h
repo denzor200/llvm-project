@@ -29,9 +29,9 @@ LIBC_INLINE int convert_write_int(Writer<write_mode> *writer,
     return NULLPTR_WRITE_ERROR;
 #endif // LIBC_COPT_PRINTF_NO_NULLPTR_CHECKS
 
-  size_t written = writer->get_chars_written();
+  
 
-  switch (to_conv.length_modifier) {
+  switch (size_t written = writer->get_chars_written(); to_conv.length_modifier) {
   case LengthModifier::none:
     *reinterpret_cast<int *>(to_conv.conv_val_ptr) = static_cast<int>(written);
     break;

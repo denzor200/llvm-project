@@ -377,8 +377,8 @@ static Value *MakeCpAsync(unsigned IntrinsicID, unsigned IntrinsicIDS,
 
 static bool EnsureNativeHalfSupport(unsigned BuiltinID, const CallExpr *E,
                                     CodeGenFunction &CGF) {
-  auto &C = CGF.CGM.getContext();
-  if (!C.getLangOpts().NativeHalfType &&
+  
+  if (auto &C = CGF.CGM.getContext(); !C.getLangOpts().NativeHalfType &&
       C.getTargetInfo().useFP16ConversionIntrinsics()) {
     CGF.CGM.Error(E->getExprLoc(), C.BuiltinInfo.getQuotedName(BuiltinID) +
                                        " requires native half type support.");
@@ -401,8 +401,8 @@ static Value *MakeHalfType(Function *Intrinsic, unsigned BuiltinID,
   for (unsigned i = 0, e = E->getNumArgs(); i != e; ++i) {
     assert((ICEArguments & (1 << i)) == 0);
     auto *ArgValue = CGF.EmitScalarExpr(E->getArg(i));
-    auto *PTy = FTy->getParamType(i);
-    if (PTy != ArgValue->getType())
+    
+    if (auto *PTy = FTy->getParamType(i); PTy != ArgValue->getType())
       ArgValue = CGF.Builder.CreateBitCast(ArgValue, PTy);
     Args.push_back(ArgValue);
   }

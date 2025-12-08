@@ -311,8 +311,8 @@ Error CompileUnit::assignTypeNamesRec(const DWARFDebugInfoEntry *DieEntry,
   for (const DWARFDebugInfoEntry *CurChild = getFirstChildEntry(DieEntry);
        CurChild && CurChild->getAbbreviationDeclarationPtr();
        CurChild = getSiblingEntry(CurChild)) {
-    CompileUnit::DIEInfo &ChildInfo = getDIEInfo(CurChild);
-    if (!ChildInfo.needToPlaceInTypeTable())
+    
+    if (CompileUnit::DIEInfo &ChildInfo = getDIEInfo(CurChild); !ChildInfo.needToPlaceInTypeTable())
       continue;
 
     assert(ChildInfo.getODRAvailable());
@@ -451,10 +451,10 @@ Error CompileUnit::cloneAndEmitDebugLocations() {
 }
 
 void CompileUnit::emitLocations(DebugSectionKind LocationSectionKind) {
-  SectionDescriptor &DebugInfoSection =
-      getOrCreateSectionDescriptor(DebugSectionKind::DebugInfo);
+  
 
-  if (!DebugInfoSection.ListDebugLocPatch.empty()) {
+  if (SectionDescriptor &DebugInfoSection =
+      getOrCreateSectionDescriptor(DebugSectionKind::DebugInfo); !DebugInfoSection.ListDebugLocPatch.empty()) {
     SectionDescriptor &OutLocationSection =
         getOrCreateSectionDescriptor(LocationSectionKind);
     DWARFUnit &OrigUnit = getOrigUnit();
@@ -693,10 +693,10 @@ void CompileUnit::cloneAndEmitRangeList(DebugSectionKind RngSectionKind,
                                         AddressRanges &LinkedFunctionRanges) {
   SectionDescriptor &DebugInfoSection =
       getOrCreateSectionDescriptor(DebugSectionKind::DebugInfo);
-  SectionDescriptor &OutRangeSection =
-      getOrCreateSectionDescriptor(RngSectionKind);
+  
 
-  if (!DebugInfoSection.ListDebugRangePatch.empty()) {
+  if (SectionDescriptor &OutRangeSection =
+      getOrCreateSectionDescriptor(RngSectionKind); !DebugInfoSection.ListDebugRangePatch.empty()) {
     std::optional<AddressRangeValuePair> CachedRange;
     uint64_t OffsetAfterUnitLength = emitRangeListHeader(OutRangeSection);
 
@@ -708,10 +708,10 @@ void CompileUnit::cloneAndEmitRangeList(DebugSectionKind RngSectionKind,
         // Get ranges from the source DWARF corresponding to the current
         // attribute.
         AddressRanges LinkedRanges;
-        uint64_t InputDebugRangesSectionOffset = DebugInfoSection.getIntVal(
+        
+        if (uint64_t InputDebugRangesSectionOffset = DebugInfoSection.getIntVal(
             Patch.PatchOffset,
-            DebugInfoSection.getFormParams().getDwarfOffsetByteSize());
-        if (Expected<DWARFAddressRangesVector> InputRanges =
+            DebugInfoSection.getFormParams().getDwarfOffsetByteSize()); Expected<DWARFAddressRangesVector> InputRanges =
                 getOrigUnit().findRnglistFromOffset(
                     InputDebugRangesSectionOffset)) {
           // Apply relocation adjustment.
@@ -983,16 +983,16 @@ void CompileUnit::emitMacroTableImpl(const DWARFDebugMacro *MacroTable,
           continue;
         }
 
-        uint8_t MacroType = MacroEntry.Type;
-        switch (MacroType) {
+        
+        switch (uint8_t MacroType = MacroEntry.Type; MacroType) {
         default: {
-          bool HasVendorSpecificExtension =
+          
+
+          if (bool HasVendorSpecificExtension =
               (!hasDWARFv5Header &&
                MacroType == dwarf::DW_MACINFO_vendor_ext) ||
               (hasDWARFv5Header && (MacroType >= dwarf::DW_MACRO_lo_user &&
-                                    MacroType <= dwarf::DW_MACRO_hi_user));
-
-          if (HasVendorSpecificExtension) {
+                                    MacroType <= dwarf::DW_MACRO_hi_user)); HasVendorSpecificExtension) {
             // Write macinfo type.
             OutSection.emitIntVal(MacroType, 1);
 
@@ -1320,13 +1320,13 @@ std::pair<DIE *, TypeEntry *> CompileUnit::cloneDIE(
   bool HasPlainChildrenToClone =
       (ClonedDIE.first && Info.getKeepPlainChildren());
 
-  bool HasTypeChildrenToClone =
-      ((ClonedDIE.second ||
-        InputDieEntry->getTag() == dwarf::DW_TAG_compile_unit) &&
-       Info.getKeepTypeChildren());
+  
 
   // Recursively clone children.
-  if (HasPlainChildrenToClone || HasTypeChildrenToClone) {
+  if (bool HasTypeChildrenToClone =
+      ((ClonedDIE.second ||
+        InputDieEntry->getTag() == dwarf::DW_TAG_compile_unit) &&
+       Info.getKeepTypeChildren()); HasPlainChildrenToClone || HasTypeChildrenToClone) {
     for (const DWARFDebugInfoEntry *CurChild =
              getFirstChildEntry(InputDieEntry);
          CurChild && CurChild->getAbbreviationDeclarationPtr();
@@ -1429,8 +1429,8 @@ DIE *CompileUnit::allocateTypeDie(TypeEntryBody *TypeDescriptor,
 
   if (IsDeclaration && !DeclarationDie) {
     // Alocate declaration DIE.
-    DIE *NewDie = TypeDIEGenerator.createDIE(DieTag, 0);
-    if (TypeDescriptor->DeclarationDie.compare_exchange_strong(DeclarationDie,
+    
+    if (DIE *NewDie = TypeDIEGenerator.createDIE(DieTag, 0); TypeDescriptor->DeclarationDie.compare_exchange_strong(DeclarationDie,
                                                                NewDie))
       return NewDie;
   } else if (IsDeclaration && !IsParentDeclaration && OldParentIsDeclaration) {
@@ -1445,14 +1445,14 @@ DIE *CompileUnit::allocateTypeDie(TypeEntryBody *TypeDescriptor,
   } else if (!IsDeclaration && IsParentDeclaration && !DeclarationDie) {
     // Alocate declaration DIE since parent of current DIE is marked as
     // declaration.
-    DIE *NewDie = TypeDIEGenerator.createDIE(DieTag, 0);
-    if (TypeDescriptor->DeclarationDie.compare_exchange_strong(DeclarationDie,
+    
+    if (DIE *NewDie = TypeDIEGenerator.createDIE(DieTag, 0); TypeDescriptor->DeclarationDie.compare_exchange_strong(DeclarationDie,
                                                                NewDie))
       return NewDie;
   } else if (!IsDeclaration && !IsParentDeclaration) {
     // Allocate definition DIE.
-    DIE *NewDie = TypeDIEGenerator.createDIE(DieTag, 0);
-    if (TypeDescriptor->Die.compare_exchange_strong(DefinitionDie, NewDie)) {
+    
+    if (DIE *NewDie = TypeDIEGenerator.createDIE(DieTag, 0); TypeDescriptor->Die.compare_exchange_strong(DefinitionDie, NewDie)) {
       TypeDescriptor->ParentIsDeclaration = false;
       return NewDie;
     }

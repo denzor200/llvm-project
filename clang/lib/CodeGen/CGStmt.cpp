@@ -673,9 +673,9 @@ void CodeGenFunction::EmitBranch(llvm::BasicBlock *Target) {
   // Emit a branch from the current block to the target one if this
   // was a real block.  If this was just a fall-through block after a
   // terminator, don't emit it.
-  llvm::BasicBlock *CurBB = Builder.GetInsertBlock();
+  
 
-  if (!CurBB || CurBB->getTerminator()) {
+  if (llvm::BasicBlock *CurBB = Builder.GetInsertBlock(); !CurBB || CurBB->getTerminator()) {
     // If there is no insert point or the previous block is already
     // terminated, don't touch it.
   } else {
@@ -814,8 +814,8 @@ void CodeGenFunction::EmitAttributedStmt(const AttributedStmt &S) {
       musttail = cast<CallExpr>(R->getRetValue()->IgnoreParens());
     } break;
     case attr::CXXAssume: {
-      const Expr *Assumption = cast<CXXAssumeAttr>(A)->getAssumption();
-      if (getLangOpts().CXXAssumptions && Builder.GetInsertBlock() &&
+      
+      if (const Expr *Assumption = cast<CXXAssumeAttr>(A)->getAssumption(); getLangOpts().CXXAssumptions && Builder.GetInsertBlock() &&
           !Assumption->HasSideEffects(getContext())) {
         llvm::Value *AssumptionVal = EmitCheckedArgForAssume(Assumption);
         Builder.CreateAssumption(AssumptionVal);
@@ -881,8 +881,8 @@ void CodeGenFunction::EmitIfStmt(const IfStmt &S) {
   // The else branch of a consteval if statement is always the only branch that
   // can be runtime evaluated.
   if (S.isConsteval()) {
-    const Stmt *Executed = S.isNegatedConsteval() ? S.getThen() : Else;
-    if (Executed) {
+    
+    if (const Stmt *Executed = S.isNegatedConsteval() ? S.getThen() : Else; Executed) {
       RunCleanupsScope ExecutedScope(*this);
       EmitStmt(Executed);
     }
@@ -1692,8 +1692,8 @@ void CodeGenFunction::EmitReturnStmt(const ReturnStmt &S) {
   } else {
     switch (getEvaluationKind(RV->getType())) {
     case TEK_Scalar: {
-      llvm::Value *Ret = EmitScalarExpr(RV);
-      if (CurFnInfo->getReturnInfo().getKind() == ABIArgInfo::Indirect) {
+      
+      if (llvm::Value *Ret = EmitScalarExpr(RV); CurFnInfo->getReturnInfo().getKind() == ABIArgInfo::Indirect) {
         EmitStoreOfScalar(Ret, MakeAddrLValue(ReturnValue, RV->getType()),
                           /*isInit*/ true);
       } else {
@@ -2435,10 +2435,10 @@ void CodeGenFunction::EmitSwitchStmt(const SwitchStmt &S) {
   // If the switch has a condition wrapped by __builtin_unpredictable,
   // create metadata that specifies that the switch is unpredictable.
   // Don't bother if not optimizing because that metadata would not be used.
-  auto *Call = dyn_cast<CallExpr>(S.getCond());
-  if (Call && CGM.getCodeGenOpts().OptimizationLevel != 0) {
-    auto *FD = dyn_cast_or_null<FunctionDecl>(Call->getCalleeDecl());
-    if (FD && FD->getBuiltinID() == Builtin::BI__builtin_unpredictable) {
+  
+  if (auto *Call = dyn_cast<CallExpr>(S.getCond()); Call && CGM.getCodeGenOpts().OptimizationLevel != 0) {
+    
+    if (auto *FD = dyn_cast_or_null<FunctionDecl>(Call->getCalleeDecl()); FD && FD->getBuiltinID() == Builtin::BI__builtin_unpredictable) {
       llvm::MDBuilder MDHelper(getLLVMContext());
       SwitchInsn->setMetadata(llvm::LLVMContext::MD_unpredictable,
                               MDHelper.createUnpredictable());
@@ -2516,8 +2516,8 @@ std::pair<llvm::Value*, llvm::Type *> CodeGenFunction::EmitAsmInputLValue(
       return {EmitLoadOfLValue(InputValue, Loc).getScalarVal(), nullptr};
 
     llvm::Type *Ty = ConvertType(InputType);
-    uint64_t Size = CGM.getDataLayout().getTypeSizeInBits(Ty);
-    if ((Size <= 64 && llvm::isPowerOf2_64(Size)) ||
+    
+    if (uint64_t Size = CGM.getDataLayout().getTypeSizeInBits(Ty); (Size <= 64 && llvm::isPowerOf2_64(Size)) ||
         getTargetHooks().isScalarizableAsmOperand(*this, Ty)) {
       Ty = llvm::IntegerType::get(getLLVMContext(), Size);
 
@@ -2803,9 +2803,9 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
     if (const GCCAsmStmt *GAS = dyn_cast<GCCAsmStmt>(&S))
       Name = GAS->getInputName(i);
     TargetInfo::ConstraintInfo Info(S.getInputConstraint(i), Name);
-    bool IsValid =
-      getTarget().validateInputConstraint(OutputConstraintInfos, Info);
-    if (IsHipStdPar && !IsValid)
+    
+    if (bool IsValid =
+      getTarget().validateInputConstraint(OutputConstraintInfos, Info); IsHipStdPar && !IsValid)
       IsValidTargetAsm = false;
     else
       assert(IsValid && "Failed to parse input constraint");
@@ -2875,9 +2875,9 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
     // If this is a register output, then make the inline asm return it
     // by-value.  If this is a memory result, return the value by-reference.
     QualType QTy = OutExpr->getType();
-    const bool IsScalarOrAggregate = hasScalarEvaluationKind(QTy) ||
-                                     hasAggregateEvaluationKind(QTy);
-    if (!Info.allowsMemory() && IsScalarOrAggregate) {
+    
+    if (const bool IsScalarOrAggregate = hasScalarEvaluationKind(QTy) ||
+                                     hasAggregateEvaluationKind(QTy); !Info.allowsMemory() && IsScalarOrAggregate) {
 
       Constraints += "=" + OutputConstraint;
       ResultRegQualTys.push_back(QTy);
@@ -2894,8 +2894,8 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
       ResultTypeRequiresCast.push_back(RequiresCast);
 
       if (RequiresCast) {
-        unsigned Size = getContext().getTypeSize(QTy);
-        if (Size)
+        
+        if (unsigned Size = getContext().getTypeSize(QTy); Size)
           Ty = llvm::IntegerType::get(getLLVMContext(), Size);
         else
           CGM.Error(OutExpr->getExprLoc(), "output size should not be zero");
@@ -2907,8 +2907,8 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
       if (Info.hasMatchingInput()) {
         unsigned InputNo;
         for (InputNo = 0; InputNo != S.getNumInputs(); ++InputNo) {
-          TargetInfo::ConstraintInfo &Input = InputConstraintInfos[InputNo];
-          if (Input.hasTiedOperand() && Input.getTiedOperand() == i)
+          
+          if (TargetInfo::ConstraintInfo &Input = InputConstraintInfos[InputNo]; Input.hasTiedOperand() && Input.getTiedOperand() == i)
             break;
         }
         assert(InputNo != S.getNumInputs() && "Didn't find matching input!");
@@ -2916,8 +2916,8 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
         QualType InputTy = S.getInputExpr(InputNo)->getType();
         QualType OutputType = OutExpr->getType();
 
-        uint64_t InputSize = getContext().getTypeSize(InputTy);
-        if (getContext().getTypeSize(OutputType) < InputSize) {
+        
+        if (uint64_t InputSize = getContext().getTypeSize(InputTy); getContext().getTypeSize(OutputType) < InputSize) {
           // Form the asm to return the value as a larger integer or fp type.
           ResultRegTypes.back() = ConvertType(InputTy);
         }
@@ -2990,8 +2990,8 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
   // If this is a Microsoft-style asm blob, store the return registers (EAX:EDX)
   // to the return value slot. Only do this when returning in registers.
   if (isa<MSAsmStmt>(&S)) {
-    const ABIArgInfo &RetAI = CurFnInfo->getReturnInfo();
-    if (RetAI.isDirect() || RetAI.isExtend()) {
+    
+    if (const ABIArgInfo &RetAI = CurFnInfo->getReturnInfo(); RetAI.isDirect() || RetAI.isExtend()) {
       // Make a fake lvalue for the return value slot.
       LValue ReturnSlot = MakeAddrLValueWithoutTBAA(ReturnValue, FnRetTy);
       CGM.getTargetCodeGenInfo().addReturnRegisterOutputs(
@@ -3122,9 +3122,9 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
       if (Clobber == "eax" || Clobber == "edx") {
         if (Constraints.find("=&A") != std::string::npos)
           continue;
-        std::string::size_type position1 =
-            Constraints.find("={" + Clobber + "}");
-        if (position1 != std::string::npos) {
+        
+        if (std::string::size_type position1 =
+            Constraints.find("={" + Clobber + "}"); position1 != std::string::npos) {
           Constraints.insert(position1 + 1, "&");
           continue;
         }
@@ -3387,8 +3387,8 @@ CodeGenFunction::emitConvergenceLoopToken(llvm::BasicBlock *BB) {
 llvm::ConvergenceControlInst *
 CodeGenFunction::getOrEmitConvergenceEntryToken(llvm::Function *F) {
   llvm::BasicBlock *BB = &F->getEntryBlock();
-  llvm::ConvergenceControlInst *Token = getConvergenceToken(BB);
-  if (Token)
+  
+  if (llvm::ConvergenceControlInst *Token = getConvergenceToken(BB); Token)
     return Token;
 
   // Adding a convergence token requires the function to be marked as

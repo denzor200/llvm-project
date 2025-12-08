@@ -236,8 +236,8 @@ std::string llvm::doSystemDiff(StringRef Before, StringRef After,
                       NLF,        ULF,  FileName[0], FileName[1]};
   std::optional<StringRef> Redirects[] = {std::nullopt, StringRef(FileName[2]),
                                           std::nullopt};
-  int Result = sys::ExecuteAndWait(*DiffExe, Args, std::nullopt, Redirects);
-  if (Result < 0)
+  
+  if (int Result = sys::ExecuteAndWait(*DiffExe, Args, std::nullopt, Redirects); Result < 0)
     return "Error executing system diff.";
   std::string Diff;
   auto B = MemoryBuffer::getFile(FileName[2]);

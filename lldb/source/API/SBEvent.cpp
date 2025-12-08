@@ -59,10 +59,10 @@ SBEvent::~SBEvent() = default;
 const char *SBEvent::GetDataFlavor() {
   LLDB_INSTRUMENT_VA(this);
 
-  Event *lldb_event = get();
-  if (lldb_event) {
-    EventData *event_data = lldb_event->GetData();
-    if (event_data)
+  
+  if (Event *lldb_event = get(); lldb_event) {
+    
+    if (EventData *event_data = lldb_event->GetData(); event_data)
       return ConstString(lldb_event->GetData()->GetFlavor()).GetCString();
   }
   return nullptr;
@@ -84,8 +84,8 @@ SBBroadcaster SBEvent::GetBroadcaster() const {
   LLDB_INSTRUMENT_VA(this);
 
   SBBroadcaster broadcaster;
-  const Event *lldb_event = get();
-  if (lldb_event)
+  
+  if (const Event *lldb_event = get(); lldb_event)
     broadcaster.reset(lldb_event->GetBroadcaster(), false);
   return broadcaster;
 }
@@ -93,8 +93,8 @@ SBBroadcaster SBEvent::GetBroadcaster() const {
 const char *SBEvent::GetBroadcasterClass() const {
   LLDB_INSTRUMENT_VA(this);
 
-  const Event *lldb_event = get();
-  if (lldb_event)
+  
+  if (const Event *lldb_event = get(); lldb_event)
     return ConstString(lldb_event->GetBroadcaster()->GetBroadcasterClass())
         .AsCString();
   else
@@ -124,8 +124,8 @@ bool SBEvent::BroadcasterMatchesRef(const SBBroadcaster &broadcaster) {
 void SBEvent::Clear() {
   LLDB_INSTRUMENT_VA(this);
 
-  Event *lldb_event = get();
-  if (lldb_event)
+  
+  if (Event *lldb_event = get(); lldb_event)
     lldb_event->Clear();
 }
 
@@ -175,9 +175,9 @@ const char *SBEvent::GetCStringFromEvent(const SBEvent &event) {
 bool SBEvent::GetDescription(SBStream &description) {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
+  
 
-  if (get()) {
+  if (Stream &strm = description.ref(); get()) {
     m_opaque_ptr->Dump(&strm);
   } else
     strm.PutCString("No value");
@@ -188,9 +188,9 @@ bool SBEvent::GetDescription(SBStream &description) {
 bool SBEvent::GetDescription(SBStream &description) const {
   LLDB_INSTRUMENT_VA(this, description);
 
-  Stream &strm = description.ref();
+  
 
-  if (get()) {
+  if (Stream &strm = description.ref(); get()) {
     m_opaque_ptr->Dump(&strm);
   } else
     strm.PutCString("No value");

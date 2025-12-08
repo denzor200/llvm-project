@@ -118,9 +118,9 @@ Searcher::CallbackReturn BreakpointResolverAddress::SearchCallback(
     SearchFilter &filter, SymbolContext &context, Address *addr) {
   Log *log = GetLog(LLDBLog::Breakpoints);
   BreakpointSP breakpoint_sp = GetBreakpoint();
-  Breakpoint &breakpoint = *breakpoint_sp;
+  
 
-  if (filter.AddressPasses(m_addr)) {
+  if (Breakpoint &breakpoint = *breakpoint_sp; filter.AddressPasses(m_addr)) {
     if (breakpoint.GetNumLocations() == 0) {
       // If the address is just an offset, and we're given a module, see if we
       // can find the appropriate module loaded in the binary, and fix up
@@ -150,9 +150,9 @@ Searcher::CallbackReturn BreakpointResolverAddress::SearchCallback(
       }
     } else {
       BreakpointLocationSP loc_sp = breakpoint.GetLocationAtIndex(0);
-      lldb::addr_t cur_load_location =
-          m_addr.GetLoadAddress(&breakpoint.GetTarget());
-      if (cur_load_location != m_resolved_addr) {
+      
+      if (lldb::addr_t cur_load_location =
+          m_addr.GetLoadAddress(&breakpoint.GetTarget()); cur_load_location != m_resolved_addr) {
         m_resolved_addr = cur_load_location;
         if (llvm::Error error = loc_sp->ClearBreakpointSite())
           LLDB_LOG_ERROR(log, std::move(error), "{0}");

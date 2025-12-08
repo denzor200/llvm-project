@@ -133,8 +133,8 @@ static void findPartitions(Module &M, ClusterIDMapType &ClusterIDMap,
     // Comdat groups that only contain external globals are already handled by
     // the MD5-based partitioning.
     if (const Comdat *C = GV.getComdat()) {
-      auto &Member = ComdatMembers[C];
-      if (Member)
+      
+      if (auto &Member = ComdatMembers[C]; Member)
         GVtoClusterMap.unionSets(Member, &GV);
       else
         Member = &GV;

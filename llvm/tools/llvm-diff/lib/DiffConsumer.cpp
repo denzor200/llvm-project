@@ -101,16 +101,16 @@ void DiffConsumer::header() {
       if (Differences) out << "\n";
 
       const Function *L = cast<Function>(I->L);
-      const Function *R = cast<Function>(I->R);
-      if (L->getName() != R->getName())
+      
+      if (const Function *R = cast<Function>(I->R); L->getName() != R->getName())
         out << "in function " << L->getName()
             << " / " << R->getName() << ":\n";
       else
         out << "in function " << L->getName() << ":\n";
     } else if (isa<BasicBlock>(I->L)) {
       const BasicBlock *L = cast<BasicBlock>(I->L);
-      const BasicBlock *R = cast<BasicBlock>(I->R);
-      if (L->hasName() && R->hasName() && L->getName() == R->getName())
+      
+      if (const BasicBlock *R = cast<BasicBlock>(I->R); L->hasName() && R->hasName() && L->getName() == R->getName())
         out << "  in block %" << L->getName() << ":\n";
       else {
         out << "  in block ";

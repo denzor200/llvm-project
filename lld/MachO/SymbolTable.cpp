@@ -157,8 +157,8 @@ Defined *SymbolTable::addDefined(StringRef name, InputFile *file,
       dysym->unreference();
     } else if (auto *undef = dyn_cast<Undefined>(s)) {
       if (undef->wasBitcodeSymbol) {
-        auto objFile = dyn_cast<ObjFile>(file);
-        if (!objFile) {
+        
+        if (auto objFile = dyn_cast<ObjFile>(file); !objFile) {
           // The file must be a native object file, as opposed to potentially
           // being another bitcode file. A situation arises when some symbols
           // are defined thru `module asm` and thus they are not present in the
@@ -279,8 +279,8 @@ Symbol *SymbolTable::addDylib(StringRef name, DylibFile *file, bool isWeakDef,
     }
   }
 
-  bool isDynamicLookup = file == nullptr;
-  if (wasInserted || isa<Undefined>(s) ||
+  
+  if (bool isDynamicLookup = file == nullptr; wasInserted || isa<Undefined>(s) ||
       (isa<DylibSymbol>(s) &&
        ((!isWeakDef && s->isWeakDef()) ||
         (!isDynamicLookup && cast<DylibSymbol>(s)->isDynamicLookup())))) {
@@ -399,8 +399,8 @@ static void handleSectionBoundarySymbol(const Undefined &sym, StringRef segSect,
 
 static void handleSegmentBoundarySymbol(const Undefined &sym, StringRef segName,
                                         Boundary which) {
-  OutputSegment *seg = getOrCreateOutputSegment(segName);
-  if (which == Boundary::Start)
+  
+  if (OutputSegment *seg = getOrCreateOutputSegment(segName); which == Boundary::Start)
     seg->segmentStartSymbols.push_back(createBoundarySymbol(sym));
   else
     seg->segmentEndSymbols.push_back(createBoundarySymbol(sym));
@@ -638,9 +638,9 @@ static void reportUndefinedSymbol(const Undefined &sym,
     ++i;
   }
 
-  size_t totalReferences =
-      locations.otherReferences.size() + locations.codeReferences.size();
-  if (totalReferences > i)
+  
+  if (size_t totalReferences =
+      locations.otherReferences.size() + locations.codeReferences.size(); totalReferences > i)
     message +=
         ("\n>>> referenced " + Twine(totalReferences - i) + " more times")
             .str();

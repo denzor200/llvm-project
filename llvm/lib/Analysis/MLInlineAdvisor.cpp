@@ -185,8 +185,8 @@ MLInlineAdvisor::MLInlineAdvisor(
       }
     }
     for (auto *CGNode : CGNodes) {
-      Function *F = CGNode->getFunction();
-      if (F && !F->isDeclaration())
+      
+      if (Function *F = CGNode->getFunction(); F && !F->isDeclaration())
         FunctionLevels[&CG.get(*F)] = Level;
     }
   }

@@ -345,8 +345,8 @@ static void processConstantStringArg(StringData *SD, IRBuilder<> &Builder,
     WhatToStore.push_back(ConstantInt::get(IntTy, IntVal));
   }
   // Additional padding for 8 byte alignment
-  int Rem = (Str.size() % 8);
-  if (Rem > 0 && Rem <= 4)
+  
+  if (int Rem = (Str.size() % 8); Rem > 0 && Rem <= 4)
     WhatToStore.push_back(ConstantInt::get(Builder.getInt32Ty(), 0));
 }
 

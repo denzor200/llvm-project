@@ -24,9 +24,9 @@ void ParallelLoopGeneratorKMP::createCallSpawnThreads(Value *SubFn,
                                                       Value *Stride) {
   const std::string Name = "__kmpc_fork_call";
   Function *F = M->getFunction(Name);
-  Type *KMPCMicroTy = StructType::getTypeByName(M->getContext(), "kmpc_micro");
+  
 
-  if (!KMPCMicroTy) {
+  if (Type *KMPCMicroTy = StructType::getTypeByName(M->getContext(), "kmpc_micro"); !KMPCMicroTy) {
     // void (*kmpc_micro)(kmp_int32 *global_tid, kmp_int32 *bound_tid, ...)
     Type *MicroParams[] = {Builder.getPtrTy(0), Builder.getPtrTy(0)};
 

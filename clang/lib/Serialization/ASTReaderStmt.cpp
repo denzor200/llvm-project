@@ -243,8 +243,8 @@ void ASTStmtReader::VisitSwitchStmt(SwitchStmt *S) {
 
   bool HasInit = Record.readInt();
   bool HasVar = Record.readInt();
-  bool AllEnumCasesCovered = Record.readInt();
-  if (AllEnumCasesCovered)
+  
+  if (bool AllEnumCasesCovered = Record.readInt(); AllEnumCasesCovered)
     S->setAllEnumCasesCovered();
 
   S->setCond(Record.readSubExpr());
@@ -803,12 +803,12 @@ readConstraintSatisfaction(ASTRecordReader &Record) {
   ConstraintSatisfaction Satisfaction;
   Satisfaction.IsSatisfied = Record.readInt();
   Satisfaction.ContainsErrors = Record.readInt();
-  const ASTContext &C = Record.getContext();
-  if (!Satisfaction.IsSatisfied) {
+  
+  if (const ASTContext &C = Record.getContext(); !Satisfaction.IsSatisfied) {
     unsigned NumDetailRecords = Record.readInt();
     for (unsigned i = 0; i != NumDetailRecords; ++i) {
-      auto Kind = Record.readInt();
-      if (Kind == 0) {
+      
+      if (auto Kind = Record.readInt(); Kind == 0) {
         SourceLocation DiagLocation = Record.readSourceLocation();
         StringRef DiagMessage = C.backupStr(Record.readString());
 
@@ -928,8 +928,8 @@ void ASTStmtReader::VisitRequiresExpr(RequiresExpr *E) {
       } break;
       case concepts::Requirement::RK_Nested: {
         ASTContext &C = Record.getContext();
-        bool HasInvalidConstraint = Record.readInt();
-        if (HasInvalidConstraint) {
+        
+        if (bool HasInvalidConstraint = Record.readInt(); HasInvalidConstraint) {
           StringRef InvalidConstraint = C.backupStr(Record.readString());
           R = new (C) concepts::NestedRequirement(
               Record.getContext(), InvalidConstraint,
@@ -1546,8 +1546,8 @@ void ASTStmtReader::VisitObjCIvarRefExpr(ObjCIvarRefExpr *E) {
 void ASTStmtReader::VisitObjCPropertyRefExpr(ObjCPropertyRefExpr *E) {
   VisitExpr(E);
   unsigned MethodRefFlags = Record.readInt();
-  bool Implicit = Record.readInt() != 0;
-  if (Implicit) {
+  
+  if (bool Implicit = Record.readInt() != 0; Implicit) {
     auto *Getter = readDeclAs<ObjCMethodDecl>();
     auto *Setter = readDeclAs<ObjCMethodDecl>();
     E->setImplicitProperty(Getter, Setter, MethodRefFlags);
@@ -1987,8 +1987,8 @@ void ASTStmtReader::VisitCXXPseudoDestructorExpr(CXXPseudoDestructorExpr *E) {
   E->ColonColonLoc = readSourceLocation();
   E->TildeLoc = readSourceLocation();
 
-  IdentifierInfo *II = Record.readIdentifier();
-  if (II)
+  
+  if (IdentifierInfo *II = Record.readIdentifier(); II)
     E->setDestroyedType(II, readSourceLocation());
   else
     E->setDestroyedType(readTypeSourceInfo());
@@ -2095,8 +2095,8 @@ void ASTStmtReader::VisitOverloadExpr(OverloadExpr *E) {
   assert((E->hasTemplateKWAndArgsInfo() == HasTemplateKWAndArgsInfo) &&
          "Wrong HasTemplateKWAndArgsInfo!");
 
-  unsigned NumTemplateArgs = 0;
-  if (HasTemplateKWAndArgsInfo) {
+  
+  if (unsigned NumTemplateArgs = 0; HasTemplateKWAndArgsInfo) {
     NumTemplateArgs = Record.readInt();
     ReadTemplateKWAndArgsInfo(*E->getTrailingASTTemplateKWAndArgsInfo(),
                               E->getTrailingTemplateArgumentLoc(),
@@ -2269,8 +2269,8 @@ void ASTStmtReader::VisitFunctionParmPackExpr(FunctionParmPackExpr *E) {
 
 void ASTStmtReader::VisitMaterializeTemporaryExpr(MaterializeTemporaryExpr *E) {
   VisitExpr(E);
-  bool HasMaterialzedDecl = Record.readInt();
-  if (HasMaterialzedDecl)
+  
+  if (bool HasMaterialzedDecl = Record.readInt(); HasMaterialzedDecl)
     E->State = cast<LifetimeExtendedTemporaryDecl>(Record.readDecl());
   else
     E->State = Record.readSubExpr();
@@ -2301,10 +2301,10 @@ void ASTStmtReader::VisitCXXParenListInitExpr(CXXParenListInitExpr *E) {
   for (unsigned I = 0; I < ExpectedNumExprs; I++)
     E->getTrailingObjects()[I] = Record.readSubExpr();
 
-  bool HasArrayFillerOrUnionDecl = Record.readBool();
-  if (HasArrayFillerOrUnionDecl) {
-    bool HasArrayFiller = Record.readBool();
-    if (HasArrayFiller) {
+  
+  if (bool HasArrayFillerOrUnionDecl = Record.readBool(); HasArrayFillerOrUnionDecl) {
+    
+    if (bool HasArrayFiller = Record.readBool(); HasArrayFiller) {
       E->setArrayFiller(Record.readSubExpr());
     } else {
       E->setInitializedFieldInUnion(readDeclAs<FieldDecl>());

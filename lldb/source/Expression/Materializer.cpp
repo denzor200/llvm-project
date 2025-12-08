@@ -504,9 +504,9 @@ public:
         return;
       }
     } else {
-      lldb::addr_t addr_of_valobj =
-          valobj_sp->GetAddressOf(/*scalar_is_load_address=*/false).address;
-      if (addr_of_valobj != LLDB_INVALID_ADDRESS) {
+      
+      if (lldb::addr_t addr_of_valobj =
+          valobj_sp->GetAddressOf(/*scalar_is_load_address=*/false).address; addr_of_valobj != LLDB_INVALID_ADDRESS) {
         Status write_error;
         map.WritePointerToMemory(load_addr, addr_of_valobj, write_error);
 
@@ -561,8 +561,8 @@ public:
 
         size_t byte_align = (*opt_bit_align + 7) / 8;
 
-        const bool zero_memory = false;
-        if (auto address_or_error = map.Malloc(
+        
+        if (const bool zero_memory = false; auto address_or_error = map.Malloc(
                 data.GetByteSize(), byte_align,
                 lldb::ePermissionsReadable | lldb::ePermissionsWritable,
                 IRMemoryMap::eAllocationPolicyMirror, zero_memory)) {
@@ -611,8 +611,8 @@ public:
                      lldb::addr_t frame_bottom, Status &err) override {
     Log *log = GetLog(LLDBLog::Expressions);
 
-    const lldb::addr_t load_addr = process_address + m_offset;
-    if (log) {
+    
+    if (const lldb::addr_t load_addr = process_address + m_offset; log) {
       LLDB_LOGF(log,
                 "EntityVariable::Dematerialize [address = 0x%" PRIx64
                 ", m_variable_sp = %s]",
@@ -1281,9 +1281,9 @@ public:
                      lldb::addr_t frame_bottom, Status &err) override {
     Log *log = GetLog(LLDBLog::Expressions);
 
-    const lldb::addr_t load_addr = process_address + m_offset;
+    
 
-    if (log) {
+    if (const lldb::addr_t load_addr = process_address + m_offset; log) {
       LLDB_LOGF(log,
                 "EntitySymbol::Dematerialize [address = 0x%" PRIx64
                 ", m_symbol = %s]",

@@ -228,8 +228,8 @@ static void PrintStackAllocations(const StackAllocationsRingBuffer *sa,
           !(local.function_name && internal_strlen(local.function_name)) &&
           !(local.decl_file && internal_strlen(local.decl_file)))
         continue;
-      tag_t obj_tag = base_tag ^ local.tag_offset;
-      if (obj_tag != addr_tag)
+      
+      if (tag_t obj_tag = base_tag ^ local.tag_offset; obj_tag != addr_tag)
         continue;
 
       // We only store bits 4-19 of FP (bits 0-3 are guaranteed to be zero).
@@ -265,16 +265,16 @@ static void PrintStackAllocations(const StackAllocationsRingBuffer *sa,
         }
 
         if (untagged_addr >= local_end) {
-          uptr new_offset = untagged_addr - local_end;
-          if (new_offset < offset) {
+          
+          if (uptr new_offset = untagged_addr - local_end; new_offset < offset) {
             offset = new_offset;
             whence = "after";
             cause = "stack-buffer-overflow";
             best_beg = local_beg;
           }
         } else {
-          uptr new_offset = local_beg - untagged_addr;
-          if (new_offset < offset) {
+          
+          if (uptr new_offset = local_beg - untagged_addr; new_offset < offset) {
             offset = new_offset;
             whence = "before";
             cause = "stack-buffer-overflow";
@@ -452,8 +452,8 @@ static void PrintTagsAroundAddr(uptr addr, GetTag get_tag,
       kShadowAlignment);
   PrintTagInfoAroundAddr(addr, kShortLines, s,
                          [&](InternalScopedString &s, uptr tag_addr) {
-                           tag_t tag = get_tag(tag_addr);
-                           if (tag >= 1 && tag <= kShadowAlignment) {
+                           
+                           if (tag_t tag = get_tag(tag_addr); tag >= 1 && tag <= kShadowAlignment) {
                              tag_t short_tag = get_short_tag(tag_addr);
                              s.AppendF("%02x", short_tag);
                            } else {
@@ -569,17 +569,17 @@ sptr BaseReport::FindMismatchOffset() const {
   CHECK_LT(offset, static_cast<sptr>(access_size));
   tag_t *tag_ptr =
       reinterpret_cast<tag_t *>(MemToShadow(untagged_addr + offset));
-  tag_t mem_tag = *tag_ptr;
+  
 
-  if (mem_tag && mem_tag < kShadowAlignment) {
+  if (tag_t mem_tag = *tag_ptr; mem_tag && mem_tag < kShadowAlignment) {
     tag_t *granule_ptr = reinterpret_cast<tag_t *>((untagged_addr + offset) &
                                                    ~(kShadowAlignment - 1));
     // If offset is 0, (untagged_addr + offset) is not aligned to granules.
     // This is the offset of the leftmost accessed byte within the bad granule.
     u8 in_granule_offset = (untagged_addr + offset) & (kShadowAlignment - 1);
-    tag_t short_tag = granule_ptr[kShadowAlignment - 1];
+    
     // The first mismatch was a short granule that matched the ptr_tag.
-    if (short_tag == ptr_tag) {
+    if (tag_t short_tag = granule_ptr[kShadowAlignment - 1]; short_tag == ptr_tag) {
       // If the access starts after the end of the short granule, then the first
       // bad byte is the first byte of the access; otherwise it is the first
       // byte past the end of the short granule
@@ -605,8 +605,8 @@ BaseReport::Shadow BaseReport::CopyShadow() const {
     result.tags[i] = *reinterpret_cast<tag_t *>(tag_addr);
     if (i < kShortDumpOffset || i >= short_end)
       continue;
-    uptr granule_addr = ShadowToMem(tag_addr);
-    if (1 <= result.tags[i] && result.tags[i] <= kShadowAlignment &&
+    
+    if (uptr granule_addr = ShadowToMem(tag_addr); 1 <= result.tags[i] && result.tags[i] <= kShadowAlignment &&
         IsAccessibleMemoryRange(granule_addr, kShadowAlignment)) {
       result.short_tags[i - kShortDumpOffset] =
           *reinterpret_cast<tag_t *>(granule_addr + kShadowAlignment - 1);
@@ -751,8 +751,8 @@ void BaseReport::PrintHeapOrGlobalCandidate() const {
   // most likely a global variable.
   const char *module_name;
   uptr module_address;
-  Symbolizer *sym = Symbolizer::GetOrInit();
-  if (sym->GetModuleNameAndOffsetForPC(candidate.untagged_addr, &module_name,
+  
+  if (Symbolizer *sym = Symbolizer::GetOrInit(); sym->GetModuleNameAndOffsetForPC(candidate.untagged_addr, &module_name,
                                        &module_address)) {
     Printf("%s", d.Error());
     Printf("\nCause: global-overflow\n");
@@ -769,8 +769,8 @@ void BaseReport::PrintHeapOrGlobalCandidate() const {
           candidate.after ? "after" : "before", info.size, info.name,
           (void *)info.start, (void *)(info.start + info.size), module_name);
     } else {
-      uptr size = GetGlobalSizeFromDescriptor(candidate.untagged_addr);
-      if (size == 0)
+      
+      if (uptr size = GetGlobalSizeFromDescriptor(candidate.untagged_addr); size == 0)
         // We couldn't find the size of the global from the descriptors.
         Printf(
             "%p is located %s a global variable in "
@@ -913,8 +913,8 @@ InvalidFreeReport::~InvalidFreeReport() {
   Printf("%s", d.Error());
   uptr pc = GetTopPc(stack);
   const char *bug_type = "invalid-free";
-  const Thread *thread = GetCurrentThread();
-  if (thread) {
+  
+  if (const Thread *thread = GetCurrentThread(); thread) {
     Report("ERROR: %s: %s on address %p at pc %p on thread T%zd\n",
            SanitizerToolName, bug_type, (void *)untagged_addr, (void *)pc,
            (ssize)thread->unique_id());

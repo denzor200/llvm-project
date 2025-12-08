@@ -103,8 +103,8 @@ TEST(DDGTest, getDependencies) {
         std::vector<DDGEdge *> MemoryEdges;
         for (DDGNode *N : DDG) {
           for (DDGEdge *E : *N) {
-            bool SourceAdded = false;
-            if (E->isMemoryDependence()) {
+            
+            if (bool SourceAdded = false; E->isMemoryDependence()) {
               MemoryEdges.push_back(E);
               if (!SourceAdded) {
                 DependenceSourceNodes.push_back(N);

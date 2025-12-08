@@ -114,9 +114,9 @@ static void emitSCSPrologue(MachineFunction &MF, MachineBasicBlock &MBB,
   // However, we can still aggressively use c.sspush x1 if zcmop is available.
   bool HasHWShadowStack = MF.getFunction().hasFnAttribute("hw-shadow-stack") &&
                           STI.hasStdExtZimop();
-  bool HasSWShadowStack =
-      MF.getFunction().hasFnAttribute(Attribute::ShadowCallStack);
-  if (!HasHWShadowStack && !HasSWShadowStack)
+  
+  if (bool HasSWShadowStack =
+      MF.getFunction().hasFnAttribute(Attribute::ShadowCallStack); !HasHWShadowStack && !HasSWShadowStack)
     return;
 
   const llvm::RISCVRegisterInfo *TRI = STI.getRegisterInfo();
@@ -184,9 +184,9 @@ static void emitSCSEpilogue(MachineFunction &MF, MachineBasicBlock &MBB,
   const auto &STI = MF.getSubtarget<RISCVSubtarget>();
   bool HasHWShadowStack = MF.getFunction().hasFnAttribute("hw-shadow-stack") &&
                           STI.hasStdExtZimop();
-  bool HasSWShadowStack =
-      MF.getFunction().hasFnAttribute(Attribute::ShadowCallStack);
-  if (!HasHWShadowStack && !HasSWShadowStack)
+  
+  if (bool HasSWShadowStack =
+      MF.getFunction().hasFnAttribute(Attribute::ShadowCallStack); !HasHWShadowStack && !HasSWShadowStack)
     return;
 
   // See emitSCSPrologue() above.
@@ -228,9 +228,9 @@ static void emitSCSEpilogue(MachineFunction &MF, MachineBasicBlock &MBB,
 static void emitSiFiveCLICStackSwap(MachineFunction &MF, MachineBasicBlock &MBB,
                                     MachineBasicBlock::iterator MBBI,
                                     const DebugLoc &DL) {
-  auto *RVFI = MF.getInfo<RISCVMachineFunctionInfo>();
+  
 
-  if (!RVFI->isSiFiveStackSwapInterrupt(MF))
+  if (auto *RVFI = MF.getInfo<RISCVMachineFunctionInfo>(); !RVFI->isSiFiveStackSwapInterrupt(MF))
     return;
 
   const auto &STI = MF.getSubtarget<RISCVSubtarget>();
@@ -371,9 +371,9 @@ static void emitSiFiveCLICPreemptibleRestores(MachineFunction &MF,
 // single register.
 static int getLibCallID(const MachineFunction &MF,
                         const std::vector<CalleeSavedInfo> &CSI) {
-  const auto *RVFI = MF.getInfo<RISCVMachineFunctionInfo>();
+  
 
-  if (CSI.empty() || !RVFI->useSaveRestoreLibCalls(MF))
+  if (const auto *RVFI = MF.getInfo<RISCVMachineFunctionInfo>(); CSI.empty() || !RVFI->useSaveRestoreLibCalls(MF))
     return -1;
 
   MCRegister MaxReg;
@@ -465,9 +465,9 @@ getRestoreLibCallName(const MachineFunction &MF,
 static unsigned getNumPushPopRegs(const std::vector<CalleeSavedInfo> &CSI) {
   unsigned NumPushPopRegs = 0;
   for (auto &CS : CSI) {
-    auto *FII = llvm::find_if(FixedCSRFIMap,
-                              [&](MCPhysReg P) { return P == CS.getReg(); });
-    if (FII != std::end(FixedCSRFIMap)) {
+    
+    if (auto *FII = llvm::find_if(FixedCSRFIMap,
+                              [&](MCPhysReg P) { return P == CS.getReg(); }); FII != std::end(FixedCSRFIMap)) {
       unsigned RegNum = std::distance(std::begin(FixedCSRFIMap), FII);
       NumPushPopRegs = std::max(NumPushPopRegs, RegNum + 1);
     }
@@ -528,11 +528,11 @@ void RISCVFrameLowering::determineFrameLayout(MachineFunction &MF) const {
   // to ensure the bottom of the RVV stack is correctly aligned within the main
   // stack. We calculate this as the amount required to align the scalar local
   // variable section up to the RVV alignment.
-  const TargetRegisterInfo *TRI = STI.getRegisterInfo();
-  if (RVFI->getRVVStackSize() && (!hasFP(MF) || TRI->hasStackRealignment(MF))) {
-    int ScalarLocalVarSize = FrameSize - RVFI->getCalleeSavedStackSize() -
-                             RVFI->getVarArgsSaveSize();
-    if (auto RVVPadding =
+  
+  if (const TargetRegisterInfo *TRI = STI.getRegisterInfo(); RVFI->getRVVStackSize() && (!hasFP(MF) || TRI->hasStackRealignment(MF))) {
+    
+    if (int ScalarLocalVarSize = FrameSize - RVFI->getCalleeSavedStackSize() -
+                             RVFI->getVarArgsSaveSize(); auto RVVPadding =
             offsetToAlignment(ScalarLocalVarSize, RVFI->getRVVStackAlign()))
       RVFI->setRVVPadding(RVVPadding);
   }
@@ -554,8 +554,8 @@ getUnmanagedCSI(const MachineFunction &MF,
   SmallVector<CalleeSavedInfo, 8> NonLibcallCSI;
 
   for (auto &CS : CSI) {
-    int FI = CS.getFrameIdx();
-    if (FI >= 0 && MFI.getStackID(FI) == TargetStackID::Default)
+    
+    if (int FI = CS.getFrameIdx(); FI >= 0 && MFI.getStackID(FI) == TargetStackID::Default)
       NonLibcallCSI.push_back(CS);
   }
 
@@ -569,8 +569,8 @@ getRVVCalleeSavedInfo(const MachineFunction &MF,
   SmallVector<CalleeSavedInfo, 8> RVVCSI;
 
   for (auto &CS : CSI) {
-    int FI = CS.getFrameIdx();
-    if (FI >= 0 && MFI.getStackID(FI) == TargetStackID::ScalableVector)
+    
+    if (int FI = CS.getFrameIdx(); FI >= 0 && MFI.getStackID(FI) == TargetStackID::ScalableVector)
       RVVCSI.push_back(CS);
   }
 
@@ -805,8 +805,8 @@ void RISCVFrameLowering::allocateStack(MachineBasicBlock &MBB,
         CFIBuilder.buildDefCFAOffset(CurrentOffset + CFAAdjust);
     }
 
-    uint64_t Residual = Offset - CurrentOffset;
-    if (Residual) {
+    
+    if (uint64_t Residual = Offset - CurrentOffset; Residual) {
       RI->adjustReg(MBB, MBBI, DL, SPReg, SPReg,
                     StackOffset::getFixed(-Residual), Flag, getStackAlign());
       if (EmitCFI)
@@ -1143,8 +1143,8 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
 
   if (hasFP(MF)) {
     // Realign Stack
-    const RISCVRegisterInfo *RI = STI.getRegisterInfo();
-    if (RI->hasStackRealignment(MF)) {
+    
+    if (const RISCVRegisterInfo *RI = STI.getRegisterInfo(); RI->hasStackRealignment(MF)) {
       Align MaxAlignment = MFI.getMaxAlign();
 
       const RISCVInstrInfo *TII = STI.getInstrInfo();
@@ -1629,8 +1629,8 @@ RISCVFrameLowering::assignRVVStackObjectOffsets(MachineFunction &MF) const {
   SmallVector<int, 8> ObjectsToAllocate;
   auto pushRVVObjects = [&](int FIBegin, int FIEnd) {
     for (int I = FIBegin, E = FIEnd; I != E; ++I) {
-      unsigned StackID = MFI.getStackID(I);
-      if (StackID != TargetStackID::ScalableVector)
+      
+      if (unsigned StackID = MFI.getStackID(I); StackID != TargetStackID::ScalableVector)
         continue;
       if (MFI.isDeadObjectIndex(I))
         continue;
@@ -1721,9 +1721,9 @@ static unsigned getScavSlotsNumForRVV(MachineFunction &MF) {
       for (auto &MO : MI.operands()) {
         if (!MO.isFI())
           continue;
-        bool IsScalableVectorID = MF.getFrameInfo().getStackID(MO.getIndex()) ==
-                                  TargetStackID::ScalableVector;
-        if (IsRVVSpill) {
+        
+        if (bool IsScalableVectorID = MF.getFrameInfo().getStackID(MO.getIndex()) ==
+                                  TargetStackID::ScalableVector; IsRVVSpill) {
           MaxScavSlotsNum = std::max(
               MaxScavSlotsNum, IsScalableVectorID
                                    ? ScavSlotsNumRVVSpillScalableObject
@@ -1878,9 +1878,9 @@ MachineBasicBlock::iterator RISCVFrameLowering::eliminateCallFramePseudoInstr(
     // pointer. This is necessary when there is a variable length stack
     // allocation (e.g. alloca), which means it's not possible to allocate
     // space for outgoing arguments from within the function prologue.
-    int64_t Amount = MI->getOperand(0).getImm();
+    
 
-    if (Amount != 0) {
+    if (int64_t Amount = MI->getOperand(0).getImm(); Amount != 0) {
       // Ensure the stack remains aligned after adjustment.
       Amount = alignSPAdjust(Amount);
 
@@ -1889,8 +1889,8 @@ MachineBasicBlock::iterator RISCVFrameLowering::eliminateCallFramePseudoInstr(
 
       const RISCVTargetLowering *TLI =
           MF.getSubtarget<RISCVSubtarget>().getTargetLowering();
-      int64_t ProbeSize = TLI->getStackProbeSize(MF, getStackAlign());
-      if (TLI->hasInlineStackProbe(MF) && -Amount >= ProbeSize) {
+      
+      if (int64_t ProbeSize = TLI->getStackProbeSize(MF, getStackAlign()); TLI->hasInlineStackProbe(MF) && -Amount >= ProbeSize) {
         // When stack probing is enabled, the decrement of SP may need to be
         // probed. We can handle both the decrement and the probing in
         // allocateStack.
@@ -1979,8 +1979,8 @@ RISCVFrameLowering::getFirstSPAdjustAmount(const MachineFunction &MF) const {
       // In the epilogue, addi sp, sp, 496 is used to recover the sp and it
       // can be compressed(C.ADDI16SP, offset can be [-512, 496]), but
       // addi sp, sp, 512 can not be compressed. So try to use 496 first.
-      const uint64_t ADDI16SPCompressLen = 496;
-      if (STI.is64Bit() && CanCompress(ADDI16SPCompressLen))
+      
+      if (const uint64_t ADDI16SPCompressLen = 496; STI.is64Bit() && CanCompress(ADDI16SPCompressLen))
         return ADDI16SPCompressLen;
       if (CanCompress(RVCompressLen))
         return RVCompressLen;
@@ -2021,8 +2021,8 @@ bool RISCVFrameLowering::assignCalleeSavedSpillSlots(
     // `QC.C.MIENTER(.NEST)` will save `ra` and `s0`, so we should only push if
     // we want to push more than 2 registers. Otherwise, we should push if we
     // want to push more than 0 registers.
-    unsigned OnlyPushIfMoreThan = RVFI->useQCIInterrupt(MF) ? 2 : 0;
-    if (PushedRegNum > OnlyPushIfMoreThan) {
+    
+    if (unsigned OnlyPushIfMoreThan = RVFI->useQCIInterrupt(MF) ? 2 : 0; PushedRegNum > OnlyPushIfMoreThan) {
       RVFI->setRVPushRegs(PushedRegNum);
       RVFI->setRVPushStackSize(alignTo((STI.getXLen() / 8) * PushedRegNum, 16));
     }
@@ -2037,10 +2037,10 @@ bool RISCVFrameLowering::assignCalleeSavedSpillSlots(
     unsigned Size = RegInfo->getSpillSize(*RC);
 
     if (RVFI->useQCIInterrupt(MF)) {
-      const auto *FFI = llvm::find_if(FixedCSRFIQCIInterruptMap, [&](auto P) {
+      
+      if (const auto *FFI = llvm::find_if(FixedCSRFIQCIInterruptMap, [&](auto P) {
         return P.first == CS.getReg();
-      });
-      if (FFI != std::end(FixedCSRFIQCIInterruptMap)) {
+      }); FFI != std::end(FixedCSRFIQCIInterruptMap)) {
         int64_t Offset = FFI->second * (int64_t)Size;
 
         int FrameIdx = MFI.CreateFixedSpillStackObject(Size, Offset);
@@ -2053,9 +2053,9 @@ bool RISCVFrameLowering::assignCalleeSavedSpillSlots(
     if (RVFI->useSaveRestoreLibCalls(MF) || RVFI->isPushable(MF)) {
       const auto *FII = llvm::find_if(
           FixedCSRFIMap, [&](MCPhysReg P) { return P == CS.getReg(); });
-      unsigned RegNum = std::distance(std::begin(FixedCSRFIMap), FII);
+      
 
-      if (FII != std::end(FixedCSRFIMap)) {
+      if (unsigned RegNum = std::distance(std::begin(FixedCSRFIMap), FII); FII != std::end(FixedCSRFIMap)) {
         int64_t Offset;
         if (RVFI->getPushPopKind(MF) ==
             RISCVMachineFunctionInfo::PushPopKind::StdExtZcmp)
@@ -2097,9 +2097,9 @@ bool RISCVFrameLowering::assignCalleeSavedSpillSlots(
   }
 
   if (RVFI->isPushable(MF)) {
-    int64_t QCIOffset = RVFI->useQCIInterrupt(MF) ? QCIInterruptPushAmount : 0;
+    
     // Allocate a fixed object that covers the full push.
-    if (int64_t PushSize = RVFI->getRVPushStackSize())
+    if (int64_t QCIOffset = RVFI->useQCIInterrupt(MF) ? QCIInterruptPushAmount : 0; int64_t PushSize = RVFI->getRVPushStackSize())
       MFI.CreateFixedSpillStackObject(PushSize, -PushSize - QCIOffset);
   } else if (int LibCallRegs = getLibCallID(MF, CSI) + 1) {
     int64_t LibCallFrameSize =
@@ -2139,8 +2139,8 @@ bool RISCVFrameLowering::spillCalleeSavedRegisters(
 
   if (RVFI->isPushable(*MF)) {
     // Emit CM.PUSH with base StackAdj & evaluate Push stack
-    unsigned PushedRegNum = RVFI->getRVPushRegs();
-    if (PushedRegNum > 0) {
+    
+    if (unsigned PushedRegNum = RVFI->getRVPushRegs(); PushedRegNum > 0) {
       // Use encoded number to represent registers to spill.
       unsigned Opcode = getPushOpcode(
           RVFI->getPushPopKind(*MF), hasFP(*MF) && !RVFI->useQCIInterrupt(*MF));
@@ -2283,8 +2283,8 @@ bool RISCVFrameLowering::restoreCalleeSavedRegisters(
   }
 
   if (RVFI->isPushable(*MF)) {
-    unsigned PushedRegNum = RVFI->getRVPushRegs();
-    if (PushedRegNum > 0) {
+    
+    if (unsigned PushedRegNum = RVFI->getRVPushRegs(); PushedRegNum > 0) {
       unsigned Opcode = getPopOpcode(RVFI->getPushPopKind(*MF));
       unsigned RegEnc = RISCVZC::encodeRegListNumRegs(PushedRegNum);
       MachineInstrBuilder PopBuilder =
@@ -2298,8 +2298,8 @@ bool RISCVFrameLowering::restoreCalleeSavedRegisters(
         PopBuilder.addDef(FixedCSRFIMap[i], RegState::ImplicitDefine);
     }
   } else {
-    const char *RestoreLibCall = getRestoreLibCallName(*MF, CSI);
-    if (RestoreLibCall) {
+    
+    if (const char *RestoreLibCall = getRestoreLibCallName(*MF, CSI); RestoreLibCall) {
       // Add restore libcall via tail call.
       MachineBasicBlock::iterator NewMI =
           BuildMI(MBB, MI, DL, TII.get(RISCV::PseudoTAIL))
@@ -2488,8 +2488,8 @@ void RISCVFrameLowering::inlineStackProbe(MachineFunction &MF,
   // to traverse the block while potentially creating more blocks.
   SmallVector<MachineInstr *, 4> ToReplace;
   for (MachineInstr &MI : MBB) {
-    unsigned Opc = MI.getOpcode();
-    if (Opc == RISCV::PROBED_STACKALLOC ||
+    
+    if (unsigned Opc = MI.getOpcode(); Opc == RISCV::PROBED_STACKALLOC ||
         Opc == RISCV::PROBED_STACKALLOC_RVV) {
       ToReplace.push_back(&MI);
     }

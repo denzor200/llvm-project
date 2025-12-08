@@ -214,8 +214,8 @@ LLVM_DUMP_METHOD void TimePassesHandler::dump() const {
     StringRef PassID = I.getKey();
     const TimerVector& MyTimers = I.getValue();
     for (unsigned idx = 0; idx < MyTimers.size(); idx++) {
-      const Timer* MyTimer = MyTimers[idx].get();
-      if (MyTimer && MyTimer->isRunning())
+      
+      if (const Timer* MyTimer = MyTimers[idx].get(); MyTimer && MyTimer->isRunning())
         dbgs() << "\tTimer " << MyTimer << " for pass " << PassID << "(" << idx << ")\n";
     }
   }
@@ -224,8 +224,8 @@ LLVM_DUMP_METHOD void TimePassesHandler::dump() const {
     StringRef PassID = I.getKey();
     const TimerVector& MyTimers = I.getValue();
     for (unsigned idx = 0; idx < MyTimers.size(); idx++) {
-      const Timer* MyTimer = MyTimers[idx].get();
-      if (MyTimer && MyTimer->hasTriggered() && !MyTimer->isRunning())
+      
+      if (const Timer* MyTimer = MyTimers[idx].get(); MyTimer && MyTimer->hasTriggered() && !MyTimer->isRunning())
         dbgs() << "\tTimer " << MyTimer << " for pass " << PassID << "(" << idx << ")\n";
     }
   }

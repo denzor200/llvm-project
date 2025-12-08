@@ -237,9 +237,9 @@ public:
       }
 
       const bool HasSibling = SiblingTracker.count(N) != 0;
-      const bool HasChildren = N->Children.size() != 0;
+      
 
-      if (!!N->Value) {
+      if (const bool HasChildren = N->Children.size() != 0; !!N->Value) {
         uint32_t Value = (*(N->Value) << 3);
         uint8_t H = ((Value >> 16) & 0xFF);
         uint8_t M = ((Value >> 8) & 0xFF);

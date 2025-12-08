@@ -159,8 +159,8 @@ static bool canUseShiftPair(Instruction *Inst, const APInt &Imm) {
   // (and (shl x, c2), c1) will be matched to (srli (slli x, c2+c3), c3) if c1
   // is a mask shifted by c2 bits with c3 leading zeros.
   if (isShiftedMask_64(Mask)) {
-    unsigned Trailing = llvm::countr_zero(Mask);
-    if (ShAmt == Trailing)
+    
+    if (unsigned Trailing = llvm::countr_zero(Mask); ShAmt == Trailing)
       return true;
   }
 
@@ -234,8 +234,8 @@ InstructionCost RISCVTTIImpl::getIntImmCostInst(unsigned Opcode, unsigned Idx,
       return getIntImmCostImpl(getDataLayout(), getST(), Imm, Ty, CostKind,
                                /*FreeZeroes=*/true);
 
-    StoreInst *ST = cast<StoreInst>(Inst);
-    if (!getTLI()->allowsMemoryAccessForAlignment(
+    
+    if (StoreInst *ST = cast<StoreInst>(Inst); !getTLI()->allowsMemoryAccessForAlignment(
             Ty->getContext(), DL, getTLI()->getValueType(DL, Ty),
             ST->getPointerAddressSpace(), ST->getAlign()))
       return TTI::TCC_Free;
@@ -383,9 +383,9 @@ std::optional<unsigned> RISCVTTIImpl::getVScaleForTuning() const {
 
 TypeSize
 RISCVTTIImpl::getRegisterBitWidth(TargetTransformInfo::RegisterKind K) const {
-  unsigned LMUL =
-      llvm::bit_floor(std::clamp<unsigned>(RVVRegisterWidthLMUL, 1, 8));
-  switch (K) {
+  
+  switch (unsigned LMUL =
+      llvm::bit_floor(std::clamp<unsigned>(RVVRegisterWidthLMUL, 1, 8)); K) {
   case TargetTransformInfo::RGK_Scalar:
     return TypeSize::getFixed(ST->getXLen());
   case TargetTransformInfo::RGK_FixedWidthVector:
@@ -1037,10 +1037,10 @@ InstructionCost RISCVTTIImpl::getInterleavedMemoryOpCost(
     std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(VTy);
     // Need to make sure type has't been scalarized
     if (LT.second.isVector()) {
-      auto *SubVecTy =
+      
+      if (auto *SubVecTy =
           VectorType::get(VTy->getElementType(),
-                          VTy->getElementCount().divideCoefficientBy(Factor));
-      if (VTy->getElementCount().isKnownMultipleOf(Factor) &&
+                          VTy->getElementCount().divideCoefficientBy(Factor)); VTy->getElementCount().isKnownMultipleOf(Factor) &&
           TLI->isLegalInterleavedAccessType(SubVecTy, Factor, Alignment,
                                             AddressSpace, DL)) {
 
@@ -1154,11 +1154,11 @@ InstructionCost RISCVTTIImpl::getExpandCompressMemoryOpCost(
   Type *DataTy = MICA.getDataType();
   bool VariableMask = MICA.getVariableMask();
   Align Alignment = MICA.getAlignment();
-  bool IsLegal = (Opcode == Instruction::Store &&
+  
+  if (bool IsLegal = (Opcode == Instruction::Store &&
                   isLegalMaskedCompressStore(DataTy, Alignment)) ||
                  (Opcode == Instruction::Load &&
-                  isLegalMaskedExpandLoad(DataTy, Alignment));
-  if (!IsLegal || CostKind != TTI::TCK_RecipThroughput)
+                  isLegalMaskedExpandLoad(DataTy, Alignment)); !IsLegal || CostKind != TTI::TCK_RecipThroughput)
     return BaseT::getExpandCompressMemoryOpCost(MICA, CostKind);
   // Example compressstore sequence:
   // vsetivli        zero, 8, e32, m2, ta, ma (ignored)
@@ -1549,8 +1549,8 @@ RISCVTTIImpl::getIntrinsicInstrCost(const IntrinsicCostAttributes &ICA,
 
     // If zero_is_poison is false, then we will generate additional
     // cmp + select instructions to convert -1 to EVL.
-    Type *BoolTy = Type::getInt1Ty(RetTy->getContext());
-    if (ICA.getArgs().size() > 1 &&
+    
+    if (Type *BoolTy = Type::getInt1Ty(RetTy->getContext()); ICA.getArgs().size() > 1 &&
         cast<ConstantInt>(ICA.getArgs()[1])->isZero())
       Cost += getCmpSelInstrCost(Instruction::ICmp, BoolTy, RetTy,
                                  CmpInst::ICMP_SLT, CostKind) +
@@ -1637,8 +1637,8 @@ InstructionCost RISCVTTIImpl::getCastInstrCost(unsigned Opcode, Type *Dst,
                                                TTI::CastContextHint CCH,
                                                TTI::TargetCostKind CostKind,
                                                const Instruction *I) const {
-  bool IsVectorType = isa<VectorType>(Dst) && isa<VectorType>(Src);
-  if (!IsVectorType)
+  
+  if (bool IsVectorType = isa<VectorType>(Dst) && isa<VectorType>(Src); !IsVectorType)
     return BaseT::getCastInstrCost(Opcode, Dst, Src, CCH, CostKind, I);
 
   // TODO: Add proper cost model for P extension fixed vectors (e.g., v4i16)
@@ -1714,9 +1714,9 @@ InstructionCost RISCVTTIImpl::getCastInstrCost(unsigned Opcode, Type *Dst,
   // The split cost is handled by the base getCastInstrCost
   assert((SrcLT.first == 1) && (DstLT.first == 1) && "Illegal type");
 
-  int PowDiff = (int)Log2_32(DstLT.second.getScalarSizeInBits()) -
-                (int)Log2_32(SrcLT.second.getScalarSizeInBits());
-  switch (ISD) {
+  
+  switch (int PowDiff = (int)Log2_32(DstLT.second.getScalarSizeInBits()) -
+                (int)Log2_32(SrcLT.second.getScalarSizeInBits()); ISD) {
   case ISD::SIGN_EXTEND:
   case ISD::ZERO_EXTEND: {
     if ((PowDiff < 1) || (PowDiff > 3))
@@ -1972,8 +1972,8 @@ RISCVTTIImpl::getArithmeticReductionCost(unsigned Opcode, VectorType *Ty,
     return BaseT::getArithmeticReductionCost(Opcode, Ty, FMF, CostKind);
 
   std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(Ty);
-  Type *ElementTy = Ty->getElementType();
-  if (ElementTy->isIntegerTy(1)) {
+  
+  if (Type *ElementTy = Ty->getElementType(); ElementTy->isIntegerTy(1)) {
     // Example sequences:
     //   vfirst.m a0, v0
     //   seqz a0, a0
@@ -2152,8 +2152,8 @@ InstructionCost RISCVTTIImpl::getMemoryOpCost(unsigned Opcode, Type *Src,
     // uses the a VL predicated load on the wider type.  This is reflected in
     // the result of getTypeLegalizationCost, but BasicTTI assumes the
     // widened cases are scalarized.
-    const DataLayout &DL = this->getDataLayout();
-    if (Src->isVectorTy() && LT.second.isVector() &&
+    
+    if (const DataLayout &DL = this->getDataLayout(); Src->isVectorTy() && LT.second.isVector() &&
         TypeSize::isKnownLT(DL.getTypeStoreSizeInBits(Src),
                             LT.second.getSizeInBits()))
         return Cost;
@@ -2672,8 +2672,8 @@ InstructionCost RISCVTTIImpl::getPointersChainCost(
       // addressing mode, then presume the base GEP is sitting around in a
       // register somewhere and check if we can fold the offset relative to
       // it.
-      unsigned Stride = DL.getTypeStoreSize(AccessTy);
-      if (Info.isUnitStride() &&
+      
+      if (unsigned Stride = DL.getTypeStoreSize(AccessTy); Info.isUnitStride() &&
           isLegalAddressingMode(AccessTy,
                                 /* BaseGV */ nullptr,
                                 /* BaseOffset */ Stride * I,
@@ -3076,8 +3076,8 @@ bool RISCVTTIImpl::getTgtMemIntrinsic(IntrinsicInst *Inst,
 unsigned RISCVTTIImpl::getRegUsageForType(Type *Ty) const {
   if (Ty->isVectorTy()) {
     // f16 with only zvfhmin and bf16 will be promoted to f32
-    Type *EltTy = cast<VectorType>(Ty)->getElementType();
-    if ((EltTy->isHalfTy() && !ST->hasVInstructionsF16()) ||
+    
+    if (Type *EltTy = cast<VectorType>(Ty)->getElementType(); (EltTy->isHalfTy() && !ST->hasVInstructionsF16()) ||
         EltTy->isBFloatTy())
       Ty = VectorType::get(Type::getFloatTy(Ty->getContext()),
                            cast<VectorType>(Ty));
@@ -3161,8 +3161,8 @@ bool RISCVTTIImpl::isLegalMaskedExpandLoad(Type *DataTy,
 
 bool RISCVTTIImpl::isLegalMaskedCompressStore(Type *DataTy,
                                               Align Alignment) const {
-  auto *VTy = dyn_cast<VectorType>(DataTy);
-  if (!VTy || VTy->isScalableTy())
+  
+  if (auto *VTy = dyn_cast<VectorType>(DataTy); !VTy || VTy->isScalableTy())
     return false;
 
   if (!isLegalMaskedLoadStore(DataTy, Alignment))
@@ -3181,9 +3181,9 @@ bool RISCVTTIImpl::shouldConsiderAddressTypePromotion(
   AllowPromotionWithoutCommonHeader = false;
   if (!isa<SExtInst>(&I))
     return false;
-  Type *ConsideredSExtType =
-      Type::getInt64Ty(I.getParent()->getParent()->getContext());
-  if (I.getType() != ConsideredSExtType)
+  
+  if (Type *ConsideredSExtType =
+      Type::getInt64Ty(I.getParent()->getParent()->getContext()); I.getType() != ConsideredSExtType)
     return false;
   // See if the sext is the one with the right type and used in at least one
   // GetElementPtrInst.
@@ -3368,8 +3368,8 @@ bool RISCVTTIImpl::isProfitableToSinkOperands(
     // All uses of the shuffle should be sunk to avoid duplicating it across gpr
     // and vector registers
     for (Use &U : Op->uses()) {
-      Instruction *Insn = cast<Instruction>(U.getUser());
-      if (!canSplatOperand(Insn, U.getOperandNo()))
+      
+      if (Instruction *Insn = cast<Instruction>(U.getUser()); !canSplatOperand(Insn, U.getOperandNo()))
         return false;
     }
 
@@ -3379,8 +3379,8 @@ bool RISCVTTIImpl::isProfitableToSinkOperands(
         Ops.push_back(&Op->getOperandUse(0));
     } else {
       Use *InsertEltUse = &Op->getOperandUse(0);
-      auto *InsertElt = cast<InsertElementInst>(InsertEltUse);
-      if (isa<FPExtInst>(InsertElt->getOperand(1)))
+      
+      if (auto *InsertElt = cast<InsertElementInst>(InsertEltUse); isa<FPExtInst>(InsertElt->getOperand(1)))
         Ops.push_back(&InsertElt->getOperandUse(1));
       Ops.push_back(InsertEltUse);
     }

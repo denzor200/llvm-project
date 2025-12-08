@@ -167,8 +167,8 @@ AffineMap IterationGraphSorter::topoSort() {
       unsigned minRank = getLoopSparsityRank(minLoop, allTensors, allMaps);
 
       for (auto candidateLoop : it) {
-        unsigned rank = getLoopSparsityRank(candidateLoop, allTensors, allMaps);
-        if (rank < minRank || (rank == minRank && candidateLoop < minLoop)) {
+        
+        if (unsigned rank = getLoopSparsityRank(candidateLoop, allTensors, allMaps); rank < minRank || (rank == minRank && candidateLoop < minLoop)) {
           minLoop = candidateLoop;
           minRank = rank;
         }

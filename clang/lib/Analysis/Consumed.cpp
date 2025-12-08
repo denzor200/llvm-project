@@ -186,10 +186,10 @@ static bool isTestingFunction(const FunctionDecl *FunDecl) {
 static ConsumedState mapConsumableAttrState(const QualType QT) {
   assert(isConsumableType(QT));
 
-  const ConsumableAttr *CAttr =
-      QT->getAsCXXRecordDecl()->getAttr<ConsumableAttr>();
+  
 
-  switch (CAttr->getDefaultState()) {
+  switch (const ConsumableAttr *CAttr =
+      QT->getAsCXXRecordDecl()->getAttr<ConsumableAttr>(); CAttr->getDefaultState()) {
   case ConsumableAttr::Unknown:
     return CS_Unknown;
   case ConsumableAttr::Unconsumed:
@@ -561,8 +561,8 @@ ConsumedState ConsumedStmtVisitor::getInfo(const Expr *From) {
 void ConsumedStmtVisitor::setInfo(const Expr *To, ConsumedState NS) {
   InfoEntry Entry = findInfo(To);
   if (Entry != PropagationMap.end()) {
-    PropagationInfo& PInfo = Entry->second;
-    if (PInfo.isPointerToValue())
+    
+    if (PropagationInfo& PInfo = Entry->second; PInfo.isPointerToValue())
       setStateForVarOrTmp(StateMap, PInfo, NS);
   } else if (NS != CS_None) {
      insertInfo(To, PropagationInfo(NS));
@@ -1012,9 +1012,9 @@ void ConsumedBlockInfo::addInfo(
     std::unique_ptr<ConsumedStateMap> &OwnedStateMap) {
   assert(Block && "Block pointer must not be NULL");
 
-  auto &Entry = StateMapsArray[Block->getBlockID()];
+  
 
-  if (Entry) {
+  if (auto &Entry = StateMapsArray[Block->getBlockID()]; Entry) {
     Entry->intersect(*StateMap);
   } else if (OwnedStateMap)
     Entry = std::move(OwnedStateMap);
@@ -1026,9 +1026,9 @@ void ConsumedBlockInfo::addInfo(const CFGBlock *Block,
                                 std::unique_ptr<ConsumedStateMap> StateMap) {
   assert(Block && "Block pointer must not be NULL");
 
-  auto &Entry = StateMapsArray[Block->getBlockID()];
+  
 
-  if (Entry) {
+  if (auto &Entry = StateMapsArray[Block->getBlockID()]; Entry) {
     Entry->intersect(*StateMap);
   } else {
     Entry = std::move(StateMap);
@@ -1197,8 +1197,8 @@ void ConsumedAnalyzer::determineExpectedReturnState(AnalysisDeclContext &AC,
     ReturnType = D->getCallResultType();
 
   if (const ReturnTypestateAttr *RTSAttr = D->getAttr<ReturnTypestateAttr>()) {
-    const CXXRecordDecl *RD = ReturnType->getAsCXXRecordDecl();
-    if (!RD || !RD->hasAttr<ConsumableAttr>()) {
+    
+    if (const CXXRecordDecl *RD = ReturnType->getAsCXXRecordDecl(); !RD || !RD->hasAttr<ConsumableAttr>()) {
       // FIXME: This should be removed when template instantiation propagates
       //        attributes at template specialization definition, not
       //        declaration. When it is removed the test needs to be enabled

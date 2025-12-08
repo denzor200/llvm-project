@@ -495,8 +495,8 @@ bool HexagonCopyToCombine::runOnMachineFunction(MachineFunction &MF) {
       // need to be moved along with it.
       bool DoInsertAtI1 = false;
       DbgMItoMove.clear();
-      MachineInstr *I2 = findPairable(I1, DoInsertAtI1, OptForSize);
-      if (I2) {
+      
+      if (MachineInstr *I2 = findPairable(I1, DoInsertAtI1, OptForSize); I2) {
         HasChanged = true;
         combine(I1, *I2, MI, DoInsertAtI1, OptForSize);
       }
@@ -539,8 +539,8 @@ MachineInstr *HexagonCopyToCombine::findPairable(MachineInstr &I1,
     // is even.
     bool IsI1LowReg = (I2DestReg - I1DestReg) == 1;
     bool IsI2LowReg = (I1DestReg - I2DestReg) == 1;
-    unsigned FirstRegIndex = IsI1LowReg ? I1DestReg : I2DestReg;
-    if ((!IsI1LowReg && !IsI2LowReg) || !isEvenReg(FirstRegIndex))
+    
+    if (unsigned FirstRegIndex = IsI1LowReg ? I1DestReg : I2DestReg; (!IsI1LowReg && !IsI2LowReg) || !isEvenReg(FirstRegIndex))
       continue;
 
     // Check that the two instructions are combinable.

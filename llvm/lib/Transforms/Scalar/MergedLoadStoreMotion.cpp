@@ -382,8 +382,8 @@ bool MergedLoadStoreMotion::run(Function &F, AliasAnalysis &AA) {
 PreservedAnalyses
 MergedLoadStoreMotionPass::run(Function &F, FunctionAnalysisManager &AM) {
   MergedLoadStoreMotion Impl(Options.SplitFooterBB);
-  auto &AA = AM.getResult<AAManager>(F);
-  if (!Impl.run(F, AA))
+  
+  if (auto &AA = AM.getResult<AAManager>(F); !Impl.run(F, AA))
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;

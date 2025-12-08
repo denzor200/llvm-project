@@ -1783,8 +1783,8 @@ static DecodeStatus DecodeMovePRegPair(MCInst &Inst, unsigned RegPair,
 static DecodeStatus DecodeMovePOperands(MCInst &Inst, unsigned Insn,
                                         uint64_t Address,
                                         const MCDisassembler *Decoder) {
-  unsigned RegPair = fieldFromInstruction(Insn, 7, 3);
-  if (DecodeMovePRegPair(Inst, RegPair, Address, Decoder) ==
+  
+  if (unsigned RegPair = fieldFromInstruction(Insn, 7, 3); DecodeMovePRegPair(Inst, RegPair, Address, Decoder) ==
       MCDisassembler::Fail)
     return MCDisassembler::Fail;
 

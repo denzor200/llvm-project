@@ -196,9 +196,9 @@ private:
   }
 
   LoanSet getLoans(Lattice L, OriginID OID) const {
-    const OriginLoanMap *Map =
-        isPersistent(OID) ? &L.PersistentOrigins : &L.BlockLocalOrigins;
-    if (auto *Loans = Map->lookup(OID))
+    
+    if (const OriginLoanMap *Map =
+        isPersistent(OID) ? &L.PersistentOrigins : &L.BlockLocalOrigins; auto *Loans = Map->lookup(OID))
       return *Loans;
     return LoanSetFactory.getEmptySet();
   }

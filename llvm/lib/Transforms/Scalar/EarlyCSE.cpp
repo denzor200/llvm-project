@@ -488,8 +488,8 @@ struct CallValue {
   }
 
   static bool canHandle(Instruction *Inst) {
-    CallInst *CI = dyn_cast<CallInst>(Inst);
-    if (!CI || (!CI->onlyReadsMemory() && !CI->onlyWritesMemory()) ||
+    
+    if (CallInst *CI = dyn_cast<CallInst>(Inst); !CI || (!CI->onlyReadsMemory() && !CI->onlyWritesMemory()) ||
         // FIXME: Currently the calls which may access the thread id may
         // be considered as not accessing the memory. But this is
         // problematic for coroutines, since coroutines may resume in a
@@ -994,8 +994,8 @@ private:
       for (int i = 0, e = Vec0->getNumOperands(); i != e; ++i) {
         Constant *Elem0 = Vec0->getOperand(i);
         Constant *Elem1 = Vec1->getOperand(i);
-        auto *Int0 = dyn_cast<ConstantInt>(Elem0);
-        if (Int0 && Int0->isZero())
+        
+        if (auto *Int0 = dyn_cast<ConstantInt>(Elem0); Int0 && Int0->isZero())
           continue;
         auto *Int1 = dyn_cast<ConstantInt>(Elem1);
         if (Int1 && !Int1->isZero())
@@ -1358,10 +1358,10 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
   // value.  Since we're adding this to the scoped hash table (like any other
   // def), it will have been popped if we encounter a future merge block.
   if (BasicBlock *Pred = BB->getSinglePredecessor()) {
-    auto *BI = dyn_cast<BranchInst>(Pred->getTerminator());
-    if (BI && BI->isConditional()) {
-      auto *CondInst = dyn_cast<Instruction>(BI->getCondition());
-      if (CondInst && SimpleValue::canHandle(CondInst))
+    
+    if (auto *BI = dyn_cast<BranchInst>(Pred->getTerminator()); BI && BI->isConditional()) {
+      
+      if (auto *CondInst = dyn_cast<Instruction>(BI->getCondition()); CondInst && SimpleValue::canHandle(CondInst))
         Changed |= handleBranchCondition(CondInst, BI, BB, Pred);
     }
   }
@@ -1397,8 +1397,8 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     // and this pass will not bother with its removal. However, we should mark
     // its condition as true for all dominated blocks.
     if (auto *Assume = dyn_cast<AssumeInst>(&Inst)) {
-      auto *CondI = dyn_cast<Instruction>(Assume->getArgOperand(0));
-      if (CondI && SimpleValue::canHandle(CondI)) {
+      
+      if (auto *CondI = dyn_cast<Instruction>(Assume->getArgOperand(0)); CondI && SimpleValue::canHandle(CondI)) {
         LLVM_DEBUG(dbgs() << "EarlyCSE considering assumption: " << Inst
                           << '\n');
         AvailableValues.insert(CondI, ConstantInt::getTrue(BB->getContext()));

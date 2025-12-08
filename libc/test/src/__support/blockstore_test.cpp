@@ -25,8 +25,8 @@ public:
     auto end = block_store.end();
     int i = 0;
     for (auto iter = block_store.begin(); iter != end; ++iter, ++i) {
-      Element &e = *iter;
-      if (REVERSE) {
+      
+      if (Element &e = *iter; REVERSE) {
         int j = static_cast<int>(ELEMENT_COUNT - 1) - i;
         ASSERT_EQ(e.a, j);
         ASSERT_EQ(e.b, long(j * 2));

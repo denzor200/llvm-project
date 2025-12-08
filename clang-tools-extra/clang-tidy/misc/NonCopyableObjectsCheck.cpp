@@ -51,9 +51,9 @@ void NonCopyableObjectsCheck::registerMatchers(MatchFinder *Finder) {
 void NonCopyableObjectsCheck::check(const MatchFinder::MatchResult &Result) {
   const auto *D = Result.Nodes.getNodeAs<NamedDecl>("decl");
   const auto *BD = Result.Nodes.getNodeAs<NamedDecl>("type_decl");
-  const auto *E = Result.Nodes.getNodeAs<Expr>("expr");
+  
 
-  if (D && BD)
+  if (const auto *E = Result.Nodes.getNodeAs<Expr>("expr"); D && BD)
     diag(D->getLocation(), "%0 declared as type '%1', which is unsafe to copy"
                            "; did you mean '%1 *'?")
         << D << BD->getName();

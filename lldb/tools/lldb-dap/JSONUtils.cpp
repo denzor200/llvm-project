@@ -543,8 +543,8 @@ llvm::json::Value CreateStackFrame(DAP &dap, lldb::SBFrame &frame,
   if (source)
     object.try_emplace("source", std::move(source).value());
 
-  const auto pc = frame.GetPC();
-  if (pc != LLDB_INVALID_ADDRESS) {
+  
+  if (const auto pc = frame.GetPC(); pc != LLDB_INVALID_ADDRESS) {
     std::string formatted_addr = "0x" + llvm::utohexstr(pc);
     object.try_emplace("instructionPointerReference", formatted_addr);
   }
@@ -651,14 +651,14 @@ llvm::json::Value CreateThreadStopped(DAP &dap, lldb::SBThread &thread,
     body.try_emplace("reason", "step");
     break;
   case lldb::eStopReasonBreakpoint: {
-    ExceptionBreakpoint *exc_bp = dap.GetExceptionBPFromStopReason(thread);
-    if (exc_bp) {
+    
+    if (ExceptionBreakpoint *exc_bp = dap.GetExceptionBPFromStopReason(thread); exc_bp) {
       body.try_emplace("reason", "exception");
       EmplaceSafeString(body, "description", exc_bp->GetLabel());
     } else {
-      InstructionBreakpoint *inst_bp =
-          dap.GetInstructionBPFromStopReason(thread);
-      if (inst_bp) {
+      
+      if (InstructionBreakpoint *inst_bp =
+          dap.GetInstructionBPFromStopReason(thread); inst_bp) {
         body.try_emplace("reason", "instruction breakpoint");
       } else {
         body.try_emplace("reason", "breakpoint");
@@ -746,9 +746,9 @@ std::string CreateUniqueVariableNameForDisplay(lldb::SBValue &v,
   if (is_name_duplicated) {
     lldb::SBDeclaration declaration = v.GetDeclaration();
     const char *file_name = declaration.GetFileSpec().GetFilename();
-    const uint32_t line = declaration.GetLine();
+    
 
-    if (file_name != nullptr && line > 0)
+    if (const uint32_t line = declaration.GetLine(); file_name != nullptr && line > 0)
       name_builder.Printf(" @ %s:%u", file_name, line);
     else if (const char *location = v.GetLocation())
       name_builder.Printf(" @ %s", location);
@@ -806,8 +806,8 @@ VariableDescription::VariableDescription(lldb::SBValue v,
     } else {
       if (!raw_display_type_name.empty()) {
         os_display_value << raw_display_type_name;
-        lldb::addr_t address = v.GetLoadAddress();
-        if (address != LLDB_INVALID_ADDRESS)
+        
+        if (lldb::addr_t address = v.GetLoadAddress(); address != LLDB_INVALID_ADDRESS)
           os_display_value << " @ " << llvm::format_hex(address, 0);
       }
     }
@@ -967,9 +967,9 @@ static void FilterAndGetValueForKey(const lldb::SBStructuredData data,
 
 static void addStatistic(lldb::SBTarget &target, llvm::json::Object &event) {
   lldb::SBStructuredData statistics = target.GetStatistics();
-  bool is_dictionary =
-      statistics.GetType() == lldb::eStructuredDataTypeDictionary;
-  if (!is_dictionary)
+  
+  if (bool is_dictionary =
+      statistics.GetType() == lldb::eStructuredDataTypeDictionary; !is_dictionary)
     return;
   llvm::json::Object stats_body;
 

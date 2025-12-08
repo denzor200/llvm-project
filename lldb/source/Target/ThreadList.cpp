@@ -320,9 +320,9 @@ bool ThreadList::ShouldStop(Event *event_ptr) {
     else
       did_anybody_stop_for_a_reason |= thread_sp->ThreadStoppedForAReason();
 
-    const bool thread_should_stop = thread_sp->ShouldStop(event_ptr);
+    
 
-    if (thread_should_stop)
+    if (const bool thread_should_stop = thread_sp->ShouldStop(event_ptr); thread_should_stop)
       should_stop |= true;
     else {
       bool this_thread_forces_run = thread_sp->ShouldRunBeforePublicStop();
@@ -473,8 +473,8 @@ void ThreadList::RefreshStateAfterStop() {
 
   m_process.UpdateThreadListIfNeeded();
 
-  Log *log = GetLog(LLDBLog::Step);
-  if (log && log->GetVerbose())
+  
+  if (Log *log = GetLog(LLDBLog::Step); log && log->GetVerbose())
     LLDB_LOGF(log,
               "Turning off notification of new threads while single stepping "
               "a thread.");
@@ -600,14 +600,14 @@ bool ThreadList::WillResume(RunDirection &direction) {
   }
 
   if (thread_to_run != nullptr) {
-    Log *log = GetLog(LLDBLog::Step);
-    if (log && log->GetVerbose())
+    
+    if (Log *log = GetLog(LLDBLog::Step); log && log->GetVerbose())
       LLDB_LOGF(log, "Turning on notification of new threads while single "
                      "stepping a thread.");
     m_process.StartNoticingNewThreads();
   } else {
-    Log *log = GetLog(LLDBLog::Step);
-    if (log && log->GetVerbose())
+    
+    if (Log *log = GetLog(LLDBLog::Step); log && log->GetVerbose())
       LLDB_LOGF(log, "Turning off notification of new threads while single "
                      "stepping a thread.");
     m_process.StopNoticingNewThreads();

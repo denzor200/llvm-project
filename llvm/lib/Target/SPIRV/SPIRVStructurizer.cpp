@@ -53,8 +53,8 @@ getRegionForHeader(const ConvergenceRegion *Node, BasicBlock *BB) {
     return Node;
 
   for (auto *Child : Node->Children) {
-    const auto *CR = getRegionForHeader(Child, BB);
-    if (CR != nullptr)
+    
+    if (const auto *CR = getRegionForHeader(Child, BB); CR != nullptr)
       return CR;
   }
   return nullptr;
@@ -111,8 +111,8 @@ static BasicBlock *getDesignatedContinueBlock(Instruction *I) {
 // merge block.
 static bool isDefinedAsSelectionMergeBy(BasicBlock &Header, BasicBlock &Merge) {
   for (auto &I : Header) {
-    BasicBlock *MB = getDesignatedMergeBlock(&I);
-    if (MB == &Merge)
+    
+    if (BasicBlock *MB = getDesignatedMergeBlock(&I); MB == &Merge)
       return true;
   }
   return false;
@@ -151,8 +151,8 @@ static SmallPtrSet<BasicBlock *, 2> getMergeBlocks(Function &F) {
   SmallPtrSet<BasicBlock *, 2> Output;
   for (BasicBlock &BB : F) {
     for (Instruction &I : BB) {
-      BasicBlock *MB = getDesignatedMergeBlock(&I);
-      if (MB != nullptr)
+      
+      if (BasicBlock *MB = getDesignatedMergeBlock(&I); MB != nullptr)
         Output.insert(MB);
     }
   }
@@ -176,8 +176,8 @@ static SmallPtrSet<BasicBlock *, 2> getContinueBlocks(Function &F) {
   SmallPtrSet<BasicBlock *, 2> Output;
   for (BasicBlock &BB : F) {
     for (Instruction &I : BB) {
-      BasicBlock *MB = getDesignatedContinueBlock(&I);
-      if (MB != nullptr)
+      
+      if (BasicBlock *MB = getDesignatedContinueBlock(&I); MB != nullptr)
         Output.insert(MB);
     }
   }

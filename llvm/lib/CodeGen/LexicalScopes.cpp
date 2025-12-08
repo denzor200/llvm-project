@@ -257,8 +257,8 @@ void LexicalScopes::constructScopeNest(LexicalScope *Scope) {
     auto &ScopePosition = WorkStack.back();
     LexicalScope *WS = ScopePosition.first;
     size_t ChildNum = ScopePosition.second++;
-    const SmallVectorImpl<LexicalScope *> &Children = WS->getChildren();
-    if (ChildNum < Children.size()) {
+    
+    if (const SmallVectorImpl<LexicalScope *> &Children = WS->getChildren(); ChildNum < Children.size()) {
       auto &ChildScope = Children[ChildNum];
       WorkStack.push_back(std::make_pair(ChildScope, 0));
       ChildScope->setDFSIn(++Counter);

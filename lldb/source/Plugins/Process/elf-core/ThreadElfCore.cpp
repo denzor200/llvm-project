@@ -386,10 +386,10 @@ ELFLinuxPrPsInfo::ELFLinuxPrPsInfo() {
 }
 
 size_t ELFLinuxPrPsInfo::GetSize(const lldb_private::ArchSpec &arch) {
-  constexpr size_t mips_linux_pr_psinfo_size_o32_n32 = 128;
-  if (arch.IsMIPS()) {
-    uint8_t address_byte_size = arch.GetAddressByteSize();
-    if (address_byte_size == 8)
+  
+  if (constexpr size_t mips_linux_pr_psinfo_size_o32_n32 = 128; arch.IsMIPS()) {
+    
+    if (uint8_t address_byte_size = arch.GetAddressByteSize(); address_byte_size == 8)
       return sizeof(ELFLinuxPrPsInfo);
     return mips_linux_pr_psinfo_size_o32_n32;
   }

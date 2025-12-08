@@ -297,8 +297,8 @@ static bool HasAddressTaken(const Instruction *AI, TypeSize AllocSize,
     case Instruction::Call: {
       // Ignore intrinsics that do not become real instructions.
       // TODO: Narrow this to intrinsics that have store-like effects.
-      const auto *CI = cast<CallInst>(I);
-      if (!CI->isDebugOrPseudoInst() && !CI->isLifetimeStartOrEnd())
+      
+      if (const auto *CI = cast<CallInst>(I); !CI->isDebugOrPseudoInst() && !CI->isLifetimeStartOrEnd())
         return true;
       break;
     }

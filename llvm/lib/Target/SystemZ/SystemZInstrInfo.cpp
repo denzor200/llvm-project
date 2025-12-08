@@ -174,8 +174,8 @@ void SystemZInstrInfo::expandRIEPseudo(MachineInstr &MI, unsigned LowOpcode,
   Register DestReg = MI.getOperand(0).getReg();
   Register SrcReg = MI.getOperand(1).getReg();
   bool DestIsHigh = SystemZ::isHighReg(DestReg);
-  bool SrcIsHigh = SystemZ::isHighReg(SrcReg);
-  if (!DestIsHigh && !SrcIsHigh)
+  
+  if (bool SrcIsHigh = SystemZ::isHighReg(SrcReg); !DestIsHigh && !SrcIsHigh)
     MI.setDesc(get(LowOpcodeK));
   else {
     if (DestReg != SrcReg) {
@@ -328,8 +328,8 @@ MachineInstr *SystemZInstrInfo::commuteInstructionImpl(MachineInstr &MI,
 // Flag is SimpleBDXLoad for loads and SimpleBDXStore for stores.
 static int isSimpleMove(const MachineInstr &MI, int &FrameIndex,
                         unsigned Flag) {
-  const MCInstrDesc &MCID = MI.getDesc();
-  if ((MCID.TSFlags & Flag) && MI.getOperand(1).isFI() &&
+  
+  if (const MCInstrDesc &MCID = MI.getDesc(); (MCID.TSFlags & Flag) && MI.getOperand(1).isFI() &&
       MI.getOperand(2).getImm() == 0 && MI.getOperand(3).getReg() == 0) {
     FrameIndex = MI.getOperand(1).getIndex();
     return MI.getOperand(0).getReg();
@@ -351,8 +351,8 @@ Register SystemZInstrInfo::isLoadFromStackSlotPostFE(const MachineInstr &MI,
                                                      int &FrameIndex) const {
   // if this is not a simple load from memory, it's not a load from stack slot
   // either.
-  const MCInstrDesc &MCID = MI.getDesc();
-  if (!(MCID.TSFlags & SystemZII::SimpleBDXLoad))
+  
+  if (const MCInstrDesc &MCID = MI.getDesc(); !(MCID.TSFlags & SystemZII::SimpleBDXLoad))
     return 0;
 
   // This version of isLoadFromStackSlot should only be used post frame-index
@@ -374,8 +374,8 @@ Register SystemZInstrInfo::isStoreToStackSlotPostFE(const MachineInstr &MI,
                                                     int &FrameIndex) const {
   // if this is not a simple store to memory, it's not a store to stack slot
   // either.
-  const MCInstrDesc &MCID = MI.getDesc();
-  if (!(MCID.TSFlags & SystemZII::SimpleBDXStore))
+  
+  if (const MCInstrDesc &MCID = MI.getDesc(); !(MCID.TSFlags & SystemZII::SimpleBDXStore))
     return 0;
 
   // This version of isStoreToStackSlot should only be used post frame-index
@@ -496,8 +496,8 @@ bool SystemZInstrInfo::analyzeBranch(MachineBasicBlock &MBB,
 
     // If the conditions are the same, we can leave them alone.
     unsigned OldCCValid = Cond[0].getImm();
-    unsigned OldCCMask = Cond[1].getImm();
-    if (OldCCValid == Branch.CCValid && OldCCMask == Branch.CCMask)
+    
+    if (unsigned OldCCMask = Cond[1].getImm(); OldCCValid == Branch.CCValid && OldCCMask == Branch.CCMask)
       continue;
 
     // FIXME: Try combining conditions like X86 does.  Should be easy on Z!
@@ -778,8 +778,8 @@ bool SystemZInstrInfo::foldImmediate(MachineInstr &UseMI, MachineInstr &DefMI,
 }
 
 bool SystemZInstrInfo::isPredicable(const MachineInstr &MI) const {
-  unsigned Opcode = MI.getOpcode();
-  if (Opcode == SystemZ::Return ||
+  
+  if (unsigned Opcode = MI.getOpcode(); Opcode == SystemZ::Return ||
       Opcode == SystemZ::Return_XPLINK ||
       Opcode == SystemZ::Trap ||
       Opcode == SystemZ::CallJG ||
@@ -1094,9 +1094,9 @@ static LogicOp interpretAndImmediate(unsigned Opcode) {
 
 static void transferDeadCC(MachineInstr *OldMI, MachineInstr *NewMI) {
   if (OldMI->registerDefIsDead(SystemZ::CC, /*TRI=*/nullptr)) {
-    MachineOperand *CCDef =
-        NewMI->findRegisterDefOperand(SystemZ::CC, /*TRI=*/nullptr);
-    if (CCDef != nullptr)
+    
+    if (MachineOperand *CCDef =
+        NewMI->findRegisterDefOperand(SystemZ::CC, /*TRI=*/nullptr); CCDef != nullptr)
       CCDef->setIsDead(true);
   }
 }
@@ -1110,11 +1110,11 @@ static void transferMIFlag(MachineInstr *OldMI, MachineInstr *NewMI,
 MachineInstr *
 SystemZInstrInfo::convertToThreeAddress(MachineInstr &MI, LiveVariables *LV,
                                         LiveIntervals *LIS) const {
-  MachineBasicBlock *MBB = MI.getParent();
+  
 
   // Try to convert an AND into an RISBG-type instruction.
   // TODO: It might be beneficial to select RISBG and shorten to AND instead.
-  if (LogicOp And = interpretAndImmediate(MI.getOpcode())) {
+  if (MachineBasicBlock *MBB = MI.getParent(); LogicOp And = interpretAndImmediate(MI.getOpcode())) {
     uint64_t Imm = MI.getOperand(2).getImm() << And.ImmLSB;
     // AND IMMEDIATE leaves the other bits of the register unchanged.
     Imm |= allOnes(And.RegSize) & ~(allOnes(And.ImmSize) << And.ImmLSB);
@@ -1145,8 +1145,8 @@ SystemZInstrInfo::convertToThreeAddress(MachineInstr &MI, LiveVariables *LV,
       if (LV) {
         unsigned NumOps = MI.getNumOperands();
         for (unsigned I = 1; I < NumOps; ++I) {
-          MachineOperand &Op = MI.getOperand(I);
-          if (Op.isReg() && Op.isKill())
+          
+          if (MachineOperand &Op = MI.getOperand(I); Op.isReg() && Op.isKill())
             LV->replaceKillInstruction(Op.getReg(), MI, *MIB);
         }
       }
@@ -1343,10 +1343,10 @@ MachineInstr *SystemZInstrInfo::foldMemoryOperandImpl(
 
   if (Opcode == SystemZ::LGDR || Opcode == SystemZ::LDGR) {
     bool Op0IsGPR = (Opcode == SystemZ::LGDR);
-    bool Op1IsGPR = (Opcode == SystemZ::LDGR);
+    
     // If we're spilling the destination of an LDGR or LGDR, store the
     // source register instead.
-    if (OpNum == 0) {
+    if (bool Op1IsGPR = (Opcode == SystemZ::LDGR); OpNum == 0) {
       unsigned StoreOpcode = Op1IsGPR ? SystemZ::STG : SystemZ::STD;
       return BuildMI(*InsertPt->getParent(), InsertPt, MI.getDebugLoc(),
                      get(StoreOpcode))
@@ -1382,8 +1382,8 @@ MachineInstr *SystemZInstrInfo::foldMemoryOperandImpl(
   // coloring happens later, and because we have special code to remove
   // MVCs that turn out to be redundant.
   if (OpNum == 0 && MI.hasOneMemOperand()) {
-    MachineMemOperand *MMO = *MI.memoperands_begin();
-    if (MMO->getSize() == Size && !MMO->isVolatile() && !MMO->isAtomic()) {
+    
+    if (MachineMemOperand *MMO = *MI.memoperands_begin(); MMO->getSize() == Size && !MMO->isVolatile() && !MMO->isAtomic()) {
       // Handle conversion of loads.
       if (isSimpleBD12Move(&MI, SystemZII::SimpleBDXLoad)) {
         return BuildMI(*InsertPt->getParent(), InsertPt, MI.getDebugLoc(),
@@ -1426,8 +1426,8 @@ MachineInstr *SystemZInstrInfo::foldMemoryOperandImpl(
     const MCOperandInfo &MCOI = MCID.operands()[I];
     if (MCOI.OperandType != MCOI::OPERAND_REGISTER || I == OpNum)
       continue;
-    const TargetRegisterClass *RC = TRI->getRegClass(MCOI.RegClass);
-    if (RC == &SystemZ::VR32BitRegClass || RC == &SystemZ::VR64BitRegClass) {
+    
+    if (const TargetRegisterClass *RC = TRI->getRegClass(MCOI.RegClass); RC == &SystemZ::VR32BitRegClass || RC == &SystemZ::VR64BitRegClass) {
       Register Reg = MI.getOperand(I).getReg();
       Register PhysReg = Reg.isVirtual()
                              ? (VRM ? Register(VRM->getPhys(Reg)) : Register())
@@ -1791,8 +1791,8 @@ bool SystemZInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
 
   case SystemZ::RISBMux: {
     bool DestIsHigh = SystemZ::isHighReg(MI.getOperand(0).getReg());
-    bool SrcIsHigh = SystemZ::isHighReg(MI.getOperand(2).getReg());
-    if (SrcIsHigh == DestIsHigh)
+    
+    if (bool SrcIsHigh = SystemZ::isHighReg(MI.getOperand(2).getReg()); SrcIsHigh == DestIsHigh)
       MI.setDesc(get(DestIsHigh ? SystemZ::RISBHH : SystemZ::RISBLL));
     else {
       MI.setDesc(get(DestIsHigh ? SystemZ::RISBHL : SystemZ::RISBLH));
@@ -1944,8 +1944,8 @@ unsigned SystemZInstrInfo::getOpcodeForOffset(unsigned Opcode,
   int64_t Offset2 = (MCID.TSFlags & SystemZII::Is128Bit ? Offset + 8 : Offset);
   if (isUInt<12>(Offset) && isUInt<12>(Offset2)) {
     // Get the instruction to use for unsigned 12-bit displacements.
-    int Disp12Opcode = SystemZ::getDisp12Opcode(Opcode);
-    if (Disp12Opcode >= 0)
+    
+    if (int Disp12Opcode = SystemZ::getDisp12Opcode(Opcode); Disp12Opcode >= 0)
       return Disp12Opcode;
 
     // All address-related instructions can use unsigned 12-bit
@@ -1954,8 +1954,8 @@ unsigned SystemZInstrInfo::getOpcodeForOffset(unsigned Opcode,
   }
   if (isInt<20>(Offset) && isInt<20>(Offset2)) {
     // Get the instruction to use for signed 20-bit displacements.
-    int Disp20Opcode = SystemZ::getDisp20Opcode(Opcode);
-    if (Disp20Opcode >= 0)
+    
+    if (int Disp20Opcode = SystemZ::getDisp20Opcode(Opcode); Disp20Opcode >= 0)
       return Disp20Opcode;
 
     // Check whether Opcode allows signed 20-bit displacements.
@@ -1984,8 +1984,8 @@ unsigned SystemZInstrInfo::getOpcodeForOffset(unsigned Opcode,
 }
 
 bool SystemZInstrInfo::hasDisplacementPairInsn(unsigned Opcode) const {
-  const MCInstrDesc &MCID = get(Opcode);
-  if (MCID.TSFlags & SystemZII::Has20BitOffset)
+  
+  if (const MCInstrDesc &MCID = get(Opcode); MCID.TSFlags & SystemZII::Has20BitOffset)
     return SystemZ::getDisp12Opcode(Opcode) >= 0;
   return SystemZ::getDisp20Opcode(Opcode) >= 0;
 }
@@ -2169,8 +2169,8 @@ prepareCompareSwapOperands(MachineBasicBlock::iterator const MBBI) const {
   SmallVector<MachineInstr *, 4> CCUsers;
   for (MachineInstr &MI : llvm::make_range(std::next(MBBI), MBB->end())) {
     if (MI.readsRegister(SystemZ::CC, /*TRI=*/nullptr)) {
-      unsigned Flags = MI.getDesc().TSFlags;
-      if ((Flags & SystemZII::CCMaskFirst) || (Flags & SystemZII::CCMaskLast))
+      
+      if (unsigned Flags = MI.getDesc().TSFlags; (Flags & SystemZII::CCMaskFirst) || (Flags & SystemZII::CCMaskLast))
         CCUsers.push_back(&MI);
       else
         return false;
@@ -2321,8 +2321,8 @@ areMemAccessesTriviallyDisjoint(const MachineInstr &MIa,
   bool SameVal = (VALa && VALb && (VALa == VALb));
   if (!SameVal) {
     const PseudoSourceValue *PSVa = MMOa->getPseudoValue();
-    const PseudoSourceValue *PSVb = MMOb->getPseudoValue();
-    if (PSVa && PSVb && (PSVa == PSVb))
+    
+    if (const PseudoSourceValue *PSVb = MMOb->getPseudoValue(); PSVa && PSVb && (PSVa == PSVb))
       SameVal = true;
   }
   if (SameVal) {

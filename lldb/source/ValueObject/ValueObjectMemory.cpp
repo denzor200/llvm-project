@@ -60,13 +60,13 @@ ValueObjectMemory::ValueObjectMemory(ExecutionContextScope *exe_scope,
   SetName(ConstString(name));
   m_value.SetContext(Value::ContextType::LLDBType, m_type_sp.get());
   TargetSP target_sp(GetTargetSP());
-  lldb::addr_t load_address = m_address.GetLoadAddress(target_sp.get());
-  if (load_address != LLDB_INVALID_ADDRESS) {
+  
+  if (lldb::addr_t load_address = m_address.GetLoadAddress(target_sp.get()); load_address != LLDB_INVALID_ADDRESS) {
     m_value.SetValueType(Value::ValueType::LoadAddress);
     m_value.GetScalar() = load_address;
   } else {
-    lldb::addr_t file_address = m_address.GetFileAddress();
-    if (file_address != LLDB_INVALID_ADDRESS) {
+    
+    if (lldb::addr_t file_address = m_address.GetFileAddress(); file_address != LLDB_INVALID_ADDRESS) {
       m_value.SetValueType(Value::ValueType::FileAddress);
       m_value.GetScalar() = file_address;
     } else {
@@ -90,13 +90,13 @@ ValueObjectMemory::ValueObjectMemory(ExecutionContextScope *exe_scope,
 
   SetName(ConstString(name));
   m_value.SetCompilerType(m_compiler_type);
-  lldb::addr_t load_address = m_address.GetLoadAddress(target_sp.get());
-  if (load_address != LLDB_INVALID_ADDRESS) {
+  
+  if (lldb::addr_t load_address = m_address.GetLoadAddress(target_sp.get()); load_address != LLDB_INVALID_ADDRESS) {
     m_value.SetValueType(Value::ValueType::LoadAddress);
     m_value.GetScalar() = load_address;
   } else {
-    lldb::addr_t file_address = m_address.GetFileAddress();
-    if (file_address != LLDB_INVALID_ADDRESS) {
+    
+    if (lldb::addr_t file_address = m_address.GetFileAddress(); file_address != LLDB_INVALID_ADDRESS) {
       m_value.SetValueType(Value::ValueType::FileAddress);
       m_value.GetScalar() = file_address;
     } else {
@@ -198,8 +198,8 @@ bool ValueObjectMemory::UpdateValue() {
       // If we have a file address, convert it to a load address if we can.
       if (value_type == Value::ValueType::FileAddress &&
           exe_ctx.GetProcessPtr()) {
-        lldb::addr_t load_addr = m_address.GetLoadAddress(target);
-        if (load_addr != LLDB_INVALID_ADDRESS) {
+        
+        if (lldb::addr_t load_addr = m_address.GetLoadAddress(target); load_addr != LLDB_INVALID_ADDRESS) {
           m_value.SetValueType(Value::ValueType::LoadAddress);
           m_value.GetScalar() = load_addr;
         }

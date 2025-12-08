@@ -182,9 +182,9 @@ struct FoldPadToTensorOp : public OpRewritePattern<OpTy> {
     int64_t padWBefore = (*(padOpPadding.begin() + 4)).getLimitedValue();
     int64_t padWAfter = (*(padOpPadding.begin() + 5)).getLimitedValue();
     int64_t padCBefore = (*(padOpPadding.begin() + 6)).getLimitedValue();
-    int64_t padCAfter = (*(padOpPadding.begin() + 7)).getLimitedValue();
+    
 
-    if (padNBefore != 0 || padNAfter != 0 || padCBefore != 0 || padCAfter != 0)
+    if (int64_t padCAfter = (*(padOpPadding.begin() + 7)).getLimitedValue(); padNBefore != 0 || padNAfter != 0 || padCBefore != 0 || padCAfter != 0)
       return rewriter.notifyMatchFailure(
           tensorOp, "Folding padding in N or C dimensions is not supported.");
 
@@ -389,8 +389,8 @@ struct TransposeIsReshape : public OpRewritePattern<tosa::TransposeOp> {
     SmallVector<int64_t> nonZeroPerms;
     nonZeroPerms.reserve(permValues.size());
     for (auto idx : permValues) {
-      auto sz = inputTy.getDimSize(idx);
-      if (sz != 1)
+      
+      if (auto sz = inputTy.getDimSize(idx); sz != 1)
         nonZeroPerms.push_back(idx);
     }
 
@@ -432,9 +432,9 @@ struct ClampIsNoOp : public OpRewritePattern<tosa::ClampOp> {
       const auto maxClamp =
           llvm::cast<mlir::FloatAttr>(op.getMaxValAttr()).getValue();
       const bool isMin = minClamp.isNegInfinity();
-      const bool isMax = maxClamp.isInfinity();
+      
 
-      if (isMin && isMax) {
+      if (const bool isMax = maxClamp.isInfinity(); isMin && isMax) {
         rewriter.replaceOp(op, input);
         return success();
       }
@@ -442,8 +442,8 @@ struct ClampIsNoOp : public OpRewritePattern<tosa::ClampOp> {
     }
 
     // i1 types are boolean in TOSA
-    const bool isBoolean = inputElementType.isInteger(1);
-    if (inputElementType.isUnsignedInteger() || isBoolean) {
+    
+    if (const bool isBoolean = inputElementType.isInteger(1); inputElementType.isUnsignedInteger() || isBoolean) {
       const int64_t minClamp = llvm::cast<mlir::IntegerAttr>(op.getMinValAttr())
                                    .getValue()
                                    .getZExtValue();
@@ -453,9 +453,9 @@ struct ClampIsNoOp : public OpRewritePattern<tosa::ClampOp> {
 
       const unsigned bitWidth = inputElementType.getIntOrFloatBitWidth();
       const int64_t intMin = APInt::getMinValue(bitWidth).getZExtValue();
-      const int64_t intMax = APInt::getMaxValue(bitWidth).getZExtValue();
+      
 
-      if (minClamp <= intMin && maxClamp >= intMax) {
+      if (const int64_t intMax = APInt::getMaxValue(bitWidth).getZExtValue(); minClamp <= intMin && maxClamp >= intMax) {
         rewriter.replaceOp(op, input);
         return success();
       }
@@ -470,9 +470,9 @@ struct ClampIsNoOp : public OpRewritePattern<tosa::ClampOp> {
 
       const unsigned bitWidth = inputElementType.getIntOrFloatBitWidth();
       const int64_t intMin = APInt::getSignedMinValue(bitWidth).getSExtValue();
-      const int64_t intMax = APInt::getSignedMaxValue(bitWidth).getSExtValue();
+      
 
-      if (minClamp <= intMin && maxClamp >= intMax) {
+      if (const int64_t intMax = APInt::getSignedMaxValue(bitWidth).getSExtValue(); minClamp <= intMin && maxClamp >= intMax) {
         rewriter.replaceOp(op, input);
         return success();
       }
@@ -1279,10 +1279,10 @@ OpFoldResult CastOp::fold(FoldAdaptor adaptor) {
       bool trunc =
           inETy.getIntOrFloatBitWidth() > outETy.getIntOrFloatBitWidth();
       auto intVal = operand.getSplatValue<APInt>();
-      auto bitwidth = outETy.getIntOrFloatBitWidth();
+      
 
       // i1 types are boolean in TOSA
-      if (outETy.isInteger(1)) {
+      if (auto bitwidth = outETy.getIntOrFloatBitWidth(); outETy.isInteger(1)) {
         intVal = APInt(bitwidth, intVal.isZero() ? 0 : 1);
       } else if (trunc) {
         intVal = intVal.trunc(bitwidth);

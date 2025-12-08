@@ -81,9 +81,9 @@ LLVMInitializeRISCVDisassembler() {
 static DecodeStatus DecodeGPRRegisterClass(MCInst &Inst, uint32_t RegNo,
                                            uint64_t Address,
                                            const MCDisassembler *Decoder) {
-  bool IsRVE = Decoder->getSubtargetInfo().hasFeature(RISCV::FeatureStdExtE);
+  
 
-  if (RegNo >= 32 || (IsRVE && RegNo >= 16))
+  if (bool IsRVE = Decoder->getSubtargetInfo().hasFeature(RISCV::FeatureStdExtE); RegNo >= 32 || (IsRVE && RegNo >= 16))
     return MCDisassembler::Fail;
 
   MCRegister Reg = RISCV::X0 + RegNo;
@@ -94,9 +94,9 @@ static DecodeStatus DecodeGPRRegisterClass(MCInst &Inst, uint32_t RegNo,
 static DecodeStatus DecodeGPRF16RegisterClass(MCInst &Inst, uint32_t RegNo,
                                               uint64_t Address,
                                               const MCDisassembler *Decoder) {
-  bool IsRVE = Decoder->getSubtargetInfo().hasFeature(RISCV::FeatureStdExtE);
+  
 
-  if (RegNo >= 32 || (IsRVE && RegNo >= 16))
+  if (bool IsRVE = Decoder->getSubtargetInfo().hasFeature(RISCV::FeatureStdExtE); RegNo >= 32 || (IsRVE && RegNo >= 16))
     return MCDisassembler::Fail;
 
   MCRegister Reg = RISCV::X0_H + RegNo;
@@ -107,9 +107,9 @@ static DecodeStatus DecodeGPRF16RegisterClass(MCInst &Inst, uint32_t RegNo,
 static DecodeStatus DecodeGPRF32RegisterClass(MCInst &Inst, uint32_t RegNo,
                                               uint64_t Address,
                                               const MCDisassembler *Decoder) {
-  bool IsRVE = Decoder->getSubtargetInfo().hasFeature(RISCV::FeatureStdExtE);
+  
 
-  if (RegNo >= 32 || (IsRVE && RegNo >= 16))
+  if (bool IsRVE = Decoder->getSubtargetInfo().hasFeature(RISCV::FeatureStdExtE); RegNo >= 32 || (IsRVE && RegNo >= 16))
     return MCDisassembler::Fail;
 
   MCRegister Reg = RISCV::X0_W + RegNo;
@@ -596,8 +596,8 @@ static DecodeStatus decodeRTZArg(MCInst &Inst, uint32_t Imm, int64_t Address,
 static DecodeStatus decodeZcmpRlist(MCInst &Inst, uint32_t Imm,
                                     uint64_t Address,
                                     const MCDisassembler *Decoder) {
-  bool IsRVE = Decoder->getSubtargetInfo().hasFeature(RISCV::FeatureStdExtE);
-  if (Imm < RISCVZC::RA || (IsRVE && Imm >= RISCVZC::RA_S0_S2))
+  
+  if (bool IsRVE = Decoder->getSubtargetInfo().hasFeature(RISCV::FeatureStdExtE); Imm < RISCVZC::RA || (IsRVE && Imm >= RISCVZC::RA_S0_S2))
     return MCDisassembler::Fail;
   Inst.addOperand(MCOperand::createImm(Imm));
   return MCDisassembler::Success;
@@ -855,8 +855,8 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
 
   // 80-bit through 176-bit instructions are encoded as 0bxnnnxxxx_x1111111.
   // Where the number of bits is (80 + (nnn * 16)) for nnn != 0b111.
-  unsigned nnn = (Bytes[1] >> 4) & 0b111;
-  if (nnn != 0b111) {
+  
+  if (unsigned nnn = (Bytes[1] >> 4) & 0b111; nnn != 0b111) {
     Size = 10 + (nnn * 2);
     if (Bytes.size() < Size)
       Size = 0;

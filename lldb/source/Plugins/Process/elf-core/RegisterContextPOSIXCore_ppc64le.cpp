@@ -113,9 +113,9 @@ bool RegisterContextCorePOSIX_ppc64le::ReadRegister(
       }
     }
   } else {
-    uint64_t v = m_gpr.GetMaxU64(&offset, reg_info->byte_size);
+    
 
-    if (offset == reg_info->byte_offset + reg_info->byte_size) {
+    if (uint64_t v = m_gpr.GetMaxU64(&offset, reg_info->byte_size); offset == reg_info->byte_offset + reg_info->byte_size) {
       if (reg_info->byte_size < sizeof(v))
         value = (uint32_t)v;
       else

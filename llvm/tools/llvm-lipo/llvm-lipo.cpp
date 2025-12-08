@@ -332,13 +332,13 @@ readInputBinaries(LLVMContext &LLVMCtx, ArrayRef<InputFile> InputFiles) {
                      : B->isArchive()
                          ? createSliceFromArchive(LLVMCtx, *cast<Archive>(B))
                          : createSliceFromIR(*cast<IRObjectFile>(B), 0);
-      const auto SpecifiedCPUType = MachO::getCPUTypeFromArchitecture(
-                                        MachO::getArchitectureFromName(
-                                            Triple(*IF.ArchType).getArchName()))
-                                        .first;
+      
       // For compatibility with cctools' lipo the comparison is relaxed just to
       // checking cputypes.
-      if (S.getCPUType() != SpecifiedCPUType)
+      if (const auto SpecifiedCPUType = MachO::getCPUTypeFromArchitecture(
+                                        MachO::getArchitectureFromName(
+                                            Triple(*IF.ArchType).getArchName()))
+                                        .first; S.getCPUType() != SpecifiedCPUType)
         reportError("specified architecture: " + *IF.ArchType +
                     " for file: " + B->getFileName() +
                     " does not match the file's architecture (" +
@@ -450,16 +450,16 @@ printArchs(LLVMContext &LLVMCtx, ArrayRef<OwningBinary<Binary>> InputBinaries) {
 printInfo(LLVMContext &LLVMCtx, ArrayRef<OwningBinary<Binary>> InputBinaries) {
   // Group universal and thin files together for compatibility with cctools lipo
   for (auto &IB : InputBinaries) {
-    const Binary *Binary = IB.getBinary();
-    if (Binary->isMachOUniversalBinary()) {
+    
+    if (const Binary *Binary = IB.getBinary(); Binary->isMachOUniversalBinary()) {
       outs() << "Architectures in the fat file: " << Binary->getFileName()
              << " are: ";
       printBinaryArchs(LLVMCtx, Binary, outs());
     }
   }
   for (auto &IB : InputBinaries) {
-    const Binary *Binary = IB.getBinary();
-    if (!Binary->isMachOUniversalBinary()) {
+    
+    if (const Binary *Binary = IB.getBinary(); !Binary->isMachOUniversalBinary()) {
       assert((Binary->isMachO() || Binary->isArchive()) &&
              "expected MachO binary");
       outs() << "Non-fat file: " << Binary->getFileName()
@@ -564,8 +564,8 @@ buildSlices(LLVMContext &LLVMCtx, ArrayRef<OwningBinary<Binary>> InputBinaries,
             SmallVectorImpl<std::unique_ptr<SymbolicFile>> &ExtractedObjects) {
   SmallVector<Slice, 2> Slices;
   for (auto &IB : InputBinaries) {
-    const Binary *InputBinary = IB.getBinary();
-    if (auto UO = dyn_cast<MachOUniversalBinary>(InputBinary)) {
+    
+    if (const Binary *InputBinary = IB.getBinary(); auto UO = dyn_cast<MachOUniversalBinary>(InputBinary)) {
       for (const auto &O : UO->objects()) {
         // Order here is important, because both MachOObjectFile and
         // IRObjectFile can be created with a binary that has embedded bitcode.

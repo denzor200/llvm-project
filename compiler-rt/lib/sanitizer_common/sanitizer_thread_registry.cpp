@@ -204,8 +204,8 @@ void ThreadRegistry::RunCallbackForEachThreadLocked(ThreadCallback cb,
 u32 ThreadRegistry::FindThread(FindThreadCallback cb, void *arg) {
   ThreadRegistryLock l(this);
   for (u32 tid = 0; tid < threads_.size(); tid++) {
-    ThreadContextBase *tctx = threads_[tid];
-    if (tctx != 0 && cb(tctx, arg))
+    
+    if (ThreadContextBase *tctx = threads_[tid]; tctx != 0 && cb(tctx, arg))
       return tctx->tid;
   }
   return kInvalidTid;
@@ -215,8 +215,8 @@ ThreadContextBase *ThreadRegistry::FindThreadContextLocked(
     FindThreadCallback cb, void *arg) {
   CheckLocked();
   for (u32 tid = 0; tid < threads_.size(); tid++) {
-    ThreadContextBase *tctx = threads_[tid];
-    if (tctx != 0 && cb(tctx, arg))
+    
+    if (ThreadContextBase *tctx = threads_[tid]; tctx != 0 && cb(tctx, arg))
       return tctx;
   }
   return 0;

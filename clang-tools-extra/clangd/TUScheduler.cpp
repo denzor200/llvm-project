@@ -323,8 +323,8 @@ public:
   // will be eligible for association with other files that get update()d.
   void remove(PathRef MainFile) {
     std::lock_guard<std::mutex> Lock(Mu);
-    Association *&First = MainToFirst[MainFile];
-    if (First) {
+    
+    if (Association *&First = MainToFirst[MainFile]; First) {
       invalidate(First);
       First = nullptr;
     }
@@ -890,11 +890,11 @@ void ASTWorker::update(ParseInputs Inputs, WantDiagnostics WantDiags,
     else
       Inputs.CompileCommand = CDB.getFallbackCommand(FileName);
 
-    bool InputsAreTheSame =
-        std::tie(FileInputs.CompileCommand, FileInputs.Contents) ==
-        std::tie(Inputs.CompileCommand, Inputs.Contents);
+    
     // Cached AST is invalidated.
-    if (!InputsAreTheSame) {
+    if (bool InputsAreTheSame =
+        std::tie(FileInputs.CompileCommand, FileInputs.Contents) ==
+        std::tie(Inputs.CompileCommand, Inputs.Contents); !InputsAreTheSame) {
       IdleASTs.take(this);
       RanASTCallback = false;
     }
@@ -1697,8 +1697,8 @@ bool TUScheduler::update(PathRef File, ParseInputs Inputs,
 }
 
 void TUScheduler::remove(PathRef File) {
-  bool Removed = Files.erase(File);
-  if (!Removed)
+  
+  if (bool Removed = Files.erase(File); !Removed)
     elog("Trying to remove file from TUScheduler that is not tracked: {0}",
          File);
   // We don't call HeaderIncluders.remove(File) here.

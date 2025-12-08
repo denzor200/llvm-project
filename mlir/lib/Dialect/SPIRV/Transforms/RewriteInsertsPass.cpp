@@ -73,8 +73,8 @@ void RewriteInsertsPass::runOnOperation() {
 
     // Erase ops.
     for (auto insertOp : llvm::reverse(insertions)) {
-      auto *op = insertOp.getOperation();
-      if (op->use_empty())
+      
+      if (auto *op = insertOp.getOperation(); op->use_empty())
         insertOp.erase();
     }
   }

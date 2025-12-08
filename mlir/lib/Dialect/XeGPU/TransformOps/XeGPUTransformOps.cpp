@@ -99,8 +99,8 @@ static std::optional<T> findProducerOfType(Value val) {
       LDBG() << "Failed to find producer op, not in a loop.";
       return std::nullopt;
     }
-    int64_t iterArgIdx;
-    if (auto iterArg = llvm::dyn_cast<BlockArgument>(currentValue)) {
+    
+    if (int64_t iterArgIdx; auto iterArg = llvm::dyn_cast<BlockArgument>(currentValue)) {
       auto numInductionVars = parentLoop.getLoopInductionVars()->size();
       iterArgIdx = iterArg.getArgNumber() - numInductionVars;
       currentValue = parentLoop.getInits()[iterArgIdx];

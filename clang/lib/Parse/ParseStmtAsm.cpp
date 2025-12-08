@@ -693,8 +693,8 @@ StmtResult Parser::ParseAsmStatement(bool &msAsm) {
   // Check if GNU-style InlineAsm is disabled.
   // Error on anything other than empty string.
   if (!(getLangOpts().GNUAsm || AsmString.isInvalid())) {
-    const auto *SL = cast<StringLiteral>(AsmString.get());
-    if (!SL->getString().trim().empty())
+    
+    if (const auto *SL = cast<StringLiteral>(AsmString.get()); !SL->getString().trim().empty())
       Diag(Loc, diag::err_gnu_inline_asm_disabled);
   }
 

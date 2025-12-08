@@ -582,8 +582,8 @@ static bool getHidden(RelocationRef RelRef) {
     if (Type == MachO::X86_64_RELOC_UNSIGNED && Rel.d.a > 0) {
       DataRefImpl RelPrev = Rel;
       RelPrev.d.a--;
-      uint64_t PrevType = MachO->getRelocationType(RelPrev);
-      if (PrevType == MachO::X86_64_RELOC_SUBTRACTOR)
+      
+      if (uint64_t PrevType = MachO->getRelocationType(RelPrev); PrevType == MachO::X86_64_RELOC_SUBTRACTOR)
         return true;
     }
   }
@@ -1272,8 +1272,8 @@ addDynamicElfSymbols(const ELFObjectFileBase &Obj,
 
 static std::optional<SectionRef> getWasmCodeSection(const WasmObjectFile &Obj) {
   for (auto SecI : Obj.sections()) {
-    const WasmSection &Section = Obj.getWasmSection(SecI);
-    if (Section.Type == wasm::WASM_SEC_CODE)
+    
+    if (const WasmSection &Section = Obj.getWasmSection(SecI); Section.Type == wasm::WASM_SEC_CODE)
       return SecI;
   }
   return std::nullopt;
@@ -1401,8 +1401,8 @@ getRelocsMap(object::ObjectFile const &Obj) {
 // because they are not loadable.
 // TODO: implement for other file formats.
 static bool shouldAdjustVA(const SectionRef &Section) {
-  const ObjectFile *Obj = Section.getObject();
-  if (Obj->isELF())
+  
+  if (const ObjectFile *Obj = Section.getObject(); Obj->isELF())
     return ELFSectionRef(Section).getFlags() & ELF::SHF_ALLOC;
   return false;
 }
@@ -1570,8 +1570,8 @@ collectLocalBranchTargets(ArrayRef<uint8_t> Bytes, MCInstrAnalysis *MIA,
   const bool isPPC = STI->getTargetTriple().isPPC();
   const bool isX86 = STI->getTargetTriple().isX86();
   const bool isAArch64 = STI->getTargetTriple().isAArch64();
-  const bool isBPF = STI->getTargetTriple().isBPF();
-  if (!isPPC && !isX86 && !isAArch64 && !isBPF)
+  
+  if (const bool isBPF = STI->getTargetTriple().isBPF(); !isPPC && !isX86 && !isAArch64 && !isBPF)
     return;
 
   if (MIA)
@@ -1595,8 +1595,8 @@ collectLocalBranchTargets(ArrayRef<uint8_t> Bytes, MCInstrAnalysis *MIA,
     if (MIA) {
       if (Disassembled) {
         uint64_t Target;
-        bool TargetKnown = MIA->evaluateBranch(Inst, Index, Size, Target);
-        if (TargetKnown && (Target >= Start && Target < End) &&
+        
+        if (bool TargetKnown = MIA->evaluateBranch(Inst, Index, Size, Target); TargetKnown && (Target >= Start && Target < End) &&
             !Targets.count(Target)) {
           // On PowerPC and AIX, a function call is encoded as a branch to 0.
           // On other PowerPC platforms (ELF), a function call is encoded as
@@ -1730,8 +1730,8 @@ disassembleObject(ObjectFile &Obj, const ObjectFile &DbgObj,
       PrimaryIsThumb =
           PrimaryTarget.SubtargetInfo->checkFeatures("+thumb-mode");
     } else if (const auto *COFFObj = dyn_cast<COFFObjectFile>(&Obj)) {
-      const chpe_metadata *CHPEMetadata = COFFObj->getCHPEMetadata();
-      if (CHPEMetadata && CHPEMetadata->CodeMapCount) {
+      
+      if (const chpe_metadata *CHPEMetadata = COFFObj->getCHPEMetadata(); CHPEMetadata && CHPEMetadata->CodeMapCount) {
         uintptr_t CodeMapInt;
         cantFail(COFFObj->getRvaPtr(CHPEMetadata->CodeMap, CodeMapInt));
         auto CodeMap = reinterpret_cast<const chpe_range_entry *>(CodeMapInt);
@@ -1808,10 +1808,10 @@ disassembleObject(ObjectFile &Obj, const ObjectFile &DbgObj,
       // STAB symbol's section field refers to a valid section index. Otherwise
       // the symbol may error trying to load a section that does not exist.
       DataRefImpl SymDRI = Symbol.getRawDataRefImpl();
-      uint8_t NType =
+      
+      if (uint8_t NType =
           (MachO->is64Bit() ? MachO->getSymbol64TableEntry(SymDRI).n_type
-                            : MachO->getSymbolTableEntry(SymDRI).n_type);
-      if (NType & MachO::N_STAB)
+                            : MachO->getSymbolTableEntry(SymDRI).n_type); NType & MachO::N_STAB)
         continue;
     }
 
@@ -2082,8 +2082,8 @@ disassembleObject(ObjectFile &Obj, const ObjectFile &DbgObj,
         DisassembleAsELFData = true; // unless we find a code symbol below
 
         for (size_t i = 0; i < SymbolsHere.size(); ++i) {
-          uint8_t SymTy = SymbolsHere[i].Type;
-          if (SymTy != ELF::STT_OBJECT && SymTy != ELF::STT_COMMON) {
+          
+          if (uint8_t SymTy = SymbolsHere[i].Type; SymTy != ELF::STT_OBJECT && SymTy != ELF::STT_COMMON) {
             DisassembleAsELFData = false;
             DisplaySymIndex = i;
           }
@@ -2249,8 +2249,8 @@ disassembleObject(ObjectFile &Obj, const ObjectFile &DbgObj,
 
       // Skip relocations from symbols that are not dumped.
       for (; RelCur != RelEnd; ++RelCur) {
-        uint64_t Offset = RelCur->getOffset() - RelAdjustment;
-        if (Index <= Offset)
+        
+        if (uint64_t Offset = RelCur->getOffset() - RelAdjustment; Index <= Offset)
           break;
       }
 
@@ -2293,12 +2293,12 @@ disassembleObject(ObjectFile &Obj, const ObjectFile &DbgObj,
           }
         } else if (!CHPECodeMap.empty()) {
           uint64_t Address = SectionAddr + Index;
-          auto It = partition_point(
+          
+          if (auto It = partition_point(
               CHPECodeMap,
               [Address](const std::pair<uint64_t, uint64_t> &Entry) {
                 return Entry.first <= Address;
-              });
-          if (It != CHPECodeMap.begin() && Address < (It - 1)->second) {
+              }); It != CHPECodeMap.begin() && Address < (It - 1)->second) {
             DT = &*SecondaryTarget;
           } else {
             DT = &PrimaryTarget;
@@ -2489,9 +2489,9 @@ disassembleObject(ObjectFile &Obj, const ObjectFile &DbgObj,
               // Branch targets are printed just after the instructions.
               // Print the labels corresponding to the target if there's any.
               bool BBAddrMapLabelAvailable = BBAddrMapLabels.count(Target);
-              bool LabelAvailable = AllLabels.count(Target);
+              
 
-              if (TargetSym != nullptr) {
+              if (bool LabelAvailable = AllLabels.count(Target); TargetSym != nullptr) {
                 uint64_t TargetAddress = TargetSym->Addr;
                 uint64_t Disp = Target - TargetAddress;
                 std::string TargetName = Demangle ? demangle(TargetSym->Name)
@@ -2660,9 +2660,9 @@ static void disassembleObject(ObjectFile *Obj, bool InlineRelocs,
     // disassembler read the instructions the right way round, and also tell
     // our own prettyprinter to retrieve the encodings the same way to print in
     // hex.
-    const auto *Elf32BE = dyn_cast<ELF32BEObjectFile>(Obj);
+    
 
-    if (Elf32BE && (Elf32BE->isRelocatableObject() ||
+    if (const auto *Elf32BE = dyn_cast<ELF32BEObjectFile>(Obj); Elf32BE && (Elf32BE->isRelocatableObject() ||
                     !(Elf32BE->getPlatformFlags() & ELF::EF_ARM_BE8))) {
       Features.AddFeature("+big-endian-instructions");
       ARMPrettyPrinterInst.setInstructionEndianness(llvm::endianness::big);
@@ -2688,8 +2688,8 @@ static void disassembleObject(ObjectFile *Obj, bool InlineRelocs,
       SecondaryTarget.emplace(PrimaryTarget, Features);
     }
   } else if (const auto *COFFObj = dyn_cast<COFFObjectFile>(Obj)) {
-    const chpe_metadata *CHPEMetadata = COFFObj->getCHPEMetadata();
-    if (CHPEMetadata && CHPEMetadata->CodeMapCount) {
+    
+    if (const chpe_metadata *CHPEMetadata = COFFObj->getCHPEMetadata(); CHPEMetadata && CHPEMetadata->CodeMapCount) {
       // Set up x86_64 disassembler for ARM64EC binaries.
       Triple X64Triple(TripleName);
       X64Triple.setArch(Triple::ArchType::x86_64);
@@ -2979,10 +2979,10 @@ void Dumper::printSymbol(const SymbolRef &Symbol,
   bool IsSTAB = false;
   if (MachO) {
     DataRefImpl SymDRI = Symbol.getRawDataRefImpl();
-    uint8_t NType =
+    
+    if (uint8_t NType =
         (MachO->is64Bit() ? MachO->getSymbol64TableEntry(SymDRI).n_type
-                          : MachO->getSymbolTableEntry(SymDRI).n_type);
-    if (NType & MachO::N_STAB)
+                          : MachO->getSymbolTableEntry(SymDRI).n_type); NType & MachO::N_STAB)
       IsSTAB = true;
   }
   section_iterator Section = IsSTAB
@@ -3327,8 +3327,8 @@ static void checkForInvalidStartStopAddress(ObjectFile *Obj, uint64_t Start,
   for (const SectionRef &Section : Obj->sections())
     if (ELFSectionRef(Section).getFlags() & ELF::SHF_ALLOC) {
       uint64_t BaseAddr = Section.getAddress();
-      uint64_t Size = Section.getSize();
-      if ((Start < BaseAddr + Size) && Stop > BaseAddr)
+      
+      if (uint64_t Size = Section.getSize(); (Start < BaseAddr + Size) && Stop > BaseAddr)
         return;
     }
 
@@ -3480,9 +3480,9 @@ static void dumpInput(StringRef file) {
 
   // Attempt to open the binary.
   OwningBinary<Binary> OBinary = unwrapOrError(createBinary(file), file);
-  Binary &Binary = *OBinary.getBinary();
+  
 
-  if (Archive *A = dyn_cast<Archive>(&Binary))
+  if (Binary &Binary = *OBinary.getBinary(); Archive *A = dyn_cast<Archive>(&Binary))
     dumpArchive(A);
   else if (ObjectFile *O = dyn_cast<ObjectFile>(&Binary))
     dumpObject(O);
@@ -3576,8 +3576,8 @@ static void parseOtoolOptions(const llvm::opt::InputArgList &InputArgs) {
     reportCmdLineError("no input file");
 
   for (const Arg *A : InputArgs) {
-    const Option &O = A->getOption();
-    if (O.getGroup().isValid() && O.getGroup().getID() == OTOOL_grp_obsolete) {
+    
+    if (const Option &O = A->getOption(); O.getGroup().isValid() && O.getGroup().getID() == OTOOL_grp_obsolete) {
       reportCmdLineWarning(O.getPrefixedName() +
                            " is obsolete and not implemented");
     }

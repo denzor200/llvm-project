@@ -101,9 +101,9 @@ static FuncOp getCalledFunction(CallOpInterface callOp,
 /// Return the FuncOp called by `callOp`.
 static FuncOp getCalledFunction(CallOpInterface callOp,
                                 const AnalysisState &state) {
-  auto &oneShotAnalysisState = static_cast<const OneShotAnalysisState &>(state);
+  
 
-  if (auto *funcAnalysisState =
+  if (auto &oneShotAnalysisState = static_cast<const OneShotAnalysisState &>(state); auto *funcAnalysisState =
           oneShotAnalysisState.getExtension<FuncAnalysisState>()) {
     // Use the cached symbol tables.
     return getCalledFunction(callOp, funcAnalysisState->symbolTables);
@@ -388,8 +388,8 @@ struct FuncOpInterface
     // A function has tensor semantics if it has tensor arguments/results.
     auto funcOp = cast<FuncOp>(op);
     bool hasTensorArg = any_of(funcOp.getArgumentTypes(), isaTensor);
-    bool hasTensorResult = any_of(funcOp.getResultTypes(), isaTensor);
-    if (hasTensorArg || hasTensorResult)
+    
+    if (bool hasTensorResult = any_of(funcOp.getResultTypes(), isaTensor); hasTensorArg || hasTensorResult)
       return true;
 
     // It also has tensor semantics if it has tensor block arguments.

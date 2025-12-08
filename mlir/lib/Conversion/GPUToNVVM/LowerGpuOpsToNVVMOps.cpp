@@ -220,8 +220,8 @@ struct GPULaneIdOpToNVVM : ConvertOpToLLVMPattern<gpu::LaneIdOp> {
         NVVM::LaneIdOp::create(rewriter, loc, rewriter.getI32Type(), bounds);
     // Truncate or extend the result depending on the index bitwidth specified
     // by the LLVMTypeConverter options.
-    const unsigned indexBitwidth = getTypeConverter()->getIndexTypeBitwidth();
-    if (indexBitwidth > 32) {
+    
+    if (const unsigned indexBitwidth = getTypeConverter()->getIndexTypeBitwidth(); indexBitwidth > 32) {
       newOp = LLVM::SExtOp::create(
           rewriter, loc, IntegerType::get(context, indexBitwidth), newOp);
     } else if (indexBitwidth < 32) {

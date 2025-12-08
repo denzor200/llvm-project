@@ -320,9 +320,9 @@ void PPCAsmPrinter::PrintSymbolOperand(const MachineOperand &MO,
 void PPCAsmPrinter::printOperand(const MachineInstr *MI, unsigned OpNo,
                                  raw_ostream &O) {
   const DataLayout &DL = getDataLayout();
-  const MachineOperand &MO = MI->getOperand(OpNo);
+  
 
-  switch (MO.getType()) {
+  switch (const MachineOperand &MO = MI->getOperand(OpNo); MO.getType()) {
   case MachineOperand::MO_Register: {
     // The MI is INLINEASM ONLY and UseVSXReg is always false.
     const char *RegName = PPCInstPrinter::getRegisterName(MO.getReg());
@@ -564,11 +564,11 @@ void PPCAsmPrinter::LowerPATCHPOINT(StackMaps &SM, const MachineInstr &MI) {
   PatchPointOpers Opers(&MI);
 
   unsigned EncodedBytes = 0;
-  const MachineOperand &CalleeMO = Opers.getCallTarget();
+  
 
-  if (CalleeMO.isImm()) {
-    int64_t CallTarget = CalleeMO.getImm();
-    if (CallTarget) {
+  if (const MachineOperand &CalleeMO = Opers.getCallTarget(); CalleeMO.isImm()) {
+    
+    if (int64_t CallTarget = CalleeMO.getImm(); CallTarget) {
       assert((CallTarget & 0xFFFFFFFFFFFF) == CallTarget &&
              "High 16 bits of call target should be zero.");
       Register ScratchReg = MI.getOperand(Opers.getNextScratchIdx()).getReg();
@@ -865,9 +865,9 @@ void PPCAsmPrinter::emitInstruction(const MachineInstr *MI) {
            "Could not find the TOC entry for this symbol.");
     const ptrdiff_t EntryDistanceFromTOCBase =
         (TOCEntryIter - TOC.begin()) * EntryByteSize;
-    constexpr int16_t PositiveTOCRange = INT16_MAX;
+    
 
-    if (EntryDistanceFromTOCBase > PositiveTOCRange)
+    if (constexpr int16_t PositiveTOCRange = INT16_MAX; EntryDistanceFromTOCBase > PositiveTOCRange)
       return getTOCRelocAdjustedExprForXCOFF(Expr, EntryDistanceFromTOCBase);
 
     return Expr;
@@ -888,8 +888,8 @@ void PPCAsmPrinter::emitInstruction(const MachineInstr *MI) {
         return PPC::S_AIX_TLSIE;
       // On AIX, TLS model opt may have turned local-dynamic accesses into
       // initial-exec accesses.
-      PPCFunctionInfo *FuncInfo = MF->getInfo<PPCFunctionInfo>();
-      if (Model == TLSModel::LocalDynamic &&
+      
+      if (PPCFunctionInfo *FuncInfo = MF->getInfo<PPCFunctionInfo>(); Model == TLSModel::LocalDynamic &&
           FuncInfo->isAIXFuncUseTLSIEForLD()) {
         LLVM_DEBUG(
             dbgs() << "Current function uses IE access for default LD vars.\n");
@@ -1167,7 +1167,7 @@ void PPCAsmPrinter::emitInstruction(const MachineInstr *MI) {
     // Map the machine operand to its corresponding MCSymbol.
     MCSymbol *MOSymbol = getMCSymbolForTOCPseudoMO(MO, *this);
 
-    PPCMCExpr::Specifier VK = getSpecifier(MO);
+    
 
     // Map the global address operand to be a reference to the TOC entry we
     // will synthesize later. 'TOCEntry' is a label used to reference the
@@ -1175,7 +1175,7 @@ void PPCAsmPrinter::emitInstruction(const MachineInstr *MI) {
     // If the symbol does not have the toc-data attribute, then we create the
     // TOC entry on AIX. If the toc-data attribute is used, the TOC entry
     // contains the data rather than the address of the MOSymbol.
-    if (![](const MachineOperand &MO) {
+    if (PPCMCExpr::Specifier VK = getSpecifier(MO); ![](const MachineOperand &MO) {
           if (!MO.isGlobal())
             return false;
 
@@ -1603,10 +1603,10 @@ void PPCAsmPrinter::emitInstruction(const MachineInstr *MI) {
           TempMO.getOperandNo() == 1)
         OpNum = 1;
     }
-    const MachineOperand &MO = MI->getOperand(OpNum);
-    if (MO.isGlobal()) {
-      const DataLayout &DL = MO.getGlobal()->getDataLayout();
-      if (MO.getGlobal()->getPointerAlignment(DL) < 4)
+    
+    if (const MachineOperand &MO = MI->getOperand(OpNum); MO.isGlobal()) {
+      
+      if (const DataLayout &DL = MO.getGlobal()->getDataLayout(); MO.getGlobal()->getPointerAlignment(DL) < 4)
         llvm_unreachable("Global must be word-aligned for LD, STD, LWA!");
     }
     // As these load/stores share common code with the following load/stores,
@@ -1642,14 +1642,14 @@ void PPCAsmPrinter::emitInstruction(const MachineInstr *MI) {
     bool IsMIADDI8 = MI->getOpcode() == PPC::ADDI8;
     unsigned OpNum = IsMIADDI8 ? 2 : 1;
     const MachineOperand &MO = MI->getOperand(OpNum);
-    unsigned Flag = MO.getTargetFlags();
-    if (Flag == PPCII::MO_TPREL_FLAG ||
+    
+    if (unsigned Flag = MO.getTargetFlags(); Flag == PPCII::MO_TPREL_FLAG ||
         Flag == PPCII::MO_GOT_TPREL_PCREL_FLAG ||
         Flag == PPCII::MO_TPREL_PCREL_FLAG || Flag == PPCII::MO_TLSLD_FLAG) {
       LowerPPCMachineInstrToMCInst(MI, TmpInst, *this);
 
-      const MCExpr *Expr = getAdjustedFasterLocalExpr(MO, MO.getOffset());
-      if (Expr)
+      
+      if (const MCExpr *Expr = getAdjustedFasterLocalExpr(MO, MO.getOffset()); Expr)
         TmpInst.getOperand(OpNum) = MCOperand::createExpr(Expr);
 
       // Change the opcode to load address if the original opcode is an `addi`.
@@ -1954,8 +1954,8 @@ void PPCLinuxAsmPrinter::emitFunctionEntryLabel() {
     return AsmPrinter::emitFunctionEntryLabel();
 
   if (!Subtarget->isPPC64()) {
-    const PPCFunctionInfo *PPCFI = MF->getInfo<PPCFunctionInfo>();
-    if (PPCFI->usesPICBase() && !Subtarget->isSecurePlt()) {
+    
+    if (const PPCFunctionInfo *PPCFI = MF->getInfo<PPCFunctionInfo>(); PPCFI->usesPICBase() && !Subtarget->isSecurePlt()) {
       MCSymbol *RelocSymbol = PPCFI->getPICOffsetSymbol(*MF);
       MCSymbol *PICBase = MF->getPICBaseSymbol();
       OutStreamer->emitLabel(RelocSymbol);
@@ -2097,13 +2097,13 @@ void PPCLinuxAsmPrinter::emitFunctionBodyStart() {
                           !MF->getRegInfo().use_empty(PPC::R2);
   const bool PCrelGEPRequired = Subtarget->isUsingPCRelativeCalls() &&
                                 UsesX2OrR2 && PPCFI->usesTOCBasePtr();
-  const bool NonPCrelGEPRequired = !Subtarget->isUsingPCRelativeCalls() &&
-                                   Subtarget->isELFv2ABI() && UsesX2OrR2;
+  
 
   // Only do all that if the function uses R2 as the TOC pointer
   // in the first place. We don't need the global entry point if the
   // function uses R2 as an allocatable register.
-  if (NonPCrelGEPRequired || PCrelGEPRequired) {
+  if (const bool NonPCrelGEPRequired = !Subtarget->isUsingPCRelativeCalls() &&
+                                   Subtarget->isELFv2ABI() && UsesX2OrR2; NonPCrelGEPRequired || PCrelGEPRequired) {
     // Note: The logic here must be synchronized with the code in the
     // branch-selection pass which sets the offset of the first block in the
     // function. This matters because it affects the alignment.
@@ -2291,8 +2291,8 @@ uint16_t PPCAIXAsmPrinter::getNumberOfVRSaved() {
   // Calculate the number of VRs be saved.
   // Vector registers 20 through 31 are marked as reserved and cannot be used
   // in the default ABI.
-  const PPCSubtarget &Subtarget = MF->getSubtarget<PPCSubtarget>();
-  if (Subtarget.isAIXABI() && Subtarget.hasAltivec() &&
+  
+  if (const PPCSubtarget &Subtarget = MF->getSubtarget<PPCSubtarget>(); Subtarget.isAIXABI() && Subtarget.hasAltivec() &&
       TM.getAIXExtendedAltivecABI()) {
     const MachineRegisterInfo &MRI = MF->getRegInfo();
     for (unsigned Reg = PPC::V20; Reg <= PPC::V31; ++Reg)
@@ -3196,8 +3196,8 @@ void PPCAIXAsmPrinter::emitInstruction(const MachineInstr *MI) {
   case PPC::BL:
   case PPC::BL8_NOP:
   case PPC::BL_NOP: {
-    const MachineOperand &MO = MI->getOperand(0);
-    if (MO.isSymbol()) {
+    
+    if (const MachineOperand &MO = MI->getOperand(0); MO.isSymbol()) {
       auto *S = static_cast<MCSymbolXCOFF *>(
           OutContext.getOrCreateSymbol(MO.getSymbolName()));
       ExtSymSDNodeSymbols.insert(S);

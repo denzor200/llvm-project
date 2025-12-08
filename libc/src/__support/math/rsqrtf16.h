@@ -31,10 +31,10 @@ LIBC_INLINE static constexpr float16 rsqrtf16(float16 x) {
   uint16_t x_u = xbits.uintval();
   uint16_t x_abs = x_u & 0x7fff;
 
-  constexpr uint16_t INF_BIT = FPBits::inf().uintval();
+  
 
   // x is 0, inf/nan, or negative.
-  if (LIBC_UNLIKELY(x_u == 0 || x_u >= INF_BIT)) {
+  if (constexpr uint16_t INF_BIT = FPBits::inf().uintval(); LIBC_UNLIKELY(x_u == 0 || x_u >= INF_BIT)) {
     // x is NaN
     if (x_abs > INF_BIT) {
       if (xbits.is_signaling_nan()) {

@@ -194,10 +194,10 @@ bool RISCVPreAllocZilsdOpt::canFormLdSdPair(MachineInstr *MI0,
 
   // Get offsets and check they are consecutive
   int Offset0 = getMemoryOpOffset(*MI0).second;
-  int Offset1 = getMemoryOpOffset(*MI1).second;
+  
 
   // Offsets must be 4 bytes apart
-  if (Offset1 - Offset0 != 4)
+  if (int Offset1 = getMemoryOpOffset(*MI1).second; Offset1 - Offset0 != 4)
     return false;
 
   // We need to guarantee the alignment(base + offset) is legal.
@@ -390,8 +390,8 @@ bool RISCVPreAllocZilsdOpt::rescheduleOps(
 }
 
 bool RISCVPreAllocZilsdOpt::isMemoryOp(const MachineInstr &MI) {
-  unsigned Opcode = MI.getOpcode();
-  if (Opcode != RISCV::LW && Opcode != RISCV::SW)
+  
+  if (unsigned Opcode = MI.getOpcode(); Opcode != RISCV::LW && Opcode != RISCV::SW)
     return false;
 
   if (!MI.getOperand(1).isReg())
@@ -500,16 +500,16 @@ bool RISCVPreAllocZilsdOpt::rescheduleLoadStoreInstrs(MachineBasicBlock *MBB) {
 
     // Process the current window - reschedule loads
     for (auto Base : LdBases) {
-      SmallVectorImpl<MachineInstr *> &Lds = Base2LdsMap[Base];
-      if (Lds.size() > 1) {
+      
+      if (SmallVectorImpl<MachineInstr *> &Lds = Base2LdsMap[Base]; Lds.size() > 1) {
         Modified |= rescheduleOps(MBB, Lds, Base, true, MI2LocMap);
       }
     }
 
     // Process the current window - reschedule stores
     for (auto Base : StBases) {
-      SmallVectorImpl<MachineInstr *> &Sts = Base2StsMap[Base];
-      if (Sts.size() > 1) {
+      
+      if (SmallVectorImpl<MachineInstr *> &Sts = Base2StsMap[Base]; Sts.size() > 1) {
         Modified |= rescheduleOps(MBB, Sts, Base, false, MI2LocMap);
       }
     }

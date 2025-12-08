@@ -202,8 +202,8 @@ void FastISel::flushLocalValueMap() {
         continue;
       if (FuncInfo.RegsWithFixups.count(DefReg))
         continue;
-      bool UsedByPHI = isRegUsedByPhiNodes(DefReg, FuncInfo);
-      if (!UsedByPHI && MRI.use_nodbg_empty(DefReg)) {
+      
+      if (bool UsedByPHI = isRegUsedByPhiNodes(DefReg, FuncInfo); !UsedByPHI && MRI.use_nodbg_empty(DefReg)) {
         if (EmitStartPt == &LocalMI)
           EmitStartPt = EmitStartPt->getPrevNode();
         LLVM_DEBUG(dbgs() << "removing dead local value materialization"
@@ -366,8 +366,8 @@ void FastISel::updateValueMap(const Value *I, Register Reg, unsigned NumRegs) {
     return;
   }
 
-  Register &AssignedReg = FuncInfo.ValueMap[I];
-  if (!AssignedReg)
+  
+  if (Register &AssignedReg = FuncInfo.ValueMap[I]; !AssignedReg)
     // Use the new register.
     AssignedReg = Reg;
   else if (Reg != AssignedReg) {
@@ -547,10 +547,10 @@ bool FastISel::selectGetElementPtr(const User *I) {
 
   for (gep_type_iterator GTI = gep_type_begin(I), E = gep_type_end(I);
        GTI != E; ++GTI) {
-    const Value *Idx = GTI.getOperand();
-    if (StructType *StTy = GTI.getStructTypeOrNull()) {
-      uint64_t Field = cast<ConstantInt>(Idx)->getZExtValue();
-      if (Field) {
+    
+    if (const Value *Idx = GTI.getOperand(); StructType *StTy = GTI.getStructTypeOrNull()) {
+      
+      if (uint64_t Field = cast<ConstantInt>(Idx)->getZExtValue(); Field) {
         // N = N + Offset
         TotalOffs += DL.getStructLayout(StTy)->getElementOffset(Field);
         if (TotalOffs >= MaxOffs) {
@@ -898,8 +898,8 @@ bool FastISel::selectPatchpoint(const CallInst *I) {
 }
 
 bool FastISel::selectXRayCustomEvent(const CallInst *I) {
-  const auto &Triple = TM.getTargetTriple();
-  if (Triple.isAArch64(64) && Triple.getArch() != Triple::x86_64)
+  
+  if (const auto &Triple = TM.getTargetTriple(); Triple.isAArch64(64) && Triple.getArch() != Triple::x86_64)
     return true; // don't do anything to this instruction.
   SmallVector<MachineOperand, 8> Ops;
   Ops.push_back(MachineOperand::CreateReg(getRegForValue(I->getArgOperand(0)),
@@ -917,8 +917,8 @@ bool FastISel::selectXRayCustomEvent(const CallInst *I) {
 }
 
 bool FastISel::selectXRayTypedEvent(const CallInst *I) {
-  const auto &Triple = TM.getTargetTriple();
-  if (Triple.isAArch64(64) && Triple.getArch() != Triple::x86_64)
+  
+  if (const auto &Triple = TM.getTargetTriple(); Triple.isAArch64(64) && Triple.getArch() != Triple::x86_64)
     return true; // don't do anything to this instruction.
   SmallVector<MachineOperand, 8> Ops;
   Ops.push_back(MachineOperand::CreateReg(getRegForValue(I->getArgOperand(0)),
@@ -997,11 +997,11 @@ bool FastISel::lowerCallTo(CallLoweringInfo &CLI) {
   SmallVector<ISD::OutputArg, 4> Outs;
   GetReturnInfo(CLI.CallConv, CLI.RetTy, getReturnAttrs(CLI), Outs, TLI, DL);
 
-  bool CanLowerReturn = TLI.CanLowerReturn(
-      CLI.CallConv, *FuncInfo.MF, CLI.IsVarArg, Outs, CLI.RetTy->getContext(), CLI.RetTy);
+  
 
   // FIXME: sret demotion isn't supported yet - bail out.
-  if (!CanLowerReturn)
+  if (bool CanLowerReturn = TLI.CanLowerReturn(
+      CLI.CallConv, *FuncInfo.MF, CLI.IsVarArg, Outs, CLI.RetTy->getContext(), CLI.RetTy); !CanLowerReturn)
     return false;
 
   for (EVT VT : RetTys) {
@@ -1518,8 +1518,8 @@ bool FastISel::selectFreeze(const User *I) {
 // SavedLastLocalValue to the current function insert point.
 void FastISel::removeDeadLocalValueCode(MachineInstr *SavedLastLocalValue)
 {
-  MachineInstr *CurLastLocalValue = getLastLocalValue();
-  if (CurLastLocalValue != SavedLastLocalValue) {
+  
+  if (MachineInstr *CurLastLocalValue = getLastLocalValue(); CurLastLocalValue != SavedLastLocalValue) {
     // Find the first local value instruction to be deleted.
     // This is the instruction after SavedLastLocalValue if it is non-NULL.
     // Otherwise it's the first instruction in the block.
@@ -1620,8 +1620,8 @@ bool FastISel::selectInstruction(const Instruction *I) {
 void FastISel::fastEmitBranch(MachineBasicBlock *MSucc,
                               const DebugLoc &DbgLoc) {
   const BasicBlock *BB = FuncInfo.MBB->getBasicBlock();
-  bool BlockHasMultipleInstrs = &BB->front() != &BB->back();
-  if (BlockHasMultipleInstrs && FuncInfo.MBB->isLayoutSuccessor(MSucc)) {
+  
+  if (bool BlockHasMultipleInstrs = &BB->front() != &BB->back(); BlockHasMultipleInstrs && FuncInfo.MBB->isLayoutSuccessor(MSucc)) {
     // For more accurate line information if this is the only non-debug
     // instruction in the block then emit it, otherwise we have the
     // unconditional fall-through case, which needs no instructions.
@@ -1786,9 +1786,9 @@ bool FastISel::selectOperator(const User *I, unsigned Opcode) {
     return selectGetElementPtr(I);
 
   case Instruction::Br: {
-    const BranchInst *BI = cast<BranchInst>(I);
+    
 
-    if (BI->isUnconditional()) {
+    if (const BranchInst *BI = cast<BranchInst>(I); BI->isUnconditional()) {
       const BasicBlock *LLVMSucc = BI->getSuccessor(0);
       MachineBasicBlock *MSucc = FuncInfo.getMBB(LLVMSucc);
       fastEmitBranch(MSucc, BI->getDebugLoc());
@@ -1801,8 +1801,8 @@ bool FastISel::selectOperator(const User *I, unsigned Opcode) {
   }
 
   case Instruction::Unreachable: {
-    auto UI = cast<UnreachableInst>(I);
-    if (!UI->shouldLowerToTrap(TM.Options.TrapUnreachable,
+    
+    if (auto UI = cast<UnreachableInst>(I); !UI->shouldLowerToTrap(TM.Options.TrapUnreachable,
                                TM.Options.NoTrapAfterNoreturn))
       return true;
 
@@ -1965,8 +1965,8 @@ Register FastISel::createResultReg(const TargetRegisterClass *RC) {
 Register FastISel::constrainOperandRegClass(const MCInstrDesc &II, Register Op,
                                             unsigned OpNum) {
   if (Op.isVirtual()) {
-    const TargetRegisterClass *RegClass = TII.getRegClass(II, OpNum);
-    if (!MRI.constrainRegClass(Op, RegClass)) {
+    
+    if (const TargetRegisterClass *RegClass = TII.getRegClass(II, OpNum); !MRI.constrainRegClass(Op, RegClass)) {
       // If it's not legal to COPY between the register classes, something
       // has gone very wrong before we got here.
       Register NewOp = createResultReg(RegClass);
@@ -2156,9 +2156,9 @@ Register FastISel::fastEmitInst_rri(unsigned MachineInstOpcode,
 Register FastISel::fastEmitInst_i(unsigned MachineInstOpcode,
                                   const TargetRegisterClass *RC, uint64_t Imm) {
   Register ResultReg = createResultReg(RC);
-  const MCInstrDesc &II = TII.get(MachineInstOpcode);
+  
 
-  if (II.getNumDefs() >= 1)
+  if (const MCInstrDesc &II = TII.get(MachineInstOpcode); II.getNumDefs() >= 1)
     BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, MIMD, II, ResultReg)
         .addImm(Imm);
   else {

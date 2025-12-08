@@ -607,8 +607,8 @@ static void findMachOIndirectCovFunctions(const object::MachOObjectFile &O,
       for (unsigned J = 0; J < Seg.nsects; ++J) {
         MachO::section_64 Sec = O.getSection64(Load, J);
 
-        uint32_t SectionType = Sec.flags & MachO::SECTION_TYPE;
-        if (SectionType == MachO::S_SYMBOL_STUBS) {
+        
+        if (uint32_t SectionType = Sec.flags & MachO::SECTION_TYPE; SectionType == MachO::S_SYMBOL_STUBS) {
           uint32_t Stride = Sec.reserved2;
           uint32_t Cnt = Sec.size / Stride;
           uint32_t N = Sec.reserved1;
@@ -652,9 +652,9 @@ findSanitizerCovFunctions(const object::ObjectFile &O) {
     Expected<uint32_t> FlagsOrErr = Symbol.getFlags();
     // TODO: Test this error.
     failIfError(FlagsOrErr);
-    uint32_t Flags = FlagsOrErr.get();
+    
 
-    if (!(Flags & object::BasicSymbolRef::SF_Undefined) &&
+    if (uint32_t Flags = FlagsOrErr.get(); !(Flags & object::BasicSymbolRef::SF_Undefined) &&
         isCoveragePointSymbol(Name)) {
       Result.insert(Address);
     }
@@ -742,8 +742,8 @@ static void getObjectCoveragePoints(const object::ObjectFile &O,
     if (Section.isVirtual() || !Section.isText()) // llvm-objdump does the same.
       continue;
     uint64_t SectionAddr = Section.getAddress();
-    uint64_t SectSize = Section.getSize();
-    if (!SectSize)
+    
+    if (uint64_t SectSize = Section.getSize(); !SectSize)
       continue;
 
     Expected<StringRef> BytesStr = Section.getContents();
@@ -757,8 +757,8 @@ static void getObjectCoveragePoints(const object::ObjectFile &O,
          Index += Size) {
       MCInst Inst;
       ArrayRef<uint8_t> ThisBytes = Bytes.slice(Index);
-      uint64_t ThisAddr = SectionAddr + Index;
-      if (!DisAsm->getInstruction(Inst, Size, ThisBytes, ThisAddr, nulls())) {
+      
+      if (uint64_t ThisAddr = SectionAddr + Index; !DisAsm->getInstruction(Inst, Size, ThisBytes, ThisAddr, nulls())) {
         if (Size == 0)
           Size = std::min<uint64_t>(
               ThisBytes.size(),
@@ -802,8 +802,8 @@ visitObjectFiles(const std::string &FileName,
   if (!BinaryOrErr)
     failIfError(BinaryOrErr);
 
-  object::Binary &Binary = *BinaryOrErr.get().getBinary();
-  if (object::Archive *A = dyn_cast<object::Archive>(&Binary))
+  
+  if (object::Binary &Binary = *BinaryOrErr.get().getBinary(); object::Archive *A = dyn_cast<object::Archive>(&Binary))
     visitObjectFiles(*A, Fn);
   else if (object::ObjectFile *O = dyn_cast<object::ObjectFile>(&Binary))
     Fn(*O);
@@ -1087,8 +1087,8 @@ readSymbolizeAndMergeCmdArguments(std::vector<std::string> FileNames) {
     std::map<std::string, std::vector<std::string>> CoverageByObjFile;
     for (const auto &FileName : CovFiles) {
       auto ShortFileName = llvm::sys::path::filename(FileName);
-      auto Ok = SancovFileRegex.match(ShortFileName, &Components);
-      if (!Ok) {
+      
+      if (auto Ok = SancovFileRegex.match(ShortFileName, &Components); !Ok) {
         fail("Can't match coverage file name against "
              "<module_name>.<pid>.sancov pattern: " +
              FileName);

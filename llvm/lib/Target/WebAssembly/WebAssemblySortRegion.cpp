@@ -61,8 +61,8 @@ MachineBasicBlock *SortRegionInfo::getBottom(const MachineLoop *ML) {
     // WebAssemblyException contained in this loop, and computes the most bottom
     // BB of them all.
     if (MBB->isEHPad()) {
-      MachineBasicBlock *ExBottom = getBottom(WEI.getExceptionFor(MBB));
-      if (ExBottom->getNumber() > Bottom->getNumber())
+      
+      if (MachineBasicBlock *ExBottom = getBottom(WEI.getExceptionFor(MBB)); ExBottom->getNumber() > Bottom->getNumber())
         Bottom = ExBottom;
     }
   }

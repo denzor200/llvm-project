@@ -709,7 +709,9 @@ static std::optional<uint64_t> gepToByteOffset(const DataLayout &dataLayout,
   uint64_t offset = indices[0] * dataLayout.getTypeSize(currentType);
 
   for (uint64_t index : llvm::drop_begin(indices)) {
-    bool shouldCancel =
+    
+
+    if (bool shouldCancel =
         TypeSwitch<Type, bool>(currentType)
             .Case([&](LLVM::LLVMArrayType arrayType) {
               offset +=
@@ -738,9 +740,7 @@ static std::optional<uint64_t> gepToByteOffset(const DataLayout &dataLayout,
               LDBG() << "[sroa] Unsupported type for offset computations"
                      << type;
               return true;
-            });
-
-    if (shouldCancel)
+            }); shouldCancel)
       return std::nullopt;
   }
 
@@ -1106,13 +1106,13 @@ memsetCanUsesBeRemoved(MemsetIntr op, const MemorySlot &slot,
                        const SmallPtrSetImpl<OpOperand *> &blockingUses,
                        SmallVectorImpl<OpOperand *> &newBlockingUses,
                        const DataLayout &dataLayout) {
-  bool canConvertType =
+  
+  if (bool canConvertType =
       TypeSwitch<Type, bool>(slot.elemType)
           .Case<IntegerType, FloatType>([](auto type) {
             return type.getWidth() % 8 == 0 && type.getWidth() > 0;
           })
-          .Default(false);
-  if (!canConvertType)
+          .Default(false); !canConvertType)
     return false;
 
   if (op.getIsVolatile())
@@ -1605,8 +1605,8 @@ Type LLVM::LLVMStructType::getTypeAtIndex(Attribute index) const {
 
 std::optional<DenseMap<Attribute, Type>>
 LLVM::LLVMArrayType::getSubelementIndexMap() const {
-  constexpr size_t maxArraySizeForDestructuring = 16;
-  if (getNumElements() > maxArraySizeForDestructuring)
+  
+  if (constexpr size_t maxArraySizeForDestructuring = 16; getNumElements() > maxArraySizeForDestructuring)
     return {};
   int32_t numElements = getNumElements();
 
@@ -1621,8 +1621,8 @@ Type LLVM::LLVMArrayType::getTypeAtIndex(Attribute index) const {
   auto indexAttr = llvm::dyn_cast<IntegerAttr>(index);
   if (!indexAttr || !indexAttr.getType().isInteger(32))
     return {};
-  int32_t indexInt = indexAttr.getInt();
-  if (indexInt < 0 || getNumElements() <= static_cast<uint32_t>(indexInt))
+  
+  if (int32_t indexInt = indexAttr.getInt(); indexInt < 0 || getNumElements() <= static_cast<uint32_t>(indexInt))
     return {};
   return getElementType();
 }

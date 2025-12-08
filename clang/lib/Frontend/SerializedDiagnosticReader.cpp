@@ -193,9 +193,9 @@ SerializedDiagnosticReader::readMetaBlock(llvm::BitstreamCursor &Stream) {
     Expected<unsigned> MaybeRecordID = Stream.readRecord(BlockOrCode, Record);
     if (!MaybeRecordID)
       return errorToErrorCode(MaybeRecordID.takeError());
-    unsigned RecordID = MaybeRecordID.get();
+    
 
-    if (RecordID == RECORD_VERSION) {
+    if (unsigned RecordID = MaybeRecordID.get(); RecordID == RECORD_VERSION) {
       if (Record.size() < 1)
         return SDError::MissingVersion;
       if (Record[0] > VersionNumber)

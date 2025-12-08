@@ -197,10 +197,10 @@ void VforkChecker::checkBind(SVal L, SVal V, const Stmt *S, bool AtDeclInit,
 
   const MemRegion *VforkLhs =
     static_cast<const MemRegion *>(State->get<VforkResultRegion>());
-  const MemRegion *MR = L.getAsRegion();
+  
 
   // Child is allowed to modify only vfork's lhs.
-  if (!MR || MR == VforkLhs)
+  if (const MemRegion *MR = L.getAsRegion(); !MR || MR == VforkLhs)
     return;
 
   reportBug("This assignment", C);

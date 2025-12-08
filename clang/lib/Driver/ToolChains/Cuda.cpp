@@ -209,8 +209,8 @@ CudaInstallationDetector::CudaInstallationDetector(
 
     if (!(FS.exists(IncludePath) && FS.exists(BinPath)))
       continue;
-    bool CheckLibDevice = (!NoCudaLib || Candidate.StrictChecking);
-    if (CheckLibDevice && !FS.exists(LibDevicePath))
+    
+    if (bool CheckLibDevice = (!NoCudaLib || Candidate.StrictChecking); CheckLibDevice && !FS.exists(LibDevicePath))
       continue;
 
     Version = CudaVersion::UNKNOWN;
@@ -364,13 +364,13 @@ enum DeviceDebugInfoLevel {
 /// supported DWARF2 standard).
 static DeviceDebugInfoLevel mustEmitDebugInfo(const ArgList &Args) {
   const Arg *A = Args.getLastArg(options::OPT_O_Group);
-  bool IsDebugEnabled = !A || A->getOption().matches(options::OPT_O0) ||
+  
+  if (bool IsDebugEnabled = !A || A->getOption().matches(options::OPT_O0) ||
                         Args.hasFlag(options::OPT_cuda_noopt_device_debug,
                                      options::OPT_no_cuda_noopt_device_debug,
-                                     /*Default=*/false);
-  if (const Arg *A = Args.getLastArg(options::OPT_g_Group)) {
-    const Option &Opt = A->getOption();
-    if (Opt.matches(options::OPT_gN_Group)) {
+                                     /*Default=*/false); const Arg *A = Args.getLastArg(options::OPT_g_Group)) {
+    
+    if (const Option &Opt = A->getOption(); Opt.matches(options::OPT_gN_Group)) {
       if (Opt.matches(options::OPT_g0) || Opt.matches(options::OPT_ggdb0))
         return DisableDebugInfo;
       if (Opt.matches(options::OPT_gline_directives_only))

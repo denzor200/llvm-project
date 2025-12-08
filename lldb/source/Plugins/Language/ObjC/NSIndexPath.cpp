@@ -235,8 +235,8 @@ protected:
       }
 
       std::pair<uint64_t, bool> _indexAtPositionForInlinePayload(size_t pos) {
-        static const uint64_t PACKED_INDEX_MASK = ((1 << 13) - 1);
-        if (m_ptr_size == 8) {
+        
+        if (static const uint64_t PACKED_INDEX_MASK = ((1 << 13) - 1); m_ptr_size == 8) {
           switch (pos) {
           case 3:
           case 2:

@@ -201,9 +201,9 @@ size_t ObjectContainerUniversalMachO::GetModuleSpecifications(
     std::vector<FatArch> fat_archs;
     if (ParseHeader(data, header, fat_archs)) {
       for (const FatArch &fat_arch : fat_archs) {
-        const lldb::offset_t slice_file_offset =
-            fat_arch.GetOffset() + file_offset;
-        if (fat_arch.GetOffset() < file_size && file_size > slice_file_offset) {
+        
+        if (const lldb::offset_t slice_file_offset =
+            fat_arch.GetOffset() + file_offset; fat_arch.GetOffset() < file_size && file_size > slice_file_offset) {
           ObjectFile::GetModuleSpecifications(
               file, slice_file_offset, file_size - slice_file_offset, specs);
         }

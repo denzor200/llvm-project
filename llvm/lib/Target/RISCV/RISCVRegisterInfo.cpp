@@ -92,11 +92,11 @@ RISCVRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
                                   : CSR_Interrupt_SaveList;
   }
 
-  bool HasVectorCSR =
-      MF->getFunction().getCallingConv() == CallingConv::RISCV_VectorCall &&
-      Subtarget.hasVInstructions();
+  
 
-  switch (Subtarget.getTargetABI()) {
+  switch (bool HasVectorCSR =
+      MF->getFunction().getCallingConv() == CallingConv::RISCV_VectorCall &&
+      Subtarget.hasVInstructions(); Subtarget.getTargetABI()) {
   default:
     llvm_unreachable("Unrecognized ABI");
   case RISCVABI::ABI_ILP32E:
@@ -318,12 +318,12 @@ void RISCVRegisterInfo::adjustReg(MachineBasicBlock &MBB,
     bool IsCompressLUI =
         ((Val & 0xFFF) == 0) && (Hi20 != 0) &&
         (isUInt<5>(Hi20) || (Hi20 >= 0xfffe0 && Hi20 <= 0xfffff));
-    bool IsCompressAddSub =
+    
+
+    if (bool IsCompressAddSub =
         (SrcReg == DestReg) &&
         ((Val > 0 && RISCV::GPRNoX0RegClass.contains(SrcReg)) ||
-         (Val < 0 && RISCV::GPRCRegClass.contains(SrcReg)));
-
-    if (!(IsCompressLUI && IsCompressAddSub)) {
+         (Val < 0 && RISCV::GPRCRegClass.contains(SrcReg))); !(IsCompressLUI && IsCompressAddSub)) {
       BuildMI(MBB, II, DL, TII->get(RISCV::QC_E_ADDI), DestReg)
           .addReg(SrcReg, getKillRegState(KillSrcReg))
           .addImm(Val)
@@ -529,9 +529,9 @@ bool RISCVRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   if (!IsRVVSpill) {
     int64_t Val = Offset.getFixed();
     int64_t Lo12 = SignExtend64<12>(Val);
-    unsigned Opc = MI.getOpcode();
+    
 
-    if (Opc == RISCV::ADDI && !isInt<12>(Val)) {
+    if (unsigned Opc = MI.getOpcode(); Opc == RISCV::ADDI && !isInt<12>(Val)) {
       // We chose to emit the canonical immediate sequence rather than folding
       // the offset into the using add under the theory that doing so doesn't
       // save dynamic instruction count and some target may fuse the canonical
@@ -640,8 +640,8 @@ bool RISCVRegisterInfo::needsFrameBaseReg(MachineInstr *MI,
 
   // For RISC-V, The machine instructions that include a FrameIndex operand
   // are load/store, ADDI instructions.
-  unsigned MIFrm = RISCVII::getFormat(MI->getDesc().TSFlags);
-  if (MIFrm != RISCVII::InstFormatI && MIFrm != RISCVII::InstFormatS)
+  
+  if (unsigned MIFrm = RISCVII::getFormat(MI->getDesc().TSFlags); MIFrm != RISCVII::InstFormatI && MIFrm != RISCVII::InstFormatS)
     return false;
   // We only generate virtual base registers for loads and stores, so
   // return false for everything else.
@@ -827,8 +827,8 @@ void RISCVRegisterInfo::getOffsetOpcodes(const StackOffset &Offset,
   DIExpression::appendOffset(Ops, Offset.getFixed());
 
   unsigned VLENB = getDwarfRegNum(RISCV::VLENB, true);
-  int64_t VLENBSized = Offset.getScalable() / 8;
-  if (VLENBSized > 0) {
+  
+  if (int64_t VLENBSized = Offset.getScalable() / 8; VLENBSized > 0) {
     Ops.push_back(dwarf::DW_OP_constu);
     Ops.push_back(VLENBSized);
     Ops.append({dwarf::DW_OP_bregx, VLENB, 0ULL});

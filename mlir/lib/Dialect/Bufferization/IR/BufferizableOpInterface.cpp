@@ -40,8 +40,8 @@ using namespace bufferization;
 
 static bool isRepetitiveRegion(Region *region,
                                const BufferizationOptions &options) {
-  Operation *op = region->getParentOp();
-  if (auto bufferizableOp = options.dynCastBufferizableOp(op))
+  
+  if (Operation *op = region->getParentOp(); auto bufferizableOp = options.dynCastBufferizableOp(op))
     if (bufferizableOp.isRepetitiveRegion(region->getRegionNumber()))
       return true;
   return false;
@@ -316,8 +316,8 @@ bool OpFilter::isOpAllowed(Operation *op) const {
   // All other ops: Allow/disallow according to filter.
   bool isAllowed = !hasAllowRule();
   for (const Entry &entry : entries) {
-    bool filterResult = entry.fn(op);
-    switch (entry.type) {
+    
+    switch (bool filterResult = entry.fn(op); entry.type) {
     case Entry::ALLOW:
       isAllowed |= filterResult;
       break;
@@ -371,8 +371,8 @@ BufferizationOptions::BufferizationOptions()
 bool BufferizationOptions::isOpAllowed(Operation *op) const {
   // Special case: If function boundary bufferization is deactivated, do not
   // allow ops that belong to the `func` dialect.
-  bool isFuncBoundaryOp = isa_and_nonnull<func::FuncDialect>(op->getDialect());
-  if (!bufferizeFunctionBoundaries && isFuncBoundaryOp)
+  
+  if (bool isFuncBoundaryOp = isa_and_nonnull<func::FuncDialect>(op->getDialect()); !bufferizeFunctionBoundaries && isFuncBoundaryOp)
     return false;
 
   return opFilter.isOpAllowed(op);
@@ -920,8 +920,8 @@ bool bufferization::detail::defaultResultBufferizesToMemoryWrite(
   // * conflictingWrite = %1
   //
   auto isMemoryWriteInsideOp = [&](Value v) {
-    Operation *op = getOwnerOfValue(v);
-    if (!opResult.getDefiningOp()->isAncestor(op))
+    
+    if (Operation *op = getOwnerOfValue(v); !opResult.getDefiningOp()->isAncestor(op))
       return false;
     return state.bufferizesToMemoryWrite(v);
   };
@@ -1040,14 +1040,14 @@ bufferization::detail::unknownGetAliasingValues(OpOperand &opOperand) {
 
 bool bufferization::detail::defaultHasTensorSemantics(Operation *op) {
   auto isaTensor = [](Type t) { return isa<TensorLikeType>(t); };
-  bool hasTensorBlockArgument = any_of(op->getRegions(), [&](Region &r) {
+  
+  if (bool hasTensorBlockArgument = any_of(op->getRegions(), [&](Region &r) {
     return any_of(r.getBlocks(), [&](Block &b) {
       return any_of(b.getArguments(), [&](BlockArgument bbArg) {
         return isaTensor(bbArg.getType());
       });
     });
-  });
-  if (hasTensorBlockArgument)
+  }); hasTensorBlockArgument)
     return true;
 
   if (any_of(op->getResultTypes(), isaTensor))

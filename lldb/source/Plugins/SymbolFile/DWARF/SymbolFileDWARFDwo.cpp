@@ -89,9 +89,9 @@ uint64_t SymbolFileDWARFDwo::GetDebugInfoSize(bool load_all_debug_info) {
   // Directly get debug info from current dwo object file's section list
   // instead of asking SymbolFileCommon::GetDebugInfo() which parses from
   // owning module which is wrong.
-  SectionList *section_list =
-      m_objfile_sp->GetSectionList(/*update_module_section_list=*/false);
-  if (section_list)
+  
+  if (SectionList *section_list =
+      m_objfile_sp->GetSectionList(/*update_module_section_list=*/false); section_list)
     return section_list->GetDebugInfoSize();
   return 0;
 }

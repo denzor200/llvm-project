@@ -590,9 +590,9 @@ PlatformWindows::GetSoftwareBreakpointTrapOpcode(Target &target,
   ArchSpec arch = target.GetArchitecture();
   assert(arch.IsValid());
   const uint8_t *trap_opcode = nullptr;
-  size_t trap_opcode_size = 0;
+  
 
-  switch (arch.GetMachine()) {
+  switch (size_t trap_opcode_size = 0; arch.GetMachine()) {
   case llvm::Triple::aarch64: {
     static const uint8_t g_aarch64_opcode[] = {0x00, 0x00, 0x3e, 0xd4}; // brk #0xf000
     trap_opcode = g_aarch64_opcode;

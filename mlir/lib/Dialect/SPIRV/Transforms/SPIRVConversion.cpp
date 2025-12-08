@@ -184,8 +184,8 @@ getTypeNumBytes(const SPIRVConversionOptions &options, Type type) {
 
   // Handle 8-bit floats.
   if (options.emulateUnsupportedFloatTypes && isa<FloatType>(type)) {
-    auto bitWidth = type.getIntOrFloatBitWidth();
-    if (bitWidth == 8)
+    
+    if (auto bitWidth = type.getIntOrFloatBitWidth(); bitWidth == 8)
       return bitWidth / 8;
     return std::nullopt;
   }
@@ -946,11 +946,11 @@ static spirv::GlobalVariableOp getPushConstantVariable(Block &body,
     // block statically used per shader entry point." So we should always reuse
     // the existing one.
     if (ptrType.getStorageClass() == spirv::StorageClass::PushConstant) {
-      auto numElements = cast<spirv::ArrayType>(
+      
+      if (auto numElements = cast<spirv::ArrayType>(
                              cast<spirv::StructType>(ptrType.getPointeeType())
                                  .getElementType(0))
-                             .getNumElements();
-      if (numElements == elementCount)
+                             .getNumElements(); numElements == elementCount)
         return varOp;
     }
   }

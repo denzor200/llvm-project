@@ -375,9 +375,9 @@ bool PlaceSafepointsPass::runImpl(Function &F, const TargetLibraryInfo &TLI) {
 
 PreservedAnalyses PlaceSafepointsPass::run(Function &F,
                                            FunctionAnalysisManager &AM) {
-  auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
+  
 
-  if (!runImpl(F, TLI))
+  if (auto &TLI = AM.getResult<TargetLibraryAnalysis>(F); !runImpl(F, TLI))
     return PreservedAnalyses::all();
 
   // TODO: can we preserve more?

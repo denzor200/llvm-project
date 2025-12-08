@@ -263,8 +263,8 @@ bool llvm::pruneCache(StringRef Path, CachePruningPolicy Policy,
   // files.size() is greater the number of inputs  by one. However, a timestamp
   // file is created and stored in the cache directory if --thinlto-cache-policy
   // option is used. Therefore, files.size() is used as ActualNums.
-  const size_t ActualNums = Files.size();
-  if (Policy.MaxSizeFiles && ActualNums > Policy.MaxSizeFiles)
+  
+  if (const size_t ActualNums = Files.size(); Policy.MaxSizeFiles && ActualNums > Policy.MaxSizeFiles)
     WithColor::warning()
         << "ThinLTO cache pruning happens since the number of created files ("
         << ActualNums << ") exceeds the maximum number of files ("

@@ -104,8 +104,8 @@ PreservedAnalyses ForceFunctionAttrsPass::run(Module &M,
       auto SplitPair = It->split(',');
       if (SplitPair.second.empty())
         continue;
-      Function *Func = M.getFunction(SplitPair.first);
-      if (Func) {
+      
+      if (Function *Func = M.getFunction(SplitPair.first); Func) {
         if (Func->isDeclaration())
           continue;
         auto SecondSplitPair = SplitPair.second.split('=');

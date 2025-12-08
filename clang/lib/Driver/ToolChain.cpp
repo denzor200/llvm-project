@@ -196,9 +196,9 @@ static void getAArch64MultilibFlags(const Driver &D,
     Result.push_back(llvm::join(MArch, "+"));
   }
 
-  const Arg *BranchProtectionArg =
-      Args.getLastArgNoClaim(options::OPT_mbranch_protection_EQ);
-  if (BranchProtectionArg) {
+  
+  if (const Arg *BranchProtectionArg =
+      Args.getLastArgNoClaim(options::OPT_mbranch_protection_EQ); BranchProtectionArg) {
     Result.push_back(BranchProtectionArg->getAsString(Args));
   }
 
@@ -291,9 +291,9 @@ static void getARMMultilibFlags(const Driver &D, const llvm::Triple &Triple,
   else
     Result.push_back("-fno-rwpi");
 
-  const Arg *BranchProtectionArg =
-      Args.getLastArgNoClaim(options::OPT_mbranch_protection_EQ);
-  if (BranchProtectionArg) {
+  
+  if (const Arg *BranchProtectionArg =
+      Args.getLastArgNoClaim(options::OPT_mbranch_protection_EQ); BranchProtectionArg) {
     Result.push_back(BranchProtectionArg->getAsString(Args));
   }
 
@@ -1131,8 +1131,8 @@ std::string ToolChain::GetLinkerPath(bool *LinkerIsLLD) const {
   // If we're passed -fuse-ld= with no argument, or with the argument ld,
   // then use whatever the default system linker is.
   if (UseLinker.empty() || UseLinker == "ld") {
-    const char *DefaultLinker = getDefaultLinker();
-    if (llvm::sys::path::is_absolute(DefaultLinker))
+    
+    if (const char *DefaultLinker = getDefaultLinker(); llvm::sys::path::is_absolute(DefaultLinker))
       return std::string(DefaultLinker);
     else
       return GetProgramPath(DefaultLinker);

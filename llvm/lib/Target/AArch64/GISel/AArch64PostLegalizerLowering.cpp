@@ -80,8 +80,8 @@ struct ShuffleVectorPseudo {
 bool matchFConstantToConstant(MachineInstr &MI, MachineRegisterInfo &MRI) {
   assert(MI.getOpcode() == TargetOpcode::G_FCONSTANT);
   Register DstReg = MI.getOperand(0).getReg();
-  const unsigned DstSize = MRI.getType(DstReg).getSizeInBits();
-  if (DstSize != 16 && DstSize != 32 && DstSize != 64)
+  
+  if (const unsigned DstSize = MRI.getType(DstReg).getSizeInBits(); DstSize != 16 && DstSize != 32 && DstSize != 64)
     return false;
 
   // When we're storing a value, it doesn't matter what register bank it's on.
@@ -217,8 +217,8 @@ bool matchTRN(MachineInstr &MI, MachineRegisterInfo &MRI,
   unsigned WhichResult;
   ArrayRef<int> ShuffleMask = MI.getOperand(3).getShuffleMask();
   Register Dst = MI.getOperand(0).getReg();
-  unsigned NumElts = MRI.getType(Dst).getNumElements();
-  if (!isTRNMask(ShuffleMask, NumElts, WhichResult))
+  
+  if (unsigned NumElts = MRI.getType(Dst).getNumElements(); !isTRNMask(ShuffleMask, NumElts, WhichResult))
     return false;
   unsigned Opc = (WhichResult == 0) ? AArch64::G_TRN1 : AArch64::G_TRN2;
   Register V1 = MI.getOperand(1).getReg();
@@ -238,8 +238,8 @@ bool matchUZP(MachineInstr &MI, MachineRegisterInfo &MRI,
   unsigned WhichResult;
   ArrayRef<int> ShuffleMask = MI.getOperand(3).getShuffleMask();
   Register Dst = MI.getOperand(0).getReg();
-  unsigned NumElts = MRI.getType(Dst).getNumElements();
-  if (!isUZPMask(ShuffleMask, NumElts, WhichResult))
+  
+  if (unsigned NumElts = MRI.getType(Dst).getNumElements(); !isUZPMask(ShuffleMask, NumElts, WhichResult))
     return false;
   unsigned Opc = (WhichResult == 0) ? AArch64::G_UZP1 : AArch64::G_UZP2;
   Register V1 = MI.getOperand(1).getReg();
@@ -255,8 +255,8 @@ bool matchZip(MachineInstr &MI, MachineRegisterInfo &MRI,
   unsigned OperandOrder;
   ArrayRef<int> ShuffleMask = MI.getOperand(3).getShuffleMask();
   Register Dst = MI.getOperand(0).getReg();
-  unsigned NumElts = MRI.getType(Dst).getNumElements();
-  if (!isZIPMask(ShuffleMask, NumElts, WhichResult, OperandOrder))
+  
+  if (unsigned NumElts = MRI.getType(Dst).getNumElements(); !isZIPMask(ShuffleMask, NumElts, WhichResult, OperandOrder))
     return false;
   unsigned Opc = (WhichResult == 0) ? AArch64::G_ZIP1 : AArch64::G_ZIP2;
   Register V1 = MI.getOperand(OperandOrder == 0 ? 1 : 2).getReg();

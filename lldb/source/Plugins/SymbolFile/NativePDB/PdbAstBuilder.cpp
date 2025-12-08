@@ -124,8 +124,8 @@ static bool IsCVarArgsFunction(llvm::ArrayRef<TypeIndex> args) {
 static bool
 AnyScopesHaveTemplateParams(llvm::ArrayRef<llvm::ms_demangle::Node *> scopes) {
   for (llvm::ms_demangle::Node *n : scopes) {
-    auto *idn = static_cast<llvm::ms_demangle::IdentifierNode *>(n);
-    if (idn->TemplateParams)
+    
+    if (auto *idn = static_cast<llvm::ms_demangle::IdentifierNode *>(n); idn->TemplateParams)
       return true;
   }
   return false;
@@ -343,8 +343,8 @@ PdbAstBuilder::CreateDeclInfoForUndecoratedName(llvm::StringRef name) {
     clang::QualType qt = GetOrCreateType(types.back());
     if (qt.isNull())
       continue;
-    clang::TagDecl *tag = qt->getAsTagDecl();
-    if (tag)
+    
+    if (clang::TagDecl *tag = qt->getAsTagDecl(); tag)
       return {clang::TagDecl::castToDeclContext(tag), std::string(uname)};
     types.pop_back();
   }
@@ -362,8 +362,8 @@ clang::DeclContext *PdbAstBuilder::GetParentDeclContext(PdbSymUid uid) {
   // that would be an infinite recursion.
   SymbolFileNativePDB *pdb = static_cast<SymbolFileNativePDB *>(
       m_clang.GetSymbolFile()->GetBackingSymbolFile());
-  PdbIndex& index = pdb->GetIndex();
-  switch (uid.kind()) {
+  
+  switch (PdbIndex& index = pdb->GetIndex(); uid.kind()) {
   case PdbSymUidKind::CompilandSym: {
     std::optional<PdbCompilandSymId> scope =
         pdb->FindSymbolScope(uid.asCompilandSym());

@@ -70,9 +70,9 @@ bool StopInfo::HasTargetRunSinceMe() {
       // by expressions.
 
       uint32_t curr_resume_id = thread_sp->GetProcess()->GetResumeID();
-      uint32_t last_user_expression_id =
-          thread_sp->GetProcess()->GetLastUserExpressionResumeID();
-      if (curr_resume_id == m_resume_id) {
+      
+      if (uint32_t last_user_expression_id =
+          thread_sp->GetProcess()->GetLastUserExpressionResumeID(); curr_resume_id == m_resume_id) {
         return false;
       } else if (curr_resume_id > last_user_expression_id) {
         return true;
@@ -115,8 +115,8 @@ public:
     if (thread_sp) {
       BreakpointSiteSP bp_site_sp = GetBreakpointSiteSP();
       if (bp_site_sp) {
-        uint32_t num_constituents = bp_site_sp->GetNumberOfConstituents();
-        if (num_constituents == 1) {
+        
+        if (uint32_t num_constituents = bp_site_sp->GetNumberOfConstituents(); num_constituents == 1) {
           BreakpointLocationSP bp_loc_sp = bp_site_sp->GetConstituentAtIndex(0);
           if (bp_loc_sp) {
             Breakpoint & bkpt = bp_loc_sp->GetBreakpoint();
@@ -198,10 +198,10 @@ public:
           if (bp_site_sp->IsInternal()) {
             size_t num_constituents = bp_site_sp->GetNumberOfConstituents();
             for (size_t idx = 0; idx < num_constituents; idx++) {
-              const char *kind = bp_site_sp->GetConstituentAtIndex(idx)
+              
+              if (const char *kind = bp_site_sp->GetConstituentAtIndex(idx)
                                      ->GetBreakpoint()
-                                     .GetBreakpointKind();
-              if (kind != nullptr) {
+                                     .GetBreakpointKind(); kind != nullptr) {
                 m_description.assign(kind);
                 return kind;
               }
@@ -219,8 +219,8 @@ public:
                     m_break_id);
             if (break_sp) {
               if (break_sp->IsInternal()) {
-                const char *kind = break_sp->GetBreakpointKind();
-                if (kind)
+                
+                if (const char *kind = break_sp->GetBreakpointKind(); kind)
                   strm.Printf("internal %s breakpoint(%d).", kind, m_break_id);
                 else
                   strm.Printf("internal breakpoint(%d).", m_break_id);
@@ -251,9 +251,9 @@ public:
   }
 
   uint32_t GetStopReasonDataCount() const override {
-    size_t num_async_locs = m_async_stopped_locs.GetSize();
+    
     // If we have async locations, they are the ones we should report:
-    if (num_async_locs > 0)
+    if (size_t num_async_locs = m_async_stopped_locs.GetSize(); num_async_locs > 0)
       return num_async_locs * 2;
 
     // Otherwise report the number of locations at this breakpoint's site.
@@ -267,8 +267,8 @@ public:
     uint32_t bp_index = idx / 2;
     BreakpointLocationSP loc_to_report_sp;
 
-    size_t num_async_locs = m_async_stopped_locs.GetSize();
-    if (num_async_locs > 0) {
+    
+    if (size_t num_async_locs = m_async_stopped_locs.GetSize(); num_async_locs > 0) {
       // GetByIndex returns an empty SP if we ask past its contents:
       loc_to_report_sp = m_async_stopped_locs.GetByIndex(bp_index);
     } else {
@@ -351,9 +351,9 @@ protected:
         // local list.  That way if one of the breakpoint actions changes the
         // site, then we won't be operating on a bad list.
         BreakpointLocationCollection site_locations;
-        size_t num_constituents = m_async_stopped_locs.GetSize();
+        
 
-        if (num_constituents == 0) {
+        if (size_t num_constituents = m_async_stopped_locs.GetSize(); num_constituents == 0) {
           m_should_stop = true;
           actually_hit_any_locations = true;  // We're going to stop, don't 
                                               // change the stop info.
@@ -423,12 +423,12 @@ protected:
             LLDB_LOGF(log, "StopInfoBreakpoint::PerformAction - Hit a "
                            "breakpoint while running an expression,"
                            " not running commands to avoid recursion.");
-            bool ignoring_breakpoints =
-                process->GetIgnoreBreakpointsInExpressions();
+            
             // Internal breakpoints should be allowed to do their job, we
             // can make sure they don't do anything that would cause recursive
             // command execution:
-            if (!m_was_all_internal) {
+            if (bool ignoring_breakpoints =
+                process->GetIgnoreBreakpointsInExpressions(); !m_was_all_internal) {
               m_should_stop = !ignoring_breakpoints;
               LLDB_LOGF(log,
                         "StopInfoBreakpoint::PerformAction - in expression, "
@@ -503,9 +503,9 @@ protected:
             if (!result.second)
               continue;
 
-            bool precondition_result =
-                bp_loc_sp->GetBreakpoint().EvaluatePrecondition(context);
-            if (!precondition_result) {
+            
+            if (bool precondition_result =
+                bp_loc_sp->GetBreakpoint().EvaluatePrecondition(context); !precondition_result) {
               actually_said_continue = true;
               continue;
             }
@@ -517,10 +517,10 @@ protected:
               actually_hit_any_locations = true;
             else {
               Status condition_error;
-              bool condition_says_stop =
-                  bp_loc_sp->ConditionSaysStop(exe_ctx, condition_error);
+              
 
-              if (!condition_error.Success()) {
+              if (bool condition_says_stop =
+                  bp_loc_sp->ConditionSaysStop(exe_ctx, condition_error); !condition_error.Success()) {
                 // If the condition fails to evaluate, we are going to stop 
                 // at it, so the location was hit.
                 actually_hit_any_locations = true;
@@ -733,8 +733,8 @@ public:
       if (process_sp && watchpoint_sp) {
         bool was_disabled = watchpoint_sp->IsDisabledDuringEphemeralMode();
         watchpoint_sp->TurnOffEphemeralMode();
-        const bool notify = false;
-        if (was_disabled) {
+        
+        if (const bool notify = false; was_disabled) {
           process_sp->DisableWatchpoint(watchpoint_sp, notify);
         } else {
           process_sp->EnableWatchpoint(watchpoint_sp, notify);
@@ -833,8 +833,8 @@ protected:
     
     bool ShouldStop(Event *event_ptr) override {
       bool should_stop = ThreadPlanStepInstruction::ShouldStop(event_ptr);
-      bool plan_done = MischiefManaged();
-      if (plan_done) {
+      
+      if (bool plan_done = MischiefManaged(); plan_done) {
         m_stop_info_sp->SetStepOverPlanComplete();
         GetThread().SetStopInfo(m_stop_info_sp);
         ResetWatchpoint();
@@ -919,9 +919,9 @@ protected:
     // stop
 
     ProcessSP process_sp = exe_ctx.GetProcessSP();
-    bool wp_triggers_after = process_sp->GetWatchpointReportedAfter();
+    
 
-    if (!wp_triggers_after) {
+    if (bool wp_triggers_after = process_sp->GetWatchpointReportedAfter(); !wp_triggers_after) {
       // We have to step over the watchpoint before we know what to do:   
       StopInfoWatchpointSP me_as_siwp_sp 
           = std::static_pointer_cast<StopInfoWatchpoint>(shared_from_this());

@@ -569,8 +569,8 @@ bool SymbolizerProcess::WriteToSymbolizer(const char *buffer, uptr length) {
   if (length == 0)
     return true;
   uptr write_len = 0;
-  bool success = WriteToFile(output_fd_, buffer, length, &write_len);
-  if (!success || write_len != length) {
+  
+  if (bool success = WriteToFile(output_fd_, buffer, length, &write_len); !success || write_len != length) {
     Report("WARNING: Can't write to symbolizer at fd %d\n", output_fd_);
     return false;
   }

@@ -348,8 +348,8 @@ struct PermNetwork {
     for (unsigned I = 0; I != Size; ++I) {
       unsigned W = 0;
       for (unsigned L = 0; L != Log; ++L) {
-        unsigned C = ctl(I, StartAt+L) == Switch;
-        if (Dir == Forward)
+        
+        if (unsigned C = ctl(I, StartAt+L) == Switch; Dir == Forward)
           W |= C << (Log-1-L);
         else
           W |= C << L;
@@ -999,8 +999,8 @@ static void splitMask(ArrayRef<int> Mask, MutableArrayRef<int> MaskL,
   unsigned VecLen = Mask.size();
   assert(MaskL.size() == VecLen && MaskR.size() == VecLen);
   for (unsigned I = 0; I != VecLen; ++I) {
-    int M = Mask[I];
-    if (M < 0) {
+    
+    if (int M = Mask[I]; M < 0) {
       MaskL[I] = MaskR[I] = -1;
     } else if (unsigned(M) < VecLen) {
       MaskL[I] = M;
@@ -1034,8 +1034,8 @@ static bool isUndef(ArrayRef<int> Mask) {
 
 static bool isIdentity(ArrayRef<int> Mask) {
   for (int I = 0, E = Mask.size(); I != E; ++I) {
-    int M = Mask[I];
-    if (M >= 0 && M != I)
+    
+    if (int M = Mask[I]; M >= 0 && M != I)
       return false;
   }
   return true;
@@ -1504,8 +1504,8 @@ OpRef HvxSelector::packp(ShuffleMask SM, OpRef Va, OpRef Vb,
 
   // If more than two halves are used, bail.
   // TODO: be more aggressive here?
-  unsigned SegCount = SegList.size();
-  if (SegCount > 2)
+  
+  if (unsigned SegCount = SegList.size(); SegCount > 2)
     return OpRef::fail();
 
   MVT HalfTy = getSingleVT(MVT::i8);
@@ -1929,8 +1929,8 @@ SmallVector<uint32_t, 8> HvxSelector::getPerfectCompletions(ShuffleMask SM,
       for (unsigned Log = 0; Log != Width; ++Log) {
         if (Impossible & (1u << Log))
           continue;
-        unsigned Expected = (I >> Log) % 2;
-        if (B != Expected)
+        
+        if (unsigned Expected = (I >> Log) % 2; B != Expected)
           Impossible |= (1u << Log);
       }
     }
@@ -1942,8 +1942,8 @@ SmallVector<uint32_t, 8> HvxSelector::getPerfectCompletions(ShuffleMask SM,
   for (unsigned BitIdx = 0; BitIdx != Width; ++BitIdx) {
     SmallVector<uint8_t> BitValues(SM.Mask.size());
     for (int i = 0, e = SM.Mask.size(); i != e; ++i) {
-      int M = SM.Mask[i];
-      if (M < 0)
+      
+      if (int M = SM.Mask[i]; M < 0)
         BitValues[i] = 0xff;
       else
         BitValues[i] = (M & (1u << BitIdx)) != 0;
@@ -2075,10 +2075,10 @@ OpRef HvxSelector::contracting(ShuffleMask SM, OpRef Va, OpRef Vb,
   // V6_vdealb4w
   // V6_vpack{e,o}{b,h}
 
-  int VecLen = SM.Mask.size();
+  
 
   // First, check for funnel shifts.
-  if (auto Dist = rotationDistance(SM, 2 * VecLen)) {
+  if (int VecLen = SM.Mask.size(); auto Dist = rotationDistance(SM, 2 * VecLen)) {
     OpRef Funnel = funnels(Va, Vb, *Dist, Results);
     if (Funnel.isValid())
       return Funnel;
@@ -2107,8 +2107,8 @@ OpRef HvxSelector::contracting(ShuffleMask SM, OpRef Va, OpRef Vb,
         Hexagon::V6_vpackoh,
     };
     for (int i = 0, e = std::size(Opcodes); i != e; ++i) {
-      auto [Size, Odd] = Packs[i];
-      if (same(SM.Mask, shuffles::mask(shuffles::vpack, HwLen, Size, Odd))) {
+      
+      if (auto [Size, Odd] = Packs[i]; same(SM.Mask, shuffles::mask(shuffles::vpack, HwLen, Size, Odd))) {
         Results.push(Opcodes[i], SingleTy, {Vb, Va});
         return OpRef::res(Results.top());
       }
@@ -2123,8 +2123,8 @@ OpRef HvxSelector::contracting(ShuffleMask SM, OpRef Va, OpRef Vb,
         Hexagon::V6_vshufoh,
     };
     for (int i = 0, e = std::size(Opcodes); i != e; ++i) {
-      auto [Size, Odd] = Packs[i];
-      if (same(SM.Mask, shuffles::mask(shuffles::vshuff, HwLen, Size, Odd))) {
+      
+      if (auto [Size, Odd] = Packs[i]; same(SM.Mask, shuffles::mask(shuffles::vshuff, HwLen, Size, Odd))) {
         Results.push(Opcodes[i], SingleTy, {Vb, Va});
         return OpRef::res(Results.top());
       }
@@ -2144,8 +2144,8 @@ OpRef HvxSelector::contracting(ShuffleMask SM, OpRef Va, OpRef Vb,
     const SDLoc &dl(Results.InpNode);
 
     for (int i = 0, e = std::size(Opcodes); i != e; ++i) {
-      auto [Size, Odd] = Packs[i];
-      if (same(SM.Mask, shuffles::mask(shuffles::vdeal, HwLen, Size, Odd))) {
+      
+      if (auto [Size, Odd] = Packs[i]; same(SM.Mask, shuffles::mask(shuffles::vdeal, HwLen, Size, Odd))) {
         Results.push(Hexagon::A2_tfrsi, MVT::i32,
                      {getSignedConst32(-2 * Size, dl)});
         Results.push(Hexagon::V6_vdealvdd, PairTy, {Vb, Va, OpRef::res(-1)});
@@ -2684,8 +2684,8 @@ void HvxSelector::selectRor(SDNode *N) {
   SDNode *NewN = nullptr;
 
   if (auto *CN = dyn_cast<ConstantSDNode>(RotV.getNode())) {
-    unsigned S = CN->getZExtValue() % HST.getVectorLength();
-    if (S == 0) {
+    
+    if (unsigned S = CN->getZExtValue() % HST.getVectorLength(); S == 0) {
       NewN = VecV.getNode();
     } else if (isUInt<3>(S)) {
       NewN = DAG.getMachineNode(Hexagon::V6_valignbi, dl, Ty,
@@ -2790,8 +2790,8 @@ void HexagonDAGToDAGISel::ppHvxShuffleOfShuffle(std::vector<SDNode *> &&Nodes) {
 
     SmallVector<int, 256> FoldedMask(2 * HwLen);
     for (unsigned I = 0; I != HwLen; ++I) {
-      int MaybeM = TopMask[I];
-      if (MaybeM >= 0) {
+      
+      if (int MaybeM = TopMask[I]; MaybeM >= 0) {
         FoldedMask[I] =
             getMaskElt(static_cast<unsigned>(MaybeM), S0, S1, OpMap);
       } else {
@@ -2898,8 +2898,8 @@ void HexagonDAGToDAGISel::SelectV65GatherPred(SDNode *N) {
   SDValue ImmOperand = CurDAG->getTargetConstant(0, dl, MVT::i32);
 
   unsigned Opcode;
-  unsigned IntNo = N->getConstantOperandVal(1);
-  switch (IntNo) {
+  
+  switch (unsigned IntNo = N->getConstantOperandVal(1); IntNo) {
   default:
     llvm_unreachable("Unexpected HVX gather intrinsic.");
   case Intrinsic::hexagon_V6_vgathermhq:
@@ -2937,8 +2937,8 @@ void HexagonDAGToDAGISel::SelectV65Gather(SDNode *N) {
   SDValue ImmOperand = CurDAG->getTargetConstant(0, dl, MVT::i32);
 
   unsigned Opcode;
-  unsigned IntNo = N->getConstantOperandVal(1);
-  switch (IntNo) {
+  
+  switch (unsigned IntNo = N->getConstantOperandVal(1); IntNo) {
   default:
     llvm_unreachable("Unexpected HVX gather intrinsic.");
   case Intrinsic::hexagon_V6_vgathermh:

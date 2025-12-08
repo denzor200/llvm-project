@@ -106,8 +106,8 @@ static bool CheckFieldsInitialized(InterpState &S, SourceLocation Loc,
   for (auto [I, B] : llvm::enumerate(R->bases())) {
     Pointer P = BasePtr.atField(B.Offset);
     if (!P.isInitialized()) {
-      const Descriptor *Desc = BasePtr.getDeclDesc();
-      if (const auto *CD = dyn_cast_if_present<CXXRecordDecl>(R->getDecl())) {
+      
+      if (const Descriptor *Desc = BasePtr.getDeclDesc(); const auto *CD = dyn_cast_if_present<CXXRecordDecl>(R->getDecl())) {
         const auto &BS = *std::next(CD->bases_begin(), I);
         SourceLocation TypeBeginLoc = BS.getBaseTypeLoc();
         S.FFDiag(TypeBeginLoc, diag::note_constexpr_uninitialized_base)
@@ -180,14 +180,14 @@ static void collectBlocks(const Pointer &Ptr,
       collectBlocks(FieldPtr, Blocks);
     }
   } else if (Desc->isPrimitive() && Desc->getPrimType() == PT_Ptr) {
-    const Pointer &Pointee = Ptr.deref<Pointer>();
-    if (isUsefulPtr(Pointee) && !Blocks.contains(Pointee.block()))
+    
+    if (const Pointer &Pointee = Ptr.deref<Pointer>(); isUsefulPtr(Pointee) && !Blocks.contains(Pointee.block()))
       collectBlocks(Pointee, Blocks);
 
   } else if (Desc->isPrimitiveArray() && Desc->getPrimType() == PT_Ptr) {
     for (unsigned I = 0; I != Desc->getNumElems(); ++I) {
-      const Pointer &ElemPointee = Ptr.elem<Pointer>(I);
-      if (isUsefulPtr(ElemPointee) && !Blocks.contains(ElemPointee.block()))
+      
+      if (const Pointer &ElemPointee = Ptr.elem<Pointer>(I); isUsefulPtr(ElemPointee) && !Blocks.contains(ElemPointee.block()))
         collectBlocks(ElemPointee, Blocks);
     }
   } else if (Desc->isCompositeArray()) {

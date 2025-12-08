@@ -678,9 +678,9 @@ VariadicMethodTypeChecker::isVariadicMessage(const ObjCMethodCall &msg) const {
     // initWithObjects: implementation that does accept non-Objective-C pointer
     // types, but the chance of that happening is pretty small compared to the
     // gains that this analysis gives.
-    const ObjCInterfaceDecl *Class = MD->getClassInterface();
+    
 
-    switch (findKnownClass(Class)) {
+    switch (const ObjCInterfaceDecl *Class = MD->getClassInterface(); findKnownClass(Class)) {
     case FC_NSArray:
     case FC_NSOrderedSet:
     case FC_NSSet:
@@ -691,9 +691,9 @@ VariadicMethodTypeChecker::isVariadicMessage(const ObjCMethodCall &msg) const {
       return false;
     }
   } else {
-    const ObjCInterfaceDecl *Class = msg.getReceiverInterface();
+    
 
-    switch (findKnownClass(Class)) {
+    switch (const ObjCInterfaceDecl *Class = msg.getReceiverInterface(); findKnownClass(Class)) {
       case FC_NSArray:
         return S == arrayWithObjectsS;
       case FC_NSOrderedSet:

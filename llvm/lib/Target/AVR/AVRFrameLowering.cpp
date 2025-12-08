@@ -142,11 +142,11 @@ static void restoreStatusRegister(MachineFunction &MF, MachineBasicBlock &MBB) {
 
   DebugLoc DL = MBBI->getDebugLoc();
   const AVRSubtarget &STI = MF.getSubtarget<AVRSubtarget>();
-  const AVRInstrInfo &TII = *STI.getInstrInfo();
+  
 
   // Emit special epilogue code to restore R1, R0 and SREG in interrupt/signal
   // handlers at the very end of the function, just before reti.
-  if (AFI->isInterruptOrSignalHandler()) {
+  if (const AVRInstrInfo &TII = *STI.getInstrInfo(); AFI->isInterruptOrSignalHandler()) {
     if (!MRI.reg_empty(STI.getZeroRegister())) {
       BuildMI(MBB, MBBI, DL, TII.get(AVR::POPRd), STI.getZeroRegister());
     }
@@ -187,9 +187,9 @@ void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
   // Skip the callee-saved pop instructions.
   while (MBBI != MBB.begin()) {
     MachineBasicBlock::iterator PI = std::prev(MBBI);
-    int Opc = PI->getOpcode();
+    
 
-    if (Opc != AVR::POPRd && Opc != AVR::POPWRd && !PI->isTerminator()) {
+    if (int Opc = PI->getOpcode(); Opc != AVR::POPRd && Opc != AVR::POPWRd && !PI->isTerminator()) {
       break;
     }
 
@@ -462,9 +462,9 @@ struct AVRFrameAnalyzer : public MachineFunctionPass {
     // are really being used, otherwise we can ignore them.
     for (const MachineBasicBlock &BB : MF) {
       for (const MachineInstr &MI : BB) {
-        int Opcode = MI.getOpcode();
+        
 
-        if ((Opcode != AVR::LDDRdPtrQ) && (Opcode != AVR::LDDWRdPtrQ) &&
+        if (int Opcode = MI.getOpcode(); (Opcode != AVR::LDDRdPtrQ) && (Opcode != AVR::LDDWRdPtrQ) &&
             (Opcode != AVR::STDPtrQRr) && (Opcode != AVR::STDWPtrQRr) &&
             (Opcode != AVR::FRMIDX)) {
           continue;

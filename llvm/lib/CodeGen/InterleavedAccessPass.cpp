@@ -162,9 +162,9 @@ PreservedAnalyses InterleavedAccessPass::run(Function &F,
   auto *DT = &FAM.getResult<DominatorTreeAnalysis>(F);
   auto *TLI = TM->getSubtargetImpl(F)->getTargetLowering();
   InterleavedAccessImpl Impl(DT, TLI);
-  bool Changed = Impl.runOnFunction(F);
+  
 
-  if (!Changed)
+  if (bool Changed = Impl.runOnFunction(F); !Changed)
     return PreservedAnalyses::all();
 
   PreservedAnalyses PA;
@@ -240,8 +240,8 @@ static bool isDeInterleaveMask(ArrayRef<int> Mask, unsigned &Factor,
 /// E.g. For a Factor of 2 (LaneLen=4): <0, 4, 1, 5, 2, 6, 3, 7>
 static bool isReInterleaveMask(ShuffleVectorInst *SVI, unsigned &Factor,
                                unsigned MaxFactor) {
-  unsigned NumElts = SVI->getShuffleMask().size();
-  if (NumElts < 4)
+  
+  if (unsigned NumElts = SVI->getShuffleMask().size(); NumElts < 4)
     return false;
 
   // Check potential Factors.
@@ -304,8 +304,8 @@ bool InterleavedAccessImpl::lowerInterleavedLoad(
   SmallSetVector<ShuffleVectorInst *, 4> BinOpShuffles;
 
   for (auto *User : Load->users()) {
-    auto *Extract = dyn_cast<ExtractElementInst>(User);
-    if (Extract && isa<ConstantInt>(Extract->getIndexOperand())) {
+    
+    if (auto *Extract = dyn_cast<ExtractElementInst>(User); Extract && isa<ConstantInt>(Extract->getIndexOperand())) {
       Extracts.push_back(Extract);
       continue;
     }
@@ -573,8 +573,8 @@ static void getGapMask(const Constant &MaskConst, unsigned Factor,
   for (unsigned F = 0U; F < Factor; ++F) {
     bool AllZero = true;
     for (unsigned Idx = 0U; Idx < LeafMaskLen; ++Idx) {
-      Constant *C = MaskConst.getAggregateElement(F + Idx * Factor);
-      if (!C->isZeroValue()) {
+      
+      if (Constant *C = MaskConst.getAggregateElement(F + Idx * Factor); !C->isZeroValue()) {
         AllZero = false;
         break;
       }

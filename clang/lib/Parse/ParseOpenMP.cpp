@@ -479,9 +479,9 @@ Parser::ParseOpenMPDeclareMapperDirective(AccessSpecifier AS) {
                                  ? OMPC_unknown
                                  : getOpenMPClauseKind(PP.getSpelling(Tok));
     Actions.OpenMP().StartOpenMPClause(CKind);
-    OMPClause *Clause =
-        ParseOpenMPClause(OMPD_declare_mapper, CKind, Clauses.empty());
-    if (Clause)
+    
+    if (OMPClause *Clause =
+        ParseOpenMPClause(OMPD_declare_mapper, CKind, Clauses.empty()); Clause)
       Clauses.push_back(Clause);
     else
       IsCorrect = false;
@@ -2529,14 +2529,14 @@ StmtResult Parser::ParseOpenMPDeclarativeOrExecutableDirective(
 
   StmtResult Directive = StmtError();
 
-  bool IsExecutable = [&]() {
+  
+
+  if (bool IsExecutable = [&]() {
     if (DKind == OMPD_error) // OMPD_error is handled as executable
       return true;
     auto Res = getDirectiveCategory(DKind);
     return Res == Category::Executable || Res == Category::Subsidiary;
-  }();
-
-  if (IsExecutable) {
+  }(); IsExecutable) {
     Directive = ParseOpenMPExecutableDirective(
         StmtCtx, DKind, Loc, ReadDirectiveWithinMetadirective);
     assert(!Directive.isUnset() && "Executable directive remained unprocessed");
@@ -2835,10 +2835,10 @@ StmtResult Parser::ParseOpenMPDeclarativeOrExecutableDirective(
     SemaOpenMP::DeclareTargetContextInfo DTCI(DKind, DTLoc);
     if (HasClauses)
       ParseOMPDeclareTargetClauses(DTCI);
-    bool HasImplicitMappings =
-        !HasClauses || (DTCI.ExplicitlyMapped.empty() && DTCI.Indirect);
+    
 
-    if (HasImplicitMappings) {
+    if (bool HasImplicitMappings =
+        !HasClauses || (DTCI.ExplicitlyMapped.empty() && DTCI.Indirect); HasImplicitMappings) {
       Diag(Tok, diag::err_omp_unexpected_directive)
           << 1 << getOpenMPDirectiveName(DKind, OMPVersion);
       SkipUntil(tok::annot_pragma_openmp_end);
@@ -3609,10 +3609,10 @@ bool Parser::ParseOMPInteropInfo(OMPInteropInfo &InteropInfo,
 
   while (Tok.is(tok::identifier)) {
     // Currently prefer_type is only allowed with 'init' and it must be first.
-    bool PreferTypeAllowed = Kind == OMPC_init &&
+    
+    if (bool PreferTypeAllowed = Kind == OMPC_init &&
                              InteropInfo.PreferTypes.empty() && !IsTarget &&
-                             !IsTargetSync;
-    if (Tok.getIdentifierInfo()->isStr("target")) {
+                             !IsTargetSync; Tok.getIdentifierInfo()->isStr("target")) {
       // OpenMP 5.1 [2.15.1, interop Construct, Restrictions]
       // Each interop-type may be specified on an action-clause at most
       // once.
@@ -4396,9 +4396,9 @@ static OpenMPMapClauseKind isMapType(Parser &P) {
   if (!Tok.isOneOf(tok::identifier, tok::kw_delete))
     return OMPC_MAP_unknown;
   Preprocessor &PP = P.getPreprocessor();
-  unsigned MapType =
-      getOpenMPSimpleClauseType(OMPC_map, PP.getSpelling(Tok), P.getLangOpts());
-  if (MapType == OMPC_MAP_to || MapType == OMPC_MAP_from ||
+  
+  if (unsigned MapType =
+      getOpenMPSimpleClauseType(OMPC_map, PP.getSpelling(Tok), P.getLangOpts()); MapType == OMPC_MAP_to || MapType == OMPC_MAP_from ||
       MapType == OMPC_MAP_tofrom || MapType == OMPC_MAP_alloc ||
       MapType == OMPC_MAP_delete || MapType == OMPC_MAP_release)
     return static_cast<OpenMPMapClauseKind>(MapType);
@@ -5094,8 +5094,8 @@ bool Parser::ParseOpenMPVarList(OpenMPDirectiveKind DKind,
   // or parse ':' alignment.
   const bool MustHaveTail = MayHaveTail && Tok.is(tok::colon);
   bool StepFound = false;
-  bool ModifierFound = false;
-  if (MustHaveTail) {
+  
+  if (bool ModifierFound = false; MustHaveTail) {
     Data.ColonLoc = Tok.getLocation();
     SourceLocation ELoc = ConsumeToken();
 

@@ -41,9 +41,9 @@ int RISCVConstantPoolValue::getExistingMachineCPValue(MachineConstantPool *CP,
   for (unsigned i = 0, e = Constants.size(); i != e; ++i) {
     if (Constants[i].isMachineConstantPoolEntry() &&
         Constants[i].getAlign() >= Alignment) {
-      auto *CPV =
-          static_cast<RISCVConstantPoolValue *>(Constants[i].Val.MachineCPVal);
-      if (equals(CPV))
+      
+      if (auto *CPV =
+          static_cast<RISCVConstantPoolValue *>(Constants[i].Val.MachineCPVal); equals(CPV))
         return i;
     }
   }

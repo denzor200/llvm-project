@@ -532,8 +532,8 @@ void PthreadLockChecker::ReleaseLockAux(const CallEvent &Call,
   LockSetTy LS = state->get<LockSet>();
 
   if (!LS.isEmpty()) {
-    const MemRegion *firstLockR = LS.getHead();
-    if (firstLockR != lockR) {
+    
+    if (const MemRegion *firstLockR = LS.getHead(); firstLockR != lockR) {
       reportBug(C, BT_lor, MtxExpr, CheckKind,
                 "This was not the most recently acquired lock. Possible lock "
                 "order reversal");

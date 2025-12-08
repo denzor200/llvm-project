@@ -86,8 +86,8 @@ void fillValidTuneCPUList(SmallVectorImpl<StringRef> &Values) {
 }
 
 bool isValidCPU(StringRef CPU) {
-  const CPUInfo *Info = getCPUInfoByName(CPU);
-  if (!Info)
+  
+  if (const CPUInfo *Info = getCPUInfoByName(CPU); !Info)
     return false;
   return true;
 }

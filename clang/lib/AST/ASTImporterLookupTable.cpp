@@ -128,8 +128,8 @@ void ASTImporterLookupTable::add(NamedDecl *ND) {
   assert(ND);
   DeclContext *DC = ND->getDeclContext();
   add(DC, ND);
-  DeclContext *ReDC = DC->getRedeclContext();
-  if (DC != ReDC)
+  
+  if (DeclContext *ReDC = DC->getRedeclContext(); DC != ReDC)
     add(ReDC, ND);
 }
 
@@ -137,8 +137,8 @@ void ASTImporterLookupTable::remove(NamedDecl *ND) {
   assert(ND);
   DeclContext *DC = ND->getDeclContext();
   remove(DC, ND);
-  DeclContext *ReDC = DC->getRedeclContext();
-  if (DC != ReDC)
+  
+  if (DeclContext *ReDC = DC->getRedeclContext(); DC != ReDC)
     remove(ReDC, ND);
 }
 

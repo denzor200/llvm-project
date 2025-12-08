@@ -474,8 +474,8 @@ Error COFFObjectFile::getRvaPtr(uint32_t Addr, uintptr_t &Res,
   for (const SectionRef &S : sections()) {
     const coff_section *Section = getCOFFSection(S);
     uint32_t SectionStart = Section->VirtualAddress;
-    uint32_t SectionEnd = Section->VirtualAddress + Section->VirtualSize;
-    if (SectionStart <= Addr && Addr < SectionEnd) {
+    
+    if (uint32_t SectionEnd = Section->VirtualAddress + Section->VirtualSize; SectionStart <= Addr && Addr < SectionEnd) {
       // A table/directory entry can be pointing to somewhere in a stripped
       // section, in an object that went through `objcopy --only-keep-debug`.
       // In this case we don't want to cause the parsing of the object file to
@@ -511,8 +511,8 @@ Error COFFObjectFile::getRvaAndSizeAsBytes(uint32_t RVA, uint32_t Size,
     uint32_t SectionStart = Section->VirtualAddress;
     // Check if this RVA is within the section bounds. Be careful about integer
     // overflow.
-    uint32_t OffsetIntoSection = RVA - SectionStart;
-    if (SectionStart <= RVA && OffsetIntoSection < Section->VirtualSize &&
+    
+    if (uint32_t OffsetIntoSection = RVA - SectionStart; SectionStart <= RVA && OffsetIntoSection < Section->VirtualSize &&
         Size <= Section->VirtualSize - OffsetIntoSection) {
       uintptr_t Begin = reinterpret_cast<uintptr_t>(base()) +
                         Section->PointerToRawData + OffsetIntoSection;
@@ -759,8 +759,8 @@ Error COFFObjectFile::initLoadConfigPtr() {
             offsetof(coff_load_configuration64, CHPEMetadataPointer) +
                 sizeof(Config->CHPEMetadataPointer) &&
         Config->CHPEMetadataPointer) {
-      uint64_t ChpeOff = Config->CHPEMetadataPointer;
-      if (Error E =
+      
+      if (uint64_t ChpeOff = Config->CHPEMetadataPointer; Error E =
               getRvaPtr(ChpeOff - getImageBase(), IntPtr, "CHPE metadata"))
         return E;
       if (Error E = checkOffset(Data, IntPtr, sizeof(*CHPEMetadata)))
@@ -806,8 +806,8 @@ Error COFFObjectFile::initLoadConfigPtr() {
                                         Config->DynamicValueRelocTableOffset))
         return E;
   } else {
-    auto Config = getLoadConfig32();
-    if (Config->Size >=
+    
+    if (auto Config = getLoadConfig32(); Config->Size >=
         offsetof(coff_load_configuration32, DynamicValueRelocTableSection) +
             sizeof(Config->DynamicValueRelocTableSection)) {
       if (Error E = initDynamicRelocPtr(Config->DynamicValueRelocTableSection,
@@ -901,8 +901,8 @@ Error COFFObjectFile::initialize() {
   if (checkSize(Data, EC, sizeof(dos_header) + sizeof(COFF::PEMagic))) {
     // PE/COFF, seek through MS-DOS compatibility stub and 4-byte
     // PE signature to find 'normal' COFF header.
-    const auto *DH = reinterpret_cast<const dos_header *>(base());
-    if (DH->Magic[0] == 'M' && DH->Magic[1] == 'Z') {
+    
+    if (const auto *DH = reinterpret_cast<const dos_header *>(base()); DH->Magic[0] == 'M' && DH->Magic[1] == 'Z') {
       CurPtr = DH->AddressOfNewExeHeader;
       // Check the PE magic bytes. ("PE\0\0")
       if (memcmp(base() + CurPtr, COFF::PEMagic, sizeof(COFF::PEMagic)) != 0) {
@@ -1177,9 +1177,9 @@ const data_directory *COFFObjectFile::getDataDirectory(uint32_t Index) const {
   if (!DataDirectory)
     return nullptr;
   assert(PE32Header || PE32PlusHeader);
-  uint32_t NumEnt = PE32Header ? PE32Header->NumberOfRvaAndSize
-                               : PE32PlusHeader->NumberOfRvaAndSize;
-  if (Index >= NumEnt)
+  
+  if (uint32_t NumEnt = PE32Header ? PE32Header->NumberOfRvaAndSize
+                               : PE32PlusHeader->NumberOfRvaAndSize; Index >= NumEnt)
     return nullptr;
   return &DataDirectory[Index];
 }
@@ -1787,8 +1787,8 @@ ExportDirectoryEntryRef::getSymbolName(StringRef &Result) const {
     if (Error EC = OwningObject->getRvaPtr(ExportTable->NamePointerRVA, IntPtr,
                                            "export table entry"))
       return EC;
-    const ulittle32_t *NamePtr = reinterpret_cast<const ulittle32_t *>(IntPtr);
-    if (Error EC = OwningObject->getRvaPtr(NamePtr[Offset], IntPtr,
+    
+    if (const ulittle32_t *NamePtr = reinterpret_cast<const ulittle32_t *>(IntPtr); Error EC = OwningObject->getRvaPtr(NamePtr[Offset], IntPtr,
                                            "export symbol name"))
       return EC;
     Result = StringRef(reinterpret_cast<const char *>(IntPtr));
@@ -1904,9 +1904,9 @@ bool BaseRelocRef::operator==(const BaseRelocRef &Other) const {
 void BaseRelocRef::moveNext() {
   // Header->BlockSize is the size of the current block, including the
   // size of the header itself.
-  uint32_t Size = sizeof(*Header) +
-      sizeof(coff_base_reloc_block_entry) * (Index + 1);
-  if (Size == Header->BlockSize) {
+  
+  if (uint32_t Size = sizeof(*Header) +
+      sizeof(coff_base_reloc_block_entry) * (Index + 1); Size == Header->BlockSize) {
     // .reloc contains a list of base relocation blocks. Each block
     // consists of the header followed by entries. The header contains
     // how many entories will follow. When we reach the end of the
@@ -2116,9 +2116,9 @@ uint8_t Arm64XRelocRef::getSize() const {
 }
 
 uint64_t Arm64XRelocRef::getValue() const {
-  auto Ptr = reinterpret_cast<const ulittle16_t *>(Header + 1) + Index + 1;
+  
 
-  switch (getType()) {
+  switch (auto Ptr = reinterpret_cast<const ulittle16_t *>(Header + 1) + Index + 1; getType()) {
   case COFF::IMAGE_DVRT_ARM64X_FIXUP_TYPE_VALUE: {
     ulittle64_t Value(0);
     memcpy(&Value, Ptr, getSize());

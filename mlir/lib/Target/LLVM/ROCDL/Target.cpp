@@ -378,10 +378,10 @@ SerializeGPUModuleBase::compileToBinary(const std::string &serializedISA) {
 
   llvm::SmallString<128> lldPath(toolkitPath);
   llvm::sys::path::append(lldPath, "llvm", "bin", "ld.lld");
-  int lldResult = llvm::sys::ExecuteAndWait(
+  
+  if (int lldResult = llvm::sys::ExecuteAndWait(
       lldPath,
-      {"ld.lld", "-shared", tempIsaBinaryFilename, "-o", tempHsacoFilename});
-  if (lldResult != 0) {
+      {"ld.lld", "-shared", tempIsaBinaryFilename, "-o", tempHsacoFilename}); lldResult != 0) {
     getOperation().emitError() << "lld invocation failed";
     return std::nullopt;
   }

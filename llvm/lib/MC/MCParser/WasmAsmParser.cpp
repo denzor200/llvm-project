@@ -222,8 +222,8 @@ public:
       return true;
     if (expect(AsmToken::EndOfStatement, "eol"))
       return true;
-    auto WasmSym = static_cast<const MCSymbolWasm *>(Sym);
-    if (WasmSym->isFunction()) {
+    
+    if (auto WasmSym = static_cast<const MCSymbolWasm *>(Sym); WasmSym->isFunction()) {
       // Ignore .size directives for function symbols.  They get their size
       // set automatically based on their content.
       Warning(Loc, ".size directive ignored for function symbols");
@@ -248,9 +248,9 @@ public:
     auto TypeName = Lexer->getTok().getString();
     if (TypeName == "function") {
       WasmSym->setType(wasm::WASM_SYMBOL_TYPE_FUNCTION);
-      auto *Current =
-          static_cast<MCSectionWasm *>(getStreamer().getCurrentSectionOnly());
-      if (Current->getGroup())
+      
+      if (auto *Current =
+          static_cast<MCSectionWasm *>(getStreamer().getCurrentSectionOnly()); Current->getGroup())
         WasmSym->setComdat(true);
     } else if (TypeName == "global")
       WasmSym->setType(wasm::WASM_SYMBOL_TYPE_GLOBAL);

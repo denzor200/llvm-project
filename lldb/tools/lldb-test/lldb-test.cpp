@@ -502,9 +502,9 @@ Error opts::symbols::findFunctions(lldb_private::Module &Module) {
         continue;
 
       SymbolContext sc;
-      uint32_t resolved =
-          addr.CalculateSymbolContext(&sc, eSymbolContextFunction);
-      if (resolved & eSymbolContextFunction)
+      
+      if (uint32_t resolved =
+          addr.CalculateSymbolContext(&sc, eSymbolContextFunction); resolved & eSymbolContextFunction)
         List.Append(sc);
     }
   } else if (Regex) {
@@ -561,8 +561,8 @@ Error opts::symbols::findBlocks(lldb_private::Module &Module) {
       continue;
 
     SymbolContext sc;
-    uint32_t resolved = addr.CalculateSymbolContext(&sc, eSymbolContextBlock);
-    if (resolved & eSymbolContextBlock)
+    
+    if (uint32_t resolved = addr.CalculateSymbolContext(&sc, eSymbolContextBlock); resolved & eSymbolContextBlock)
       List.Append(sc);
   }
 
@@ -952,8 +952,8 @@ int opts::symtab::handleSymtabCommand(Debugger &Dbg) {
         RegularExpression(FindSymbolsByRegex), lldb::eSymbolTypeAny,
         Symtab::eDebugAny, Symtab::eVisibilityAny, Indexes, NamePreference);
     for (auto i : Indexes) {
-      auto *symbol = Symtab->SymbolAtIndex(i);
-      if (symbol) {
+      
+      if (auto *symbol = Symtab->SymbolAtIndex(i); symbol) {
         StreamString stream;
         symbol->Dump(&stream, nullptr, i, NamePreference);
         outs() << stream.GetString();
@@ -978,8 +978,8 @@ int opts::symbols::dumpSymbols(Debugger &Dbg) {
   Spec.GetSymbolFileSpec().SetFile(Symbols, FileSpec::Style::native);
 
   auto ModulePtr = std::make_shared<lldb_private::Module>(Spec);
-  SymbolFile *Symfile = ModulePtr->GetSymbolFile();
-  if (!Symfile) {
+  
+  if (SymbolFile *Symfile = ModulePtr->GetSymbolFile(); !Symfile) {
     WithColor::error() << "Module has no symbol vendor.\n";
     return 1;
   }
@@ -1094,8 +1094,8 @@ bool opts::irmemorymap::evalMalloc(StringRef Line,
   Line = Line.trim();
   size_t Size;
   uint8_t Alignment;
-  int Matches = sscanf(Line.data(), "malloc %zu %hhu", &Size, &Alignment);
-  if (Matches != 2)
+  
+  if (int Matches = sscanf(Line.data(), "malloc %zu %hhu", &Size, &Alignment); Matches != 2)
     return false;
 
   outs() << formatv("Command: {0} = malloc(size={1}, alignment={2})\n", Label,

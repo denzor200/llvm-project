@@ -390,9 +390,9 @@ void Solaris::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
 
   // Add include directories specific to the selected multilib set and multilib.
   if (GCCInstallation.isValid()) {
-    const MultilibSet::IncludeDirsFunc &Callback =
-        Multilibs.includeDirsCallback();
-    if (Callback) {
+    
+    if (const MultilibSet::IncludeDirsFunc &Callback =
+        Multilibs.includeDirsCallback(); Callback) {
       for (const auto &Path : Callback(GCCInstallation.getMultilib()))
         addExternCSystemIncludeIfExists(
             DriverArgs, CC1Args, GCCInstallation.getInstallPath() + Path);

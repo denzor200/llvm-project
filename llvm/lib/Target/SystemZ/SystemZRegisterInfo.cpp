@@ -346,9 +346,9 @@ SystemZRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator MI,
 
     Register ScratchReg =
         MF.getRegInfo().createVirtualRegister(&SystemZ::ADDR64BitRegClass);
-    int64_t HighOffset = OldOffset - Offset;
+    
 
-    if (MI->getDesc().TSFlags & SystemZII::HasIndex
+    if (int64_t HighOffset = OldOffset - Offset; MI->getDesc().TSFlags & SystemZII::HasIndex
         && MI->getOperand(FIOperandNum + 2).getReg() == 0) {
       // Load the offset into the scratch register and use it as an index.
       // The scratch register then dies here.
@@ -358,8 +358,8 @@ SystemZRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator MI,
                                                         false, false, true);
     } else {
       // Load the anchor address into a scratch register.
-      unsigned LAOpcode = TII->getOpcodeForOffset(SystemZ::LA, HighOffset);
-      if (LAOpcode)
+      
+      if (unsigned LAOpcode = TII->getOpcodeForOffset(SystemZ::LA, HighOffset); LAOpcode)
         BuildMI(MBB, MI, DL, TII->get(LAOpcode),ScratchReg)
           .addReg(BasePtr).addImm(HighOffset).addReg(0);
       else {
