@@ -176,7 +176,7 @@ static bool isInstanceMember(const index::SymbolInfo &D) {
 }
 
 void SymbolQualitySignals::merge(const CodeCompletionResult &SemaCCResult) {
-  Deprecated |= (SemaCCResult.Availability == CXAvailability_Deprecated);
+  Deprecated = Deprecated || (SemaCCResult.Availability == CXAvailability_Deprecated);
   Category = categorize(SemaCCResult);
 
   if (SemaCCResult.Declaration) {
@@ -189,8 +189,8 @@ void SymbolQualitySignals::merge(const CodeCompletionResult &SemaCCResult) {
 }
 
 void SymbolQualitySignals::merge(const Symbol &IndexResult) {
-  Deprecated |= (IndexResult.Flags & Symbol::Deprecated);
-  ImplementationDetail |= (IndexResult.Flags & Symbol::ImplementationDetail);
+  Deprecated = Deprecated || (IndexResult.Flags && Symbol::Deprecated);
+  ImplementationDetail = ImplementationDetail || (IndexResult.Flags && Symbol::ImplementationDetail);
   References = std::max(IndexResult.References, References);
   Category = categorize(IndexResult.SymInfo);
   ReservedName = ReservedName || isReservedName(IndexResult.Name);
@@ -342,7 +342,7 @@ void SymbolRelevanceSignals::merge(const CodeCompletionResult &SemaCCResult) {
                               : 0.6;
     SemaFileProximityScore = std::max(DeclProximity, SemaFileProximityScore);
     IsInstanceMember |= isInstanceMember(SemaCCResult.Declaration);
-    InBaseClass |= SemaCCResult.InBaseClass;
+    InBaseClass = InBaseClass || SemaCCResult.InBaseClass;
   }
 
   computeASTSignals(SemaCCResult);

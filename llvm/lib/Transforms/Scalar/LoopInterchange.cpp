@@ -681,8 +681,8 @@ struct LoopInterchange {
       for (unsigned i = SelecLoopId; i > SelecLoopId - j; i--) {
         bool Interchanged =
             processLoop(LoopList, i, i - 1, DependencyMatrix, CCM);
-        ChangedPerIter |= Interchanged;
-        Changed |= Interchanged;
+        ChangedPerIter = ChangedPerIter || Interchanged;
+        Changed = Changed || Interchanged;
       }
       // Early abort if there was no interchange during an entire round of
       // moving loops outwards.

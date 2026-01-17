@@ -306,7 +306,7 @@ public:
   void DebugInfoCheckFailed(const Twine &Message) {
     if (OS)
       *OS << Message << '\n';
-    Broken |= TreatBrokenDebugInfoAsError;
+    Broken = Broken || TreatBrokenDebugInfoAsError;
     BrokenDebugInfo = true;
   }
 
@@ -8232,7 +8232,7 @@ bool TBAAVerifier::visitTBAAMetadata(const Instruction *I, const MDNode *MD) {
     if (Invalid)
       return false;
 
-    SeenAccessTypeInPath |= BaseNode == AccessType;
+    SeenAccessTypeInPath = SeenAccessTypeInPath || BaseNode == AccessType;
 
     if (isValidScalarTBAANode(BaseNode) || BaseNode == AccessType)
       CheckTBAA(Offset == 0, "Offset not zero at the point of scalar access", I,

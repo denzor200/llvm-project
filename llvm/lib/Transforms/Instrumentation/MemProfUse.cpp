@@ -711,7 +711,7 @@ readMemprof(Module &M, Function &F, IndexedInstrProfReader *MemProfReader,
                                  : ArrayRef<GlobalValue::GUID>(
                                        CS.Frames[Idx - 2].Function))});
 
-      ProfileHasColumns |= StackFrame.Column;
+      ProfileHasColumns = ProfileHasColumns || StackFrame.Column;
       // Once we find this function, we can stop recording.
       if (StackFrame.Function == FuncGUID)
         break;

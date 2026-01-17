@@ -10261,7 +10261,7 @@ const SCEV *ScalarEvolution::computeSCEVAtScope(const SCEV *V, const Loop *L) {
 
       const SCEV *OrigV = getSCEV(Op);
       const SCEV *OpV = getSCEVAtScope(OrigV, L);
-      MadeImprovement |= OrigV != OpV;
+      MadeImprovement = MadeImprovement || OrigV != OpV;
 
       Constant *C = BuildConstantFromSCEV(OpV);
       if (!C)

@@ -670,12 +670,12 @@ struct TosaNarrowI64ToI32
 };
 
 struct TosaNarrowF64ToF32
-    : public tosa::impl::TosaNarrowF64ToF32PassBase<TosaNarrowF64ToF32> {
-  using Base = tosa::impl::TosaNarrowF64ToF32PassBase<TosaNarrowF64ToF32>;
+    : public tosa::impl::TosaNarrowI64ToI32PassBase<TosaNarrowF64ToF32> {
+  using Base = tosa::impl::TosaNarrowI64ToI32PassBase<TosaNarrowF64ToF32>;
 
   TosaNarrowF64ToF32() = default;
 
-  explicit TosaNarrowF64ToF32(const TosaNarrowF64ToF32PassOptions &options) {
+  explicit TosaNarrowF64ToF32(const TosaNarrowI64ToI32PassOptions &options) {
     this->aggressiveRewrite = options.aggressiveRewrite;
     this->convertFunctionBoundaries = options.convertFunctionBoundaries;
   }

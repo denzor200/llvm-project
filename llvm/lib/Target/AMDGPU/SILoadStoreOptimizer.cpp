@@ -2645,41 +2645,41 @@ SILoadStoreOptimizer::optimizeInstsWithSameBaseAddr(
     case S_BUFFER_LOAD_SGPR_IMM:
     case S_LOAD_IMM:
       NewMI = mergeSMemLoadImmPair(CI, Paired, Where->I);
-      OptimizeListAgain |= CI.Width + Paired.Width < 8;
+      OptimizeListAgain = OptimizeListAgain || CI.Width + Paired.Width < 8;
       break;
     case BUFFER_LOAD:
       NewMI = mergeBufferLoadPair(CI, Paired, Where->I);
-      OptimizeListAgain |= CI.Width + Paired.Width < 4;
+      OptimizeListAgain = OptimizeListAgain || CI.Width + Paired.Width < 4;
       break;
     case BUFFER_STORE:
       NewMI = mergeBufferStorePair(CI, Paired, Where->I);
-      OptimizeListAgain |= CI.Width + Paired.Width < 4;
+      OptimizeListAgain = OptimizeListAgain || CI.Width + Paired.Width < 4;
       break;
     case MIMG:
       NewMI = mergeImagePair(CI, Paired, Where->I);
-      OptimizeListAgain |= CI.Width + Paired.Width < 4;
+      OptimizeListAgain = OptimizeListAgain || CI.Width + Paired.Width < 4;
       break;
     case TBUFFER_LOAD:
       NewMI = mergeTBufferLoadPair(CI, Paired, Where->I);
-      OptimizeListAgain |= CI.Width + Paired.Width < 4;
+      OptimizeListAgain = OptimizeListAgain || CI.Width + Paired.Width < 4;
       break;
     case TBUFFER_STORE:
       NewMI = mergeTBufferStorePair(CI, Paired, Where->I);
-      OptimizeListAgain |= CI.Width + Paired.Width < 4;
+      OptimizeListAgain = OptimizeListAgain || CI.Width + Paired.Width < 4;
       break;
     case FLAT_LOAD:
     case FLAT_LOAD_SADDR:
     case GLOBAL_LOAD:
     case GLOBAL_LOAD_SADDR:
       NewMI = mergeFlatLoadPair(CI, Paired, Where->I);
-      OptimizeListAgain |= CI.Width + Paired.Width < 4;
+      OptimizeListAgain = OptimizeListAgain || CI.Width + Paired.Width < 4;
       break;
     case FLAT_STORE:
     case FLAT_STORE_SADDR:
     case GLOBAL_STORE:
     case GLOBAL_STORE_SADDR:
       NewMI = mergeFlatStorePair(CI, Paired, Where->I);
-      OptimizeListAgain |= CI.Width + Paired.Width < 4;
+      OptimizeListAgain = OptimizeListAgain || CI.Width + Paired.Width < 4;
       break;
     }
     CI.setMI(NewMI, *this);
@@ -2733,7 +2733,7 @@ bool SILoadStoreOptimizer::run(MachineFunction &MF) {
       std::tie(SectionEnd, CollectModified) =
           collectMergeableInsts(I, E, Visited, AnchorList, MergeableInsts);
 
-      Modified |= CollectModified;
+      Modified = Modified || CollectModified;
 
       do {
         OptimizeAgain = false;

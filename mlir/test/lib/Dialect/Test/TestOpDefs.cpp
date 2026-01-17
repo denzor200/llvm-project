@@ -883,7 +883,7 @@ void TestWithBoundsOp::inferResultRanges(ArrayRef<ConstantIntRanges> argRanges,
 // TestWithoutBoundsOp
 //===----------------------------------------------------------------------===//
 
-void TestWithoutBoundsOp::inferResultRangesFromOptional(
+void TestWithBoundsOp::inferResultRangesFromOptional(
     ArrayRef<IntegerValueRange> argRanges, SetIntLatticeFn setResultRanges) {
   // Mimic ops with uninitialized range.
   setResultRanges(getResult(), IntegerValueRange{});

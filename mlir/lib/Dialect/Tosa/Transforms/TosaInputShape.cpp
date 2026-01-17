@@ -92,7 +92,7 @@ parseInputShapes(Location loc, const std::vector<std::string> &args) {
   return inputShapes;
 }
 
-struct TosaInputShape : public tosa::impl::TosaInputShapeBase<TosaInputShape> {
+struct TosaInputShape : public impl::TosaInputShapeBase<TosaInputShape> {
 public:
   TosaInputShape() = default;
 
@@ -100,14 +100,14 @@ public:
     this->args = args;
   }
 
-  void runOnOperation() override {
+  void runOnOperation() {
     MLIRContext *context = &getContext();
     const Location unknownLoc = UnknownLoc::get(context);
     const auto maybeArgsParsed = parseInputShapes(unknownLoc, args);
     if (failed(maybeArgsParsed))
       return;
     const SmallVector<IdxAndShape> argsParsed = maybeArgsParsed.value();
-    func::FuncOp func = getOperation();
+    func::FuncOp func = Operation();
 
     const auto getUpdatedTensorType =
         [&](size_t argIdx, ArrayRef<Type> argTypes,

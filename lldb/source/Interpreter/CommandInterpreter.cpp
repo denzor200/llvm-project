@@ -2245,12 +2245,12 @@ bool CommandInterpreter::HandleCommand(const char *command_line,
     // If we got here when empty_command was true, then this command is a
     // stored "repeat command" which we should give a chance to produce it's
     // repeat command, even though we don't add repeat commands to the history.
-    generate_repeat_command |= empty_command;
+    generate_repeat_command = generate_repeat_command || empty_command;
     // For `command regex`, the regex command (ex `bt`) is added to history, but
     // the resolved command (ex `thread backtrace`) is _not_ added to history.
     // However, the resolved command must be given the opportunity to provide a
     // repeat command. `force_repeat_command` supports this case.
-    generate_repeat_command |= force_repeat_command;
+    generate_repeat_command = generate_repeat_command || force_repeat_command;
     if (generate_repeat_command) {
       Args command_args(command_string);
       std::optional<std::string> repeat_command =

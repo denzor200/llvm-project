@@ -1665,11 +1665,11 @@ ReferencesResult findReferences(ParsedAST &AST, Position Pos, uint32_t Limit,
       Result.Loc = {std::move(*LSPLoc), std::nullopt};
       if (AllowAttributes) {
         if ((R.Kind & RefKind::Declaration) == RefKind::Declaration)
-          Result.Attributes |= ReferencesResult::Declaration;
+          Result.Attributes = Result.Attributes || ReferencesResult::Declaration;
         // FIXME: our index should definitely store def | decl separately!
         if ((R.Kind & RefKind::Definition) == RefKind::Definition)
-          Result.Attributes |=
-              ReferencesResult::Declaration | ReferencesResult::Definition;
+          Result.Attributes = Result.Attributes ||
+              ReferencesResult::Declaration || ReferencesResult::Definition;
       }
       if (AddContext) {
         SymbolID Container = R.Container;

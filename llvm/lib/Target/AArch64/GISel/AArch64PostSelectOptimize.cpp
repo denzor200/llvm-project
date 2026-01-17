@@ -104,7 +104,7 @@ bool AArch64PostSelectOptimize::doPeepholeOpts(MachineBasicBlock &MBB) {
     bool CurrentIterChanged = foldSimpleCrossClassCopies(MI);
     if (!CurrentIterChanged)
       CurrentIterChanged |= foldCopyDup(MI);
-    Changed |= CurrentIterChanged;
+    Changed = Changed || CurrentIterChanged;
   }
   return Changed;
 }
@@ -278,7 +278,7 @@ bool AArch64PostSelectOptimize::optimizeNZCVDefs(MachineBasicBlock &MBB) {
           // Constrain the regclasses, possibly introducing a copy.
           constrainOperandRegClass(MF, *TRI, MRI, *TII, *RBI, II, II.getDesc(),
                                    II.getOperand(0), 0);
-          Changed |= true;
+          Changed = Changed || true;
         } else {
           // Otherwise, we just set the nzcv imp-def operand to be dead, so the
           // peephole optimizations can optimize them further.

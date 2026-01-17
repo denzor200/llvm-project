@@ -95,7 +95,7 @@ static void transformGlobalArray(StringRef ArrayName, Module &M,
     for (Value *OP : Init->operands()) {
       Constant *C = cast<Constant>(OP);
       Constant *NewC = Fn(C);
-      Changed |= (!NewC || NewC != C);
+      Changed = Changed || (!NewC || NewC != C);
       if (NewC)
         CurrentCtors.push_back(NewC);
     }

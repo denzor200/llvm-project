@@ -381,7 +381,7 @@ bool StackSlotColoring::ColorSlots(MachineFunction &MF) {
     RevMap[NewSS].push_back(SS);
     SlotWeights[NewSS] += li->weight();
     UsedColors.set(NewSS);
-    Changed |= (SS != NewSS);
+    Changed = Changed || (SS != NewSS);
   }
 
   LLVM_DEBUG(dbgs() << "\nSpill slots after coloring:\n");

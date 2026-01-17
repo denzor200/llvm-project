@@ -661,7 +661,7 @@ bool CodeGenPrepare::_run(Function &F) {
       if (ModifiedDTOnIteration == ModifyDT::ModifyBBDT)
         DT.reset();
 
-      MadeChange |= Changed;
+      MadeChange = MadeChange || Changed;
       if (IsHugeFunc) {
         // If the BB is updated, it may still has chance to be optimized.
         // This usually happen at sink optimization.
@@ -704,7 +704,7 @@ bool CodeGenPrepare::_run(Function &F) {
     for (Instruction *I : RemovedInsts)
       I->deleteValue();
 
-    EverMadeChange |= MadeChange;
+    EverMadeChange = EverMadeChange || MadeChange;
     SeenChainsForSExt.clear();
     ValToSExtendedUses.clear();
     RemovedInsts.clear();
@@ -750,7 +750,7 @@ bool CodeGenPrepare::_run(Function &F) {
     if (EverMadeChange || MadeChange)
       MadeChange |= eliminateFallThrough(F);
 
-    EverMadeChange |= MadeChange;
+    EverMadeChange = EverMadeChange || MadeChange;
   }
 
   if (!DisableGCOpts) {

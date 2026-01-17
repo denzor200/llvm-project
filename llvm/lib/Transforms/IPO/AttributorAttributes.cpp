@@ -2538,7 +2538,7 @@ static int64_t getKnownNonNullAndDerefBytesForUse(
     if (CB->isBundleOperand(U)) {
       if (RetainedKnowledge RK = getKnowledgeFromUse(
               U, {Attribute::NonNull, Attribute::Dereferenceable})) {
-        IsNonNull |=
+        IsNonNull = IsNonNull ||
             (RK.AttrKind == Attribute::NonNull || !NullPointerIsDefined);
         return RK.ArgValue;
       }
@@ -2546,7 +2546,7 @@ static int64_t getKnownNonNullAndDerefBytesForUse(
     }
 
     if (CB->isCallee(U)) {
-      IsNonNull |= !NullPointerIsDefined;
+      IsNonNull = IsNonNull || !NullPointerIsDefined;
       return 0;
     }
 
@@ -2557,7 +2557,7 @@ static int64_t getKnownNonNullAndDerefBytesForUse(
     bool IsKnownNonNull;
     AA::hasAssumedIRAttr<Attribute::NonNull>(A, &QueryingAA, IRP,
                                              DepClassTy::NONE, IsKnownNonNull);
-    IsNonNull |= IsKnownNonNull;
+    IsNonNull = IsNonNull || IsKnownNonNull;
     auto *DerefAA =
         A.getAAFor<AADereferenceable>(QueryingAA, IRP, DepClassTy::NONE);
     return DerefAA ? DerefAA->getKnownDereferenceableBytes() : 0;
@@ -2573,7 +2573,7 @@ static int64_t getKnownNonNullAndDerefBytesForUse(
       getMinimalBaseOfPointer(A, QueryingAA, Loc->Ptr, Offset, DL);
   if (Base && Base == &AssociatedValue) {
     int64_t DerefBytes = Loc->Size.getValue() + Offset;
-    IsNonNull |= !NullPointerIsDefined;
+    IsNonNull = IsNonNull || !NullPointerIsDefined;
     return std::max(int64_t(0), DerefBytes);
   }
 
@@ -2582,7 +2582,7 @@ static int64_t getKnownNonNullAndDerefBytesForUse(
                                           /*AllowNonInbounds*/ true);
   if (Base && Base == &AssociatedValue && Offset == 0) {
     int64_t DerefBytes = Loc->Size.getValue();
-    IsNonNull |= !NullPointerIsDefined;
+    IsNonNull = IsNonNull || !NullPointerIsDefined;
     return std::max(int64_t(0), DerefBytes);
   }
 
@@ -4698,7 +4698,7 @@ identifyAliveSuccessors(Attributor &A, const InvokeInst &II,
     bool IsKnownNoUnwind;
     if (AA::hasAssumedIRAttr<Attribute::NoUnwind>(
             A, &AA, IPos, DepClassTy::OPTIONAL, IsKnownNoUnwind)) {
-      UsedAssumedInformation |= !IsKnownNoUnwind;
+      UsedAssumedInformation = UsedAssumedInformation || !IsKnownNoUnwind;
     } else {
       AliveSuccessors.push_back(&II.getUnwindDest()->front());
     }
@@ -7166,7 +7166,7 @@ ChangeStatus AAHeapToStackFunction::updateImpl(Attributor &A) {
         if (!IsAssumedNoCapture ||
             (AI.LibraryFunctionId != LibFunc___kmpc_alloc_shared &&
              !IsAssumedNoFree)) {
-          AI.HasPotentiallyFreeingUnknownUses |= !IsAssumedNoFree;
+          AI.HasPotentiallyFreeingUnknownUses = AI.HasPotentiallyFreeingUnknownUses || !IsAssumedNoFree;
 
           // Emit a missed remark if this is missed OpenMP globalization.
           auto Remark = [&](OptimizationRemarkMissed ORM) {
@@ -10013,26 +10013,26 @@ struct AAPotentialConstantValuesFloating : AAPotentialConstantValuesImpl {
     } else if (LHSContainsUndef) {
       for (const APInt &R : RHSAAPVS) {
         bool CmpResult = calculateICmpInst(ICI, Zero, R);
-        MaybeTrue |= CmpResult;
-        MaybeFalse |= !CmpResult;
-        if (MaybeTrue & MaybeFalse)
+        MaybeTrue = MaybeTrue || CmpResult;
+        MaybeFalse = MaybeFalse || !CmpResult;
+        if (MaybeTrue && MaybeFalse)
           return indicatePessimisticFixpoint();
       }
     } else if (RHSContainsUndef) {
       for (const APInt &L : LHSAAPVS) {
         bool CmpResult = calculateICmpInst(ICI, L, Zero);
-        MaybeTrue |= CmpResult;
-        MaybeFalse |= !CmpResult;
-        if (MaybeTrue & MaybeFalse)
+        MaybeTrue = MaybeTrue || CmpResult;
+        MaybeFalse = MaybeFalse || !CmpResult;
+        if (MaybeTrue && MaybeFalse)
           return indicatePessimisticFixpoint();
       }
     } else {
       for (const APInt &L : LHSAAPVS) {
         for (const APInt &R : RHSAAPVS) {
           bool CmpResult = calculateICmpInst(ICI, L, R);
-          MaybeTrue |= CmpResult;
-          MaybeFalse |= !CmpResult;
-          if (MaybeTrue & MaybeFalse)
+          MaybeTrue = MaybeTrue || CmpResult;
+          MaybeFalse = MaybeFalse || !CmpResult;
+          if (MaybeTrue && MaybeFalse)
             return indicatePessimisticFixpoint();
         }
       }
@@ -10665,7 +10665,7 @@ protected:
       Change = ChangeStatus::CHANGED;
     if (NonAsm && !HasUnknownCalleeNonAsm)
       Change = ChangeStatus::CHANGED;
-    HasUnknownCalleeNonAsm |= NonAsm;
+    HasUnknownCalleeNonAsm = HasUnknownCalleeNonAsm || NonAsm;
     HasUnknownCallee = true;
   }
 

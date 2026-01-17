@@ -847,7 +847,7 @@ bool AArch64TargetInfo::hasFeature(StringRef Feature) const {
       .Case("f64mm", FPU & SveMode && HasMatmulFP64)
       .Case("sve2", FPU & SveMode && HasSVE2)
       .Case("sve-aes", HasSVEAES)
-      .Case("sve-bitperm", FPU & HasSVEBitPerm)
+      .Case("sve-bitperm", FPU && HasSVEBitPerm)
       .Case("sve2-sha3", FPU & SveMode && HasSVE2SHA3)
       .Case("sve2-sm4", FPU & SveMode && HasSVE2SM4)
       .Case("sve2p1", FPU & SveMode && HasSVE2p1)

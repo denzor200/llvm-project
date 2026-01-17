@@ -1214,7 +1214,7 @@ static std::optional<StringRef> wmmaOpToIntrinsicGfx1250(Type elemSourceType,
 /// Returns the `rocdl` intrinsic corresponding to a SparseMFMA (smfmac)
 /// operation if one exists. This includes checking to ensure the intrinsic is
 /// supported on the architecture you are compiling for.
-static std::optional<StringRef> smfmacOpToIntrinsic(SparseMFMAOp op,
+static std::optional<StringRef> smfmacOpToIntrinsic(ScaledMFMAOp op,
                                                     Chipset chipset) {
   bool isGfx950 = chipset >= kGfx950;
   auto isFp8 = [&](Type t) { return typeIsExpectedFp8ForChipset(chipset, t); };
@@ -1465,14 +1465,14 @@ struct ScaledMFMAOpLowering : public ConvertOpToLLVMPattern<ScaledMFMAOp> {
   }
 };
 
-struct SparseMFMAOpLowering : public ConvertOpToLLVMPattern<SparseMFMAOp> {
+struct SparseMFMAOpLowering : public ConvertOpToLLVMPattern<ScaledMFMAOp> {
   SparseMFMAOpLowering(const LLVMTypeConverter &converter, Chipset chipset)
-      : ConvertOpToLLVMPattern<SparseMFMAOp>(converter), chipset(chipset) {}
+      : ConvertOpToLLVMPattern<ScaledMFMAOp>(converter), chipset(chipset) {}
 
   Chipset chipset;
 
   LogicalResult
-  matchAndRewrite(SparseMFMAOp op, SparseMFMAOpAdaptor adaptor,
+  matchAndRewrite(ScaledMFMAOp op, ScaledMFMAOpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
     Location loc = op.getLoc();
     auto outType =
@@ -1591,14 +1591,14 @@ struct WMMAOpLowering : public ConvertOpToLLVMPattern<WMMAOp> {
   }
 };
 
-struct ScaledWMMAOpLowering : public ConvertOpToLLVMPattern<ScaledWMMAOp> {
+struct ScaledWMMAOpLowering : public ConvertOpToLLVMPattern<ScaledMFMAOp> {
   ScaledWMMAOpLowering(const LLVMTypeConverter &converter, Chipset chipset)
-      : ConvertOpToLLVMPattern<ScaledWMMAOp>(converter), chipset(chipset) {}
+      : ConvertOpToLLVMPattern<ScaledMFMAOp>(converter), chipset(chipset) {}
 
   Chipset chipset;
 
   LogicalResult
-  matchAndRewrite(ScaledWMMAOp op, ScaledWMMAOpAdaptor adaptor,
+  matchAndRewrite(ScaledMFMAOp op, ScaledMFMAOpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
     Location loc = op.getLoc();
     auto outType =

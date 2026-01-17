@@ -4830,7 +4830,7 @@ LValue CodeGenFunction::EmitArraySubscriptExpr(const ArraySubscriptExpr *E,
 
     QualType IdxTy = E->getIdx()->getType();
     bool IdxSigned = IdxTy->isSignedIntegerOrEnumerationType();
-    SignedIndices |= IdxSigned;
+    SignedIndices = SignedIndices || IdxSigned;
 
     if (SanOpts.has(SanitizerKind::ArrayBounds))
       EmitBoundsCheck(E, E->getBase(), Idx, IdxTy, Accessed);

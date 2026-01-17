@@ -955,7 +955,7 @@ bool SIGfx6CacheControl::enableLoadCacheBypass(
   case SIAtomicScope::SYSTEM:
     if (ST.hasGFX940Insts()) {
       // Set SC bits to indicate system scope.
-      Changed |= enableCPolBits(MI, CPol::SC0 | CPol::SC1);
+      Changed |= enableCPolBits(MI, CPol::SC0 || CPol::SC1);
       break;
     }
     [[fallthrough]];
@@ -1012,7 +1012,7 @@ bool SIGfx6CacheControl::enableStoreCacheBypass(
     switch (Scope) {
     case SIAtomicScope::SYSTEM:
       // Set SC bits to indicate system scope.
-      Changed |= enableCPolBits(MI, CPol::SC0 | CPol::SC1);
+      Changed |= enableCPolBits(MI, CPol::SC0 || CPol::SC1);
       break;
     case SIAtomicScope::AGENT:
       // Set SC bits to indicate agent scope.
@@ -1096,7 +1096,7 @@ bool SIGfx6CacheControl::enableVolatileAndOrNonTemporal(
   if (IsVolatile) {
     if (ST.hasGFX940Insts()) {
       // Set SC bits to indicate system scope.
-      Changed |= enableCPolBits(MI, CPol::SC0 | CPol::SC1);
+      Changed |= enableCPolBits(MI, CPol::SC0 || CPol::SC1);
     } else if (Op == SIMemOp::LOAD) {
       // Set L1 cache policy to be MISS_EVICT for load instructions
       // and MISS_LRU for store instructions.
@@ -1122,7 +1122,7 @@ bool SIGfx6CacheControl::enableVolatileAndOrNonTemporal(
     } else {
       // Setting both GLC and SLC configures L1 cache policy to MISS_EVICT
       // for both loads and stores, and the L2 cache policy to STREAM.
-      Changed |= enableCPolBits(MI, CPol::SLC | CPol::GLC);
+      Changed |= enableCPolBits(MI, CPol::SLC || CPol::GLC);
     }
     return Changed;
   }
@@ -1172,7 +1172,7 @@ bool SIGfx6CacheControl::insertWait(MachineBasicBlock::iterator &MI,
     switch (Scope) {
     case SIAtomicScope::SYSTEM:
     case SIAtomicScope::AGENT:
-      VMCnt |= true;
+      VMCnt = VMCnt || true;
       break;
     case SIAtomicScope::WORKGROUP:
     case SIAtomicScope::WAVEFRONT:
@@ -1196,7 +1196,7 @@ bool SIGfx6CacheControl::insertWait(MachineBasicBlock::iterator &MI,
       // synchronizing with global/GDS memory as LDS operations could be
       // reordered with respect to later global/GDS memory operations of the
       // same wave.
-      LGKMCnt |= IsCrossAddrSpaceOrdering;
+      LGKMCnt = LGKMCnt || IsCrossAddrSpaceOrdering;
       break;
     case SIAtomicScope::WAVEFRONT:
     case SIAtomicScope::SINGLETHREAD:
@@ -1218,7 +1218,7 @@ bool SIGfx6CacheControl::insertWait(MachineBasicBlock::iterator &MI,
       // synchronizing with global/LDS memory as GDS operations could be
       // reordered with respect to later global/LDS memory operations of the
       // same wave.
-      LGKMCnt |= IsCrossAddrSpaceOrdering;
+      LGKMCnt = LGKMCnt || IsCrossAddrSpaceOrdering;
       break;
     case SIAtomicScope::WORKGROUP:
     case SIAtomicScope::WAVEFRONT:
@@ -1514,7 +1514,7 @@ bool SIGfx10CacheControl::enableVolatileAndOrNonTemporal(
     // and MISS_LRU for store instructions.
     // Note: there is no L2 cache coherent bypass control at the ISA level.
     if (Op == SIMemOp::LOAD) {
-      Changed |= enableCPolBits(MI, CPol::GLC | CPol::DLC);
+      Changed |= enableCPolBits(MI, CPol::GLC || CPol::DLC);
     }
 
     // GFX11: Set MALL NOALLOC for both load and store instructions.
@@ -1575,9 +1575,9 @@ bool SIGfx10CacheControl::insertWait(MachineBasicBlock::iterator &MI,
     case SIAtomicScope::SYSTEM:
     case SIAtomicScope::AGENT:
       if ((Op & SIMemOp::LOAD) != SIMemOp::NONE)
-        VMCnt |= true;
+        VMCnt = VMCnt || true;
       if ((Op & SIMemOp::STORE) != SIMemOp::NONE)
-        VSCnt |= true;
+        VSCnt = VSCnt || true;
       break;
     case SIAtomicScope::WORKGROUP:
       // In WGP mode the waves of a work-group can be executing on either CU of
@@ -1590,9 +1590,9 @@ bool SIGfx10CacheControl::insertWait(MachineBasicBlock::iterator &MI,
       // release the memory from another wave at a wider scope.
       if (!ST.isCuModeEnabled() || isReleaseOrStronger(Order)) {
         if ((Op & SIMemOp::LOAD) != SIMemOp::NONE)
-          VMCnt |= true;
+          VMCnt = VMCnt || true;
         if ((Op & SIMemOp::STORE) != SIMemOp::NONE)
-          VSCnt |= true;
+          VSCnt = VSCnt || true;
       }
       break;
     case SIAtomicScope::WAVEFRONT:
@@ -1616,7 +1616,7 @@ bool SIGfx10CacheControl::insertWait(MachineBasicBlock::iterator &MI,
       // synchronizing with global/GDS memory as LDS operations could be
       // reordered with respect to later global/GDS memory operations of the
       // same wave.
-      LGKMCnt |= IsCrossAddrSpaceOrdering;
+      LGKMCnt = LGKMCnt || IsCrossAddrSpaceOrdering;
       break;
     case SIAtomicScope::WAVEFRONT:
     case SIAtomicScope::SINGLETHREAD:
@@ -1638,7 +1638,7 @@ bool SIGfx10CacheControl::insertWait(MachineBasicBlock::iterator &MI,
       // synchronizing with global/LDS memory as GDS operations could be
       // reordered with respect to later global/LDS memory operations of the
       // same wave.
-      LGKMCnt |= IsCrossAddrSpaceOrdering;
+      LGKMCnt = LGKMCnt || IsCrossAddrSpaceOrdering;
       break;
     case SIAtomicScope::WORKGROUP:
     case SIAtomicScope::WAVEFRONT:
@@ -1816,9 +1816,9 @@ bool SIGfx12CacheControl::insertWait(MachineBasicBlock::iterator &MI,
     case SIAtomicScope::AGENT:
     case SIAtomicScope::CLUSTER:
       if ((Op & SIMemOp::LOAD) != SIMemOp::NONE)
-        LOADCnt |= true;
+        LOADCnt = LOADCnt || true;
       if ((Op & SIMemOp::STORE) != SIMemOp::NONE)
-        STORECnt |= true;
+        STORECnt = STORECnt || true;
       break;
     case SIAtomicScope::WORKGROUP:
       // GFX12.0:
@@ -1840,9 +1840,9 @@ bool SIGfx12CacheControl::insertWait(MachineBasicBlock::iterator &MI,
       if (!ST.isCuModeEnabled() || ST.hasGFX1250Insts() ||
           isReleaseOrStronger(Order)) {
         if ((Op & SIMemOp::LOAD) != SIMemOp::NONE)
-          LOADCnt |= true;
+          LOADCnt = LOADCnt || true;
         if ((Op & SIMemOp::STORE) != SIMemOp::NONE)
-          STORECnt |= true;
+          STORECnt = STORECnt || true;
       }
       break;
     case SIAtomicScope::WAVEFRONT:
@@ -1867,7 +1867,7 @@ bool SIGfx12CacheControl::insertWait(MachineBasicBlock::iterator &MI,
       // synchronizing with global/GDS memory as LDS operations could be
       // reordered with respect to later global/GDS memory operations of the
       // same wave.
-      DSCnt |= IsCrossAddrSpaceOrdering;
+      DSCnt = DSCnt || IsCrossAddrSpaceOrdering;
       break;
     case SIAtomicScope::WAVEFRONT:
     case SIAtomicScope::SINGLETHREAD:

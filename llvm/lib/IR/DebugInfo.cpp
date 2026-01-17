@@ -414,7 +414,7 @@ static Metadata *updateLoopMetadataDebugLocationsRecursive(
         Updater(updateLoopMetadataDebugLocationsRecursive(MD, Updater));
     if (NewMD)
       MDs.push_back(NewMD);
-    Updated |= NewMD != MD;
+    Updated = Updated || NewMD != MD;
   }
 
   assert(!M->isDistinct() && "M should not be distinct.");
@@ -872,7 +872,7 @@ bool llvm::stripNonLineTableDebugInfo(Module &M) {
       return nullptr;
     Mapper.traverseAndRemap(Node);
     auto *NewNode = Mapper.mapNode(Node);
-    Changed |= Node != NewNode;
+    Changed = Changed || Node != NewNode;
     Node = NewNode;
     return NewNode;
   };
@@ -883,7 +883,7 @@ bool llvm::stripNonLineTableDebugInfo(Module &M) {
     if (auto *SP = F.getSubprogram()) {
       Mapper.traverseAndRemap(SP);
       auto *NewSP = cast<DISubprogram>(Mapper.mapNode(SP));
-      Changed |= SP != NewSP;
+      Changed = Changed || SP != NewSP;
       F.setSubprogram(NewSP);
     }
     for (auto &BB : F) {

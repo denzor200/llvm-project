@@ -230,7 +230,7 @@ bool HexagonGenExtract::visitBlock(BasicBlock *B) {
     bool Done = convert(In);
     if (HasCutoff && Done)
       ExtractCount++;
-    Changed |= Done;
+    Changed = Changed || Done;
     if (Last)
       break;
     I = NextI;

@@ -904,7 +904,7 @@ bool RISCVVectorPeephole::runOnMachineFunction(MachineFunction &MF) {
       Changed |= convertAllOnesVMergeToVMv(MI);
       Changed |= convertSameMaskVMergeToVMv(MI);
       if (foldUndefPassthruVMV_V_V(MI)) {
-        Changed |= true;
+        Changed = Changed || true;
         continue; // MI is erased
       }
       Changed |= foldVMV_V_V(MI);

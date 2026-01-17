@@ -804,7 +804,7 @@ static llvm::Value *EmitCXXNewAllocSize(CodeGenFunction &CGF,
     bool overflow;
     llvm::APInt allocationSize
       = adjustedCount.umul_ov(typeSizeMultiplier, overflow);
-    hasAnyOverflow |= overflow;
+    hasAnyOverflow = hasAnyOverflow || overflow;
 
     // Add in the cookie, and check whether it's overflowed.
     if (cookieSize != 0) {
@@ -813,7 +813,7 @@ static llvm::Value *EmitCXXNewAllocSize(CodeGenFunction &CGF,
       sizeWithoutCookie = llvm::ConstantInt::get(CGF.SizeTy, allocationSize);
 
       allocationSize = allocationSize.uadd_ov(cookieSize, overflow);
-      hasAnyOverflow |= overflow;
+      hasAnyOverflow = hasAnyOverflow || overflow;
     }
 
     // On overflow, produce a -1 so operator new will fail.

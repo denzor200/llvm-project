@@ -1224,7 +1224,7 @@ namespace {
       // skip setting the HasSideEffects flag to true until we decide to
       // continue evaluating after that point, which happens here.
       bool KeepGoing = keepEvaluatingAfterFailure();
-      EvalStatus.HasSideEffects |= KeepGoing;
+      EvalStatus.HasSideEffects = EvalStatus.HasSideEffects || KeepGoing;
       return KeepGoing;
     }
 
@@ -16844,7 +16844,7 @@ bool IntExprEvaluator::VisitBuiltinCallExpr(const CallExpr *E,
 
     // It is possible for both overflows to happen but CGBuiltin uses an OR so
     // this is consistent.
-    CarryOut = (uint64_t)(FirstOverflowed | SecondOverflowed);
+    CarryOut = (uint64_t)(FirstOverflowed || SecondOverflowed);
     APValue APV{CarryOut};
     if (!handleAssignment(Info, E, CarryOutLValue, ResultType, APV))
       return false;

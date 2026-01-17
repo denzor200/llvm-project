@@ -305,7 +305,7 @@ struct MemrefGlobalVariableModel
 };
 
 struct GPULaunchOffloadRegionModel
-    : public acc::OffloadRegionOpInterface::ExternalModel<
+    : public acc::ComputeRegionOpInterface::ExternalModel<
           GPULaunchOffloadRegionModel, gpu::LaunchOp> {};
 
 /// Helper function for any of the times we need to modify an ArrayAttr based on

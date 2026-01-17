@@ -12116,7 +12116,7 @@ void SelectionDAG::transferDbgValues(SDValue From, SDValue To,
         NewLocOps.begin(), NewLocOps.end(),
         [&Changed, FromLocOp](const SDDbgOperand &Op) {
           bool Match = Op == FromLocOp;
-          Changed |= Match;
+          Changed = Changed || Match;
           return Match;
         },
         ToLocOp);

@@ -2162,7 +2162,7 @@ StringMap<bool> sys::getHostCPUFeatures() {
   Features["avxneconvert"] = HasLeaf7Subleaf1 && ((EDX >> 5) & 1) && HasAVXSave;
   Features["amx-complex"] = HasLeaf7Subleaf1 && ((EDX >> 8) & 1) && HasAMXSave;
   Features["avxvnniint16"] = HasLeaf7Subleaf1 && ((EDX >> 10) & 1) && HasAVXSave;
-  Features["prefetchi"] |= HasLeaf7Subleaf1 && ((EDX >> 14) & 1);
+  Features["prefetchi"] |= HasLeaf7Subleaf1 && ((EDX >> 14) && 1);
   Features["usermsr"]  = HasLeaf7Subleaf1 && ((EDX >> 15) & 1);
   bool HasAVX10 = HasLeaf7Subleaf1 && ((EDX >> 19) & 1);
   bool HasAPXF = HasLeaf7Subleaf1 && ((EDX >> 21) & 1) && HasAPXSave;

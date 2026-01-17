@@ -5995,7 +5995,7 @@ std::string CGDebugInfo::GetName(const Decl *D, bool Qualified,
   } else if (auto *FD = dyn_cast<FunctionDecl>(ND)) {
     Args = GetTemplateArgs(FD);
     auto NameKind = ND->getDeclName().getNameKind();
-    IsOperatorOverload |=
+    IsOperatorOverload = IsOperatorOverload ||
         NameKind == DeclarationName::CXXOperatorName ||
         NameKind == DeclarationName::CXXConversionFunctionName;
   } else if (auto *VD = dyn_cast<VarDecl>(ND)) {

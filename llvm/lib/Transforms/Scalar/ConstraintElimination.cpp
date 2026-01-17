@@ -764,7 +764,7 @@ ConstraintInfo::getConstraint(CmpInst::Predicate Pred, Value *Op0, Value *Op1,
     R[GetOrAddIndex(KV.Variable)] += KV.Coefficient;
     auto I =
         KnownNonNegativeVariables.insert({KV.Variable, KV.IsKnownNonNegative});
-    I.first->second &= KV.IsKnownNonNegative;
+    I.first->second = I.first->second && KV.IsKnownNonNegative;
   }
 
   for (const auto &KV : VariablesB) {
@@ -773,7 +773,7 @@ ConstraintInfo::getConstraint(CmpInst::Predicate Pred, Value *Op0, Value *Op1,
       return {};
     auto I =
         KnownNonNegativeVariables.insert({KV.Variable, KV.IsKnownNonNegative});
-    I.first->second &= KV.IsKnownNonNegative;
+    I.first->second = I.first->second && KV.IsKnownNonNegative;
   }
 
   int64_t OffsetSum;
@@ -1559,7 +1559,7 @@ static bool checkAndReplaceCondition(
       // in assume calls to not destroy the available information.
       auto *II = dyn_cast<IntrinsicInst>(U.getUser());
       bool ShouldReplace = !II || II->getIntrinsicID() != Intrinsic::assume;
-      Changed |= ShouldReplace;
+      Changed = Changed || ShouldReplace;
       return ShouldReplace;
     });
     NumCondsRemoved++;
@@ -1962,7 +1962,7 @@ static bool eliminateConstraints(Function &F, DominatorTree &DT, LoopInfo &LI,
               CB, Info, ReproducerModule.get(), ReproducerCondStack, DFSInStack,
               ToRemove);
         }
-        Changed |= Simplified;
+        Changed = Changed || Simplified;
       } else if (auto *MinMax = dyn_cast<MinMaxIntrinsic>(Inst)) {
         Changed |= checkAndReplaceMinMax(MinMax, Info, ToRemove);
       } else if (auto *CmpIntr = dyn_cast<CmpIntrinsic>(Inst)) {

@@ -1150,7 +1150,7 @@ bool HexagonSplitDoubleRegs::splitPartition(const USet &Part) {
       bool Done = splitInstr(MI, PairMap);
       if (Done)
         Erase.insert(MI);
-      Changed |= Done;
+      Changed = Changed || Done;
     }
   }
 

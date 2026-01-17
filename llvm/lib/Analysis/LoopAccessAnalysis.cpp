@@ -598,7 +598,7 @@ bool RuntimeCheckingPtrGroup::addPointer(unsigned Index, const SCEV *Start,
     High = End;
 
   Members.push_back(Index);
-  this->NeedsFreeze |= NeedsFreeze;
+  this->NeedsFreeze = this->NeedsFreeze || NeedsFreeze;
   return true;
 }
 
@@ -1437,8 +1437,8 @@ bool AccessAnalysis::canCheckPtrAtRT(
       }
     }
 
-    CanDoRT &= CanDoAliasSetRT;
-    MayNeedRTCheck |= NeedsAliasSetRTCheck;
+    CanDoRT = CanDoRT && CanDoAliasSetRT;
+    MayNeedRTCheck = MayNeedRTCheck || NeedsAliasSetRTCheck;
     ++ASId;
   }
 
@@ -2137,7 +2137,7 @@ MemoryDepChecker::getDependenceDistanceStrideAndSize(
   // TODO: Historically, we didn't retry with runtime checks when (unscaled)
   // strides were different but there is no inherent reason to.
   if (!isa<SCEVConstant>(Dist))
-    ShouldRetryWithRuntimeChecks |= StrideAPtrInt == StrideBPtrInt;
+    ShouldRetryWithRuntimeChecks = ShouldRetryWithRuntimeChecks || StrideAPtrInt == StrideBPtrInt;
 
   // If distance is a SCEVCouldNotCompute, return Unknown immediately.
   if (isa<SCEVCouldNotCompute>(Dist)) {

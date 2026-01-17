@@ -2294,7 +2294,7 @@ bool LowerTypeTestsModule::lower() {
       IsJumpTableCanonical = isJumpTableCanonical(F);
       if (auto It = ExportedFunctions.find(F->getName());
           It != ExportedFunctions.end()) {
-        IsJumpTableCanonical |= It->second.Linkage == CFL_Definition;
+        IsJumpTableCanonical = IsJumpTableCanonical || It->second.Linkage == CFL_Definition;
         IsExported = true;
       // TODO: The logic here checks only that the function is address taken,
       // not that the address takers are live. This can be updated to check

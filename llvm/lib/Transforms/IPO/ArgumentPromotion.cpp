@@ -934,7 +934,7 @@ PreservedAnalyses ArgumentPromotionPass::run(LazyCallGraph::SCC &C,
       }
     }
 
-    Changed |= LocalChange;
+    Changed = Changed || LocalChange;
   } while (LocalChange);
 
   if (!Changed)

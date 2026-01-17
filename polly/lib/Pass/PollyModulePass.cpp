@@ -20,7 +20,7 @@ PreservedAnalyses PollyModulePass::run(llvm::Module &M,
   bool ModifiedAnyIR = false;
   for (Function &F : M) {
     bool LocalModifiedIR = runPollyPass(F, FAM, Opts);
-    ModifiedAnyIR |= LocalModifiedIR;
+    ModifiedAnyIR = ModifiedAnyIR || LocalModifiedIR;
   }
 
   // Be conservative about preserved analyses, especially if parallel functions

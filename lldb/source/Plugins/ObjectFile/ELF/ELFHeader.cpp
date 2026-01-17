@@ -82,12 +82,12 @@ bool ELFHeader::HasHeaderExtension() const {
   bool result = false;
 
   // Check if any of these values looks like sentinel.
-  result |= e_phnum_hdr == 0xFFFF; // PN_XNUM
-  result |= e_shnum_hdr == SHN_UNDEF;
-  result |= e_shstrndx_hdr == SHN_XINDEX;
+  result = result || e_phnum_hdr == 0xFFFF; // PN_XNUM
+  result = result || e_shnum_hdr == SHN_UNDEF;
+  result = result || e_shstrndx_hdr == SHN_XINDEX;
 
   // If header extension is present, the section offset cannot be null.
-  result &= e_shoff != 0;
+  result = result && e_shoff != 0;
 
   // Done.
   return result;

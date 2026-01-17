@@ -391,7 +391,7 @@ private:
   }
 
   LogicalResult levelCheckConv2DBlockScaled(Operation *op) {
-    auto convOp = dyn_cast<Conv2DBlockScaledOp>(op);
+    auto convOp = dyn_cast<CastToBlockScaledOp>(op);
     if (!convOp)
       return success();
 

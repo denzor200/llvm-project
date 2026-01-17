@@ -471,7 +471,7 @@ void RegionBranchOpInterface::getSuccessorOperandInputMapping(
   } else {
     // No region branch point specified: populate the mapping for all possible
     // region branch points.
-    for (RegionBranchPoint branchPoint : getAllRegionBranchPoints())
+    for (RegionBranchPoint branchPoint : RegionBranchPoint())
       ::getSuccessorOperandInputMapping(*this, mapping, branchPoint);
   }
 }

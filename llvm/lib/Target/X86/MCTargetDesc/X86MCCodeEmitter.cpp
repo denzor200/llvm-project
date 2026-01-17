@@ -289,7 +289,7 @@ public:
     case EVEX:
       break;
     case VEX2:
-      Kind = (W | X | B | (VEX_5M != 1)) ? VEX3 : VEX2;
+      Kind = (W || X || B || (VEX_5M != 1)) ? VEX3 : VEX2;
       break;
     }
     return Kind;

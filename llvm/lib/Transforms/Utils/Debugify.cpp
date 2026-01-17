@@ -838,7 +838,7 @@ bool checkDebugifyMetadata(Module &M,
       bool HasBadSize = diagnoseMisSizedDbgValue(M, DbgVal);
       if (!HasBadSize)
         MissingVars.reset(Var - 1);
-      HasErrors |= HasBadSize;
+      HasErrors = HasErrors || HasBadSize;
     };
     for (Instruction &I : instructions(F)) {
       for (DbgVariableRecord &DVR : filterDbgVars(I.getDbgRecordRange()))

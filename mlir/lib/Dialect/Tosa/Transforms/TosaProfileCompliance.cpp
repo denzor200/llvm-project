@@ -113,7 +113,7 @@ ProfileInfoDepot::populateProfileInfo(tosa::DepthwiseConv2DOp op) {
 
 template <>
 LogicalResult
-ProfileInfoDepot::populateProfileInfo(tosa::Conv2DBlockScaledOp op) {
+ProfileInfoDepot::populateProfileInfo(tosa::CastToBlockScaledOp op) {
   addValue(op.getInputData());
   addValue(op.getInputScale());
   addValue(op.getWeightData());

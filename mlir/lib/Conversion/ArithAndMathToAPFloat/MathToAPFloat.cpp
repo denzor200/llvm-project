@@ -217,23 +217,23 @@ struct MathToAPFloatConversionPass final
     : impl::MathToAPFloatConversionPassBase<MathToAPFloatConversionPass> {
   using Base::Base;
 
-  void runOnOperation() override;
+  void runOnOperation() ;
 };
 
 void MathToAPFloatConversionPass::runOnOperation() {
   MLIRContext *context = &getContext();
   RewritePatternSet patterns(context);
 
-  patterns.add<AbsFOpToAPFloatConversion>(context, getOperation());
+  patterns.add<AbsFOpToAPFloatConversion>(context, Operation());
   patterns.add<IsOpToAPFloatConversion<math::IsFiniteOp>>(context, "finite",
-                                                          getOperation());
+                                                          Operation());
   patterns.add<IsOpToAPFloatConversion<math::IsInfOp>>(context, "infinite",
-                                                       getOperation());
+                                                       Operation());
   patterns.add<IsOpToAPFloatConversion<math::IsNaNOp>>(context, "nan",
-                                                       getOperation());
+                                                       Operation());
   patterns.add<IsOpToAPFloatConversion<math::IsNormalOp>>(context, "normal",
-                                                          getOperation());
-  patterns.add<FmaOpToAPFloatConversion>(context, getOperation());
+                                                          Operation());
+  patterns.add<FmaOpToAPFloatConversion>(context, Operation());
 
   LogicalResult result = success();
   ScopedDiagnosticHandler scopedHandler(context, [&result](Diagnostic &diag) {
@@ -244,7 +244,7 @@ void MathToAPFloatConversionPass::runOnOperation() {
     // mlir/lib/IR/Diagnostics.cpp:DiagnosticEngineImpl::emit).
     return failure();
   });
-  walkAndApplyPatterns(getOperation(), std::move(patterns));
+  walkAndApplyPatterns(Operation(), std::move(patterns));
   if (failed(result))
     return signalPassFailure();
 }

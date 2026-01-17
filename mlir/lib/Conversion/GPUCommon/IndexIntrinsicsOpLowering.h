@@ -94,7 +94,7 @@ public:
       }
       case IndexKind::Cluster: {
         auto clusterHelper =
-            gpu::GPUDialect::KnownClusterSizeAttrHelper(op.getContext());
+            gpu::GPUDialect::KnownBlockSizeAttrHelper(op.getContext());
         if (clusterHelper.isAttrPresent(funcOp))
           funcBounds = clusterHelper.getAttr(funcOp);
         break;

@@ -14,6 +14,6 @@
 
 int main() {
   BINARY_INPUT_SINGLE_OUTPUT_PERF(float128, float128, LIBC_NAMESPACE::fmodf128,
-                                  ::fmodf128, "fmodf128_perf.log")
+                                  __llvm_libc_22_0_0_git::fmodf128, "fmodf128_perf.log")
   return 0;
 }

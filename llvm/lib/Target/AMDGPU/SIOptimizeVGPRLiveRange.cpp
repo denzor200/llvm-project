@@ -611,7 +611,7 @@ void SIOptimizeVGPRLiveRange::optimizeWaterfallLiveRange(
     OldVarInfo.AliveBlocks.reset(BBNum);
 
     // The new register is live up to (and including) the block that kills it.
-    PostKillBlock |= (Block == KillBlock);
+    PostKillBlock = PostKillBlock || (Block == KillBlock);
     if (PostKillBlock) {
       NewVarInfo.AliveBlocks.reset(BBNum);
     } else if (Block != LoopHeader) {

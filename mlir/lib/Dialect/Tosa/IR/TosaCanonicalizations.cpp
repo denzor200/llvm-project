@@ -793,7 +793,7 @@ struct PadSliceOptimization : public OpRewritePattern<tosa::SliceOp> {
       // Compute updated slice start parameter
       const int64_t newSliceStart = std::max<int64_t>(sliceStart - padLo, 0);
       newSliceStarts[i] = newSliceStart;
-      updated |= newSliceStart != sliceStart;
+      updated = updated || newSliceStart != sliceStart;
 
       // Compute updated pad parameters
       const int64_t newPadLo = std::max<int64_t>(padLo - sliceStart, 0);
@@ -801,7 +801,7 @@ struct PadSliceOptimization : public OpRewritePattern<tosa::SliceOp> {
           std::max<int64_t>(sliceEnd - (padLo + dimSize), 0);
       newPadPaddings[i * 2] = newPadLo;
       newPadPaddings[i * 2 + 1] = newPadHi;
-      updated |= (newPadLo != padLo) || (newPadHi != padHi);
+      updated = updated || (newPadLo != padLo) || (newPadHi != padHi);
 
       // Calculate new pad output shape
       newPadShape[i] =

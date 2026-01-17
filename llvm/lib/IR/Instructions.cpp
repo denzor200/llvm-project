@@ -1915,8 +1915,8 @@ static bool isSingleSourceMaskImpl(ArrayRef<int> Mask, int NumOpElts) {
       continue;
     assert(I >= 0 && I < (NumOpElts * 2) &&
            "Out-of-bounds shuffle mask element");
-    UsesLHS |= (I < NumOpElts);
-    UsesRHS |= (I >= NumOpElts);
+    UsesLHS = UsesLHS || (I < NumOpElts);
+    UsesRHS = UsesRHS || (I >= NumOpElts);
     if (UsesLHS && UsesRHS)
       return false;
   }
@@ -2126,11 +2126,11 @@ bool ShuffleVectorInst::isInsertSubvectorMask(ArrayRef<int> Mask,
     }
     if (M < NumSrcElts) {
       Src0Elts.setBit(i);
-      Src0Identity &= (M == i);
+      Src0Identity = Src0Identity && (M == i);
       continue;
     }
     Src1Elts.setBit(i);
-    Src1Identity &= (M == (i + NumSrcElts));
+    Src1Identity = Src1Identity && (M == (i + NumSrcElts));
   }
   assert((Src0Elts | Src1Elts | UndefElts).isAllOnes() &&
          "unknown shuffle elements");

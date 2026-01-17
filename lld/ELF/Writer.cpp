@@ -1548,7 +1548,7 @@ template <class ELFT> void Writer<ELFT>::finalizeAddressDependentContent() {
                        ? tc.createThunks(pass, ctx.outputSections)
                        : ctx.target->relaxOnce(pass);
     bool spilled = ctx.script->spillSections();
-    changed |= spilled;
+    changed = changed || spilled;
     ++pass;
 
     // With Thunk Size much smaller than branch range we expect to

@@ -76,13 +76,13 @@ using namespace mlir::acc;
 namespace {
 
 class ACCSpecializeForDevice
-    : public acc::impl::ACCSpecializeForDeviceBase<ACCSpecializeForDevice> {
+    : public impl::ACCSpecializeForDeviceBase<ACCSpecializeForDevice> {
 public:
   using ACCSpecializeForDeviceBase<
       ACCSpecializeForDevice>::ACCSpecializeForDeviceBase;
 
-  void runOnOperation() override {
-    func::FuncOp func = getOperation();
+  void runOnOperation() {
+    func::FuncOp func = Operation();
 
     RewritePatternSet patterns(&getContext());
     acc::populateACCSpecializeForDevicePatterns(patterns);

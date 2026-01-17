@@ -1097,7 +1097,7 @@ static bool promoteIndirectCalls(Module &M, ProfileSummaryInfo *PSI, bool InLTO,
       LLVM_DEBUG(dbgs() << "\n== IR Dump After =="; F.print(dbgs()));
       LLVM_DEBUG(dbgs() << "\n");
     }
-    Changed |= FuncChanged;
+    Changed = Changed || FuncChanged;
     if (ICPCutOff != 0 && NumOfPGOICallPromotion >= ICPCutOff) {
       LLVM_DEBUG(dbgs() << " Stop: Cutoff reached.\n");
       break;

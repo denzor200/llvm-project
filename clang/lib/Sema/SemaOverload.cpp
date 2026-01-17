@@ -13729,7 +13729,7 @@ private:
       // now.
       if (completeFunctionType(S, FunDecl, SourceExpr->getBeginLoc(),
                                Complain)) {
-        HasComplained |= Complain;
+        HasComplained = HasComplained || Complain;
         return false;
       }
 
@@ -13816,7 +13816,7 @@ private:
       Matches[0].second = cast<FunctionDecl>(*Result);
       Matches.resize(1);
     } else
-      HasComplained |= Complain;
+      HasComplained = HasComplained || Complain;
   }
 
   void EliminateAllTemplateMatches() {

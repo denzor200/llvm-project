@@ -87,8 +87,8 @@ static void initializeUsedResources(InstrDesc &ID,
       AllInOrderResources = false;
     } else {
       Buffers.setBit(getResourceStateIndex(Mask));
-      AnyDispatchHazards |= (PR.BufferSize == 0);
-      AllInOrderResources &= (PR.BufferSize <= 1);
+      AnyDispatchHazards = AnyDispatchHazards || (PR.BufferSize == 0);
+      AllInOrderResources = AllInOrderResources && (PR.BufferSize <= 1);
     }
 
     CycleSegment RCy(0, PRE->ReleaseAtCycle, false);

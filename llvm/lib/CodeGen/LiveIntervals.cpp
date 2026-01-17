@@ -326,7 +326,7 @@ void LiveIntervals::computeRegUnitRange(LiveRange &LR, MCRegUnit Unit) {
       if (!MRI->isReserved(Reg))
         IsRootReserved = false;
     }
-    IsReserved |= IsRootReserved;
+    IsReserved = IsReserved || IsRootReserved;
   }
   assert(IsReserved == MRI->isReservedRegUnit(Unit) &&
          "reserved computation mismatch");

@@ -454,7 +454,7 @@ LogicalResult WMMAOp::verify() {
 // ScaledWMMAOp
 //===----------------------------------------------------------------------===//
 
-LogicalResult ScaledWMMAOp::verify() {
+LogicalResult ScaledMFMAOp::verify() {
   // Helper functions for type classification.
   auto isF8 = llvm::IsaPred<Float8E4M3FNType, Float8E5M2Type>;
   auto isF6 = llvm::IsaPred<Float6E2M3FNType, Float6E3M2FNType>;
@@ -512,8 +512,8 @@ LogicalResult ScaledWMMAOp::verify() {
   }
 
   // Validate scale types and their compatibility with matrix element types.
-  auto scaleAType = cast<VectorType>(getScaleA().getType());
-  auto scaleBType = cast<VectorType>(getScaleB().getType());
+  auto scaleAType = cast<VectorType>(getScalesA().getType());
+  auto scaleBType = cast<VectorType>(getScalesB().getType());
   Type scaleAElemType = scaleAType.getElementType();
   Type scaleBElemType = scaleBType.getElementType();
 
@@ -631,7 +631,7 @@ LogicalResult MFMAOp::verify() {
 // SparseMFMAOp
 //===----------------------------------------------------------------------===//
 
-LogicalResult SparseMFMAOp::verify() {
+LogicalResult ScaledMFMAOp::verify() {
   constexpr uint32_t waveSize = 64;
 
   auto sparseType = cast<VectorType>(getSourceA().getType());
@@ -1086,7 +1086,7 @@ OpFoldResult MakeDmaDescriptorOp::fold(FoldAdaptor adaptor) {
 // MakeGatherDmaDescriptorOp
 //===----------------------------------------------------------------------===//
 
-LogicalResult MakeGatherDmaDescriptorOp::verify() {
+LogicalResult MakeDmaDescriptorOp::verify() {
   ArrayRef<int64_t> globalStaticSizes = getGlobalStaticSizes();
   size_t rank = globalStaticSizes.size();
   if (rank > 2)

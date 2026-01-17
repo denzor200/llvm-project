@@ -22348,7 +22348,7 @@ bool DAGCombiner::tryStoreMergeOfConstants(
         if (NonZero && FirstZeroAfterNonZero == NumConsecutiveStores)
           FirstZeroAfterNonZero = i;
       }
-      NonZero |= !IsElementZero;
+      NonZero = NonZero || !IsElementZero;
 
       // Find a legal type for the constant store.
       unsigned SizeInBits = (i + 1) * ElementSizeBytes * 8;
@@ -24752,7 +24752,7 @@ SDValue DAGCombiner::reduceBuildVecExtToExtBuildVec(SDNode *N) {
     }
 
     // Check if all of the extends are ANY_EXTENDs.
-    AllAnyExt &= AnyExt;
+    AllAnyExt = AllAnyExt && AnyExt;
   }
 
   // In order to have valid types, all of the inputs must be extended from the
@@ -25425,7 +25425,7 @@ SDValue DAGCombiner::convertBuildVecZextToZext(SDNode *N) {
   SDValue Op0 = N->getOperand(0);
   auto checkElem = [&](SDValue Op) -> int64_t {
     unsigned Opc = Op.getOpcode();
-    FoundZeroExtend |= (Opc == ISD::ZERO_EXTEND);
+    FoundZeroExtend = FoundZeroExtend || (Opc == ISD::ZERO_EXTEND);
     if ((Opc == ISD::ZERO_EXTEND || Opc == ISD::ANY_EXTEND) &&
         Op.getOperand(0).getOpcode() == ISD::EXTRACT_VECTOR_ELT &&
         Op0.getOperand(0).getOperand(0) == Op.getOperand(0).getOperand(0))
@@ -27924,7 +27924,7 @@ SDValue DAGCombiner::visitVECTOR_SHUFFLE(SDNode *N) {
       if (M < 0)
         continue;
       ClearMask[I] = M == I ? I : (I + NumElts);
-      IsInLaneMask &= (M == I) || (M == (int)(I + NumElts));
+      IsInLaneMask = IsInLaneMask && ((M == I) || (M == (int)(I + NumElts)));
       if (M != I) {
         APInt &Demanded = M < (int)NumElts ? DemandedLHS : DemandedRHS;
         Demanded.setBit(M % NumElts);

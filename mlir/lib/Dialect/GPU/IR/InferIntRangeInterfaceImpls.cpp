@@ -126,7 +126,7 @@ static std::optional<uint64_t> getKnownLaunchDim(Op op, LaunchDims type) {
       attrName = GPUDialect::KnownGridSizeAttrHelper::getNameStr();
       break;
     case LaunchDims::Cluster:
-      attrName = GPUDialect::KnownClusterSizeAttrHelper::getNameStr();
+      attrName = GPUDialect::KnownBlockSizeAttrHelper::getNameStr();
       break;
     }
     auto discardableAttr = getKnownLaunchAttr(func, attrName, dim);

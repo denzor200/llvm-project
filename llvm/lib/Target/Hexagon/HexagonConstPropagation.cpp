@@ -1112,8 +1112,8 @@ bool MachineConstEvaluator::evaluateCMPrr(uint32_t Cmp, const RegSubRegPair &R1,
                     evaluateCMPri(Cmp, R1, A, Inputs, Res);
     if (!Computed)
       return false;
-    IsTrue &= Res;
-    IsFalse &= !Res;
+    IsTrue = IsTrue && Res;
+    IsFalse = IsFalse && !Res;
   }
   assert(!IsTrue || !IsFalse);
   // The actual logical value of the comparison is same as IsTrue.
@@ -1140,8 +1140,8 @@ bool MachineConstEvaluator::evaluateCMPri(uint32_t Cmp, const RegSubRegPair &R1,
                     evaluateCMPii(Cmp, A, A2, Res);
     if (!Computed)
       return false;
-    IsTrue &= Res;
-    IsFalse &= !Res;
+    IsTrue = IsTrue && Res;
+    IsFalse = IsFalse && !Res;
   }
   assert(!IsTrue || !IsFalse);
   // The actual logical value of the comparison is same as IsTrue.
@@ -1169,8 +1169,8 @@ bool MachineConstEvaluator::evaluateCMPrp(uint32_t Cmp, const RegSubRegPair &R1,
                     evaluateCMPpi(NegCmp, Props2, A, Res);
     if (!Computed)
       return false;
-    IsTrue &= Res;
-    IsFalse &= !Res;
+    IsTrue = IsTrue && Res;
+    IsFalse = IsFalse && !Res;
   }
   assert(!IsTrue || !IsFalse);
   Result = IsTrue;

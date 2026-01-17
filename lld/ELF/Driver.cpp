@@ -3160,7 +3160,7 @@ template <class ELFT> void LinkerDriver::link(opt::InputArgList &args) {
 
   // Create dynamic sections for dynamic linking and static PIE.
   ctx.hasDynsym = !ctx.sharedFiles.empty() || ctx.arg.isPic;
-  ctx.arg.exportDynamic &= ctx.hasDynsym;
+  ctx.arg.exportDynamic = ctx.arg.exportDynamic && ctx.hasDynsym;
 
   // Preemptibility of undefined symbols when ctx.hasDynsym is true. Default is
   // true for dynamic linking.

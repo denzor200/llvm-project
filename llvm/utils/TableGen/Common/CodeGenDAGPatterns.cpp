@@ -3818,16 +3818,16 @@ static bool InferFromPattern(CodeGenInstruction &InstInfo,
   }
 
   // Transfer inferred flags.
-  InstInfo.hasSideEffects |= PatInfo.hasSideEffects;
-  InstInfo.mayStore |= PatInfo.mayStore;
-  InstInfo.mayLoad |= PatInfo.mayLoad;
+  InstInfo.hasSideEffects = InstInfo.hasSideEffects || PatInfo.hasSideEffects;
+  InstInfo.mayStore = InstInfo.mayStore || PatInfo.mayStore;
+  InstInfo.mayLoad = InstInfo.mayLoad || PatInfo.mayLoad;
 
   // These flags are silently added without any verification.
   // FIXME: To match historical behavior of TableGen, for now add those flags
   // only when we're inferring from the primary instruction pattern.
   if (PatDef->isSubClassOf("Instruction")) {
-    InstInfo.isBitcast |= PatInfo.isBitcast;
-    InstInfo.hasChain |= PatInfo.hasChain;
+    InstInfo.isBitcast = InstInfo.isBitcast || PatInfo.isBitcast;
+    InstInfo.hasChain = InstInfo.hasChain || PatInfo.hasChain;
     InstInfo.hasChain_Inferred = true;
   }
 

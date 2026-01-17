@@ -10672,8 +10672,8 @@ static bool matchShuffleWithUNPCK(MVT VT, SDValue &V1, SDValue &V2,
   for (int i = 0; i != NumElts; i += 2) {
     int M1 = TargetMask[i + 0];
     int M2 = TargetMask[i + 1];
-    Undef1 &= (SM_SentinelUndef == M1);
-    Undef2 &= (SM_SentinelUndef == M2);
+    Undef1 = Undef1 && (SM_SentinelUndef == M1);
+    Undef2 = Undef2 && (SM_SentinelUndef == M2);
     Zero1 &= isUndefOrZero(M1);
     Zero2 &= isUndefOrZero(M2);
   }
@@ -11618,8 +11618,8 @@ static SDValue lowerShuffleAsUNPCKAndPermute(const SDLoc &DL, MVT VT,
         break;
       }
     }
-    MatchLo &= MatchLoAnyLane;
-    MatchHi &= MatchHiAnyLane;
+    MatchLo = MatchLo && MatchLoAnyLane;
+    MatchHi = MatchHi && MatchHiAnyLane;
     if (!MatchLo && !MatchHi)
       return SDValue();
   }
@@ -11800,14 +11800,14 @@ static SDValue lowerShuffleAsByteRotateAndPermute(
       if (M < 0)
         continue;
       if (M < NumElts) {
-        Blend1 &= (M == (Lane + Elt));
+        Blend1 = Blend1 && (M == (Lane + Elt));
         assert(Lane <= M && M < (Lane + NumEltsPerLane) && "Out of range mask");
         M = M % NumEltsPerLane;
         Range1.first = std::min(Range1.first, M);
         Range1.second = std::max(Range1.second, M);
       } else {
         M -= NumElts;
-        Blend2 &= (M == (Lane + Elt));
+        Blend2 = Blend2 && (M == (Lane + Elt));
         assert(Lane <= M && M < (Lane + NumEltsPerLane) && "Out of range mask");
         M = M % NumEltsPerLane;
         Range2.first = std::min(Range2.first, M);
@@ -11909,12 +11909,12 @@ static SDValue lowerShuffleAsDecomposedShuffleMerge(
       V1Mask[i] = M;
       FinalMask[i] = i;
       V1Zero &= Zeroable[i];
-      IsAlternating &= (i & 1) == 0;
+      IsAlternating = IsAlternating && (i && 1) == 0;
     } else if (M >= NumElts) {
       V2Mask[i] = M - NumElts;
       FinalMask[i] = i + NumElts;
       V2Zero &= Zeroable[i];
-      IsAlternating &= (i & 1) == 1;
+      IsAlternating = IsAlternating && (i && 1) == 1;
     }
   }
 
@@ -14632,8 +14632,8 @@ static SDValue lowerShuffleAsBlendOfPSHUFBs(
 
     V1Mask[i] = DAG.getConstant(V1Idx, DL, MVT::i8);
     V2Mask[i] = DAG.getConstant(V2Idx, DL, MVT::i8);
-    V1InUse |= (ZeroMask != V1Idx);
-    V2InUse |= (ZeroMask != V2Idx);
+    V1InUse = V1InUse || (ZeroMask != V1Idx);
+    V2InUse = V2InUse || (ZeroMask != V2Idx);
   }
 
   MVT ShufVT = MVT::getVectorVT(MVT::i8, NumBytes);
@@ -16494,7 +16494,7 @@ static bool matchShuffleWithSHUFPD(MVT VT, SDValue &V1, SDValue &V2,
 
   bool ZeroLane[2] = { true, true };
   for (int i = 0; i < NumElts; ++i)
-    ZeroLane[i & 1] &= Zeroable[i];
+    ZeroLane[i && 1] &= Zeroable[i];
 
   // Mask for V8F64: 0/1,  8/9,  2/3,  10/11, 4/5, ..
   // Mask for V4F64; 0/1,  4/5,  2/3,  6/7..
@@ -40560,7 +40560,7 @@ static SDValue combineX86ShuffleChain(
   const TargetLowering &TLI = DAG.getTargetLoweringInfo();
 
   // Determine the effective mask value type.
-  FloatDomain &= (32 <= MaskEltSizeInBits);
+  FloatDomain = FloatDomain && (32 <= MaskEltSizeInBits);
   MVT MaskVT = FloatDomain ? MVT::getFloatingPointVT(MaskEltSizeInBits)
                            : MVT::getIntegerVT(MaskEltSizeInBits);
   MaskVT = MVT::getVectorVT(MaskVT, NumMaskElts);
@@ -40790,10 +40790,10 @@ static SDValue combineX86ShuffleChain(
       Subtarget.hasFastVariableCrossLaneShuffle() ? 1 : 2;
   int VariablePerLaneShuffleDepth =
       Subtarget.hasFastVariablePerLaneShuffle() ? 1 : 2;
-  AllowVariableCrossLaneMask &=
-      (Depth >= VariableCrossLaneShuffleDepth) || NumVariableMasks;
-  AllowVariablePerLaneMask &=
-      (Depth >= VariablePerLaneShuffleDepth) || NumVariableMasks;
+  AllowVariableCrossLaneMask = AllowVariableCrossLaneMask &&
+      ((Depth >= VariableCrossLaneShuffleDepth) || NumVariableMasks);
+  AllowVariablePerLaneMask = AllowVariablePerLaneMask &&
+      ((Depth >= VariablePerLaneShuffleDepth) || NumVariableMasks);
   // VPERM2W/VPERM2B are 3 uops on Skylake and Icelake so we require a
   // higher depth before combining them.
   int BWIVPERMV3ShuffleDepth =
@@ -43297,8 +43297,8 @@ static SDValue combineTargetShuffle(SDValue N, const SDLoc &DL,
           return SDValue();
 
         // Determine which inputs of the target shuffle we're using.
-        UseInput00 |= (0 <= M && M < 4);
-        UseInput01 |= (4 <= M);
+        UseInput00 = UseInput00 || (0 <= M && M < 4);
+        UseInput01 = UseInput01 || (4 <= M);
       }
 
       // If we're not using both inputs of the target shuffle then use the

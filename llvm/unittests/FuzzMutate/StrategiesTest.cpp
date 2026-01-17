@@ -229,8 +229,8 @@ static void checkModifyNoUnsignedAndNoSignedWrap(StringRef Opc) {
   for (int i = 0; i < 100; ++i) {
     Mutator->mutateModule(*M, Seed + i, IRMutator::getModuleSize(*M) + 100);
     EXPECT_TRUE(!verifyModule(*M, &errs()));
-    FoundNUW |= AddI->hasNoUnsignedWrap();
-    FoundNSW |= AddI->hasNoSignedWrap();
+    FoundNUW = FoundNUW || AddI->hasNoUnsignedWrap();
+    FoundNSW = FoundNSW || AddI->hasNoSignedWrap();
   }
 
   // The mutator should have added nuw and nsw during some mutations.
@@ -458,7 +458,7 @@ TEST(InstModificationIRStrategy, Exact) {
   for (int i = 0; i < 100; ++i) {
     Mutator->mutateModule(*M, RandInt(mt), IRMutator::getModuleSize(*M) + 100);
     ASSERT_FALSE(verifyModule(*M, &errs()));
-    FoundExact |= AShr->isExact();
+    FoundExact = FoundExact || AShr->isExact();
   }
 
   EXPECT_TRUE(FoundExact);

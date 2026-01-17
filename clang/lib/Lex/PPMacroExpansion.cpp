@@ -175,7 +175,7 @@ ModuleMacro *Preprocessor::addModuleMacro(Module *Mod, IdentifierInfo *II,
   // Each overridden macro is now overridden by one more macro.
   bool HidAny = false;
   for (auto *O : Overrides) {
-    HidAny |= (O->NumOverriddenBy == 0);
+    HidAny = HidAny || (O->NumOverriddenBy == 0);
     ++O->NumOverriddenBy;
   }
 

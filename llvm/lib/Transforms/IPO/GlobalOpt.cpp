@@ -2435,7 +2435,7 @@ static bool OptimizeEmptyGlobalAtExitDtors(Function *CXAAtExitFn, bool isCXX) {
     else
       ++NumAtExitRemoved;
 
-    Changed |= true;
+    Changed = Changed || true;
   }
 
   return Changed;
@@ -2818,7 +2818,7 @@ optimizeGlobalsInModule(Module &M, const DataLayout &DL,
     // Remove any IFuncs that are now dead.
     LocalChange |= DeleteDeadIFuncs(M, NotDiscardableComdats);
 
-    Changed |= LocalChange;
+    Changed = Changed || LocalChange;
   }
 
   // TODO: Move all global ctors functions to the end of the module for code

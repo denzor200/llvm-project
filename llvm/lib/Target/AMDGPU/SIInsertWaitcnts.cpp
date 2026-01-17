@@ -2850,7 +2850,7 @@ bool WaitcntBrackets::merge(const WaitcntBrackets &Other) {
   for (auto &[TID, Info] : VMem) {
     if (auto It = Other.VMem.find(TID); It != Other.VMem.end()) {
       unsigned char NewVmemTypes = Info.VMEMTypes | It->second.VMEMTypes;
-      StrictDom |= NewVmemTypes != Info.VMEMTypes;
+      StrictDom = StrictDom || NewVmemTypes != Info.VMEMTypes;
       Info.VMEMTypes = NewVmemTypes;
     }
   }
@@ -3202,7 +3202,7 @@ SIInsertWaitcnts::getPreheaderFlushFlags(MachineLoop *ML,
       }
     }
     // Accumulate unprotected DS stores from this MBB
-    SeenDSStoreInLoop |= SeenDSStoreInCurrMBB;
+    SeenDSStoreInLoop = SeenDSStoreInLoop || SeenDSStoreInCurrMBB;
   }
 
   // VMEM flush decision

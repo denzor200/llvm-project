@@ -4585,7 +4585,7 @@ protected:
       bool current_frame_flush = false;
       if (DownloadObjectAndSymbolFile(module_spec, result, current_frame_flush))
         symbols_found = true;
-      flush |= current_frame_flush;
+      flush = flush || current_frame_flush;
     }
 
     if (!symbols_found) {

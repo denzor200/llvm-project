@@ -82,7 +82,7 @@ using namespace mlir::acc;
 namespace {
 
 class ACCIfClauseLowering
-    : public acc::impl::ACCIfClauseLoweringBase<ACCIfClauseLowering> {
+    : public impl::ACCIfClauseLoweringBase<ACCIfClauseLowering> {
   using ACCIfClauseLoweringBase<ACCIfClauseLowering>::ACCIfClauseLoweringBase;
 
 private:
@@ -95,7 +95,7 @@ private:
                                         SmallVector<Operation *> &eraseOps);
 
 public:
-  void runOnOperation() override;
+  void runOnOperation() ;
 };
 
 void ACCIfClauseLowering::convertHostRegion(Operation *computeOp,
@@ -225,7 +225,7 @@ void ACCIfClauseLowering::lowerIfClauseForComputeConstruct(
 }
 
 void ACCIfClauseLowering::runOnOperation() {
-  func::FuncOp funcOp = getOperation();
+  func::FuncOp funcOp = Operation();
   accSupport = &getAnalysis<OpenACCSupport>();
 
   SmallVector<Operation *> eraseOps;

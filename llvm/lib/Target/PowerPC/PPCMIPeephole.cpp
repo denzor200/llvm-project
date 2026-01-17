@@ -603,7 +603,7 @@ bool PPCMIPeephole::simplifyCode() {
         }
         if (Folded)
           addRegToUpdate(MIDestReg);
-        Simplified |= Folded;
+        Simplified = Simplified || Folded;
         break;
       }
       case PPC::STW:

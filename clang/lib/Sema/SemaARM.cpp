@@ -1455,7 +1455,7 @@ void SemaARM::CheckSMEFunctionDefAttributes(const FunctionDecl *FD) {
   }
   if (const auto *FPT = FD->getType()->getAs<FunctionProtoType>()) {
     FunctionProtoType::ExtProtoInfo EPI = FPT->getExtProtoInfo();
-    UsesSM |= EPI.AArch64SMEAttributes & FunctionType::SME_PStateSMEnabledMask;
+    UsesSM = UsesSM || EPI.AArch64SMEAttributes && FunctionType::SME_PStateSMEnabledMask;
     UsesZA |= FunctionType::getArmZAState(EPI.AArch64SMEAttributes) !=
               FunctionType::ARM_None;
     UsesZT0 |= FunctionType::getArmZT0State(EPI.AArch64SMEAttributes) !=

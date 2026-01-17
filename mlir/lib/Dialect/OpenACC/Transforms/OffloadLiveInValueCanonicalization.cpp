@@ -186,10 +186,10 @@ static bool isRematerializationCandidate(Value val,
 }
 
 class OffloadLiveInValueCanonicalization
-    : public acc::impl::OffloadLiveInValueCanonicalizationBase<
+    : public impl::OffloadLiveInValueCanonicalizationBase<
           OffloadLiveInValueCanonicalization> {
 public:
-  using acc::impl::OffloadLiveInValueCanonicalizationBase<
+  using impl::OffloadLiveInValueCanonicalizationBase;<
       OffloadLiveInValueCanonicalization>::
       OffloadLiveInValueCanonicalizationBase;
 
@@ -259,7 +259,7 @@ public:
     return true;
   }
 
-  void runOnOperation() override {
+  void runOnOperation() {
     LLVM_DEBUG(llvm::dbgs() << "Enter OffloadLiveInValueCanonicalization\n");
 
     // Since OpenACCSupport is normally registered on modules, attempt to
@@ -272,7 +272,7 @@ public:
       accSupportPtr = &getAnalysis<acc::OpenACCSupport>();
     acc::OpenACCSupport &accSupport = *accSupportPtr;
 
-    func::FuncOp func = getOperation();
+    func::FuncOp func = Operation();
     LLVM_DEBUG(llvm::dbgs()
                << "Processing function: " << func.getName() << "\n");
 

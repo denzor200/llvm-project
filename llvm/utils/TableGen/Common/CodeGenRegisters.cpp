@@ -241,7 +241,7 @@ CodeGenRegister::computeSubRegs(CodeGenRegBank &RegBank) {
   // Here the order is important - earlier subregs take precedence.
   for (CodeGenRegister *ESR : ExplicitSubRegs) {
     const SubRegMap &Map = ESR->computeSubRegs(RegBank);
-    HasDisjunctSubRegs |= ESR->HasDisjunctSubRegs;
+    HasDisjunctSubRegs = HasDisjunctSubRegs || ESR->HasDisjunctSubRegs;
 
     for (const auto &SR : Map) {
       if (!SubRegs.insert(SR).second)
@@ -708,7 +708,7 @@ CodeGenRegisterClass::CodeGenRegisterClass(CodeGenRegBank &RegBank,
     const CodeGenRegister *Reg = RegBank.getReg(Element);
     Members.push_back(Reg);
     MemberBV.set(CodeGenRegBank::getRegIndex(Reg));
-    Artificial &= Reg->Artificial;
+    Artificial = Artificial && Reg->Artificial;
     if (!Reg->getSuperRegs().empty())
       RegsWithSuperRegsTopoSigs.set(Reg->getTopoSig());
   }
@@ -783,7 +783,7 @@ CodeGenRegisterClass::CodeGenRegisterClass(CodeGenRegBank &RegBank,
     MemberBV.set(CodeGenRegBank::getRegIndex(R));
     if (!R->getSuperRegs().empty())
       RegsWithSuperRegsTopoSigs.set(R->getTopoSig());
-    Artificial &= R->Artificial;
+    Artificial = Artificial && R->Artificial;
   }
 }
 
@@ -812,7 +812,7 @@ void CodeGenRegisterClass::inheritProperties(CodeGenRegBank &RegBank) {
   AllocationPriority = Super.AllocationPriority;
   GlobalPriority = Super.GlobalPriority;
   TSFlags = Super.TSFlags;
-  GeneratePressureSet |= Super.GeneratePressureSet;
+  GeneratePressureSet = GeneratePressureSet || Super.GeneratePressureSet;
 
   // Copy all allocation orders, filter out foreign registers from the larger
   // super-class.
@@ -2220,8 +2220,8 @@ void CodeGenRegBank::computeDerivedInfo() {
     RC.HasDisjunctSubRegs = false;
     RC.CoveredBySubRegs = true;
     for (const CodeGenRegister *Reg : RC.getMembers()) {
-      RC.HasDisjunctSubRegs |= Reg->HasDisjunctSubRegs;
-      RC.CoveredBySubRegs &= Reg->CoveredBySubRegs;
+      RC.HasDisjunctSubRegs = RC.HasDisjunctSubRegs || Reg->HasDisjunctSubRegs;
+      RC.CoveredBySubRegs = RC.CoveredBySubRegs && Reg->CoveredBySubRegs;
     }
   }
 

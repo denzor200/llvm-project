@@ -571,7 +571,7 @@ void ASTDeclReader::VisitDecl(Decl *D) {
       (Decl::ModuleOwnershipKind)DeclBits.getNextBits(/*Width=*/3);
   D->setReferenced(DeclBits.getNextBit());
   D->Used = DeclBits.getNextBit();
-  IsDeclMarkedUsed |= D->Used;
+  IsDeclMarkedUsed = IsDeclMarkedUsed || D->Used;
   D->setAccess((AccessSpecifier)DeclBits.getNextBits(/*Width=*/2));
   D->setImplicit(DeclBits.getNextBit());
   bool HasStandaloneLexicalDC = DeclBits.getNextBit();
@@ -2143,15 +2143,15 @@ void ASTDeclMerger::MergeDefinitionData(
   if (DD.IsLambda) {
     auto &Lambda1 = static_cast<CXXRecordDecl::LambdaDefinitionData &>(DD);
     auto &Lambda2 = static_cast<CXXRecordDecl::LambdaDefinitionData &>(MergeDD);
-    DetectedOdrViolation |= Lambda1.DependencyKind != Lambda2.DependencyKind;
-    DetectedOdrViolation |= Lambda1.IsGenericLambda != Lambda2.IsGenericLambda;
-    DetectedOdrViolation |= Lambda1.CaptureDefault != Lambda2.CaptureDefault;
-    DetectedOdrViolation |= Lambda1.NumCaptures != Lambda2.NumCaptures;
-    DetectedOdrViolation |=
+    DetectedOdrViolation = DetectedOdrViolation || Lambda1.DependencyKind != Lambda2.DependencyKind;
+    DetectedOdrViolation = DetectedOdrViolation || Lambda1.IsGenericLambda != Lambda2.IsGenericLambda;
+    DetectedOdrViolation = DetectedOdrViolation || Lambda1.CaptureDefault != Lambda2.CaptureDefault;
+    DetectedOdrViolation = DetectedOdrViolation || Lambda1.NumCaptures != Lambda2.NumCaptures;
+    DetectedOdrViolation = DetectedOdrViolation ||
         Lambda1.NumExplicitCaptures != Lambda2.NumExplicitCaptures;
-    DetectedOdrViolation |=
+    DetectedOdrViolation = DetectedOdrViolation ||
         Lambda1.HasKnownInternalLinkage != Lambda2.HasKnownInternalLinkage;
-    DetectedOdrViolation |= Lambda1.ManglingNumber != Lambda2.ManglingNumber;
+    DetectedOdrViolation = DetectedOdrViolation || Lambda1.ManglingNumber != Lambda2.ManglingNumber;
 
     if (Lambda1.NumCaptures && Lambda1.NumCaptures == Lambda2.NumCaptures) {
       for (unsigned I = 0, N = Lambda1.NumCaptures; I != N; ++I) {

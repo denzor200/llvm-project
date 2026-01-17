@@ -323,15 +323,15 @@ class ACCOrphanDataEntryConversion : public OpRewritePattern<OpTy> {
 };
 
 class ACCSpecializeForHost
-    : public acc::impl::ACCSpecializeForHostBase<ACCSpecializeForHost> {
+    : public impl::ACCSpecializeForHostBase<ACCSpecializeForHost> {
 public:
   using ACCSpecializeForHostBase<
       ACCSpecializeForHost>::ACCSpecializeForHostBase;
 
-  void runOnOperation() override {
+  void runOnOperation() {
     LLVM_DEBUG(llvm::dbgs() << "Enter ACCSpecializeForHost()\n");
 
-    func::FuncOp funcOp = getOperation();
+    func::FuncOp funcOp = Operation();
     if (!acc::isSpecializedAccRoutine(funcOp)) {
       // Convert orphan operations to host, or all ACC operations if
       // host fallback patterns are enabled.

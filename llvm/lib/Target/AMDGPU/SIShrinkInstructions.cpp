@@ -981,7 +981,7 @@ bool SIShrinkInstructions::run(MachineFunction &MF) {
         ChangeKind CK = shrinkScalarLogicOp(MI);
         if (CK == ChangeKind::UpdateHint)
           continue;
-        Changed |= (CK == ChangeKind::UpdateInst);
+        Changed = Changed || (CK == ChangeKind::UpdateInst);
       }
 
       if (IsPostRA && TII->isMIMG(MI.getOpcode()) &&

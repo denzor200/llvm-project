@@ -339,8 +339,8 @@ static LLVM_ATTRIBUTE_NOINLINE Value *emitRVVUnitStridedSegLoadTupleBuiltin(
   auto &CGM = CGF->CGM;
   llvm::SmallVector<llvm::Type *, 4> IntrinsicTypes;
   bool NoPassthru =
-      (IsMasked && (PolicyAttrs & RVV_VTA) && (PolicyAttrs & RVV_VMA)) |
-      (!IsMasked && (PolicyAttrs & RVV_VTA));
+      (IsMasked && (PolicyAttrs && RVV_VTA) && (PolicyAttrs && RVV_VMA)) ||
+      (!IsMasked && (PolicyAttrs && RVV_VTA));
   unsigned Offset = IsMasked ? NoPassthru ? 1 : 2 : NoPassthru ? 0 : 1;
   if (IsMasked)
     IntrinsicTypes = {ResultType, Ops[Offset]->getType(), Ops[0]->getType(),
@@ -397,8 +397,8 @@ static LLVM_ATTRIBUTE_NOINLINE Value *emitRVVUnitStridedSegLoadFFTupleBuiltin(
   auto &CGM = CGF->CGM;
   llvm::SmallVector<llvm::Type *, 4> IntrinsicTypes;
   bool NoPassthru =
-      (IsMasked && (PolicyAttrs & RVV_VTA) && (PolicyAttrs & RVV_VMA)) |
-      (!IsMasked && (PolicyAttrs & RVV_VTA));
+      (IsMasked && (PolicyAttrs && RVV_VTA) && (PolicyAttrs && RVV_VMA)) ||
+      (!IsMasked && (PolicyAttrs && RVV_VTA));
   unsigned Offset = IsMasked ? NoPassthru ? 1 : 2 : NoPassthru ? 0 : 1;
   if (IsMasked)
     IntrinsicTypes = {ResultType, Ops.back()->getType(), Ops[Offset]->getType(),
@@ -437,8 +437,8 @@ static LLVM_ATTRIBUTE_NOINLINE Value *emitRVVStridedSegLoadTupleBuiltin(
   auto &CGM = CGF->CGM;
   llvm::SmallVector<llvm::Type *, 4> IntrinsicTypes;
   bool NoPassthru =
-      (IsMasked && (PolicyAttrs & RVV_VTA) && (PolicyAttrs & RVV_VMA)) |
-      (!IsMasked && (PolicyAttrs & RVV_VTA));
+      (IsMasked && (PolicyAttrs && RVV_VTA) && (PolicyAttrs && RVV_VMA)) ||
+      (!IsMasked && (PolicyAttrs && RVV_VTA));
   unsigned Offset = IsMasked ? NoPassthru ? 1 : 2 : NoPassthru ? 0 : 1;
   if (IsMasked)
     IntrinsicTypes = {ResultType, Ops[Offset]->getType(), Ops.back()->getType(),
@@ -627,8 +627,8 @@ static LLVM_ATTRIBUTE_NOINLINE Value *emitRVVIndexedSegLoadTupleBuiltin(
   llvm::SmallVector<llvm::Type *, 5> IntrinsicTypes;
 
   bool NoPassthru =
-      (IsMasked && (PolicyAttrs & RVV_VTA) && (PolicyAttrs & RVV_VMA)) |
-      (!IsMasked && (PolicyAttrs & RVV_VTA));
+      (IsMasked && (PolicyAttrs && RVV_VTA) && (PolicyAttrs && RVV_VMA)) ||
+      (!IsMasked && (PolicyAttrs && RVV_VTA));
 
   if (IsMasked)
     std::rotate(Ops.begin(), Ops.begin() + 1, Ops.end() - 1);

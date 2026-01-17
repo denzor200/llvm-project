@@ -2727,7 +2727,7 @@ bool BitSimplification::processBlock(MachineBasicBlock &B,
     if (MI->mayStore()) {
       bool T = genStoreUpperHalf(MI);
       T = T || genStoreImmediate(MI);
-      Changed |= T;
+      Changed = Changed || T;
       continue;
     }
 
@@ -2745,7 +2745,7 @@ bool BitSimplification::processBlock(MachineBasicBlock &B,
     if (FRC->getID() == Hexagon::DoubleRegsRegClassID) {
       bool T = genPackhl(MI, RD, RC);
       T = T || simplifyExtractLow(MI, RD, RC, AVB);
-      Changed |= T;
+      Changed = Changed || T;
       continue;
     }
 
@@ -2756,13 +2756,13 @@ bool BitSimplification::processBlock(MachineBasicBlock &B,
       T = T || genCombineHalf(MI, RD, RC);
       T = T || genExtractLow(MI, RD, RC);
       T = T || simplifyRCmp0(MI, RD);
-      Changed |= T;
+      Changed = Changed || T;
       continue;
     }
 
     if (FRC->getID() == Hexagon::PredRegsRegClassID) {
       bool T = simplifyTstbit(MI, RD, RC);
-      Changed |= T;
+      Changed = Changed || T;
       continue;
     }
   }

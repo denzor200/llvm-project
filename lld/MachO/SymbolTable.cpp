@@ -115,10 +115,10 @@ Defined *SymbolTable::addDefined(StringRef name, InputFile *file,
       if (isWeakDef) {
         // See further comment in createDefined() in InputFiles.cpp
         if (defined->isWeakDef()) {
-          defined->privateExtern &= isPrivateExtern;
-          defined->weakDefCanBeHidden &= isWeakDefCanBeHidden;
-          defined->referencedDynamically |= isReferencedDynamically;
-          defined->noDeadStrip |= noDeadStrip;
+          defined->privateExtern = defined->privateExtern && isPrivateExtern;
+          defined->weakDefCanBeHidden = defined->weakDefCanBeHidden && isWeakDefCanBeHidden;
+          defined->referencedDynamically = defined->referencedDynamically || isReferencedDynamically;
+          defined->noDeadStrip = defined->noDeadStrip || noDeadStrip;
         }
         if (auto concatIsec = dyn_cast_or_null<ConcatInputSection>(isec)) {
           concatIsec->wasCoalesced = true;

@@ -789,14 +789,14 @@ ArgumentUsesSummary collectArgumentUsesPerBlock(Argument &A, Function &F) {
     }
 
     IInfo = std::move(Info);
-    BBInfo.HasUnknownAccess |=
+    BBInfo.HasUnknownAccess = BBInfo.HasUnknownAccess ||
         IInfo.ArgAccessType == ArgumentAccessInfo::AccessType::Unknown;
     bool InfoHasWrites =
         (IInfo.ArgAccessType == ArgumentAccessInfo::AccessType::Write ||
          IInfo.ArgAccessType ==
              ArgumentAccessInfo::AccessType::WriteWithSideEffect) &&
         !IInfo.AccessRanges.empty();
-    BBInfo.HasWrites |= InfoHasWrites;
+    BBInfo.HasWrites = BBInfo.HasWrites || InfoHasWrites;
     return InfoHasWrites;
   };
 
@@ -822,7 +822,7 @@ ArgumentUsesSummary collectArgumentUsesPerBlock(Argument &A, Function &F) {
     auto *I = cast<Instruction>(U);
     bool HasWrite = UpdateUseInfo(I, getArgumentAccessInfo(I, ArgUse, DL));
 
-    Result.HasAnyWrite |= HasWrite;
+    Result.HasAnyWrite = Result.HasAnyWrite || HasWrite;
 
     if (HasWrite && I->getParent() != &EntryBB)
       Result.HasWriteOutsideEntryBB = true;

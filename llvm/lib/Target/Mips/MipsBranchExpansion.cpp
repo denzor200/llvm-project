@@ -754,7 +754,7 @@ bool MipsBranchExpansion::handleMFLOSlot(Pred Predicate, Safe SafeInSlot) {
       // mflo + none-div + div, add nop between none-div and div.
       if (!LastInstInFunction) {
         std::pair<Iter, bool> Res = getNextMachineInstr(std::next(I), &*FI);
-        LastInstInFunction |= Res.second;
+        LastInstInFunction = LastInstInFunction || Res.second;
         IInSlot = Res.first;
         if (LastInstInFunction)
           continue;
@@ -797,7 +797,7 @@ bool MipsBranchExpansion::handleSlot(Pred Predicate, Safe SafeInSlot) {
           std::next(I) == FI->end() && std::next(FI) == MFp->end();
       if (!LastInstInFunction) {
         std::pair<Iter, bool> Res = getNextMachineInstr(std::next(I), &*FI);
-        LastInstInFunction |= Res.second;
+        LastInstInFunction = LastInstInFunction || Res.second;
         IInSlot = Res.first;
       }
 

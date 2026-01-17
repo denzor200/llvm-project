@@ -2257,7 +2257,7 @@ LogicalResult BytecodeReader::Impl::sortUseListOrder(Value value) {
   for (auto item : llvm::drop_begin(llvm::enumerate(value.getUses()))) {
     uint64_t currentID = bytecode::getUseID(
         item.value(), operationIDs.at(item.value().getOwner()));
-    alreadySorted &= prevID > currentID;
+    alreadySorted = alreadySorted && prevID > currentID;
     currentOrder.push_back({item.index(), currentID});
     prevID = currentID;
   }

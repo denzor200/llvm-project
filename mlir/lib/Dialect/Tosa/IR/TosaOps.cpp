@@ -550,12 +550,12 @@ void CastToBlockScaledOp::print(OpAsmPrinter &parser) {
   printWithEnumHandling(parser, *this);
 }
 
-ParseResult Conv2DBlockScaledOp::parse(OpAsmParser &parser,
+ParseResult CastToBlockScaledOp::parse(OpAsmParser &parser,
                                        OperationState &result) {
   return parseWithEnumHandling<tosa::BlockSize>(parser, result);
 }
 
-void Conv2DBlockScaledOp::print(OpAsmPrinter &parser) {
+void CastToBlockScaledOp::print(OpAsmPrinter &parser) {
   printWithEnumHandling(parser, *this);
 }
 
@@ -3501,9 +3501,9 @@ LogicalResult Conv2DOp::verify() {
   return success();
 }
 
-LogicalResult Conv2DBlockScaledOp::inferReturnTypeComponents(
+LogicalResult CastToBlockScaledOp::inferReturnTypeComponents(
     MLIRContext *context, ::std::optional<Location> location,
-    Conv2DBlockScaledOp::Adaptor adaptor,
+    CastToBlockScaledOp::Adaptor adaptor,
     SmallVectorImpl<ShapedTypeComponents> &inferredReturnShapes) {
   SmallVector<int64_t, 4> outShape(4, ShapedType::kDynamic);
 
@@ -3592,7 +3592,7 @@ LogicalResult Conv2DBlockScaledOp::inferReturnTypeComponents(
   return success();
 }
 
-LogicalResult Conv2DBlockScaledOp::verify() {
+LogicalResult CastToBlockScaledOp::verify() {
   if (failed(verifySameElementTypes(*this, getInputData().getType(),
                                     getWeightData().getType(), "input_data",
                                     "weight_data")) ||

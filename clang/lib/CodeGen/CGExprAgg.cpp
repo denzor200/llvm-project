@@ -1377,7 +1377,7 @@ VisitAbstractConditionalOperator(const AbstractConditionalOperator *E) {
   bool destructNonTrivialCStruct =
       !isExternallyDestructed &&
       E->getType().isDestructedType() == QualType::DK_nontrivial_c_struct;
-  isExternallyDestructed |= destructNonTrivialCStruct;
+  isExternallyDestructed = isExternallyDestructed || destructNonTrivialCStruct;
   Dest.setExternallyDestructed(isExternallyDestructed);
 
   eval.begin(CGF);

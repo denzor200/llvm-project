@@ -397,7 +397,7 @@ LogicalResult GPUDialect::verifyOperationAttribute(Operation *op,
     return verifyKnownLaunchSizeAttr(op, attr);
   if (attr.getName() == getKnownGridSizeAttrHelper().getName())
     return verifyKnownLaunchSizeAttr(op, attr);
-  if (attr.getName() == getKnownClusterSizeAttrHelper().getName())
+  if (attr.getName() == getKnownBlockSizeAttrHelper().getName())
     return verifyKnownLaunchSizeAttr(op, attr);
   if (!llvm::isa<UnitAttr>(attr.getValue()) ||
       attr.getName() != getContainerModuleAttrName())

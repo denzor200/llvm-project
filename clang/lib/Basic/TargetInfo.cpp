@@ -544,7 +544,7 @@ void TargetInfo::adjust(DiagnosticsEngine &Diags, LangOptions &Opts,
 
   // Each unsigned fixed point type has the same number of fractional bits as
   // its corresponding signed type.
-  PaddingOnUnsignedFixedPoint |= Opts.PaddingOnUnsignedFixedPoint;
+  PaddingOnUnsignedFixedPoint = PaddingOnUnsignedFixedPoint || Opts.PaddingOnUnsignedFixedPoint;
   CheckFixedPointBits();
 
   if (Opts.ProtectParens && !checkArithmeticFenceSupported()) {

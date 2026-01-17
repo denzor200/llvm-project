@@ -1422,7 +1422,7 @@ ValueVector ConversionPatternRewriterImpl::lookupOrDefault(
     if (skipPureTypeConversions) {
       // Skip pure type conversions, if requested.
       bool pureConversion = isPureTypeConversion(current);
-      match &= !pureConversion;
+      match = match && !pureConversion;
       // Keep track of the last mapped value that was not a pure type
       // conversion.
       if (!pureConversion)
