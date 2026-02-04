@@ -368,7 +368,7 @@ bool JumpThreadingPass::runImpl(Function &F_, FunctionAnalysisManager *FAM_,
         }
       }
     }
-    EverChanged |= Changed;
+    EverChanged = EverChanged || Changed;
   } while (Changed);
 
   // Jump threading may have introduced redundant debug values into F which

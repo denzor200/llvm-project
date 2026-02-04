@@ -74,9 +74,9 @@ void AvailabilityInfo::mergeWith(AvailabilityInfo Other) {
   if (Domain.empty())
     Domain = Other.Domain;
 
-  UnconditionallyUnavailable |= Other.UnconditionallyUnavailable;
-  UnconditionallyDeprecated |= Other.UnconditionallyDeprecated;
-  Unavailable |= Other.Unavailable;
+  UnconditionallyUnavailable = UnconditionallyUnavailable || Other.UnconditionallyUnavailable;
+  UnconditionallyDeprecated = UnconditionallyDeprecated || Other.UnconditionallyDeprecated;
+  Unavailable = Unavailable || Other.Unavailable;
 
   Introduced = std::max(Introduced, Other.Introduced);
 

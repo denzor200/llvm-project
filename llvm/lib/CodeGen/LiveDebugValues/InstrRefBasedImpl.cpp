@@ -2495,7 +2495,7 @@ bool InstrRefBasedLDV::mlocJoin(
     if (InLocs[Idx.asU64()] != ValueIDNum(MBB.getNumber(), 0, Idx)) {
       if (InLocs[Idx.asU64()] != FirstVal) {
         InLocs[Idx.asU64()] = FirstVal;
-        Changed |= true;
+        Changed = Changed || true;
       }
       continue;
     }
@@ -2522,7 +2522,7 @@ bool InstrRefBasedLDV::mlocJoin(
     // No disagreement? No PHI. Otherwise, leave the PHI in live-ins.
     if (!Disagree) {
       InLocs[Idx.asU64()] = FirstVal;
-      Changed |= true;
+      Changed = Changed || true;
     }
   }
 
@@ -3318,7 +3318,7 @@ void InstrRefBasedLDV::buildVLocValueMap(
 
           if (pickVPHILoc(JoinedOps, *MBB, LiveOutIdx, MOutLocs, Preds)) {
             bool NewLocPicked = !equal(LiveIn->getDbgOpIDs(), JoinedOps);
-            InLocsChanged |= NewLocPicked;
+            InLocsChanged = InLocsChanged || NewLocPicked;
             if (NewLocPicked)
               LiveIn->setDbgOpIDs(JoinedOps);
           }

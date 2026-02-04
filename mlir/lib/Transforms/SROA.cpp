@@ -230,7 +230,7 @@ LogicalResult mlir::tryToDestructureMemorySlots(
 
     if (!changesInThisRound)
       break;
-    destructuredAny |= changesInThisRound;
+    destructuredAny = destructuredAny || changesInThisRound;
 
     // Swap the vector's backing memory and clear the entries in newWorkList
     // afterwards. This ensures that additional heap allocations can be avoided.

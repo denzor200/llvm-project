@@ -1517,7 +1517,7 @@ static bool checkAndReplaceCondition(
       // in assume calls to not destroy the available information.
       auto *II = dyn_cast<IntrinsicInst>(U.getUser());
       bool ShouldReplace = !II || II->getIntrinsicID() != Intrinsic::assume;
-      Changed |= ShouldReplace;
+      Changed = Changed || ShouldReplace;
       return ShouldReplace;
     });
     NumCondsRemoved++;
@@ -1920,7 +1920,7 @@ static bool eliminateConstraints(Function &F, DominatorTree &DT, LoopInfo &LI,
               CB, Info, ReproducerModule.get(), ReproducerCondStack, DFSInStack,
               ToRemove);
         }
-        Changed |= Simplified;
+        Changed = Changed || Simplified;
       } else if (auto *MinMax = dyn_cast<MinMaxIntrinsic>(Inst)) {
         Changed |= checkAndReplaceMinMax(MinMax, Info, ToRemove);
       } else if (auto *CmpIntr = dyn_cast<CmpIntrinsic>(Inst)) {

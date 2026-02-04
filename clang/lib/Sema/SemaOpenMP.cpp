@@ -946,7 +946,7 @@ public:
   /// Marks parent region as cancel region.
   void setParentCancelRegion(bool Cancel = true) {
     if (SharingMapTy *Parent = getSecondOnStackOrNull())
-      Parent->CancelRegion |= Cancel;
+      Parent->CancelRegion = Parent->CancelRegion || Cancel;
   }
   /// Return true if current region has inner cancel construct.
   bool isCancelRegion() const {

@@ -231,11 +231,11 @@ classifyToken(const FunctionDecl &F, Preprocessor &PP, Token Tok) {
 
     const bool Qual = isCvr(T);
     const bool Spec = isSpecifier(T);
-    CT.IsQualifier &= Qual;
-    CT.IsSpecifier &= Spec;
-    ContainsQualifiers |= Qual;
-    ContainsSpecifiers |= Spec;
-    ContainsSomethingElse |= !Qual && !Spec;
+    CT.IsQualifier = CT.IsQualifier && Qual;
+    CT.IsSpecifier = CT.IsSpecifier && Spec;
+    ContainsQualifiers = ContainsQualifiers || Qual;
+    ContainsSpecifiers = ContainsSpecifiers || Spec;
+    ContainsSomethingElse = ContainsSomethingElse || !Qual && !Spec;
   }
 
   // If the Token/Macro contains more than one type of tokens, we would need

@@ -4502,7 +4502,7 @@ LogicalResult ContractOp::verify() {
     size_t outOccCount = outOccurrences[dimIndex];
 
     // We have a contracting dim if and only if ...
-    hasContractingDim |= inOccCount == 2 && outOccCount == 0;
+    hasContractingDim = hasContractingDim || inOccCount == 2 && outOccCount == 0;
 
     if (inOccCount == 0 && outOccCount == 0)
       return emitError() << "iteration space dim at index " << dimIndex

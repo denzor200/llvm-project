@@ -661,7 +661,7 @@ static void visitIVCast(CastInst *Cast, WideIVInfo &WI,
   // if there are multiple users with both sign- and zero extensions,
   // in order not to introduce nondeterministic behaviour based on the
   // unspecified order of a PHI nodes' users-iterator.
-  WI.IsSigned |= IsSigned;
+  WI.IsSigned = WI.IsSigned || IsSigned;
 }
 
 //===----------------------------------------------------------------------===//
@@ -734,8 +734,8 @@ bool IndVarSimplify::simplifyAndExtend(Loop *L,
       const auto &[C, U] = simplifyUsersOfIV(CurrIV, SE, DT, LI, TTI, DeadInsts,
                                              Rewriter, &Visitor);
 
-      Changed |= C;
-      RunUnswitching |= U;
+      Changed = Changed || C;
+      RunUnswitching = RunUnswitching || U;
       if (Visitor.WI.WidestNativeType) {
         WideIVs.push_back(Visitor.WI);
       }

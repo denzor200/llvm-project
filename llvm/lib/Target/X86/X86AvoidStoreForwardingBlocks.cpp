@@ -213,12 +213,12 @@ static bool isPotentialBlockedMemCpyPair(unsigned LdOpcode, unsigned StOpcode) {
 
 static bool isPotentialBlockingStoreInst(unsigned Opcode, unsigned LoadOpcode) {
   bool PBlock = false;
-  PBlock |= Opcode == X86::MOV64mr || Opcode == X86::MOV64mi32 ||
+  PBlock = PBlock || Opcode == X86::MOV64mr || Opcode == X86::MOV64mi32 ||
             Opcode == X86::MOV32mr || Opcode == X86::MOV32mi ||
             Opcode == X86::MOV16mr || Opcode == X86::MOV16mi ||
             Opcode == X86::MOV8mr || Opcode == X86::MOV8mi;
   if (isYMMLoadOpcode(LoadOpcode))
-    PBlock |= Opcode == X86::VMOVUPSmr || Opcode == X86::VMOVAPSmr ||
+    PBlock = PBlock || Opcode == X86::VMOVUPSmr || Opcode == X86::VMOVAPSmr ||
               Opcode == X86::VMOVUPDmr || Opcode == X86::VMOVAPDmr ||
               Opcode == X86::VMOVDQUmr || Opcode == X86::VMOVDQAmr ||
               Opcode == X86::VMOVUPSZ128mr || Opcode == X86::VMOVAPSZ128mr ||

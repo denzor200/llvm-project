@@ -1237,10 +1237,10 @@ void SemaCUDA::recordPotentialODRUsedVariable(
                            Target == CUDAFunctionTarget::HostDevice);
 
       bool IsRef = Callee->getParamDecl(I)->getType()->isReferenceType();
-      HostByValue |= CoversHost && !IsRef;
-      HostByRef |= CoversHost && IsRef;
-      DeviceByValue |= CoversDevice && !IsRef;
-      DeviceByRef |= CoversDevice && IsRef;
+      HostByValue = HostByValue || CoversHost && !IsRef;
+      HostByRef = HostByRef || CoversHost && IsRef;
+      DeviceByValue = DeviceByValue || CoversDevice && !IsRef;
+      DeviceByRef = DeviceByRef || CoversDevice && IsRef;
     }
 
     if ((HostByValue && DeviceByRef) || (HostByRef && DeviceByValue))

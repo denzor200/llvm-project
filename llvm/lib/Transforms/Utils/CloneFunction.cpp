@@ -147,9 +147,9 @@ BasicBlock *llvm::CloneBasicBlock(const BasicBlock *BB, ValueToValueMapTy &VMap,
   }
 
   if (CodeInfo) {
-    CodeInfo->ContainsCalls |= hasCalls;
-    CodeInfo->ContainsMemProfMetadata |= hasMemProfMetadata;
-    CodeInfo->ContainsDynamicAllocas |= hasDynamicAllocas;
+    CodeInfo->ContainsCalls = CodeInfo->ContainsCalls || hasCalls;
+    CodeInfo->ContainsMemProfMetadata = CodeInfo->ContainsMemProfMetadata || hasMemProfMetadata;
+    CodeInfo->ContainsDynamicAllocas = CodeInfo->ContainsDynamicAllocas || hasDynamicAllocas;
   }
   return NewBB;
 }
@@ -688,9 +688,9 @@ void PruningFunctionCloner::CloneBlock(
   }
 
   if (CodeInfo) {
-    CodeInfo->ContainsCalls |= hasCalls;
-    CodeInfo->ContainsMemProfMetadata |= hasMemProfMetadata;
-    CodeInfo->ContainsDynamicAllocas |= hasDynamicAllocas;
+    CodeInfo->ContainsCalls = CodeInfo->ContainsCalls || hasCalls;
+    CodeInfo->ContainsMemProfMetadata = CodeInfo->ContainsMemProfMetadata || hasMemProfMetadata;
+    CodeInfo->ContainsDynamicAllocas = CodeInfo->ContainsDynamicAllocas || hasDynamicAllocas;
     CodeInfo->ContainsDynamicAllocas |=
         hasStaticAllocas && BB != &BB->getParent()->front();
   }

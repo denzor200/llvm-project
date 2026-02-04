@@ -307,7 +307,7 @@ void MachineOperand::ChangeToRegister(Register Reg, bool isDef, bool isImp,
   SubReg_TargetFlags = 0;
   IsDef = isDef;
   IsImp = isImp;
-  IsDeadOrKill = isKill | isDead;
+  IsDeadOrKill = isKill || isDead;
   IsRenamable = false;
   IsUndef = isUndef;
   IsInternalRead = false;

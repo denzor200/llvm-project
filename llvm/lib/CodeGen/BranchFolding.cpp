@@ -250,7 +250,7 @@ bool BranchFolder::OptimizeFunction(MachineFunction &MF,
       MadeChangeThisIteration |= OptimizeBranches(MF);
     if (EnableHoistCommonCode)
       MadeChangeThisIteration |= HoistCommonCode(MF);
-    MadeChange |= MadeChangeThisIteration;
+    MadeChange = MadeChange || MadeChangeThisIteration;
   }
 
   // See if any jump tables have become dead as the code generator

@@ -959,8 +959,8 @@ SDValue TargetLowering::SimplifyMultipleUseDemandedBits(
       if (M < 0 || !DemandedElts[i])
         continue;
       AllUndef = false;
-      IdentityLHS &= (M == (int)i);
-      IdentityRHS &= ((M - NumElts) == i);
+      IdentityLHS = IdentityLHS && (M == (int)i);
+      IdentityRHS = IdentityRHS && ((M - NumElts) == i);
     }
 
     if (AllUndef)
@@ -3634,8 +3634,8 @@ bool TargetLowering::SimplifyDemandedVectorElts(
         Updated = true;
         M = -1;
       }
-      IdentityLHS &= (M < 0) || (M == (int)i);
-      IdentityRHS &= (M < 0) || ((M - NumElts) == i);
+      IdentityLHS = IdentityLHS && ((M < 0) || (M == (int)i));
+      IdentityRHS = IdentityRHS && ((M < 0) || ((M - NumElts) == i));
     }
 
     // Update legal shuffle masks based on demanded elements if it won't reduce
@@ -6816,9 +6816,9 @@ SDValue TargetLowering::BuildUDIV(SDNode *N, SelectionDAG &DAG,
           magics.IsAdd ? APInt::getOneBitSet(SVTBits, EltBits - 1)
                        : APInt::getZero(SVTBits),
           dl, SVT);
-      UseNPQ |= magics.IsAdd;
-      UsePreShift |= magics.PreShift != 0;
-      UsePostShift |= magics.PostShift != 0;
+      UseNPQ = UseNPQ || magics.IsAdd;
+      UsePreShift = UsePreShift || magics.PreShift != 0;
+      UsePostShift = UsePostShift || magics.PostShift != 0;
     }
 
     PreShifts.push_back(PreShift);
@@ -7033,20 +7033,20 @@ TargetLowering::prepareUREMEqFold(EVT SETCCVT, SDValue REMNode,
     // But we will only be able to produce the comparison that will give the
     // opposive tautological answer. So this lane would need to be fixed up.
     bool TautologicalInvertedLane = D.ule(Cmp);
-    HadTautologicalInvertedLanes |= TautologicalInvertedLane;
+    HadTautologicalInvertedLanes = HadTautologicalInvertedLanes || TautologicalInvertedLane;
 
     // If all lanes are tautological (either all divisors are ones, or divisor
     // is not greater than the constant we are comparing with),
     // we will prefer to avoid the fold.
     bool TautologicalLane = D.isOne() || TautologicalInvertedLane;
-    HadTautologicalLanes |= TautologicalLane;
-    AllLanesAreTautological &= TautologicalLane;
+    HadTautologicalLanes = HadTautologicalLanes || TautologicalLane;
+    AllLanesAreTautological = AllLanesAreTautological && TautologicalLane;
 
     // If we are comparing with non-zero, we need'll need  to subtract said
     // comparison value from the LHS. But there is no point in doing that if
     // every lane where we are comparing with non-zero is tautological..
     if (!Cmp.isZero())
-      AllComparisonsWithNonZerosAreTautological &= TautologicalLane;
+      AllComparisonsWithNonZerosAreTautological = AllComparisonsWithNonZerosAreTautological && TautologicalLane;
 
     // Decompose D into D0 * 2^K
     unsigned K = D.countr_zero();
@@ -7054,7 +7054,7 @@ TargetLowering::prepareUREMEqFold(EVT SETCCVT, SDValue REMNode,
     APInt D0 = D.lshr(K);
 
     // D is even if it has trailing zeros.
-    HadEvenDivisor |= (K != 0);
+    HadEvenDivisor = HadEvenDivisor || (K != 0);
     // D is a power-of-two if D0 is one.
     // If all divisors are power-of-two, we will prefer to avoid the fold.
     AllDivisorsArePowerOfTwo &= D0.isOne();
@@ -7309,7 +7309,7 @@ TargetLowering::prepareSREMEqFold(EVT SETCCVT, SDValue REMNode,
     if (!D.isMinSignedValue()) {
       // D is even if it has trailing zeros; unless it's INT_MIN, in which case
       // we don't care about this lane in this fold, we'll special-handle it.
-      HadEvenDivisor |= (K != 0);
+      HadEvenDivisor = HadEvenDivisor || (K != 0);
     }
 
     // D is a power-of-two if D0 is one. This includes INT_MIN.

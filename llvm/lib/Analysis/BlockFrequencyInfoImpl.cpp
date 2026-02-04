@@ -150,7 +150,7 @@ void Distribution::add(const BlockNode &Node, uint64_t Amount,
   // Check for overflow.  It should be impossible to overflow twice.
   bool IsOverflow = NewTotal < Total;
   assert(!(DidOverflow && IsOverflow) && "unexpected repeated overflow");
-  DidOverflow |= IsOverflow;
+  DidOverflow = DidOverflow || IsOverflow;
 
   // Update the total.
   Total = NewTotal;

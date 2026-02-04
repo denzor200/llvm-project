@@ -6119,8 +6119,8 @@ std::pair<bool /*Changed*/, bool /*CFGChanged*/> SROA::runSROA(Function &F) {
     while (!Worklist.empty()) {
       auto [IterationChanged, IterationCFGChanged] =
           runOnAlloca(*Worklist.pop_back_val());
-      Changed |= IterationChanged;
-      CFGChanged |= IterationCFGChanged;
+      Changed = Changed || IterationChanged;
+      CFGChanged = CFGChanged || IterationCFGChanged;
 
       Changed |= deleteDeadInstructions(DeletedAllocas);
 

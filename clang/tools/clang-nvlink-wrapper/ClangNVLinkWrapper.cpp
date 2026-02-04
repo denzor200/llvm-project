@@ -436,7 +436,7 @@ Expected<bool> getSymbolsFromBitcode(MemoryBufferRef Buffer,
           !Sym.isUndefined() &&
           (OldSym.isUndefined() || (OldSym.isWeak() && !Sym.isWeak())) &&
           !(OldSym.isWeak() && OldSym.isUndefined() && IsLazy);
-      Extracted |= ResolvesReference;
+      Extracted = Extracted || ResolvesReference;
 
       Sym.UsedInRegularObj = OldSym.UsedInRegularObj;
       if (ResolvesReference)
@@ -467,7 +467,7 @@ Expected<bool> getSymbolsFromObject(ObjectFile &ObjFile,
 
     bool ResolvesReference = OldSym.isUndefined() && !Sym.isUndefined() &&
                              (!OldSym.isWeak() || !IsLazy);
-    Extracted |= ResolvesReference;
+    Extracted = Extracted || ResolvesReference;
 
     if (ResolvesReference)
       OldSym = Sym;

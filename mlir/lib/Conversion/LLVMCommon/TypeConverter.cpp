@@ -707,7 +707,7 @@ Type LLVMTypeConverter::packFunctionResults(
   assert((!groupedTypes || groupedTypes->empty()) &&
          "expected groupedTypes to be empty");
 
-  useBarePtrCallConv |= options.useBarePtrCallConv;
+  useBarePtrCallConv = useBarePtrCallConv || options.useBarePtrCallConv;
   SmallVector<Type> resultTypes;
   resultTypes.reserve(types.size());
   size_t sizeBefore = 0;
@@ -759,7 +759,7 @@ SmallVector<Value, 4> LLVMTypeConverter::promoteOperands(
     OpBuilder &builder, bool useBarePtrCallConv) const {
   SmallVector<Value, 4> promotedOperands;
   promotedOperands.reserve(adaptorOperands.size());
-  useBarePtrCallConv |= options.useBarePtrCallConv;
+  useBarePtrCallConv = useBarePtrCallConv || options.useBarePtrCallConv;
   for (auto [operand, llvmOperand] :
        llvm::zip_equal(opOperands, adaptorOperands)) {
     if (useBarePtrCallConv) {

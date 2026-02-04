@@ -114,8 +114,8 @@ ModuleManager::addModule(StringRef FileName, ModuleKind Type,
   OptionalFileEntryRef Entry;
   bool IgnoreModTime = Type == MK_ExplicitModule || Type == MK_PrebuiltModule;
   if (ImportedBy)
-    IgnoreModTime &= ImportedBy->Kind == MK_ExplicitModule ||
-                     ImportedBy->Kind == MK_PrebuiltModule;
+    IgnoreModTime = IgnoreModTime && (ImportedBy->Kind == MK_ExplicitModule ||
+                     ImportedBy->Kind == MK_PrebuiltModule);
   if (IgnoreModTime) {
     // If neither this file nor the importer are in the module cache, this file
     // might have a different mtime due to being moved across filesystems in

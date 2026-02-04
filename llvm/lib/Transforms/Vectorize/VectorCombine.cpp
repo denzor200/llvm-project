@@ -2234,7 +2234,7 @@ bool VectorCombine::scalarizeExtExtract(Instruction &I) {
     if (cast<Instruction>(U)->use_empty())
       continue;
     ExtCnt += 1;
-    ExtLane0 |= !Idx;
+    ExtLane0 = ExtLane0 || !Idx;
     VectorCost += TTI.getVectorInstrCost(Instruction::ExtractElement, DstTy,
                                          CostKind, Idx, U);
   }
@@ -2642,7 +2642,7 @@ bool VectorCombine::foldShuffleOfBinops(Instruction &I) {
   ReducedInstCount |= MergeInner(Z, NumSrcElts, NewMask0, CostKind);
   ReducedInstCount |= MergeInner(W, NumSrcElts, NewMask1, CostKind);
   bool SingleSrcBinOp = (X == Y) && (Z == W) && (NewMask0 == NewMask1);
-  ReducedInstCount |= SingleSrcBinOp;
+  ReducedInstCount = ReducedInstCount || SingleSrcBinOp;
 
   auto *ShuffleCmpTy =
       FixedVectorType::get(BinOpTy->getElementType(), ShuffleDstTy);

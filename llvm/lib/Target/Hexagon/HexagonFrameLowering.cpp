@@ -1286,7 +1286,7 @@ HexagonFrameLowering::getFrameIndexReference(const MachineFunction &MF, int FI,
   if (MFI.isFixedObjectIndex(FI) || MFI.isObjectPreAllocated(FI)) {
     // Fixed and preallocated objects will be located before any padding
     // so FP must be used to access them.
-    UseFP |= (HasAlloca || HasExtraAlign);
+    UseFP = UseFP || (HasAlloca || HasExtraAlign);
   } else {
     if (HasAlloca) {
       if (HasExtraAlign)

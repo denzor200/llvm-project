@@ -630,7 +630,7 @@ bool MachineCombiner::combineInstructions(MachineBasicBlock *MBB) {
           // Replace DelInstrs with InsInstrs.
           insertDeleteInstructions(MBB, MI, InsInstrs, DelInstrs, TraceEnsemble,
                                    RegUnits, TII, P, IncrementalUpdate);
-          Changed |= true;
+          Changed = Changed || true;
 
           // Go back to previous instruction as it may have ILP reassociation
           // opportunity.

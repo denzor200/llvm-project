@@ -102,9 +102,9 @@ bool RRInfo::Merge(const RRInfo &Other) {
     ReleaseMetadata = nullptr;
 
   // Conservatively merge the boolean state.
-  KnownSafe &= Other.KnownSafe;
-  IsTailCallRelease &= Other.IsTailCallRelease;
-  CFGHazardAfflicted |= Other.CFGHazardAfflicted;
+  KnownSafe = KnownSafe && Other.KnownSafe;
+  IsTailCallRelease = IsTailCallRelease && Other.IsTailCallRelease;
+  CFGHazardAfflicted = CFGHazardAfflicted || Other.CFGHazardAfflicted;
 
   // Merge the call sets.
   Calls.insert_range(Other.Calls);
@@ -146,7 +146,7 @@ void PtrState::ResetSequenceProgress(Sequence NewSeq) {
 
 void PtrState::Merge(const PtrState &Other, bool TopDown) {
   Seq = MergeSeqs(GetSeq(), Other.GetSeq(), TopDown);
-  KnownPositiveRefCount &= Other.KnownPositiveRefCount;
+  KnownPositiveRefCount = KnownPositiveRefCount && Other.KnownPositiveRefCount;
 
   // If we're not in a sequence (anymore), drop all associated state.
   if (Seq == S_None) {

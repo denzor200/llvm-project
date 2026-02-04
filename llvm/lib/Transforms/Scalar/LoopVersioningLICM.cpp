@@ -271,7 +271,7 @@ bool LoopVersioningLICM::legalLoopMemoryAccesses() {
       TypeCheck = (TypeCheck && (SomePtr->getType() == Ptr->getType()));
     }
     // At least one alias tracker should have pointers of same data type.
-    TypeSafety |= TypeCheck;
+    TypeSafety = TypeSafety || TypeCheck;
   }
   // Ensure types should be of same type.
   if (!TypeSafety) {

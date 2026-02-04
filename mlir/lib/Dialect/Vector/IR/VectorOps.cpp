@@ -2275,7 +2275,7 @@ public:
       if (pos != ShapedType::kDynamic) {
         // If any position is outside the range from the `create_mask`, then the
         // extracted mask will be all-false.
-        allFalse |= pos >= createMaskBound;
+        allFalse = allFalse || pos >= createMaskBound;
       } else if (createMaskBound < maskType.getDimSize(dimIdx)) {
         // This dim is not all-true and since this is a dynamic index we don't
         // know if the extraction is within the true or false region.
@@ -5165,7 +5165,7 @@ static LogicalResult foldTransferInBoundsAttribute(TransferOp op) {
 
     newInBounds.push_back(inBounds);
     // We commit the pattern if it is "more inbounds".
-    changed |= inBounds;
+    changed = changed || inBounds;
   }
 
   // 2. Handle broadcast dims

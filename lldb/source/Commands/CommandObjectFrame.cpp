@@ -513,7 +513,7 @@ protected:
 
     // Using a regex should behave like looking for an exact name match: it
     // also finds globals.
-    m_option_variable.show_globals |= m_option_variable.use_regex;
+    m_option_variable.show_globals = m_option_variable.show_globals || m_option_variable.use_regex;
 
     // Be careful about the stack frame, if any summary formatter runs code, it
     // might clear the StackFrameList for the thread.  So hold onto a shared

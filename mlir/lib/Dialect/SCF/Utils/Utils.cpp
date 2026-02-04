@@ -246,7 +246,7 @@ bool mlir::getInnermostParallelLoops(Operation *rootOp,
     for (Block &block : region.getBlocks()) {
       for (Operation &op : block) {
         bool enclosesPloops = getInnermostParallelLoops(&op, result);
-        rootEnclosesPloops |= enclosesPloops;
+        rootEnclosesPloops = rootEnclosesPloops || enclosesPloops;
         if (auto ploop = dyn_cast<scf::ParallelOp>(op)) {
           rootEnclosesPloops = true;
 

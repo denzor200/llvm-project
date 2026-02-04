@@ -147,7 +147,7 @@ public:
   void moveTo(InstPartition &Other) {
     Other.Set.insert_range(Set);
     Set.clear();
-    Other.DepCycle |= DepCycle;
+    Other.DepCycle = Other.DepCycle || DepCycle;
   }
 
   /// Populates the partition with a transitive closure of all the
