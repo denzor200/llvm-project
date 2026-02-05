@@ -3276,10 +3276,10 @@ ScalarExprEmitter::EmitScalarPrePostIncDec(const UnaryOperator *E, LValue LV,
       promotedType = CGF.getContext().getPromotedIntegerType(type);
       assert(promotedType != type && "Shouldn't promote to the same type.");
       canPerformLossyDemotionCheck = true;
-      canPerformLossyDemotionCheck &=
+      canPerformLossyDemotionCheck = canPerformLossyDemotionCheck &&
           CGF.getContext().getCanonicalType(type) !=
           CGF.getContext().getCanonicalType(promotedType);
-      canPerformLossyDemotionCheck &=
+      canPerformLossyDemotionCheck = canPerformLossyDemotionCheck &&
           PromotionIsPotentiallyEligibleForImplicitIntegerConversionCheck(
               type, promotedType);
       assert((!canPerformLossyDemotionCheck ||

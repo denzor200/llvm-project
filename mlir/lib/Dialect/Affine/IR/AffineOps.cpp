@@ -1356,7 +1356,7 @@ static void composeAffineMapAndOperands(AffineMap *map,
   while (true) {
     bool changed = false;
     for (unsigned pos = 0; pos != dims.size() + syms.size(); ++pos)
-      if ((changed |=
+      if ((changed = changed ||
            succeeded(replaceDimOrSym(map, pos, dims, syms, composeAffineMin))))
         break;
     if (!changed)
@@ -2592,11 +2592,11 @@ static LogicalResult foldLoopBounds(AffineForOp forOp) {
   // Try to fold the lower bound.
   bool folded = false;
   if (!forOp.hasConstantLowerBound())
-    folded |= succeeded(foldLowerOrUpperBound(/*lower=*/true));
+    folded = folded || succeeded(foldLowerOrUpperBound(/*lower=*/true));
 
   // Try to fold the upper bound.
   if (!forOp.hasConstantUpperBound())
-    folded |= succeeded(foldLowerOrUpperBound(/*lower=*/false));
+    folded = folded || succeeded(foldLowerOrUpperBound(/*lower=*/false));
   return success(folded);
 }
 
@@ -2698,7 +2698,7 @@ static bool hasTrivialZeroTripCount(AffineForOp op) {
 LogicalResult AffineForOp::fold(FoldAdaptor adaptor,
                                 SmallVectorImpl<OpFoldResult> &results) {
   bool folded = succeeded(foldLoopBounds(*this));
-  folded |= succeeded(canonicalizeLoopBounds(*this));
+  folded = folded || succeeded(canonicalizeLoopBounds(*this));
   if (hasTrivialZeroTripCount(*this) && getNumResults() != 0) {
     // The initial values of the loop-carried variables (iter_args) are the
     // results of the op. But this must be avoided for an affine.for op that

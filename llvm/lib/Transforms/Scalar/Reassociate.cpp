@@ -538,15 +538,15 @@ static bool LinearizeExprTree(Instruction *I,
     It->second = 0;
     Ops.push_back(std::make_pair(V, Weight));
     if (Opcode == Instruction::Add && Flags.AllKnownNonNegative && Flags.HasNSW)
-      Flags.AllKnownNonNegative &= isKnownNonNegative(V, SimplifyQuery(DL));
+      Flags.AllKnownNonNegative = Flags.AllKnownNonNegative && isKnownNonNegative(V, SimplifyQuery(DL));
     else if (Opcode == Instruction::Mul) {
       // To preserve NUW we need all inputs non-zero.
       // To preserve NSW we need all inputs strictly positive.
       if (Flags.AllKnownNonZero &&
           (Flags.HasNUW || (Flags.HasNSW && Flags.AllKnownNonNegative))) {
-        Flags.AllKnownNonZero &= isKnownNonZero(V, SimplifyQuery(DL));
+        Flags.AllKnownNonZero = Flags.AllKnownNonZero && isKnownNonZero(V, SimplifyQuery(DL));
         if (Flags.HasNSW && Flags.AllKnownNonNegative)
-          Flags.AllKnownNonNegative &= isKnownNonNegative(V, SimplifyQuery(DL));
+          Flags.AllKnownNonNegative = Flags.AllKnownNonNegative && isKnownNonNegative(V, SimplifyQuery(DL));
       }
     }
   }
@@ -1102,7 +1102,7 @@ Value *ReassociatePass::RemoveFactorFromExpression(Value *V, Value *Factor,
 
   SmallVector<RepeatedValue, 8> Tree;
   OverflowTracking Flags;
-  MadeChange |= LinearizeExprTree(BO, Tree, RedoInsts, Flags);
+  MadeChange = MadeChange || LinearizeExprTree(BO, Tree, RedoInsts, Flags);
   SmallVector<ValueEntry, 8> Factors;
   Factors.reserve(Tree.size());
   for (const RepeatedValue &E : Tree)
@@ -2289,7 +2289,7 @@ void ReassociatePass::ReassociateExpression(BinaryOperator *I) {
   // operand information.
   SmallVector<RepeatedValue, 8> Tree;
   OverflowTracking Flags;
-  MadeChange |= LinearizeExprTree(I, Tree, RedoInsts, Flags);
+  MadeChange = MadeChange || LinearizeExprTree(I, Tree, RedoInsts, Flags);
   SmallVector<ValueEntry, 8> Ops;
   Ops.reserve(Tree.size());
   for (const RepeatedValue &E : Tree)

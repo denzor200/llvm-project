@@ -328,7 +328,7 @@ void CodeEmitterGen::addInstructionCasesForEncoding(
     if (RV.isNonconcreteOK() || RV.getValue()->isComplete())
       continue;
 
-    Success &=
+    Success = Success &&
         addCodeToMergeInOperand(R, BI, RV.getName().str(), Case, BitOffsetCase);
   }
   // Avoid empty switches.

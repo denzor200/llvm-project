@@ -74,7 +74,7 @@ static bool canBeCalledWithBarePointers(gpu::GPUFuncOp func) {
   bool canBeBare = true;
   for (Type type : func.getArgumentTypes())
     if (auto memrefTy = dyn_cast<BaseMemRefType>(type))
-      canBeBare &= LLVMTypeConverter::canConvertToBarePtr(memrefTy);
+      canBeBare = canBeBare && LLVMTypeConverter::canConvertToBarePtr(memrefTy);
   return canBeBare;
 }
 

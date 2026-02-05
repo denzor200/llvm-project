@@ -175,7 +175,7 @@ public:
         return Changed;
 
       for (MachineBasicBlock &B : llvm::make_early_inc_range(MF))
-        Changed |= processBlock(B);
+        Changed = Changed || processBlock(B);
 
       return Changed;
     }

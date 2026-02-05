@@ -855,7 +855,7 @@ FailureOr<bool> ValueBoundsConstraintSet::areOverlappingSlices(
           foldAttributesIntoMap(b, map, ofrOperands, valueOperands);
       FailureOr<int64_t> constBound = computeConstantBound(
           presburger::BoundType::EQ, Variable(foldedMap, valueOperands));
-      foundUnknownBound |= failed(constBound);
+      foundUnknownBound = foundUnknownBound || failed(constBound);
       if (succeeded(constBound) && *constBound <= 0)
         return false;
     }
@@ -872,7 +872,7 @@ FailureOr<bool> ValueBoundsConstraintSet::areOverlappingSlices(
           foldAttributesIntoMap(b, map, ofrOperands, valueOperands);
       FailureOr<int64_t> constBound = computeConstantBound(
           presburger::BoundType::EQ, Variable(foldedMap, valueOperands));
-      foundUnknownBound |= failed(constBound);
+      foundUnknownBound = foundUnknownBound || failed(constBound);
       if (succeeded(constBound) && *constBound <= 0)
         return false;
     }

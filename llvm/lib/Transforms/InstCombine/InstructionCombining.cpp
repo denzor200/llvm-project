@@ -811,13 +811,13 @@ static Value *tryFactorization(BinaryOperator &I, const SimplifyQuery &SQ,
       HasNUW = I.hasNoUnsignedWrap();
     }
     if (auto *LOBO = dyn_cast<OverflowingBinaryOperator>(LHS)) {
-      HasNSW &= LOBO->hasNoSignedWrap();
-      HasNUW &= LOBO->hasNoUnsignedWrap();
+      HasNSW = HasNSW && LOBO->hasNoSignedWrap();
+      HasNUW = HasNUW && LOBO->hasNoUnsignedWrap();
     }
 
     if (auto *ROBO = dyn_cast<OverflowingBinaryOperator>(RHS)) {
-      HasNSW &= ROBO->hasNoSignedWrap();
-      HasNUW &= ROBO->hasNoUnsignedWrap();
+      HasNSW = HasNSW && ROBO->hasNoSignedWrap();
+      HasNUW = HasNUW && ROBO->hasNoUnsignedWrap();
     }
 
     if (TopLevelOpcode == Instruction::Add && InnerOpcode == Instruction::Mul) {
@@ -6139,7 +6139,7 @@ static bool combineInstructionsOverFunction(
                         BPI, PSI, DL, RPOT);
     IC.MaxArraySizeForCombine = MaxArraySize;
     bool MadeChangeInThisIteration = IC.prepareWorklist(F);
-    MadeChangeInThisIteration |= IC.run();
+    MadeChangeInThisIteration = MadeChangeInThisIteration || IC.run();
     if (!MadeChangeInThisIteration)
       break;
 

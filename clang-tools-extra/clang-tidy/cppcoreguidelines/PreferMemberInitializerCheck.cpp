@@ -237,9 +237,9 @@ void PreferMemberInitializerCheck::check(
     }
     if (HasInitAlready) {
       if (InsertPos.isValid())
-        InvalidFix |= InsertPos.isMacroID();
+        InvalidFix = InvalidFix || InsertPos.isMacroID();
       else
-        InvalidFix |= ReplaceRange.getBegin().isMacroID() ||
+        InvalidFix = InvalidFix || ReplaceRange.getBegin().isMacroID() ||
                       ReplaceRange.getEnd().isMacroID();
     } else {
       if (InsertPos.isInvalid()) {
@@ -265,7 +265,7 @@ void PreferMemberInitializerCheck::check(
           InsertPrefix = FirstToCtorInits ? " : " : ", ";
         }
       }
-      InvalidFix |= InsertPos.isMacroID();
+      InvalidFix = InvalidFix || InsertPos.isMacroID();
     }
 
     SourceLocation SemiColonEnd;

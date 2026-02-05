@@ -227,7 +227,7 @@ public:
       else if (Feature == "+unaligned-symbols")
         UnalignedSymbols = true;
     }
-    HasVector &= !SoftFloat;
+    HasVector = HasVector && !SoftFloat;
 
     // If we use the vector ABI, vector types are 64-bit aligned. The
     // DataLayout string is always set to this alignment as it is not a

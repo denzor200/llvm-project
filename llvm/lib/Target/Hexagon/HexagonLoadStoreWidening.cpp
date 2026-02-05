@@ -876,7 +876,7 @@ bool HexagonLoadStoreWidening::processBasicBlock(MachineBasicBlock &MBB) {
     assert(G.size() > 1 && "Group with fewer than 2 elements");
     llvm::sort(G, Less);
 
-    Changed |= processGroup(G);
+    Changed = Changed || processGroup(G);
   }
 
   return Changed;
@@ -886,7 +886,7 @@ bool HexagonLoadStoreWidening::run() {
   bool Changed = false;
 
   for (auto &B : *MF)
-    Changed |= processBasicBlock(B);
+    Changed = Changed || processBasicBlock(B);
 
   return Changed;
 }

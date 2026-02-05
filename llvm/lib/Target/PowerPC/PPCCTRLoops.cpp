@@ -96,7 +96,7 @@ bool PPCCTRLoops::runOnMachineFunction(MachineFunction &MF) {
 
   for (auto *ML : MLI) {
     if (ML->isOutermost())
-      Changed |= processLoop(ML);
+      Changed = Changed || processLoop(ML);
   }
 
 #ifndef NDEBUG
@@ -143,7 +143,7 @@ bool PPCCTRLoops::processLoop(MachineLoop *ML) {
 
   // Align with HardwareLoop pass, process inner loops first.
   for (MachineLoop *I : *ML)
-    Changed |= processLoop(I);
+    Changed = Changed || processLoop(I);
 
   // If any inner loop is changed, outter loop must be without hardware loop
   // intrinsics.
@@ -213,7 +213,7 @@ bool PPCCTRLoops::processLoop(MachineLoop *ML) {
         Dec = &MI;
       else if (!InvalidCTRLoop)
         // If any instruction clobber CTR, then we can not generate a CTR loop.
-        InvalidCTRLoop |= isCTRClobber(&MI, /* CheckReads */ true);
+        InvalidCTRLoop = InvalidCTRLoop || isCTRClobber(&MI, /* CheckReads */ true);
     }
     if (Dec && InvalidCTRLoop)
       break;

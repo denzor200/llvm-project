@@ -375,7 +375,7 @@ bool MergedLoadStoreMotion::run(Function &F, AliasAnalysis &AA) {
     // Hoist equivalent loads and sink stores
     // outside diamonds when possible
     if (isDiamondHead(&BB))
-      Changed |= mergeStores(&BB);
+      Changed = Changed || mergeStores(&BB);
   return Changed;
 }
 

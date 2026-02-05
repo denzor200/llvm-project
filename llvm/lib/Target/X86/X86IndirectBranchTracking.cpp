@@ -141,19 +141,19 @@ bool X86IndirectBranchTrackingPass::runOnMachineFunction(MachineFunction &MF) {
   // If function is reachable indirectly, mark the first BB with ENDBR.
   if (needsPrologueENDBR(MF, M)) {
     auto MBB = MF.begin();
-    Changed |= addENDBR(*MBB, MBB->begin());
+    Changed = Changed || addENDBR(*MBB, MBB->begin());
   }
 
   for (auto &MBB : MF) {
     // Find all basic blocks that their address was taken (for example
     // in the case of indirect jump) and add ENDBR instruction.
     if (MBB.isMachineBlockAddressTaken() || MBB.isIRBlockAddressTaken())
-      Changed |= addENDBR(MBB, MBB.begin());
+      Changed = Changed || addENDBR(MBB, MBB.begin());
 
     for (MachineBasicBlock::iterator I = MBB.begin(); I != MBB.end(); ++I) {
       if (I->isCall() && I->getNumOperands() > 0 &&
           IsCallReturnTwice(I->getOperand(0))) {
-        Changed |= addENDBR(MBB, std::next(I));
+        Changed = Changed || addENDBR(MBB, std::next(I));
       }
     }
 
@@ -166,7 +166,7 @@ bool X86IndirectBranchTrackingPass::runOnMachineFunction(MachineFunction &MF) {
         if (MBB.isEHPad()) {
           if (I->isDebugInstr())
             continue;
-          Changed |= addENDBR(MBB, I);
+          Changed = Changed || addENDBR(MBB, I);
           break;
         } else if (I->isEHLabel()) {
           // Old Landingpad BB (is not Landingpad now) with
@@ -174,7 +174,7 @@ bool X86IndirectBranchTrackingPass::runOnMachineFunction(MachineFunction &MF) {
           MCSymbol *Sym = I->getOperand(0).getMCSymbol();
           if (!MF.hasCallSiteLandingPad(Sym))
             continue;
-          Changed |= addENDBR(MBB, std::next(I));
+          Changed = Changed || addENDBR(MBB, std::next(I));
           break;
         }
       }
@@ -182,7 +182,7 @@ bool X86IndirectBranchTrackingPass::runOnMachineFunction(MachineFunction &MF) {
       for (MachineBasicBlock::iterator I = MBB.begin(); I != MBB.end(); ++I) {
         if (!I->isEHLabel())
           continue;
-        Changed |= addENDBR(MBB, std::next(I));
+        Changed = Changed || addENDBR(MBB, std::next(I));
         break;
       }
     }

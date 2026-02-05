@@ -716,7 +716,7 @@ void Writer::finalizeAddresses() {
     {
       llvm::TimeTraceScope timeScope3("Create thunks");
       for (OutputSection *sec : ctx.outputSections)
-        addressesChanged |= createThunks(sec, margin);
+        addressesChanged = addressesChanged || createThunks(sec, margin);
     }
     // If the verification above thought we needed thunks, we should have
     // added some.

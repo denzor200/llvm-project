@@ -1322,11 +1322,11 @@ static bool addCalls(VTableSlotInfo &SlotInfo, const ValueInfo &Callee) {
   auto AddCalls = [&](CallSiteInfo &CSInfo) {
     for (auto *FS : CSInfo.SummaryTypeCheckedLoadUsers) {
       FS->addCall({Callee, CI});
-      IsExported |= S->modulePath() != FS->modulePath();
+      IsExported = IsExported || S->modulePath() != FS->modulePath();
     }
     for (auto *FS : CSInfo.SummaryTypeTestAssumeUsers) {
       FS->addCall({Callee, CI});
-      IsExported |= S->modulePath() != FS->modulePath();
+      IsExported = IsExported || S->modulePath() != FS->modulePath();
     }
   };
   AddCalls(SlotInfo.CSInfo);
@@ -2519,7 +2519,7 @@ bool DevirtModule::run() {
       // propagation or branch funneling.
       // TODO: This should eventually be enabled for non-public type tests.
       if (!SingleImplDevirt && !DevirtSpeculatively) {
-        DidVirtualConstProp |=
+        DidVirtualConstProp = DidVirtualConstProp ||
             tryVirtualConstProp(TargetsForSlot, S.second, Res, S.first);
 
         tryICallBranchFunnel(TargetsForSlot, S.second, Res, S.first);

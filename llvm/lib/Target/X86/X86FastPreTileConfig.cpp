@@ -709,7 +709,7 @@ bool X86FastPreTileConfigImpl::runOnMachineFunction(MachineFunction &MFunc) {
   ReversePostOrderTraversal<MachineFunction *> RPOT(MF);
   for (MachineBasicBlock *MBB : RPOT) {
     convertPHIs(*MBB);
-    Change |= configBasicBlock(*MBB);
+    Change = Change || configBasicBlock(*MBB);
   }
 
   if (Change)

@@ -128,7 +128,7 @@ SymbolIndexManager::search(llvm::StringRef Identifier,
       // If the name was qualified we only want to add results if we evaluated
       // all contexts.
       if (IsFullyQualified)
-        IsMatched &= (SymbolContext == Symbol.getContexts().end());
+        IsMatched = IsMatched && (SymbolContext == Symbol.getContexts().end());
 
       // FIXME: Support full match. At this point, we only find symbols in
       // database which end with the same contexts with the identifier.

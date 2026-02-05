@@ -910,7 +910,7 @@ bool TailRecursionEliminator::eliminate(Function &F,
     return false;
 
   bool MadeChange = false;
-  MadeChange |= markTails(F, ORE);
+  MadeChange = MadeChange || markTails(F, ORE);
 
   // If this function is a varargs function, we won't be able to PHI the args
   // right, so don't even try to convert it...
@@ -924,7 +924,7 @@ bool TailRecursionEliminator::eliminate(Function &F,
   TailRecursionEliminator TRE(F, TTI, AA, ORE, DTU, BFI);
 
   for (BasicBlock &BB : F)
-    MadeChange |= TRE.processBlock(BB);
+    MadeChange = MadeChange || TRE.processBlock(BB);
 
   TRE.cleanupAndFinalize();
 

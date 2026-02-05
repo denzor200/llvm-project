@@ -75,7 +75,7 @@ bool SPIRVPrepareGlobals::runOnModule(Module &M) {
   bool Changed = false;
 
   for (GlobalAlias &GA : make_early_inc_range(M.aliases())) {
-    Changed |= tryReplaceAliasWithAliasee(GA);
+    Changed = Changed || tryReplaceAliasWithAliasee(GA);
   }
 
   return Changed;

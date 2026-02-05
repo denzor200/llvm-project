@@ -112,9 +112,9 @@ PreservedAnalyses FatLtoCleanup::run(Module &M, ModuleAnalysisManager &AM) {
 
   bool Changed = false;
   if (TypeCheckedLoadFn)
-    Changed |= cleanUpTypeCheckedLoad(M, *TypeCheckedLoadFn, false);
+    Changed = Changed || cleanUpTypeCheckedLoad(M, *TypeCheckedLoadFn, false);
   if (TypeCheckedLoadRelFn)
-    Changed |= cleanUpTypeCheckedLoad(M, *TypeCheckedLoadRelFn, true);
+    Changed = Changed || cleanUpTypeCheckedLoad(M, *TypeCheckedLoadRelFn, true);
 
   if (Changed)
     return PreservedAnalyses::none();

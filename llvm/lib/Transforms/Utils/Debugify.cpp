@@ -320,7 +320,7 @@ bool llvm::stripDebugifyMetadata(Module &M) {
 
   // Strip out all debug intrinsics and supporting metadata (subprograms, types,
   // variables, etc).
-  Changed |= StripDebugInfo(M);
+  Changed = Changed || StripDebugInfo(M);
 
   // Strip out the dead dbg.value prototype.
   Function *DbgValF = M.getFunction("llvm.dbg.value");

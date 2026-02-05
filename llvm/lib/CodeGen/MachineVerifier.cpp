@@ -205,7 +205,7 @@ struct MachineVerifier {
     bool addRequired(const RegSet &RS) {
       bool Changed = false;
       for (Register Reg : RS)
-        Changed |= addRequired(Reg);
+        Changed = Changed || addRequired(Reg);
       return Changed;
     }
 
@@ -213,7 +213,7 @@ struct MachineVerifier {
     bool addRequired(const RegMap &RM) {
       bool Changed = false;
       for (const auto &I : RM)
-        Changed |= addRequired(I.first);
+        Changed = Changed || addRequired(I.first);
       return Changed;
     }
 

@@ -1153,7 +1153,7 @@ bool Thumb2SizeReduce::runOnMachineFunction(MachineFunction &MF) {
   bool NeedsWinCFI = MF.getTarget().getMCAsmInfo()->usesWindowsCFI() &&
                      MF.getFunction().needsUnwindTableEntry();
   for (MachineBasicBlock *MBB : RPOT)
-    Modified |= ReduceMBB(*MBB, /*SkipPrologueEpilogue=*/NeedsWinCFI);
+    Modified = Modified || ReduceMBB(*MBB, /*SkipPrologueEpilogue=*/NeedsWinCFI);
   return Modified;
 }
 

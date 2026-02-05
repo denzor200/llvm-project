@@ -219,7 +219,7 @@ TestingProperties::TestingProperties() {
 }
 
 bool TestingProperties::GetInjectVarLocListError() const {
-  const uint32_t idx = ePropertyInjectVarLocListError;
+  const uint32_t idx = GetInjectVarLocListError();
   return GetPropertyAtIndexAs<bool>(
       idx, g_testing_properties[idx].default_uint_value != 0);
 }
@@ -240,7 +240,7 @@ Status Debugger::SetPropertyValue(const ExecutionContext *exe_ctx,
       (property_path == "target.load-script-from-symbol-file");
   // These properties might change how we visualize data.
   bool invalidate_data_vis = (property_path == "escape-non-printables");
-  invalidate_data_vis |=
+  invalidate_data_vis = invalidate_data_vis ||
       (property_path == "target.max-zero-padding-in-float-format");
   if (invalidate_data_vis) {
     DataVisualization::ForceUpdate();

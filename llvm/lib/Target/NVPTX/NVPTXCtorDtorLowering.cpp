@@ -236,8 +236,8 @@ static bool createInitOrFiniKernel(Module &M, StringRef GlobalName,
 
 static bool lowerCtorsAndDtors(Module &M) {
   bool Modified = false;
-  Modified |= createInitOrFiniKernel(M, "llvm.global_ctors", /*IsCtor =*/true);
-  Modified |= createInitOrFiniKernel(M, "llvm.global_dtors", /*IsCtor =*/false);
+  Modified = Modified || createInitOrFiniKernel(M, "llvm.global_ctors", /*IsCtor =*/true);
+  Modified = Modified || createInitOrFiniKernel(M, "llvm.global_dtors", /*IsCtor =*/false);
   return Modified;
 }
 

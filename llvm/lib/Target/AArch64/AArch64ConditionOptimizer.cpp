@@ -616,8 +616,8 @@ bool AArch64ConditionOptimizer::runOnMachineFunction(MachineFunction &MF) {
   // child_begin() / child_end() until after a node has been visited.
   for (MachineDomTreeNode *I : depth_first(DomTree)) {
     MachineBasicBlock *HBB = I->getBlock();
-    Changed |= optimizeIntraBlock(*HBB);
-    Changed |= optimizeCrossBlock(*HBB);
+    Changed = Changed || optimizeIntraBlock(*HBB);
+    Changed = Changed || optimizeCrossBlock(*HBB);
   }
 
   return Changed;

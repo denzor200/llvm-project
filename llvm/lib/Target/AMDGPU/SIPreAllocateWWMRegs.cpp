@@ -230,7 +230,7 @@ bool SIPreAllocateWWMRegs::run(MachineFunction &MF) {
     for (MachineInstr &MI : *MBB) {
       if (MI.getOpcode() == AMDGPU::SI_SPILL_S32_TO_VGPR) {
         if (PreallocateSGPRSpillVGPRs)
-          RegsAssigned |= processDef(MI.getOperand(0));
+          RegsAssigned = RegsAssigned || processDef(MI.getOperand(0));
         continue;
       }
 
@@ -253,7 +253,7 @@ bool SIPreAllocateWWMRegs::run(MachineFunction &MF) {
       LLVM_DEBUG(dbgs() << "Processing " << MI);
 
       for (MachineOperand &DefOpnd : MI.defs()) {
-        RegsAssigned |= processDef(DefOpnd);
+        RegsAssigned = RegsAssigned || processDef(DefOpnd);
       }
     }
   }

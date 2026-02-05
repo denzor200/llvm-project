@@ -3540,7 +3540,7 @@ void AsmMatcherEmitter::run(raw_ostream &OS) {
   bool HasDeprecation = false;
   for (const auto &MI : Info.Matchables) {
     MaxNumOperands = std::max(MaxNumOperands, MI->AsmOperands.size());
-    HasDeprecation |= MI->HasDeprecation;
+    HasDeprecation = HasDeprecation || MI->HasDeprecation;
 
     // Store a pascal-style length byte in the mnemonic.
     std::string LenMnemonic = char(MI->Mnemonic.size()) + MI->Mnemonic.lower();

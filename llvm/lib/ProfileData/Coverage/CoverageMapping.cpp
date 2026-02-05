@@ -1026,7 +1026,7 @@ Error CoverageMapping::loadFromFile(
                          return object::BuildID(BID);
                        }));
   }
-  DataFound |= !Readers.empty();
+  DataFound = DataFound || !Readers.empty();
   if (Error E = loadFromReaders(Readers, ProfileReader, Coverage))
     return createFileError(Filename, std::move(E));
   return Error::success();
@@ -1573,7 +1573,7 @@ LineCoverageStats::LineCoverageStats(
 
   // if there is any starting segment at this line with a counter, it must be
   // mapped
-  Mapped |= any_of(LineSegments, [](const auto *Seq) {
+  Mapped = Mapped || any_of(LineSegments, [](const auto *Seq) {
     return Seq->IsRegionEntry && Seq->HasCount;
   });
 

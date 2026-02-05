@@ -1612,8 +1612,8 @@ SDValue DAGCombiner::PromoteIntBinOp(SDValue Op) {
     // Note: We are checking uses of the *nodes* (SDNode) rather than values
     //       (SDValue) here because the node may reference multiple values
     //       (for example, the chain value of a load node).
-    Replace0 &= !N0->hasOneUse();
-    Replace1 &= (N0 != N1) && !N1->hasOneUse();
+    Replace0 = Replace0 && !N0->hasOneUse();
+    Replace1 = Replace1 && (N0 != N1) && !N1->hasOneUse();
 
     // Combine Op here so it is preserved past replacements.
     CombineTo(Op.getNode(), RV);
@@ -9095,8 +9095,8 @@ SDValue DAGCombiner::MatchRotate(SDValue LHS, SDValue RHS, const SDLoc &DL,
   // this for scalar types.
   if (VT.isScalarInteger() && TLI.getTypeAction(*DAG.getContext(), VT) ==
                                   TargetLowering::TypePromoteInteger) {
-    HasROTL |= TLI.getOperationAction(ISD::ROTL, VT) == TargetLowering::Custom;
-    HasROTR |= TLI.getOperationAction(ISD::ROTR, VT) == TargetLowering::Custom;
+    HasROTL = HasROTL || TLI.getOperationAction(ISD::ROTL, VT) == TargetLowering::Custom;
+    HasROTR = HasROTR || TLI.getOperationAction(ISD::ROTR, VT) == TargetLowering::Custom;
   }
 
   if (LegalOperations && !HasROTL && !HasROTR && !HasFSHL && !HasFSHR)
@@ -9517,8 +9517,8 @@ static std::optional<bool> isBigEndian(ArrayRef<int64_t> ByteOffsets,
   bool BigEndian = true, LittleEndian = true;
   for (unsigned i = 0; i < Width; i++) {
     int64_t CurrentByteOffset = ByteOffsets[i] - FirstOffset;
-    LittleEndian &= CurrentByteOffset == littleEndianByteAt(Width, i);
-    BigEndian &= CurrentByteOffset == bigEndianByteAt(Width, i);
+    LittleEndian = LittleEndian && CurrentByteOffset == littleEndianByteAt(Width, i);
+    BigEndian = BigEndian && CurrentByteOffset == bigEndianByteAt(Width, i);
     if (!BigEndian && !LittleEndian)
       return std::nullopt;
   }
@@ -10536,7 +10536,7 @@ SDValue DAGCombiner::visitRotate(SDNode *N) {
   // fold (rot x, c) -> (rot x, c % BitSize)
   bool OutOfRange = false;
   auto MatchOutOfRange = [Bitsize, &OutOfRange](ConstantSDNode *C) {
-    OutOfRange |= C->getAPIntValue().uge(Bitsize);
+    OutOfRange = OutOfRange || C->getAPIntValue().uge(Bitsize);
     return true;
   };
   if (ISD::matchUnaryPredicate(N1, MatchOutOfRange) && OutOfRange) {
@@ -14113,9 +14113,9 @@ SDValue DAGCombiner::visitSETCC(SDNode *N) {
           // Check that mask and shift compliment eachother
           CanTransform = *ShiftCAmt == (~*AndCMask).popcount();
           // Check that we are comparing all bits
-          CanTransform &= (*ShiftCAmt + AndCMask->popcount()) == NumBits;
+          CanTransform = CanTransform && (*ShiftCAmt + AndCMask->popcount()) == NumBits;
           // Check that the and mask is correct for the shift
-          CanTransform &=
+          CanTransform = CanTransform &&
               ShiftOpc == ISD::SHL ? (~*AndCMask).isMask() : AndCMask->isMask();
         }
 
@@ -14700,7 +14700,7 @@ static SDValue tryToFoldExtOfLoad(SelectionDAG &DAG, DAGCombiner &Combiner,
     DoXform = ExtendUsesToFormExtLoad(VT, N, Frozen ? Freeze : SDValue(Load, 0),
                                       ExtOpc, SetCCs, TLI);
   if (VT.isVector())
-    DoXform &= TLI.isVectorLoadExtDesirable(SDValue(N, 0));
+    DoXform = DoXform && TLI.isVectorLoadExtDesirable(SDValue(N, 0));
   if (!DoXform)
     return {};
 
@@ -22592,7 +22592,7 @@ bool DAGCombiner::tryStoreMergeOfConstants(
       continue;
     }
 
-    MadeChange |= mergeStoresOfConstantsOrVecElts(StoreNodes, MemVT, NumElem,
+    MadeChange = MadeChange || mergeStoresOfConstantsOrVecElts(StoreNodes, MemVT, NumElem,
                                                   /*IsConstantSrc*/ true,
                                                   UseVector, UseTrunc);
 
@@ -22663,7 +22663,7 @@ bool DAGCombiner::tryStoreMergeOfExtracts(
       continue;
     }
 
-    MadeChange |= mergeStoresOfConstantsOrVecElts(
+    MadeChange = MadeChange || mergeStoresOfConstantsOrVecElts(
         StoreNodes, MemVT, NumStoresToMerge, /*IsConstantSrc*/ false,
         /*UseVector*/ true, /*UseTrunc*/ false);
 
@@ -23039,17 +23039,17 @@ bool DAGCombiner::mergeConsecutiveStores(StoreSDNode *St) {
     assert(NumConsecutiveStores >= 2 && "Expected at least 2 stores");
     switch (StoreSrc) {
     case StoreSource::Constant:
-      MadeChange |= tryStoreMergeOfConstants(StoreNodes, NumConsecutiveStores,
+      MadeChange = MadeChange || tryStoreMergeOfConstants(StoreNodes, NumConsecutiveStores,
                                              MemVT, RootNode, AllowVectors);
       break;
 
     case StoreSource::Extract:
-      MadeChange |= tryStoreMergeOfExtracts(StoreNodes, NumConsecutiveStores,
+      MadeChange = MadeChange || tryStoreMergeOfExtracts(StoreNodes, NumConsecutiveStores,
                                             MemVT, RootNode);
       break;
 
     case StoreSource::Load:
-      MadeChange |= tryStoreMergeOfLoads(StoreNodes, NumConsecutiveStores,
+      MadeChange = MadeChange || tryStoreMergeOfLoads(StoreNodes, NumConsecutiveStores,
                                          MemVT, RootNode, AllowVectors,
                                          IsNonTemporalStore, IsNonTemporalLoad);
       break;
@@ -28888,9 +28888,9 @@ SDValue DAGCombiner::visitVPOp(SDNode *N) {
   // eliminated.
   bool AreAllEltsDisabled = false;
   if (auto EVLIdx = ISD::getVPExplicitVectorLengthIdx(N->getOpcode()))
-    AreAllEltsDisabled |= isNullConstant(N->getOperand(*EVLIdx));
+    AreAllEltsDisabled = AreAllEltsDisabled || isNullConstant(N->getOperand(*EVLIdx));
   if (auto MaskIdx = ISD::getVPMaskIdx(N->getOpcode()))
-    AreAllEltsDisabled |=
+    AreAllEltsDisabled = AreAllEltsDisabled ||
         ISD::isConstantSplatVectorAllZeros(N->getOperand(*MaskIdx).getNode());
 
   // This is the only generic VP combine we support for now.

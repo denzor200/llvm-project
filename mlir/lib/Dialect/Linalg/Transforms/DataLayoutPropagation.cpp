@@ -370,7 +370,7 @@ packGenericOp(RewriterBase &rewriter, GenericOp genericOp, Value dest,
   DenseMap<OpOperand *, PackedOperandDetails> packedOperandMap;
   bool requiresPadding = false;
   for (OpOperand *inputOperand : genericOp.getDpsInputOperands()) {
-    requiresPadding |= getPackedOperandDetails(rewriter, packInfo, genericOp,
+    requiresPadding = requiresPadding || getPackedOperandDetails(rewriter, packInfo, genericOp,
                                                inputOperand, packedOperandMap);
   }
   if (requiresPadding && !poisonPaddingOk)

@@ -266,7 +266,7 @@ void EHStreamer::computeCallSiteTable(
     for (const auto &MI : MBB) {
       if (!MI.isEHLabel()) {
         if (MI.isCall())
-          SawPotentiallyThrowing |= !callToNoUnwindFunction(&MI);
+          SawPotentiallyThrowing = SawPotentiallyThrowing || !callToNoUnwindFunction(&MI);
         continue;
       }
 

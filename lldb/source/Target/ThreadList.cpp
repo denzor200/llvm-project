@@ -318,7 +318,7 @@ bool ThreadList::ShouldStop(Event *event_ptr) {
     if (thread_sp->GetProcess()->GetStopID() > 1)
       did_anybody_stop_for_a_reason = true;
     else
-      did_anybody_stop_for_a_reason |= thread_sp->ThreadStoppedForAReason();
+      did_anybody_stop_for_a_reason = did_anybody_stop_for_a_reason || thread_sp->ThreadStoppedForAReason();
 
     const bool thread_should_stop = thread_sp->ShouldStop(event_ptr);
 

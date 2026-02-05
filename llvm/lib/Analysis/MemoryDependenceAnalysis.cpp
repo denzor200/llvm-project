@@ -677,7 +677,7 @@ MemDepResult MemoryDependenceResults::getDependency(Instruction *QueryInst) {
       // If we can do a pointer scan, make it happen.
       bool isLoad = !isModSet(MR);
       if (auto *II = dyn_cast<IntrinsicInst>(QueryInst))
-        isLoad |= II->getIntrinsicID() == Intrinsic::lifetime_start;
+        isLoad = isLoad || II->getIntrinsicID() == Intrinsic::lifetime_start;
 
       LocalCache =
           getPointerDependencyFrom(MemLoc, isLoad, ScanPos->getIterator(),

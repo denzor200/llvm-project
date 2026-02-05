@@ -186,7 +186,7 @@ Type *TypeMapTy::get(Type *Ty) {
   ElementTypes.resize(Ty->getNumContainedTypes());
   for (unsigned I = 0, E = Ty->getNumContainedTypes(); I != E; ++I) {
     ElementTypes[I] = get(Ty->getContainedType(I));
-    AnyChange |= ElementTypes[I] != Ty->getContainedType(I);
+    AnyChange = AnyChange || ElementTypes[I] != Ty->getContainedType(I);
   }
 
   // Refresh Entry after recursively processing stuff.

@@ -3521,7 +3521,7 @@ bool NewGVN::runGVN() {
   verifyIterationSettled(F);
   verifyStoreExpressions();
 
-  Changed |= eliminateInstructions(F);
+  Changed = Changed || eliminateInstructions(F);
 
   // Delete all instructions marked for deletion.
   for (Instruction *ToErase : InstructionsToErase) {
@@ -3532,7 +3532,7 @@ bool NewGVN::runGVN() {
            "BB containing ToErase deleted unexpectedly!");
     ToErase->eraseFromParent();
   }
-  Changed |= !InstructionsToErase.empty();
+  Changed = Changed || !InstructionsToErase.empty();
 
   // Delete all unreachable blocks.
   auto UnreachableBlockPred = [&](const BasicBlock &BB) {

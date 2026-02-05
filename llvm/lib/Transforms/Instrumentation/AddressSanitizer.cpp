@@ -1250,8 +1250,8 @@ struct FunctionStackPoisoner : public InstVisitor<FunctionStackPoisoner> {
 
   void visitCallBase(CallBase &CB) {
     if (CallInst *CI = dyn_cast<CallInst>(&CB)) {
-      HasInlineAsm |= CI->isInlineAsm() && &CB != ASan.LocalDynamicShadow;
-      HasReturnsTwiceCall |= CI->canReturnTwice();
+      HasInlineAsm = HasInlineAsm || CI->isInlineAsm() && &CB != ASan.LocalDynamicShadow;
+      HasReturnsTwiceCall = HasReturnsTwiceCall || CI->canReturnTwice();
     }
   }
 
@@ -1331,9 +1331,9 @@ PreservedAnalyses AddressSanitizerPass::run(Module &M,
         Options.UseAfterScope, Options.UseAfterReturn);
     const TargetLibraryInfo &TLI = FAM.getResult<TargetLibraryAnalysis>(F);
     const TargetTransformInfo &TTI = FAM.getResult<TargetIRAnalysis>(F);
-    Modified |= FunctionSanitizer.instrumentFunction(F, &TLI, &TTI);
+    Modified = Modified || FunctionSanitizer.instrumentFunction(F, &TLI, &TTI);
   }
-  Modified |= ModuleSanitizer.instrumentModule();
+  Modified = Modified || ModuleSanitizer.instrumentModule();
   if (!Modified)
     return PreservedAnalyses::all();
 
@@ -3078,7 +3078,7 @@ bool AddressSanitizer::instrumentFunction(Function &F,
 
   RuntimeCallInserter RTCI(F);
 
-  FunctionModified |= maybeInsertDynamicShadowAtFunctionEntry(F);
+  FunctionModified = FunctionModified || maybeInsertDynamicShadowAtFunctionEntry(F);
 
   // We can't instrument allocas used with llvm.localescape. Only static allocas
   // can be passed to that intrinsic.

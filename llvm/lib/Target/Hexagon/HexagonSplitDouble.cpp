@@ -1216,7 +1216,7 @@ bool HexagonSplitDoubleRegs::runOnMachineFunction(MachineFunction &MF) {
     if (!isProfitable(Part, IRM))
       continue;
     Counter++;
-    Changed |= splitPartition(Part);
+    Changed = Changed || splitPartition(Part);
   }
 
   return Changed;

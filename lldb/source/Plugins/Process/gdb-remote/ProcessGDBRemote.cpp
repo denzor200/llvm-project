@@ -5427,9 +5427,9 @@ llvm::Error ProcessGDBRemote::LoadModules() {
     bool mod_base_is_offset;
 
     bool valid = true;
-    valid &= modInfo.get_name(mod_name);
-    valid &= modInfo.get_base(mod_base);
-    valid &= modInfo.get_base_is_offset(mod_base_is_offset);
+    valid = valid && modInfo.get_name(mod_name);
+    valid = valid && modInfo.get_base(mod_base);
+    valid = valid && modInfo.get_base_is_offset(mod_base_is_offset);
     if (!valid)
       continue;
 

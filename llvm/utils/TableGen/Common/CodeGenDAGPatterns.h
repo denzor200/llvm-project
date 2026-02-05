@@ -1266,7 +1266,7 @@ inline bool SDNodeInfo::ApplyTypeConstraints(TreePatternNode &N,
                                              TreePattern &TP) const {
   bool MadeChange = false;
   for (const SDTypeConstraint &TypeConstraint : TypeConstraints)
-    MadeChange |= TypeConstraint.ApplyTypeConstraint(N, *this, TP);
+    MadeChange = MadeChange || TypeConstraint.ApplyTypeConstraint(N, *this, TP);
   return MadeChange;
 }
 

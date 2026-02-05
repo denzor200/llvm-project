@@ -1583,7 +1583,7 @@ bool MemCpyOptPass::performStackMoveOptzn(Instruction *Load, Instruction *Store,
         UseCaptureInfo CI = DetermineUseCaptureKind(U, AI);
         if (capturesAnyProvenance(CI.UseCC))
           return false;
-        AddressCaptured |= capturesAddress(CI.UseCC);
+        AddressCaptured = AddressCaptured || capturesAddress(CI.UseCC);
 
         if (UI->mayReadOrWriteMemory()) {
           if (UI->isLifetimeStartOrEnd()) {
@@ -2165,7 +2165,7 @@ bool MemCpyOptPass::iterateOnFunction(Function &F) {
       bool RepeatInstruction = false;
 
       if (auto *SI = dyn_cast<StoreInst>(I))
-        MadeChange |= processStore(SI, BI);
+        MadeChange = MadeChange || processStore(SI, BI);
       else if (auto *M = dyn_cast<MemSetInst>(I))
         RepeatInstruction = processMemSet(M, BI);
       else if (auto *M = dyn_cast<MemCpyInst>(I))
@@ -2175,9 +2175,9 @@ bool MemCpyOptPass::iterateOnFunction(Function &F) {
       else if (auto *CB = dyn_cast<CallBase>(I)) {
         for (unsigned i = 0, e = CB->arg_size(); i != e; ++i) {
           if (CB->isByValArgument(i))
-            MadeChange |= processByValArgument(*CB, i);
+            MadeChange = MadeChange || processByValArgument(*CB, i);
           else if (CB->onlyReadsMemory(i))
-            MadeChange |= processImmutArgument(*CB, i);
+            MadeChange = MadeChange || processImmutArgument(*CB, i);
         }
       }
 

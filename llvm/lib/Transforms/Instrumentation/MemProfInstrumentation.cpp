@@ -630,7 +630,7 @@ bool MemProfiler::instrumentFunction(Function &F) {
     return FunctionModified;
   }
 
-  FunctionModified |= insertDynamicShadowAtFunctionEntry(F);
+  FunctionModified = FunctionModified || insertDynamicShadowAtFunctionEntry(F);
 
   int NumInstrumented = 0;
   for (auto *Inst : ToInstrument) {

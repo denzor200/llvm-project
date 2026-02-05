@@ -2175,7 +2175,7 @@ static void DiagnoseNonConstructibleReason(
 
   bool ContainsVoid = false;
   for (const QualType &ArgTy : Ts) {
-    ContainsVoid |= ArgTy->isVoidType();
+    ContainsVoid = ContainsVoid || ArgTy->isVoidType();
   }
 
   if (ContainsVoid)

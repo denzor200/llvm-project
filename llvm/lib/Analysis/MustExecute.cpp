@@ -58,7 +58,7 @@ void SimpleLoopSafetyInfo::computeLoopSafetyInfo(const Loop *CurLoop) {
   assert(Header == *CurLoop->getBlocks().begin() &&
          "First block must be header");
   for (const BasicBlock *BB : llvm::drop_begin(CurLoop->blocks())) {
-    MayThrow |= !isGuaranteedToTransferExecutionToSuccessor(BB);
+    MayThrow = MayThrow || !isGuaranteedToTransferExecutionToSuccessor(BB);
     if (MayThrow)
       break;
   }

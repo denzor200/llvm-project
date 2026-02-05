@@ -8022,7 +8022,7 @@ BuildVector(ArrayRef<llvm::Value*> Ops) {
          "Not a power-of-two sized vector!");
   bool AllConstants = true;
   for (unsigned i = 0, e = Ops.size(); i != e && AllConstants; ++i)
-    AllConstants &= isa<Constant>(Ops[i]);
+    AllConstants = AllConstants && isa<Constant>(Ops[i]);
 
   // If this is a constant vector, create a ConstantVector.
   if (AllConstants) {

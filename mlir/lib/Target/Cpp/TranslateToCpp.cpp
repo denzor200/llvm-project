@@ -1878,7 +1878,7 @@ LogicalResult CppEmitter::emitOperation(Operation &op, bool trailingSemicolon) {
 
   // Never emit a semicolon for some operations, especially if endening with
   // `}`.
-  trailingSemicolon &=
+  trailingSemicolon = trailingSemicolon &&
       !isa<cf::CondBranchOp, emitc::DeclareFuncOp, emitc::DoOp, emitc::FileOp,
            emitc::ForOp, emitc::IfOp, emitc::IncludeOp, emitc::SwitchOp,
            emitc::VerbatimOp>(op);

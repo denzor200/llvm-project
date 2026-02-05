@@ -2863,27 +2863,27 @@ AppleObjCRuntimeV2::NonPointerISACache::CreateInstance(
   auto objc_debug_indexed_isa_magic_mask = ExtractRuntimeGlobalSymbol(
       process, ConstString("objc_debug_indexed_isa_magic_mask"), objc_module_sp,
       error);
-  foundError |= error.Fail();
+  foundError = foundError || error.Fail();
 
   auto objc_debug_indexed_isa_magic_value = ExtractRuntimeGlobalSymbol(
       process, ConstString("objc_debug_indexed_isa_magic_value"),
       objc_module_sp, error);
-  foundError |= error.Fail();
+  foundError = foundError || error.Fail();
 
   auto objc_debug_indexed_isa_index_mask = ExtractRuntimeGlobalSymbol(
       process, ConstString("objc_debug_indexed_isa_index_mask"), objc_module_sp,
       error);
-  foundError |= error.Fail();
+  foundError = foundError || error.Fail();
 
   auto objc_debug_indexed_isa_index_shift = ExtractRuntimeGlobalSymbol(
       process, ConstString("objc_debug_indexed_isa_index_shift"),
       objc_module_sp, error);
-  foundError |= error.Fail();
+  foundError = foundError || error.Fail();
 
   auto objc_indexed_classes =
       ExtractRuntimeGlobalSymbol(process, ConstString("objc_indexed_classes"),
                                  objc_module_sp, error, false);
-  foundError |= error.Fail();
+  foundError = foundError || error.Fail();
 
   if (log)
     log->PutCString("AOCRT::NPI: Found all the indexed ISA masks");

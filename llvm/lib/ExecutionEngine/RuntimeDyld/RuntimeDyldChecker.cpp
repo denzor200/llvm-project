@@ -865,7 +865,7 @@ bool RuntimeDyldCheckerImpl::checkAllRulesInBuffer(StringRef RulePrefix,
     if (!CheckExpr.empty()) {
       // ... and it's complete then run it, otherwise remove the trailer '\'.
       if (CheckExpr.back() != '\\') {
-        DidAllTestsPass &= check(CheckExpr);
+        DidAllTestsPass = DidAllTestsPass && check(CheckExpr);
         CheckExpr.clear();
         ++NumRules;
       } else

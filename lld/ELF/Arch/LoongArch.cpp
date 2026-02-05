@@ -1579,7 +1579,7 @@ bool LoongArch::relaxOnce(int pass) const {
     if (!(osec->flags & SHF_EXECINSTR))
       continue;
     for (InputSection *sec : getInputSections(*osec, storage))
-      changed |= relax(ctx, *sec);
+      changed = changed || relax(ctx, *sec);
   }
   return changed;
 }

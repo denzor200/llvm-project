@@ -1526,7 +1526,7 @@ bool DataFlowSanitizer::runImpl(
   auto GetOrInsertGlobal = [this, &Changed](StringRef Name,
                                             Type *Ty) -> Constant * {
     GlobalVariable *G = Mod->getOrInsertGlobal(Name, Ty);
-    Changed |= G->getThreadLocalMode() != GlobalVariable::InitialExecTLSModel;
+    Changed = Changed || G->getThreadLocalMode() != GlobalVariable::InitialExecTLSModel;
     G->setThreadLocalMode(GlobalVariable::InitialExecTLSModel);
     return G;
   };

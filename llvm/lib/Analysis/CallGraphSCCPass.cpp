@@ -129,7 +129,7 @@ bool CGPassManager::RunPassOnSCC(Pass *P, CallGraphSCC &CurSCC,
   if (!PM) {
     CallGraphSCCPass *CGSP = (CallGraphSCCPass *)P;
     if (!CallGraphUpToDate) {
-      DevirtualizedCall |= RefreshCallGraph(CurSCC, CG, false);
+      DevirtualizedCall = DevirtualizedCall || RefreshCallGraph(CurSCC, CG, false);
       CallGraphUpToDate = true;
     }
 
@@ -177,7 +177,7 @@ bool CGPassManager::RunPassOnSCC(Pass *P, CallGraphSCC &CurSCC,
       dumpPassInfo(P, EXECUTION_MSG, ON_FUNCTION_MSG, F->getName());
       {
         TimeRegion PassTimer(getPassTimer(FPP));
-        Changed |= FPP->runOnFunction(*F);
+        Changed = Changed || FPP->runOnFunction(*F);
       }
       F->getContext().yield();
     }
@@ -491,7 +491,7 @@ bool CGPassManager::RunAllPassesOnSCC(CallGraphSCC &CurSCC, CallGraph &CG,
   // If the callgraph was left out of date (because the last pass run was a
   // functionpass), refresh it before we move on to the next SCC.
   if (!CallGraphUpToDate)
-    DevirtualizedCall |= RefreshCallGraph(CurSCC, CG, false);
+    DevirtualizedCall = DevirtualizedCall || RefreshCallGraph(CurSCC, CG, false);
   return Changed;
 }
 
@@ -531,7 +531,7 @@ bool CGPassManager::runOnModule(Module &M) {
                  << "  SCCPASSMGR: Re-visiting SCC, iteration #" << Iteration
                  << '\n');
       DevirtualizedCall = false;
-      Changed |= RunAllPassesOnSCC(CurSCC, CG, DevirtualizedCall);
+      Changed = Changed || RunAllPassesOnSCC(CurSCC, CG, DevirtualizedCall);
     } while (Iteration++ < MaxDevirtIterations && DevirtualizedCall);
 
     if (DevirtualizedCall)
@@ -541,7 +541,7 @@ bool CGPassManager::runOnModule(Module &M) {
 
     MaxSCCIterations.updateMax(Iteration);
   }
-  Changed |= doFinalization(CG);
+  Changed = Changed || doFinalization(CG);
   return Changed;
 }
 
@@ -552,9 +552,9 @@ bool CGPassManager::doInitialization(CallGraph &CG) {
     if (PMDataManager *PM = getContainedPass(i)->getAsPMDataManager()) {
       assert(PM->getPassManagerType() == PMT_FunctionPassManager &&
              "Invalid CGPassManager member");
-      Changed |= ((FPPassManager*)PM)->doInitialization(CG.getModule());
+      Changed = Changed || ((FPPassManager*)PM)->doInitialization(CG.getModule());
     } else {
-      Changed |= ((CallGraphSCCPass*)getContainedPass(i))->doInitialization(CG);
+      Changed = Changed || ((CallGraphSCCPass*)getContainedPass(i))->doInitialization(CG);
     }
   }
   return Changed;
@@ -567,9 +567,9 @@ bool CGPassManager::doFinalization(CallGraph &CG) {
     if (PMDataManager *PM = getContainedPass(i)->getAsPMDataManager()) {
       assert(PM->getPassManagerType() == PMT_FunctionPassManager &&
              "Invalid CGPassManager member");
-      Changed |= ((FPPassManager*)PM)->doFinalization(CG.getModule());
+      Changed = Changed || ((FPPassManager*)PM)->doFinalization(CG.getModule());
     } else {
-      Changed |= ((CallGraphSCCPass*)getContainedPass(i))->doFinalization(CG);
+      Changed = Changed || ((CallGraphSCCPass*)getContainedPass(i))->doFinalization(CG);
     }
   }
   return Changed;

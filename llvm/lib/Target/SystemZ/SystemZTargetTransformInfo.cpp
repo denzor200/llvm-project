@@ -40,7 +40,7 @@ static bool isUsedAsMemCpySource(const Value *V, bool &OtherUse) {
   for (const User *U : V->users())
     if (const Instruction *User = dyn_cast<Instruction>(U)) {
       if (isa<BitCastInst>(User) || isa<GetElementPtrInst>(User)) {
-        UsedAsMemCpySource |= isUsedAsMemCpySource(User, OtherUse);
+        UsedAsMemCpySource = UsedAsMemCpySource || isUsedAsMemCpySource(User, OtherUse);
         continue;
       }
       if (const MemCpyInst *Memcpy = dyn_cast<MemCpyInst>(User)) {

@@ -97,8 +97,8 @@ bool ARMSLSHardening::runOnMachineFunction(MachineFunction &MF) {
 
   bool Modified = false;
   for (auto &MBB : MF) {
-    Modified |= hardenReturnsAndBRs(MBB);
-    Modified |= hardenIndirectCalls(MBB);
+    Modified = Modified || hardenReturnsAndBRs(MBB);
+    Modified = Modified || hardenIndirectCalls(MBB);
   }
 
   return Modified;
@@ -175,7 +175,7 @@ struct SLSBLRThunkInserter
     : ThunkInserter<SLSBLRThunkInserter, ArmInsertedThunks> {
   const char *getThunkPrefix() { return SLSBLRNamePrefix; }
   bool mayUseThunk(const MachineFunction &MF) {
-    ComdatThunks &= !MF.getSubtarget<ARMSubtarget>().hardenSlsNoComdat();
+    ComdatThunks = ComdatThunks && !MF.getSubtarget<ARMSubtarget>().hardenSlsNoComdat();
     return MF.getSubtarget<ARMSubtarget>().hardenSlsBlr();
   }
   ArmInsertedThunks insertThunks(MachineModuleInfo &MMI, MachineFunction &MF,

@@ -1469,7 +1469,7 @@ void Writer::createApplyDataRelocationsFunction() {
     for (const OutputSegment *seg : segments)
       if (!ctx.arg.sharedMemory || !seg->isTLS())
         for (const InputChunk *inSeg : seg->inputSegments)
-          generated |= inSeg->generateRelocationCode(os);
+          generated = generated || inSeg->generateRelocationCode(os);
 
     if (!generated) {
       LLVM_DEBUG(dbgs() << "skipping empty __wasm_apply_data_relocs\n");

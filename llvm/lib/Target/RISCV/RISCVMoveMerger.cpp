@@ -253,7 +253,7 @@ bool RISCVMoveMerge::runOnMachineFunction(MachineFunction &Fn) {
   UsedRegUnits.init(*TRI);
   bool Modified = false;
   for (auto &MBB : Fn)
-    Modified |= mergeMoveSARegPair(MBB);
+    Modified = Modified || mergeMoveSARegPair(MBB);
   return Modified;
 }
 

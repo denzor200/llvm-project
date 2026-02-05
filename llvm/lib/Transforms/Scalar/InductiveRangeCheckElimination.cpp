@@ -918,9 +918,9 @@ PreservedAnalyses IRCEPass::run(Function &F, FunctionAnalysisManager &AM) {
   {
     bool CFGChanged = false;
     for (const auto &L : LI) {
-      CFGChanged |= simplifyLoop(L, &DT, &LI, &SE, nullptr, nullptr,
+      CFGChanged = CFGChanged || simplifyLoop(L, &DT, &LI, &SE, nullptr, nullptr,
                                  /*PreserveLCSSA=*/false);
-      Changed |= formLCSSARecursively(*L, DT, &LI, &SE);
+      Changed = Changed || formLCSSARecursively(*L, DT, &LI, &SE);
     }
     Changed = Changed || CFGChanged;
 

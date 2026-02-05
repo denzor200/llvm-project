@@ -5418,13 +5418,13 @@ static bool handleDefaultInitValue(QualType T, APValue &Result) {
     for (CXXRecordDecl::base_class_const_iterator I = RD->bases_begin(),
                                                   End = RD->bases_end();
          I != End; ++I, ++Index)
-      Success &=
+      Success = Success &&
           handleDefaultInitValue(I->getType(), Result.getStructBase(Index));
 
     for (const auto *I : RD->fields()) {
       if (I->isUnnamedBitField())
         continue;
-      Success &= handleDefaultInitValue(
+      Success = Success && handleDefaultInitValue(
           I->getType(), Result.getStructField(I->getFieldIndex()));
     }
     return Success;
@@ -5434,7 +5434,7 @@ static bool handleDefaultInitValue(QualType T, APValue &Result) {
           dyn_cast_or_null<ConstantArrayType>(T->getAsArrayTypeUnsafe())) {
     Result = APValue(APValue::UninitArray(), 0, AT->getZExtSize());
     if (Result.hasArrayFiller())
-      Success &=
+      Success = Success &&
           handleDefaultInitValue(AT->getElementType(), Result.getArrayFiller());
 
     return Success;
@@ -5525,11 +5525,11 @@ static bool EvaluateDecl(EvalInfo &Info, const Decl *D,
                          bool EvaluateConditionDecl = false) {
   bool OK = true;
   if (const VarDecl *VD = dyn_cast<VarDecl>(D))
-    OK &= EvaluateVarDecl(Info, VD);
+    OK = OK && EvaluateVarDecl(Info, VD);
 
   if (const DecompositionDecl *DD = dyn_cast<DecompositionDecl>(D);
       EvaluateConditionDecl && DD)
-    OK &= EvaluateDecompositionDeclInit(Info, DD);
+    OK = OK && EvaluateDecompositionDeclInit(Info, DD);
 
   return OK;
 }
@@ -5539,7 +5539,7 @@ static bool EvaluateDecompositionDeclInit(EvalInfo &Info,
   bool OK = true;
   for (auto *BD : DD->flat_bindings())
     if (auto *VD = BD->getHoldingVar())
-      OK &= EvaluateDecl(Info, VD, /*EvaluateConditionDecl=*/true);
+      OK = OK && EvaluateDecl(Info, VD, /*EvaluateConditionDecl=*/true);
 
   return OK;
 }
@@ -7097,7 +7097,7 @@ static bool HandleConstructorCall(const Expr *E, const LValue &This,
     for (; !declaresSameEntity(*FieldIt, FD); ++FieldIt) {
       assert(FieldIt != RD->field_end() && "missing field?");
       if (!FieldIt->isUnnamedBitField())
-        Success &= handleDefaultInitValue(
+        Success = Success && handleDefaultInitValue(
             FieldIt->getType(),
             Result.getStructField(FieldIt->getFieldIndex()));
     }
@@ -7155,7 +7155,7 @@ static bool HandleConstructorCall(const Expr *E, const LValue &This,
             // FIXME: This immediately starts the lifetime of all members of
             // an anonymous struct. It would be preferable to strictly start
             // member lifetime in initialization order.
-            Success &= handleDefaultInitValue(Info.Ctx.getCanonicalTagType(CD),
+            Success = Success && handleDefaultInitValue(Info.Ctx.getCanonicalTagType(CD),
                                               *Value);
         }
         // Store Subobject as its parent before updating it for the last element
@@ -7217,7 +7217,7 @@ static bool HandleConstructorCall(const Expr *E, const LValue &This,
   if (!RD->isUnion()) {
     for (; FieldIt != RD->field_end(); ++FieldIt) {
       if (!FieldIt->isUnnamedBitField())
-        Success &= handleDefaultInitValue(
+        Success = Success && handleDefaultInitValue(
             FieldIt->getType(),
             Result.getStructField(FieldIt->getFieldIndex()));
     }
@@ -7495,7 +7495,7 @@ static bool HandleOperatorNewCall(EvalInfo &Info, const CallExpr *E,
   bool IsNothrow = false;
   for (unsigned I = 1, N = E->getNumArgs(); I != N; ++I) {
     EvaluateIgnoredValue(Info, E->getArg(I));
-    IsNothrow |= E->getType()->isNothrowT();
+    IsNothrow = IsNothrow || E->getType()->isNothrowT();
   }
 
   CharUnits ElemSize;

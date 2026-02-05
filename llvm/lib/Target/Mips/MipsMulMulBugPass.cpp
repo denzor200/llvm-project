@@ -65,7 +65,7 @@ bool MipsMulMulBugFix::runOnMachineFunction(MachineFunction &MF) {
   bool Modified = false;
 
   for (auto &MBB : MF)
-    Modified |= fixMulMulBB(MBB, MipsII);
+    Modified = Modified || fixMulMulBB(MBB, MipsII);
 
   return Modified;
 }

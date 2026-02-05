@@ -40,7 +40,7 @@ PreservedAnalyses
 RedundantDbgInstEliminationPass::run(Function &F, FunctionAnalysisManager &AM) {
   bool Changed = false;
   for (auto &BB : F)
-    Changed |= RemoveRedundantDbgInstrs(&BB);
+    Changed = Changed || RemoveRedundantDbgInstrs(&BB);
   if (!Changed)
     return PreservedAnalyses::all();
   PreservedAnalyses PA;
@@ -96,12 +96,12 @@ static bool eliminateDeadCode(Function &F, TargetLibraryInfo *TLI) {
     // We're visiting this instruction now, so make sure it's not in the
     // worklist from an earlier visit.
     if (!WorkList.count(&I))
-      MadeChange |= DCEInstruction(&I, WorkList, TLI);
+      MadeChange = MadeChange || DCEInstruction(&I, WorkList, TLI);
   }
 
   while (!WorkList.empty()) {
     Instruction *I = WorkList.pop_back_val();
-    MadeChange |= DCEInstruction(I, WorkList, TLI);
+    MadeChange = MadeChange || DCEInstruction(I, WorkList, TLI);
   }
   return MadeChange;
 }

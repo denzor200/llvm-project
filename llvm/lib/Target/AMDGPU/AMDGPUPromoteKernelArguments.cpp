@@ -96,7 +96,7 @@ bool AMDGPUPromoteKernelArguments::promotePointer(Value *Ptr) {
 
   LoadInst *LI = dyn_cast<LoadInst>(Ptr);
   if (LI)
-    Changed |= promoteLoad(LI);
+    Changed = Changed || promoteLoad(LI);
 
   PointerType *PT = dyn_cast<PointerType>(Ptr->getType());
   if (!PT)
@@ -179,7 +179,7 @@ bool AMDGPUPromoteKernelArguments::run(Function &F, MemorySSA &MSSA,
   bool Changed = false;
   while (!Ptrs.empty()) {
     Value *Ptr = Ptrs.pop_back_val();
-    Changed |= promotePointer(Ptr);
+    Changed = Changed || promotePointer(Ptr);
   }
 
   return Changed;

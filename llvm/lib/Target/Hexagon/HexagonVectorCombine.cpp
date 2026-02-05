@@ -1675,16 +1675,16 @@ auto AlignVectors::run() -> bool {
   }
 
   for (auto &M : LoadGroups)
-    Changed |= moveTogether(M);
+    Changed = Changed || moveTogether(M);
   for (auto &M : StoreGroups)
-    Changed |= moveTogether(M);
+    Changed = Changed || moveTogether(M);
 
   LLVM_DEBUG(dbgs() << "After moveTogether:\n" << HVC.F);
 
   for (auto &M : LoadGroups)
-    Changed |= realignGroup(M);
+    Changed = Changed || realignGroup(M);
   for (auto &M : StoreGroups)
-    Changed |= realignGroup(M);
+    Changed = Changed || realignGroup(M);
 
   return Changed;
 }
@@ -3309,9 +3309,9 @@ auto HexagonVectorCombine::run() -> bool {
   bool Changed = false;
   if (HST.useHVXOps()) {
     if (VAEnabled)
-      Changed |= AlignVectors(*this).run();
+      Changed = Changed || AlignVectors(*this).run();
     if (VIEnabled)
-      Changed |= HvxIdioms(*this).run();
+      Changed = Changed || HvxIdioms(*this).run();
   }
 
   if (DumpModule) {

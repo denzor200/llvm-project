@@ -864,9 +864,9 @@ static bool runFixI1Copies(MachineFunction &MF, MachineDominatorTree &MDT,
 
   Vreg1LoweringHelper Helper(&MF, &MDT, &MPDT);
   bool Changed = false;
-  Changed |= Helper.lowerCopiesFromI1();
-  Changed |= Helper.lowerPhis();
-  Changed |= Helper.lowerCopiesToI1();
+  Changed = Changed || Helper.lowerCopiesFromI1();
+  Changed = Changed || Helper.lowerPhis();
+  Changed = Changed || Helper.lowerCopiesToI1();
   return Helper.cleanConstrainRegs(Changed);
 }
 

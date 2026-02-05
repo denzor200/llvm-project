@@ -293,7 +293,7 @@ bool Thumb2ITBlock::runOnMachineFunction(MachineFunction &Fn) {
 
   bool Modified = false;
   for (auto &MBB : Fn )
-    Modified |= InsertITInstructions(MBB);
+    Modified = Modified || InsertITInstructions(MBB);
 
   if (Modified)
     AFI->setHasITBlocks(true);

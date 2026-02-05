@@ -75,7 +75,7 @@ bool DependencyScanningWorker::computeDependencies(
 #ifndef NDEBUG
     bool SawDepFS = false;
     OverlayFS->visit(
-        [&](llvm::vfs::FileSystem &VFS) { SawDepFS |= &VFS == DepFS.get(); });
+        [&](llvm::vfs::FileSystem &VFS) { SawDepFS = SawDepFS || &VFS == DepFS.get(); });
     assert(SawDepFS && "OverlayFS not based on DepFS");
 #endif
     FS = std::move(OverlayFS);

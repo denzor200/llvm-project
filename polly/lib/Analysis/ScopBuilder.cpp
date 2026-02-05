@@ -3329,7 +3329,7 @@ bool ScopBuilder::calculateMinMaxAccess(AliasGroupTy AliasGroup,
 
   bool LimitReached = false;
   for (isl::set Set : Locations.get_set_list()) {
-    LimitReached |= !buildMinMaxAccess(Set, MinMaxAccesses, *scop);
+    LimitReached = LimitReached || !buildMinMaxAccess(Set, MinMaxAccesses, *scop);
     if (LimitReached)
       break;
   }

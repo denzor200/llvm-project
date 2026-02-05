@@ -1148,7 +1148,7 @@ bool AMDGPUSwLowerLDS::run() {
 
   CallGraph CG = CallGraph(M);
 
-  Changed |= eliminateConstantExprUsesOfLDSFromAllInstructions(M);
+  Changed = Changed || eliminateConstantExprUsesOfLDSFromAllInstructions(M);
 
   // Get all the direct and indirect access of LDS for all the kernels.
   LDSUsesInfoTy LDSUsesInfo = getTransitiveUsesOfLDS(CG, M);

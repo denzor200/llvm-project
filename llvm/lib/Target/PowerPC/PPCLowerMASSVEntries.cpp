@@ -180,7 +180,7 @@ bool PPCLowerMASSVEntries::runOnModule(Module &M) {
         continue;
 
       Subtarget = &TM.getSubtarget<PPCSubtarget>(*CI->getParent()->getParent());
-      Changed |= lowerMASSVCall(CI, Func, M, Subtarget);
+      Changed = Changed || lowerMASSVCall(CI, Func, M, Subtarget);
     }
   }
 

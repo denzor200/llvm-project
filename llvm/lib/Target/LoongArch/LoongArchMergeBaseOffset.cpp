@@ -854,8 +854,8 @@ bool LoongArchMergeBaseOffsetOpt::runOnMachineFunction(MachineFunction &Fn) {
       // For tls-le, we do not pass the second PseudoAddTPRel instr in order to
       // reuse the existing hooks and the last three paramaters should always be
       // nullptr.
-      MadeChange |= detectAndFoldOffset(Hi20, *Lo12, Lo20, Hi12, Last);
-      MadeChange |= foldIntoMemoryOps(Hi20, *Lo12, Lo20, Hi12, Last);
+      MadeChange = MadeChange || detectAndFoldOffset(Hi20, *Lo12, Lo20, Hi12, Last);
+      MadeChange = MadeChange || foldIntoMemoryOps(Hi20, *Lo12, Lo20, Hi12, Last);
     }
   }
 

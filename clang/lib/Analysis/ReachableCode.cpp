@@ -241,7 +241,7 @@ static bool isConfigurationValue(const Stmt *S,
       // Only include raw integers (not enums) as configuration
       // values if they are used in a logical or comparison operator
       // (not arithmetic).
-      IncludeIntegers &= (B->isLogicalOp() || B->isComparisonOp());
+      IncludeIntegers = IncludeIntegers && (B->isLogicalOp() || B->isComparisonOp());
       return isConfigurationValue(B->getLHS(), PP, SilenceableCondVal,
                                   IncludeIntegers) ||
              isConfigurationValue(B->getRHS(), PP, SilenceableCondVal,

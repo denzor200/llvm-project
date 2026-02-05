@@ -202,8 +202,8 @@ static void updateSupportedARMFeatures(Ctx &ctx,
       attributes.getAttributeValue(ARMBuildAttrs::ARM_ISA_use);
   std::optional<unsigned> thumb =
       attributes.getAttributeValue(ARMBuildAttrs::THUMB_ISA_use);
-  ctx.arg.armHasArmISA |= armISA && *armISA >= ARMBuildAttrs::Allowed;
-  ctx.arg.armHasThumb2ISA |= thumb && *thumb >= ARMBuildAttrs::AllowThumb32;
+  ctx.arg.armHasArmISA = ctx.arg.armHasArmISA || armISA && *armISA >= ARMBuildAttrs::Allowed;
+  ctx.arg.armHasThumb2ISA = ctx.arg.armHasThumb2ISA || thumb && *thumb >= ARMBuildAttrs::AllowThumb32;
 }
 
 InputFile::InputFile(Ctx &ctx, Kind k, MemoryBufferRef m)

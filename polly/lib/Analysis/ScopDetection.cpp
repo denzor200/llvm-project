@@ -1263,8 +1263,8 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
 
   // Check the access function.
   if (auto MemInst = MemAccInst::dyn_cast(Inst)) {
-    Context.hasStores |= isa<StoreInst>(MemInst);
-    Context.hasLoads |= isa<LoadInst>(MemInst);
+    Context.hasStores = Context.hasStores || isa<StoreInst>(MemInst);
+    Context.hasLoads = Context.hasLoads || isa<LoadInst>(MemInst);
     if (!MemInst.isSimple())
       return invalid<ReportNonSimpleMemoryAccess>(Context, /*Assert=*/true,
                                                   &Inst);
@@ -1722,7 +1722,7 @@ bool ScopDetection::hasPossiblyDistributableLoop(
     for (auto *LBB : L->blocks()) {
       bool MemStore = false;
       for (auto &I : *LBB)
-        MemStore |= isa<StoreInst>(&I);
+        MemStore = MemStore || isa<StoreInst>(&I);
       StmtsWithStoresInLoops += MemStore;
     }
     return (StmtsWithStoresInLoops > 1);

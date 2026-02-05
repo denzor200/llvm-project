@@ -221,7 +221,7 @@ bool WebAssemblyMemIntrinsicResults::runOnMachineFunction(MachineFunction &MF) {
       default:
         break;
       case WebAssembly::CALL:
-        Changed |= optimizeCall(MBB, MI, MRI);
+        Changed = Changed || optimizeCall(MBB, MI, MRI);
         break;
       }
   }

@@ -171,7 +171,7 @@ bool AArch64CompressJumpTables::runOnMachineFunction(MachineFunction &MFIn) {
   for (MachineBasicBlock &MBB : *MF) {
     int Offset = BlockInfo[MBB.getNumber()];
     for (MachineInstr &MI : MBB) {
-      Changed |= compressJumpTable(MI, Offset);
+      Changed = Changed || compressJumpTable(MI, Offset);
       Offset += TII->getInstSizeInBytes(MI);
     }
   }

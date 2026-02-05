@@ -1346,8 +1346,8 @@ WebAssemblyTargetLowering::LowerCall(CallLoweringInfo &CLI,
   for (unsigned I = 0; I < Outs.size(); ++I) {
     const ISD::OutputArg &Out = Outs[I];
     SDValue &OutVal = OutVals[I];
-    HasSwiftSelfArg |= Out.Flags.isSwiftSelf();
-    HasSwiftErrorArg |= Out.Flags.isSwiftError();
+    HasSwiftSelfArg = HasSwiftSelfArg || Out.Flags.isSwiftSelf();
+    HasSwiftErrorArg = HasSwiftErrorArg || Out.Flags.isSwiftError();
     if (Out.Flags.isNest())
       fail(DL, DAG, "WebAssembly hasn't implemented nest arguments");
     if (Out.Flags.isInAlloca())
@@ -1598,8 +1598,8 @@ SDValue WebAssemblyTargetLowering::LowerFormalArguments(
   bool HasSwiftErrorArg = false;
   bool HasSwiftSelfArg = false;
   for (const ISD::InputArg &In : Ins) {
-    HasSwiftSelfArg |= In.Flags.isSwiftSelf();
-    HasSwiftErrorArg |= In.Flags.isSwiftError();
+    HasSwiftSelfArg = HasSwiftSelfArg || In.Flags.isSwiftSelf();
+    HasSwiftErrorArg = HasSwiftErrorArg || In.Flags.isSwiftError();
     if (In.Flags.isInAlloca())
       fail(DL, DAG, "WebAssembly hasn't implemented inalloca arguments");
     if (In.Flags.isNest())

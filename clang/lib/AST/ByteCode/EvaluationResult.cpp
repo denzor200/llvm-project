@@ -44,12 +44,12 @@ static bool CheckArrayInitialized(InterpState &S, SourceLocation Loc,
     const Record *R = BasePtr.getElemRecord();
     for (size_t I = 0; I != NumElems; ++I) {
       Pointer ElemPtr = BasePtr.atIndex(I).narrow();
-      Result &= CheckFieldsInitialized(S, Loc, ElemPtr, R);
+      Result = Result && CheckFieldsInitialized(S, Loc, ElemPtr, R);
     }
   } else if (const auto *ElemCAT = dyn_cast<ConstantArrayType>(ElemType)) {
     for (size_t I = 0; I != NumElems; ++I) {
       Pointer ElemPtr = BasePtr.atIndex(I).narrow();
-      Result &= CheckArrayInitialized(S, Loc, ElemPtr, ElemCAT);
+      Result = Result && CheckArrayInitialized(S, Loc, ElemPtr, ElemCAT);
     }
   } else {
     // Primitive arrays.
@@ -87,7 +87,7 @@ static bool CheckFieldsInitialized(InterpState &S, SourceLocation Loc,
       continue;
 
     if (FieldType->isRecordType()) {
-      Result &= CheckFieldsInitialized(S, Loc, FieldPtr, FieldPtr.getRecord());
+      Result = Result && CheckFieldsInitialized(S, Loc, FieldPtr, FieldPtr.getRecord());
     } else if (FieldType->isIncompleteArrayType()) {
       // Nothing to do here.
     } else if (F.Decl->isUnnamedBitField()) {
@@ -95,7 +95,7 @@ static bool CheckFieldsInitialized(InterpState &S, SourceLocation Loc,
     } else if (FieldType->isArrayType()) {
       const auto *CAT =
           cast<ConstantArrayType>(FieldType->getAsArrayTypeUnsafe());
-      Result &= CheckArrayInitialized(S, Loc, FieldPtr, CAT);
+      Result = Result && CheckArrayInitialized(S, Loc, FieldPtr, CAT);
     } else if (!FieldPtr.isInitialized()) {
       DiagnoseUninitializedSubobject(S, Loc, F.Decl);
       Result = false;
@@ -118,7 +118,7 @@ static bool CheckFieldsInitialized(InterpState &S, SourceLocation Loc,
       }
       return false;
     }
-    Result &= CheckFieldsInitialized(S, Loc, P, B.R);
+    Result = Result && CheckFieldsInitialized(S, Loc, P, B.R);
   }
 
   // TODO: Virtual bases

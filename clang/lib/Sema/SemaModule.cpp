@@ -928,7 +928,7 @@ static bool checkExportedDeclContext(Sema &S, DeclContext *DC,
                                      SourceLocation BlockStart) {
   bool AllUnnamed = true;
   for (auto *D : DC->decls())
-    AllUnnamed &= checkExportedDecl(S, D, BlockStart);
+    AllUnnamed = AllUnnamed && checkExportedDecl(S, D, BlockStart);
   return AllUnnamed;
 }
 
@@ -1352,10 +1352,10 @@ bool ExposureChecker::checkExposure(const FunctionDecl *FD, bool Diag) {
   //        type for a (possibly instantiated) definition of a function with a
   //        declared return type that uses a placeholder type
   //        ([dcl.spec.auto])),
-  Diag &=
+  Diag = Diag &&
       (FD->isInlined() || IsImplicitInstantiation) && !FD->isDependentContext();
 
-  IsExposure |= checkExposure(FD->getBody(), Diag);
+  IsExposure = IsExposure || checkExposure(FD->getBody(), Diag);
   if (IsExposure)
     ExposureSet.insert(FD);
 
@@ -1391,8 +1391,8 @@ bool ExposureChecker::checkExposure(const VarDecl *VD, bool Diag) {
   // Note: although the spec says to ignore the initializer for all variable,
   // for the code we generated now for inline variables, it is dangerous if the
   // initializer of an inline variable is TULocal.
-  Diag &= !VD->getDeclContext()->isDependentContext() && VD->isInline();
-  IsExposure |= checkExposure(VD->getInit(), Diag);
+  Diag = Diag && !VD->getDeclContext()->isDependentContext() && VD->isInline();
+  IsExposure = IsExposure || checkExposure(VD->getInit(), Diag);
   if (IsExposure)
     ExposureSet.insert(VD);
 
@@ -1405,7 +1405,7 @@ bool ExposureChecker::checkExposure(const CXXRecordDecl *RD, bool Diag) {
 
   bool IsExposure = false;
   for (CXXMethodDecl *Method : RD->methods())
-    IsExposure |= checkExposure(Method, Diag);
+    IsExposure = IsExposure || checkExposure(Method, Diag);
 
   for (FieldDecl *FD : RD->fields()) {
     if (isTULocal(FD->getType())) {

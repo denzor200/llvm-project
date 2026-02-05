@@ -552,19 +552,19 @@ bool ThreadSanitizer::sanitizeFunction(Function &F,
   // Instrument memory accesses only if we want to report bugs in the function.
   if (ClInstrumentMemoryAccesses && SanitizeFunction)
     for (const auto &II : AllLoadsAndStores) {
-      Res |= instrumentLoadOrStore(II, DL);
+      Res = Res || instrumentLoadOrStore(II, DL);
     }
 
   // Instrument atomic memory accesses in any case (they can be used to
   // implement synchronization).
   if (ClInstrumentAtomics)
     for (auto *Inst : AtomicAccesses) {
-      Res |= instrumentAtomic(Inst, DL);
+      Res = Res || instrumentAtomic(Inst, DL);
     }
 
   if (ClInstrumentMemIntrinsics && SanitizeFunction)
     for (auto *Inst : MemIntrinCalls) {
-      Res |= instrumentMemIntrinsic(Inst);
+      Res = Res || instrumentMemIntrinsic(Inst);
     }
 
   if (F.hasFnAttribute("sanitize_thread_no_checking_at_run_time")) {

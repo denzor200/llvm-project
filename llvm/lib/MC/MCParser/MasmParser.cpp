@@ -4265,11 +4265,11 @@ bool MasmParser::parseDirectiveAlign() {
   if (Alignment == 0)
     Alignment = 1;
   if (!isPowerOf2_64(Alignment))
-    ReturnVal |= Error(AlignmentLoc, "alignment must be a power of 2; was " +
+    ReturnVal = ReturnVal || Error(AlignmentLoc, "alignment must be a power of 2; was " +
                                          std::to_string(Alignment));
 
   if (emitAlignTo(Alignment))
-    ReturnVal |= addErrorSuffix(" in align directive");
+    ReturnVal = ReturnVal || addErrorSuffix(" in align directive");
 
   return ReturnVal;
 }

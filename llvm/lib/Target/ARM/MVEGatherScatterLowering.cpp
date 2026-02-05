@@ -1006,10 +1006,10 @@ bool MVEGatherScatterLowering::optimiseOffsets(Value *Offsets, BasicBlock *BB,
     bool Changed = false;
     if (isa<Instruction>(Offs->getOperand(0)) &&
         L->contains(cast<Instruction>(Offs->getOperand(0))))
-      Changed |= optimiseOffsets(Offs->getOperand(0), BB, LI);
+      Changed = Changed || optimiseOffsets(Offs->getOperand(0), BB, LI);
     if (isa<Instruction>(Offs->getOperand(1)) &&
         L->contains(cast<Instruction>(Offs->getOperand(1))))
-      Changed |= optimiseOffsets(Offs->getOperand(1), BB, LI);
+      Changed = Changed || optimiseOffsets(Offs->getOperand(1), BB, LI);
     if (!Changed)
       return false;
     if (isa<PHINode>(Offs->getOperand(0))) {
@@ -1245,7 +1245,7 @@ bool MVEGatherScatterLowering::optimiseAddress(Value *Address, BasicBlock *BB,
       Changed = true;
     }
   }
-  Changed |= optimiseOffsets(GEP->getOperand(1), GEP->getParent(), LI);
+  Changed = Changed || optimiseOffsets(GEP->getOperand(1), GEP->getParent(), LI);
   return Changed;
 }
 
@@ -1265,18 +1265,18 @@ bool MVEGatherScatterLowering::runOnFunction(Function &F) {
   bool Changed = false;
 
   for (BasicBlock &BB : F) {
-    Changed |= SimplifyInstructionsInBlock(&BB);
+    Changed = Changed || SimplifyInstructionsInBlock(&BB);
 
     for (Instruction &I : BB) {
       IntrinsicInst *II = dyn_cast<IntrinsicInst>(&I);
       if (II && II->getIntrinsicID() == Intrinsic::masked_gather &&
           isa<FixedVectorType>(II->getType())) {
         Gathers.push_back(II);
-        Changed |= optimiseAddress(II->getArgOperand(0), II->getParent(), LI);
+        Changed = Changed || optimiseAddress(II->getArgOperand(0), II->getParent(), LI);
       } else if (II && II->getIntrinsicID() == Intrinsic::masked_scatter &&
                  isa<FixedVectorType>(II->getArgOperand(0)->getType())) {
         Scatters.push_back(II);
-        Changed |= optimiseAddress(II->getArgOperand(1), II->getParent(), LI);
+        Changed = Changed || optimiseAddress(II->getArgOperand(1), II->getParent(), LI);
       }
     }
   }

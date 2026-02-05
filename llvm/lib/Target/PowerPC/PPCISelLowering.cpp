@@ -2420,8 +2420,8 @@ SDValue PPC::get_VSPLTI_elt(SDNode *N, unsigned ByteSize, SelectionDAG &DAG) {
     for (unsigned i = 0; i != Multiple-1; ++i) {
       if (!UniquedVals[i].getNode()) continue;  // Must have been undefs.
 
-      LeadingZero &= isNullConstant(UniquedVals[i]);
-      LeadingOnes &= isAllOnesConstant(UniquedVals[i]);
+      LeadingZero = LeadingZero && isNullConstant(UniquedVals[i]);
+      LeadingOnes = LeadingOnes && isAllOnesConstant(UniquedVals[i]);
     }
     // Finally, check the least significant entry.
     if (LeadingZero) {
@@ -6035,7 +6035,7 @@ SDValue PPCTargetLowering::LowerCall_32SVR4(
                         dl, MVT::i32, Arg);
 
     if (VA.isRegLoc()) {
-      seenFloatArg |= VA.getLocVT().isFloatingPoint();
+      seenFloatArg = seenFloatArg || VA.getLocVT().isFloatingPoint();
       // Put argument in a physical register.
       if (Subtarget.hasSPE() && Arg.getValueType() == MVT::f64) {
         bool IsLE = Subtarget.isLittleEndian();

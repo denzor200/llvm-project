@@ -225,7 +225,7 @@ LogicalResult mlir::tryToDestructureMemorySlots(
       }
       if (!destructuredAnySlot)
         newWorkList.push_back(allocator);
-      changesInThisRound |= destructuredAnySlot;
+      changesInThisRound = changesInThisRound || destructuredAnySlot;
     }
 
     if (!changesInThisRound)

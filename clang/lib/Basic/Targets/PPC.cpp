@@ -486,19 +486,19 @@ static bool ppcUserFeaturesCheck(DiagnosticsEngine &Diags,
   // VSX subfeatures.
   bool Found = false;
   if (llvm::is_contained(FeaturesVec, "-hard-float")) {
-    Found |= FindVSXSubfeature("+vsx", "-mvsx", "-msoft-float");
-    Found |= FindVSXSubfeature("+altivec", "-maltivec", "-msoft-float");
-    Found |=
+    Found = Found || FindVSXSubfeature("+vsx", "-mvsx", "-msoft-float");
+    Found = Found || FindVSXSubfeature("+altivec", "-maltivec", "-msoft-float");
+    Found = Found ||
         FindVSXSubfeature("+power8-vector", "-mpower8-vector", "-msoft-float");
-    Found |= FindVSXSubfeature("+direct-move", "-mdirect-move", "-msoft-float");
-    Found |= FindVSXSubfeature("+float128", "-mfloat128", "-msoft-float");
-    Found |=
+    Found = Found || FindVSXSubfeature("+direct-move", "-mdirect-move", "-msoft-float");
+    Found = Found || FindVSXSubfeature("+float128", "-mfloat128", "-msoft-float");
+    Found = Found ||
         FindVSXSubfeature("+power9-vector", "-mpower9-vector", "-msoft-float");
-    Found |= FindVSXSubfeature("+paired-vector-memops",
+    Found = Found || FindVSXSubfeature("+paired-vector-memops",
                                "-mpaired-vector-memops", "-msoft-float");
-    Found |= FindVSXSubfeature("+mma", "-mmma", "-msoft-float");
-    Found |= FindVSXSubfeature("+crypto", "-mcrypto", "-msoft-float");
-    Found |= FindVSXSubfeature("+power10-vector", "-mpower10-vector",
+    Found = Found || FindVSXSubfeature("+mma", "-mmma", "-msoft-float");
+    Found = Found || FindVSXSubfeature("+crypto", "-mcrypto", "-msoft-float");
+    Found = Found || FindVSXSubfeature("+power10-vector", "-mpower10-vector",
                                "-msoft-float");
   }
   if (Found)
@@ -517,13 +517,13 @@ static bool ppcUserFeaturesCheck(DiagnosticsEngine &Diags,
     return true;
 
   Found = FindVSXSubfeature("+power8-vector", "-mpower8-vector", "-mno-vsx");
-  Found |= FindVSXSubfeature("+direct-move", "-mdirect-move", "-mno-vsx");
-  Found |= FindVSXSubfeature("+float128", "-mfloat128", "-mno-vsx");
-  Found |= FindVSXSubfeature("+power9-vector", "-mpower9-vector", "-mno-vsx");
-  Found |= FindVSXSubfeature("+paired-vector-memops", "-mpaired-vector-memops",
+  Found = Found || FindVSXSubfeature("+direct-move", "-mdirect-move", "-mno-vsx");
+  Found = Found || FindVSXSubfeature("+float128", "-mfloat128", "-mno-vsx");
+  Found = Found || FindVSXSubfeature("+power9-vector", "-mpower9-vector", "-mno-vsx");
+  Found = Found || FindVSXSubfeature("+paired-vector-memops", "-mpaired-vector-memops",
                              "-mno-vsx");
-  Found |= FindVSXSubfeature("+mma", "-mmma", "-mno-vsx");
-  Found |= FindVSXSubfeature("+power10-vector", "-mpower10-vector", "-mno-vsx");
+  Found = Found || FindVSXSubfeature("+mma", "-mmma", "-mno-vsx");
+  Found = Found || FindVSXSubfeature("+power10-vector", "-mpower10-vector", "-mno-vsx");
 
   // Return false if any vsx subfeatures was found.
   return !Found;

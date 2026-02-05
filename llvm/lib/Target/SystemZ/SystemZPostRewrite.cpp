@@ -269,7 +269,7 @@ bool SystemZPostRewrite::selectMBB(MachineBasicBlock &MBB) {
   MachineBasicBlock::iterator MBBI = MBB.begin(), E = MBB.end();
   while (MBBI != E) {
     MachineBasicBlock::iterator NMBBI = std::next(MBBI);
-    Modified |= selectMI(MBB, MBBI, NMBBI);
+    Modified = Modified || selectMI(MBB, MBBI, NMBBI);
     MBBI = NMBBI;
   }
 
@@ -281,7 +281,7 @@ bool SystemZPostRewrite::runOnMachineFunction(MachineFunction &MF) {
 
   bool Modified = false;
   for (auto &MBB : MF)
-    Modified |= selectMBB(MBB);
+    Modified = Modified || selectMBB(MBB);
 
   return Modified;
 }

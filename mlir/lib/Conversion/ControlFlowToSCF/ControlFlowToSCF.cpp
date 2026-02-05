@@ -178,7 +178,7 @@ struct LiftControlFlowToSCF
           if (failed(changedFunc))
             return WalkResult::interrupt();
 
-          changed |= *changedFunc;
+          changed = changed || *changedFunc;
         }
         return WalkResult::advance();
       };

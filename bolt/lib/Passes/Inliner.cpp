@@ -202,7 +202,7 @@ InliningInfo getInliningInfo(const BinaryFunction &BF) {
              BC.MIB->isPAuthAndRet(Inst)))
           continue;
 
-        DirectSP |= BC.MIB->hasDefOfPhysReg(Inst, SPReg) ||
+        DirectSP = DirectSP || BC.MIB->hasDefOfPhysReg(Inst, SPReg) ||
                     BC.MIB->hasUseOfPhysReg(Inst, SPReg);
       }
     }

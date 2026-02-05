@@ -206,8 +206,8 @@ bool ARMBlockPlacement::fixBackwardsWLS(MachineLoop *ML) {
 bool ARMBlockPlacement::processPostOrderLoops(MachineLoop *ML) {
   bool Changed = false;
   for (auto *InnerML : *ML)
-    Changed |= processPostOrderLoops(InnerML);
-  return Changed | fixBackwardsWLS(ML);
+    Changed = Changed || processPostOrderLoops(InnerML);
+  return Changed || fixBackwardsWLS(ML);
 }
 
 bool ARMBlockPlacement::runOnMachineFunction(MachineFunction &MF) {
@@ -228,11 +228,11 @@ bool ARMBlockPlacement::runOnMachineFunction(MachineFunction &MF) {
 
   // Find loops with a backwards branching WLS and fix if possible.
   for (auto *ML : *MLI)
-    Changed |= processPostOrderLoops(ML);
+    Changed = Changed || processPostOrderLoops(ML);
 
   // Revert any While loops still out of range to DLS loops.
   for (auto *WlsInstr : RevertedWhileLoops)
-    Changed |= revertWhileToDoLoop(WlsInstr);
+    Changed = Changed || revertWhileToDoLoop(WlsInstr);
 
   return Changed;
 }

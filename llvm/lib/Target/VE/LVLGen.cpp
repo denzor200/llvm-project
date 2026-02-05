@@ -124,7 +124,7 @@ bool LVLGen::runOnMachineFunction(MachineFunction &F) {
   TRI = Subtarget.getRegisterInfo();
 
   for (MachineBasicBlock &MBB : F)
-    Changed |= runOnMachineBasicBlock(MBB);
+    Changed = Changed || runOnMachineBasicBlock(MBB);
 
   if (Changed) {
     LLVM_DEBUG(dbgs() << "\n");

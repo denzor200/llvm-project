@@ -235,7 +235,7 @@ public:
         }
         if (!tooling::applyAllReplacements(Replacements.get(), Rewrite))
           llvm::errs() << "Can't apply replacements for file " << File << "\n";
-        AnyNotWritten |= Rewrite.overwriteChangedFiles();
+        AnyNotWritten = AnyNotWritten || Rewrite.overwriteChangedFiles();
       }
 
       if (AnyNotWritten) {

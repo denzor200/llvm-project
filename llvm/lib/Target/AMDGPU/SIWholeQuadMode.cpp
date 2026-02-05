@@ -398,7 +398,7 @@ void SIWholeQuadMode::markDefs(const MachineInstr &UseMI, LiveRange &LR,
           LaneBitmask Overlap = (UseLanes & OpLanes);
 
           // Record if this instruction defined any of use
-          HasDef |= Overlap.any();
+          HasDef = HasDef || Overlap.any();
 
           // Mark any lanes defined
           DefinedLanes |= OpLanes;
@@ -1154,7 +1154,7 @@ MachineBasicBlock::iterator SIWholeQuadMode::prepareInsertion(
   while (MBBI != Last) {
     bool IsExecDef = false;
     for (const MachineOperand &MO : MBBI->all_defs()) {
-      IsExecDef |=
+      IsExecDef = IsExecDef ||
           MO.getReg() == AMDGPU::EXEC_LO || MO.getReg() == AMDGPU::EXEC;
     }
     if (!IsExecDef)
@@ -1750,12 +1750,12 @@ bool SIWholeQuadMode::run(MachineFunction &MF) {
 
   LLVM_DEBUG(printInfo());
 
-  Changed |= lowerLiveMaskQueries();
-  Changed |= lowerCopyInstrs();
+  Changed = Changed || lowerLiveMaskQueries();
+  Changed = Changed || lowerCopyInstrs();
 
   if (!HasWaveModes) {
     // No wave mode execution
-    Changed |= lowerKillInstrs(false);
+    Changed = Changed || lowerKillInstrs(false);
   } else if (GlobalFlags == StateWQM) {
     // Shader only needs WQM
     auto MI =

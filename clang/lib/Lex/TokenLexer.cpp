@@ -856,7 +856,7 @@ bool TokenLexer::pasteTokens(Token &LHSTok, ArrayRef<Token> TokenStream,
 
       // If we got an EOF token, we didn't form even ONE token.  For example, we
       // did "/ ## /" to get "//".
-      isInvalid |= Result.is(tok::eof);
+      isInvalid = isInvalid || Result.is(tok::eof);
 
       // If pasting the two tokens didn't form a full new token, this is an
       // error.  This occurs with "x ## +"  and other stuff.  Return with LHSTok

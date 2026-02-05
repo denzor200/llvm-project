@@ -296,7 +296,7 @@ bool CFGuardImpl::runOnFunction(Function &F) {
 PreservedAnalyses CFGuardPass::run(Function &F, FunctionAnalysisManager &FAM) {
   CFGuardImpl Impl(GuardMechanism);
   bool Changed = Impl.doInitialization(*F.getParent());
-  Changed |= Impl.runOnFunction(F);
+  Changed = Changed || Impl.runOnFunction(F);
   return Changed ? PreservedAnalyses::none() : PreservedAnalyses::all();
 }
 

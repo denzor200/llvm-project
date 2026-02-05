@@ -2637,10 +2637,10 @@ bool VectorCombine::foldShuffleOfBinops(Instruction &I) {
     return false;
   };
   bool ReducedInstCount = false;
-  ReducedInstCount |= MergeInner(X, 0, NewMask0, CostKind);
-  ReducedInstCount |= MergeInner(Y, 0, NewMask1, CostKind);
-  ReducedInstCount |= MergeInner(Z, NumSrcElts, NewMask0, CostKind);
-  ReducedInstCount |= MergeInner(W, NumSrcElts, NewMask1, CostKind);
+  ReducedInstCount = ReducedInstCount || MergeInner(X, 0, NewMask0, CostKind);
+  ReducedInstCount = ReducedInstCount || MergeInner(Y, 0, NewMask1, CostKind);
+  ReducedInstCount = ReducedInstCount || MergeInner(Z, NumSrcElts, NewMask0, CostKind);
+  ReducedInstCount = ReducedInstCount || MergeInner(W, NumSrcElts, NewMask1, CostKind);
   bool SingleSrcBinOp = (X == Y) && (Z == W) && (NewMask0 == NewMask1);
   ReducedInstCount = ReducedInstCount || SingleSrcBinOp;
 
@@ -2667,7 +2667,7 @@ bool VectorCombine::foldShuffleOfBinops(Instruction &I) {
 
   // If either shuffle will constant fold away, then fold for the same cost as
   // we will reduce the instruction count.
-  ReducedInstCount |= (isa<Constant>(X) && isa<Constant>(Z)) ||
+  ReducedInstCount = ReducedInstCount || (isa<Constant>(X) && isa<Constant>(Z)) ||
                       (isa<Constant>(Y) && isa<Constant>(W));
   if (ReducedInstCount ? (NewCost > OldCost) : (NewCost >= OldCost))
     return false;
@@ -3866,7 +3866,7 @@ bool VectorCombine::foldShuffleFromReductions(Instruction &I) {
 
   // See if we can re-use foldSelectShuffle, getting it to reduce the size of
   // the shuffle into a nicer order, as it can ignore the order of the shuffles.
-  MadeChanges |= foldSelectShuffle(*Shuffle, true);
+  MadeChanges = MadeChanges || foldSelectShuffle(*Shuffle, true);
   return MadeChanges;
 }
 
@@ -5792,7 +5792,7 @@ bool VectorCombine::run() {
     while (I) {
       NextInst = I->getNextNode();
       if (!I->isDebugOrPseudoInst())
-        MadeChange |= FoldInst(*I);
+        MadeChange = MadeChange || FoldInst(*I);
       I = NextInst;
     }
   }
@@ -5809,7 +5809,7 @@ bool VectorCombine::run() {
       continue;
     }
 
-    MadeChange |= FoldInst(*I);
+    MadeChange = MadeChange || FoldInst(*I);
   }
 
   return MadeChange;

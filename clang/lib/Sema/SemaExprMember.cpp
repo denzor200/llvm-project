@@ -124,7 +124,7 @@ static IMAKind ClassifyImplicitMemberAccess(Sema &SemaRef,
     D = D->getUnderlyingDecl();
 
     if (D->isCXXInstanceMember()) {
-      isField |= isa<FieldDecl>(D) || isa<MSPropertyDecl>(D) ||
+      isField = isField || isa<FieldDecl>(D) || isa<MSPropertyDecl>(D) ||
                  isa<IndirectFieldDecl>(D);
 
       CXXRecordDecl *R = cast<CXXRecordDecl>(D->getDeclContext());

@@ -323,7 +323,7 @@ bool RISCVLoadStoreOpt::tryConvertToXqcilsmMultiLdSt(
       // Kill if any of the individual stores killed the reg.
       bool StartKill = false;
       for (MachineInstr *MI : Group)
-        StartKill |= MI->getOperand(0).isKill();
+        StartKill = StartKill || MI->getOperand(0).isKill();
       StartRegState = getKillRegState(StartKill);
       AddImplicitRegs = false;
     } else {
@@ -338,7 +338,7 @@ bool RISCVLoadStoreOpt::tryConvertToXqcilsmMultiLdSt(
   // Aggregate kill on base.
   bool BaseKill = false;
   for (MachineInstr *MI : Group)
-    BaseKill |= MI->getOperand(1).isKill();
+    BaseKill = BaseKill || MI->getOperand(1).isKill();
 
   // Build the new instruction.
   DebugLoc DL = FirstMI.getDebugLoc();

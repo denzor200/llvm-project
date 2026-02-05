@@ -2330,7 +2330,7 @@ void AMDGPUOperand::addImmOperands(MCInst &Inst, unsigned N, bool ApplyModifiers
   if (AMDGPU::isSISrcOperand(AsmParser->getMII()->get(Inst.getOpcode()),
                              Inst.getNumOperands())) {
     addLiteralImmOperand(Inst, Imm.Val,
-                         ApplyModifiers &
+                         ApplyModifiers &&
                          isImmTy(ImmTyNone) && Imm.Mods.hasFPModifiers());
   } else {
     assert(!isImmTy(ImmTyNone) || !hasModifiers());

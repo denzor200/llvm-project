@@ -549,7 +549,7 @@ static void computeKnownBitsMul(const Value *Op0, const Value *Op1, bool NSW,
 
   bool SelfMultiply = Op0 == Op1;
   if (SelfMultiply)
-    SelfMultiply &=
+    SelfMultiply = SelfMultiply &&
         isGuaranteedNotToBeUndef(Op0, Q.AC, Q.CxtI, Q.DT, Depth + 1);
   Known = KnownBits::mul(Known, Known2, SelfMultiply);
 
@@ -9228,7 +9228,7 @@ llvm::canConvertToMinOrMaxIntrinsic(ArrayRef<Value *> VL) {
             SelectPattern.Flavor != CurrentPattern.Flavor)
           return false;
         SelectPattern = CurrentPattern;
-        AllCmpSingleUse &=
+        AllCmpSingleUse = AllCmpSingleUse &&
             match(I, m_Select(m_OneUse(m_Value()), m_Value(), m_Value()));
         return true;
       })) {

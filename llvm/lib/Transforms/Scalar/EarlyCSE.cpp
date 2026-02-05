@@ -1362,7 +1362,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     if (BI && BI->isConditional()) {
       auto *CondInst = dyn_cast<Instruction>(BI->getCondition());
       if (CondInst && SimpleValue::canHandle(CondInst))
-        Changed |= handleBranchCondition(CondInst, BI, BB, Pred);
+        Changed = Changed || handleBranchCondition(CondInst, BI, BB, Pred);
     }
   }
 
@@ -1805,7 +1805,7 @@ bool EarlyCSE::run() {
     // Check if the node needs to be processed.
     if (!NodeToProcess->isProcessed()) {
       // Process the node.
-      Changed |= processNode(NodeToProcess->node());
+      Changed = Changed || processNode(NodeToProcess->node());
       NodeToProcess->childGeneration(CurrentGeneration);
       NodeToProcess->process();
     } else if (NodeToProcess->childIter() != NodeToProcess->end()) {

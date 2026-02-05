@@ -605,7 +605,7 @@ bool HexagonEarlyIfConversion::visitBlock(MachineBasicBlock *B,
   for (auto &I : Cn) {
     MachineBasicBlock *SB = I->getBlock();
     if (!Deleted.count(SB))
-      Changed |= visitBlock(SB, L);
+      Changed = Changed || visitBlock(SB, L);
   }
   // When walking down the dominator tree, we want to traverse through
   // blocks from nested (other) loops, because they can dominate blocks
@@ -639,11 +639,11 @@ bool HexagonEarlyIfConversion::visitLoop(MachineLoop *L) {
   bool Changed = false;
   if (L) {
     for (MachineLoop *I : *L)
-      Changed |= visitLoop(I);
+      Changed = Changed || visitLoop(I);
   }
 
   MachineBasicBlock *EntryB = GraphTraits<MachineFunction*>::getEntryNode(MFN);
-  Changed |= visitBlock(L ? HB : EntryB, L);
+  Changed = Changed || visitBlock(L ? HB : EntryB, L);
   return Changed;
 }
 
@@ -1056,8 +1056,8 @@ bool HexagonEarlyIfConversion::runOnMachineFunction(MachineFunction &MF) {
   bool Changed = false;
 
   for (MachineLoop *L : *MLI)
-    Changed |= visitLoop(L);
-  Changed |= visitLoop(nullptr);
+    Changed = Changed || visitLoop(L);
+  Changed = Changed || visitLoop(nullptr);
 
   return Changed;
 }

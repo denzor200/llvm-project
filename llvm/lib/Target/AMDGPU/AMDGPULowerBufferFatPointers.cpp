@@ -543,10 +543,10 @@ bool StoreFatPtrsAsIntsAndExpandMemcpyVisitor::processFunction(Function &F) {
     if (isa<MemTransferInst, MemSetInst, MemSetPatternInst>(I))
       CanBecomeLoops.push_back(&I);
     else
-      Changed |= visit(I);
+      Changed = Changed || visit(I);
   }
   for (WeakTrackingVH VH : make_early_inc_range(CanBecomeLoops)) {
-    Changed |= visit(cast<Instruction>(VH));
+    Changed = Changed || visit(cast<Instruction>(VH));
   }
   ConvertedForStore.clear();
   return Changed;
@@ -962,7 +962,7 @@ bool LegalizeBufferContentTypesVisitor::visitLoadImpl(
     for (auto [I, ElemTy, Offset] :
          llvm::enumerate(ST->elements(), Layout->getMemberOffsets())) {
       AggIdxs.push_back(I);
-      Changed |= visitLoadImpl(OrigLI, ElemTy, AggIdxs,
+      Changed = Changed || visitLoadImpl(OrigLI, ElemTy, AggIdxs,
                                AggByteOff + Offset.getFixedValue(), Result,
                                Name + "." + Twine(I));
       AggIdxs.pop_back();
@@ -978,7 +978,7 @@ bool LegalizeBufferContentTypesVisitor::visitLoadImpl(
       for (auto I : llvm::iota_range<uint32_t>(0, AT->getNumElements(),
                                                /*Inclusive=*/false)) {
         AggIdxs.push_back(I);
-        Changed |= visitLoadImpl(OrigLI, ElemTy, AggIdxs,
+        Changed = Changed || visitLoadImpl(OrigLI, ElemTy, AggIdxs,
                                  AggByteOff + I * ElemStoreSize.getFixedValue(),
                                  Result, Name + Twine(I));
         AggIdxs.pop_back();
@@ -1082,7 +1082,7 @@ std::pair<bool, bool> LegalizeBufferContentTypesVisitor::visitStoreImpl(
     for (auto [I, ElemTy, Offset] :
          llvm::enumerate(ST->elements(), Layout->getMemberOffsets())) {
       AggIdxs.push_back(I);
-      Changed |= std::get<0>(visitStoreImpl(OrigSI, ElemTy, AggIdxs,
+      Changed = Changed || std::get<0>(visitStoreImpl(OrigSI, ElemTy, AggIdxs,
                                             AggByteOff + Offset.getFixedValue(),
                                             Name + "." + Twine(I)));
       AggIdxs.pop_back();
@@ -1098,7 +1098,7 @@ std::pair<bool, bool> LegalizeBufferContentTypesVisitor::visitStoreImpl(
       for (auto I : llvm::iota_range<uint32_t>(0, AT->getNumElements(),
                                                /*Inclusive=*/false)) {
         AggIdxs.push_back(I);
-        Changed |= std::get<0>(visitStoreImpl(
+        Changed = Changed || std::get<0>(visitStoreImpl(
             OrigSI, ElemTy, AggIdxs,
             AggByteOff + I * ElemStoreSize.getFixedValue(), Name + Twine(I)));
         AggIdxs.pop_back();
@@ -1181,7 +1181,7 @@ bool LegalizeBufferContentTypesVisitor::processFunction(Function &F) {
   bool Changed = false;
   // Note, memory transfer intrinsics won't
   for (Instruction &I : make_early_inc_range(instructions(F))) {
-    Changed |= visit(I);
+    Changed = Changed || visit(I);
   }
   return Changed;
 }
@@ -2372,10 +2372,10 @@ static bool containsBufferFatPointers(const Function &F,
   bool HasFatPointers = false;
   for (const BasicBlock &BB : F)
     for (const Instruction &I : BB) {
-      HasFatPointers |= (I.getType() != TypeMap->remapType(I.getType()));
+      HasFatPointers = HasFatPointers || (I.getType() != TypeMap->remapType(I.getType()));
       // Catch null pointer constants in loads, stores, etc.
       for (const Value *V : I.operand_values())
-        HasFatPointers |= (V->getType() != TypeMap->remapType(V->getType()));
+        HasFatPointers = HasFatPointers || (V->getType() != TypeMap->remapType(V->getType()));
     }
   return HasFatPointers;
 }
@@ -2504,7 +2504,7 @@ bool AMDGPULowerBufferFatPointers::run(Module &M, const TargetMachine &TM) {
 
     // Expand all constant expressions using fat buffer pointers to
     // instructions.
-    Changed |= convertUsersOfConstantsToInstructions(
+    Changed = Changed || convertUsersOfConstantsToInstructions(
         BufferFatPtrConsts.getArrayRef(), /*RestrictToFunc=*/nullptr,
         /*RemoveDeadConstants=*/false, /*IncludeSelf=*/true);
   }
@@ -2516,10 +2516,10 @@ bool AMDGPULowerBufferFatPointers::run(Module &M, const TargetMachine &TM) {
   for (Function &F : M.functions()) {
     bool InterfaceChange = hasFatPointerInterface(F, &StructTM);
     bool BodyChanges = containsBufferFatPointers(F, &StructTM);
-    Changed |= MemOpsRewrite.processFunction(F);
+    Changed = Changed || MemOpsRewrite.processFunction(F);
     if (InterfaceChange || BodyChanges) {
       NeedsRemap.push_back(std::make_pair(&F, InterfaceChange));
-      Changed |= BufferContentsTypeRewrite.processFunction(F);
+      Changed = Changed || BufferContentsTypeRewrite.processFunction(F);
     }
   }
   if (NeedsRemap.empty())

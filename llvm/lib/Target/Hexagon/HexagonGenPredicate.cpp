@@ -505,7 +505,7 @@ bool HexagonGenPredicate::runOnMachineFunction(MachineFunction &MF) {
     PUsers.remove_if(Done);
   } while (Again);
 
-  Changed |= eliminatePredCopies(MF);
+  Changed = Changed || eliminatePredCopies(MF);
   return Changed;
 }
 

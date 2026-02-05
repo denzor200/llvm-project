@@ -267,7 +267,7 @@ bool PHIEliminationImpl::run(MachineFunction &MF) {
     }
 
     for (auto &MBB : MF)
-      Changed |=
+      Changed = Changed ||
           SplitPHIEdges(MF, MBB, MLI, (LV ? &LiveInSets : nullptr), MDTU);
   }
 
@@ -280,7 +280,7 @@ bool PHIEliminationImpl::run(MachineFunction &MF) {
 
   // Eliminate PHI instructions by inserting copies into predecessor blocks.
   for (auto &MBB : MF)
-    Changed |= EliminatePHINodes(MF, MBB);
+    Changed = Changed || EliminatePHINodes(MF, MBB);
 
   // Remove dead IMPLICIT_DEF instructions.
   for (MachineInstr *DefMI : ImpDefs) {

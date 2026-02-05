@@ -117,7 +117,7 @@ AST_MATCHER(EnumDecl, hasSequentialInitialValues) {
     if (!isInitializedByLiteral(Enumerator))
       return false;
     PrevValue = NewValue;
-    AllEnumeratorsArePowersOfTwo &= NewValue.isPowerOf2();
+    AllEnumeratorsArePowersOfTwo = AllEnumeratorsArePowersOfTwo && NewValue.isPowerOf2();
   }
   return !AllEnumeratorsArePowersOfTwo;
 }

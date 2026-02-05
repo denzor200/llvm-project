@@ -189,7 +189,7 @@ bool SMEABI::runOnFunction(Function &F) {
   bool Changed = false;
   SMEAttrs FnAttrs(F);
   if (FnAttrs.isNewZA() || FnAttrs.isNewZT0())
-    Changed |= updateNewStateFunctions(M, &F, Builder, FnAttrs, TLI);
+    Changed = Changed || updateNewStateFunctions(M, &F, Builder, FnAttrs, TLI);
 
   return Changed;
 }

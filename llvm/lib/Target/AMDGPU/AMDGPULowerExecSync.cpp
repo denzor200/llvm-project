@@ -181,7 +181,7 @@ static bool lowerExecSyncGlobalVariables(
 static bool runLowerExecSyncGlobals(Module &M) {
   CallGraph CG = CallGraph(M);
   bool Changed = false;
-  Changed |= eliminateConstantExprUsesOfLDSFromAllInstructions(M);
+  Changed = Changed || eliminateConstantExprUsesOfLDSFromAllInstructions(M);
 
   // For each kernel, what variables does it access directly or through
   // callees
@@ -199,7 +199,7 @@ static bool runLowerExecSyncGlobals(Module &M) {
 
   if (LDSUsesInfo.HasSpecialGVs) {
     // Special LDS variables need special address assignment
-    Changed |= lowerExecSyncGlobalVariables(
+    Changed = Changed || lowerExecSyncGlobalVariables(
         M, LDSUsesInfo, LDSToKernelsThatNeedToAccessItIndirectly);
   }
   return Changed;

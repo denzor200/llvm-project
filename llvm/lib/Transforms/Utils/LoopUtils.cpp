@@ -117,7 +117,7 @@ bool llvm::formDedicatedExitBlocks(Loop *L, DominatorTree *DT, LoopInfo *LI,
       if (!Visited.insert(SuccBB).second)
         continue;
 
-      Changed |= RewriteExit(SuccBB);
+      Changed = Changed || RewriteExit(SuccBB);
     }
 
   return Changed;
@@ -2289,7 +2289,7 @@ llvm::hasPartialIVCondition(const Loop &L, unsigned MSSAThreshold,
     WorkList.push_back(Header);
     SmallPtrSet<BasicBlock *, 4> Seen;
     Seen.insert(Header);
-    Info.PathIsNoop &=
+    Info.PathIsNoop = Info.PathIsNoop &&
         all_of(*Header, [](Instruction &I) { return !I.mayHaveSideEffects(); });
 
     while (!WorkList.empty()) {
@@ -2300,7 +2300,7 @@ llvm::hasPartialIVCondition(const Loop &L, unsigned MSSAThreshold,
       if (!SeenIns.second)
         continue;
 
-      Info.PathIsNoop &= all_of(
+      Info.PathIsNoop = Info.PathIsNoop && all_of(
           *Current, [](Instruction &I) { return !I.mayHaveSideEffects(); });
       WorkList.append(succ_begin(Current), succ_end(Current));
     }
@@ -2345,7 +2345,7 @@ llvm::hasPartialIVCondition(const Loop &L, unsigned MSSAThreshold,
 
     // We could also allow loops with known trip counts without mustprogress,
     // but ScalarEvolution may not be available.
-    Info.PathIsNoop &= isMustProgress(&L);
+    Info.PathIsNoop = Info.PathIsNoop && isMustProgress(&L);
 
     // If the path is considered a no-op so far, check if it reaches a
     // single exit block without any phis. This ensures no values from the
@@ -2358,7 +2358,7 @@ llvm::hasPartialIVCondition(const Loop &L, unsigned MSSAThreshold,
           if (L.contains(Succ))
             continue;
 
-          Info.PathIsNoop &= Succ->phis().empty() &&
+          Info.PathIsNoop = Info.PathIsNoop && Succ->phis().empty() &&
                              (!Info.ExitForPath || Info.ExitForPath == Succ);
           if (!Info.PathIsNoop)
             break;

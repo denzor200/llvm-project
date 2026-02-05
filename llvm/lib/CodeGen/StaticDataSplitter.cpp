@@ -188,7 +188,7 @@ bool StaticDataSplitter::partitionStaticDataWithProfiles(MachineFunction &MF) {
           if (Count && PSI->isColdCount(*Count))
             Hotness = MachineFunctionDataHotness::Cold;
 
-          Changed |= MJTI->updateJumpTableEntryHotness(JTI, Hotness);
+          Changed = Changed || MJTI->updateJumpTableEntryHotness(JTI, Hotness);
         } else if (const Constant *C =
                        getConstant(Op, MF.getTarget(), MF.getConstantPool())) {
           SDPI->addConstantProfileCount(C, Count);

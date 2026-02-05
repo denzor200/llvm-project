@@ -98,7 +98,7 @@ bool BinaryBasicBlock::validateSuccessorInvariants() {
     // must be one of the function end labels.
     if (Valid) {
       for (const MCSymbol *Sym : UniqueSyms) {
-        Valid &= (Sym == Function->getFunctionEndLabel() ||
+        Valid = Valid && (Sym == Function->getFunctionEndLabel() ||
                   Sym == Function->getFunctionEndLabel(getFragmentNum()));
         if (!Valid) {
           const BinaryFunction *TargetBF = BC.getFunctionForSymbol(Sym);

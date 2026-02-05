@@ -3747,7 +3747,7 @@ void ModuleBitcodeWriter::writeFunction(
         ++InstID;
 
       // If the instruction has metadata, write a metadata attachment later.
-      NeedsMetadataAttachment |= I.hasMetadataOtherThanDebugLoc();
+      NeedsMetadataAttachment = NeedsMetadataAttachment || I.hasMetadataOtherThanDebugLoc();
 
       // If the instruction has a debug location, emit it.
       if (DILocation *DL = I.getDebugLoc()) {

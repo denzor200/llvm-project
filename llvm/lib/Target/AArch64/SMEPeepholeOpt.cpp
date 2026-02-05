@@ -307,13 +307,13 @@ bool SMEPeepholeOpt::runOnMachineFunction(MachineFunction &MF) {
   // function that requires smstart/smstop pairs.
   for (MachineBasicBlock &MBB : MF) {
     bool BlockHasAllSMChangesRemoved;
-    Changed |= optimizeStartStopPairs(MBB, BlockHasAllSMChangesRemoved);
+    Changed = Changed || optimizeStartStopPairs(MBB, BlockHasAllSMChangesRemoved);
     FunctionHasAllSMChangesRemoved = FunctionHasAllSMChangesRemoved || BlockHasAllSMChangesRemoved;
 
     if (MF.getSubtarget<AArch64Subtarget>().isStreaming()) {
       for (MachineInstr &MI : make_early_inc_range(MBB))
         if (MI.getOpcode() == AArch64::REG_SEQUENCE)
-          Changed |= visitRegSequence(MI);
+          Changed = Changed || visitRegSequence(MI);
     }
   }
 

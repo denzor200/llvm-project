@@ -57,11 +57,11 @@ bool RISCVExegesisPostprocessing::runOnMachineFunction(MachineFunction &MF) {
       case RISCV::VSETVL:
       case RISCV::PseudoVSETVLI:
       case RISCV::PseudoVSETVLIX0:
-        Changed |= processVSETVL(MI, MF.getRegInfo());
+        Changed = Changed || processVSETVL(MI, MF.getRegInfo());
         break;
       case RISCV::SwapFRMImm:
       case RISCV::WriteFRM:
-        Changed |= processWriteFRM(MI, MF.getRegInfo());
+        Changed = Changed || processWriteFRM(MI, MF.getRegInfo());
         break;
       default:
         break;

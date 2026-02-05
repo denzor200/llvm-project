@@ -74,7 +74,7 @@ bool RISCVExegesisPreprocessing::runOnMachineFunction(MachineFunction &MF) {
   bool Changed = false;
   for (auto &MBB : MF)
     for (auto &MI : MBB) {
-      Changed |= processAVLOperand(MI, MRI, TII);
+      Changed = Changed || processAVLOperand(MI, MRI, TII);
     }
 
   return Changed;

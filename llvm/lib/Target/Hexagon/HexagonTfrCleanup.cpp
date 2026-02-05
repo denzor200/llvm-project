@@ -281,7 +281,7 @@ bool HexagonTfrCleanup::runOnMachineFunction(MachineFunction &MF) {
       Erased = Erased || E;
       if (E)
         continue;
-      Inserted |= rewriteIfImm(MI, IMap, Indexes);
+      Inserted = Inserted || rewriteIfImm(MI, IMap, Indexes);
       MachineBasicBlock::iterator NewJ = std::prev(NextJ);
       updateImmMap(&*NewJ, IMap);
     }

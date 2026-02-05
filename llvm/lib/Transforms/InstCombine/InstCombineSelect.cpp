@@ -1476,7 +1476,7 @@ bool InstCombinerImpl::replaceInInstruction(Value *V, Value *Old, Value *New,
       Worklist.add(I);
       Changed = true;
     } else {
-      Changed |= replaceInInstruction(U, Old, New, Depth + 1);
+      Changed = Changed || replaceInInstruction(U, Old, New, Depth + 1);
     }
   }
   return Changed;

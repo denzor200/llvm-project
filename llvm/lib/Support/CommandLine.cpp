@@ -797,14 +797,14 @@ static Option *HandlePrefixedOrGroupedOption(StringRef &Arg, StringRef &Value,
 
     // Grouping options inside a group can't have values.
     if (PGOpt->getValueExpectedFlag() == cl::ValueRequired) {
-      ErrorParsing |= PGOpt->error("may not occur within a group!");
+      ErrorParsing = ErrorParsing || PGOpt->error("may not occur within a group!");
       return nullptr;
     }
 
     // Because the value for the option is not required, we don't need to pass
     // argc/argv in.
     int Dummy = 0;
-    ErrorParsing |= ProvideOption(PGOpt, Arg, StringRef(), 0, nullptr, Dummy);
+    ErrorParsing = ErrorParsing || ProvideOption(PGOpt, Arg, StringRef(), 0, nullptr, Dummy);
 
     // Get the next grouping option.
     Arg = MaybeValue;
@@ -1603,7 +1603,7 @@ bool CommandLineParser::ParseCommandLineOptions(
         *Errs << PositionalOpts.size();
         ErrorParsing = true;
       }
-      UnboundedFound |= EatsUnboundedNumberOfValues(Opt);
+      UnboundedFound = UnboundedFound || EatsUnboundedNumberOfValues(Opt);
     }
     HasUnlimitedPositionals = UnboundedFound || ConsumeAfterOpt;
   }
@@ -1745,7 +1745,7 @@ bool CommandLineParser::ParseCommandLineOptions(
       ActivePositionalArg = Handler;
     }
     else
-      ErrorParsing |= ProvideOption(Handler, ArgName, Value, argc, argv, i);
+      ErrorParsing = ErrorParsing || ProvideOption(Handler, ArgName, Value, argc, argv, i);
   }
 
   // Check and handle positional arguments now...
@@ -1802,7 +1802,7 @@ bool CommandLineParser::ParseCommandLineOptions(
     unsigned ValNo = 0;
     for (Option *Opt : PositionalOpts)
       if (RequiresValue(Opt)) {
-        ErrorParsing |= ProvidePositionalOption(
+        ErrorParsing = ErrorParsing || ProvidePositionalOption(
             Opt, PositionalVals[ValNo].first, PositionalVals[ValNo].second);
         ValNo++;
       }
@@ -1813,7 +1813,7 @@ bool CommandLineParser::ParseCommandLineOptions(
     // loop would have assigned no values to positional options in this case.
     //
     if (PositionalOpts.size() == 1 && ValNo == 0 && !PositionalVals.empty()) {
-      ErrorParsing |= ProvidePositionalOption(PositionalOpts[0],
+      ErrorParsing = ErrorParsing || ProvidePositionalOption(PositionalOpts[0],
                                               PositionalVals[ValNo].first,
                                               PositionalVals[ValNo].second);
       ValNo++;
@@ -1822,7 +1822,7 @@ bool CommandLineParser::ParseCommandLineOptions(
     // Handle over all of the rest of the arguments to the
     // cl::ConsumeAfter command line option...
     for (; ValNo != PositionalVals.size(); ++ValNo)
-      ErrorParsing |=
+      ErrorParsing = ErrorParsing ||
           ProvidePositionalOption(ConsumeAfterOpt, PositionalVals[ValNo].first,
                                   PositionalVals[ValNo].second);
   }

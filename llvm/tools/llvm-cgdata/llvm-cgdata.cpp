@@ -162,7 +162,7 @@ static bool handleArchive(StringRef Filename, Archive &Arch,
     if (Error E = NameOrErr.takeError())
       exitWithError(std::move(E), Filename);
     std::string Name = (Filename + "(" + NameOrErr.get() + ")").str();
-    Result &= handleBuffer(Name, BuffOrErr.get(), GlobalOutlineRecord,
+    Result = Result && handleBuffer(Name, BuffOrErr.get(), GlobalOutlineRecord,
                            GlobalFunctionMapRecord);
   }
   if (Err)
@@ -184,7 +184,7 @@ static bool handleBuffer(StringRef Filename, MemoryBufferRef Buffer,
             Obj, GlobalOutlineRecord, GlobalFunctionMapRecord))
       exitWithError(std::move(E), Filename);
   } else if (auto *Arch = dyn_cast<Archive>(BinOrErr->get())) {
-    Result &= handleArchive(Filename, *Arch, GlobalOutlineRecord,
+    Result = Result && handleArchive(Filename, *Arch, GlobalOutlineRecord,
                             GlobalFunctionMapRecord);
   } else {
     // TODO: Support for the MachO universal binary format.
@@ -211,7 +211,7 @@ static int merge_main(int argc, const char *argv[]) {
   OutlinedHashTreeRecord GlobalOutlineRecord;
   StableFunctionMapRecord GlobalFunctionMapRecord;
   for (auto &Filename : InputFilenames)
-    Result &=
+    Result = Result &&
         handleFile(Filename, GlobalOutlineRecord, GlobalFunctionMapRecord);
 
   if (!Result)

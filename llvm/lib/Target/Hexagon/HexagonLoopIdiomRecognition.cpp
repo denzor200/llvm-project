@@ -2358,7 +2358,7 @@ bool HexagonLoopIdiomRecognize::runOnLoopBlock(Loop *CurLoop, BasicBlock *BB,
 
   // Optimize the store into a memcpy, if it feeds an similarly strided load.
   for (auto &SI : Stores)
-    MadeChange |= processCopyingStore(CurLoop, SI, BECount);
+    MadeChange = MadeChange || processCopyingStore(CurLoop, SI, BECount);
 
   return MadeChange;
 }
@@ -2386,7 +2386,7 @@ bool HexagonLoopIdiomRecognize::runOnCountableLoop(Loop *L) {
     // Ignore blocks in subloops.
     if (LF->getLoopFor(BB) != L)
       continue;
-    Changed |= runOnLoopBlock(L, BB, BECount, ExitBlocks);
+    Changed = Changed || runOnLoopBlock(L, BB, BECount, ExitBlocks);
   }
 
   return Changed;

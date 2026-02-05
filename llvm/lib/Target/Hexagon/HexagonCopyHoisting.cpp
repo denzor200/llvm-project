@@ -95,7 +95,7 @@ bool HexagonCopyHoisting::runOnMachineFunction(MachineFunction &Fn) {
         continue;
       auto &BBCopyInst = CopyMIList[BB->getNumber()];
       if (BBCopyInst.size() > 0)
-        Changed |= analyzeCopy(*BB->pred_begin());
+        Changed = Changed || analyzeCopy(*BB->pred_begin());
     }
   }
   // Re-compute liveness

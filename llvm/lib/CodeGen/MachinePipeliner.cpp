@@ -396,7 +396,7 @@ bool MachinePipeliner::runOnMachineFunction(MachineFunction &mf) {
 bool MachinePipeliner::scheduleLoop(MachineLoop &L) {
   bool Changed = false;
   for (const auto &InnerLoop : L)
-    Changed |= scheduleLoop(*InnerLoop);
+    Changed = Changed || scheduleLoop(*InnerLoop);
 
 #ifndef NDEBUG
   // Stop trying after reaching the limit (if any).
@@ -2286,11 +2286,11 @@ static bool computePath(SUnit *Cur, SetVector<SUnit *> &Path,
   bool FoundPath = false;
   for (const auto &OE : DDG->getOutEdges(Cur))
     if (!OE.ignoreDependence(false))
-      FoundPath |=
+      FoundPath = FoundPath ||
           computePath(OE.getDst(), Path, DestNodes, Exclude, Visited, DDG);
   for (const auto &IE : DDG->getInEdges(Cur))
     if (IE.isAntiDep() && IE.getDistance() == 0)
-      FoundPath |=
+      FoundPath = FoundPath ||
           computePath(IE.getSrc(), Path, DestNodes, Exclude, Visited, DDG);
   if (FoundPath)
     Path.insert(Cur);

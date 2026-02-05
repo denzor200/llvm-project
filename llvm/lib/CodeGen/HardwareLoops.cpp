@@ -291,7 +291,7 @@ bool HardwareLoopsImpl::TryConvertLoop(Loop *L, LLVMContext &Ctx) {
   // Process nested loops first.
   bool AnyChanged = false;
   for (Loop *SL : *L)
-    AnyChanged |= TryConvertLoop(SL, Ctx);
+    AnyChanged = AnyChanged || TryConvertLoop(SL, Ctx);
   if (AnyChanged) {
     reportHWLoopFailure("nested hardware-loops not supported", "HWLoopNested",
                         ORE, L);
@@ -323,7 +323,7 @@ bool HardwareLoopsImpl::TryConvertLoop(Loop *L, LLVMContext &Ctx) {
     HWLoopInfo.LoopDecrement =
       ConstantInt::get(HWLoopInfo.CountType, Opts.Decrement.value());
 
-  MadeChange |= TryConvertLoop(HWLoopInfo);
+  MadeChange = MadeChange || TryConvertLoop(HWLoopInfo);
   return MadeChange && (!HWLoopInfo.IsNestingLegal && !Opts.ForceNested);
 }
 

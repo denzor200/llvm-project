@@ -6390,7 +6390,7 @@ StmtResult SemaOpenMP::ActOnOpenMPExecutableDirective(
                 SourceLocation(), SourceLocation(), ImplicitMap,
                 OMPVarListLocTy())) {
           ClausesWithImplicit.emplace_back(Implicit);
-          ErrorFound |= cast<OMPMapClause>(Implicit)->varlist_size() !=
+          ErrorFound = ErrorFound || cast<OMPMapClause>(Implicit)->varlist_size() !=
                         ImplicitMap.size();
         } else {
           ErrorFound = true;
@@ -9523,10 +9523,10 @@ static bool checkOpenMPIterationSpace(
            "DSA for non-loop vars");
 
     // Check test-expr.
-    HasErrors |= ISC.checkAndSetCond(For ? For->getCond() : CXXFor->getCond());
+    HasErrors = HasErrors || ISC.checkAndSetCond(For ? For->getCond() : CXXFor->getCond());
 
     // Check incr-expr.
-    HasErrors |= ISC.checkAndSetInc(For ? For->getInc() : CXXFor->getInc());
+    HasErrors = HasErrors || ISC.checkAndSetInc(For ? For->getInc() : CXXFor->getInc());
   }
 
   if (ISC.dependent() || SemaRef.CurContext->isDependentContext() || HasErrors)
@@ -9569,7 +9569,7 @@ static bool checkOpenMPIterationSpace(
   ResultIterSpaces[CurrentNestedLoopCount].LoopDependentIdx =
       ISC.getLoopDependentIdx();
 
-  HasErrors |=
+  HasErrors = HasErrors ||
       (ResultIterSpaces[CurrentNestedLoopCount].PreCond == nullptr ||
        ResultIterSpaces[CurrentNestedLoopCount].NumIterations == nullptr ||
        ResultIterSpaces[CurrentNestedLoopCount].CounterVar == nullptr ||
@@ -10065,7 +10065,7 @@ checkOpenMPLoop(OpenMPDirectiveKind DKind, Expr *CollapseLoopCountExpr,
     }
     Expr *N = IterSpaces[Cnt].NumIterations;
     SourceLocation Loc = N->getExprLoc();
-    AllCountsNeedLessThan32Bits &= C.getTypeSize(N->getType()) < 32;
+    AllCountsNeedLessThan32Bits = AllCountsNeedLessThan32Bits && C.getTypeSize(N->getType()) < 32;
     if (LastIteration32.isUsable())
       LastIteration32 = SemaRef.BuildBinOp(
           CurScope, Loc, BO_Mul, LastIteration32.get(),
@@ -22662,7 +22662,7 @@ static bool checkMapConflicts(
 
         // The current expression is a subset of the expression in the data
         // environment.
-        IsEnclosedByDataEnvironmentExpr |=
+        IsEnclosedByDataEnvironmentExpr = IsEnclosedByDataEnvironmentExpr ||
             (!CurrentRegionOnly && CI != CE && SI == SE);
 
         return false;

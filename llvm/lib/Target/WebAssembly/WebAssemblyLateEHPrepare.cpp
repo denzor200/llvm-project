@@ -123,17 +123,17 @@ bool WebAssemblyLateEHPrepare::runOnMachineFunction(MachineFunction &MF) {
 
   bool Changed = false;
   if (MF.getFunction().hasPersonalityFn()) {
-    Changed |= removeUnreachableEHPads(MF);
+    Changed = Changed || removeUnreachableEHPads(MF);
     recordCatchRetBBs(MF);
-    Changed |= hoistCatches(MF);
-    Changed |= addCatchAlls(MF);
-    Changed |= replaceFuncletReturns(MF);
+    Changed = Changed || hoistCatches(MF);
+    Changed = Changed || addCatchAlls(MF);
+    Changed = Changed || replaceFuncletReturns(MF);
     if (!WebAssembly::WasmUseLegacyEH)
-      Changed |= addCatchRefsAndThrowRefs(MF);
+      Changed = Changed || addCatchRefsAndThrowRefs(MF);
   }
-  Changed |= removeUnnecessaryUnreachables(MF);
+  Changed = Changed || removeUnnecessaryUnreachables(MF);
   if (MF.getFunction().hasPersonalityFn())
-    Changed |= restoreStackPointer(MF);
+    Changed = Changed || restoreStackPointer(MF);
   return Changed;
 }
 

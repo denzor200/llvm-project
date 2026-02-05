@@ -115,7 +115,7 @@ static bool forwardDeviceParams(MachineFunction &MF) {
   for (auto &MI : make_early_inc_range(*MF.begin()))
     if (MI.getOpcode() == NVPTX::MOV32_PARAM ||
         MI.getOpcode() == NVPTX::MOV64_PARAM)
-      Changed |= eliminateMove(MI, MRI, RemoveList);
+      Changed = Changed || eliminateMove(MI, MRI, RemoveList);
 
   for (auto *MI : RemoveList)
     MI->eraseFromParent();

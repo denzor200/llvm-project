@@ -380,13 +380,13 @@ bool FPS::run(MachineFunction &MF, EdgeBundles *FunctionBundles) {
 
   bool Changed = false;
   for (MachineBasicBlock *BB : depth_first_ext(Entry, Processed))
-    Changed |= processBasicBlock(MF, *BB);
+    Changed = Changed || processBasicBlock(MF, *BB);
 
   // Process any unreachable blocks in arbitrary order now.
   if (MF.size() != Processed.size())
     for (MachineBasicBlock &BB : MF)
       if (Processed.insert(&BB).second)
-        Changed |= processBasicBlock(MF, BB);
+        Changed = Changed || processBasicBlock(MF, BB);
 
   LiveBundles.clear();
 

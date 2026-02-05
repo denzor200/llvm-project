@@ -83,9 +83,9 @@ static void maybeUpdateTerminator(MachineBasicBlock *MBB) {
   bool AllAnalyzable = true;
   for (const MachineInstr &Term : MBB->terminators()) {
 #ifndef NDEBUG
-    AnyBarrier |= Term.isBarrier();
+    AnyBarrier = AnyBarrier || Term.isBarrier();
 #endif
-    AllAnalyzable &= Term.isBranch() && !Term.isIndirectBranch();
+    AllAnalyzable = AllAnalyzable && Term.isBranch() && !Term.isIndirectBranch();
   }
   assert((AnyBarrier || AllAnalyzable) &&
          "analyzeBranch needs to analyze any block with a fallthrough");

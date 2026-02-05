@@ -291,7 +291,7 @@ bool AlignmentFromAssumptionsPass::runImpl(Function &F, AssumptionCache &AC,
     if (AssumeVH) {
       CallInst *Call = cast<CallInst>(AssumeVH);
       for (unsigned Idx = 0; Idx < Call->getNumOperandBundles(); Idx++)
-        Changed |= processAssumption(Call, Idx);
+        Changed = Changed || processAssumption(Call, Idx);
     }
 
   return Changed;

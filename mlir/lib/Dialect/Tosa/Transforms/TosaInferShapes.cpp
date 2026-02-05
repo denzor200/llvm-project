@@ -223,7 +223,7 @@ void propagateShapesToTosaWhile(Operation &op, TypeModificationState &state) {
     hasNewTypes = false;
     for (int i = 0, s = yieldTypeInfo.size(); i < s; i++) {
       Type newType = yieldTypeInfo[i].getType();
-      hasNewTypes |= (newType != argTypes[i]);
+      hasNewTypes = hasNewTypes || (newType != argTypes[i]);
       argTypes[i] = newType;
     }
 

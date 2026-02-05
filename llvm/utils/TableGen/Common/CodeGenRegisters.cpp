@@ -206,7 +206,7 @@ bool CodeGenRegister::inheritRegUnits(CodeGenRegBank &RegBank) {
   bool changed = false;
   for (const auto &[_, SR] : SubRegs) {
     // Merge the subregister's units into this register's RegUnits.
-    changed |= (RegUnits |= SR->RegUnits);
+    changed = changed || (RegUnits |= SR->RegUnits);
   }
 
   return changed;
@@ -1868,7 +1868,7 @@ static bool normalizeWeight(CodeGenRegister *Reg,
     if (SRI.second == Reg)
       continue; // self-cycles happen
 
-    Changed |= normalizeWeight(SRI.second, UberSets, RegSets, NormalRegs,
+    Changed = Changed || normalizeWeight(SRI.second, UberSets, RegSets, NormalRegs,
                                NormalUnits, RegBank);
   }
   // Postorder register normalization.
@@ -1930,7 +1930,7 @@ void CodeGenRegBank::computeRegUnitWeights() {
     for (CodeGenRegister &Reg : Registers) {
       CodeGenRegister::RegUnitList NormalUnits;
       BitVector NormalRegs;
-      Changed |= normalizeWeight(&Reg, UberSets, RegSets, NormalRegs,
+      Changed = Changed || normalizeWeight(&Reg, UberSets, RegSets, NormalRegs,
                                  NormalUnits, *this);
     }
   }

@@ -159,7 +159,7 @@ bool RISCVPushPopOpt::runOnMachineFunction(MachineFunction &Fn) {
     auto PopMBBI = prev_nodbg(RetMBBI, MBB.begin());
     if (isPop(PopMBBI->getOpcode()) &&
         PopMBBI->getFlag(MachineInstr::FrameDestroy))
-      Modified |= usePopRet(PopMBBI, RetMBBI, adjustRetVal(PopMBBI));
+      Modified = Modified || usePopRet(PopMBBI, RetMBBI, adjustRetVal(PopMBBI));
   }
 
   return Modified;

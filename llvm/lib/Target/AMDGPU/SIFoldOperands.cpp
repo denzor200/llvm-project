@@ -2778,7 +2778,7 @@ bool SIFoldOperandsImpl::run(MachineFunction &MF) {
   for (MachineBasicBlock *MBB : depth_first(&MF)) {
     MachineOperand *CurrentKnownM0Val = nullptr;
     for (auto &MI : make_early_inc_range(*MBB)) {
-      Changed |= tryFoldCndMask(MI);
+      Changed = Changed || tryFoldCndMask(MI);
 
       if (tryFoldZeroHighBits(MI)) {
         Changed = true;
@@ -2801,7 +2801,7 @@ bool SIFoldOperandsImpl::run(MachineFunction &MF) {
       }
 
       if (TII->isFoldableCopy(MI)) {
-        Changed |= tryFoldFoldableCopy(MI, CurrentKnownM0Val);
+        Changed = Changed || tryFoldFoldableCopy(MI, CurrentKnownM0Val);
         continue;
       }
 
@@ -2812,10 +2812,10 @@ bool SIFoldOperandsImpl::run(MachineFunction &MF) {
       // TODO: Omod might be OK if there is NSZ only on the source
       // instruction, and not the omod multiply.
       if (IsIEEEMode || !MI.getFlag(MachineInstr::FmNsz) || !tryFoldOMod(MI))
-        Changed |= tryFoldClamp(MI);
+        Changed = Changed || tryFoldClamp(MI);
     }
 
-    Changed |= tryOptimizeAGPRPhis(*MBB);
+    Changed = Changed || tryOptimizeAGPRPhis(*MBB);
   }
 
   return Changed;

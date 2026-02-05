@@ -3066,7 +3066,7 @@ bool RemoveDeadBindingsWorker::UpdatePostponed() {
 
   for (const SymbolicRegion *SR : Postponed) {
     if (SymReaper.isLive(SR->getSymbol())) {
-      Changed |= AddToWorkList(SR);
+      Changed = Changed || AddToWorkList(SR);
       SR = nullptr;
     }
   }

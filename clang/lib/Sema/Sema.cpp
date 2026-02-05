@@ -1999,7 +1999,7 @@ public:
         return;
       const SourceLocation &Loc = PDAt.first;
       const PartialDiagnostic &PD = PDAt.second;
-      HasWarningOrError |=
+      HasWarningOrError = HasWarningOrError ||
           S.getDiagnostics().getDiagnosticLevel(PD.getDiagID(), Loc) >=
           DiagnosticsEngine::Warning;
       {

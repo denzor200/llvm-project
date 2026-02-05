@@ -1422,8 +1422,8 @@ void IntegerRelation::simplify() {
       return;
     changed = false;
     normalizeConstraintsByGCD();
-    changed |= gaussianEliminate();
-    changed |= removeDuplicateConstraints();
+    changed = changed || gaussianEliminate();
+    changed = changed || removeDuplicateConstraints();
   }
   // Current set is not empty.
 }

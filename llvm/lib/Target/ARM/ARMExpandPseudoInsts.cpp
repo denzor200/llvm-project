@@ -3291,7 +3291,7 @@ bool ARMExpandPseudo::ExpandMBB(MachineBasicBlock &MBB) {
   MachineBasicBlock::iterator MBBI = MBB.begin(), E = MBB.end();
   while (MBBI != E) {
     MachineBasicBlock::iterator NMBBI = std::next(MBBI);
-    Modified |= ExpandMI(MBB, MBBI, NMBBI);
+    Modified = Modified || ExpandMI(MBB, MBBI, NMBBI);
     MBBI = NMBBI;
   }
 
@@ -3309,7 +3309,7 @@ bool ARMExpandPseudo::runOnMachineFunction(MachineFunction &MF) {
 
   bool Modified = false;
   for (MachineBasicBlock &MBB : MF)
-    Modified |= ExpandMBB(MBB);
+    Modified = Modified || ExpandMBB(MBB);
   if (VerifyARMPseudo)
     MF.verify(this, "After expanding ARM pseudo instructions.");
 

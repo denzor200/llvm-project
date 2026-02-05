@@ -3512,7 +3512,7 @@ static bool rebucketPaths(VPtrInfoVector &Paths) {
     // If this bucket has multiple paths, extend them all.
     if (I - BucketStart > 1) {
       for (size_t II = BucketStart; II != I; ++II)
-        Changed |= extendPath(PathsSorted[II]);
+        Changed = Changed || extendPath(PathsSorted[II]);
       assert(Changed && "no paths were extended to fix ambiguity");
     }
   }

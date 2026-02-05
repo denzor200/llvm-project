@@ -324,7 +324,7 @@ EmitInstruction(SUnit *SU) {
   // Insert SU into current group by increasing number of slots used
   // in current group.
   CurrGroupSize += getNumDecoderSlots(SU);
-  CurrGroupHas4RegOps |= has4RegOps(SU->getInstr());
+  CurrGroupHas4RegOps = CurrGroupHas4RegOps || has4RegOps(SU->getInstr());
   unsigned GroupLim = (CurrGroupHas4RegOps ? 2 : 3);
   assert((CurrGroupSize <= GroupLim || CurrGroupSize == getNumDecoderSlots(SU))
          && "SU does not fit into decoder group!");

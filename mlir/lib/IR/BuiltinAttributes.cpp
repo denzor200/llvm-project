@@ -1002,7 +1002,7 @@ DenseElementsAttr DenseElementsAttr::get(ShapedType type,
     bool isSplat = true;
     bool firstValue = values[0];
     for (int i = 0, e = values.size(); i != e; ++i) {
-      isSplat &= values[i] == firstValue;
+      isSplat = isSplat && values[i] == firstValue;
       setBit(buff.data(), i, values[i]);
     }
 

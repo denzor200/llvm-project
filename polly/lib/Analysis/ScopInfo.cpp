@@ -1415,10 +1415,10 @@ public:
 
   bool follow(const SCEV *E) {
     if (auto *AddRec = dyn_cast<SCEVAddRecExpr>(E)) {
-      FoundInside |= S->getRegion().contains(AddRec->getLoop());
+      FoundInside = FoundInside || S->getRegion().contains(AddRec->getLoop());
     } else if (auto *Unknown = dyn_cast<SCEVUnknown>(E)) {
       if (Instruction *I = dyn_cast<Instruction>(Unknown->getValue()))
-        FoundInside |= S->getRegion().contains(I) && !VMap.count(I);
+        FoundInside = FoundInside || S->getRegion().contains(I) && !VMap.count(I);
     }
     return !FoundInside;
   }
@@ -1863,8 +1863,8 @@ bool Scop::isProfitable(bool ScalarsAreUnprofitable) const {
     for (auto *MA : Stmt) {
       if (MA->isRead())
         continue;
-      ContainsArrayAccs |= MA->isLatestArrayKind();
-      ContainsScalarAccs |= MA->isLatestScalarKind();
+      ContainsArrayAccs = ContainsArrayAccs || MA->isLatestArrayKind();
+      ContainsScalarAccs = ContainsScalarAccs || MA->isLatestScalarKind();
     }
 
     if (!ScalarsAreUnprofitable || (ContainsArrayAccs && !ContainsScalarAccs))

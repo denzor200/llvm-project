@@ -1017,7 +1017,7 @@ TEST(TargetParserTest, testInvalidCSKYArch) {
 bool testCSKYArch(StringRef Arch, StringRef DefaultCPU) {
   CSKY::ArchKind AK = CSKY::parseArch(Arch);
   bool Result = (AK != CSKY::ArchKind::INVALID);
-  Result &= CSKY::getDefaultCPU(Arch) == DefaultCPU;
+  Result = Result && CSKY::getDefaultCPU(Arch) == DefaultCPU;
   return Result;
 }
 

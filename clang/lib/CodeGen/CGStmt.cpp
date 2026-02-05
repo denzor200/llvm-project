@@ -2114,7 +2114,7 @@ static CSFC_Result CollectStatementsForCase(const Stmt *S,
       // If we're looking for the case, just see if we can skip each of the
       // substatements.
       for (; Case && I != E; ++I) {
-        HadSkippedDecl |= CodeGenFunction::mightAddDeclToScope(*I);
+        HadSkippedDecl = HadSkippedDecl || CodeGenFunction::mightAddDeclToScope(*I);
 
         switch (CollectStatementsForCase(*I, Case, FoundCase, ResultStmts)) {
         case CSFC_Failure: return CSFC_Failure;
@@ -2161,7 +2161,7 @@ static CSFC_Result CollectStatementsForCase(const Stmt *S,
     // live and need to be added to the set of statements we're tracking.
     bool AnyDecls = false;
     for (; I != E; ++I) {
-      AnyDecls |= CodeGenFunction::mightAddDeclToScope(*I);
+      AnyDecls = AnyDecls || CodeGenFunction::mightAddDeclToScope(*I);
 
       switch (CollectStatementsForCase(*I, nullptr, FoundCase, ResultStmts)) {
       case CSFC_Failure: return CSFC_Failure;

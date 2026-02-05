@@ -258,8 +258,8 @@ bool LoopVersioningLICM::legalLoopMemoryAccesses() {
     const Value *SomePtr = AS.begin()->Ptr;
     bool TypeCheck = true;
     // Check for Mod & MayAlias
-    HasMayAlias |= AS.isMayAlias();
-    HasMod |= AS.isMod();
+    HasMayAlias = HasMayAlias || AS.isMayAlias();
+    HasMod = HasMod || AS.isMod();
     for (const auto &MemLoc : AS) {
       const Value *Ptr = MemLoc.Ptr;
       // Alias tracker should have pointers of same data type.

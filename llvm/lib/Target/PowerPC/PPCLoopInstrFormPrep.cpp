@@ -405,7 +405,7 @@ bool PPCLoopInstrFormPrep::runOnFunction(Function &F) {
 
   for (Loop *I : *LI)
     for (Loop *L : depth_first(I))
-      MadeChange |= runOnLoop(L);
+      MadeChange = MadeChange || runOnLoop(L);
 
   return MadeChange;
 }
@@ -526,7 +526,7 @@ bool PPCLoopInstrFormPrep::chainCommoning(Loop *L,
 
   for (auto &Bucket : Buckets) {
     if (prepareBasesForCommoningChains(Bucket))
-      MadeChange |= rewriteLoadStoresForCommoningChains(L, Bucket, BBChanged);
+      MadeChange = MadeChange || rewriteLoadStoresForCommoningChains(L, Bucket, BBChanged);
   }
 
   if (MadeChange)
@@ -1089,7 +1089,7 @@ bool PPCLoopInstrFormPrep::updateFormPrep(Loop *L,
     // The base address of each bucket is transformed into a phi and the others
     // are rewritten based on new base.
     if (prepareBaseForUpdateFormChain(Bucket))
-      MadeChange |= rewriteLoadStores(L, Bucket, BBChanged, UpdateForm);
+      MadeChange = MadeChange || rewriteLoadStores(L, Bucket, BBChanged, UpdateForm);
 
   if (MadeChange)
     for (auto *BB : BBChanged)
@@ -1110,7 +1110,7 @@ bool PPCLoopInstrFormPrep::dispFormPrep(Loop *L,
     if (Bucket.Elements.size() < DispFormPrepMinThreshold)
       continue;
     if (prepareBaseForDispFormChain(Bucket, Form))
-      MadeChange |= rewriteLoadStores(L, Bucket, BBChanged, Form);
+      MadeChange = MadeChange || rewriteLoadStores(L, Bucket, BBChanged, Form);
   }
 
   if (MadeChange)
@@ -1434,7 +1434,7 @@ bool PPCLoopInstrFormPrep::runOnLoop(Loop *L) {
 
   // Prepare for update form.
   if (!UpdateFormBuckets.empty())
-    MadeChange |= updateFormPrep(L, UpdateFormBuckets);
+    MadeChange = MadeChange || updateFormPrep(L, UpdateFormBuckets);
   else if (!HasCandidateForPrepare) {
     LLVM_DEBUG(
         dbgs()
@@ -1451,7 +1451,7 @@ bool PPCLoopInstrFormPrep::runOnLoop(Loop *L) {
 
   // Prepare for DS form.
   if (!DSFormBuckets.empty())
-    MadeChange |= dispFormPrep(L, DSFormBuckets, DSForm);
+    MadeChange = MadeChange || dispFormPrep(L, DSFormBuckets, DSForm);
 
   LLVM_DEBUG(dbgs() << "Start to prepare for DQ form.\n");
   // Collect buckets of comparable addresses used by loads and stores for DQ
@@ -1461,7 +1461,7 @@ bool PPCLoopInstrFormPrep::runOnLoop(Loop *L) {
 
   // Prepare for DQ form.
   if (!DQFormBuckets.empty())
-    MadeChange |= dispFormPrep(L, DQFormBuckets, DQForm);
+    MadeChange = MadeChange || dispFormPrep(L, DQFormBuckets, DQForm);
 
   // Collect buckets of comparable addresses used by loads and stores for chain
   // commoning. With chain commoning, we reuse offsets between the chains, so
@@ -1478,7 +1478,7 @@ bool PPCLoopInstrFormPrep::runOnLoop(Loop *L) {
 
   // Prepare for chain commoning.
   if (!Buckets.empty())
-    MadeChange |= chainCommoning(L, Buckets);
+    MadeChange = MadeChange || chainCommoning(L, Buckets);
 
   return MadeChange;
 }

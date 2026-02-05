@@ -374,7 +374,7 @@ GPUFuncOpLowering::matchAndRewrite(gpu::GPUFuncOp gpuFuncOp, OpAdaptor adaptor,
     copyAttribute(LLVM::LLVMDialect::getInRegAttrName());
     bool lowersToPointer = false;
     for (size_t i = 0, e = remapping->size; i < e; ++i) {
-      lowersToPointer |= isa<LLVM::LLVMPointerType>(
+      lowersToPointer = lowersToPointer || isa<LLVM::LLVMPointerType>(
           llvmFuncOp.getArgument(remapping->inputNo + i).getType());
     }
 

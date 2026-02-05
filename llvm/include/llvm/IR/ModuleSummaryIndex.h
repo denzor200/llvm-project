@@ -1767,7 +1767,7 @@ public:
   void addGlobalValueSummary(ValueInfo VI,
                              std::unique_ptr<GlobalValueSummary> Summary) {
     if (const FunctionSummary *FS = dyn_cast<FunctionSummary>(Summary.get()))
-      HasParamAccess |= !FS->paramAccesses().empty();
+      HasParamAccess = HasParamAccess || !FS->paramAccesses().empty();
     addOriginalName(VI.getGUID(), Summary->getOriginalName());
     // Here we have a notionally const VI, but the value it points to is owned
     // by the non-const *this.

@@ -257,7 +257,7 @@ bool GCNPreRAOptimizationsImpl::run(MachineFunction &MF) {
         (ST.hasGFX90AInsts() || !TRI->isAGPRClass(RC)))
       continue;
 
-    Changed |= processReg(Reg);
+    Changed = Changed || processReg(Reg);
   }
 
   if (!ST.useRealTrue16Insts())

@@ -122,7 +122,7 @@ AArch64A53Fix835769::runOnMachineFunction(MachineFunction &F) {
   TII = STI.getInstrInfo();
 
   for (auto &MBB : F) {
-    Changed |= runOnBasicBlock(MBB);
+    Changed = Changed || runOnBasicBlock(MBB);
   }
   return Changed;
 }

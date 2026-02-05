@@ -1909,7 +1909,7 @@ bool HCE::replaceExtenders(const AssignmentMap &IMap) {
       Register DefR = insertInitializer(Q.first, P.first);
       NewRegs.push_back(DefR.Reg);
       for (unsigned I : Q.second)
-        Changed |= replaceInstr(I, DefR, P.first);
+        Changed = Changed || replaceInstr(I, DefR, P.first);
     }
   }
   return Changed;
@@ -1992,7 +1992,7 @@ bool HCE::runOnMachineFunction(MachineFunction &MF) {
 
     IMap.clear();
     assignInits(T, B, I, IMap);
-    Changed |= replaceExtenders(IMap);
+    Changed = Changed || replaceExtenders(IMap);
   }
 
   LLVM_DEBUG({

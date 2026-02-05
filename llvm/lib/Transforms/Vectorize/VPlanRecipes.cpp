@@ -1059,9 +1059,9 @@ InstructionCost VPRecipeWithIRFlags::getCostForRecipeWithOpcode(
     // Also match the inverted forms:
     // select x, false, y --> !x & y (still AND)
     // select x, y, true --> !x | y (still OR)
-    IsLogicalAnd |=
+    IsLogicalAnd = IsLogicalAnd ||
         match(this, m_Select(m_VPValue(Op0), m_False(), m_VPValue(Op1)));
-    IsLogicalOr |=
+    IsLogicalOr = IsLogicalOr ||
         match(this, m_Select(m_VPValue(Op0), m_VPValue(Op1), m_True()));
 
     if (!IsScalarCond && ScalarTy->getScalarSizeInBits() == 1 &&

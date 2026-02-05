@@ -290,11 +290,11 @@ class ProfileAnnotatorImpl final {
       for (const auto &BB : F) {
         auto &Info = getBBInfo(BB);
         if (!Info.hasCount())
-          KeepGoing |= Info.tryTakeCountFromKnownOutEdges(BB) ||
+          KeepGoing = KeepGoing || Info.tryTakeCountFromKnownOutEdges(BB) ||
                        Info.tryTakeCountFromKnownInEdges(BB);
         if (Info.hasCount()) {
-          KeepGoing |= Info.trySetSingleUnknownOutEdgeCount();
-          KeepGoing |= Info.trySetSingleUnknownInEdgeCount();
+          KeepGoing = KeepGoing || Info.trySetSingleUnknownOutEdgeCount();
+          KeepGoing = KeepGoing || Info.trySetSingleUnknownInEdgeCount();
         }
       }
     }

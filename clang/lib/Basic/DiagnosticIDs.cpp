@@ -691,7 +691,7 @@ static bool getDiagnosticsInGroup(diag::Flavor Flavor,
       llvm::copy(
           CustomDiagInfo->getDiagsInGroup(static_cast<diag::Group>(*SubGroups)),
           std::back_inserter(Diags));
-    NotFound &= getDiagnosticsInGroup(Flavor, &OptionTable[(short)*SubGroups],
+    NotFound = NotFound && getDiagnosticsInGroup(Flavor, &OptionTable[(short)*SubGroups],
                                       Diags, CustomDiagInfo);
   }
 

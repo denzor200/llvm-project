@@ -416,8 +416,8 @@ bool BTFParser::hasBTFSections(const ObjectFile &Obj) {
       logAllUnhandledErrors(std::move(E), errs());
       continue;
     }
-    HasBTF |= *Name == BTFSectionName;
-    HasBTFExt |= *Name == BTFExtSectionName;
+    HasBTF = HasBTF || *Name == BTFSectionName;
+    HasBTFExt = HasBTFExt || *Name == BTFExtSectionName;
     if (HasBTF && HasBTFExt)
       return true;
   }

@@ -124,7 +124,7 @@ bool TypeSetByHwMode::insert(const ValueTypeByHwMode &VVT) {
   for (const auto &P : VVT) {
     unsigned M = P.first;
     // Make sure there exists a set for each specific mode from VVT.
-    Changed |= getOrCreate(M).insert(P.second).second;
+    Changed = Changed || getOrCreate(M).insert(P.second).second;
     // Cache VVT's default mode.
     if (DefaultMode == M) {
       ContainsDefault = true;
@@ -137,7 +137,7 @@ bool TypeSetByHwMode::insert(const ValueTypeByHwMode &VVT) {
   if (ContainsDefault)
     for (auto &I : *this)
       if (!VVT.hasMode(I.first))
-        Changed |= I.second.insert(DT).second;
+        Changed = Changed || I.second.insert(DT).second;
 
   return Changed;
 }
@@ -159,7 +159,7 @@ bool TypeSetByHwMode::constrain(const TypeSetByHwMode &VTS) {
     unsigned M = I.first;
     SetType &S = I.second;
     if (VTS.hasMode(M) || VTS.hasDefault()) {
-      Changed |= intersect(I.second, VTS.get(M));
+      Changed = Changed || intersect(I.second, VTS.get(M));
     } else if (!S.empty()) {
       S.clear();
       Changed = true;
@@ -341,9 +341,9 @@ bool TypeSetByHwMode::intersect(SetType &Out, const SetType &In) {
 
   bool Changed = false;
   for (const auto &I : WildParts)
-    Changed |= IntersectP(I.first, I.second);
+    Changed = Changed || IntersectP(I.first, I.second);
 
-  Changed |= IntersectP(std::nullopt, [&](MVT T) {
+  Changed = Changed || IntersectP(std::nullopt, [&](MVT T) {
     return !any_of(WildParts, [=](const WildPartT &I) { return I.second(T); });
   });
 
@@ -355,7 +355,7 @@ bool TypeSetByHwMode::validate() const {
     return true;
   bool AllEmpty = true;
   for (const auto &I : *this)
-    AllEmpty &= I.second.empty();
+    AllEmpty = AllEmpty && I.second.empty();
   return !AllEmpty;
 }
 
@@ -487,9 +487,9 @@ bool TypeInfer::EnforceSmallerThan(TypeSetByHwMode &Small, TypeSetByHwMode &Big,
          "Small should not be empty for SDTCisVTSmallerThanOp");
 
   if (Small.empty())
-    Changed |= EnforceAny(Small);
+    Changed = Changed || EnforceAny(Small);
   if (Big.empty())
-    Changed |= EnforceAny(Big);
+    Changed = Changed || EnforceAny(Big);
 
   assert(Small.hasDefault() && Big.hasDefault());
 
@@ -508,12 +508,12 @@ bool TypeInfer::EnforceSmallerThan(TypeSetByHwMode &Small, TypeSetByHwMode &Big,
 
     if (any_of(S, isIntegerOrPtr) && any_of(B, isIntegerOrPtr)) {
       auto NotInt = [](MVT VT) { return !isIntegerOrPtr(VT); };
-      Changed |= berase_if(S, NotInt);
-      Changed |= berase_if(B, NotInt);
+      Changed = Changed || berase_if(S, NotInt);
+      Changed = Changed || berase_if(B, NotInt);
     } else if (any_of(S, isFloatingPoint) && any_of(B, isFloatingPoint)) {
       auto NotFP = [](MVT VT) { return !isFloatingPoint(VT); };
-      Changed |= berase_if(S, NotFP);
-      Changed |= berase_if(B, NotFP);
+      Changed = Changed || berase_if(S, NotFP);
+      Changed = Changed || berase_if(B, NotFP);
     } else if (SmallIsVT && B.empty()) {
       // B is empty and since S is a specific VT, it will never be empty. Don't
       // report this as a change, just clear S and continue. This prevents an
@@ -529,8 +529,8 @@ bool TypeInfer::EnforceSmallerThan(TypeSetByHwMode &Small, TypeSetByHwMode &Big,
     }
 
     if (none_of(S, isVector) || none_of(B, isVector)) {
-      Changed |= berase_if(S, isVector);
-      Changed |= berase_if(B, isVector);
+      Changed = Changed || berase_if(S, isVector);
+      Changed = Changed || berase_if(B, isVector);
     }
   }
 
@@ -564,28 +564,28 @@ bool TypeInfer::EnforceSmallerThan(TypeSetByHwMode &Small, TypeSetByHwMode &Big,
     // smaller-or-equal than MinS.
     auto MinS = min_if(S.begin(), S.end(), isScalar, LT);
     if (MinS != S.end())
-      Changed |=
+      Changed = Changed ||
           berase_if(B, std::bind(SameKindLE, std::placeholders::_1, *MinS));
 
     // MaxS = max scalar in Big, remove all scalars from Small that are
     // larger than MaxS.
     auto MaxS = max_if(B.begin(), B.end(), isScalar, LT);
     if (MaxS != B.end())
-      Changed |=
+      Changed = Changed ||
           berase_if(S, std::bind(SameKindLE, *MaxS, std::placeholders::_1));
 
     // MinV = min vector in Small, remove all vectors from Big that are
     // smaller-or-equal than MinV.
     auto MinV = min_if(S.begin(), S.end(), isVector, LT);
     if (MinV != S.end())
-      Changed |=
+      Changed = Changed ||
           berase_if(B, std::bind(SameKindLE, std::placeholders::_1, *MinV));
 
     // MaxV = max vector in Big, remove all vectors from Small that are
     // larger than MaxV.
     auto MaxV = max_if(B.begin(), B.end(), isVector, LT);
     if (MaxV != B.end())
-      Changed |=
+      Changed = Changed ||
           berase_if(S, std::bind(SameKindLE, *MaxV, std::placeholders::_1));
   }
 
@@ -604,9 +604,9 @@ bool TypeInfer::EnforceVectorEltTypeIs(TypeSetByHwMode &Vec,
   bool Changed = false;
 
   if (Vec.empty())
-    Changed |= EnforceVector(Vec);
+    Changed = Changed || EnforceVector(Vec);
   if (Elem.empty())
-    Changed |= EnforceScalar(Elem);
+    Changed = Changed || EnforceScalar(Elem);
 
   SmallVector<unsigned, 4> Modes;
   union_modes(Vec, Elem, Modes);
@@ -614,8 +614,8 @@ bool TypeInfer::EnforceVectorEltTypeIs(TypeSetByHwMode &Vec,
     TypeSetByHwMode::SetType &V = Vec.get(M);
     TypeSetByHwMode::SetType &E = Elem.get(M);
 
-    Changed |= berase_if(V, isScalar); // Scalar = !vector
-    Changed |= berase_if(E, isVector); // Vector = !scalar
+    Changed = Changed || berase_if(V, isScalar); // Scalar = !vector
+    Changed = Changed || berase_if(E, isVector); // Vector = !scalar
     assert(!V.empty() && !E.empty());
 
     MachineValueTypeSet VT, ST;
@@ -627,12 +627,12 @@ bool TypeInfer::EnforceVectorEltTypeIs(TypeSetByHwMode &Vec,
       ST.insert(T);
 
     // Remove from V all (vector) types whose element type is not in S.
-    Changed |= berase_if(V, [&ST](MVT T) -> bool {
+    Changed = Changed || berase_if(V, [&ST](MVT T) -> bool {
       return !ST.count(T.getVectorElementType());
     });
     // Remove from E all (scalar) types, for which there is no corresponding
     // type in V.
-    Changed |= berase_if(E, [&VT](MVT T) -> bool { return !VT.count(T); });
+    Changed = Changed || berase_if(E, [&VT](MVT T) -> bool { return !VT.count(T); });
   }
 
   return Changed;
@@ -689,9 +689,9 @@ bool TypeInfer::EnforceVectorSubVectorTypeIs(TypeSetByHwMode &Vec,
   bool Changed = false;
 
   if (Vec.empty())
-    Changed |= EnforceVector(Vec);
+    Changed = Changed || EnforceVector(Vec);
   if (Sub.empty())
-    Changed |= EnforceVector(Sub);
+    Changed = Changed || EnforceVector(Sub);
 
   SmallVector<unsigned, 4> Modes;
   union_modes(Vec, Sub, Modes);
@@ -699,13 +699,13 @@ bool TypeInfer::EnforceVectorSubVectorTypeIs(TypeSetByHwMode &Vec,
     TypeSetByHwMode::SetType &S = Sub.get(M);
     TypeSetByHwMode::SetType &V = Vec.get(M);
 
-    Changed |= berase_if(S, isScalar);
+    Changed = Changed || berase_if(S, isScalar);
 
     // Erase all types from S that are not sub-vectors of a type in V.
-    Changed |= berase_if(S, std::bind(NoSubV, V, std::placeholders::_1));
+    Changed = Changed || berase_if(S, std::bind(NoSubV, V, std::placeholders::_1));
 
     // Erase all types from V that are not super-vectors of a type in S.
-    Changed |= berase_if(V, std::bind(NoSupV, S, std::placeholders::_1));
+    Changed = Changed || berase_if(V, std::bind(NoSupV, S, std::placeholders::_1));
   }
 
   return Changed;
@@ -724,9 +724,9 @@ bool TypeInfer::EnforceSameNumElts(TypeSetByHwMode &V, TypeSetByHwMode &W) {
 
   bool Changed = false;
   if (V.empty())
-    Changed |= EnforceAny(V);
+    Changed = Changed || EnforceAny(V);
   if (W.empty())
-    Changed |= EnforceAny(W);
+    Changed = Changed || EnforceAny(W);
 
   // An actual vector type cannot have 0 elements, so we can treat scalars
   // as zero-length vectors. This way both vectors and scalars can be
@@ -749,8 +749,8 @@ bool TypeInfer::EnforceSameNumElts(TypeSetByHwMode &V, TypeSetByHwMode &W) {
     for (MVT T : WS)
       WN.insert(T.isVector() ? T.getVectorElementCount() : ElementCount());
 
-    Changed |= berase_if(VS, std::bind(NoLength, WN, std::placeholders::_1));
-    Changed |= berase_if(WS, std::bind(NoLength, VN, std::placeholders::_1));
+    Changed = Changed || berase_if(VS, std::bind(NoLength, WN, std::placeholders::_1));
+    Changed = Changed || berase_if(WS, std::bind(NoLength, VN, std::placeholders::_1));
   }
   return Changed;
 }
@@ -774,9 +774,9 @@ bool TypeInfer::EnforceSameSize(TypeSetByHwMode &A, TypeSetByHwMode &B) {
     return false;
   bool Changed = false;
   if (A.empty())
-    Changed |= EnforceAny(A);
+    Changed = Changed || EnforceAny(A);
   if (B.empty())
-    Changed |= EnforceAny(B);
+    Changed = Changed || EnforceAny(B);
 
   using TypeSizeSet = SmallSet<TypeSize, 2, TypeSizeComparator>;
 
@@ -796,8 +796,8 @@ bool TypeInfer::EnforceSameSize(TypeSetByHwMode &A, TypeSetByHwMode &B) {
     for (MVT T : BS)
       BN.insert(T.getSizeInBits());
 
-    Changed |= berase_if(AS, std::bind(NoSize, BN, std::placeholders::_1));
-    Changed |= berase_if(BS, std::bind(NoSize, AN, std::placeholders::_1));
+    Changed = Changed || berase_if(AS, std::bind(NoSize, BN, std::placeholders::_1));
+    Changed = Changed || berase_if(BS, std::bind(NoSize, AN, std::placeholders::_1));
   }
 
   return Changed;
@@ -2580,7 +2580,7 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
       // If it's a regclass or something else known, include the type.
       bool MadeChange = false;
       for (unsigned i = 0, e = Types.size(); i != e; ++i)
-        MadeChange |= UpdateNodeType(
+        MadeChange = MadeChange || UpdateNodeType(
             i, getImplicitType(DI->getDef(), i, NotRegisters, !hasName(), TP),
             TP);
       return MadeChange;
@@ -2626,7 +2626,7 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
     unsigned NumParamVTs = Int->IS.ParamTys.size();
 
     for (unsigned i = 0, e = NumRetVTs; i != e; ++i)
-      MadeChange |= UpdateNodeType(
+      MadeChange = MadeChange || UpdateNodeType(
           i, getValueType(Int->IS.RetTys[i]->getValueAsDef("VT")), TP);
 
     if (getNumChildren() != NumParamVTs + 1) {
@@ -2636,14 +2636,14 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
     }
 
     // Apply type info to the intrinsic ID.
-    MadeChange |= getChild(0).UpdateNodeType(0, MVT::iPTR, TP);
+    MadeChange = MadeChange || getChild(0).UpdateNodeType(0, MVT::iPTR, TP);
 
     for (unsigned i = 0, e = getNumChildren() - 1; i != e; ++i) {
-      MadeChange |= getChild(i + 1).ApplyTypeConstraints(TP, NotRegisters);
+      MadeChange = MadeChange || getChild(i + 1).ApplyTypeConstraints(TP, NotRegisters);
 
       MVT OpVT = getValueType(Int->IS.ParamTys[i]->getValueAsDef("VT"));
       assert(getChild(i + 1).getNumTypes() == 1 && "Unhandled case");
-      MadeChange |= getChild(i + 1).UpdateNodeType(0, OpVT, TP);
+      MadeChange = MadeChange || getChild(i + 1).UpdateNodeType(0, OpVT, TP);
     }
     return MadeChange;
   }
@@ -2661,8 +2661,8 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
 
     bool MadeChange = false;
     for (TreePatternNode &Child : children())
-      MadeChange |= Child.ApplyTypeConstraints(TP, NotRegisters);
-    MadeChange |= NI.ApplyTypeConstraints(*this, TP);
+      MadeChange = MadeChange || Child.ApplyTypeConstraints(TP, NotRegisters);
+    MadeChange = MadeChange || NI.ApplyTypeConstraints(*this, TP);
     return MadeChange;
   }
 
@@ -2678,7 +2678,7 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
     unsigned NumResultsToAdd =
         std::min(InstInfo.Operands.NumDefs, Inst.getNumResults());
     for (unsigned ResNo = 0; ResNo != NumResultsToAdd; ++ResNo)
-      MadeChange |= UpdateNodeTypeFromInst(ResNo, Inst.getResult(ResNo), TP);
+      MadeChange = MadeChange || UpdateNodeTypeFromInst(ResNo, Inst.getResult(ResNo), TP);
 
     // If the instruction has implicit defs, we apply the first one as a result.
     // FIXME: This sucks, it should apply all implicit defs.
@@ -2690,15 +2690,15 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
       MVT VT = InstInfo.HasOneImplicitDefWithKnownVT(CDP.getTargetInfo());
 
       if (VT != MVT::Other)
-        MadeChange |= UpdateNodeType(ResNo, VT, TP);
+        MadeChange = MadeChange || UpdateNodeType(ResNo, VT, TP);
     }
 
     // If this is an INSERT_SUBREG, constrain the source and destination VTs to
     // be the same.
     if (getOperator()->getName() == "INSERT_SUBREG") {
       assert(getChild(0).getNumTypes() == 1 && "FIXME: Unhandled");
-      MadeChange |= UpdateNodeType(0, getChild(0).getExtType(0), TP);
-      MadeChange |= getChild(0).UpdateNodeType(0, getExtType(0), TP);
+      MadeChange = MadeChange || UpdateNodeType(0, getChild(0).getExtType(0), TP);
+      MadeChange = MadeChange || getChild(0).UpdateNodeType(0, getExtType(0), TP);
     } else if (getOperator()->getName() == "REG_SEQUENCE") {
       // We need to do extra, custom typechecking for REG_SEQUENCE since it is
       // variadic.
@@ -2779,7 +2779,7 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
           if (Child->getNumMIResults(CDP) < NumArgs) {
             // Match first sub-operand against the child we already have.
             const Record *SubRec = cast<DefInit>(MIOpInfo->getArg(0))->getDef();
-            MadeChange |= Child->UpdateNodeTypeFromInst(ChildResNo, SubRec, TP);
+            MadeChange = MadeChange || Child->UpdateNodeTypeFromInst(ChildResNo, SubRec, TP);
 
             // And the remaining sub-operands against subsequent children.
             for (unsigned Arg = 1; Arg < NumArgs; ++Arg) {
@@ -2791,7 +2791,7 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
               Child = &getChild(ChildNo++);
 
               SubRec = cast<DefInit>(MIOpInfo->getArg(Arg))->getDef();
-              MadeChange |=
+              MadeChange = MadeChange ||
                   Child->UpdateNodeTypeFromInst(ChildResNo, SubRec, TP);
             }
             continue;
@@ -2801,7 +2801,7 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
 
       // If we didn't match by pieces above, attempt to match the whole
       // operand now.
-      MadeChange |= Child->UpdateNodeTypeFromInst(ChildResNo, OperandNode, TP);
+      MadeChange = MadeChange || Child->UpdateNodeTypeFromInst(ChildResNo, OperandNode, TP);
     }
 
     if (!InstInfo.Operands.isVariadic && ChildNo != getNumChildren()) {
@@ -2811,7 +2811,7 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
     }
 
     for (TreePatternNode &Child : children())
-      MadeChange |= Child.ApplyTypeConstraints(TP, NotRegisters);
+      MadeChange = MadeChange || Child.ApplyTypeConstraints(TP, NotRegisters);
     return MadeChange;
   }
 
@@ -2831,11 +2831,11 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
       // case there or by altering the backends to not do this (e.g. using Any
       // instead may work).
       if (!VVT.isSimple() || VVT.getSimple() != MVT::Untyped)
-        MadeChange |= UpdateNodeType(0, VVT, TP);
+        MadeChange = MadeChange || UpdateNodeType(0, VVT, TP);
     }
 
     for (TreePatternNode &Child : children())
-      MadeChange |= Child.ApplyTypeConstraints(TP, NotRegisters);
+      MadeChange = MadeChange || Child.ApplyTypeConstraints(TP, NotRegisters);
 
     return MadeChange;
   }
@@ -3244,7 +3244,7 @@ static bool SimplifyTree(TreePatternNodePtr &N) {
   // Walk all children.
   bool MadeChange = false;
   for (unsigned i = 0, e = N->getNumChildren(); i != e; ++i)
-    MadeChange |= SimplifyTree(N->getChildSharedPtr(i));
+    MadeChange = MadeChange || SimplifyTree(N->getChildSharedPtr(i));
 
   return MadeChange;
 }
@@ -3261,8 +3261,8 @@ bool TreePattern::InferAllTypes(
   while (MadeChange) {
     MadeChange = false;
     for (TreePatternNodePtr &Tree : Trees) {
-      MadeChange |= Tree->ApplyTypeConstraints(*this, false);
-      MadeChange |= SimplifyTree(Tree);
+      MadeChange = MadeChange || Tree->ApplyTypeConstraints(*this, false);
+      MadeChange = MadeChange || SimplifyTree(Tree);
     }
 
     // If there are constraints on our named nodes, apply them.
@@ -3297,7 +3297,7 @@ bool TreePattern::InferAllTypes(
 
           assert(Node->getNumTypes() == 1 && InNodes[0]->getNumTypes() == 1 &&
                  "FIXME: cannot name multiple result nodes yet");
-          MadeChange |=
+          MadeChange = MadeChange ||
               Node->UpdateNodeType(0, InNodes[0]->getExtType(0), *this);
         }
       }
@@ -3310,8 +3310,8 @@ bool TreePattern::InferAllTypes(
           assert(N1->getNumTypes() == 1 && N2->getNumTypes() == 1 &&
                  "FIXME: cannot name multiple result nodes yet");
 
-          MadeChange |= N1->UpdateNodeType(0, N2->getExtType(0), *this);
-          MadeChange |= N2->UpdateNodeType(0, N1->getExtType(0), *this);
+          MadeChange = MadeChange || N1->UpdateNodeType(0, N2->getExtType(0), *this);
+          MadeChange = MadeChange || N2->UpdateNodeType(0, N1->getExtType(0), *this);
         }
       }
     }
@@ -3319,7 +3319,7 @@ bool TreePattern::InferAllTypes(
 
   bool HasUnresolvedTypes = false;
   for (const TreePatternNodePtr &Tree : Trees)
-    HasUnresolvedTypes |= Tree->ContainsUnresolvedType(*this);
+    HasUnresolvedTypes = HasUnresolvedTypes || Tree->ContainsUnresolvedType(*this);
   return !HasUnresolvedTypes;
 }
 
@@ -4445,9 +4445,9 @@ void CodeGenDAGPatterns::ParseOnePattern(
       for (unsigned i = 0, e = std::min(Result.getOnlyTree()->getNumTypes(),
                                         T->getNumTypes());
            i != e; ++i) {
-        IterateInference |=
+        IterateInference = IterateInference ||
             T->UpdateNodeType(i, Result.getOnlyTree()->getExtType(i), Result);
-        IterateInference |=
+        IterateInference = IterateInference ||
             Result.getOnlyTree()->UpdateNodeType(i, T->getExtType(i), Result);
       }
 

@@ -579,7 +579,7 @@ PreservedAnalyses AssumeBuilderPass::run(Function &F,
   DominatorTree* DT = AM.getCachedResult<DominatorTreeAnalysis>(F);
   bool Changed = false;
   for (Instruction &I : instructions(F))
-    Changed |= salvageKnowledge(&I, AC, DT);
+    Changed = Changed || salvageKnowledge(&I, AC, DT);
   if (!Changed)
     PreservedAnalyses::all();
   PreservedAnalyses PA;

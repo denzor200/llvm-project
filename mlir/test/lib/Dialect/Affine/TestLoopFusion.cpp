@@ -170,7 +170,7 @@ static bool iterateLoops(ArrayRef<SmallVector<AffineForOp, 2>> depthToLoops,
     for (unsigned j = 0; j < numLoops; ++j) {
       for (unsigned k = 0; k < numLoops; ++k) {
         if (j != k)
-          changed |=
+          changed = changed ||
               fn(loops[j], loops[k], j, k, loopDepth, depthToLoops.size());
         if (changed && returnOnChange)
           return true;

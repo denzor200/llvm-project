@@ -394,7 +394,7 @@ bool LoopIdiomRecognize::runOnCountableLoop() {
     if (LI->getLoopFor(BB) != CurLoop)
       continue;
 
-    MadeChange |= runOnLoopBlock(BB, BECount, ExitBlocks);
+    MadeChange = MadeChange || runOnLoopBlock(BB, BECount, ExitBlocks);
   }
 
   // Optimize a CRC loop if HashRecognize found one, provided we're not
@@ -616,18 +616,18 @@ bool LoopIdiomRecognize::runOnLoopBlock(
   // optimized into a memset (memset_pattern).  The latter most commonly happens
   // with structs and handunrolled loops.
   for (auto &SL : StoreRefsForMemset)
-    MadeChange |= processLoopStores(SL.second, BECount, ForMemset::Yes);
+    MadeChange = MadeChange || processLoopStores(SL.second, BECount, ForMemset::Yes);
 
   for (auto &SL : StoreRefsForMemsetPattern)
-    MadeChange |= processLoopStores(SL.second, BECount, ForMemset::No);
+    MadeChange = MadeChange || processLoopStores(SL.second, BECount, ForMemset::No);
 
   // Optimize the store into a memcpy, if it feeds an similarly strided load.
   for (auto &SI : StoreRefsForMemcpy)
-    MadeChange |= processLoopStoreOfLoopLoad(SI, BECount);
+    MadeChange = MadeChange || processLoopStoreOfLoopLoad(SI, BECount);
 
-  MadeChange |= processLoopMemIntrinsic<MemCpyInst>(
+  MadeChange = MadeChange || processLoopMemIntrinsic<MemCpyInst>(
       BB, &LoopIdiomRecognize::processLoopMemCpy, BECount);
-  MadeChange |= processLoopMemIntrinsic<MemSetInst>(
+  MadeChange = MadeChange || processLoopMemIntrinsic<MemSetInst>(
       BB, &LoopIdiomRecognize::processLoopMemSet, BECount);
 
   return MadeChange;

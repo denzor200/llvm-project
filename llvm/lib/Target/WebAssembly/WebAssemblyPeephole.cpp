@@ -165,7 +165,7 @@ bool WebAssemblyPeephole::runOnMachineFunction(MachineFunction &MF) {
               if (MRI.getRegClass(NewReg) != MRI.getRegClass(OldReg))
                 report_fatal_error("Peephole: call to builtin function with "
                                    "wrong signature, from/to mismatch");
-              Changed |= maybeRewriteToDrop(OldReg, NewReg, MO, MFI, MRI);
+              Changed = Changed || maybeRewriteToDrop(OldReg, NewReg, MO, MFI, MRI);
             }
           }
         }
@@ -173,7 +173,7 @@ bool WebAssemblyPeephole::runOnMachineFunction(MachineFunction &MF) {
       }
       // Optimize away an explicit void return at the end of the function.
       case WebAssembly::RETURN:
-        Changed |= maybeRewriteToFallthrough(MI, MBB, MF, MFI, MRI, TII);
+        Changed = Changed || maybeRewriteToFallthrough(MI, MBB, MF, MFI, MRI, TII);
         break;
       }
 

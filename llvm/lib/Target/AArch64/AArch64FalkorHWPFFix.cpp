@@ -133,7 +133,7 @@ bool FalkorMarkStridedAccesses::run() {
 
   for (Loop *L : LI)
     for (Loop *LIt : depth_first(L))
-      MadeChange |= runOnLoop(*LIt);
+      MadeChange = MadeChange || runOnLoop(*LIt);
 
   return MadeChange;
 }

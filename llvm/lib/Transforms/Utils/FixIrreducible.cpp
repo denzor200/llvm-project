@@ -404,7 +404,7 @@ static bool FixIrreducibleImpl(Function &F, CycleInfo &CI, DominatorTree &DT,
   bool Changed = false;
   for (Cycle *TopCycle : CI.toplevel_cycles()) {
     for (Cycle *C : depth_first(TopCycle)) {
-      Changed |= fixIrreducible(*C, CI, DT, LI);
+      Changed = Changed || fixIrreducible(*C, CI, DT, LI);
     }
   }
 

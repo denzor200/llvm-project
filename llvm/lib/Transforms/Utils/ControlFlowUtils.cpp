@@ -258,7 +258,7 @@ static void reconnectPhis(BasicBlock *Out, BasicBlock *GuardBlock,
         if (BB == Out) {
           V = NewPhi;
         }
-        AllUndef &= isa<UndefValue>(V);
+        AllUndef = AllUndef && isa<UndefValue>(V);
       }
 
       NewPhi->addIncoming(V, BB);

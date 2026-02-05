@@ -1825,8 +1825,8 @@ void BinaryContext::preprocessDebugInfo() {
         AllRanges.emplace_back(CURange{Range.LowPC, Range.HighPC, CU.get()});
     }
 
-    ContainsDwarf5 |= CU->getVersion() >= 5;
-    ContainsDwarfLegacy |= CU->getVersion() < 5;
+    ContainsDwarf5 = ContainsDwarf5 || CU->getVersion() >= 5;
+    ContainsDwarfLegacy = ContainsDwarfLegacy || CU->getVersion() < 5;
   }
 
   llvm::sort(AllRanges);

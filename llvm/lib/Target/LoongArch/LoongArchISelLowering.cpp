@@ -2336,10 +2336,10 @@ static SDValue lowerVECTOR_SHUFFLE_XVPERM(const SDLoc &DL, ArrayRef<int> Mask,
     int Fronti = Mask[i];
     int Backi = Mask[i + HalfSize];
 
-    FrontLo &= inRange(Fronti, 0, HalfSize);
-    FrontHi &= inRange(Fronti, HalfSize, NumElts);
-    BackLo &= inRange(Backi, 0, HalfSize);
-    BackHi &= inRange(Backi, HalfSize, NumElts);
+    FrontLo = FrontLo && inRange(Fronti, 0, HalfSize);
+    FrontHi = FrontHi && inRange(Fronti, HalfSize, NumElts);
+    BackLo = BackLo && inRange(Backi, 0, HalfSize);
+    BackHi = BackHi && inRange(Backi, HalfSize, NumElts);
   }
 
   // If both the lower and upper 128-bit parts access only one half of the

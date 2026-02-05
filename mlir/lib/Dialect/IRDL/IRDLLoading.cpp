@@ -507,7 +507,7 @@ static bool getBases(Operation *op, SmallPtrSet<TypeID, 4> &paramIds,
   if (auto anyOf = dyn_cast<AnyOfOp>(op)) {
     bool hasAny = false;
     for (Value arg : anyOf.getArgs())
-      hasAny &= getBases(arg.getDefiningOp(), paramIds, paramIrdlOps, isIds);
+      hasAny = hasAny && getBases(arg.getDefiningOp(), paramIds, paramIrdlOps, isIds);
     return hasAny;
   }
 

@@ -119,7 +119,7 @@ PreservedAnalyses ShadowStackGCLoweringPass::run(Module &M,
         MAM.getResult<FunctionAnalysisManagerModuleProxy>(M).getManager();
     auto *DT = FAM.getCachedResult<DominatorTreeAnalysis>(F);
     DomTreeUpdater DTU(DT, DomTreeUpdater::UpdateStrategy::Lazy);
-    Changed |= Impl.runOnFunction(F, DT ? &DTU : nullptr);
+    Changed = Changed || Impl.runOnFunction(F, DT ? &DTU : nullptr);
   }
 
   if (!Changed)

@@ -737,7 +737,7 @@ bool RegAllocPBQP::mapPBQPToRegAlloc(const PBQPRAGraph &G,
       // of allocation.
       SmallVector<Register, 8> NewVRegs;
       spillVReg(VReg, NewVRegs, MF, LIS, VRM, VRegSpiller);
-      AnotherRoundNeeded |= !NewVRegs.empty();
+      AnotherRoundNeeded = AnotherRoundNeeded || !NewVRegs.empty();
     }
   }
 

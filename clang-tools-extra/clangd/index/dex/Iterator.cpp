@@ -29,7 +29,7 @@ public:
     assert(!Children.empty() && "AND iterator should have at least one child.");
     // Establish invariants.
     for (const auto &Child : Children)
-      ReachedEnd |= Child->reachedEnd();
+      ReachedEnd = ReachedEnd || Child->reachedEnd();
     sync();
     // When children are sorted by the estimateSize(), sync() calls are more
     // effective. Each sync() starts with the first child and makes sure all
@@ -89,7 +89,7 @@ private:
   /// Restores class invariants: each child will point to the same element after
   /// sync.
   void sync() {
-    ReachedEnd |= Children.front()->reachedEnd();
+    ReachedEnd = ReachedEnd || Children.front()->reachedEnd();
     if (ReachedEnd)
       return;
     auto SyncID = Children.front()->peek();
@@ -99,7 +99,7 @@ private:
       NeedsAdvance = false;
       for (auto &Child : Children) {
         Child->advanceTo(SyncID);
-        ReachedEnd |= Child->reachedEnd();
+        ReachedEnd = ReachedEnd || Child->reachedEnd();
         // If any child reaches end And iterator can not match any other items.
         // In this case, just terminate the process.
         if (ReachedEnd)

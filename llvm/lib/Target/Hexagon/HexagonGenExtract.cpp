@@ -213,7 +213,7 @@ bool HexagonGenExtract::visitBlock(BasicBlock *B) {
 
   // Depth-first, bottom-up traversal.
   for (auto *DTN : children<DomTreeNode*>(DT->getNode(B)))
-    Changed |= visitBlock(DTN->getBlock());
+    Changed = Changed || visitBlock(DTN->getBlock());
 
   // Allow limiting the number of generated extracts for debugging purposes.
   bool HasCutoff = ExtractCutoff.getPosition();

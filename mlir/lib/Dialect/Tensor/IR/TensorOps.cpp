@@ -1876,15 +1876,15 @@ OpFoldResult ReshapeOp::fold(FoldAdaptor adaptor) {
       auto element = elements[id];
 
       if (auto cst = getConstantIntValue(element)) {
-        dynamicNoop &= cst.value() == sourceTy.getDimSize(id);
+        dynamicNoop = dynamicNoop && cst.value() == sourceTy.getDimSize(id);
         continue;
       }
 
       if (auto dimOp = element.getDefiningOp<tensor::DimOp>()) {
-        dynamicNoop &= dimOp.getSource() == source;
+        dynamicNoop = dynamicNoop && dimOp.getSource() == source;
 
         auto cst = getConstantIntValue(dimOp.getIndex());
-        dynamicNoop &=
+        dynamicNoop = dynamicNoop &&
             cst.has_value() && cst.value() == static_cast<int64_t>(id);
         continue;
       }

@@ -151,7 +151,7 @@ class CollectUnexpandedParameterPacksVisitor
       }
 
 #ifndef NDEBUG
-      ContainsIntermediatePacks |=
+      ContainsIntermediatePacks = ContainsIntermediatePacks ||
           (bool)Template.getAsSubstTemplateTemplateParmPack();
 #endif
 

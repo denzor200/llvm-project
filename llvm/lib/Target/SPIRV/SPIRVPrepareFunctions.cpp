@@ -439,7 +439,7 @@ bool SPIRVPrepareFunctions::substituteIntrinsicCalls(Function *F) {
       switch (II->getIntrinsicID()) {
       case Intrinsic::memset:
       case Intrinsic::bswap:
-        Changed |= lowerIntrinsicToFunction(II);
+        Changed = Changed || lowerIntrinsicToFunction(II);
         break;
       case Intrinsic::fshl:
       case Intrinsic::fshr:
@@ -454,7 +454,7 @@ bool SPIRVPrepareFunctions::substituteIntrinsicCalls(Function *F) {
         break;
       case Intrinsic::lifetime_start:
         if (!STI.isShader()) {
-          Changed |= toSpvLifetimeIntrinsic(
+          Changed = Changed || toSpvLifetimeIntrinsic(
               II, Intrinsic::SPVIntrinsics::spv_lifetime_start);
         } else {
           II->eraseFromParent();
@@ -463,7 +463,7 @@ bool SPIRVPrepareFunctions::substituteIntrinsicCalls(Function *F) {
         break;
       case Intrinsic::lifetime_end:
         if (!STI.isShader()) {
-          Changed |= toSpvLifetimeIntrinsic(
+          Changed = Changed || toSpvLifetimeIntrinsic(
               II, Intrinsic::SPVIntrinsics::spv_lifetime_end);
         } else {
           II->eraseFromParent();
@@ -491,7 +491,7 @@ bool SPIRVPrepareFunctions::substituteIntrinsicCalls(Function *F) {
                 return false;
               return II->getCalledFunction()->getName().starts_with(Prefix);
             }))
-          Changed |= lowerIntrinsicToFunction(II);
+          Changed = Changed || lowerIntrinsicToFunction(II);
         break;
       }
     }
@@ -658,9 +658,9 @@ bool SPIRVPrepareFunctions::removeAggregateTypesFromCalls(Function *F) {
 bool SPIRVPrepareFunctions::runOnModule(Module &M) {
   bool Changed = false;
   for (Function &F : M) {
-    Changed |= substituteIntrinsicCalls(&F);
-    Changed |= sortBlocks(F);
-    Changed |= removeAggregateTypesFromCalls(&F);
+    Changed = Changed || substituteIntrinsicCalls(&F);
+    Changed = Changed || sortBlocks(F);
+    Changed = Changed || removeAggregateTypesFromCalls(&F);
   }
 
   std::vector<Function *> FuncsWorklist;

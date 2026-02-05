@@ -266,8 +266,8 @@ bool SVEIntrinsicOpts::optimizePTrueIntrinsicCalls(
           SVPow2PTrues.insert(IntrI);
       }
 
-      Changed |= coalescePTrueIntrinsicCalls(BB, SVAllPTrues);
-      Changed |= coalescePTrueIntrinsicCalls(BB, SVPow2PTrues);
+      Changed = Changed || coalescePTrueIntrinsicCalls(BB, SVAllPTrues);
+      Changed = Changed || coalescePTrueIntrinsicCalls(BB, SVPow2PTrues);
     }
   }
 
@@ -407,10 +407,10 @@ bool SVEIntrinsicOpts::optimizeInstructions(
       for (Instruction &I : make_early_inc_range(*BB)) {
         switch (I.getOpcode()) {
         case Instruction::Store:
-          Changed |= optimizePredicateStore(&I);
+          Changed = Changed || optimizePredicateStore(&I);
           break;
         case Instruction::BitCast:
-          Changed |= optimizePredicateLoad(&I);
+          Changed = Changed || optimizePredicateLoad(&I);
           break;
         }
       }
@@ -424,8 +424,8 @@ bool SVEIntrinsicOpts::optimizeFunctions(
     SmallSetVector<Function *, 4> &Functions) {
   bool Changed = false;
 
-  Changed |= optimizePTrueIntrinsicCalls(Functions);
-  Changed |= optimizeInstructions(Functions);
+  Changed = Changed || optimizePTrueIntrinsicCalls(Functions);
+  Changed = Changed || optimizeInstructions(Functions);
 
   return Changed;
 }
@@ -454,7 +454,7 @@ bool SVEIntrinsicOpts::runOnModule(Module &M) {
   }
 
   if (!Functions.empty())
-    Changed |= optimizeFunctions(Functions);
+    Changed = Changed || optimizeFunctions(Functions);
 
   return Changed;
 }

@@ -29148,7 +29148,7 @@ static void replaceBoolVectorBitcast(SDNode *N,
   if (Op.getOpcode() == ISD::CONCAT_VECTORS && !Op.getOperand(0).isUndef()) {
     bool AllUndef = true;
     for (unsigned I = 1; I < Op.getNumOperands(); ++I)
-      AllUndef &= Op.getOperand(I).isUndef();
+      AllUndef = AllUndef && Op.getOperand(I).isUndef();
 
     if (AllUndef)
       Op = Op.getOperand(0);

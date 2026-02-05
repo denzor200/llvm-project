@@ -644,7 +644,7 @@ bool InsertStackProtectors(const TargetLowering &TLI,
     // Generate prologue instrumentation if not already generated.
     if (!HasPrologue) {
       HasPrologue = true;
-      SupportsSelectionDAGSP &=
+      SupportsSelectionDAGSP = SupportsSelectionDAGSP &&
           CreatePrologue(F, M, CheckLoc, &TLI, Libcalls, AI);
     }
 

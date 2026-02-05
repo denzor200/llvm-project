@@ -758,7 +758,7 @@ bool GCNDPPCombine::combineDPPMov(MachineInstr &MovMI) const {
     OrigMIs.push_back(&OrigMI);
   }
 
-  Rollback |= !Uses.empty();
+  Rollback = Rollback || !Uses.empty();
 
   for (auto *MI : *(Rollback? &DPPMIs : &OrigMIs))
     MI->eraseFromParent();

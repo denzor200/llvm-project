@@ -1574,7 +1574,7 @@ bool PredTransitions::substituteVariants(const PredTransition &Trans) {
     // Push a new (empty) write sequence onto all partial Transitions.
     for (auto &PT : drop_begin(TransVec, StartIdx))
       PT.WriteSequences.emplace_back();
-    Subst |=
+    Subst = Subst ||
         substituteVariantOperand(WriteSequence, /*IsRead=*/false, StartIdx);
   }
   // Visit each original read sequence.
@@ -1582,7 +1582,7 @@ bool PredTransitions::substituteVariants(const PredTransition &Trans) {
     // Push a new (empty) read sequence onto all partial Transitions.
     for (auto &PT : drop_begin(TransVec, StartIdx))
       PT.ReadSequences.emplace_back();
-    Subst |= substituteVariantOperand(ReadSequence, /*IsRead=*/true, StartIdx);
+    Subst = Subst || substituteVariantOperand(ReadSequence, /*IsRead=*/true, StartIdx);
   }
   return Subst;
 }
@@ -1719,7 +1719,7 @@ void CodeGenSchedModels::inferFromRW(ArrayRef<unsigned> OperWrites,
     SubstitutedAny = false;
     PredTransitions Transitions(*this);
     for (const PredTransition &Trans : LastTransitions)
-      SubstitutedAny |= Transitions.substituteVariants(Trans);
+      SubstitutedAny = SubstitutedAny || Transitions.substituteVariants(Trans);
     LLVM_DEBUG(Transitions.dump());
     LastTransitions = std::move(Transitions.TransVec);
   } while (SubstitutedAny);

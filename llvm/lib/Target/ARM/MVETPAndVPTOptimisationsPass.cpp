@@ -1072,17 +1072,17 @@ bool MVETPAndVPTOptimisations::runOnMachineFunction(MachineFunction &Fn) {
 
   bool Modified = false;
   for (MachineLoop *ML : MLI->getLoopsInPreorder()) {
-    Modified |= LowerWhileLoopStart(ML);
-    Modified |= MergeLoopEnd(ML);
-    Modified |= ConvertTailPredLoop(ML, DT);
+    Modified = Modified || LowerWhileLoopStart(ML);
+    Modified = Modified || MergeLoopEnd(ML);
+    Modified = Modified || ConvertTailPredLoop(ML, DT);
   }
 
   for (MachineBasicBlock &MBB : Fn) {
-    Modified |= HintDoLoopStartReg(MBB);
-    Modified |= ReplaceConstByVPNOTs(MBB, DT);
-    Modified |= ReplaceVCMPsByVPNOTs(MBB);
-    Modified |= ReduceOldVCCRValueUses(MBB);
-    Modified |= ConvertVPSEL(MBB);
+    Modified = Modified || HintDoLoopStartReg(MBB);
+    Modified = Modified || ReplaceConstByVPNOTs(MBB, DT);
+    Modified = Modified || ReplaceVCMPsByVPNOTs(MBB);
+    Modified = Modified || ReduceOldVCCRValueUses(MBB);
+    Modified = Modified || ConvertVPSEL(MBB);
   }
 
   LLVM_DEBUG(dbgs() << "**************************************\n");

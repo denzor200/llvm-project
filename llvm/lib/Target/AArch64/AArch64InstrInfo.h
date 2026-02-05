@@ -627,10 +627,10 @@ struct UsedNZCV {
   UsedNZCV() = default;
 
   UsedNZCV &operator|=(const UsedNZCV &UsedFlags) {
-    this->N |= UsedFlags.N;
-    this->Z |= UsedFlags.Z;
-    this->C |= UsedFlags.C;
-    this->V |= UsedFlags.V;
+    this->N = this->N || UsedFlags.N;
+    this->Z = this->Z || UsedFlags.Z;
+    this->C = this->C || UsedFlags.C;
+    this->V = this->V || UsedFlags.V;
     return *this;
   }
 };

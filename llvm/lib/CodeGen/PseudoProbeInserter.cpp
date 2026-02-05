@@ -118,7 +118,7 @@ public:
         for (auto *MI : ToBeRemoved)
           MI->eraseFromParent();
 
-        Changed |= !ToBeRemoved.empty();
+        Changed = Changed || !ToBeRemoved.empty();
       }
     }
 

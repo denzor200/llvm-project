@@ -894,20 +894,20 @@ bool RISCVVectorPeephole::runOnMachineFunction(MachineFunction &MF) {
 
   for (MachineBasicBlock &MBB : MF) {
     for (MachineInstr &MI : make_early_inc_range(MBB))
-      Changed |= foldVMergeToMask(MI);
+      Changed = Changed || foldVMergeToMask(MI);
 
     for (MachineInstr &MI : make_early_inc_range(MBB)) {
-      Changed |= convertToVLMAX(MI);
-      Changed |= tryToReduceVL(MI);
-      Changed |= convertToUnmasked(MI);
-      Changed |= convertToWholeRegister(MI);
-      Changed |= convertAllOnesVMergeToVMv(MI);
-      Changed |= convertSameMaskVMergeToVMv(MI);
+      Changed = Changed || convertToVLMAX(MI);
+      Changed = Changed || tryToReduceVL(MI);
+      Changed = Changed || convertToUnmasked(MI);
+      Changed = Changed || convertToWholeRegister(MI);
+      Changed = Changed || convertAllOnesVMergeToVMv(MI);
+      Changed = Changed || convertSameMaskVMergeToVMv(MI);
       if (foldUndefPassthruVMV_V_V(MI)) {
         Changed = Changed || true;
         continue; // MI is erased
       }
-      Changed |= foldVMV_V_V(MI);
+      Changed = Changed || foldVMV_V_V(MI);
     }
   }
 

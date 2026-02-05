@@ -129,7 +129,7 @@ bool InitUndef::handleReg(MachineInstr *MI) {
       continue;
 
     if (UseMO.isUndef() || findImplictDefMIFromReg(UseMO.getReg(), MRI))
-      Changed |= fixupIllOperand(MI, UseMO);
+      Changed = Changed || fixupIllOperand(MI, UseMO);
   }
   return Changed;
 }
@@ -246,8 +246,8 @@ bool InitUndef::processBasicBlock(MachineFunction &MF, MachineBasicBlock &MBB,
 
     if (isEarlyClobberMI(MI)) {
       if (MRI->subRegLivenessEnabled())
-        Changed |= handleSubReg(MF, MI, *DLD);
-      Changed |= handleReg(&MI);
+        Changed = Changed || handleSubReg(MF, MI, *DLD);
+      Changed = Changed || handleReg(&MI);
     }
   }
   return Changed;
@@ -286,7 +286,7 @@ bool InitUndef::run(MachineFunction &MF) {
   }
 
   for (MachineBasicBlock &BB : MF)
-    Changed |= processBasicBlock(MF, BB, DLD.get());
+    Changed = Changed || processBasicBlock(MF, BB, DLD.get());
 
   for (auto *DeadMI : DeadInsts)
     DeadMI->eraseFromParent();

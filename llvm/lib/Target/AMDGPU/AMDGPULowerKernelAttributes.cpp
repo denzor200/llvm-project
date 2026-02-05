@@ -434,7 +434,7 @@ AMDGPULowerKernelAttributesPass::run(Function &F, FunctionAnalysisManager &AM) {
   for (Instruction &I : instructions(F)) {
     if (CallInst *CI = dyn_cast<CallInst>(&I)) {
       if (CI->getCalledFunction() == BasePtr)
-        Changed |= processUse(CI, IsV5OrAbove);
+        Changed = Changed || processUse(CI, IsV5OrAbove);
     }
   }
 

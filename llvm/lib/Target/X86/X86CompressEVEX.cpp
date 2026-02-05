@@ -494,7 +494,7 @@ static bool runOnMF(MachineFunction &MF) {
     SmallVector<MachineInstr *, 4> ToErase;
 
     for (MachineInstr &MI : llvm::make_early_inc_range(MBB)) {
-      Changed |= CompressEVEXImpl(MI, MBB, ST, ToErase);
+      Changed = Changed || CompressEVEXImpl(MI, MBB, ST, ToErase);
     }
 
     for (MachineInstr *MI : ToErase) {

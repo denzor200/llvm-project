@@ -586,8 +586,8 @@ ConstantFPRange ConstantFPRange::mul(const ConstantFPRange &Other) const {
     if (!LHS || !RHS)
       return;
     // 0 * inf = QNaN
-    ResMayBeQNaN |= LHS->HasZero && RHS->HasInf;
-    ResMayBeQNaN |= RHS->HasZero && LHS->HasInf;
+    ResMayBeQNaN = ResMayBeQNaN || LHS->HasZero && RHS->HasInf;
+    ResMayBeQNaN = ResMayBeQNaN || RHS->HasZero && LHS->HasInf;
     // NonZero * inf = inf
     if ((LHS->HasInf && RHS->HasNonZero) || (RHS->HasInf && LHS->HasNonZero))
       (Negative ? ResLower : ResUpper) = APFloat::getInf(Sem, Negative);
@@ -628,8 +628,8 @@ ConstantFPRange ConstantFPRange::div(const ConstantFPRange &Other) const {
     if (!LHS || !RHS)
       return;
     // inf / inf = QNaN 0 / 0 = QNaN
-    ResMayBeQNaN |= LHS->HasInf && RHS->HasInf;
-    ResMayBeQNaN |= LHS->HasZero && RHS->HasZero;
+    ResMayBeQNaN = ResMayBeQNaN || LHS->HasInf && RHS->HasInf;
+    ResMayBeQNaN = ResMayBeQNaN || LHS->HasZero && RHS->HasZero;
     // It is not straightforward to infer HasNonZeroFinite = HasFinite &&
     // HasNonZero. By definitions we have:
     //   HasFinite = HasNonZeroFinite || HasZero

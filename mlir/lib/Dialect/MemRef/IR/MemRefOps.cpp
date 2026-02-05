@@ -1440,9 +1440,9 @@ ExtractStridedMetadataOp::fold(FoldAdaptor adaptor,
   bool atLeastOneReplacement = replaceConstantUsesOf(
       builder, getLoc(), ArrayRef<TypedValue<IndexType>>(getOffset()),
       getConstifiedMixedOffset());
-  atLeastOneReplacement |= replaceConstantUsesOf(builder, getLoc(), getSizes(),
+  atLeastOneReplacement = atLeastOneReplacement || replaceConstantUsesOf(builder, getLoc(), getSizes(),
                                                  getConstifiedMixedSizes());
-  atLeastOneReplacement |= replaceConstantUsesOf(
+  atLeastOneReplacement = atLeastOneReplacement || replaceConstantUsesOf(
       builder, getLoc(), getStrides(), getConstifiedMixedStrides());
 
   // extract_strided_metadata(cast(x)) -> extract_strided_metadata(x).

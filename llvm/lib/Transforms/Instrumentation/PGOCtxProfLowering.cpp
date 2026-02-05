@@ -223,7 +223,7 @@ PreservedAnalyses PGOCtxProfLoweringPass::run(Module &M,
   CtxInstrumentationLowerer Lowerer(M, MAM);
   bool Changed = false;
   for (auto &F : M)
-    Changed |= Lowerer.lowerFunction(F);
+    Changed = Changed || Lowerer.lowerFunction(F);
   return Changed ? PreservedAnalyses::none() : PreservedAnalyses::all();
 }
 

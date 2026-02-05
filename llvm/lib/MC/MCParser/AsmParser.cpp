@@ -3397,7 +3397,7 @@ bool AsmParser::parseDirectiveAlign(bool IsPow2, uint8_t ValueSize) {
   if (IsPow2) {
     // FIXME: Diagnose overflow.
     if (Alignment >= 32) {
-      ReturnVal |= Error(AlignmentLoc, "invalid alignment value");
+      ReturnVal = ReturnVal || Error(AlignmentLoc, "invalid alignment value");
       Alignment = 31;
     }
 
@@ -3409,11 +3409,11 @@ bool AsmParser::parseDirectiveAlign(bool IsPow2, uint8_t ValueSize) {
     if (Alignment == 0)
       Alignment = 1;
     else if (!isPowerOf2_64(Alignment)) {
-      ReturnVal |= Error(AlignmentLoc, "alignment must be a power of 2");
+      ReturnVal = ReturnVal || Error(AlignmentLoc, "alignment must be a power of 2");
       Alignment = llvm::bit_floor<uint64_t>(Alignment);
     }
     if (!isUInt<32>(Alignment)) {
-      ReturnVal |= Error(AlignmentLoc, "alignment must be smaller than 2**32");
+      ReturnVal = ReturnVal || Error(AlignmentLoc, "alignment must be smaller than 2**32");
       Alignment = 1u << 31;
     }
   }
@@ -3421,7 +3421,7 @@ bool AsmParser::parseDirectiveAlign(bool IsPow2, uint8_t ValueSize) {
   // Diagnose non-sensical max bytes to align.
   if (MaxBytesLoc.isValid()) {
     if (MaxBytesToFill < 1) {
-      ReturnVal |= Error(MaxBytesLoc,
+      ReturnVal = ReturnVal || Error(MaxBytesLoc,
                          "alignment directive can never be satisfied in this "
                          "many bytes, ignoring maximum bytes expression");
       MaxBytesToFill = 0;
@@ -3438,7 +3438,7 @@ bool AsmParser::parseDirectiveAlign(bool IsPow2, uint8_t ValueSize) {
   assert(Section && "must have section to emit alignment");
 
   if (HasFillExpr && FillExpr != 0 && Section->isBssSection()) {
-    ReturnVal |=
+    ReturnVal = ReturnVal ||
         Warning(FillExprLoc, "ignoring non-zero fill value in BSS section '" +
                                  Section->getName() + "'");
     FillExpr = 0;
