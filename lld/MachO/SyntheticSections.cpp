@@ -1971,7 +1971,7 @@ void ObjCImageInfoSection::finalizeContents() {
   const InputFile *firstFile;
   for (const InputFile *file : files) {
     ImageInfo inputInfo = parseImageInfo(file);
-    info.hasCategoryClassProperties &= inputInfo.hasCategoryClassProperties;
+    info.hasCategoryClassProperties = info.hasCategoryClassProperties && inputInfo.hasCategoryClassProperties;
 
     // swiftVersion 0 means no Swift is present, so no version checking required
     if (inputInfo.swiftVersion == 0)

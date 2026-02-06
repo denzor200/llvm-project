@@ -1148,7 +1148,7 @@ getTensorExtractMemoryAccessPattern(tensor::ExtractOp extractOp,
   // TODO: Support generating contiguous loads for column vectors - that will
   // require adding a permutation map to tranfer_read Ops.
   bool isRowVector = resType.getShape().back() != 1;
-  isContiguousLoad &= (foundIndexOp && isRowVector);
+  isContiguousLoad = isContiguousLoad && (foundIndexOp && isRowVector);
 
   if (isContiguousLoad) {
     LDBG() << "Found contigous load: " << extractOp;

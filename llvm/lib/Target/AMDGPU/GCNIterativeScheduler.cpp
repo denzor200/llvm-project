@@ -525,7 +525,7 @@ void GCNIterativeScheduler::scheduleLegacyMaxOccupancy(
     LStrgy.setTargetOccupancy(I == 0 ? 0 : TgtOcc);
     for (auto *R : Regions) {
       OverrideLegacyStrategy Ovr(*R, LStrgy, *this);
-      IsReentry |= I > 0;
+      IsReentry = IsReentry || (I > 0);
       swapIGLPMutations(*R, IsReentry);
       Ovr.schedule();
       const auto RP = getRegionPressure(*R);

@@ -4669,7 +4669,7 @@ static TypeSourceInfo *GetFullTypeForDeclarator(TypeProcessingState &state,
     unsigned chunkIndex = e - i - 1;
     state.setCurrentChunkIndex(chunkIndex);
     DeclaratorChunk &DeclType = D.getTypeObject(chunkIndex);
-    IsQualifiedFunction &= DeclType.Kind == DeclaratorChunk::Paren;
+    IsQualifiedFunction = IsQualifiedFunction && (DeclType.Kind == DeclaratorChunk::Paren);
     switch (DeclType.Kind) {
     case DeclaratorChunk::Paren:
       if (i == 0)

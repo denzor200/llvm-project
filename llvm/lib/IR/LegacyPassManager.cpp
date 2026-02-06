@@ -1421,7 +1421,7 @@ bool FPPassManager::runOnFunction(Function &F) {
       }
     }
 
-    Changed |= LocalChanged;
+    Changed = Changed || LocalChanged;
     if (LocalChanged)
       dumpPassInfo(FP, MODIFICATION_MSG, ON_FUNCTION_MSG, Name);
     dumpPreservedSet(FP);
@@ -1530,7 +1530,7 @@ MPPassManager::runOnModule(Module &M) {
       }
     }
 
-    Changed |= LocalChanged;
+    Changed = Changed || LocalChanged;
     if (LocalChanged)
       dumpPassInfo(MP, MODIFICATION_MSG, ON_MODULE_MSG,
                    M.getModuleIdentifier());

@@ -521,10 +521,10 @@ struct CodeCompletionBuilder {
     }
     if (Completion.Deprecated) {
       if (C.SemaResult)
-        Completion.Deprecated &=
-            C.SemaResult->Availability == CXAvailability_Deprecated;
+        Completion.Deprecated = Completion.Deprecated &&
+            (C.SemaResult->Availability == CXAvailability_Deprecated);
       if (C.IndexResult)
-        Completion.Deprecated &=
+        Completion.Deprecated = Completion.Deprecated &&
             bool(C.IndexResult->Flags & Symbol::Deprecated);
     }
   }
@@ -1950,7 +1950,7 @@ private:
 
       trace::Span WaitSpec("Wait speculative results");
       auto SpecRes = SpecFuzzyFind->Result.get();
-      Incomplete |= SpecRes.first;
+      Incomplete = Incomplete || SpecRes.first;
       return std::move(SpecRes.second);
     }
 
@@ -2123,7 +2123,7 @@ private:
         Origin |= Candidate.IndexResult->Origin;
         FromIndex = true;
         if (!Candidate.IndexResult->Type.empty())
-          Relevance.HadSymbolType |= true;
+          Relevance.HadSymbolType = Relevance.HadSymbolType || true;
         if (PreferredType &&
             PreferredType->raw() == Candidate.IndexResult->Type) {
           Relevance.TypeMatchesPreferred = true;
@@ -2135,7 +2135,7 @@ private:
         if (PreferredType) {
           if (auto CompletionType = OpaqueType::fromCompletionResult(
                   Recorder->CCSema->getASTContext(), *Candidate.SemaResult)) {
-            Relevance.HadSymbolType |= true;
+            Relevance.HadSymbolType = Relevance.HadSymbolType || true;
             if (PreferredType == CompletionType)
               Relevance.TypeMatchesPreferred = true;
           }

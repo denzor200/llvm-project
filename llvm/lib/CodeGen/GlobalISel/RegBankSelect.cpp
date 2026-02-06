@@ -1073,11 +1073,11 @@ bool RegBankSelect::MappingCost::operator<(const MappingCost &Cost) const {
       OtherLocalAdjust &&
       (OtherScaledCost < OtherLocalAdjust || OtherScaledCost < Cost.LocalFreq);
   // Add the non-local costs.
-  ThisOverflows |= ThisNonLocalAdjust &&
-                   ThisScaledCost + ThisNonLocalAdjust < ThisNonLocalAdjust;
+  ThisOverflows = ThisOverflows || (ThisNonLocalAdjust &&
+                   ThisScaledCost + ThisNonLocalAdjust < ThisNonLocalAdjust);
   ThisScaledCost += ThisNonLocalAdjust;
-  OtherOverflows |= OtherNonLocalAdjust &&
-                    OtherScaledCost + OtherNonLocalAdjust < OtherNonLocalAdjust;
+  OtherOverflows = OtherOverflows || (OtherNonLocalAdjust &&
+                    OtherScaledCost + OtherNonLocalAdjust < OtherNonLocalAdjust);
   OtherScaledCost += OtherNonLocalAdjust;
   // If both overflows, we cannot compare without additional
   // precision, e.g., APInt. Just give up on that case.

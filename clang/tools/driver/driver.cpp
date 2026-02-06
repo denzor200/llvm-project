@@ -432,7 +432,7 @@ int clang_main(int Argc, char **Argv, const llvm::ToolContext &ToolContext) {
       // the same codes as if the program crashed. See section "Exit Status for
       // Commands":
       // https://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_xcu_chap02.html
-      IsCrash |= CommandRes > 128;
+      IsCrash = IsCrash || (CommandRes > 128);
 #endif
       CommandStatus =
           IsCrash ? Driver::CommandStatus::Crash : Driver::CommandStatus::Error;

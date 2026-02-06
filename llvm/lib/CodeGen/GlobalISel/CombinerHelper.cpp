@@ -5604,7 +5604,7 @@ MachineInstr *CombinerHelper::buildUDivOrURemUsingMul(MachineInstr &MI) const {
             .getReg(0));
     PostShifts.push_back(
         MIB.buildConstant(ScalarShiftAmtTy, PostShift).getReg(0));
-    UseNPQ |= SelNPQ;
+    UseNPQ = UseNPQ || SelNPQ;
     return true;
   };
 

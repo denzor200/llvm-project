@@ -4616,8 +4616,8 @@ void X86FrameLowering::spillFPBP(MachineFunction &MF) const {
       bool SpillFP = false, SpillBP = false;
       auto DefMI = MI, KillMI = MI;
       do {
-        SpillFP |= AccessFP;
-        SpillBP |= AccessBP;
+        SpillFP = SpillFP || AccessFP;
+        SpillBP = SpillBP || AccessBP;
 
         // Maintain FPLive and BPLive.
         if (FPLive && MI->findRegisterDefOperandIdx(FP, TRI, false, true) != -1)

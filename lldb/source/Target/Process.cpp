@@ -3412,7 +3412,7 @@ Status Process::Halt(bool clear_thread_plans, bool use_run_lock) {
 
   // Don't clear the m_clear_thread_plans_on_stop, only set it to true if in
   // case it was already set and some thread plan logic calls halt on its own.
-  m_clear_thread_plans_on_stop |= clear_thread_plans;
+  m_clear_thread_plans_on_stop = m_clear_thread_plans_on_stop || clear_thread_plans;
 
   ListenerSP halt_listener_sp(
       Listener::MakeListener("lldb.process.halt_listener"));

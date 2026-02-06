@@ -699,12 +699,12 @@ StmtResult Sema::ActOnGCCAsmStmt(SourceLocation AsmLoc, bool IsSimple,
       // This is a use in the asm string of the smaller operand.  Since we
       // codegen this by promoting to a wider value, the asm will get printed
       // "wrong".
-      SmallerValueMentioned |= InSize < OutSize;
+      SmallerValueMentioned = SmallerValueMentioned || (InSize < OutSize);
     }
     if (isOperandMentioned(TiedTo, Pieces)) {
       // If this is a reference to the output, and if the output is the larger
       // value, then it's ok because we'll promote the input to the larger type.
-      SmallerValueMentioned |= OutSize < InSize;
+      SmallerValueMentioned = SmallerValueMentioned || (OutSize < InSize);
     }
 
     // If the input is an integer register while the output is floating point,

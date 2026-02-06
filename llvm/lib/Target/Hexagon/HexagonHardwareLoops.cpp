@@ -1172,8 +1172,8 @@ bool HexagonHardwareLoops::convertToHardwareLoop(MachineLoop *L,
   // Process nested loops first.
   for (MachineLoop *I : *L) {
     Changed |= convertToHardwareLoop(I, RecL0used, RecL1used);
-    L0Used |= RecL0used;
-    L1Used |= RecL1used;
+    L0Used = L0Used || RecL0used;
+    L1Used = L1Used || RecL1used;
   }
 
   // If a nested loop has been converted, then we can't convert this loop.

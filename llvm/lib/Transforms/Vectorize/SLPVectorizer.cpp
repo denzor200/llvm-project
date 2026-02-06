@@ -9434,7 +9434,7 @@ bool BoUpSLP::canFormVector(ArrayRef<StoreInst *> StoresVec,
   bool IsIdentity = true;
   for (auto [I, P] : enumerate(StoreOffsetVec)) {
     ReorderIndices[P.second] = I;
-    IsIdentity &= P.second == I;
+    IsIdentity = IsIdentity && (P.second == I);
   }
   // Identity order (e.g., {0,1,2,3}) is modeled as an empty OrdersType in
   // reorderTopToBottom() and reorderBottomToTop(), so we are following the
@@ -12545,7 +12545,7 @@ bool BoUpSLP::canReuseExtract(ArrayRef<Value *> VL,
       CurrentOrder.clear();
       return false;
     }
-    ShouldKeepOrder &= ExtIdx == I;
+    ShouldKeepOrder = ShouldKeepOrder && (ExtIdx == I);
     CurrentOrder[ExtIdx] = I;
   }
   if (ShouldKeepOrder)
@@ -13661,9 +13661,9 @@ void BoUpSLP::transformNodes() {
                 StridedPtrInfo SPtrInfo;
                 LoadsState Res = canVectorizeLoads(Slice, Slice.front(), Order,
                                                    PointerOps, SPtrInfo);
-                AllStrided &= Res == LoadsState::StridedVectorize ||
+                AllStrided = AllStrided && (Res == LoadsState::StridedVectorize ||
                               Res == LoadsState::ScatterVectorize ||
-                              Res == LoadsState::Gather;
+                              Res == LoadsState::Gather);
                 // Do not vectorize gathers.
                 if (Res == LoadsState::ScatterVectorize ||
                     Res == LoadsState::Gather) {
@@ -15296,7 +15296,7 @@ BoUpSLP::getEntryCost(const TreeEntry *E, ArrayRef<Value *> VectorizedVals,
     for (unsigned I = 0; I < NumScalars; ++I) {
       unsigned InsertIdx = *getElementIndex(VL[PrevMask[I]]);
       DemandedElts.setBit(InsertIdx);
-      IsIdentity &= InsertIdx - OffsetBeg == I;
+      IsIdentity = IsIdentity && (InsertIdx - OffsetBeg == I);
       Mask[InsertIdx - OffsetBeg] = I;
     }
     assert(Offset < NumElts && "Failed to find vector index offset");
@@ -18341,7 +18341,7 @@ BoUpSLP::isGatherShuffledSingleRegisterEntry(
         } else {
           DemandedElts.clearBit(I);
           if (Idx != PoisonMaskElem)
-            IsIdentity &= static_cast<int>(I) == Idx;
+            IsIdentity = IsIdentity && (static_cast<int>(I) == Idx);
         }
       }
       if (!IsIdentity)
@@ -18365,7 +18365,7 @@ BoUpSLP::isGatherShuffledSingleRegisterEntry(
           DemandedElts.clearBit(I);
           if (Idx != PoisonMaskElem) {
             Idx -= NewVF;
-            IsIdentity &= static_cast<int>(I) == Idx;
+            IsIdentity = IsIdentity && (static_cast<int>(I) == Idx);
           }
         }
       }
@@ -19897,7 +19897,7 @@ ResTy BoUpSLP::processBuildVector(const TreeEntry *E, Type *ScalarTy,
             cast<FixedVectorType>(Vec1->getType())->getNumElements(), 0,
             ExtractMask.size(), IsNotPoisonedVec);
         ShuffleBuilder.add(Vec1, ExtractMask, /*ForExtracts=*/true);
-        IsNonPoisoned &= IsNotPoisonedVec;
+        IsNonPoisoned = IsNonPoisoned && IsNotPoisonedVec;
       } else {
         IsUsedInExpr = false;
         ShuffleBuilder.add(PoisonValue::get(VecTy), ExtractMask,
@@ -19930,7 +19930,7 @@ ResTy BoUpSLP::processBuildVector(const TreeEntry *E, Type *ScalarTy,
               FindReusedSplat(VecMask, TEs.front()->getVectorFactor(), I,
                               SliceSize, IsNotPoisonedVec);
           ShuffleBuilder.add(*TEs.front(), VecMask);
-          IsNonPoisoned &= IsNotPoisonedVec;
+          IsNonPoisoned = IsNonPoisoned && IsNotPoisonedVec;
         } else {
           IsUsedInExpr = false;
           ShuffleBuilder.add(*TEs.front(), *TEs.back(), VecMask);
@@ -20424,7 +20424,7 @@ Value *BoUpSLP::vectorizeTree(TreeEntry *E) {
       for (unsigned I = 0; I < NumScalars; ++I) {
         Value *Scalar = E->Scalars[PrevMask[I]];
         unsigned InsertIdx = *getElementIndex(Scalar);
-        IsIdentity &= InsertIdx - Offset == I;
+        IsIdentity = IsIdentity && (InsertIdx - Offset == I);
         Mask[InsertIdx - Offset] = I;
       }
       if (!IsIdentity || NumElts != NumScalars) {
@@ -25697,7 +25697,7 @@ public:
         if (!CheckForReusedReductionOpsLocal && PrevReduxWidth == ReduxWidth) {
           // Check if any of the reduction ops are gathered. If so, worth
           // trying again with less number of reduction ops.
-          CheckForReusedReductionOpsLocal |= IsAnyRedOpGathered;
+          CheckForReusedReductionOpsLocal = CheckForReusedReductionOpsLocal || IsAnyRedOpGathered;
         }
         ++Pos;
         if (Pos < NumReducedVals - ReduxWidth + 1)
@@ -27704,7 +27704,7 @@ bool SLPVectorizerPass::vectorizeChainsInBlock(BasicBlock *BB, BoUpSLP &R) {
           return tryToVectorizeList(Candidates, R, MaxVFOnly);
         },
         /*MaxVFOnly=*/true, R);
-    Changed |= HaveVectorizedPhiNodes;
+    Changed = Changed || HaveVectorizedPhiNodes;
     if (HaveVectorizedPhiNodes && any_of(PHIToOpcodes, [&](const auto &P) {
           auto *PHI = dyn_cast<PHINode>(P.first);
           return !PHI || R.isDeleted(PHI);
@@ -27794,7 +27794,7 @@ bool SLPVectorizerPass::vectorizeChainsInBlock(BasicBlock *BB, BoUpSLP &R) {
             PI && !IsInPostProcessInstrs(PI)) {
           bool Res =
               vectorizeRootInstruction(nullptr, PI, P->getIncomingBlock(I), R);
-          Changed |= Res;
+          Changed = Changed || Res;
           if (Res && R.isDeleted(P)) {
             It = BB->begin();
             E = BB->end();

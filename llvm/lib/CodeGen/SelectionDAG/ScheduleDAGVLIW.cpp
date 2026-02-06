@@ -212,7 +212,7 @@ void ScheduleDAGVLIW::listScheduleTopDown() {
       }
 
       // Remember if this is a noop hazard.
-      HasNoopHazards |= HT == ScheduleHazardRecognizer::NoopHazard;
+      HasNoopHazards = HasNoopHazards || (HT == ScheduleHazardRecognizer::NoopHazard);
 
       NotReady.push_back(CurSUnit);
     }

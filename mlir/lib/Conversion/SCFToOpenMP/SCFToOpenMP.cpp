@@ -130,7 +130,7 @@ matchSelectReduction(Block &block, ArrayRef<Predicate> lessThanPredicates,
   // The reduction is a min if it uses less-than predicates with same operands
   // or greather-than predicates with swapped operands. Similarly for max.
   isMin = (isLess && sameOperands) || (!isLess && swappedOperands);
-  return isMin || (isLess & swappedOperands) || (!isLess && sameOperands);
+  return isMin || (isLess && swappedOperands) || (!isLess && sameOperands);
 }
 
 /// Returns the float semantics for the given float type.

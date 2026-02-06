@@ -591,7 +591,7 @@ Error Inliner::runOnFunctions(BinaryContext &BC) {
       if (DidInline)
         Modified.insert(Function);
 
-      InlinedOnce |= DidInline;
+      InlinedOnce = InlinedOnce || DidInline;
     }
 
     ++NumIters;

@@ -14082,7 +14082,7 @@ class SequenceChecker : public ConstEvaluatedExprVisitor<SequenceChecker> {
     ~EvaluationTracker() {
       Self.EvalTracker = Prev;
       if (Prev)
-        Prev->EvalOK &= EvalOK;
+        Prev->EvalOK = Prev->EvalOK && EvalOK;
     }
 
     bool evaluate(const Expr *E, bool &Result) {

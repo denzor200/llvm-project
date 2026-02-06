@@ -1084,8 +1084,8 @@ void ARMLoadStoreOpt::FormCandidates(const MemOpQueue &MemOps) {
 
       if (!PartOfLSMulti && !PartOfLSDouble)
         break;
-      CanMergeToLSMulti &= PartOfLSMulti;
-      CanMergeToLSDouble &= PartOfLSDouble;
+      CanMergeToLSMulti = CanMergeToLSMulti && PartOfLSMulti;
+      CanMergeToLSDouble = CanMergeToLSDouble && PartOfLSDouble;
       // Track MemOp with latest and earliest position (Positions are
       // counted in reverse).
       unsigned Position = MemOps[I].Position;
@@ -2116,7 +2116,7 @@ bool ARMLoadStoreOpt::runOnMachineFunction(MachineFunction &Fn) {
     if (isThumb1)
       Modified |= CombineMovBx(MBB);
   }
-  Modified |= ModifiedLDMReturn;
+  Modified = Modified || ModifiedLDMReturn;
 
   // If we merged a BX instruction into an LDM, we need to re-calculate whether
   // LR is restored. This check needs to consider the whole function, not just

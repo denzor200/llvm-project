@@ -1421,8 +1421,8 @@ void LinkerScript::adjustOutputSections() {
       sec->markDead();
       cmd = nullptr;
     } else {
-      seenRelro |=
-          sec->relro && !(sec->type == SHT_NOBITS && (sec->flags & SHF_TLS));
+      seenRelro = seenRelro ||
+          (sec->relro && !(sec->type == SHT_NOBITS && (sec->flags & SHF_TLS)));
     }
   }
 

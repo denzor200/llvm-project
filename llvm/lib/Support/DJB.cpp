@@ -62,7 +62,7 @@ static std::optional<uint32_t> fastCaseFoldingDjbHash(StringRef Buffer,
   bool AllASCII = true;
   for (unsigned char C : Buffer) {
     H = H * 33 + ('A' <= C && C <= 'Z' ? C - 'A' + 'a' : C);
-    AllASCII &= C <= 0x7f;
+    AllASCII = AllASCII && (C <= 0x7f);
   }
   if (AllASCII)
     return H;

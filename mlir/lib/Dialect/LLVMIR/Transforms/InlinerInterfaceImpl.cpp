@@ -94,7 +94,7 @@ handleInlinedAllocas(Operation *call,
     }
     bool shouldInsertLifetime =
         arraySize.getValue() != 0 && !hasLifetimeMarkers(allocaOp);
-    shouldInsertLifetimes |= shouldInsertLifetime;
+    shouldInsertLifetimes = shouldInsertLifetimes || shouldInsertLifetime;
     allocasToMove.emplace_back(allocaOp, arraySize, shouldInsertLifetime);
   }
   // Check the remaining inlined blocks for dynamic allocas as well.

@@ -1996,7 +1996,7 @@ static bool isSymbolicCustomOperandEncoding(const CustomOperandVal *Opr,
     unsigned Val = Op.decode(Code);
     if (!Op.isValid(Val))
       return false;
-    HasNonDefaultVal |= (Val != Op.Default);
+    HasNonDefaultVal = HasNonDefaultVal || (Val != Op.Default);
   }
   return (Code & ~UsedOprMask) == 0;
 }

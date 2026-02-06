@@ -2538,7 +2538,7 @@ bool hasIntersectingAccesses(isl::set AllAccs, MemoryAccess *LoadMA,
     if (CompatibleSpace) {
       auto OverlapAccs = Accs.intersect(AllAccs);
       bool DoesIntersect = !OverlapAccs.is_empty();
-      HasIntersectingAccs |= DoesIntersect;
+      HasIntersectingAccs = HasIntersectingAccs || DoesIntersect;
     }
   }
   return HasIntersectingAccs;

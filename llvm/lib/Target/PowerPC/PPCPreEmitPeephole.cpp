@@ -345,7 +345,7 @@ static bool hasPCRelativeForm(MachineInstr &Use) {
             MachineOperand::CreateMCSymbol(Symbol, PPCII::MO_PCREL_OPT_FLAG);
         Pair->DefInst->addOperand(*MF, PCRelLabel);
         Pair->UseInst->addOperand(*MF, PCRelLabel);
-        MadeChange |= true;
+        MadeChange = MadeChange || true;
       }
       return MadeChange;
     }

@@ -1173,7 +1173,7 @@ bool Attributor::hasAttr(const IRPosition &IRP,
   auto HasAttrCB = [&](const Attribute::AttrKind &Kind, AttributeSet AttrSet,
                        AttributeMask &, AttrBuilder &) {
     if (AttrSet.hasAttribute(Kind)) {
-      Implied |= Kind != ImpliedAttributeKind;
+      Implied = Implied || (Kind != ImpliedAttributeKind);
       HasAttr = true;
     }
     return false;

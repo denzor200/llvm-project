@@ -394,7 +394,7 @@ public:
       unsigned SrcVBIndex = VTContext.getVBTableIndex(SrcRD, VBase);
       unsigned DstVBIndex = VTContext.getVBTableIndex(DstRD, VBase);
       Map[SrcVBIndex] = llvm::ConstantInt::get(CGM.IntTy, DstVBIndex * 4);
-      AnyDifferent |= SrcVBIndex != DstVBIndex;
+      AnyDifferent = AnyDifferent || (SrcVBIndex != DstVBIndex);
     }
     // This map would be useless, don't use it.
     if (!AnyDifferent)

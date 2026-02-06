@@ -651,7 +651,7 @@ bool PreISelIntrinsicLowering::lowerIntrinsics(Module &M) const {
         // Expansion of VP intrinsics may change the IR but not actually
         // replace the intrinsic, so update Changed for the pass
         // and compute Removed for forEachCall.
-        Changed |= ED != VPExpansionDetails::IntrinsicUnchanged;
+        Changed = Changed || (ED != VPExpansionDetails::IntrinsicUnchanged);
         bool Removed = ED == VPExpansionDetails::IntrinsicReplaced;
         return Removed;
       });

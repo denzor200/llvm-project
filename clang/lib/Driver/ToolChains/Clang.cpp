@@ -3852,7 +3852,7 @@ static bool RenderModulesOptions(Compilation &C, const Driver &D,
     }
   }
 
-  HaveModules |= HaveClangModules;
+  HaveModules = HaveModules || HaveClangModules;
 
   if (HaveModules && !AllowedInCXX)
     CmdArgs.push_back("-fno-cxx-modules");
