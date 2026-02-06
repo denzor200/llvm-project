@@ -199,13 +199,13 @@ public:
       // Phase: optree
       if (Opts.isPhaseEnabled(PassPhase::Optree)) {
         bool ModifiedByOptree = runForwardOpTree(*S);
-        ModifiedSinceSimplify |= ModifiedByOptree;
+        ModifiedSinceSimplify = ModifiedSinceSimplify || ModifiedByOptree;
       }
 
       // Phase: delicm
       if (Opts.isPhaseEnabled(PassPhase::DeLICM)) {
         bool ModifiedByDelicm = runDeLICM(*S);
-        ModifiedSinceSimplify |= ModifiedByDelicm;
+        ModifiedSinceSimplify = ModifiedSinceSimplify || ModifiedByDelicm;
       }
 
       // Phase: simplify-1

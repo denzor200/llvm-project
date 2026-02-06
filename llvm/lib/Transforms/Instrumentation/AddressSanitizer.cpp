@@ -3611,8 +3611,8 @@ void FunctionStackPoisoner::processStaticAllocas() {
   // 2) There is a returns_twice call (typically setjmp), which is
   //    optimization-hostile, and doesn't play well with introduced indirect
   //    register-relative calculation of local variable addresses.
-  DoDynamicAlloca &= !HasInlineAsm && !HasReturnsTwiceCall;
-  DoStackMalloc &= !HasInlineAsm && !HasReturnsTwiceCall;
+  DoDynamicAlloca = DoDynamicAlloca && !HasInlineAsm && !HasReturnsTwiceCall;
+  DoStackMalloc = DoStackMalloc && !HasInlineAsm && !HasReturnsTwiceCall;
 
   Type *PtrTy = F.getDataLayout().getAllocaPtrType(F.getContext());
   Value *StaticAlloca =

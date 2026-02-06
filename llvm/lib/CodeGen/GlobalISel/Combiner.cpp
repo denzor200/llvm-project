@@ -313,11 +313,11 @@ bool Combiner::combineMachineInstrs() {
       LLVM_DEBUG(dbgs() << "\nTry combining " << CurrInst);
       bool AppliedCombine = tryCombineAll(CurrInst);
       LLVM_DEBUG(WLObserver->reportFullyCreatedInstrs());
-      Changed |= AppliedCombine;
+      Changed = Changed || AppliedCombine;
       if (AppliedCombine)
         WLObserver->appliedCombine();
     }
-    MFChanged |= Changed;
+    MFChanged = MFChanged || Changed;
 
     if (!Changed) {
       LLVM_DEBUG(dbgs() << "\nCombiner reached fixed-point after iteration #"

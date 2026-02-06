@@ -217,7 +217,7 @@ static bool unifyLoopExits(DominatorTree &DT, LoopInfo &LI, Loop *L) {
   bool ChangedCFG;
   std::tie(LoopExitBlock, ChangedCFG) = CHub.finalize(
       &DTU, GuardBlocks, "loop.exit", MaxBooleansInControlFlowHub.getValue());
-  ChangedCFG |= Changed;
+  ChangedCFG = ChangedCFG || Changed;
   if (!ChangedCFG)
     return false;
 

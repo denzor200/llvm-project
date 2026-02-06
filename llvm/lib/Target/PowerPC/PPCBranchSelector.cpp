@@ -401,7 +401,7 @@ bool PPCBSel::runOnMachineFunction(MachineFunction &Fn) {
       modifyAdjustment(Fn);
     }
 
-    EverMadeChange |= MadeChange;
+    EverMadeChange = EverMadeChange || MadeChange;
   }
 
   BlockSizes.clear();

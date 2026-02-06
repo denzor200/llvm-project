@@ -685,7 +685,7 @@ LogicalResult mlir::tryToPromoteMemorySlots(
       }
       if (!changedAllocator)
         newWorkList.push_back(allocator);
-      changesInThisRound |= changedAllocator;
+      changesInThisRound = changesInThisRound || changedAllocator;
     }
     if (!changesInThisRound)
       break;

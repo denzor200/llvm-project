@@ -27,7 +27,7 @@ public:
 
   void setExprNeedsCleanups(bool SideEffects) {
     ExprNeedsCleanups = true;
-    CleanupsHaveSideEffects |= SideEffects;
+    CleanupsHaveSideEffects = CleanupsHaveSideEffects = CleanupsHaveSideEffects || SideEffects;
   }
 
   void reset() {
@@ -36,8 +36,8 @@ public:
   }
 
   void mergeFrom(CleanupInfo Rhs) {
-    ExprNeedsCleanups |= Rhs.ExprNeedsCleanups;
-    CleanupsHaveSideEffects |= Rhs.CleanupsHaveSideEffects;
+    ExprNeedsCleanups = ExprNeedsCleanups = ExprNeedsCleanups || Rhs.ExprNeedsCleanups;
+    CleanupsHaveSideEffects = CleanupsHaveSideEffects = CleanupsHaveSideEffects || Rhs.CleanupsHaveSideEffects;
   }
 };
 

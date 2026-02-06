@@ -179,7 +179,7 @@ Value *GenericToNVVM::remapConstantVectorOrConstantAggregate(
   for (unsigned i = 0; i < NumOperands; ++i) {
     Value *Operand = C->getOperand(i);
     Value *NewOperand = remapConstant(M, F, cast<Constant>(Operand), Builder);
-    OperandChanged |= Operand != NewOperand;
+    OperandChanged = OperandChanged || (Operand != NewOperand);
     NewOperands.push_back(NewOperand);
   }
 
@@ -218,7 +218,7 @@ Value *GenericToNVVM::remapConstantExpr(Module *M, Function *F, ConstantExpr *C,
   for (unsigned i = 0; i < NumOperands; ++i) {
     Value *Operand = C->getOperand(i);
     Value *NewOperand = remapConstant(M, F, cast<Constant>(Operand), Builder);
-    OperandChanged |= Operand != NewOperand;
+    OperandChanged = OperandChanged || (Operand != NewOperand);
     NewOperands.push_back(NewOperand);
   }
 

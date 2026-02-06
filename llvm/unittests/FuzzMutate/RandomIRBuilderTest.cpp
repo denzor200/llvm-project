@@ -514,7 +514,7 @@ TEST(RandomIRBuilderTest, sinkToIntrinsic) {
     Value *Src = F.getArg(1);
     IB.connectToSink(BB, {I}, Src);
     Value *NewOperand = I->getOperand(0);
-    Modified |= (OldOperand != NewOperand);
+    Modified = Modified || (OldOperand != NewOperand);
     ASSERT_FALSE(verifyModule(*M, &errs()));
   }
   ASSERT_TRUE(Modified);
@@ -526,7 +526,7 @@ TEST(RandomIRBuilderTest, sinkToIntrinsic) {
     Value *Src = F.getArg(5);
     IB.connectToSink(BB, {I}, Src);
     Value *NewOperand = I->getOperand(0);
-    Modified |= (OldOperand != NewOperand);
+    Modified = Modified || (OldOperand != NewOperand);
     ASSERT_FALSE(verifyModule(*M, &errs()));
   }
   ASSERT_FALSE(Modified);
@@ -556,7 +556,7 @@ TEST(RandomIRBuilderTest, DoNotCallPointerWhenSink) {
     Value *Src = F.getArg(0);
     IB.connectToSink(BB, {I}, Src);
     Value *NewOperand = I->getOperand(0);
-    Modified |= (OldOperand != NewOperand);
+    Modified = Modified || (OldOperand != NewOperand);
     ASSERT_FALSE(verifyModule(*M, &errs()));
   }
   ASSERT_FALSE(Modified);

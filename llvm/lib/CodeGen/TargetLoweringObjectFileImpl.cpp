@@ -2312,7 +2312,7 @@ MCSection *TargetLoweringObjectFileWasm::SelectSectionForGlobal(
     EmitUniqueSection = TM.getDataSections();
   EmitUniqueSection |= GO->hasComdat();
   bool Retain = Used.count(GO);
-  EmitUniqueSection |= Retain;
+  EmitUniqueSection = EmitUniqueSection || Retain;
 
   return selectWasmSectionForGlobal(getContext(), GO, Kind, getMangler(), TM,
                                     EmitUniqueSection, &NextUniqueID, Retain);

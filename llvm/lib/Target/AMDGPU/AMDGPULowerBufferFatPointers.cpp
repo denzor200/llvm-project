@@ -337,7 +337,7 @@ Type *BufferFatPtrTypeLoweringBase::remapTypeImpl(Type *Ty) {
     Type *OldElem = Ty->getContainedType(I);
     Type *NewElem = remapTypeImpl(OldElem);
     ElementTypes[I] = NewElem;
-    Changed |= (OldElem != NewElem);
+    Changed = Changed || (OldElem != NewElem);
   }
   // Recursive calls to remapTypeImpl() may have invalidated pointer.
   Entry = &Map[Ty];

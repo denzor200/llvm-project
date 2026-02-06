@@ -505,7 +505,7 @@ HexagonTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     ISD::ArgFlagsTy Flags = Outs[i].Flags;
     // Record if we need > 8 byte alignment on an argument.
     bool ArgAlign = Subtarget.isHVXVectorType(VA.getValVT());
-    NeedsArgAlign |= ArgAlign;
+    NeedsArgAlign = NeedsArgAlign || ArgAlign;
 
     // Promote the value if needed.
     switch (VA.getLocInfo()) {
@@ -2902,8 +2902,8 @@ HexagonTargetLowering::LowerBUILD_VECTOR(SDValue Op, SelectionDAG &DAG) const {
         break;
       }
       uint32_t C = CN->getZExtValue();
-      All0 &= (C == 0);
-      All1 &= (C == 1);
+      All0 = All0 && (C == 0);
+      All1 = All1 && (C == 1);
     }
     if (All0)
       return DAG.getNode(HexagonISD::PFALSE, dl, VecTy);

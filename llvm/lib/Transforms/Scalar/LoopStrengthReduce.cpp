@@ -4969,8 +4969,8 @@ void LSRInstance::NarrowSearchSpaceByCollapsingUnrolledCode() {
 
       LLVM_DEBUG(dbgs() << "  Deleting use "; LU.print(dbgs()); dbgs() << '\n');
 
-      LUThatHas->AllFixupsOutsideLoop &= LU.AllFixupsOutsideLoop;
-      LUThatHas->AllFixupsUnconditional &= LU.AllFixupsUnconditional;
+      LUThatHas->AllFixupsOutsideLoop = LUThatHas->AllFixupsOutsideLoop && LU.AllFixupsOutsideLoop;
+      LUThatHas->AllFixupsUnconditional = LUThatHas->AllFixupsUnconditional && LU.AllFixupsUnconditional;
 
       // Transfer the fixups of LU to LUThatHas.
       for (LSRFixup &Fixup : LU.Fixups) {

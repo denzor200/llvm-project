@@ -1289,7 +1289,7 @@ static DecodeStatus DecodeAddrMode3Instruction(MCInst &Inst, unsigned Insn,
   unsigned P = fieldFromInstruction(Insn, 24, 1);
   unsigned Rt2 = Rt + 1;
 
-  bool writeback = (W == 1) | (P == 0);
+  bool writeback = (W == 1) || (P == 0);
 
   // For {LD,ST}RD, Rt must be even, else undefined.
   switch (Inst.getOpcode()) {
@@ -4966,7 +4966,7 @@ static DecodeStatus DecodeT2LDRDPreInstruction(MCInst &Inst, unsigned Insn,
   unsigned W = fieldFromInstruction(Insn, 21, 1);
   unsigned U = fieldFromInstruction(Insn, 23, 1);
   unsigned P = fieldFromInstruction(Insn, 24, 1);
-  bool writeback = (W == 1) | (P == 0);
+  bool writeback = (W == 1) || (P == 0);
 
   addr |= (U << 8) | (Rn << 9);
 
@@ -5004,7 +5004,7 @@ static DecodeStatus DecodeT2STRDPreInstruction(MCInst &Inst, unsigned Insn,
   unsigned W = fieldFromInstruction(Insn, 21, 1);
   unsigned U = fieldFromInstruction(Insn, 23, 1);
   unsigned P = fieldFromInstruction(Insn, 24, 1);
-  bool writeback = (W == 1) | (P == 0);
+  bool writeback = (W == 1) || (P == 0);
 
   addr |= (U << 8) | (Rn << 9);
 

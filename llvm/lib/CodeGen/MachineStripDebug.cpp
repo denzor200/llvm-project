@@ -59,14 +59,14 @@ struct StripDebugMachineModule : public ModulePass {
             if (MI.getNumOperands() > 1) {
               LLVM_DEBUG(dbgs() << "Removing debug instruction " << MI);
               MBB.erase_instr(&MI);
-              Changed |= true;
+              Changed = Changed || true;
               continue;
             }
           }
           if (MI.getDebugLoc()) {
             LLVM_DEBUG(dbgs() << "Removing location " << MI);
             MI.setDebugLoc(DebugLoc());
-            Changed |= true;
+            Changed = Changed || true;
             continue;
           }
           LLVM_DEBUG(dbgs() << "Keeping " << MI);

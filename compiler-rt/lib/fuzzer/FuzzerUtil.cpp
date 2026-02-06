@@ -64,7 +64,7 @@ bool ToASCII(uint8_t *Data, size_t Size) {
     NewX &= 127;
     if (!isspace(NewX) && !isprint(NewX))
       NewX = ' ';
-    Changed |= NewX != X;
+    Changed = Changed || (NewX != X);
     X = NewX;
   }
   return Changed;

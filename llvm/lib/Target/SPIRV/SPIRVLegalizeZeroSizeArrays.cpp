@@ -127,7 +127,7 @@ Type *SPIRVLegalizeZeroSizeArraysImpl::legalizeType(Type *Ty) {
     for (Type *ElemTy : StructTy->elements()) {
       Type *LegalizedElemTy = legalizeType(ElemTy);
       ElemTypes.push_back(LegalizedElemTy);
-      Changed |= LegalizedElemTy != ElemTy;
+      Changed = Changed || (LegalizedElemTy != ElemTy);
     }
     if (Changed) {
       LegalizedTy =

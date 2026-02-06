@@ -2118,7 +2118,7 @@ struct ResolveExtractValueSource : public OpRewritePattern<InsertValueOp> {
       // The entry should never be empty if it exists, so if we are at this
       // point, set changed to true.
       assert(!it->second.empty());
-      changed |= true;
+      changed = changed || true;
       posToExtractOps.erase(it);
     }
     // There was no insertion along the chain that wrote the member accessed by

@@ -205,9 +205,9 @@ public:
     void combineWith(const Result &Other) {
       // If we found something in one of the cases, we can
       // say we found something overall.
-      FoundSomethingToTrack |= Other.FoundSomethingToTrack;
+      FoundSomethingToTrack = FoundSomethingToTrack || Other.FoundSomethingToTrack;
       // The same goes to the interruption.
-      WasInterrupted |= Other.WasInterrupted;
+      WasInterrupted = WasInterrupted || Other.WasInterrupted;
     }
   };
 

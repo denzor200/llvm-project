@@ -2902,7 +2902,7 @@ void ModuleBitcodeWriter::writeConstants(unsigned FirstVal, unsigned LastVal,
       for (uint64_t i = 0; i != NumElts; ++i) {
         unsigned char V = Str->getElementAsInteger(i);
         Record.push_back(V);
-        isCStr7 &= (V & 128) == 0;
+        isCStr7 = isCStr7 && ((V & 128) == 0);
         if (isCStrChar6)
           isCStrChar6 = BitCodeAbbrevOp::isChar6(V);
       }

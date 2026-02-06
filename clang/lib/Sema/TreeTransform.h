@@ -8300,7 +8300,7 @@ TreeTransform<Derived>::TransformAttributedStmt(AttributedStmt *S,
   for (const auto *I : S->getAttrs()) {
     const Attr *R =
         getDerived().TransformStmtAttr(S->getSubStmt(), SubStmt.get(), I);
-    AttrsChanged |= (I != R);
+    AttrsChanged = AttrsChanged || (I != R);
     if (R)
       Attrs.push_back(R);
   }

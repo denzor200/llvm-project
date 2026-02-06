@@ -338,7 +338,7 @@ static bool markKernelArgsAsInreg(Module &M, const TargetMachine &TM) {
                                                 FunctionsToErase);
     }
 
-    Changed |= NumPreloadedExplicitArgs > 0;
+    Changed = Changed || (NumPreloadedExplicitArgs > 0);
   }
 
   Changed |= !FunctionsToErase.empty();

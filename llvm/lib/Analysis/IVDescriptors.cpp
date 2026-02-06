@@ -485,7 +485,7 @@ bool RecurrenceDescriptor::AddReductionVar(
       ++NumCmpSelectPatternInst;
 
     // Check  whether we found a reduction operator.
-    FoundReduxOp |= !IsAPhi && Cur != Start;
+    FoundReduxOp = FoundReduxOp || (!IsAPhi && Cur != Start);
 
     // Process users of current instruction. Push non-PHI nodes after PHI nodes
     // onto the stack. This way we are going to have seen all inputs to PHI

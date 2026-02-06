@@ -4060,8 +4060,8 @@ void OverflowTracking::mergeFlags(Instruction &I) {
     Opcode = I.getOpcode();
 #endif
   if (isa<OverflowingBinaryOperator>(&I)) {
-    HasNUW &= I.hasNoUnsignedWrap();
-    HasNSW &= I.hasNoSignedWrap();
+    HasNUW = HasNUW && I.hasNoUnsignedWrap();
+    HasNSW = HasNSW && I.hasNoSignedWrap();
   }
   if (auto *DisjointOp = dyn_cast<PossiblyDisjointInst>(&I))
     IsDisjoint &= DisjointOp->isDisjoint();

@@ -377,7 +377,7 @@ public:
   bool hasExtractInsert() const { return !inMips16Mode() && hasMips32r2(); }
   bool hasMTHC1() const { return hasMips32r2(); }
 
-  bool allowMixed16_32() const { return inMips16ModeDefault() |
+  bool allowMixed16_32() const { return inMips16ModeDefault() ||
                                         AllowMixed16_32; }
 
   bool os16() const { return Os16; }

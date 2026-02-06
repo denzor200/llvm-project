@@ -8554,10 +8554,10 @@ bool X86InstrInfo::unfoldMemoryOperand(
   bool FoldedStore = I->Flags & TB_FOLDED_STORE;
   if (UnfoldLoad && !FoldedLoad)
     return false;
-  UnfoldLoad &= FoldedLoad;
+  UnfoldLoad = UnfoldLoad && FoldedLoad;
   if (UnfoldStore && !FoldedStore)
     return false;
-  UnfoldStore &= FoldedStore;
+  UnfoldStore = UnfoldStore && FoldedStore;
 
   const MCInstrDesc &MCID = get(Opc);
 

@@ -170,8 +170,8 @@ computeBlockInfo(const MachineFunction &MF,
     for (MachineBasicBlock *Succ : MBB->successors()) {
       BlockFlags &SuccInfo = BlockInfo[Succ->getNumber()];
       SuccInfo.Reachable = true;
-      SuccInfo.StrongNoFrameOnEntry |=
-          Info.StrongNoFrameOnEntry && !HasPrologue;
+      SuccInfo.StrongNoFrameOnEntry = SuccInfo.StrongNoFrameOnEntry ||
+          (Info.StrongNoFrameOnEntry && !HasPrologue);
       SuccInfo.HasFrameOnEntry = Info.HasFrameOnExit;
     }
   }

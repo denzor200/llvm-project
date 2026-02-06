@@ -520,7 +520,7 @@ bool LoopInvariantCodeMotion::runOnLoop(Loop *L, AAResults *AA, LoopInfo *LI,
               DT, AC, TLI, TTI, L, MSSAU, &SafetyInfo, ORE,
               LicmAllowSpeculation, HasReadsOutsideSet);
         }
-        Promoted |= LocalPromoted;
+        Promoted = Promoted || LocalPromoted;
       } while (LocalPromoted);
 
       // Once we have promoted values across the loop body we have to
@@ -532,7 +532,7 @@ bool LoopInvariantCodeMotion::runOnLoop(Loop *L, AAResults *AA, LoopInfo *LI,
       if (Promoted)
         formLCSSARecursively(*L, *DT, LI, SE);
 
-      Changed |= Promoted;
+      Changed = Changed || Promoted;
     }
   }
 
@@ -2028,8 +2028,8 @@ bool llvm::promoteLoopAccessesToScalars(
         if (!Load->isUnordered())
           return false;
 
-        SawUnorderedAtomic |= Load->isAtomic();
-        SawNotAtomic |= !Load->isAtomic();
+        SawUnorderedAtomic = SawUnorderedAtomic || Load->isAtomic();
+        SawNotAtomic = SawNotAtomic || !Load->isAtomic();
         FoundLoadToPromote = true;
 
         Align InstAlignment = Load->getAlign();
@@ -2057,8 +2057,8 @@ bool llvm::promoteLoopAccessesToScalars(
         if (!Store->isUnordered())
           return false;
 
-        SawUnorderedAtomic |= Store->isAtomic();
-        SawNotAtomic |= !Store->isAtomic();
+        SawUnorderedAtomic = SawUnorderedAtomic || Store->isAtomic();
+        SawNotAtomic = SawNotAtomic || !Store->isAtomic();
 
         // If the store is guaranteed to execute, both properties are satisfied.
         // We may want to check if a store is guaranteed to execute even if we
@@ -2068,7 +2068,7 @@ bool llvm::promoteLoopAccessesToScalars(
         Align InstAlignment = Store->getAlign();
         bool GuaranteedToExecute =
             SafetyInfo->isGuaranteedToExecute(*UI, DT, CurLoop);
-        StoreIsGuanteedToExecute |= GuaranteedToExecute;
+        StoreIsGuanteedToExecute = StoreIsGuanteedToExecute || GuaranteedToExecute;
         if (GuaranteedToExecute) {
           DereferenceableInPH = true;
           if (StoreSafety == StoreSafetyUnknown)

@@ -969,7 +969,7 @@ static bool interp__builtin_carryop(InterpState &S, CodePtr OpPC,
   }
   // It is possible for both overflows to happen but CGBuiltin uses an OR so
   // this is consistent.
-  CarryOut = (uint64_t)(FirstOverflowed | SecondOverflowed);
+  CarryOut = (uint64_t)(FirstOverflowed || SecondOverflowed);
 
   QualType CarryOutType = Call->getArg(3)->getType()->getPointeeType();
   PrimType CarryOutT = *S.getContext().classify(CarryOutType);

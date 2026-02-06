@@ -2230,7 +2230,7 @@ VariableSP SymbolFileNativePDB::CreateLocalVariable(PdbCompilandSymId scope_id,
   SymbolFileTypeSP sftype =
       std::make_shared<SymbolFileType>(*this, type_sp->GetID());
 
-  is_param |= var_info.is_param;
+  is_param = is_param || var_info.is_param;
   ValueType var_scope =
       is_param ? eValueTypeVariableArgument : eValueTypeVariableLocal;
   bool external = false;

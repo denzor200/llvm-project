@@ -1187,13 +1187,13 @@ static bool processBinOp(BinaryOperator *BinOp, LazyValueInfo *LVI) {
     ConstantRange NUWRange = ConstantRange::makeGuaranteedNoWrapRegion(
         Opcode, RRange, OBO::NoUnsignedWrap);
     NewNUW = NUWRange.contains(LRange);
-    Changed |= NewNUW;
+    Changed = Changed || NewNUW;
   }
   if (!NSW) {
     ConstantRange NSWRange = ConstantRange::makeGuaranteedNoWrapRegion(
         Opcode, RRange, OBO::NoSignedWrap);
     NewNSW = NSWRange.contains(LRange);
-    Changed |= NewNSW;
+    Changed = Changed || NewNSW;
   }
 
   setDeducedOverflowingFlags(BinOp, Opcode, NewNSW, NewNUW);
@@ -1347,7 +1347,7 @@ static bool runImpl(Function &F, LazyValueInfo *LVI, DominatorTree *DT,
     }
     }
 
-    FnChanged |= BBChanged;
+    FnChanged = FnChanged || BBChanged;
   }
 
   // Infer range attribute on return value.

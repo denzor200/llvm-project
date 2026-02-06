@@ -353,7 +353,7 @@ static bool updatePruning(const DWARFDie &Die, CompileUnit &CU,
 static void updateChildPruning(const DWARFDie &Die, CompileUnit &CU,
                                CompileUnit::DIEInfo &ChildInfo) {
   CompileUnit::DIEInfo &Info = CU.getInfo(Die);
-  Info.Prune &= ChildInfo.Prune;
+  Info.Prune = Info.Prune && ChildInfo.Prune;
 }
 
 /// Recursive helper to build the global DeclContext information and

@@ -468,7 +468,7 @@ bool CGPassManager::RunAllPassesOnSCC(CallGraphSCC &CurSCC, CallGraph &CG,
     bool LocalChanged =
         RunPassOnSCC(P, CurSCC, CG, CallGraphUpToDate, DevirtualizedCall);
 
-    Changed |= LocalChanged;
+    Changed = Changed || LocalChanged;
 
 #ifdef EXPENSIVE_CHECKS
     if (!LocalChanged && (RefHash != P->structuralHash(CG.getModule()))) {

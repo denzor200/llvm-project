@@ -258,7 +258,7 @@ Legalizer::MFResult Legalizer::legalizeMachineFunction(
       }
       WorkListObserver.printNewInstrs();
       LocObserver.checkpoint();
-      Changed |= Res == LegalizerHelper::Legalized;
+      Changed = Changed || (Res == LegalizerHelper::Legalized);
     }
     // Try to combine the instructions in RetryList again if there
     // are new artifacts. If not, stop legalizing.

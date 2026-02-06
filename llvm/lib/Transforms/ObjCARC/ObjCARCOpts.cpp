@@ -1840,8 +1840,8 @@ bool ObjCARCOpt::PairUpRetainsAndReleases(
       auto It = Retains.find(NewRetain);
       assert(It != Retains.end());
       const RRInfo &NewRetainRRI = It->second;
-      KnownSafeTD &= NewRetainRRI.KnownSafe;
-      CFGHazardAfflicted |= NewRetainRRI.CFGHazardAfflicted;
+      KnownSafeTD = KnownSafeTD && NewRetainRRI.KnownSafe;
+      CFGHazardAfflicted = CFGHazardAfflicted || NewRetainRRI.CFGHazardAfflicted;
       for (Instruction *NewRetainRelease : NewRetainRRI.Calls) {
         auto Jt = Releases.find(NewRetainRelease);
         if (Jt == Releases.end())
@@ -1912,8 +1912,8 @@ bool ObjCARCOpt::PairUpRetainsAndReleases(
       auto It = Releases.find(NewRelease);
       assert(It != Releases.end());
       const RRInfo &NewReleaseRRI = It->second;
-      KnownSafeBU &= NewReleaseRRI.KnownSafe;
-      CFGHazardAfflicted |= NewReleaseRRI.CFGHazardAfflicted;
+      KnownSafeBU = KnownSafeBU && NewReleaseRRI.KnownSafe;
+      CFGHazardAfflicted = CFGHazardAfflicted || NewReleaseRRI.CFGHazardAfflicted;
       for (Instruction *NewReleaseRetain : NewReleaseRRI.Calls) {
         auto Jt = Retains.find(NewReleaseRetain);
         if (Jt == Retains.end())
@@ -2430,8 +2430,8 @@ bool ObjCARCOpt::run(Function &F, AAResults &AA) {
                        "\n");
 
   std::pair<bool, bool> R = BundledInsts->insertAfterInvokes(F, nullptr);
-  Changed |= R.first;
-  CFGChanged |= R.second;
+  Changed = Changed || R.first;
+  CFGChanged = CFGChanged || R.second;
 
   PA.setAA(&AA);
 

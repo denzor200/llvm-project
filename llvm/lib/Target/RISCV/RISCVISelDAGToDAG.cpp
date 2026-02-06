@@ -1458,7 +1458,7 @@ void RISCVDAGToDAGISel::Select(SDNode *Node) {
                       X.getOpcode() == ISD::SIGN_EXTEND_INREG &&
                       cast<VTSDNode>(X.getOperand(1))->getVT() == MVT::i32;
           // Also Skip if we can use bexti or th.tst.
-          Skip |= HasBitTest && Leading == XLen - 1;
+          Skip = Skip || (HasBitTest && Leading == XLen - 1);
           if (OneUseOrZExtW && !Skip) {
             SDNode *SLLI = CurDAG->getMachineNode(
                 RISCV::SLLI, DL, VT, X,

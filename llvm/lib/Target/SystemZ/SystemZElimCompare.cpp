@@ -48,8 +48,8 @@ struct Reference {
   Reference() = default;
 
   Reference &operator|=(const Reference &Other) {
-    Def |= Other.Def;
-    Use |= Other.Use;
+    Def = Def || Other.Def;
+    Use = Use || Other.Use;
     return *this;
   }
 

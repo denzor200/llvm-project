@@ -596,7 +596,7 @@ bool IfConverter::runOnMachineFunction(MachineFunction &MF) {
       if (RetVal && MRI->tracksLiveness())
         recomputeLivenessFlags(*BBI.BB);
 
-      Change |= RetVal;
+      Change = Change || RetVal;
 
       NumIfCvts = NumSimple + NumSimpleFalse + NumTriangle + NumTriangleRev +
         NumTriangleFalse + NumTriangleFRev + NumDiamonds;
@@ -606,7 +606,7 @@ bool IfConverter::runOnMachineFunction(MachineFunction &MF) {
 
     if (!Change)
       break;
-    MadeChange |= Change;
+    MadeChange = MadeChange || Change;
   }
 
   Tokens.clear();
@@ -617,7 +617,7 @@ bool IfConverter::runOnMachineFunction(MachineFunction &MF) {
     BF.OptimizeFunction(MF, TII, MF.getSubtarget().getRegisterInfo());
   }
 
-  MadeChange |= BFChange;
+  MadeChange = MadeChange || BFChange;
   return MadeChange;
 }
 
@@ -1332,7 +1332,7 @@ void IfConverter::AnalyzeBlock(
           //  TailBB
           // Note TailBB can be empty.
           Tokens.push_back(std::make_unique<IfcvtToken>(
-              BBI, ICDiamond, TNeedSub | FNeedSub, Dups, Dups2,
+              BBI, ICDiamond, TNeedSub || FNeedSub, Dups, Dups2,
               (bool) TrueBBICalc.ClobbersPred, (bool) FalseBBICalc.ClobbersPred));
           Enqueued = true;
         }
@@ -1350,7 +1350,7 @@ void IfConverter::AnalyzeBlock(
           //  FalseBB TrueBB FalseBB
           //
           Tokens.push_back(std::make_unique<IfcvtToken>(
-              BBI, ICForkedDiamond, TNeedSub | FNeedSub, Dups, Dups2,
+              BBI, ICForkedDiamond, TNeedSub || FNeedSub, Dups, Dups2,
               (bool) TrueBBICalc.ClobbersPred, (bool) FalseBBICalc.ClobbersPred));
           Enqueued = true;
         }
@@ -2225,7 +2225,7 @@ void IfConverter::CopyAndPredicateBlock(BBInfo &ToBBI, BBInfo &FromBBI,
   ToBBI.Predicate.append(FromBBI.Predicate.begin(), FromBBI.Predicate.end());
   ToBBI.Predicate.append(Cond.begin(), Cond.end());
 
-  ToBBI.ClobbersPred |= FromBBI.ClobbersPred;
+  ToBBI.ClobbersPred = ToBBI.ClobbersPred || FromBBI.ClobbersPred;
   ToBBI.IsAnalyzed = false;
 
   ++NumDupBBs;
@@ -2360,7 +2360,7 @@ void IfConverter::MergeBlocks(BBInfo &ToBBI, BBInfo &FromBBI, bool AddEdges) {
   FromBBI.ExtraCost = 0;
   FromBBI.ExtraCost2 = 0;
 
-  ToBBI.ClobbersPred |= FromBBI.ClobbersPred;
+  ToBBI.ClobbersPred = ToBBI.ClobbersPred || FromBBI.ClobbersPred;
   ToBBI.HasFallThrough = FromBBI.HasFallThrough;
   ToBBI.IsAnalyzed = false;
   FromBBI.IsAnalyzed = false;

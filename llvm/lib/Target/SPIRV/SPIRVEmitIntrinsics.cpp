@@ -1041,7 +1041,7 @@ Type *SPIRVEmitIntrinsics::deduceNestedTypeHelper(
                                     UnknownElemTypeI8);
       }
       Tys.push_back(Ty);
-      Change |= Ty != OpTy;
+      Change = Change || (Ty != OpTy);
     }
     if (Change) {
       Type *NewTy = StructType::create(Tys);
@@ -2000,7 +2000,7 @@ void SPIRVEmitIntrinsics::insertPtrCastOrAssignTypeInstr(Instruction *I,
           }
         }
       }
-      HaveTypes |= ElemTy != nullptr;
+      HaveTypes = HaveTypes || (ElemTy != nullptr);
       CalledArgTys.push_back(ElemTy);
     }
   }
