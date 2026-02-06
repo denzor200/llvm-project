@@ -100,7 +100,7 @@ bool HexagonLoopAlign::shouldBalignLoop(MachineBasicBlock &BB,
     if (II->isDebugInstr())
       continue;
     // Check if there are any HVX instructions in loop.
-    isVec |= HII->isHVXVec(*II);
+    isVec = isVec || HII->isHVXVec(*II);
     // Count the number of instructions.
     InstCnt++;
   }
@@ -192,7 +192,7 @@ bool HexagonLoopAlign::runOnMachineFunction(MachineFunction &MF) {
   for (MachineFunction::iterator MBBi = MF.begin(), MBBe = MF.end();
        MBBi != MBBe; ++MBBi) {
     MachineBasicBlock &MBB = *MBBi;
-    Changed |= attemptToBalignSmallLoop(MF, MBB);
+    Changed = Changed || attemptToBalignSmallLoop(MF, MBB);
   }
   return Changed;
 }

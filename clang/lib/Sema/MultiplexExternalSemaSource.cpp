@@ -113,7 +113,7 @@ bool MultiplexExternalSemaSource::FindExternalVisibleDeclsByName(
     const DeclContext *OriginalDC) {
   bool AnyDeclsFound = false;
   for (size_t i = 0; i < Sources.size(); ++i)
-    AnyDeclsFound |=
+    AnyDeclsFound = AnyDeclsFound ||
         Sources[i]->FindExternalVisibleDeclsByName(DC, Name, OriginalDC);
   return AnyDeclsFound;
 }
@@ -122,7 +122,7 @@ bool MultiplexExternalSemaSource::LoadExternalSpecializations(
     const Decl *D, bool OnlyPartial) {
   bool Loaded = false;
   for (size_t i = 0; i < Sources.size(); ++i)
-    Loaded |= Sources[i]->LoadExternalSpecializations(D, OnlyPartial);
+    Loaded = Loaded || Sources[i]->LoadExternalSpecializations(D, OnlyPartial);
   return Loaded;
 }
 
@@ -130,7 +130,7 @@ bool MultiplexExternalSemaSource::LoadExternalSpecializations(
     const Decl *D, ArrayRef<TemplateArgument> TemplateArgs) {
   bool AnyNewSpecsLoaded = false;
   for (size_t i = 0; i < Sources.size(); ++i)
-    AnyNewSpecsLoaded |=
+    AnyNewSpecsLoaded = AnyNewSpecsLoaded ||
         Sources[i]->LoadExternalSpecializations(D, TemplateArgs);
   return AnyNewSpecsLoaded;
 }

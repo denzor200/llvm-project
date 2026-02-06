@@ -1408,7 +1408,7 @@ bool MachineJumpTableInfo::RemoveMBBFromJumpTables(MachineBasicBlock *MBB) {
   bool MadeChange = false;
   for (MachineJumpTableEntry &JTE : JumpTables) {
     auto removeBeginItr = std::remove(JTE.MBBs.begin(), JTE.MBBs.end(), MBB);
-    MadeChange |= (removeBeginItr != JTE.MBBs.end());
+    MadeChange = MadeChange || (removeBeginItr != JTE.MBBs.end());
     JTE.MBBs.erase(removeBeginItr, JTE.MBBs.end());
   }
   return MadeChange;

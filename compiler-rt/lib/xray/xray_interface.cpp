@@ -276,7 +276,7 @@ XRayPatchingStatus patchFunction(int32_t FuncId, int32_t ObjId,
   auto *f = SledRange.Begin;
   bool SucceedOnce = false;
   for (size_t i = 0; i != SledRange.Size; ++i)
-    SucceedOnce |= patchSled(f[i], Enable, PackedId, InstrMap.Trampolines);
+    SucceedOnce = SucceedOnce || patchSled(f[i], Enable, PackedId, InstrMap.Trampolines);
 
   atomic_store(&XRayPatching, false, memory_order_release);
 

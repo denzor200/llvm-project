@@ -177,7 +177,7 @@ static FailureOr<Operation *> getCompressedMaskOp(OpBuilder &rewriter,
                  i += numSrcElemsPerDest) {
               bool combinedValue = false;
               for (int j = 0; j < numSrcElemsPerDest; ++j) {
-                combinedValue |= paddedMaskValues[i + j];
+                combinedValue = combinedValue || paddedMaskValues[i + j];
               }
               compressedMaskValues.push_back(combinedValue);
             }

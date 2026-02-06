@@ -1270,53 +1270,53 @@ static bool runImpl(Function &F, LazyValueInfo *LVI, DominatorTree *DT,
     for (Instruction &II : llvm::make_early_inc_range(*BB)) {
       switch (II.getOpcode()) {
       case Instruction::Select:
-        BBChanged |= processSelect(cast<SelectInst>(&II), LVI);
+        BBChanged = BBChanged || processSelect(cast<SelectInst>(&II), LVI);
         break;
       case Instruction::PHI:
-        BBChanged |= processPHI(cast<PHINode>(&II), LVI, DT, SQ);
+        BBChanged = BBChanged || processPHI(cast<PHINode>(&II), LVI, DT, SQ);
         break;
       case Instruction::ICmp:
       case Instruction::FCmp:
-        BBChanged |= processCmp(cast<CmpInst>(&II), LVI);
+        BBChanged = BBChanged || processCmp(cast<CmpInst>(&II), LVI);
         break;
       case Instruction::Call:
       case Instruction::Invoke:
-        BBChanged |= processCallSite(cast<CallBase>(II), LVI);
+        BBChanged = BBChanged || processCallSite(cast<CallBase>(II), LVI);
         break;
       case Instruction::SRem:
       case Instruction::SDiv:
-        BBChanged |= processSDivOrSRem(cast<BinaryOperator>(&II), LVI);
+        BBChanged = BBChanged || processSDivOrSRem(cast<BinaryOperator>(&II), LVI);
         break;
       case Instruction::UDiv:
       case Instruction::URem:
-        BBChanged |= processUDivOrURem(cast<BinaryOperator>(&II), LVI);
+        BBChanged = BBChanged || processUDivOrURem(cast<BinaryOperator>(&II), LVI);
         break;
       case Instruction::AShr:
-        BBChanged |= processAShr(cast<BinaryOperator>(&II), LVI);
+        BBChanged = BBChanged || processAShr(cast<BinaryOperator>(&II), LVI);
         break;
       case Instruction::SExt:
-        BBChanged |= processSExt(cast<SExtInst>(&II), LVI);
+        BBChanged = BBChanged || processSExt(cast<SExtInst>(&II), LVI);
         break;
       case Instruction::ZExt:
-        BBChanged |= processZExt(cast<ZExtInst>(&II), LVI);
+        BBChanged = BBChanged || processZExt(cast<ZExtInst>(&II), LVI);
         break;
       case Instruction::UIToFP:
-        BBChanged |= processUIToFP(cast<UIToFPInst>(&II), LVI);
+        BBChanged = BBChanged || processUIToFP(cast<UIToFPInst>(&II), LVI);
         break;
       case Instruction::SIToFP:
-        BBChanged |= processSIToFP(cast<SIToFPInst>(&II), LVI);
+        BBChanged = BBChanged || processSIToFP(cast<SIToFPInst>(&II), LVI);
         break;
       case Instruction::Add:
       case Instruction::Sub:
       case Instruction::Mul:
       case Instruction::Shl:
-        BBChanged |= processBinOp(cast<BinaryOperator>(&II), LVI);
+        BBChanged = BBChanged || processBinOp(cast<BinaryOperator>(&II), LVI);
         break;
       case Instruction::And:
-        BBChanged |= processAnd(cast<BinaryOperator>(&II), LVI);
+        BBChanged = BBChanged || processAnd(cast<BinaryOperator>(&II), LVI);
         break;
       case Instruction::Trunc:
-        BBChanged |= processTrunc(cast<TruncInst>(&II), LVI);
+        BBChanged = BBChanged || processTrunc(cast<TruncInst>(&II), LVI);
         break;
       }
     }
@@ -1324,7 +1324,7 @@ static bool runImpl(Function &F, LazyValueInfo *LVI, DominatorTree *DT,
     Instruction *Term = BB->getTerminator();
     switch (Term->getOpcode()) {
     case Instruction::Switch:
-      BBChanged |= processSwitch(cast<SwitchInst>(Term), LVI, DT);
+      BBChanged = BBChanged || processSwitch(cast<SwitchInst>(Term), LVI, DT);
       break;
     case Instruction::Ret: {
       auto *RI = cast<ReturnInst>(Term);

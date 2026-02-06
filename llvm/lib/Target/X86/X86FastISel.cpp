@@ -2614,7 +2614,7 @@ bool X86FastISel::TryEmitSmallMemcpy(X86AddressMode DestAM,
 
     Register Reg;
     bool RV = X86FastEmitLoad(VT, SrcAM, nullptr, Reg);
-    RV &= X86FastEmitStore(VT, Reg, DestAM);
+    RV = RV && X86FastEmitStore(VT, Reg, DestAM);
     assert(RV && "Failed to emit load or store??");
     (void)RV;
 

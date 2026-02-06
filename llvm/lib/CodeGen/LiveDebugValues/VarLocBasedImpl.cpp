@@ -2337,7 +2337,7 @@ bool VarLocBasedLDV::ExtendRanges(MachineFunction &MF,
       Worklist.pop();
       MBBJoined = join(*MBB, OutLocs, InLocs, VarLocIDs, Visited,
                        ArtificialBlocks);
-      MBBJoined |= Visited.insert(MBB).second;
+      MBBJoined = MBBJoined || Visited.insert(MBB).second;
       if (MBBJoined) {
         MBBJoined = false;
         Changed = true;
@@ -2377,7 +2377,7 @@ bool VarLocBasedLDV::ExtendRanges(MachineFunction &MF,
           }
           I = BEnd;
         }
-        OLChanged |= transferTerminator(MBB, OpenRanges, OutLocs, VarLocIDs);
+        OLChanged = OLChanged || transferTerminator(MBB, OpenRanges, OutLocs, VarLocIDs);
 
         LLVM_DEBUG(printVarLocInMBB(MF, OutLocs, VarLocIDs,
                                     "OutLocs after propagating", dbgs()));

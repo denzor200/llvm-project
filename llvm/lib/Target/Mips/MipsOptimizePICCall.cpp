@@ -216,7 +216,7 @@ bool OptimizePICCall::runOnMachineFunction(MachineFunction &F) {
 
     // Visit the MBB and add its children to the work list.
     MBBI.preVisit(ScopedHT);
-    Changed |= visitNode(MBBI);
+    Changed = Changed || visitNode(MBBI);
     const MachineDomTreeNode *Node = MBBI.getNode();
     WorkList.append(Node->begin(), Node->end());
   }

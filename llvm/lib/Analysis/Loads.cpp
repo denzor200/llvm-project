@@ -58,7 +58,7 @@ static bool isDereferenceableAndAlignedPointerViaAssumption(
         if ((!PtrCanBeFreed || willNotFreeBetween(Assume, CtxI)) &&
             RK.AttrKind == Attribute::Dereferenceable)
           DerefRK = std::max(DerefRK, RK);
-        IsAligned |= AlignRK && AlignRK.ArgValue >= Alignment.value();
+        IsAligned = IsAligned || (AlignRK && AlignRK.ArgValue >= Alignment.value());
         if (IsAligned && DerefRK && CheckSize(DerefRK))
           return true; // We have found what we needed so we stop looking
         return false;  // Other assumes may have better information. so

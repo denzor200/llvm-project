@@ -90,7 +90,7 @@ bool CheckDefaultArgumentVisitor::VisitExpr(const Expr *Node) {
   bool IsInvalid = false;
   for (const Stmt *SubStmt : Node->children())
     if (SubStmt)
-      IsInvalid |= Visit(SubStmt);
+      IsInvalid = IsInvalid || Visit(SubStmt);
   return IsInvalid;
 }
 
@@ -157,7 +157,7 @@ bool CheckDefaultArgumentVisitor::VisitPseudoObjectExpr(
       assert(E && "pseudo-object binding without source expression?");
     }
 
-    Invalid |= Visit(E);
+    Invalid = Invalid || Visit(E);
   }
   return Invalid;
 }
@@ -174,7 +174,7 @@ bool CheckDefaultArgumentVisitor::VisitLambdaExpr(const LambdaExpr *Lambda) {
       return S.Diag(LC.getLocation(), diag::err_lambda_capture_default_arg);
     // Init captures are always VarDecl.
     auto *D = cast<VarDecl>(LC.getCapturedVar());
-    Invalid |= Visit(D->getInit());
+    Invalid = Invalid || Visit(D->getInit());
   }
   return Invalid;
 }
@@ -8340,7 +8340,7 @@ private:
           // Bail out after explaining; we don't want any more notes.
           return Result::deleted();
         }
-        R.Constexpr &= BestFD->isConstexpr();
+        R.Constexpr = R.Constexpr && BestFD->isConstexpr();
 
         if (NeedsDeducing) {
           // If any callee has an undeduced return type, deduce it now.
@@ -8496,7 +8496,7 @@ struct StmtListResult {
   llvm::SmallVector<Stmt*, 16> Stmts;
 
   bool add(const StmtResult &S) {
-    IsInvalid |= S.isInvalid();
+    IsInvalid = IsInvalid || S.isInvalid();
     if (IsInvalid)
       return true;
     Stmts.push_back(S.get());
@@ -9022,7 +9022,7 @@ bool Sema::CheckExplicitlyDefaultedComparison(Scope *S, FunctionDecl *FD,
 
       // Is T a class?
       if (RD) {
-        Ok &= RD->isDependentType() || Context.hasSameType(CTy, ExpectedTy);
+        Ok = Ok && (RD->isDependentType() || Context.hasSameType(CTy, ExpectedTy));
       } else {
         RD = CTy->getAsCXXRecordDecl();
         Ok = Ok && (RD != nullptr);
@@ -13768,7 +13768,7 @@ Decl *Sema::ActOnAliasDeclaration(Scope *S, AccessSpecifier AS,
   ProcessAPINotes(NewTD);
 
   CheckTypedefForVariablyModifiedType(S, NewTD);
-  Invalid |= NewTD->isInvalidDecl();
+  Invalid = Invalid || NewTD->isInvalidDecl();
 
   // Get the innermost enclosing declaration scope.
   S = S->getDeclParent();

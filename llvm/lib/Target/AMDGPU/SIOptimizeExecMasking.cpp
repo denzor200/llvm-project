@@ -840,12 +840,12 @@ bool SIOptimizeExecMasking::run() {
     }
   }
 
-  Changed |= optimizeOrSaveexecXorSequences();
+  Changed = Changed || optimizeOrSaveexecXorSequences();
   for (const auto &Entry : SaveExecVCmpMapping) {
     MachineInstr *SaveExecInstr = Entry.getFirst();
     MachineInstr *VCmpInstr = Entry.getSecond();
 
-    Changed |= optimizeVCMPSaveExecSequence(*SaveExecInstr, *VCmpInstr);
+    Changed = Changed || optimizeVCMPSaveExecSequence(*SaveExecInstr, *VCmpInstr);
   }
 
   return Changed;

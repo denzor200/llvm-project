@@ -1405,8 +1405,8 @@ static void AddParamAndFnBasicAttributes(const CallBase &CB,
         ValidExactParamAttrs.back().addAttribute(Attr);
     }
 
-    HasAttrToPropagate |= ValidObjParamAttrs.back().hasAttributes();
-    HasAttrToPropagate |= ValidExactParamAttrs.back().hasAttributes();
+    HasAttrToPropagate = HasAttrToPropagate || ValidObjParamAttrs.back().hasAttributes();
+    HasAttrToPropagate = HasAttrToPropagate || ValidExactParamAttrs.back().hasAttributes();
   }
 
   // Won't be able to propagate anything.
@@ -2294,7 +2294,7 @@ remapIndices(Function &Caller, BasicBlock *StartBB,
     bool Changed = false;
     auto *BBID = CtxProfAnalysis::getBBInstrumentation(*BB);
     if (BBID) {
-      Changed |= RewriteInstrIfNeeded(*BBID);
+      Changed = Changed || RewriteInstrIfNeeded(*BBID);
       // this may be the entryblock from the inlined callee, coming into a BB
       // that didn't have instrumentation because of MST decisions. Let's make
       // sure it's placed accordingly. This is a noop elsewhere.
@@ -2325,7 +2325,7 @@ remapIndices(Function &Caller, BasicBlock *StartBB,
           Changed = true;
         }
       } else if (auto *CS = dyn_cast<InstrProfCallsite>(&I)) {
-        Changed |= RewriteCallsiteInsIfNeeded(*CS);
+        Changed = Changed || RewriteCallsiteInsIfNeeded(*CS);
       }
     }
     if (!BBID || Changed)
@@ -2982,7 +2982,7 @@ void llvm::InlineFunctionImpl(CallBase &CB, InlineFunctionInfo &IFI,
         if (ChildTCK != CallInst::TCK_NoTail)
           ChildTCK = std::min(CallSiteTailKind, ChildTCK);
         CI->setTailCallKind(ChildTCK);
-        InlinedMustTailCalls |= CI->isMustTailCall();
+        InlinedMustTailCalls = InlinedMustTailCalls || CI->isMustTailCall();
 
         // Call sites inlined through a 'nounwind' call site should be
         // 'nounwind' as well. However, avoid marking call sites explicitly

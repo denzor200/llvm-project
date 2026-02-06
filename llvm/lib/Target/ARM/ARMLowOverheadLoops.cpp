@@ -1315,9 +1315,9 @@ bool ARMLowOverheadLoops::runOnMachineFunction(MachineFunction &mf) {
   bool Changed = false;
   for (auto *ML : *MLI) {
     if (ML->isOutermost())
-      Changed |= ProcessLoop(ML);
+      Changed = Changed || ProcessLoop(ML);
   }
-  Changed |= RevertNonLoops();
+  Changed = Changed || RevertNonLoops();
   return Changed;
 }
 
@@ -1326,7 +1326,7 @@ bool ARMLowOverheadLoops::ProcessLoop(MachineLoop *ML) {
 
   // Process inner loops first.
   for (MachineLoop *L : *ML)
-    Changed |= ProcessLoop(L);
+    Changed = Changed || ProcessLoop(L);
 
   LLVM_DEBUG({
     dbgs() << "ARM Loops: Processing loop containing:\n";

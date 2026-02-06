@@ -1191,7 +1191,7 @@ llvm::UnrollLoop(Loop *L, UnrollLoopOptions ULO, LoopInfo *LI,
   // TODO: For now we just recompute LCSSA for the outer loop in this case, but
   // it should be possible to fix it in-place.
   if (PreserveLCSSA && OuterL && CompletelyUnroll && !NeedToFixLCSSA)
-    NeedToFixLCSSA |= ::needToInsertPhisForLCSSA(OuterL, UnrolledLoopBlocks, LI);
+    NeedToFixLCSSA = NeedToFixLCSSA || ::needToInsertPhisForLCSSA(OuterL, UnrolledLoopBlocks, LI);
 
   // Make sure that loop-simplify form is preserved. We want to simplify
   // at least one layer outside of the loop that was unrolled so that any

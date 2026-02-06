@@ -898,11 +898,11 @@ bool IndirectCallPromoter::processFunction(ProfileSummaryInfo *PSI) {
         computeVTableInfos(CB, VTableGUIDCounts, PromotionCandidates);
 
     if (isProfitableToCompareVTables(*CB, PromotionCandidates))
-      Changed |= tryToPromoteWithVTableCmp(*CB, VPtr, PromotionCandidates,
+      Changed = Changed || tryToPromoteWithVTableCmp(*CB, VPtr, PromotionCandidates,
                                            TotalCount, NumCandidates,
                                            ICallProfDataRef, VTableGUIDCounts);
     else
-      Changed |= tryToPromoteWithFuncCmp(*CB, VPtr, PromotionCandidates,
+      Changed = Changed || tryToPromoteWithFuncCmp(*CB, VPtr, PromotionCandidates,
                                          TotalCount, ICallProfDataRef,
                                          NumCandidates, VTableGUIDCounts);
   }

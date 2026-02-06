@@ -1106,7 +1106,7 @@ static void processStubLibraries() {
       for (auto [name, deps]: stub_file->symbolDependencies) {
         auto* sym = symtab->find(name);
         if (sym && sym->isUndefined() && sym->isUsedInRegularObj) {
-          depsAdded |= addStubSymbolDeps(stub_file, sym, deps);
+          depsAdded = depsAdded || addStubSymbolDeps(stub_file, sym, deps);
         } else {
           if (sym && sym->traced)
             message(toString(stub_file) + ": stub symbol not needed: " + name);
@@ -1121,7 +1121,7 @@ static void processStubLibraries() {
         if (sym->isUndefined() && sym->importName.has_value()) {
           auto it = stub_file->symbolDependencies.find(sym->importName.value());
           if (it != stub_file->symbolDependencies.end()) {
-            depsAdded |= addStubSymbolDeps(stub_file, sym, it->second);
+            depsAdded = depsAdded || addStubSymbolDeps(stub_file, sym, it->second);
           }
         }
       }

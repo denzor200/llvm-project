@@ -341,7 +341,7 @@ static bool CleanupConstantGlobalUsers(GlobalVariable *GV,
     }
   }
 
-  Changed |=
+  Changed = Changed ||
       RecursivelyDeleteTriviallyDeadInstructionsPermissive(MaybeDeadInsts);
   GV->removeDeadConstantUsers();
   return Changed;
@@ -427,8 +427,8 @@ static bool collectSRATypes(DenseMap<uint64_t, GlobalPart> &Parts,
         return Initializer != StoredConst;
       };
 
-      It->second.IsLoaded |= isa<LoadInst>(V);
-      It->second.IsStored |= IsStored(V, It->second.Initializer);
+      It->second.IsLoaded = It->second.IsLoaded || isa<LoadInst>(V);
+      It->second.IsStored = It->second.IsStored || IsStored(V, It->second.Initializer);
       continue;
     }
 
@@ -805,7 +805,7 @@ static bool OptimizeAwayTrappingUsesOfValue(Value *V, Constant *NewV) {
         }
       }
     } else if (AddrSpaceCastInst *CI = dyn_cast<AddrSpaceCastInst>(I)) {
-      Changed |= OptimizeAwayTrappingUsesOfValue(
+      Changed = Changed || OptimizeAwayTrappingUsesOfValue(
           CI, ConstantExpr::getAddrSpaceCast(NewV, CI->getType()));
       if (CI->use_empty()) {
         Changed = true;
@@ -822,7 +822,7 @@ static bool OptimizeAwayTrappingUsesOfValue(Value *V, Constant *NewV) {
         else
           break;
       if (Idxs.size() == GEPI->getNumOperands()-1)
-        Changed |= OptimizeAwayTrappingUsesOfValue(
+        Changed = Changed || OptimizeAwayTrappingUsesOfValue(
             GEPI, ConstantExpr::getGetElementPtr(GEPI->getSourceElementType(),
                                                  NewV, Idxs));
       if (GEPI->use_empty()) {
@@ -851,7 +851,7 @@ static bool OptimizeAwayTrappingUsesOfLoads(
   // Replace all uses of loads with uses of uses of the stored value.
   for (User *GlobalUser : llvm::make_early_inc_range(GV->users())) {
     if (LoadInst *LI = dyn_cast<LoadInst>(GlobalUser)) {
-      Changed |= OptimizeAwayTrappingUsesOfValue(LI, LV);
+      Changed = Changed || OptimizeAwayTrappingUsesOfValue(LI, LV);
       // If we were able to delete all uses of the loads
       if (LI->use_empty()) {
         LI->eraseFromParent();
@@ -887,7 +887,7 @@ static bool OptimizeAwayTrappingUsesOfLoads(
   // nor is the global.
   if (AllNonStoreUsesGone) {
     if (isLeakCheckerRoot(GV)) {
-      Changed |= CleanupPointerRootUsers(GV, GetTLI);
+      Changed = Changed || CleanupPointerRootUsers(GV, GetTLI);
     } else {
       Changed = true;
       CleanupConstantGlobalUsers(GV, DL);
@@ -1549,7 +1549,7 @@ processInternalGlobal(GlobalVariable *GV, const GlobalStatus &GS,
     }
 
     // Clean up any obviously simplifiable users now.
-    Changed |= CleanupConstantGlobalUsers(GV, DL);
+    Changed = Changed || CleanupConstantGlobalUsers(GV, DL);
 
     // If the global is dead now, just nuke it.
     if (GV->use_empty()) {
@@ -1978,7 +1978,7 @@ OptimizeFunctions(Module &M,
       }
     }
 
-    Changed |= processGlobal(F, GetTTI, GetTLI, LookupDomTree);
+    Changed = Changed || processGlobal(F, GetTTI, GetTLI, LookupDomTree);
 
     if (!F.hasLocalLinkage())
       continue;
@@ -2077,7 +2077,7 @@ OptimizeGlobalVars(Module &M,
       continue;
     }
 
-    Changed |= processGlobal(GV, GetTTI, GetTLI, LookupDomTree);
+    Changed = Changed || processGlobal(GV, GetTTI, GetTLI, LookupDomTree);
   }
   return Changed;
 }
@@ -2776,12 +2776,12 @@ optimizeGlobalsInModule(Module &M, const DataLayout &DL,
           NotDiscardableComdats.insert(C);
 
     // Delete functions that are trivially dead, ccc -> fastcc
-    LocalChange |= OptimizeFunctions(M, GetTLI, GetTTI, GetBFI, LookupDomTree,
+    LocalChange = LocalChange || OptimizeFunctions(M, GetTLI, GetTTI, GetBFI, LookupDomTree,
                                      NotDiscardableComdats, ChangedCFGCallback,
                                      DeleteFnCallback);
 
     // Optimize global_ctors list.
-    LocalChange |=
+    LocalChange = LocalChange ||
         optimizeGlobalCtorsList(M, [&](uint32_t Priority, Function *F) {
           if (FirstNotFullyEvaluatedPriority &&
               *FirstNotFullyEvaluatedPriority != Priority)
@@ -2793,29 +2793,29 @@ optimizeGlobalsInModule(Module &M, const DataLayout &DL,
         });
 
     // Optimize non-address-taken globals.
-    LocalChange |= OptimizeGlobalVars(M, GetTTI, GetTLI, LookupDomTree,
+    LocalChange = LocalChange || OptimizeGlobalVars(M, GetTTI, GetTLI, LookupDomTree,
                                       NotDiscardableComdats);
 
     // Resolve aliases, when possible.
-    LocalChange |= OptimizeGlobalAliases(M, NotDiscardableComdats);
+    LocalChange = LocalChange || OptimizeGlobalAliases(M, NotDiscardableComdats);
 
     // Try to remove trivial global destructors if they are not removed
     // already.
     if (Function *CXAAtExitFn =
             FindAtExitLibFunc(M, GetTLI, LibFunc_cxa_atexit))
-      LocalChange |= OptimizeEmptyGlobalAtExitDtors(CXAAtExitFn, true);
+      LocalChange = LocalChange || OptimizeEmptyGlobalAtExitDtors(CXAAtExitFn, true);
 
     if (Function *AtExitFn = FindAtExitLibFunc(M, GetTLI, LibFunc_atexit))
-      LocalChange |= OptimizeEmptyGlobalAtExitDtors(AtExitFn, false);
+      LocalChange = LocalChange || OptimizeEmptyGlobalAtExitDtors(AtExitFn, false);
 
     // Optimize IFuncs whose callee's are statically known.
-    LocalChange |= OptimizeStaticIFuncs(M);
+    LocalChange = LocalChange || OptimizeStaticIFuncs(M);
 
     // Optimize IFuncs based on the target features of the caller.
-    LocalChange |= OptimizeNonTrivialIFuncs(M, GetTTI);
+    LocalChange = LocalChange || OptimizeNonTrivialIFuncs(M, GetTTI);
 
     // Remove any IFuncs that are now dead.
-    LocalChange |= DeleteDeadIFuncs(M, NotDiscardableComdats);
+    LocalChange = LocalChange || DeleteDeadIFuncs(M, NotDiscardableComdats);
 
     Changed = Changed || LocalChange;
   }

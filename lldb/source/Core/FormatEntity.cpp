@@ -1055,10 +1055,10 @@ bool FormatEntity::Formatter::DumpValue(Stream &s,
       }
 
       if (special_directions.empty()) {
-        success &= item->DumpPrintableRepresentation(s, val_obj_display,
+        success = success && item->DumpPrintableRepresentation(s, val_obj_display,
                                                      custom_format);
       } else {
-        success &= FormatStringRef(special_directions, s, item);
+        success = success && FormatStringRef(special_directions, s, item);
       }
 
       if (--max_num_children == 0) {

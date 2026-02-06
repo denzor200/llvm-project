@@ -253,11 +253,11 @@ bool ChainedASTReaderListener::visitInputFile(StringRef Filename,
   bool Continue = false;
   if (First->needsInputFileVisitation() &&
       (!isSystem || First->needsSystemInputFileVisitation()))
-    Continue |= First->visitInputFile(Filename, isSystem, isOverridden,
+    Continue = Continue || First->visitInputFile(Filename, isSystem, isOverridden,
                                       isExplicitModule);
   if (Second->needsInputFileVisitation() &&
       (!isSystem || Second->needsSystemInputFileVisitation()))
-    Continue |= Second->visitInputFile(Filename, isSystem, isOverridden,
+    Continue = Continue || Second->visitInputFile(Filename, isSystem, isOverridden,
                                        isExplicitModule);
   return Continue;
 }
@@ -8561,7 +8561,7 @@ bool ASTReader::LoadExternalSpecializations(const Decl *D, bool OnlyPartial) {
   if (OnlyPartial)
     return NewSpecsFound;
 
-  NewSpecsFound |= LoadExternalSpecializationsImpl(SpecializationsLookups, D);
+  NewSpecsFound = NewSpecsFound || LoadExternalSpecializationsImpl(SpecializationsLookups, D);
   return NewSpecsFound;
 }
 
@@ -8611,7 +8611,7 @@ bool ASTReader::LoadExternalSpecializations(
 
   bool NewDeclsFound = LoadExternalSpecializationsImpl(
       PartialSpecializationsLookups, D, TemplateArgs);
-  NewDeclsFound |=
+  NewDeclsFound = NewDeclsFound ||
       LoadExternalSpecializationsImpl(SpecializationsLookups, D, TemplateArgs);
 
   return NewDeclsFound;

@@ -566,12 +566,12 @@ bool ComplexDeinterleaving::runOnFunction(Function &F) {
 
   bool Changed = false;
   for (auto &B : F)
-    Changed |= evaluateBasicBlock(&B, 2);
+    Changed = Changed || evaluateBasicBlock(&B, 2);
 
   // TODO: Permit changes for both interleave factors in the same function.
   if (!Changed) {
     for (auto &B : F)
-      Changed |= evaluateBasicBlock(&B, 4);
+      Changed = Changed || evaluateBasicBlock(&B, 4);
   }
 
   // TODO: We can also support interleave factors of 6 and 8 if needed.

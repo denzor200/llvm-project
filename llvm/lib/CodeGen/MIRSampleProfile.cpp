@@ -263,7 +263,7 @@ void MIRProfileLoader::setBranchProbs(MachineFunction &F) {
       else
         Diff = NewProb - OldProb;
       Show = (Diff >= BranchProbability(FSProfileDebugProbDiffThreshold, 100));
-      Show &= (BBWeightOrig >= FSProfileDebugBWThreshold);
+      Show = Show && (BBWeightOrig >= FSProfileDebugBWThreshold);
 
       auto DIL = BB->findBranchDebugLoc();
       auto SuccDIL = Succ->findBranchDebugLoc();

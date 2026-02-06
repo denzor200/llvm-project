@@ -152,7 +152,7 @@ void Scope::updateNRVOCandidate(VarDecl *VD) {
   bool CanBePutInReturnSlot = false;
 
   for (auto *S = this; S; S = S->getParent()) {
-    CanBePutInReturnSlot |= UpdateReturnSlotsInScopeForVD(S);
+    CanBePutInReturnSlot = CanBePutInReturnSlot || UpdateReturnSlotsInScopeForVD(S);
 
     if (S->getEntity())
       break;

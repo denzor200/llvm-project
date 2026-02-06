@@ -7026,7 +7026,7 @@ TargetLowering::prepareUREMEqFold(EVT SETCCVT, SDValue REMNode,
     const APInt &D = CDiv->getAPIntValue();
     const APInt &Cmp = CCmp->getAPIntValue();
 
-    ComparingWithAllZeros &= Cmp.isZero();
+    ComparingWithAllZeros = ComparingWithAllZeros && Cmp.isZero();
 
     // x u% C1` is *always* less than C1. So given `x u% C1 == C2`,
     // if C2 is not less than C1, the comparison is always false.
@@ -7057,7 +7057,7 @@ TargetLowering::prepareUREMEqFold(EVT SETCCVT, SDValue REMNode,
     HadEvenDivisor = HadEvenDivisor || (K != 0);
     // D is a power-of-two if D0 is one.
     // If all divisors are power-of-two, we will prefer to avoid the fold.
-    AllDivisorsArePowerOfTwo &= D0.isOne();
+    AllDivisorsArePowerOfTwo = AllDivisorsArePowerOfTwo && D0.isOne();
 
     // P = inv(D0, 2^W)
     // 2^W requires W + 1 bits, so we have to extend and then truncate.
@@ -7295,11 +7295,11 @@ TargetLowering::prepareSREMEqFold(EVT SETCCVT, SDValue REMNode,
     if (D.isNegative())
       D.negate(); //  `rem %X, -C` is equivalent to `rem %X, C`
 
-    HadIntMinDivisor |= D.isMinSignedValue();
+    HadIntMinDivisor = HadIntMinDivisor || D.isMinSignedValue();
 
     // If all divisors are ones, we will prefer to avoid the fold.
-    HadOneDivisor |= D.isOne();
-    AllDivisorsAreOnes &= D.isOne();
+    HadOneDivisor = HadOneDivisor || D.isOne();
+    AllDivisorsAreOnes = AllDivisorsAreOnes && D.isOne();
 
     // Decompose D into D0 * 2^K
     unsigned K = D.countr_zero();
@@ -7314,7 +7314,7 @@ TargetLowering::prepareSREMEqFold(EVT SETCCVT, SDValue REMNode,
 
     // D is a power-of-two if D0 is one. This includes INT_MIN.
     // If all divisors are power-of-two, we will prefer to avoid the fold.
-    AllDivisorsArePowerOfTwo &= D0.isOne();
+    AllDivisorsArePowerOfTwo = AllDivisorsArePowerOfTwo && D0.isOne();
 
     // P = inv(D0, 2^W)
     // 2^W requires W + 1 bits, so we have to extend and then truncate.
@@ -7329,7 +7329,7 @@ TargetLowering::prepareSREMEqFold(EVT SETCCVT, SDValue REMNode,
     if (!D.isMinSignedValue()) {
       // If divisor INT_MIN, then we don't care about this lane in this fold,
       // we'll special-handle it.
-      NeedToApplyOffset |= A != 0;
+      NeedToApplyOffset = NeedToApplyOffset || A != 0;
     }
 
     // Q = floor((2 * A) / (2^K))

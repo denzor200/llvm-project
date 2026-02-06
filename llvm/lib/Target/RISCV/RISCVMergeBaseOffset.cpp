@@ -589,8 +589,8 @@ bool RISCVMergeBaseOffsetOpt::runOnMachineFunction(MachineFunction &Fn) {
       MachineInstr *Lo = nullptr;
       if (!detectFoldable(Hi, Lo))
         continue;
-      MadeChange |= detectAndFoldOffset(Hi, *Lo);
-      MadeChange |= foldIntoMemoryOps(Hi, *Lo);
+      MadeChange = MadeChange || detectAndFoldOffset(Hi, *Lo);
+      MadeChange = MadeChange || foldIntoMemoryOps(Hi, *Lo);
     }
   }
 

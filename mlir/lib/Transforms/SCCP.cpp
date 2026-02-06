@@ -87,7 +87,7 @@ static void rewrite(DataFlowSolver &solver, MLIRContext *context,
       // Replace any result with constants.
       bool replacedAll = op.getNumResults() != 0;
       for (Value res : op.getResults())
-        replacedAll &=
+        replacedAll = replacedAll &&
             succeeded(replaceWithConstant(solver, builder, folder, res));
 
       // If all of the results of the operation were replaced, try to erase

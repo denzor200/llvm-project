@@ -93,7 +93,7 @@ bool SeedCollection::runOnFunction(Function &F, const Analyses &A) {
           Region Rgn(Ctx, A.getTTI());
           Rgn.setAux(SeedSlice);
           // Run the region pass pipeline.
-          Change |= RPM.runOnRegion(Rgn, A);
+          Change = Change || RPM.runOnRegion(Rgn, A);
           Rgn.clearAux();
         }
       }

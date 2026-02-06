@@ -132,11 +132,11 @@ void Parser::ParseAttributes(unsigned WhichAttrKinds, ParsedAttributes &Attrs,
     // parsed, loop to ensure all specified attribute combinations are parsed.
     MoreToParse = false;
     if (WhichAttrKinds & PAKM_CXX11)
-      MoreToParse |= MaybeParseCXX11Attributes(Attrs);
+      MoreToParse = MoreToParse || MaybeParseCXX11Attributes(Attrs);
     if (WhichAttrKinds & PAKM_GNU)
-      MoreToParse |= MaybeParseGNUAttributes(Attrs, LateAttrs);
+      MoreToParse = MoreToParse || MaybeParseGNUAttributes(Attrs, LateAttrs);
     if (WhichAttrKinds & PAKM_Declspec)
-      MoreToParse |= MaybeParseMicrosoftDeclSpecs(Attrs);
+      MoreToParse = MoreToParse || MaybeParseMicrosoftDeclSpecs(Attrs);
   } while (MoreToParse);
 }
 
@@ -2181,7 +2181,7 @@ Parser::DeclGroupPtrTy Parser::ParseDeclGroup(ParsingDeclSpec &DS,
       // and we don't have any other declarators in this declaration.
       bool Fixit = !DS.setFunctionSpecNoreturn(Loc, PrevSpec, DiagID);
       MaybeParseGNUAttributes(D, &LateParsedAttrs);
-      Fixit &= Tok.isOneOf(tok::semi, tok::l_brace, tok::kw_try);
+      Fixit = Fixit && Tok.isOneOf(tok::semi, tok::l_brace, tok::kw_try);
 
       Diag(Loc, diag::err_c11_noreturn_misplaced)
           << (Fixit ? FixItHint::CreateRemoval(Loc) : FixItHint())

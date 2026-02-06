@@ -145,7 +145,7 @@ PreservedAnalyses RewriteStatepointsForGC::run(Module &M,
     auto &DT = FAM.getResult<DominatorTreeAnalysis>(F);
     auto &TTI = FAM.getResult<TargetIRAnalysis>(F);
     auto &TLI = FAM.getResult<TargetLibraryAnalysis>(F);
-    Changed |= runOnFunction(F, DT, TTI, TLI);
+    Changed = Changed || runOnFunction(F, DT, TTI, TLI);
   }
   if (!Changed)
     return PreservedAnalyses::all();
@@ -3099,7 +3099,7 @@ bool RewriteStatepointsForGC::runOnFunction(Function &F, DominatorTree &DT,
   // insertion since relocations and base phis can confuse things.
   for (BasicBlock &BB : F)
     if (BB.getUniquePredecessor())
-      MadeChange |= FoldSingleEntryPHINodes(&BB);
+      MadeChange = MadeChange || FoldSingleEntryPHINodes(&BB);
 
   // Before we start introducing relocations, we want to tweak the IR a bit to
   // avoid unfortunate code generation effects.  The main example is that we
@@ -3172,10 +3172,10 @@ bool RewriteStatepointsForGC::runOnFunction(Function &F, DominatorTree &DT,
   if (!Intrinsics.empty())
     // Inline @gc.get.pointer.base() and @gc.get.pointer.offset() before finding
     // live references.
-    MadeChange |= inlineGetBaseAndOffset(F, Intrinsics, DVCache, KnownBases);
+    MadeChange = MadeChange || inlineGetBaseAndOffset(F, Intrinsics, DVCache, KnownBases);
 
   if (!ParsePointNeeded.empty())
-    MadeChange |=
+    MadeChange = MadeChange ||
         insertParsePoints(F, DT, TTI, ParsePointNeeded, DVCache, KnownBases);
 
   return MadeChange;

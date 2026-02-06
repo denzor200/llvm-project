@@ -232,18 +232,18 @@ bool SemaARM::BuiltinARMSpecialReg(unsigned BuiltinID, CallExpr *TheCall,
 
     bool ValidString = true;
     if (IsARMBuiltin) {
-      ValidString &= Fields[0].starts_with_insensitive("cp") ||
-                     Fields[0].starts_with_insensitive("p");
+      ValidString = ValidString && (Fields[0].starts_with_insensitive("cp") ||
+                     Fields[0].starts_with_insensitive("p"));
       if (ValidString)
         Fields[0] = Fields[0].drop_front(
             Fields[0].starts_with_insensitive("cp") ? 2 : 1);
 
-      ValidString &= Fields[2].starts_with_insensitive("c");
+      ValidString = ValidString && Fields[2].starts_with_insensitive("c");
       if (ValidString)
         Fields[2] = Fields[2].drop_front(1);
 
       if (FiveFields) {
-        ValidString &= Fields[3].starts_with_insensitive("c");
+        ValidString = ValidString && Fields[3].starts_with_insensitive("c");
         if (ValidString)
           Fields[3] = Fields[3].drop_front(1);
       }
@@ -257,8 +257,8 @@ bool SemaARM::BuiltinARMSpecialReg(unsigned BuiltinID, CallExpr *TheCall,
 
     for (unsigned i = 0; i < Fields.size(); ++i) {
       int IntField;
-      ValidString &= !Fields[i].getAsInteger(10, IntField);
-      ValidString &= (IntField >= 0 && IntField < (1 << FieldBitWidths[i]));
+      ValidString = ValidString && !Fields[i].getAsInteger(10, IntField);
+      ValidString = ValidString && (IntField >= 0 && IntField < (1 << FieldBitWidths[i]));
     }
 
     if (!ValidString)
@@ -522,7 +522,7 @@ bool SemaARM::PerformNeonImmChecks(
     if (OverloadType >= 0)
       ElementBitWidth = NeonTypeFlags(OverloadType).getEltSizeInBits();
 
-    HasError |= CheckImmediateArg(TheCall, CheckTy, ArgIdx, ElementBitWidth,
+    HasError = HasError || CheckImmediateArg(TheCall, CheckTy, ArgIdx, ElementBitWidth,
                                   VecBitWidth);
   }
 
@@ -535,7 +535,7 @@ bool SemaARM::PerformSVEImmChecks(
 
   for (const auto &I : ImmChecks) {
     auto [ArgIdx, CheckTy, ElementBitWidth] = I;
-    HasError |=
+    HasError = HasError ||
         CheckImmediateArg(TheCall, CheckTy, ArgIdx, ElementBitWidth, 128);
   }
 
@@ -1456,10 +1456,10 @@ void SemaARM::CheckSMEFunctionDefAttributes(const FunctionDecl *FD) {
   if (const auto *FPT = FD->getType()->getAs<FunctionProtoType>()) {
     FunctionProtoType::ExtProtoInfo EPI = FPT->getExtProtoInfo();
     UsesSM |= EPI.AArch64SMEAttributes & FunctionType::SME_PStateSMEnabledMask;
-    UsesZA |= FunctionType::getArmZAState(EPI.AArch64SMEAttributes) !=
-              FunctionType::ARM_None;
-    UsesZT0 |= FunctionType::getArmZT0State(EPI.AArch64SMEAttributes) !=
-               FunctionType::ARM_None;
+    UsesZA = UsesZA || (FunctionType::getArmZAState(EPI.AArch64SMEAttributes) !=
+              FunctionType::ARM_None);
+    UsesZT0 = UsesZT0 || (FunctionType::getArmZT0State(EPI.AArch64SMEAttributes) !=
+               FunctionType::ARM_None);
   }
 
   ASTContext &Context = getASTContext();

@@ -286,12 +286,12 @@ public:
     setProvedLive(cast<BlockArgument>(value));
   }
   void setProvedLive(BlockArgument arg) {
-    changed |= liveValues.insert(arg).second;
+    changed = changed || liveValues.insert(arg).second;
   }
 
   /// Operation methods.
   bool wasProvenLive(Operation *op) { return liveOps.count(op); }
-  void setProvedLive(Operation *op) { changed |= liveOps.insert(op).second; }
+  void setProvedLive(Operation *op) { changed = changed || liveOps.insert(op).second; }
 
   /// Methods for tracking if we have reached a fixed-point.
   void resetChanged() { changed = false; }
@@ -459,7 +459,7 @@ static LogicalResult deleteDeadness(RewriterBase &rewriter,
           childOp.dropAllUses();
           rewriter.eraseOp(&childOp);
         } else {
-          erasedAnything |= succeeded(
+          erasedAnything = erasedAnything || succeeded(
               deleteDeadness(rewriter, childOp.getRegions(), liveMap));
         }
       }
@@ -921,7 +921,7 @@ static LogicalResult mergeIdenticalBlocks(RewriterBase &rewriter,
         clusters.emplace_back(std::move(data));
     }
     for (auto &cluster : clusters)
-      mergedAnyBlocks |= succeeded(cluster.merge(rewriter));
+      mergedAnyBlocks = mergedAnyBlocks || succeeded(cluster.merge(rewriter));
   }
 
   return success(mergedAnyBlocks);

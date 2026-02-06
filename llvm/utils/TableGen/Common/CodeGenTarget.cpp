@@ -258,7 +258,7 @@ void CodeGenTarget::ReadInstructions() const {
   for (const Record *R : Insts) {
     auto [II, _] =
         InstructionMap.try_emplace(R, std::make_unique<CodeGenInstruction>(R));
-    HasVariableLengthEncodings |= II->second->isVariableLengthEncoding();
+    HasVariableLengthEncodings = HasVariableLengthEncodings || II->second->isVariableLengthEncoding();
   }
 }
 

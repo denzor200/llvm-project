@@ -58,7 +58,7 @@ struct TileCheck : public AffineExprVisitor<TileCheck> {
   TileCheck(ArrayRef<OpFoldResult> tileSizes) : tileSizes(tileSizes) {}
 
   void visitDimExpr(AffineDimExpr expr) {
-    isTiled |= !isZeroInteger(tileSizes[expr.getPosition()]);
+    isTiled = isTiled || !isZeroInteger(tileSizes[expr.getPosition()]);
   }
   void visitAffineBinaryOpExpr(AffineBinaryOpExpr expr) {
     visit(expr.getLHS());
@@ -563,7 +563,7 @@ public:
   ConvMatcherBuilder &matchStride(unsigned iDim, unsigned fDim, unsigned oDim,
                                   unsigned idx) {
     if (matched) {
-      matched &= matchConvDimAddExprPattern(indexingMaps, iDim, fDim, oDim,
+      matched = matched && matchConvDimAddExprPattern(indexingMaps, iDim, fDim, oDim,
                                             (*dilations)[idx], (*strides)[idx]);
     }
     return *this;
@@ -572,7 +572,7 @@ public:
   /// Match expected indexing maps layout. Returns *this for method chaining.
   ConvMatcherBuilder &matchMaps(ArrayRef<ArrayRef<AffineExpr>> maps) {
     if (matched)
-      matched &= convLayoutMatches(maps, indexingMaps, ctx);
+      matched = matched && convLayoutMatches(maps, indexingMaps, ctx);
     return *this;
   }
 

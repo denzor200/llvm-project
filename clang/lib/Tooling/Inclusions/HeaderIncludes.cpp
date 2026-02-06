@@ -274,7 +274,7 @@ IncludeCategoryManager::IncludeCategoryManager(const IncludeStyle &Style,
                FileName.ends_with(".mm");
   if (!Style.IncludeIsMainSourceRegex.empty()) {
     llvm::Regex MainFileRegex(Style.IncludeIsMainSourceRegex);
-    IsMainFile |= MainFileRegex.match(FileName);
+    IsMainFile = IsMainFile || MainFileRegex.match(FileName);
   }
 }
 

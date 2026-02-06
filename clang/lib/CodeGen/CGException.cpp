@@ -1272,7 +1272,7 @@ void CodeGenFunction::ExitCXXTryStmt(const CXXTryStmt &S, bool IsFnTryBlock) {
   // handler to be moved before the first.
   bool HasCatchAll = false;
   for (unsigned I = NumHandlers; I != 0; --I) {
-    HasCatchAll |= Handlers[I - 1].isCatchAll();
+    HasCatchAll = HasCatchAll || Handlers[I - 1].isCatchAll();
     llvm::BasicBlock *CatchBlock = Handlers[I-1].Block;
     EmitBlockAfterUses(CatchBlock);
 

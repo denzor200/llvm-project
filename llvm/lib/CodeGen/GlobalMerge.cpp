@@ -467,7 +467,7 @@ bool GlobalMergeImpl::doMerge(SmallVectorImpl<GlobalVariable *> &Globals,
     // PickedGlobals.
     if (UGS.Globals.count() < 2)
       continue;
-    Changed |= doMerge(Globals, UGS.Globals, M, isConst, AddrSpace);
+    Changed = Changed || doMerge(Globals, UGS.Globals, M, isConst, AddrSpace);
   }
 
   return Changed;
@@ -756,16 +756,16 @@ bool GlobalMergeImpl::run(Module &M) {
 
   for (auto &P : Globals)
     if (P.second.size() > 1)
-      Changed |= doMerge(P.second, M, false, std::get<0>(P.first));
+      Changed = Changed || doMerge(P.second, M, false, std::get<0>(P.first));
 
   for (auto &P : BSSGlobals)
     if (P.second.size() > 1)
-      Changed |= doMerge(P.second, M, false, std::get<0>(P.first));
+      Changed = Changed || doMerge(P.second, M, false, std::get<0>(P.first));
 
   if (Opt.MergeConstantGlobals)
     for (auto &P : ConstGlobals)
       if (P.second.size() > 1)
-        Changed |= doMerge(P.second, M, true, std::get<0>(P.first));
+        Changed = Changed || doMerge(P.second, M, true, std::get<0>(P.first));
 
   return Changed;
 }

@@ -219,7 +219,7 @@ bool llvm::DeleteDeadPHIs(BasicBlock *BB, const TargetLibraryInfo *TLI,
   bool Changed = false;
   for (const auto &PHI : PHIs)
     if (PHINode *PN = dyn_cast_or_null<PHINode>(PHI.operator Value *()))
-      Changed |= RecursivelyDeleteDeadPHINode(PN, TLI, MSSAU);
+      Changed = Changed || RecursivelyDeleteDeadPHINode(PN, TLI, MSSAU);
 
   return Changed;
 }
@@ -593,11 +593,11 @@ bool llvm::RemoveRedundantDbgInstrs(BasicBlock *BB) {
   // The backward scan will remove (2), it is made obsolete by (3). After
   // getting (2) out of the way, the foward scan will remove (3) since "x"
   // already is described as having the value V1 at (1).
-  MadeChanges |= removeRedundantDbgInstrsUsingBackwardScan(BB);
+  MadeChanges = MadeChanges || removeRedundantDbgInstrsUsingBackwardScan(BB);
   if (BB->isEntryBlock() &&
       isAssignmentTrackingEnabled(*BB->getParent()->getParent()))
-    MadeChanges |= removeUndefDbgAssignsFromEntryBlock(BB);
-  MadeChanges |= removeRedundantDbgInstrsUsingForwardScan(BB);
+    MadeChanges = MadeChanges || removeUndefDbgAssignsFromEntryBlock(BB);
+  MadeChanges = MadeChanges || removeRedundantDbgInstrsUsingForwardScan(BB);
 
   if (MadeChanges)
     LLVM_DEBUG(dbgs() << "Removed redundant dbg instrs from: "

@@ -1173,7 +1173,7 @@ struct SinkUniformOps final : public gpu::WarpDistributionPattern {
         llvm::all_of(warpRegionPreYieldOp->getResults(), [](Value v) {
           return !xegpu::getDistributeLayoutAttr(v);
         });
-    uniformValuesOnly &=
+    uniformValuesOnly = uniformValuesOnly &&
         llvm::all_of(warpRegionPreYieldOp->getOpOperands(), [](OpOperand &opr) {
           return !xegpu::getDistributeLayoutAttr(opr);
         });

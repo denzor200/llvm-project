@@ -429,7 +429,7 @@ void CodeGenFunction::PopCleanupBlocks(
   bool HadBranches = false;
   while (EHStack.stable_begin() != Old) {
     EHCleanupScope &Scope = cast<EHCleanupScope>(*EHStack.begin());
-    HadBranches |= Scope.hasBranches();
+    HadBranches = HadBranches || Scope.hasBranches();
 
     // As long as Old strictly encloses the scope's enclosing normal
     // cleanup, we're going to emit another normal cleanup which

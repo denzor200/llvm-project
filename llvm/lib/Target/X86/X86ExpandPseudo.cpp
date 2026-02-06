@@ -920,7 +920,7 @@ bool X86ExpandPseudoImpl::expandMBB(MachineBasicBlock &MBB) {
   MachineBasicBlock::iterator MBBI = MBB.begin(), E = MBB.end();
   while (MBBI != E) {
     MachineBasicBlock::iterator NMBBI = std::next(MBBI);
-    Modified |= expandMI(MBB, MBBI);
+    Modified = Modified || expandMI(MBB, MBBI);
     MBBI = NMBBI;
   }
 
@@ -952,7 +952,7 @@ bool X86ExpandPseudoImpl::runOnMachineFunction(MachineFunction &MF) {
   bool Modified = expandPseudosWhichAffectControlFlow(MF);
 
   for (MachineBasicBlock &MBB : MF)
-    Modified |= expandMBB(MBB);
+    Modified = Modified || expandMBB(MBB);
   return Modified;
 }
 

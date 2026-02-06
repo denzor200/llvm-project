@@ -431,7 +431,7 @@ bool ReorderData::markUnmoveableSymbols(BinaryContext &BC,
         Next->setIsMoveable(false);
       }
     }
-    FoundUnmoveable |= !Itr->second->isMoveable();
+    FoundUnmoveable = FoundUnmoveable || !Itr->second->isMoveable();
   }
   return FoundUnmoveable;
 }

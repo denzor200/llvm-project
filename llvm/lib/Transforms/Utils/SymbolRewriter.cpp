@@ -539,7 +539,7 @@ bool RewriteSymbolPass::runImpl(Module &M) {
 
   Changed = false;
   for (auto &Descriptor : Descriptors)
-    Changed |= Descriptor->performOnModule(M);
+    Changed = Changed || Descriptor->performOnModule(M);
 
   return Changed;
 }

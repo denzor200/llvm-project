@@ -904,102 +904,102 @@ bool AArch64MIPeepholeOpt::runOnMachineFunction(MachineFunction &MF) {
       default:
         break;
       case AArch64::INSERT_SUBREG:
-        Changed |= visitINSERT(MI);
+        Changed = Changed || visitINSERT(MI);
         break;
       case AArch64::ANDWrr:
-        Changed |= trySplitLogicalImm<uint32_t>(AArch64::ANDWri, MI,
+        Changed = Changed || trySplitLogicalImm<uint32_t>(AArch64::ANDWri, MI,
                                                 SplitStrategy::Intersect);
         break;
       case AArch64::ANDXrr:
-        Changed |= trySplitLogicalImm<uint64_t>(AArch64::ANDXri, MI,
+        Changed = Changed || trySplitLogicalImm<uint64_t>(AArch64::ANDXri, MI,
                                                 SplitStrategy::Intersect);
         break;
       case AArch64::ANDSWrr:
-        Changed |= trySplitLogicalImm<uint32_t>(
+        Changed = Changed || trySplitLogicalImm<uint32_t>(
             AArch64::ANDWri, MI, SplitStrategy::Intersect, AArch64::ANDSWri);
         break;
       case AArch64::ANDSXrr:
-        Changed |= trySplitLogicalImm<uint64_t>(
+        Changed = Changed || trySplitLogicalImm<uint64_t>(
             AArch64::ANDXri, MI, SplitStrategy::Intersect, AArch64::ANDSXri);
         break;
       case AArch64::EORWrr:
-        Changed |= trySplitLogicalImm<uint32_t>(AArch64::EORWri, MI,
+        Changed = Changed || trySplitLogicalImm<uint32_t>(AArch64::EORWri, MI,
                                                 SplitStrategy::Disjoint);
         break;
       case AArch64::EORXrr:
-        Changed |= trySplitLogicalImm<uint64_t>(AArch64::EORXri, MI,
+        Changed = Changed || trySplitLogicalImm<uint64_t>(AArch64::EORXri, MI,
                                                 SplitStrategy::Disjoint);
         break;
       case AArch64::ORRWrr:
-        Changed |= trySplitLogicalImm<uint32_t>(AArch64::ORRWri, MI,
+        Changed = Changed || trySplitLogicalImm<uint32_t>(AArch64::ORRWri, MI,
                                                 SplitStrategy::Disjoint);
         break;
       case AArch64::ORRXrr:
-        Changed |= trySplitLogicalImm<uint64_t>(AArch64::ORRXri, MI,
+        Changed = Changed || trySplitLogicalImm<uint64_t>(AArch64::ORRXri, MI,
                                                 SplitStrategy::Disjoint);
         break;
       case AArch64::ORRWrs:
-        Changed |= visitORR(MI);
+        Changed = Changed || visitORR(MI);
         break;
       case AArch64::ADDWrr:
-        Changed |= visitADDSUB<uint32_t>(AArch64::ADDWri, AArch64::SUBWri, MI);
+        Changed = Changed || visitADDSUB<uint32_t>(AArch64::ADDWri, AArch64::SUBWri, MI);
         break;
       case AArch64::SUBWrr:
-        Changed |= visitADDSUB<uint32_t>(AArch64::SUBWri, AArch64::ADDWri, MI);
+        Changed = Changed || visitADDSUB<uint32_t>(AArch64::SUBWri, AArch64::ADDWri, MI);
         break;
       case AArch64::ADDXrr:
-        Changed |= visitADDSUB<uint64_t>(AArch64::ADDXri, AArch64::SUBXri, MI);
+        Changed = Changed || visitADDSUB<uint64_t>(AArch64::ADDXri, AArch64::SUBXri, MI);
         break;
       case AArch64::SUBXrr:
-        Changed |= visitADDSUB<uint64_t>(AArch64::SUBXri, AArch64::ADDXri, MI);
+        Changed = Changed || visitADDSUB<uint64_t>(AArch64::SUBXri, AArch64::ADDXri, MI);
         break;
       case AArch64::ADDSWrr:
-        Changed |=
+        Changed = Changed ||
             visitADDSSUBS<uint32_t>({AArch64::ADDWri, AArch64::ADDSWri},
                                     {AArch64::SUBWri, AArch64::SUBSWri}, MI);
         break;
       case AArch64::SUBSWrr:
-        Changed |=
+        Changed = Changed ||
             visitADDSSUBS<uint32_t>({AArch64::SUBWri, AArch64::SUBSWri},
                                     {AArch64::ADDWri, AArch64::ADDSWri}, MI);
         break;
       case AArch64::ADDSXrr:
-        Changed |=
+        Changed = Changed ||
             visitADDSSUBS<uint64_t>({AArch64::ADDXri, AArch64::ADDSXri},
                                     {AArch64::SUBXri, AArch64::SUBSXri}, MI);
         break;
       case AArch64::SUBSXrr:
-        Changed |=
+        Changed = Changed ||
             visitADDSSUBS<uint64_t>({AArch64::SUBXri, AArch64::SUBSXri},
                                     {AArch64::ADDXri, AArch64::ADDSXri}, MI);
         break;
       case AArch64::CSELWr:
       case AArch64::CSELXr:
-        Changed |= visitCSEL(MI);
+        Changed = Changed || visitCSEL(MI);
         break;
       case AArch64::INSvi64gpr:
-        Changed |= visitINSviGPR(MI, AArch64::INSvi64lane);
+        Changed = Changed || visitINSviGPR(MI, AArch64::INSvi64lane);
         break;
       case AArch64::INSvi32gpr:
-        Changed |= visitINSviGPR(MI, AArch64::INSvi32lane);
+        Changed = Changed || visitINSviGPR(MI, AArch64::INSvi32lane);
         break;
       case AArch64::INSvi16gpr:
-        Changed |= visitINSviGPR(MI, AArch64::INSvi16lane);
+        Changed = Changed || visitINSviGPR(MI, AArch64::INSvi16lane);
         break;
       case AArch64::INSvi8gpr:
-        Changed |= visitINSviGPR(MI, AArch64::INSvi8lane);
+        Changed = Changed || visitINSviGPR(MI, AArch64::INSvi8lane);
         break;
       case AArch64::INSvi64lane:
-        Changed |= visitINSvi64lane(MI);
+        Changed = Changed || visitINSvi64lane(MI);
         break;
       case AArch64::FMOVDr:
-        Changed |= visitFMOVDr(MI);
+        Changed = Changed || visitFMOVDr(MI);
         break;
       case AArch64::UBFMXri:
-        Changed |= visitUBFMXri(MI);
+        Changed = Changed || visitUBFMXri(MI);
         break;
       case AArch64::COPY:
-        Changed |= visitCopy(MI);
+        Changed = Changed || visitCopy(MI);
         break;
       }
     }

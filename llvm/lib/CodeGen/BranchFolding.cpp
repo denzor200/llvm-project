@@ -247,9 +247,9 @@ bool BranchFolder::OptimizeFunction(MachineFunction &MF,
     // No need to clean up if tail merging does not change anything after the
     // block placement.
     if (!AfterBlockPlacement || MadeChangeThisIteration)
-      MadeChangeThisIteration |= OptimizeBranches(MF);
+      MadeChangeThisIteration = MadeChangeThisIteration || OptimizeBranches(MF);
     if (EnableHoistCommonCode)
-      MadeChangeThisIteration |= HoistCommonCode(MF);
+      MadeChangeThisIteration = MadeChangeThisIteration || HoistCommonCode(MF);
     MadeChange = MadeChange || MadeChangeThisIteration;
   }
 
@@ -1072,7 +1072,7 @@ bool BranchFolder::TailMergeBlocks(MachineFunction &MF) {
 
   // See if we can do any tail merging on those.
   if (MergePotentials.size() >= 2)
-    MadeChange |= TryTailMergeBlocks(nullptr, nullptr, MinCommonTailLength);
+    MadeChange = MadeChange || TryTailMergeBlocks(nullptr, nullptr, MinCommonTailLength);
 
   // Look at blocks (IBB) with multiple predecessors (PBB).
   // We change each predecessor to a canonical form, by
@@ -1184,7 +1184,7 @@ bool BranchFolder::TailMergeBlocks(MachineFunction &MF) {
         TriedMerging.insert(Elt.getBlock());
 
     if (MergePotentials.size() >= 2)
-      MadeChange |= TryTailMergeBlocks(IBB, PredBB, MinCommonTailLength);
+      MadeChange = MadeChange || TryTailMergeBlocks(IBB, PredBB, MinCommonTailLength);
 
     // Reinsert an unconditional branch if needed. The 1 below can occur as a
     // result of removing blocks in TryTailMergeBlocks.
@@ -1256,7 +1256,7 @@ bool BranchFolder::OptimizeBranches(MachineFunction &MF) {
 
   for (MachineBasicBlock &MBB :
        llvm::make_early_inc_range(llvm::drop_begin(MF))) {
-    MadeChange |= OptimizeBlock(&MBB);
+    MadeChange = MadeChange || OptimizeBlock(&MBB);
 
     // If it is dead, remove it.
     if (MBB.pred_empty() && !MBB.isMachineBlockAddressTaken() &&
@@ -1828,7 +1828,7 @@ ReoptimizeBlock:
 bool BranchFolder::HoistCommonCode(MachineFunction &MF) {
   bool MadeChange = false;
   for (MachineBasicBlock &MBB : llvm::make_early_inc_range(MF))
-    MadeChange |= HoistCommonCodeInSuccs(&MBB);
+    MadeChange = MadeChange || HoistCommonCodeInSuccs(&MBB);
 
   return MadeChange;
 }

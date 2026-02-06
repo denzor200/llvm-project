@@ -4132,10 +4132,10 @@ public:
                                LambdaScopeInfo *LSI) {
     for (ParmVarDecl *PVD : LSI->CallOperator->parameters()) {
       if (Expr *Init = PVD->getInit())
-        LSI->ContainsUnexpandedParameterPack |=
+        LSI->ContainsUnexpandedParameterPack = LSI->ContainsUnexpandedParameterPack ||
             Init->containsUnexpandedParameterPack();
       else if (PVD->hasUninstantiatedDefaultArg())
-        LSI->ContainsUnexpandedParameterPack |=
+        LSI->ContainsUnexpandedParameterPack = LSI->ContainsUnexpandedParameterPack ||
             PVD->getUninstantiatedDefaultArg()
                 ->containsUnexpandedParameterPack();
     }
@@ -6891,7 +6891,7 @@ QualType TreeTransform<Derived>::TransformUnresolvedUsingType(
     QualifierLoc = getDerived().TransformNestedNameSpecifierLoc(QualifierLoc);
     if (!QualifierLoc)
       return QualType();
-    Changed |= QualifierLoc != OldQualifierLoc;
+    Changed = Changed || QualifierLoc != OldQualifierLoc;
   }
 
   auto *D = getDerived().TransformDecl(TL.getNameLoc(), T->getDecl());
@@ -6928,7 +6928,7 @@ QualType TreeTransform<Derived>::TransformUsingType(TypeLocBuilder &TLB,
     QualifierLoc = getDerived().TransformNestedNameSpecifierLoc(QualifierLoc);
     if (!QualifierLoc)
       return QualType();
-    Changed |= QualifierLoc != OldQualifierLoc;
+    Changed = Changed || QualifierLoc != OldQualifierLoc;
   }
 
   auto *D = cast_or_null<UsingShadowDecl>(
@@ -6940,7 +6940,7 @@ QualType TreeTransform<Derived>::TransformUsingType(TypeLocBuilder &TLB,
   QualType UnderlyingType = getDerived().TransformType(T->desugar());
   if (UnderlyingType.isNull())
     return QualType();
-  Changed |= UnderlyingType != T->desugar();
+  Changed = Changed || UnderlyingType != T->desugar();
 
   QualType Result = TL.getType();
   if (getDerived().AlwaysRebuild() || Changed) {
@@ -6966,7 +6966,7 @@ QualType TreeTransform<Derived>::TransformTypedefType(TypeLocBuilder &TLB,
     QualifierLoc = getDerived().TransformNestedNameSpecifierLoc(QualifierLoc);
     if (!QualifierLoc)
       return QualType();
-    Changed |= QualifierLoc != OldQualifierLoc;
+    Changed = Changed || QualifierLoc != OldQualifierLoc;
   }
 
   auto *Typedef = cast_or_null<TypedefNameDecl>(
@@ -7159,7 +7159,7 @@ TreeTransform<Derived>::TransformPackIndexingType(TypeLocBuilder &TLB,
       if (Out.isNull())
         return QualType();
       SubtitutedTypes.push_back(Out);
-      FullySubstituted &= !Out->containsUnexpandedParameterPack();
+      FullySubstituted = FullySubstituted && !Out->containsUnexpandedParameterPack();
     }
     // If we're supposed to retain a pack expansion, do so by temporarily
     // forgetting the partially-substituted parameter pack.
@@ -8300,7 +8300,7 @@ TreeTransform<Derived>::TransformAttributedStmt(AttributedStmt *S,
   for (const auto *I : S->getAttrs()) {
     const Attr *R =
         getDerived().TransformStmtAttr(S->getSubStmt(), SubStmt.get(), I);
-    AttrsChanged |= (I != R);
+    AttrsChanged = AttrsChanged || (I != R);
     if (R)
       Attrs.push_back(R);
   }
@@ -8637,7 +8637,7 @@ TreeTransform<Derived>::TransformDeclStmt(DeclStmt *S) {
     if (LSI) {
       if (auto *TD = dyn_cast<TypeDecl>(Transformed)) {
         if (auto *TN = dyn_cast<TypedefNameDecl>(TD)) {
-          LSI->ContainsUnexpandedParameterPack |=
+          LSI->ContainsUnexpandedParameterPack = LSI->ContainsUnexpandedParameterPack ||
               TN->getUnderlyingType()->containsUnexpandedParameterPack();
         } else {
           LSI->ContainsUnexpandedParameterPack |=
@@ -8648,7 +8648,7 @@ TreeTransform<Derived>::TransformDeclStmt(DeclStmt *S) {
         }
       }
       if (auto *VD = dyn_cast<VarDecl>(Transformed))
-        LSI->ContainsUnexpandedParameterPack |=
+        LSI->ContainsUnexpandedParameterPack = LSI->ContainsUnexpandedParameterPack ||
             VD->getType()->containsUnexpandedParameterPack();
     }
 
@@ -8700,7 +8700,7 @@ TreeTransform<Derived>::TransformGCCAsmStmt(GCCAsmStmt *S) {
     if (Result.isInvalid())
       return StmtError();
 
-    ExprsChanged |= Result.get() != OutputExpr;
+    ExprsChanged = ExprsChanged || (Result.get() != OutputExpr);
 
     Exprs.push_back(Result.get());
   }
@@ -8721,7 +8721,7 @@ TreeTransform<Derived>::TransformGCCAsmStmt(GCCAsmStmt *S) {
     if (Result.isInvalid())
       return StmtError();
 
-    ExprsChanged |= Result.get() != InputExpr;
+    ExprsChanged = ExprsChanged || (Result.get() != InputExpr);
 
     Exprs.push_back(Result.get());
   }
@@ -8733,7 +8733,7 @@ TreeTransform<Derived>::TransformGCCAsmStmt(GCCAsmStmt *S) {
     ExprResult Result = getDerived().TransformExpr(S->getLabelExpr(I));
     if (Result.isInvalid())
       return StmtError();
-    ExprsChanged |= Result.get() != S->getLabelExpr(I);
+    ExprsChanged = ExprsChanged || (Result.get() != S->getLabelExpr(I));
     Exprs.push_back(Result.get());
   }
 
@@ -8775,7 +8775,7 @@ TreeTransform<Derived>::TransformMSAsmStmt(MSAsmStmt *S) {
     if (!Result.isUsable()) {
       HadError = true;
     } else {
-      HadChange |= (Result.get() != SrcExprs[i]);
+      HadChange = HadChange || (Result.get() != SrcExprs[i]);
       TransformedExprs.push_back(Result.get());
     }
   }
@@ -13343,7 +13343,7 @@ ExprResult TreeTransform<Derived>::TransformRecoveryExpr(RecoveryExpr *E) {
       return ExprError();
     Children.push_back(NewC.get());
 
-    Changed |= NewC.get() != C;
+    Changed = Changed || (NewC.get() != C);
   }
   if (!getDerived().AlwaysRebuild() && !Changed)
     return E;
@@ -14951,7 +14951,7 @@ bool TreeTransform<Derived>::TransformOverloadExprDecls(OverloadExpr *Old,
       }
     }
 
-    AllEmptyPacks &= Decls.empty();
+    AllEmptyPacks = AllEmptyPacks && Decls.empty();
   }
 
   // C++ [temp.res]/8.4.2:
@@ -15820,7 +15820,7 @@ TreeTransform<Derived>::TransformLambdaExpr(LambdaExpr *E) {
         // But rule out cases e.g.
         //    [...C = Pack()] {}
         if (NewC.EllipsisLoc.isInvalid())
-          LSI->ContainsUnexpandedParameterPack |=
+          LSI->ContainsUnexpandedParameterPack = LSI->ContainsUnexpandedParameterPack ||
               Init.get()->containsUnexpandedParameterPack();
       }
 
@@ -15916,7 +15916,7 @@ TreeTransform<Derived>::TransformLambdaExpr(LambdaExpr *E) {
       getDerived().TransformType(NewCallOpTLBuilder, OldCallOpTypeLoc);
   if (NewCallOpType.isNull())
     return ExprError();
-  LSI->ContainsUnexpandedParameterPack |=
+  LSI->ContainsUnexpandedParameterPack = LSI->ContainsUnexpandedParameterPack ||
       NewCallOpType->containsUnexpandedParameterPack();
   TypeSourceInfo *NewCallOpTSI =
       NewCallOpTLBuilder.getTypeSourceInfo(getSema().Context, NewCallOpType);

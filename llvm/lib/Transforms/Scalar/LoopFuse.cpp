@@ -544,7 +544,7 @@ public:
 #endif
 
         collectFusionCandidates(LV);
-        Changed |= fuseCandidates();
+        Changed = Changed || fuseCandidates();
       }
 
       // Finished analyzing candidates at this level.
@@ -2052,14 +2052,14 @@ PreservedAnalyses LoopFusePass::run(Function &F, FunctionAnalysisManager &AM) {
   // LoopSimplify pass as a dependency.
   bool Changed = false;
   for (auto &L : LI) {
-    Changed |=
+    Changed = Changed ||
         simplifyLoop(L, &DT, &LI, &SE, &AC, nullptr, false /* PreserveLCSSA */);
   }
   if (Changed)
     PDT.recalculate(F);
 
   LoopFuser LF(LI, DT, DI, SE, PDT, ORE, DL, AC, TTI);
-  Changed |= LF.fuseLoops(F);
+  Changed = Changed || LF.fuseLoops(F);
   if (!Changed)
     return PreservedAnalyses::all();
 

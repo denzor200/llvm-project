@@ -104,7 +104,7 @@ bool SystemZCopyPhysRegs::runOnMachineFunction(MachineFunction &F) {
 
   bool Modified = false;
   for (auto &MBB : F)
-    Modified |= visitMBB(MBB);
+    Modified = Modified || visitMBB(MBB);
 
   return Modified;
 }

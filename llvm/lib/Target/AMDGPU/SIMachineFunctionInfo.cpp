@@ -697,25 +697,25 @@ convertArgumentInfo(const AMDGPUFunctionArgInfo &ArgInfo,
   };
 
   bool Any = false;
-  Any |= convertArg(AI.PrivateSegmentBuffer, ArgInfo.PrivateSegmentBuffer);
-  Any |= convertArg(AI.DispatchPtr, ArgInfo.DispatchPtr);
-  Any |= convertArg(AI.QueuePtr, ArgInfo.QueuePtr);
-  Any |= convertArg(AI.KernargSegmentPtr, ArgInfo.KernargSegmentPtr);
-  Any |= convertArg(AI.DispatchID, ArgInfo.DispatchID);
-  Any |= convertArg(AI.FlatScratchInit, ArgInfo.FlatScratchInit);
-  Any |= convertArg(AI.LDSKernelId, ArgInfo.LDSKernelId);
-  Any |= convertArg(AI.PrivateSegmentSize, ArgInfo.PrivateSegmentSize);
-  Any |= convertArg(AI.WorkGroupIDX, ArgInfo.WorkGroupIDX);
-  Any |= convertArg(AI.WorkGroupIDY, ArgInfo.WorkGroupIDY);
-  Any |= convertArg(AI.WorkGroupIDZ, ArgInfo.WorkGroupIDZ);
-  Any |= convertArg(AI.WorkGroupInfo, ArgInfo.WorkGroupInfo);
-  Any |= convertArg(AI.PrivateSegmentWaveByteOffset,
+  Any = Any || convertArg(AI.PrivateSegmentBuffer, ArgInfo.PrivateSegmentBuffer);
+  Any = Any || convertArg(AI.DispatchPtr, ArgInfo.DispatchPtr);
+  Any = Any || convertArg(AI.QueuePtr, ArgInfo.QueuePtr);
+  Any = Any || convertArg(AI.KernargSegmentPtr, ArgInfo.KernargSegmentPtr);
+  Any = Any || convertArg(AI.DispatchID, ArgInfo.DispatchID);
+  Any = Any || convertArg(AI.FlatScratchInit, ArgInfo.FlatScratchInit);
+  Any = Any || convertArg(AI.LDSKernelId, ArgInfo.LDSKernelId);
+  Any = Any || convertArg(AI.PrivateSegmentSize, ArgInfo.PrivateSegmentSize);
+  Any = Any || convertArg(AI.WorkGroupIDX, ArgInfo.WorkGroupIDX);
+  Any = Any || convertArg(AI.WorkGroupIDY, ArgInfo.WorkGroupIDY);
+  Any = Any || convertArg(AI.WorkGroupIDZ, ArgInfo.WorkGroupIDZ);
+  Any = Any || convertArg(AI.WorkGroupInfo, ArgInfo.WorkGroupInfo);
+  Any = Any || convertArg(AI.PrivateSegmentWaveByteOffset,
                     ArgInfo.PrivateSegmentWaveByteOffset);
-  Any |= convertArg(AI.ImplicitArgPtr, ArgInfo.ImplicitArgPtr);
-  Any |= convertArg(AI.ImplicitBufferPtr, ArgInfo.ImplicitBufferPtr);
-  Any |= convertArg(AI.WorkItemIDX, ArgInfo.WorkItemIDX);
-  Any |= convertArg(AI.WorkItemIDY, ArgInfo.WorkItemIDY);
-  Any |= convertArg(AI.WorkItemIDZ, ArgInfo.WorkItemIDZ);
+  Any = Any || convertArg(AI.ImplicitArgPtr, ArgInfo.ImplicitArgPtr);
+  Any = Any || convertArg(AI.ImplicitBufferPtr, ArgInfo.ImplicitBufferPtr);
+  Any = Any || convertArg(AI.WorkItemIDX, ArgInfo.WorkItemIDX);
+  Any = Any || convertArg(AI.WorkItemIDY, ArgInfo.WorkItemIDY);
+  Any = Any || convertArg(AI.WorkItemIDZ, ArgInfo.WorkItemIDZ);
 
   // Write FirstKernArgPreloadReg separately, since it's a Register,
   // not ArgDescriptor.

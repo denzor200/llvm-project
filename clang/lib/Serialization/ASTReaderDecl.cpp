@@ -2157,7 +2157,7 @@ void ASTDeclMerger::MergeDefinitionData(
       for (unsigned I = 0, N = Lambda1.NumCaptures; I != N; ++I) {
         LambdaCapture &Cap1 = Lambda1.Captures.front()[I];
         LambdaCapture &Cap2 = Lambda2.Captures.front()[I];
-        DetectedOdrViolation |= Cap1.getCaptureKind() != Cap2.getCaptureKind();
+        DetectedOdrViolation = DetectedOdrViolation || (Cap1.getCaptureKind() != Cap2.getCaptureKind());
       }
       Lambda1.AddCaptureList(Reader.getContext(), Lambda2.Captures.front());
     }

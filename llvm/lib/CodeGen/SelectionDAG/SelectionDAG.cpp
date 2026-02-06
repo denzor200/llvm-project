@@ -3644,7 +3644,7 @@ KnownBits SelectionDAG::computeKnownBits(SDValue Op, const APInt &DemandedElts,
     bool SelfMultiply = Op.getOperand(0) == Op.getOperand(1);
     // TODO: SelfMultiply can be poison, but not undef.
     if (SelfMultiply)
-      SelfMultiply &= isGuaranteedNotToBeUndefOrPoison(
+      SelfMultiply = SelfMultiply && isGuaranteedNotToBeUndefOrPoison(
           Op.getOperand(0), DemandedElts, false, Depth + 1);
     Known = KnownBits::mul(Known, Known2, SelfMultiply);
 
@@ -6041,10 +6041,10 @@ bool SelectionDAG::isKnownNeverNaN(SDValue Op, const APInt &DemandedElts,
 
       bool NeverNaN = true;
       if (!DemandedSrcElts.isZero())
-        NeverNaN &=
+        NeverNaN = NeverNaN &&
             isKnownNeverNaN(BaseVector, DemandedSrcElts, SNaN, Depth + 1);
       if (NeverNaN && !DemandedSubElts.isZero())
-        NeverNaN &=
+        NeverNaN = NeverNaN &&
             isKnownNeverNaN(SubVector, DemandedSubElts, SNaN, Depth + 1);
       return NeverNaN;
     }
@@ -12569,7 +12569,7 @@ void SelectionDAG::ReplaceAllUsesWith(SDNode *From, const SDValue *To) {
       ++UI;
       Use.set(ToOp);
       if (ToOp.getValueType() != MVT::Other)
-        To_IsDivergent |= ToOp->isDivergent();
+        To_IsDivergent = To_IsDivergent || ToOp->isDivergent();
     } while (UI != UE && UI->getUser() == User);
 
     if (To_IsDivergent != From->isDivergent())
@@ -14386,7 +14386,7 @@ void SelectionDAG::createOperands(SDNode *Node, ArrayRef<SDValue> Vals) {
   Node->NumOperands = Vals.size();
   Node->OperandList = Ops;
   if (!TLI->isSDNodeAlwaysUniform(Node)) {
-    IsDivergent |= TLI->isSDNodeSourceOfDivergence(Node, FLI, UA);
+    IsDivergent = IsDivergent || TLI->isSDNodeSourceOfDivergence(Node, FLI, UA);
     Node->SDNodeBits.IsDivergent = IsDivergent;
   }
   checkForCycles(Node);

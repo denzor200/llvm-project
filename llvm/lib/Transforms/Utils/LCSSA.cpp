@@ -439,9 +439,9 @@ static bool formLCSSARecursivelyImpl(Loop &L, const DominatorTree &DT,
 
   // Recurse depth-first through inner loops.
   for (Loop *SubLoop : L.getSubLoops())
-    Changed |= formLCSSARecursivelyImpl(*SubLoop, DT, LI, SE, LoopExitBlocks);
+    Changed = Changed || formLCSSARecursivelyImpl(*SubLoop, DT, LI, SE, LoopExitBlocks);
 
-  Changed |= formLCSSAImpl(L, DT, LI, SE, LoopExitBlocks);
+  Changed = Changed || formLCSSAImpl(L, DT, LI, SE, LoopExitBlocks);
   return Changed;
 }
 
@@ -458,7 +458,7 @@ static bool formLCSSAOnAllLoops(const LoopInfo *LI, const DominatorTree &DT,
                                 ScalarEvolution *SE) {
   bool Changed = false;
   for (const auto &L : *LI)
-    Changed |= formLCSSARecursively(*L, DT, LI, SE);
+    Changed = Changed || formLCSSARecursively(*L, DT, LI, SE);
   return Changed;
 }
 

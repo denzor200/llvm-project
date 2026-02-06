@@ -145,7 +145,7 @@ bool LoopExtractor::runOnModule(Module &M) {
   while (true) {
     Function &F = *I;
 
-    Changed |= runOnFunction(F);
+    Changed = Changed || runOnFunction(F);
     if (!NumLoops)
       break;
 
@@ -178,7 +178,7 @@ bool LoopExtractor::runOnFunction(Function &F) {
   // If there is more than one top-level loop in this function, extract all of
   // the loops.
   if (std::next(LI.begin()) != LI.end())
-    return Changed | extractLoops(LI.begin(), LI.end(), LI, DT);
+    return Changed || extractLoops(LI.begin(), LI.end(), LI, DT);
 
   // Otherwise there is exactly one top-level loop.
   Loop *TLL = *LI.begin();
@@ -207,14 +207,14 @@ bool LoopExtractor::runOnFunction(Function &F) {
     }
 
     if (ShouldExtractLoop)
-      return Changed | extractLoop(TLL, LI, DT);
+      return Changed || extractLoop(TLL, LI, DT);
   }
 
   // Okay, this function is a minimal container around the specified loop.
   // If we extract the loop, we will continue to just keep extracting it
   // infinitely... so don't extract it. However, if the loop contains any
   // sub-loops, extract them.
-  return Changed | extractLoops(TLL->begin(), TLL->end(), LI, DT);
+  return Changed || extractLoops(TLL->begin(), TLL->end(), LI, DT);
 }
 
 bool LoopExtractor::extractLoops(Loop::iterator From, Loop::iterator To,
@@ -229,7 +229,7 @@ bool LoopExtractor::extractLoops(Loop::iterator From, Loop::iterator To,
     if (!L->isLoopSimplifyForm())
       continue;
 
-    Changed |= extractLoop(L, LI, DT);
+    Changed = Changed || extractLoop(L, LI, DT);
     if (!NumLoops)
       break;
   }

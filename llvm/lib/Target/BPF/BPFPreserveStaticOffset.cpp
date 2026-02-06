@@ -353,7 +353,7 @@ static bool foldGEPChainAsStructAccess(SmallVector<GetElementPtrInst *> &GEPs,
       Info.reset();
       return false;
     }
-    Info.InBounds &= GEP->isInBounds();
+    Info.InBounds = Info.InBounds && GEP->isInBounds();
     Info.Indices.append(GEP->idx_begin() + 1, GEP->idx_end());
     Info.Members.push_back(GEP);
     ResultElementType = GEP->getResultElementType();
@@ -380,7 +380,7 @@ static bool foldGEPChainAsU8Access(SmallVector<GetElementPtrInst *> &GEPs,
       Info.reset();
       return false;
     }
-    Info.InBounds &= GEP->isInBounds();
+    Info.InBounds = Info.InBounds && GEP->isInBounds();
     Info.Members.push_back(GEP);
   }
   Info.SourceElementType = Type::getInt8Ty(C);

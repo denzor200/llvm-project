@@ -2820,7 +2820,7 @@ bool DependenceInfo::banerjeeMIVtest(const SCEV *Src, const SCEV *Dst,
         if (Loops[K]) {
           unsigned Old = Result.DV[K - 1].Direction;
           Result.DV[K - 1].Direction = Old & Bound[K].DirSet;
-          Improved |= Old != Result.DV[K - 1].Direction;
+          Improved = Improved || (Old != Result.DV[K - 1].Direction);
           if (!Result.DV[K - 1].Direction) {
             Improved = false;
             Disproved = true;

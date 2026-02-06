@@ -1765,11 +1765,11 @@ bool tools::addSanitizerRuntimes(const ToolChain &TC, const ArgList &Args,
   bool AddExportDynamic = false;
   for (auto RT : StaticRuntimes) {
     addSanitizerRuntime(TC, Args, CmdArgs, RT, false, true);
-    AddExportDynamic |= !addSanitizerDynamicList(TC, Args, CmdArgs, RT);
+    AddExportDynamic = AddExportDynamic || !addSanitizerDynamicList(TC, Args, CmdArgs, RT);
   }
   for (auto RT : NonWholeStaticRuntimes) {
     addSanitizerRuntime(TC, Args, CmdArgs, RT, false, false);
-    AddExportDynamic |= !addSanitizerDynamicList(TC, Args, CmdArgs, RT);
+    AddExportDynamic = AddExportDynamic || !addSanitizerDynamicList(TC, Args, CmdArgs, RT);
   }
   // If there is a static runtime with no dynamic list, force all the symbols
   // to be dynamic to be sure we export sanitizer interface functions.
@@ -2073,7 +2073,7 @@ tools::ParsePICArgs(const ToolChain &ToolChain, const ArgList &Args) {
   // the PIC level would've been set to level 1, force it back to level 2 PIC
   // instead.
   if (PIC && (Triple.isOSDarwin() || EffectiveTriple.isPS()))
-    IsPICLevelTwo |= ToolChain.isPICDefault();
+    IsPICLevelTwo = IsPICLevelTwo || ToolChain.isPICDefault();
 
   // This kernel flags are a trump-card: they will disable PIC/PIE
   // generation, independent of the argument order.

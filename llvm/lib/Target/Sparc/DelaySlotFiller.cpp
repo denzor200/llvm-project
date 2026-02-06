@@ -53,7 +53,7 @@ namespace {
       F.getRegInfo().invalidateLiveness();
 
       for (MachineBasicBlock &MBB : F)
-        Changed |= runOnMachineBasicBlock(MBB);
+        Changed = Changed || runOnMachineBasicBlock(MBB);
       return Changed;
     }
 
@@ -113,7 +113,7 @@ bool Filler::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
     if (!DisableDelaySlotFiller &&
         (MI->getOpcode() == SP::RESTORErr
          || MI->getOpcode() == SP::RESTOREri)) {
-      Changed |= tryCombineRestoreWithPrevInst(MBB, MI);
+      Changed = Changed || tryCombineRestoreWithPrevInst(MBB, MI);
       continue;
     }
 

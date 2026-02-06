@@ -728,7 +728,7 @@ int main(int argc, const char **argv) {
       errs() << "Formatting [" << FileNo++ << "/" << FileNames.size() << "] "
              << FileName << "\n";
     }
-    Error |= clang::format::format(FileName, FailOnIncompleteFormat);
+    Error = Error || clang::format::format(FileName, FailOnIncompleteFormat);
   }
   return Error ? 1 : 0;
 }

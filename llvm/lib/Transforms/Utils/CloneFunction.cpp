@@ -136,8 +136,8 @@ BasicBlock *llvm::CloneBasicBlock(const BasicBlock *BB, ValueToValueMapTy &VMap,
 
     if (isa<CallInst>(I) && !I.isDebugOrPseudoInst()) {
       hasCalls = true;
-      hasMemProfMetadata |= I.hasMetadata(LLVMContext::MD_memprof);
-      hasMemProfMetadata |= I.hasMetadata(LLVMContext::MD_callsite);
+      hasMemProfMetadata = hasMemProfMetadata || I.hasMetadata(LLVMContext::MD_memprof);
+      hasMemProfMetadata = hasMemProfMetadata || I.hasMetadata(LLVMContext::MD_callsite);
     }
     if (const AllocaInst *AI = dyn_cast<AllocaInst>(&I)) {
       if (!AI->isStaticAlloca()) {
@@ -597,8 +597,8 @@ void PruningFunctionCloner::CloneBlock(
     VMap[&*II] = NewInst; // Add instruction map to value.
     if (isa<CallInst>(II) && !II->isDebugOrPseudoInst()) {
       hasCalls = true;
-      hasMemProfMetadata |= II->hasMetadata(LLVMContext::MD_memprof);
-      hasMemProfMetadata |= II->hasMetadata(LLVMContext::MD_callsite);
+      hasMemProfMetadata = hasMemProfMetadata || II->hasMetadata(LLVMContext::MD_memprof);
+      hasMemProfMetadata = hasMemProfMetadata || II->hasMetadata(LLVMContext::MD_callsite);
     }
 
     CloneDbgRecordsToHere(NewInst, II);
@@ -691,8 +691,8 @@ void PruningFunctionCloner::CloneBlock(
     CodeInfo->ContainsCalls = CodeInfo->ContainsCalls || hasCalls;
     CodeInfo->ContainsMemProfMetadata = CodeInfo->ContainsMemProfMetadata || hasMemProfMetadata;
     CodeInfo->ContainsDynamicAllocas = CodeInfo->ContainsDynamicAllocas || hasDynamicAllocas;
-    CodeInfo->ContainsDynamicAllocas |=
-        hasStaticAllocas && BB != &BB->getParent()->front();
+    CodeInfo->ContainsDynamicAllocas = CodeInfo->ContainsDynamicAllocas ||
+        (hasStaticAllocas && BB != &BB->getParent()->front());
   }
 }
 

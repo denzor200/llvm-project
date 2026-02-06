@@ -314,7 +314,7 @@ static int getOutliningPenalty(ArrayRef<BasicBlock *> Region,
     // If a block has no successors, only assume it does not return if it's
     // unreachable.
     if (succ_empty(BB)) {
-      NoBlocksReturn &= isa<UnreachableInst>(BB->getTerminator());
+      NoBlocksReturn = NoBlocksReturn && isa<UnreachableInst>(BB->getTerminator());
       continue;
     }
 
@@ -787,7 +787,7 @@ bool HotColdSplitting::run(Module &M) {
 
     // Detect inherently cold functions and mark them as such.
     if (isFunctionCold(F)) {
-      Changed |= markFunctionCold(F);
+      Changed = Changed || markFunctionCold(F);
       continue;
     }
 
@@ -797,7 +797,7 @@ bool HotColdSplitting::run(Module &M) {
     }
 
     LLVM_DEBUG(llvm::dbgs() << "Outlining in " << F.getName() << "\n");
-    Changed |= outlineColdRegions(F, HasProfileSummary);
+    Changed = Changed || outlineColdRegions(F, HasProfileSummary);
   }
   return Changed;
 }

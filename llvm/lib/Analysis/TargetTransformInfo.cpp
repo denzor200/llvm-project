@@ -968,8 +968,8 @@ TargetTransformInfo::getOperandInfo(const Value *V) {
     bool AllPow2 = true, AllNegPow2 = true;
     for (uint64_t I = 0, E = CDS->getNumElements(); I != E; ++I) {
       if (auto *CI = dyn_cast<ConstantInt>(CDS->getElementAsConstant(I))) {
-        AllPow2 &= CI->getValue().isPowerOf2();
-        AllNegPow2 &= CI->getValue().isNegatedPowerOf2();
+        AllPow2 = AllPow2 && CI->getValue().isPowerOf2();
+        AllNegPow2 = AllNegPow2 && CI->getValue().isNegatedPowerOf2();
         if (AllPow2 || AllNegPow2)
           continue;
       }

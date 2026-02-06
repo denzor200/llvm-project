@@ -264,7 +264,7 @@ GetMSInheritance(const PDBSymbolTypeUDT &udt) {
   if (bases_enum) {
     while (auto base = bases_enum->getNext()) {
       base_count++;
-      has_virtual |= base->isVirtualBaseClass();
+      has_virtual = has_virtual || base->isVirtualBaseClass();
     }
   }
 

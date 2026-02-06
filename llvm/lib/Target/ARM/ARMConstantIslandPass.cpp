@@ -415,7 +415,7 @@ bool ARMConstantIslands::runOnMachineFunction(MachineFunction &mf) {
   bool MadeChange = false;
   if (GenerateTBB && AdjustJumpTableBlocks) {
     scanFunctionJumpTables();
-    MadeChange |= reorderThumb2JumpTables();
+    MadeChange = MadeChange || reorderThumb2JumpTables();
     // Data is out of date, so clear it. It'll be re-computed later.
     T2JumpTables.clear();
     // Blocks may have shifted around. Keep the numbering up to date.
@@ -424,7 +424,7 @@ bool ARMConstantIslands::runOnMachineFunction(MachineFunction &mf) {
   }
 
   // Align any non-fallthrough blocks
-  MadeChange |= AlignBlocks(MF, STI);
+  MadeChange = MadeChange || AlignBlocks(MF, STI);
 
   // Perform the initial placement of the constant pool entries.  To start with,
   // we put them all at the end of the function.
@@ -451,7 +451,7 @@ bool ARMConstantIslands::runOnMachineFunction(MachineFunction &mf) {
     MF->ensureAlignment(Align(4));
 
   /// Remove dead constant pool entries.
-  MadeChange |= removeUnusedCPEntries();
+  MadeChange = MadeChange || removeUnusedCPEntries();
 
   // Iteratively place constant pool entries and fix up branches until there
   // is no change.
@@ -463,7 +463,7 @@ bool ARMConstantIslands::runOnMachineFunction(MachineFunction &mf) {
       // For most inputs, it converges in no more than 5 iterations.
       // If it doesn't end in 10, the input may have huge BB or many CPEs.
       // In this case, we will try different heuristics.
-      CPChange |= handleConstantPoolUser(i, NoCPIters >= CPMaxIteration / 2);
+      CPChange = CPChange || handleConstantPoolUser(i, NoCPIters >= CPMaxIteration / 2);
     if (CPChange && ++NoCPIters > CPMaxIteration)
       report_fatal_error("Constant Island pass failed to converge!");
     LLVM_DEBUG(dumpBBs());
@@ -476,7 +476,7 @@ bool ARMConstantIslands::runOnMachineFunction(MachineFunction &mf) {
     bool BRChange = false;
     for (unsigned i = 0, e = ImmBranches.size(); i != e; ++i) {
       // Note: fixupImmediateBr can append to ImmBranches.
-      BRChange |= fixupImmediateBr(ImmBranches[i]);
+      BRChange = BRChange || fixupImmediateBr(ImmBranches[i]);
     }
     if (BRChange && ++NoBRIters > 30)
       report_fatal_error("Branch Fix Up pass failed to converge!");
@@ -489,15 +489,15 @@ bool ARMConstantIslands::runOnMachineFunction(MachineFunction &mf) {
 
   // Shrink 32-bit Thumb2 load and store instructions.
   if (isThumb2 && !STI->prefers32BitThumb())
-    MadeChange |= optimizeThumb2Instructions();
+    MadeChange = MadeChange || optimizeThumb2Instructions();
 
   // Shrink 32-bit branch instructions.
   if (isThumb && STI->hasV8MBaselineOps())
-    MadeChange |= optimizeThumb2Branches();
+    MadeChange = MadeChange || optimizeThumb2Branches();
 
   // Optimize jump tables using TBB / TBH.
   if (GenerateTBB && !STI->genExecuteOnly())
-    MadeChange |= optimizeThumb2JumpTables();
+    MadeChange = MadeChange || optimizeThumb2JumpTables();
 
   // After a while, this might be made debug-only, but it is not expensive.
   verify();
@@ -1996,7 +1996,7 @@ bool ARMConstantIslands::optimizeThumb2Branches() {
       MadeChange = true;
     } else {
       FindCmpForCBZ(Br, Cmp, DestBB);
-      MadeChange |= TryShrinkBranch(Br);
+      MadeChange = MadeChange || TryShrinkBranch(Br);
     }
 
     unsigned Opcode = Br.MI->getOpcode();

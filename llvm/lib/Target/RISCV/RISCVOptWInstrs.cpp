@@ -846,7 +846,7 @@ bool RISCVOptWInstrs::runOnMachineFunction(MachineFunction &MF) {
     return false;
 
   bool MadeChange = false;
-  MadeChange |= removeSExtWInstrs(MF, TII, ST, MRI);
-  MadeChange |= canonicalizeWSuffixes(MF, TII, ST, MRI);
+  MadeChange = MadeChange || removeSExtWInstrs(MF, TII, ST, MRI);
+  MadeChange = MadeChange || canonicalizeWSuffixes(MF, TII, ST, MRI);
   return MadeChange;
 }

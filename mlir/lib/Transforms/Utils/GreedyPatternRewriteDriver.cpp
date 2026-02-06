@@ -883,16 +883,16 @@ LogicalResult RegionPatternRewriteDriver::simplify(bool *changed) && {
           // are legal in unreachable code. Unfortunately many patterns would be
           // unsafe to apply on such IR and can lead to crashes or infinite
           // loops.
-          continueRewrites |=
+          continueRewrites = continueRewrites ||
               succeeded(eraseUnreachableBlocks(rewriter, region));
 
-          continueRewrites |= processWorklist();
+          continueRewrites = continueRewrites || processWorklist();
 
           // After applying patterns, make sure that the CFG of each of the
           // regions is kept up to date.
           if (config.getRegionSimplificationLevel() !=
               GreedySimplifyRegionLevel::Disabled) {
-            continueRewrites |= succeeded(simplifyRegions(
+            continueRewrites = continueRewrites || succeeded(simplifyRegions(
                 rewriter, region,
                 /*mergeBlocks=*/config.getRegionSimplificationLevel() ==
                     GreedySimplifyRegionLevel::Aggressive));

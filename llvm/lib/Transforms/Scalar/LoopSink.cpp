@@ -388,7 +388,7 @@ PreservedAnalyses LoopSinkPass::run(Function &F, FunctionAnalysisManager &FAM) {
     // Note that we don't pass SCEV here because it is only used to invalidate
     // loops in SCEV and we don't preserve (or request) SCEV at all making that
     // unnecessary.
-    Changed |= sinkLoopInvariantInstructions(L, AA, LI, DT, BFI, MSSA,
+    Changed = Changed || sinkLoopInvariantInstructions(L, AA, LI, DT, BFI, MSSA,
                                              /*ScalarEvolution*/ nullptr);
   } while (!PreorderLoops.empty());
 

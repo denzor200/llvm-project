@@ -3241,7 +3241,7 @@ void Record::checkRecordAssertions() {
   for (const auto &Assertion : getAssertions()) {
     const Init *Condition = Assertion.Condition->resolveReferences(R);
     const Init *Message = Assertion.Message->resolveReferences(R);
-    AnyFailed |= CheckAssert(Assertion.Loc, Condition, Message);
+    AnyFailed = AnyFailed || CheckAssert(Assertion.Loc, Condition, Message);
   }
 
   if (!AnyFailed)

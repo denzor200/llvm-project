@@ -721,7 +721,7 @@ bool llvm::simplifyLoop(Loop *L, DominatorTree *DT, LoopInfo *LI,
   }
 
   while (!Worklist.empty())
-    Changed |= simplifyOneLoop(Worklist.pop_back_val(), Worklist, DT, LI, SE,
+    Changed = Changed || simplifyOneLoop(Worklist.pop_back_val(), Worklist, DT, LI, SE,
                                AC, MSSAU, PreserveLCSSA);
 
   // Changing exit conditions for blocks may affect exit counts of this loop and
@@ -805,7 +805,7 @@ bool LoopSimplify::runOnFunction(Function &F) {
 
   // Simplify each loop nest in the function.
   for (auto *L : *LI)
-    Changed |= simplifyLoop(L, DT, LI, SE, AC, MSSAU.get(), PreserveLCSSA);
+    Changed = Changed || simplifyLoop(L, DT, LI, SE, AC, MSSAU.get(), PreserveLCSSA);
 
 #ifndef NDEBUG
   if (PreserveLCSSA) {
@@ -835,7 +835,7 @@ PreservedAnalyses LoopSimplifyPass::run(Function &F,
   // Note that we don't preserve LCSSA in the new PM, if you need it run LCSSA
   // after simplifying the loops. MemorySSA is preserved if it exists.
   for (auto *L : *LI)
-    Changed |=
+    Changed = Changed ||
         simplifyLoop(L, DT, LI, SE, AC, MSSAU.get(), /*PreserveLCSSA*/ false);
 
   if (!Changed)

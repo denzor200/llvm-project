@@ -553,10 +553,10 @@ NVPTXTargetLowering::NVPTXTargetLowering(const NVPTXTargetMachine &TM,
     case ISD::FMINIMUM:
     case ISD::FMAXIMUMNUM:
     case ISD::FMINIMUMNUM:
-      IsOpSupported &= STI.getSmVersion() >= 80 && STI.getPTXVersion() >= 70;
+      IsOpSupported = IsOpSupported && STI.getSmVersion() >= 80 && STI.getPTXVersion() >= 70;
       break;
     case ISD::FEXP2:
-      IsOpSupported &= STI.getSmVersion() >= 75 && STI.getPTXVersion() >= 70;
+      IsOpSupported = IsOpSupported && STI.getSmVersion() >= 75 && STI.getPTXVersion() >= 70;
       break;
     }
     setOperationAction(Op, VT, IsOpSupported ? Action : NoF16Action);

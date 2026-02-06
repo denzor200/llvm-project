@@ -1213,8 +1213,8 @@ ClangExpressionParser::ParseInternal(DiagnosticManager &diagnostic_manager,
   bool should_create_file = completion_consumer != nullptr;
 
   // We also want a real file on disk if we generate full debug info.
-  should_create_file |= m_compiler->getCodeGenOpts().getDebugInfo() ==
-                        codegenoptions::FullDebugInfo;
+  should_create_file = should_create_file || (m_compiler->getCodeGenOpts().getDebugInfo() ==
+                        codegenoptions::FullDebugInfo);
 
   if (should_create_file) {
     int temp_fd = -1;

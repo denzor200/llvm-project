@@ -1045,7 +1045,7 @@ static bool runImpl(Function &F, const TargetTransformInfo &TTI,
     MadeChange = false;
     for (BasicBlock &BB : llvm::make_early_inc_range(F)) {
       bool ModifiedDTOnIteration = false;
-      MadeChange |= optimizeBlock(BB, ModifiedDTOnIteration, TTI, DL,
+      MadeChange = MadeChange || optimizeBlock(BB, ModifiedDTOnIteration, TTI, DL,
                                   HasBranchDivergence, DTU ? &*DTU : nullptr);
 
       // Restart BB iteration if the dominator tree of the Function was changed
@@ -1086,7 +1086,7 @@ static bool optimizeBlock(BasicBlock &BB, bool &ModifiedDT,
   BasicBlock::iterator CurInstIterator = BB.begin();
   while (CurInstIterator != BB.end()) {
     if (CallInst *CI = dyn_cast<CallInst>(&*CurInstIterator++))
-      MadeChange |=
+      MadeChange = MadeChange ||
           optimizeCallInst(CI, ModifiedDT, TTI, DL, HasBranchDivergence, DTU);
     if (ModifiedDT)
       return true;

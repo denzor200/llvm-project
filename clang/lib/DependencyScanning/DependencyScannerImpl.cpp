@@ -632,7 +632,7 @@ bool CompilerInstanceWithContext::initialize(
   assert(OverlayFS && "OverlayFS required!");
   bool SawDepFS = false;
   OverlayFS->visit([&](llvm::vfs::FileSystem &VFS) {
-    SawDepFS |= &VFS == Worker.DepFS.get();
+    SawDepFS = SawDepFS || (&VFS == Worker.DepFS.get());
   });
   assert(SawDepFS && "OverlayFS not based on DepFS");
 #endif

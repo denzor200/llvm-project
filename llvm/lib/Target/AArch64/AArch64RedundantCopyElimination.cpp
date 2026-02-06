@@ -487,8 +487,8 @@ bool AArch64RedundantCopyElimination::runOnMachineFunction(
 
   bool Changed = false;
   for (MachineBasicBlock &MBB : MF) {
-    Changed |= optimizeTerminators(&MBB, TII);
-    Changed |= optimizeBlock(&MBB);
+    Changed = Changed || optimizeTerminators(&MBB, TII);
+    Changed = Changed || optimizeBlock(&MBB);
   }
   return Changed;
 }

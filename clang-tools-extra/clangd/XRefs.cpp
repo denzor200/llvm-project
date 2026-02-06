@@ -1663,7 +1663,7 @@ ReferencesResult findReferences(ParsedAST &AST, Position Pos, uint32_t Limit,
     }
     LookupRequest ContainerLookup;
     llvm::DenseMap<SymbolID, std::vector<size_t>> RefIndicesForContainer;
-    Results.HasMore |= Index->refs(Req, [&](const Ref &R) {
+    Results.HasMore = Results.HasMore || Index->refs(Req, [&](const Ref &R) {
       auto LSPLoc = toLSPLocation(R.Location, MainFilePath);
       // Avoid indexed results for the main file - the AST is authoritative.
       if (!LSPLoc ||

@@ -765,7 +765,7 @@ MDNode *MDNodeMapper::visitOperands(UniquedGraph &G, MDNode::op_iterator &I,
     Metadata *Op = *I++; // Increment even on early return.
     if (std::optional<Metadata *> MappedOp = tryToMapOperand(Op)) {
       // Check if the operand changes.
-      HasChanged |= Op != *MappedOp;
+      HasChanged = HasChanged || (Op != *MappedOp);
       continue;
     }
 

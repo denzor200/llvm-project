@@ -438,7 +438,7 @@ void FilterChooser::applyFilter(const Filter &F) {
     // group of instructions whose segment values are variable.
     VariableFC = std::make_unique<FilterChooser>(Encodings, F.VariableIDs,
                                                  FilterBits, *this);
-    HasConflict |= VariableFC->HasConflict;
+    HasConflict = HasConflict || VariableFC->HasConflict;
   }
 
   // Otherwise, create sub choosers.
@@ -454,7 +454,7 @@ void FilterChooser::applyFilter(const Filter &F) {
         FilterVal,
         std::make_unique<FilterChooser>(Encodings, InferiorEncodingIDs,
                                         InferiorFilterBits, *this));
-    HasConflict |= It->second->HasConflict;
+    HasConflict = HasConflict || It->second->HasConflict;
   }
 }
 

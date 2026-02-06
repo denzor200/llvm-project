@@ -5175,7 +5175,7 @@ static LogicalResult foldTransferInBoundsAttribute(TransferOp op) {
       nonBcastDims, [&newInBounds](unsigned idx) { return newInBounds[idx]; });
   if (allNonBcastDimsInBounds) {
     for (size_t idx : permutationMap.getBroadcastDims()) {
-      changed |= !newInBounds[idx];
+      changed = changed || !newInBounds[idx];
       newInBounds[idx] = true;
     }
   }

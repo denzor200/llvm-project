@@ -187,10 +187,10 @@ int Disassembler::disassemble(const Target &T, const std::string &TripleName,
     }
 
     // It's a real token, get the bytes and emit them
-    ErrorOccurred |= ByteArrayFromString(ByteArray, Str, SM);
+    ErrorOccurred = ErrorOccurred || ByteArrayFromString(ByteArray, Str, SM);
 
     if (!ByteArray.first.empty())
-      ErrorOccurred |=
+      ErrorOccurred = ErrorOccurred ||
           PrintInsts(*DisAsm, ByteArray, SM, Out, Streamer, InAtomicBlock, STI);
   }
 

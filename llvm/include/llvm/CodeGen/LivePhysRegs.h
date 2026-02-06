@@ -230,7 +230,7 @@ inline void fullyRecomputeLiveIns(ArrayRef<MachineBasicBlock *> MBBs) {
   do {
     Change = false;
     for (MachineBasicBlock *MBB : MBBs)
-      Change |= recomputeLiveIns(*MBB);
+      Change = Change || recomputeLiveIns(*MBB);
   } while (Change);
 }
 

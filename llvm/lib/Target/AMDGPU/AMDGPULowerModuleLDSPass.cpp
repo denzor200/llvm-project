@@ -924,7 +924,7 @@ public:
     CallGraph CG = CallGraph(M);
     bool Changed = superAlignLDSGlobals(M);
 
-    Changed |= eliminateConstantExprUsesOfLDSFromAllInstructions(M);
+    Changed = Changed || eliminateConstantExprUsesOfLDSFromAllInstructions(M);
 
     Changed = true; // todo: narrow this down
 

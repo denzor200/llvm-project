@@ -999,7 +999,7 @@ static bool runImpl(Function &F, LoopInfo *LI, DominatorTree *DT,
     // If distribution was forced for the specific loop to be
     // enabled/disabled, follow that.  Otherwise use the global flag.
     if (LDL.isForced().value_or(EnableLoopDistribute))
-      Changed |= LDL.processLoop();
+      Changed = Changed || LDL.processLoop();
   }
 
   // Process each loop nest in the function.

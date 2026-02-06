@@ -524,7 +524,7 @@ bool IndVarSimplify::rewriteNonIntegerIVs(Loop *L) {
   bool Changed = false;
   for (WeakTrackingVH &PHI : PHIs)
     if (PHINode *PN = dyn_cast_or_null<PHINode>(&*PHI))
-      Changed |= handleFloatingPointIV(L, PN);
+      Changed = Changed || handleFloatingPointIV(L, PN);
 
   // If the loop previously had floating-point IV, ScalarEvolution
   // may not have been able to compute a trip count. Now that we've done some
@@ -2063,7 +2063,7 @@ bool IndVarSimplify::run(Loop *L) {
   bool Changed = false;
   // If there are any floating-point recurrences, attempt to
   // transform them to use integer recurrences.
-  Changed |= rewriteNonIntegerIVs(L);
+  Changed = Changed || rewriteNonIntegerIVs(L);
 
   // Create a rewriter object which we'll use to transform the code with.
   SCEVExpander Rewriter(*SE, "indvars");
@@ -2078,7 +2078,7 @@ bool IndVarSimplify::run(Loop *L) {
   // other expressions involving loop IVs have been evaluated. This helps SCEV
   // set no-wrap flags before normalizing sign/zero extension.
   Rewriter.disableCanonicalMode();
-  Changed |= simplifyAndExtend(L, Rewriter, LI);
+  Changed = Changed || simplifyAndExtend(L, Rewriter, LI);
 
   // Check to see if we can compute the final value of any expressions
   // that are recurrent in the loop, and substitute the exit values from the
@@ -2097,7 +2097,7 @@ bool IndVarSimplify::run(Loop *L) {
 
   // Try to convert exit conditions to unsigned and rotate computation
   // out of the loop.  Note: Handles invalidation internally if needed.
-  Changed |= canonicalizeExitCondition(L);
+  Changed = Changed || canonicalizeExitCondition(L);
 
   // Try to eliminate loop exits based on analyzeable exit counts
   if (optimizeLoopExits(L, Rewriter))  {
@@ -2161,7 +2161,7 @@ bool IndVarSimplify::run(Loop *L) {
       if (!Rewriter.isSafeToExpand(ExitCount))
         continue;
 
-      Changed |= linearFunctionTestReplace(L, ExitingBB,
+      Changed = Changed || linearFunctionTestReplace(L, ExitingBB,
                                            ExitCount, IndVar,
                                            Rewriter);
     }
@@ -2177,9 +2177,9 @@ bool IndVarSimplify::run(Loop *L) {
     Value *V = DeadInsts.pop_back_val();
 
     if (PHINode *PHI = dyn_cast_or_null<PHINode>(V))
-      Changed |= RecursivelyDeleteDeadPHINode(PHI, TLI, MSSAU.get());
+      Changed = Changed || RecursivelyDeleteDeadPHINode(PHI, TLI, MSSAU.get());
     else if (Instruction *Inst = dyn_cast_or_null<Instruction>(V))
-      Changed |=
+      Changed = Changed ||
           RecursivelyDeleteTriviallyDeadInstructions(Inst, TLI, MSSAU.get());
   }
 
@@ -2187,15 +2187,15 @@ bool IndVarSimplify::run(Loop *L) {
 
   // Loop-invariant instructions in the preheader that aren't used in the
   // loop may be sunk below the loop to reduce register pressure.
-  Changed |= sinkUnusedInvariants(L);
+  Changed = Changed || sinkUnusedInvariants(L);
 
   // rewriteFirstIterationLoopExitValues does not rely on the computation of
   // trip count and therefore can further simplify exit values in addition to
   // rewriteLoopExitValues.
-  Changed |= rewriteFirstIterationLoopExitValues(L);
+  Changed = Changed || rewriteFirstIterationLoopExitValues(L);
 
   // Clean up dead instructions.
-  Changed |= DeleteDeadPHIs(L->getHeader(), TLI, MSSAU.get());
+  Changed = Changed || DeleteDeadPHIs(L->getHeader(), TLI, MSSAU.get());
 
   // Check a post-condition.
   assert(L->isRecursivelyLCSSAForm(*DT, *LI) &&

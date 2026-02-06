@@ -326,7 +326,7 @@ void SystemZHLASMAsmStreamer::emitHLASMValueImpl(const MCExpr *Value,
     MAI->printExpr(OS, *Value);
     return;
   default:
-    Parens &= isa<MCSymbolRefExpr>(Value);
+    Parens = Parens && isa<MCSymbolRefExpr>(Value);
     if (Parens)
       OS << "AD(";
     MAI->printExpr(OS, *Value);

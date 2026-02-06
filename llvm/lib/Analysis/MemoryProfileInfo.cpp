@@ -469,7 +469,7 @@ bool CallStackTrie::buildMIBNodes(CallStackTrieNode *Node, LLVMContext &Ctx,
     uint64_t CallerColdBytes = 0;
     for (auto &Caller : Node->Callers) {
       MIBCallStack.push_back(Caller.first);
-      AddedMIBNodesForAllCallerContexts &= buildMIBNodes(
+      AddedMIBNodesForAllCallerContexts = AddedMIBNodesForAllCallerContexts && buildMIBNodes(
           Caller.second, Ctx, MIBCallStack, NewMIBNodes,
           NodeHasAmbiguousCallerContext, CallerTotalBytes, CallerColdBytes);
       // Remove Caller.

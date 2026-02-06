@@ -474,7 +474,7 @@ static bool searchConstantExprForGlobalVariables(
     for (unsigned OpIndex = 0; OpIndex < NumOperands; ++OpIndex) {
       Value *Op = U->getOperand(OpIndex);
       // Do not use short-circuiting, here. We need to traverse the whole tree.
-      FoundAny |= searchConstantExprForGlobalVariables(Op, GVLoadMap, GVUses);
+      FoundAny = FoundAny || searchConstantExprForGlobalVariables(Op, GVLoadMap, GVUses);
     }
     return FoundAny;
   } else {

@@ -305,7 +305,7 @@ bool WebAssemblyRegColoring::runOnMachineFunction(MachineFunction &MF) {
 
     Register New = SortedIntervals[Color]->reg();
     SlotMapping[I] = New;
-    Changed |= Old != New;
+    Changed = Changed || Old != New;
     UsedColors.set(Color);
     Assignments[Color].push_back(LI);
     // If we reassigned the stack pointer, update the debug frame base info.

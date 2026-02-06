@@ -249,27 +249,27 @@ InputArgList Driver::ParseArgStrings(ArrayRef<const char *> ArgStrings,
   if (MissingArgCount) {
     Diag(diag::err_drv_missing_argument)
         << Args.getArgString(MissingArgIndex) << MissingArgCount;
-    ContainsError |=
-        Diags.getDiagnosticLevel(diag::err_drv_missing_argument,
-                                 SourceLocation()) > DiagnosticsEngine::Warning;
+    ContainsError = ContainsError ||
+        (Diags.getDiagnosticLevel(diag::err_drv_missing_argument,
+                                 SourceLocation()) > DiagnosticsEngine::Warning);
   }
 
   // Check for unsupported options.
   for (const Arg *A : Args) {
     if (A->getOption().hasFlag(options::Unsupported)) {
       Diag(diag::err_drv_unsupported_opt) << A->getAsString(Args);
-      ContainsError |= Diags.getDiagnosticLevel(diag::err_drv_unsupported_opt,
+      ContainsError = ContainsError || (Diags.getDiagnosticLevel(diag::err_drv_unsupported_opt,
                                                 SourceLocation()) >
-                       DiagnosticsEngine::Warning;
+                       DiagnosticsEngine::Warning);
       continue;
     }
 
     // Warn about -mcpu= without an argument.
     if (A->getOption().matches(options::OPT_mcpu_EQ) && A->containsValue("")) {
       Diag(diag::warn_drv_empty_joined_argument) << A->getAsString(Args);
-      ContainsError |= Diags.getDiagnosticLevel(
+      ContainsError = ContainsError || (Diags.getDiagnosticLevel(
                            diag::warn_drv_empty_joined_argument,
-                           SourceLocation()) > DiagnosticsEngine::Warning;
+                           SourceLocation()) > DiagnosticsEngine::Warning);
     }
   }
 
@@ -303,8 +303,8 @@ InputArgList Driver::ParseArgStrings(ArrayRef<const char *> ArgStrings,
                    : diag::err_drv_unknown_argument_with_suggestion;
       Diags.Report(DiagID) << ArgString << Nearest;
     }
-    ContainsError |= Diags.getDiagnosticLevel(DiagID, SourceLocation()) >
-                     DiagnosticsEngine::Warning;
+    ContainsError = ContainsError || (Diags.getDiagnosticLevel(DiagID, SourceLocation()) >
+                     DiagnosticsEngine::Warning);
   }
 
   for (const Arg *A : Args.filtered(options::OPT_o)) {

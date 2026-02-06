@@ -1386,7 +1386,7 @@ StackOffset AArch64FrameLowering::resolveFrameOffsetReference(
     // We shouldn't prefer using the FP to access fixed-sized stack objects when
     // there are scalable (SVE) objects in between the FP and the fixed-sized
     // objects.
-    PreferFP &= !SVEStackSize;
+    PreferFP = PreferFP && !SVEStackSize;
 
     // Note: Keeping the following as multiple 'if' statements rather than
     // merging to a single expression for readability.
@@ -1406,7 +1406,7 @@ StackOffset AArch64FrameLowering::resolveFrameOffsetReference(
       // offsets is smaller than for positive ones. If an offset is available
       // via the FP and the SP, use whichever is closest.
       bool FPOffsetFits = !ForSimm || FPOffset >= -256;
-      PreferFP |= Offset > -FPOffset && !SVEStackSize;
+      PreferFP = PreferFP || (Offset > -FPOffset && !SVEStackSize);
 
       if (FPOffset >= 0) {
         // If the FPOffset is positive, that'll always be best, as the SP/BP
@@ -2392,7 +2392,7 @@ void AArch64FrameLowering::determineStackHazardSlot(
     }
 
     for (int FI = 0; FI < int(SlotTypes.size()); ++FI) {
-      HasFPRStackObjects |= SlotTypes[FI] == SlotType::ZPRorFPR;
+      HasFPRStackObjects = HasFPRStackObjects || (SlotTypes[FI] == SlotType::ZPRorFPR);
       // For SplitSVEObjects remember that this stack slot is a predicate, this
       // will be needed later when determining the frame layout.
       if (SlotTypes[FI] == SlotType::PPR) {
@@ -2570,7 +2570,7 @@ void AArch64FrameLowering::determineCalleeSaves(MachineFunction &MF,
         ExtraCSSpill = PairedReg;
     }
     // Check if there is a pair of ZRegs, so it can select PReg for spill/fill
-    HasPairZReg |= (AArch64::ZPRRegClass.contains(Reg, CSRegs[i ^ 1]) &&
+    HasPairZReg = HasPairZReg || (AArch64::ZPRRegClass.contains(Reg, CSRegs[i ^ 1]) &&
                     SavedRegs.test(CSRegs[i ^ 1]));
   }
 

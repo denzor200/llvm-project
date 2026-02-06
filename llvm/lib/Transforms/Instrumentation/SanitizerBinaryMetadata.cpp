@@ -278,7 +278,7 @@ void SanitizerBinaryMetadata::runOn(Function &F, MetadataInfoSet &MIS) {
   if (Options.Atomics || Options.UAR) {
     for (BasicBlock &BB : F)
       for (Instruction &I : BB)
-        RequiresCovered |= runOn(I, MIS, MDB, FeatureMask);
+        RequiresCovered = RequiresCovered || runOn(I, MIS, MDB, FeatureMask);
   }
 
   if (ClNoSanitize && F.hasFnAttribute("no_sanitize_thread"))

@@ -113,7 +113,7 @@ bool RRInfo::Merge(const RRInfo &Other) {
   // that makes this a partial merge.
   bool Partial = ReverseInsertPts.size() != Other.ReverseInsertPts.size();
   for (Instruction *Inst : Other.ReverseInsertPts)
-    Partial |= ReverseInsertPts.insert(Inst).second;
+    Partial = Partial || ReverseInsertPts.insert(Inst).second;
   return Partial;
 }
 

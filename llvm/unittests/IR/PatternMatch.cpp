@@ -761,7 +761,7 @@ TEST_F(PatternMatchTest, CheckedInt) {
         if (!First.has_value())
           First = APVal;
         else
-          AllSame &= First->eq(APVal);
+          AllSame = AllSame && First->eq(APVal);
         Okay = *Okay && CheckFn(APVal);
         VecElems.push_back(ConstantInt::get(I8Ty, *Val));
       }

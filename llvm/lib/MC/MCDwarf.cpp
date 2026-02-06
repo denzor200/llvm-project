@@ -660,7 +660,7 @@ MCDwarfLineTableHeader::tryGetFile(StringRef &Directory, StringRef &FileName,
   // If any files have embedded source, they all must.
   if (MCDwarfFiles.empty()) {
     trackMD5Usage(Checksum.has_value());
-    HasAnySource |= Source.has_value();
+    HasAnySource = HasAnySource || Source.has_value();
   }
   if (DwarfVersion >= 5 && isRootFile(RootFile, Directory, FileName, Checksum))
     return 0;
@@ -1922,9 +1922,9 @@ void MCDwarfFrameEmitter::Emit(MCObjectStreamer &Streamer, MCAsmBackend *MAB,
         Streamer.emitValueToAlignment(Align(AsmInfo->getCodePointerSize()));
         SectionEmitted = true;
       }
-      NeedsEHFrameSection |=
-        Frame.CompactUnwindEncoding ==
-          MOFI->getCompactUnwindDwarfEHFrameOnly();
+      NeedsEHFrameSection = NeedsEHFrameSection ||
+        (Frame.CompactUnwindEncoding ==
+          MOFI->getCompactUnwindDwarfEHFrameOnly());
       Emitter.EmitCompactUnwind(Frame);
     }
   }

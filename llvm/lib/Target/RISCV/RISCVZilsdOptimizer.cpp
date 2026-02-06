@@ -150,7 +150,7 @@ bool RISCVPreAllocZilsdOpt::runOnMachineFunction(MachineFunction &MF) {
   RequiredAlign = STI->getZilsdAlign();
   bool Modified = false;
   for (auto &MBB : MF) {
-    Modified |= rescheduleLoadStoreInstrs(&MBB);
+    Modified = Modified || rescheduleLoadStoreInstrs(&MBB);
   }
 
   return Modified;
@@ -527,7 +527,7 @@ bool RISCVPreAllocZilsdOpt::rescheduleLoadStoreInstrs(MachineBasicBlock *MBB) {
     for (auto Base : LdBases) {
       SmallVectorImpl<MachineInstr *> &Lds = Base2LdsMap[Base];
       if (Lds.size() > 1) {
-        Modified |= rescheduleOps(MBB, Lds, Base, true, MI2LocMap);
+        Modified = Modified || rescheduleOps(MBB, Lds, Base, true, MI2LocMap);
       }
     }
 
@@ -535,7 +535,7 @@ bool RISCVPreAllocZilsdOpt::rescheduleLoadStoreInstrs(MachineBasicBlock *MBB) {
     for (auto Base : StBases) {
       SmallVectorImpl<MachineInstr *> &Sts = Base2StsMap[Base];
       if (Sts.size() > 1) {
-        Modified |= rescheduleOps(MBB, Sts, Base, false, MI2LocMap);
+        Modified = Modified || rescheduleOps(MBB, Sts, Base, false, MI2LocMap);
       }
     }
   }

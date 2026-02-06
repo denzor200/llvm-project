@@ -765,11 +765,11 @@ struct ArithExpandOpsPass
         Type outETy = getElementTypeOrSelf(op.getType());
         bool legalTypes = true;
         if (includeBf16)
-          legalTypes &= !(inETy.isBF16() && outETy.isF32());
+          legalTypes = legalTypes && !(inETy.isBF16() && outETy.isF32());
         if (includeF8E8M0)
-          legalTypes &= !llvm::isa<Float8E8M0FNUType>(inETy);
+          legalTypes = legalTypes && !llvm::isa<Float8E8M0FNUType>(inETy);
         if (includeF4E2M1)
-          legalTypes &= !llvm::isa<Float4E2M1FNType>(inETy);
+          legalTypes = legalTypes && !llvm::isa<Float4E2M1FNType>(inETy);
         return legalTypes;
       });
 
@@ -779,11 +779,11 @@ struct ArithExpandOpsPass
         Type outETy = getElementTypeOrSelf(op.getType());
         bool legalTypes = true;
         if (includeBf16)
-          legalTypes &= !(inETy.isF32() && outETy.isBF16());
+          legalTypes = legalTypes && !(inETy.isF32() && outETy.isBF16());
         if (includeF8E8M0)
-          legalTypes &= !(llvm::isa<Float8E8M0FNUType>(outETy));
+          legalTypes = legalTypes && !(llvm::isa<Float8E8M0FNUType>(outETy));
         if (includeF4E2M1)
-          legalTypes &= !llvm::isa<Float4E2M1FNType>(outETy);
+          legalTypes = legalTypes && !llvm::isa<Float4E2M1FNType>(outETy);
         return legalTypes;
       });
 

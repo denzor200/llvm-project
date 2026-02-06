@@ -973,7 +973,7 @@ bool InstrLowerer::lower() {
         getOrCreateVTableProfData(&GV);
 
   for (Function &F : M)
-    MadeChange |= lowerIntrinsics(&F);
+    MadeChange = MadeChange || lowerIntrinsics(&F);
 
   if (CoverageNamesVar) {
     lowerCoverageData(CoverageNamesVar);

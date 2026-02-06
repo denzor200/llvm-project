@@ -560,8 +560,8 @@ struct SalvageDebugInfoTest : ::testing::Test {
     for (DbgVariableRecord &DVR :
          filterDbgVars(F->begin()->begin()->getDbgRecordRange())) {
       EXPECT_EQ(DVR.getVariable()->getName(), "x");
-      FoundX |= doesDebugValueDescribeX(DVR);
-      FoundY |= doesDebugValueDescribeY(DVR);
+      FoundX = FoundX || doesDebugValueDescribeX(DVR);
+      FoundY = FoundY || doesDebugValueDescribeY(DVR);
     }
     EXPECT_TRUE(FoundX);
     EXPECT_TRUE(FoundY);

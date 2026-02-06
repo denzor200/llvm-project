@@ -576,7 +576,7 @@ AddWithCarry(uint32_t N, uint64_t x, uint64_t y, bit carry_in,
   std::optional<int64_t> signed_sum = llvm::checkedAdd(SInt(x), SInt(y));
   bool overflow = !signed_sum;
   if (!overflow)
-    overflow |= !llvm::checkedAdd(*signed_sum, SInt(carry_in));
+    overflow = overflow || !llvm::checkedAdd(*signed_sum, SInt(carry_in));
   uint64_t result = unsigned_sum;
   if (N < 64)
     result = Bits64(result, N - 1, 0);

@@ -630,9 +630,9 @@ Sema::InstantiatingTemplate::InstantiatingTemplate(
   Inst.InParameterMappingSubstitution =
       Inst.Kind == CodeSynthesisContext::ParameterMappingSubstitution;
   if (!SemaRef.CodeSynthesisContexts.empty()) {
-    Inst.InConstraintSubstitution |=
+    Inst.InConstraintSubstitution = Inst.InConstraintSubstitution ||
         SemaRef.CodeSynthesisContexts.back().InConstraintSubstitution;
-    Inst.InParameterMappingSubstitution |=
+    Inst.InParameterMappingSubstitution = Inst.InParameterMappingSubstitution ||
         SemaRef.CodeSynthesisContexts.back().InParameterMappingSubstitution;
   }
 

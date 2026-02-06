@@ -385,10 +385,10 @@ DwarfDebug::DwarfDebug(AsmPrinter *A)
   // 2: For XCOFF64: the AIX assembler will fill in debug section lengths
   //    according to the DWARF64 format for 64-bit assembly, so we must use
   //    DWARF64 in the compiler too for 64-bit mode.
-  Dwarf64 &=
-      ((Asm->TM.Options.MCOptions.Dwarf64 || MMI->getModule()->isDwarf64()) &&
+  Dwarf64 = Dwarf64 &&
+      (((Asm->TM.Options.MCOptions.Dwarf64 || MMI->getModule()->isDwarf64()) &&
        TT.isOSBinFormatELF()) ||
-      TT.isOSBinFormatXCOFF();
+      TT.isOSBinFormatXCOFF());
 
   if (!Dwarf64 && TT.isArch64Bit() && TT.isOSBinFormatXCOFF())
     report_fatal_error("XCOFF requires DWARF64 for 64-bit mode!");

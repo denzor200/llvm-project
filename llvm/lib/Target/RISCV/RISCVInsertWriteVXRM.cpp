@@ -451,7 +451,7 @@ bool RISCVInsertWriteVXRM::runOnMachineFunction(MachineFunction &MF) {
   // Phase 1 - collect block information.
   bool NeedVXRMChange = false;
   for (const MachineBasicBlock &MBB : MF)
-    NeedVXRMChange |= computeVXRMChanges(MBB);
+    NeedVXRMChange = NeedVXRMChange || computeVXRMChanges(MBB);
 
   if (!NeedVXRMChange) {
     BlockInfo.clear();

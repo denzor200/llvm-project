@@ -954,7 +954,7 @@ bool HexagonFrameLowering::updateExitPaths(MachineBasicBlock &MBB,
   Path[BN] = true;
   bool ReachedExit = false;
   for (auto &SB : MBB.successors())
-    ReachedExit |= updateExitPaths(*SB, RestoreB, DoneT, DoneF, Path);
+    ReachedExit = ReachedExit || updateExitPaths(*SB, RestoreB, DoneT, DoneF, Path);
 
   if (!MBB.empty() && MBB.back().isReturn()) {
     // Add implicit uses of all callee-saved registers to the reached
@@ -2029,27 +2029,27 @@ bool HexagonFrameLowering::expandSpillMacros(MachineFunction &MF,
 
       switch (Opc) {
         case TargetOpcode::COPY:
-          Changed |= expandCopy(B, I, MRI, HII, NewRegs);
+          Changed = Changed || expandCopy(B, I, MRI, HII, NewRegs);
           break;
         case Hexagon::STriw_pred:
         case Hexagon::STriw_ctr:
-          Changed |= expandStoreInt(B, I, MRI, HII, NewRegs);
+          Changed = Changed || expandStoreInt(B, I, MRI, HII, NewRegs);
           break;
         case Hexagon::LDriw_pred:
         case Hexagon::LDriw_ctr:
-          Changed |= expandLoadInt(B, I, MRI, HII, NewRegs);
+          Changed = Changed || expandLoadInt(B, I, MRI, HII, NewRegs);
           break;
         case Hexagon::PS_vstorerq_ai:
-          Changed |= expandStoreVecPred(B, I, MRI, HII, NewRegs);
+          Changed = Changed || expandStoreVecPred(B, I, MRI, HII, NewRegs);
           break;
         case Hexagon::PS_vloadrq_ai:
-          Changed |= expandLoadVecPred(B, I, MRI, HII, NewRegs);
+          Changed = Changed || expandLoadVecPred(B, I, MRI, HII, NewRegs);
           break;
         case Hexagon::PS_vloadrw_ai:
-          Changed |= expandLoadVec2(B, I, MRI, HII, NewRegs);
+          Changed = Changed || expandLoadVec2(B, I, MRI, HII, NewRegs);
           break;
         case Hexagon::PS_vstorerw_ai:
-          Changed |= expandStoreVec2(B, I, MRI, HII, NewRegs);
+          Changed = Changed || expandStoreVec2(B, I, MRI, HII, NewRegs);
           break;
       }
     }

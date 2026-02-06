@@ -4954,7 +4954,7 @@ void Sema::notePreviousDefinition(const NamedDecl *Old, SourceLocation New) {
     SourceLocation NewIncLoc = SrcMgr.getIncludeLoc(FNewDecLoc.first);
     bool EmittedDiag =
         noteFromModuleOrInclude(Old->getOwningModule(), OldIncLoc);
-    EmittedDiag |= noteFromModuleOrInclude(getCurrentModule(), NewIncLoc);
+    EmittedDiag = EmittedDiag || noteFromModuleOrInclude(getCurrentModule(), NewIncLoc);
 
     // If the header has no guards, emit a note suggesting one.
     if (FOld && !HSI.isFileMultipleIncludeGuarded(*FOld))
@@ -12578,7 +12578,7 @@ bool Sema::CheckFunctionDeclaration(Scope *S, FunctionDecl *NewFD,
       auto *FPT = NewFD->getType()->castAs<FunctionProtoType>();
       bool AnyNoexcept = HasNoexcept(FPT->getReturnType());
       for (QualType T : FPT->param_types())
-        AnyNoexcept |= HasNoexcept(T);
+        AnyNoexcept = AnyNoexcept || HasNoexcept(T);
       if (AnyNoexcept)
         Diag(NewFD->getLocation(),
              diag::warn_cxx17_compat_exception_spec_in_signature)

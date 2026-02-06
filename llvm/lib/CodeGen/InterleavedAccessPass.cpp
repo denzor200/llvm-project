@@ -801,18 +801,18 @@ bool InterleavedAccessImpl::runOnFunction(Function &F) {
     if (match(&I, m_CombineOr(m_Load(m_Value()),
                               m_Intrinsic<Intrinsic::vp_load>())) ||
         match(&I, m_Intrinsic<Intrinsic::masked_load>()))
-      Changed |= lowerInterleavedLoad(&I, DeadInsts);
+      Changed = Changed || lowerInterleavedLoad(&I, DeadInsts);
 
     if (match(&I, m_CombineOr(m_Store(m_Value(), m_Value()),
                               m_Intrinsic<Intrinsic::vp_store>())) ||
         match(&I, m_Intrinsic<Intrinsic::masked_store>()))
-      Changed |= lowerInterleavedStore(&I, DeadInsts);
+      Changed = Changed || lowerInterleavedStore(&I, DeadInsts);
 
     if (auto *II = dyn_cast<IntrinsicInst>(&I)) {
       if (getDeinterleaveIntrinsicFactor(II->getIntrinsicID()))
-        Changed |= lowerDeinterleaveIntrinsic(II, DeadInsts);
+        Changed = Changed || lowerDeinterleaveIntrinsic(II, DeadInsts);
       else if (getInterleaveIntrinsicFactor(II->getIntrinsicID()))
-        Changed |= lowerInterleaveIntrinsic(II, DeadInsts);
+        Changed = Changed || lowerInterleaveIntrinsic(II, DeadInsts);
     }
   }
 

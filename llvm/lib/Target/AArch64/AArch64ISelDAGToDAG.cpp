@@ -4061,7 +4061,7 @@ static int getIntOperandFromRegisterString(StringRef RegString) {
 
   for (StringRef Field : Fields) {
     unsigned IntField;
-    AllIntFields &= !Field.getAsInteger(10, IntField);
+    AllIntFields = AllIntFields && !Field.getAsInteger(10, IntField);
     Ops.push_back(IntField);
   }
 

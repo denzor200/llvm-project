@@ -67,13 +67,13 @@ bool NVPTXImageOptimizer::runOnFunction(Function &F) {
           switch (CalledF->getIntrinsicID()) {
           default: break;
           case Intrinsic::nvvm_istypep_sampler:
-            Changed |= replaceIsTypePSampler(Instr);
+            Changed = Changed || replaceIsTypePSampler(Instr);
             break;
           case Intrinsic::nvvm_istypep_surface:
-            Changed |= replaceIsTypePSurface(Instr);
+            Changed = Changed || replaceIsTypePSurface(Instr);
             break;
           case Intrinsic::nvvm_istypep_texture:
-            Changed |= replaceIsTypePTexture(Instr);
+            Changed = Changed || replaceIsTypePTexture(Instr);
             break;
           }
         }

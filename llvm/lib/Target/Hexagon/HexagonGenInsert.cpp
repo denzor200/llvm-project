@@ -1430,7 +1430,7 @@ bool HexagonGenInsert::removeDeadCode(MachineDomTreeNode *N) {
   bool Changed = false;
 
   for (auto *DTN : children<MachineDomTreeNode*>(N))
-    Changed |= removeDeadCode(DTN);
+    Changed = Changed || removeDeadCode(DTN);
 
   MachineBasicBlock *B = N->getBlock();
   std::vector<MachineInstr*> Instrs;

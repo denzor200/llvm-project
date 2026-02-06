@@ -217,13 +217,13 @@ void OwningMemoryCheck::check(const MatchFinder::MatchResult &Result) {
   const auto &Nodes = Result.Nodes;
 
   bool CheckExecuted = false;
-  CheckExecuted |= handleDeletion(Nodes);
-  CheckExecuted |= handleLegacyConsumers(Nodes);
-  CheckExecuted |= handleExpectedOwner(Nodes);
-  CheckExecuted |= handleAssignmentAndInit(Nodes);
-  CheckExecuted |= handleAssignmentFromNewOwner(Nodes);
-  CheckExecuted |= handleReturnValues(Nodes);
-  CheckExecuted |= handleOwnerMembers(Nodes);
+  CheckExecuted = CheckExecuted || handleDeletion(Nodes);
+  CheckExecuted = CheckExecuted || handleLegacyConsumers(Nodes);
+  CheckExecuted = CheckExecuted || handleExpectedOwner(Nodes);
+  CheckExecuted = CheckExecuted || handleAssignmentAndInit(Nodes);
+  CheckExecuted = CheckExecuted || handleAssignmentFromNewOwner(Nodes);
+  CheckExecuted = CheckExecuted || handleReturnValues(Nodes);
+  CheckExecuted = CheckExecuted || handleOwnerMembers(Nodes);
 
   (void)CheckExecuted;
   assert(CheckExecuted &&

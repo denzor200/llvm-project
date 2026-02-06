@@ -464,9 +464,9 @@ static void migrateDebugInfo(AllocaInst *OldAlloca, bool IsSplit,
     // This should be a very rare situation as it requires the value being
     // stored to differ from the dbg.assign (i.e., the value has been
     // represented differently in the debug intrinsic for some reason).
-    SetKillLocation |=
-        Value && (DbgAssign->hasArgList() ||
-                  !DbgAssign->getExpression()->isSingleLocationExpression());
+    SetKillLocation = SetKillLocation ||
+        (Value && (DbgAssign->hasArgList() ||
+                  !DbgAssign->getExpression()->isSingleLocationExpression()));
     if (SetKillLocation)
       NewAssign->setKillLocation();
 
@@ -2939,7 +2939,7 @@ public:
     IRB.getInserter().SetNamePrefix(Twine(NewAI.getName()) + "." +
                                     Twine(BeginOffset) + ".");
 
-    CanSROA &= visit(cast<Instruction>(OldUse->getUser()));
+    CanSROA = CanSROA && visit(cast<Instruction>(OldUse->getUser()));
     if (VecTy || IntTy)
       assert(CanSROA);
     return CanSROA;
@@ -4076,7 +4076,7 @@ public:
     bool Changed = false;
     while (!Queue.empty()) {
       U = Queue.pop_back_val();
-      Changed |= visit(cast<Instruction>(U->getUser()));
+      Changed = Changed || visit(cast<Instruction>(U->getUser()));
     }
     return Changed;
   }
@@ -5371,11 +5371,11 @@ SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS, Partition &P) {
       DeadInsts.push_back(V);
   } else {
     for (Slice *S : P.splitSliceTails()) {
-      Promotable &= Rewriter.visit(S);
+      Promotable = Promotable && Rewriter.visit(S);
       ++NumUses;
     }
     for (Slice &S : P) {
-      Promotable &= Rewriter.visit(&S);
+      Promotable = Promotable && Rewriter.visit(&S);
       ++NumUses;
     }
   }
@@ -5618,7 +5618,7 @@ bool SROA::splitAlloca(AllocaInst &AI, AllocaSlices &AS) {
   const DataLayout &DL = AI.getModule()->getDataLayout();
 
   // First try to pre-split loads and stores.
-  Changed |= presplitLoadsAndStores(AI, AS);
+  Changed = Changed || presplitLoadsAndStores(AI, AS);
 
   // Now that we have identified any pre-splitting opportunities,
   // mark loads and stores unsplittable except for the following case.
@@ -5946,7 +5946,7 @@ SROA::runOnAlloca(AllocaInst &AI) {
   // better splitting and promotion opportunities.
   IRBuilderTy IRB(&AI);
   AggLoadStoreRewriter AggRewriter(DL, IRB);
-  Changed |= AggRewriter.rewrite(AI);
+  Changed = Changed || AggRewriter.rewrite(AI);
 
   // Build the slices using a recursive instruction-visiting builder.
   AllocaSlices AS(DL, AI);
@@ -5955,7 +5955,7 @@ SROA::runOnAlloca(AllocaInst &AI) {
     return {Changed, CFGChanged};
 
   if (AS.isEscapedReadOnly()) {
-    Changed |= propagateStoredValuesToLoads(AI, AS);
+    Changed = Changed || propagateStoredValuesToLoads(AI, AS);
     return {Changed, CFGChanged};
   }
 
@@ -6011,7 +6011,7 @@ SROA::runOnAlloca(AllocaInst &AI) {
   if (AS.begin() == AS.end())
     return {Changed, CFGChanged};
 
-  Changed |= splitAlloca(AI, AS);
+  Changed = Changed || splitAlloca(AI, AS);
 
   LLVM_DEBUG(dbgs() << "  Speculating PHIs\n");
   while (!SpeculatablePHIs.empty())
@@ -6021,7 +6021,7 @@ SROA::runOnAlloca(AllocaInst &AI) {
   auto RemainingSelectsToRewrite = SelectsToRewrite.takeVector();
   while (!RemainingSelectsToRewrite.empty()) {
     const auto [K, V] = RemainingSelectsToRewrite.pop_back_val();
-    CFGChanged |=
+    CFGChanged = CFGChanged ||
         rewriteSelectInstMemOps(*K, V, IRB, PreserveCFG ? nullptr : DTU);
   }
 
@@ -6122,7 +6122,7 @@ std::pair<bool /*Changed*/, bool /*CFGChanged*/> SROA::runSROA(Function &F) {
       Changed = Changed || IterationChanged;
       CFGChanged = CFGChanged || IterationCFGChanged;
 
-      Changed |= deleteDeadInstructions(DeletedAllocas);
+      Changed = Changed || deleteDeadInstructions(DeletedAllocas);
 
       // Remove the deleted allocas from various lists so that we don't try to
       // continue processing them.
@@ -6134,7 +6134,7 @@ std::pair<bool /*Changed*/, bool /*CFGChanged*/> SROA::runSROA(Function &F) {
       }
     }
 
-    Changed |= promoteAllocas();
+    Changed = Changed || promoteAllocas();
 
     Worklist = PostPromotionWorklist;
     PostPromotionWorklist.clear();

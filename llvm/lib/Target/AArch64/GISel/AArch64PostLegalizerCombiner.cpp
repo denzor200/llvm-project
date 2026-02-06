@@ -688,7 +688,7 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction &MF) {
 
   auto MIB = CSEMIRBuilder(MF);
   MIB.setCSEInfo(CSEInfo);
-  Changed |= optimizeConsecutiveMemOpAddressing(MF, MIB);
+  Changed = Changed || optimizeConsecutiveMemOpAddressing(MF, MIB);
   return Changed;
 }
 
@@ -860,7 +860,7 @@ bool AArch64PostLegalizerCombiner::optimizeConsecutiveMemOpAddressing(
           } else {
             // The store isn't a valid to consider for the prior sequence,
             // so try to optimize what we have so far and start a new sequence.
-            Changed |= tryOptimizeConsecStores(Stores, MIB);
+            Changed = Changed || tryOptimizeConsecStores(Stores, MIB);
             resetState();
             Stores.push_back(New);
           }
@@ -869,7 +869,7 @@ bool AArch64PostLegalizerCombiner::optimizeConsecutiveMemOpAddressing(
         LoadValsSinceLastStore.push_back(Ld->getDstReg());
       }
     }
-    Changed |= tryOptimizeConsecStores(Stores, MIB);
+    Changed = Changed || tryOptimizeConsecStores(Stores, MIB);
     resetState();
   }
 

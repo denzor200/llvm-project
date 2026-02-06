@@ -354,7 +354,7 @@ bool GuardWideningImpl::run() {
         CurrentList.push_back(cast<Instruction>(&I));
 
     for (auto *II : CurrentList)
-      Changed |= eliminateInstrViaWidening(II, DFI, GuardsInBlock);
+      Changed = Changed || eliminateInstrViaWidening(II, DFI, GuardsInBlock);
   }
 
   assert(EliminatedGuardsAndBranches.empty() || Changed);

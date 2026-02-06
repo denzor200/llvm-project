@@ -1594,9 +1594,9 @@ std::tuple<char, unsigned, unsigned> parseAsmPhysRegName(StringRef RegName) {
   if (RegName.consume_front("[")) {
     unsigned Idx, End;
     bool Failed = RegName.consumeInteger(10, Idx);
-    Failed |= !RegName.consume_front(":");
-    Failed |= RegName.consumeInteger(10, End);
-    Failed |= !RegName.consume_back("]");
+    Failed = Failed || !RegName.consume_front(":");
+    Failed = Failed || RegName.consumeInteger(10, End);
+    Failed = Failed || !RegName.consume_back("]");
     if (!Failed) {
       unsigned NumRegs = End - Idx + 1;
       if (NumRegs > 1)

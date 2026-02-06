@@ -1730,9 +1730,9 @@ bool WaitcntGeneratorPreGFX12::applyPreexistingWaitcnt(
   }
 
   if (WaitcntInstr) {
-    Modified |= updateOperandIfDifferent(*WaitcntInstr, AMDGPU::OpName::simm16,
+    Modified = Modified || updateOperandIfDifferent(*WaitcntInstr, AMDGPU::OpName::simm16,
                                          AMDGPU::encodeWaitcnt(IV, Wait));
-    Modified |= promoteSoftWaitCnt(WaitcntInstr);
+    Modified = Modified || promoteSoftWaitCnt(WaitcntInstr);
 
     ScoreBrackets.applyWaitcnt(LOAD_CNT, Wait.LoadCnt);
     ScoreBrackets.applyWaitcnt(EXP_CNT, Wait.ExpCnt);
@@ -1750,9 +1750,9 @@ bool WaitcntGeneratorPreGFX12::applyPreexistingWaitcnt(
   }
 
   if (WaitcntVsCntInstr) {
-    Modified |= updateOperandIfDifferent(*WaitcntVsCntInstr,
+    Modified = Modified || updateOperandIfDifferent(*WaitcntVsCntInstr,
                                          AMDGPU::OpName::simm16, Wait.StoreCnt);
-    Modified |= promoteSoftWaitCnt(WaitcntVsCntInstr);
+    Modified = Modified || promoteSoftWaitCnt(WaitcntVsCntInstr);
 
     ScoreBrackets.applyWaitcnt(STORE_CNT, Wait.StoreCnt);
     Wait.StoreCnt = ~0u;
@@ -1995,8 +1995,8 @@ bool WaitcntGeneratorGFX12Plus::applyPreexistingWaitcnt(
       Enc = AMDGPU::DepCtr::encodeFieldVaVdst(Enc, ~0u);
 
       if (Enc != (unsigned)AMDGPU::DepCtr::getDefaultDepCtrEncoding(*ST)) {
-        Modified |= updateOperandIfDifferent(II, AMDGPU::OpName::simm16, Enc);
-        Modified |= promoteSoftWaitCnt(&II);
+        Modified = Modified || updateOperandIfDifferent(II, AMDGPU::OpName::simm16, Enc);
+        Modified = Modified || promoteSoftWaitCnt(&II);
       } else {
         II.eraseFromParent();
         Modified = true;
@@ -2025,9 +2025,9 @@ bool WaitcntGeneratorGFX12Plus::applyPreexistingWaitcnt(
     // first.
     if (Wait.LoadCnt != ~0u && Wait.DsCnt != ~0u) {
       unsigned NewEnc = AMDGPU::encodeLoadcntDscnt(IV, Wait);
-      Modified |= updateOperandIfDifferent(*CombinedLoadDsCntInstr,
+      Modified = Modified || updateOperandIfDifferent(*CombinedLoadDsCntInstr,
                                            AMDGPU::OpName::simm16, NewEnc);
-      Modified |= promoteSoftWaitCnt(CombinedLoadDsCntInstr);
+      Modified = Modified || promoteSoftWaitCnt(CombinedLoadDsCntInstr);
       ScoreBrackets.applyWaitcnt(LOAD_CNT, Wait.LoadCnt);
       ScoreBrackets.applyWaitcnt(DS_CNT, Wait.DsCnt);
       Wait.LoadCnt = ~0u;
@@ -2049,9 +2049,9 @@ bool WaitcntGeneratorGFX12Plus::applyPreexistingWaitcnt(
     // Similarly for S_WAIT_STORECNT_DSCNT.
     if (Wait.StoreCnt != ~0u && Wait.DsCnt != ~0u) {
       unsigned NewEnc = AMDGPU::encodeStorecntDscnt(IV, Wait);
-      Modified |= updateOperandIfDifferent(*CombinedStoreDsCntInstr,
+      Modified = Modified || updateOperandIfDifferent(*CombinedStoreDsCntInstr,
                                            AMDGPU::OpName::simm16, NewEnc);
-      Modified |= promoteSoftWaitCnt(CombinedStoreDsCntInstr);
+      Modified = Modified || promoteSoftWaitCnt(CombinedStoreDsCntInstr);
       ScoreBrackets.applyWaitcnt(STORE_CNT, Wait.StoreCnt);
       ScoreBrackets.applyWaitcnt(DS_CNT, Wait.DsCnt);
       Wait.StoreCnt = ~0u;
@@ -2108,9 +2108,9 @@ bool WaitcntGeneratorGFX12Plus::applyPreexistingWaitcnt(
 
     unsigned NewCnt = getWait(Wait, CT);
     if (NewCnt != ~0u) {
-      Modified |= updateOperandIfDifferent(*WaitInstrs[CT],
+      Modified = Modified || updateOperandIfDifferent(*WaitInstrs[CT],
                                            AMDGPU::OpName::simm16, NewCnt);
-      Modified |= promoteSoftWaitCnt(WaitInstrs[CT]);
+      Modified = Modified || promoteSoftWaitCnt(WaitInstrs[CT]);
 
       ScoreBrackets.applyWaitcnt(CT, NewCnt);
       setNoWait(Wait, CT);
@@ -2146,7 +2146,7 @@ bool WaitcntGeneratorGFX12Plus::applyPreexistingWaitcnt(
     // for anything, update the instruction's operand. Otherwise it can
     // just be deleted.
     if (Enc != (unsigned)AMDGPU::DepCtr::getDefaultDepCtrEncoding(*ST)) {
-      Modified |= updateOperandIfDifferent(*WaitcntDepctrInstr,
+      Modified = Modified || updateOperandIfDifferent(*WaitcntDepctrInstr,
                                            AMDGPU::OpName::simm16, Enc);
       LLVM_DEBUG(It.isEnd() ? dbgs() << "applyPreexistingWaitcnt\n"
                                      << "New Instr at block end: "
@@ -2884,13 +2884,13 @@ bool WaitcntBrackets::merge(const WaitcntBrackets &Other) {
 
     ScoreUBs[T] = NewUB;
 
-    StrictDom |= mergeScore(M, LastFlat[T], Other.LastFlat[T]);
+    StrictDom = StrictDom || mergeScore(M, LastFlat[T], Other.LastFlat[T]);
 
     if (T == DS_CNT)
-      StrictDom |= mergeScore(M, LastGDS, Other.LastGDS);
+      StrictDom = StrictDom || mergeScore(M, LastGDS, Other.LastGDS);
 
     if (T == KM_CNT) {
-      StrictDom |= mergeScore(M, SCCScore, Other.SCCScore);
+      StrictDom = StrictDom || mergeScore(M, SCCScore, Other.SCCScore);
       if (Other.hasPendingEvent(SCC_WRITE)) {
         if (!OldEvents.contains(SCC_WRITE)) {
           PendingSCCWrite = Other.PendingSCCWrite;
@@ -2901,7 +2901,7 @@ bool WaitcntBrackets::merge(const WaitcntBrackets &Other) {
     }
 
     for (auto &[RegID, Info] : VMem)
-      StrictDom |= mergeScore(M, Info.Scores[T], Other.getVMemScore(RegID, T));
+      StrictDom = StrictDom || mergeScore(M, Info.Scores[T], Other.getVMemScore(RegID, T));
 
     if (isSmemCounter(T)) {
       unsigned Idx = getSgprScoresIdx(T);
@@ -2909,7 +2909,7 @@ bool WaitcntBrackets::merge(const WaitcntBrackets &Other) {
         auto It = Other.SGPRs.find(RegID);
         unsigned OtherScore =
             (It != Other.SGPRs.end()) ? It->second.Scores[Idx] : 0;
-        StrictDom |= mergeScore(M, Info.Scores[Idx], OtherScore);
+        StrictDom = StrictDom || mergeScore(M, Info.Scores[Idx], OtherScore);
       }
     }
   }
@@ -3052,7 +3052,7 @@ bool SIInsertWaitcnts::insertWaitcntInBlock(MachineFunction &MF,
       FlushFlags = isPreheaderToFlush(Block, ScoreBrackets);
 
     // Generate an s_waitcnt instruction to be placed before Inst, if needed.
-    Modified |= generateWaitcntInstBefore(Inst, ScoreBrackets, OldWaitcntInstr,
+    Modified = Modified || generateWaitcntInstBefore(Inst, ScoreBrackets, OldWaitcntInstr,
                                           FlushFlags);
     OldWaitcntInstr = nullptr;
 
@@ -3103,7 +3103,7 @@ bool SIInsertWaitcnts::insertWaitcntInBlock(MachineFunction &MF,
 
     updateEventWaitcntAfter(Inst, &ScoreBrackets);
 
-    Modified |= insertForcedWaitAfter(Inst, Block, ScoreBrackets);
+    Modified = Modified || insertForcedWaitAfter(Inst, Block, ScoreBrackets);
 
     LLVM_DEBUG({
       Inst.print(dbgs());
@@ -3145,7 +3145,7 @@ bool SIInsertWaitcnts::insertWaitcntInBlock(MachineFunction &MF,
   }
 
   // Combine or remove any redundant waitcnts at the end of the block.
-  Modified |= generateWaitcnt(Wait, Block.instr_end(), Block, ScoreBrackets,
+  Modified = Modified || generateWaitcnt(Wait, Block.instr_end(), Block, ScoreBrackets,
                               OldWaitcntInstr);
 
   LLVM_DEBUG({
@@ -3239,8 +3239,8 @@ SIInsertWaitcnts::getPreheaderFlushFlags(MachineLoop *ML,
     bool SeenDSStoreInCurrMBB = false;
     for (MachineInstr &MI : *MBB) {
       if (isVMEMOrFlatVMEM(MI)) {
-        HasVMemLoad |= MI.mayLoad();
-        HasVMemStore |= MI.mayStore();
+        HasVMemLoad = HasVMemLoad || MI.mayLoad();
+        HasVMemStore = HasVMemStore || MI.mayStore();
       }
       if (mayStoreIncrementingDSCNT(MI))
         SeenDSStoreInCurrMBB = true;
@@ -3486,7 +3486,7 @@ bool SIInsertWaitcnts::run(MachineFunction &MF) {
         }
       }
 
-      Modified |= insertWaitcntInBlock(MF, *MBB, *Brackets);
+      Modified = Modified || insertWaitcntInBlock(MF, *MBB, *Brackets);
       BI.Dirty = false;
 
       if (Brackets->hasPendingEvent()) {

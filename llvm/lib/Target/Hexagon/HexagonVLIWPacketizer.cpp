@@ -1706,7 +1706,7 @@ HexagonPacketizerList::addToPacket(MachineInstr &MI) {
     PacketStalls = false;
     PacketStallCycles = 0;
   }
-  PacketStalls |= producesStall(MI);
+  PacketStalls = PacketStalls || producesStall(MI);
   PacketStallCycles = std::max(PacketStallCycles, calcStall(MI));
 
   if (MI.isImplicitDef()) {
@@ -1844,7 +1844,7 @@ bool HexagonPacketizerList::shouldAddToPacket(const MachineInstr &MI) {
       !PacketHasDuplex) {
     // Check for SLOT0 only non-duplexable instruction in packet.
     for (auto &MJ : CurrentPacketMIs)
-      PacketHasSLOT0OnlyInsn |= HII->isPureSlot0(*MJ);
+      PacketHasSLOT0OnlyInsn = PacketHasSLOT0OnlyInsn || HII->isPureSlot0(*MJ);
     // Get the Big Core Opcode (dup_*).
     int Opcode = HII->getDuplexOpcode(MI, false);
     if (Opcode >= 0) {

@@ -1192,8 +1192,8 @@ HexagonTargetLowering::buildHvxVectorPred(ArrayRef<SDValue> Values,
     assert(HwLen % VecLen == 0);
     unsigned BitBytes = HwLen / VecLen;
     for (SDValue V : Values) {
-      AllT &= IsTrue(V);
-      AllF &= IsFalse(V);
+      AllT = AllT && IsTrue(V);
+      AllF = AllF && IsFalse(V);
 
       SDValue Ext = !V.isUndef() ? DAG.getZExtOrTrunc(V, dl, MVT::i8)
                                  : DAG.getUNDEF(MVT::i8);
@@ -1212,8 +1212,8 @@ HexagonTargetLowering::buildHvxVectorPred(ArrayRef<SDValue> Values,
           break;
       }
       SDValue F = Values[I+B];
-      AllT &= IsTrue(F);
-      AllF &= IsFalse(F);
+      AllT = AllT && IsTrue(F);
+      AllF = AllF && IsFalse(F);
 
       SDValue Ext = (B < 8) ? DAG.getZExtOrTrunc(F, dl, MVT::i8)
                             : DAG.getUNDEF(MVT::i8);

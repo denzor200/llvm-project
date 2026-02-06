@@ -177,7 +177,7 @@ bool HexagonDCE::run() {
     auto SA = DFG.addr<StmtNode*>(N);
     if (trace())
       dbgs() << "Partly dead: " << *SA.Addr->getCode();
-    Changed |= rewrite(SA, Remove);
+    Changed = Changed || rewrite(SA, Remove);
   }
 
   return erase(Remove) || Changed;
@@ -326,7 +326,7 @@ bool HexagonRDFOpt::runOnMachineFunction(MachineFunction &MF) {
            << PrintNode<FuncNode*>(G.getFunc(), G) << '\n';
   HexagonDCE DCE(G, *MRI);
   DCE.trace(RDFDump);
-  Changed |= DCE.run();
+  Changed = Changed || DCE.run();
 
   if (Changed) {
     if (RDFDump) {

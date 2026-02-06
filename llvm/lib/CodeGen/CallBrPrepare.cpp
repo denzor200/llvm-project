@@ -83,8 +83,8 @@ PreservedAnalyses CallBrPreparePass::run(Function &F,
 
   auto &DT = FAM.getResult<DominatorTreeAnalysis>(F);
 
-  Changed |= SplitCriticalEdges(CBRs, DT);
-  Changed |= InsertIntrinsicCalls(CBRs, DT);
+  Changed = Changed || SplitCriticalEdges(CBRs, DT);
+  Changed = Changed || InsertIntrinsicCalls(CBRs, DT);
 
   if (!Changed)
     return PreservedAnalyses::all();

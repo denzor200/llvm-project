@@ -947,7 +947,7 @@ bool ConstantHoistingPass::runImpl(Function &Fn, TargetTransformInfo &TTI,
     MadeChange = emitBaseConstants(nullptr);
   for (const auto &MapEntry : ConstGEPInfoMap)
     if (!MapEntry.second.empty())
-      MadeChange |= emitBaseConstants(MapEntry.first);
+      MadeChange = MadeChange || emitBaseConstants(MapEntry.first);
 
 
   // Cleanup dead instructions.

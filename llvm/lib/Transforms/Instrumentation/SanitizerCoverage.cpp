@@ -212,7 +212,7 @@ SanitizerCoverageOptions OverrideFromCL(SanitizerCoverageOptions Options) {
   Options.Inline8bitCounters |= ClInline8bitCounters;
   Options.InlineBoolFlag |= ClInlineBoolFlag;
   Options.PCTable |= ClCreatePCTable;
-  Options.NoPrune |= !ClPruneBlocks;
+  Options.NoPrune = Options.NoPrune || !ClPruneBlocks;
   Options.StackDepth |= ClStackDepth;
   Options.StackDepthCallbackMin = std::max(Options.StackDepthCallbackMin,
                                            ClStackDepthCallbackMin.getValue());

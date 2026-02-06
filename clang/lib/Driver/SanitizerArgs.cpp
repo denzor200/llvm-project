@@ -1041,7 +1041,7 @@ SanitizerArgs::SanitizerArgs(const ToolChain &TC,
   ImplicitCfiRuntime = TC.getTriple().isAndroid();
 
   if (AllAddedKinds & SanitizerKind::Address) {
-    NeedPIE |= TC.getTriple().isOSFuchsia();
+    NeedPIE = NeedPIE || TC.getTriple().isOSFuchsia();
     if (Arg *A =
             Args.getLastArg(options::OPT_fsanitize_address_field_padding)) {
       StringRef S = A->getValue();

@@ -130,7 +130,7 @@ void AssumptionCache::unregisterAssumption(AssumeInst *CI) {
         Found = true;
         Elem.Assume = nullptr;
       }
-      HasNonnull |= !!Elem.Assume;
+      HasNonnull = HasNonnull || !!Elem.Assume;
       if (HasNonnull && Found)
         break;
     }

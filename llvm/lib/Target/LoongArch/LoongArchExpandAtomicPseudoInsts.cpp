@@ -68,7 +68,7 @@ bool LoongArchExpandAtomicPseudo::runOnMachineFunction(MachineFunction &MF) {
       static_cast<const LoongArchInstrInfo *>(MF.getSubtarget().getInstrInfo());
   bool Modified = false;
   for (auto &MBB : MF)
-    Modified |= expandMBB(MBB);
+    Modified = Modified || expandMBB(MBB);
   return Modified;
 }
 
@@ -78,7 +78,7 @@ bool LoongArchExpandAtomicPseudo::expandMBB(MachineBasicBlock &MBB) {
   MachineBasicBlock::iterator MBBI = MBB.begin(), E = MBB.end();
   while (MBBI != E) {
     MachineBasicBlock::iterator NMBBI = std::next(MBBI);
-    Modified |= expandMI(MBB, MBBI, NMBBI);
+    Modified = Modified || expandMI(MBB, MBBI, NMBBI);
     MBBI = NMBBI;
   }
 

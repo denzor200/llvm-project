@@ -2429,7 +2429,7 @@ static bool deduceFunctionAttributeInRPO(Module &M, LazyCallGraph &CG) {
   }
   bool Changed = false;
   for (auto *F : llvm::reverse(Worklist))
-    Changed |= addNoRecurseAttrsTopDown(*F);
+    Changed = Changed || addNoRecurseAttrsTopDown(*F);
 
   return Changed;
 }

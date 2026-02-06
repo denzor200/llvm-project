@@ -705,7 +705,7 @@ bool SIOptimizeVGPRLiveRange::run(MachineFunction &MF) {
         // Collect the registers can be optimized
         collectCandidateRegisters(&MBB, IfTarget, Endif, ElseBlocks,
                                   CandidateRegs);
-        MadeChange |= !CandidateRegs.empty();
+        MadeChange = MadeChange || !CandidateRegs.empty();
         // Now we are safe to optimize.
         for (auto Reg : CandidateRegs)
           optimizeLiveRange(Reg, &MBB, IfTarget, Endif, ElseBlocks);
@@ -722,7 +722,7 @@ bool SIOptimizeVGPRLiveRange::run(MachineFunction &MF) {
 
         collectWaterfallCandidateRegisters(LoopHeader, LoopEnd, CandidateRegs,
                                            Blocks, Instructions);
-        MadeChange |= !CandidateRegs.empty();
+        MadeChange = MadeChange || !CandidateRegs.empty();
         // Now we are safe to optimize.
         for (auto Reg : CandidateRegs)
           optimizeWaterfallLiveRange(Reg, LoopHeader, Blocks, Instructions);

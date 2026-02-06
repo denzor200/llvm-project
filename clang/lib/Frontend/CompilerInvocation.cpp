@@ -685,9 +685,9 @@ static bool FixupInvocation(CompilerInvocation &Invocation,
     bool emitError = (DefaultCC == LangOptions::DCC_FastCall ||
                       DefaultCC == LangOptions::DCC_StdCall) &&
                      Arch != llvm::Triple::x86;
-    emitError |= (DefaultCC == LangOptions::DCC_VectorCall ||
+    emitError = emitError || ((DefaultCC == LangOptions::DCC_VectorCall ||
                   DefaultCC == LangOptions::DCC_RegCall) &&
-                 !T.isX86();
+                 !T.isX86());
     emitError = emitError || (DefaultCC == LangOptions::DCC_RtdCall && Arch != llvm::Triple::m68k);
     if (emitError)
       Diags.Report(diag::err_drv_argument_not_allowed_with)
@@ -2188,7 +2188,7 @@ bool CompilerInvocation::ParseCodeGenArgs(CodeGenOptions &Opts, ArgList &Args,
   Opts.OptimizationRemarkAnalysis = ParseOptimizationRemark(
       Diags, Args, OPT_Rpass_analysis_EQ, "pass-analysis");
 
-  NeedLocTracking |= Opts.OptimizationRemark.hasValidPattern() ||
+  NeedLocTracking = NeedLocTracking || Opts.OptimizationRemark.hasValidPattern() ||
                      Opts.OptimizationRemarkMissed.hasValidPattern() ||
                      Opts.OptimizationRemarkAnalysis.hasValidPattern();
 

@@ -271,7 +271,7 @@ void SymbolTable::scanVersionScript() {
       bool found =
           assignExactVersion(pat, id, ver, /*includeNonDefault=*/false);
       buf.clear();
-      found |= assignExactVersion({(pat.name + "@" + v.name).toStringRef(buf),
+      found = found || assignExactVersion({(pat.name + "@" + v.name).toStringRef(buf),
                                    pat.isExternCpp, /*hasWildCard=*/false},
                                   id, ver, /*includeNonDefault=*/true);
       if (!found && !ctx.arg.undefinedVersion)

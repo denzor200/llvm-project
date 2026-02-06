@@ -869,8 +869,8 @@ void RegBankSelect::RepairingPlacement::addInsertPoint(MachineBasicBlock &Src,
 
 void RegBankSelect::RepairingPlacement::addInsertPoint(
     RegBankSelect::InsertPoint &Point) {
-  CanMaterialize &= Point.canMaterialize();
-  HasSplit |= Point.isSplit();
+  CanMaterialize = CanMaterialize && Point.canMaterialize();
+  HasSplit = HasSplit || Point.isSplit();
   InsertPoints.emplace_back(&Point);
 }
 

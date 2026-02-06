@@ -332,7 +332,7 @@ void Report(BenchmarkReporter* display_reporter,
                        const RunResults& results) {
     assert(reporter);
     // If there are no aggregates, do output non-aggregates.
-    aggregates_only &= !results.aggregates_only.empty();
+    aggregates_only = aggregates_only && !results.aggregates_only.empty();
     if (!aggregates_only) reporter->ReportRuns(results.non_aggregates);
     if (!results.aggregates_only.empty())
       reporter->ReportRuns(results.aggregates_only);
@@ -361,7 +361,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   for (const BenchmarkInstance& benchmark : benchmarks) {
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name().str().size());
-    might_have_aggregates |= benchmark.repetitions() > 1;
+    might_have_aggregates = might_have_aggregates || (benchmark.repetitions() > 1);
 
     for (const auto& Stat : benchmark.statistics())
       stat_field_width = std::max<size_t>(stat_field_width, Stat.name_.size());

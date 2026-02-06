@@ -1999,9 +1999,9 @@ public:
         return;
       const SourceLocation &Loc = PDAt.first;
       const PartialDiagnostic &PD = PDAt.second;
-      HasWarningOrError |=
-          S.getDiagnostics().getDiagnosticLevel(PD.getDiagID(), Loc) >=
-          DiagnosticsEngine::Warning;
+      HasWarningOrError = HasWarningOrError ||
+          (S.getDiagnostics().getDiagnosticLevel(PD.getDiagID(), Loc) >=
+          DiagnosticsEngine::Warning);
       {
         DiagnosticBuilder Builder(S.Diags.Report(Loc, PD.getDiagID()));
         PD.Emit(Builder);

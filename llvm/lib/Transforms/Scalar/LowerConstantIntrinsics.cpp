@@ -148,7 +148,7 @@ bool llvm::lowerConstantIntrinsics(Function &F, const TargetLibraryInfo &TLI,
       ObjectSizeIntrinsicsHandled++;
       break;
     }
-    HasDeadBlocks |= replaceConditionalBranchesOnConstant(
+    HasDeadBlocks = HasDeadBlocks || replaceConditionalBranchesOnConstant(
         II, NewValue, DTU ? &*DTU : nullptr);
   }
   if (HasDeadBlocks)

@@ -65,7 +65,7 @@ public:
     for (Function &F : M) {
       const RISCVSubtarget &ST = TM.getSubtarget<RISCVSubtarget>(F);
       const RISCVTargetLowering *TLI = ST.getTargetLowering();
-      Changed |= runOnFunction(F, TLI);
+      Changed = Changed || runOnFunction(F, TLI);
     }
     return Changed;
   }

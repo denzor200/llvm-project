@@ -3787,7 +3787,7 @@ void elf::addVerneed(Ctx &ctx, Symbol &ss) {
   // getVerDefNum(ctx)+1.
   if (file.verneedInfo[ss.versionId].id == 0)
     file.verneedInfo[ss.versionId].id = ++ctx.vernauxNum + getVerDefNum(ctx);
-  file.verneedInfo[ss.versionId].weak &= ss.isWeak();
+  file.verneedInfo[ss.versionId].weak = file.verneedInfo[ss.versionId].weak && ss.isWeak();
 
   ss.versionId = file.verneedInfo[ss.versionId].id;
 }

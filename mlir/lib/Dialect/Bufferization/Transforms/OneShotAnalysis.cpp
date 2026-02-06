@@ -1337,7 +1337,7 @@ LogicalResult bufferization::analyzeOp(Operation *op,
   op->walk([&](Operation *op) {
     if (BufferizableOpInterface bufferizableOp =
             options.dynCastBufferizableOp(op))
-      failedAnalysis |= failed(bufferizableOp.verifyAnalysis(state));
+      failedAnalysis = failedAnalysis || failed(bufferizableOp.verifyAnalysis(state));
   });
 
   // Annotate operations if we only want to report the analysis.

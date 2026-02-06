@@ -191,11 +191,11 @@ bool AMDGPUMCExpr::evaluateOccupancy(MCValue &Res,
       NumSGPRs, NumVGPRs;
 
   bool Success = true;
-  Success &= TryGetMCExprValue(Args[0], MaxWaves);
-  Success &= TryGetMCExprValue(Args[1], Granule);
-  Success &= TryGetMCExprValue(Args[2], TargetTotalNumVGPRs);
-  Success &= TryGetMCExprValue(Args[3], Generation);
-  Success &= TryGetMCExprValue(Args[4], InitOccupancy);
+  Success = Success && TryGetMCExprValue(Args[0], MaxWaves);
+  Success = Success && TryGetMCExprValue(Args[1], Granule);
+  Success = Success && TryGetMCExprValue(Args[2], TargetTotalNumVGPRs);
+  Success = Success && TryGetMCExprValue(Args[3], Generation);
+  Success = Success && TryGetMCExprValue(Args[4], InitOccupancy);
 
   assert(Success && "Arguments 1 to 5 for Occupancy should be known constants");
 

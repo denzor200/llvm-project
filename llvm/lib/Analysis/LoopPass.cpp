@@ -157,7 +157,7 @@ bool LPPassManager::runOnFunction(Function &F) {
   for (Loop *L : LQ) {
     for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index) {
       LoopPass *P = getContainedPass(Index);
-      Changed |= P->doInitialization(L, *this);
+      Changed = Changed || P->doInitialization(L, *this);
     }
   }
 
@@ -282,7 +282,7 @@ bool LPPassManager::runOnFunction(Function &F) {
   // Finalization
   for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index) {
     LoopPass *P = getContainedPass(Index);
-    Changed |= P->doFinalization();
+    Changed = Changed || P->doFinalization();
   }
 
   return Changed;

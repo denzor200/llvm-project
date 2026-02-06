@@ -51,7 +51,7 @@ public:
 
     ReversePostOrderTraversal<MachineBasicBlock *> RPOT(&*MF.begin());
     for (const auto &[BBIndex, MBB] : enumerate(RPOT))
-      Changed |= Renamer.renameVRegs(MBB, BBIndex);
+      Changed = Changed || Renamer.renameVRegs(MBB, BBIndex);
 
     return Changed;
   }

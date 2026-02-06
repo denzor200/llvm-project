@@ -355,7 +355,7 @@ void REPL::IOHandlerInputComplete(IOHandler &io_handler, std::string &code) {
           lldb::Format format = m_format_options.GetFormat();
 
           if (result_valobj_sp->GetError().Success()) {
-            handled |= PrintOneVariable(debugger, output_sp, result_valobj_sp);
+            handled = handled || PrintOneVariable(debugger, output_sp, result_valobj_sp);
           } else if (result_valobj_sp->GetError().GetError() ==
                      UserExpression::kNoResult) {
             if (format != lldb::eFormatVoid && debugger.GetNotifyVoid()) {

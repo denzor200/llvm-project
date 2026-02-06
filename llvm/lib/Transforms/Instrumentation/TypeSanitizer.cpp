@@ -600,7 +600,7 @@ bool TypeSanitizer::sanitizeFunction(Function &F,
   }
 
   for (auto Inst : MemTypeResetInsts)
-    Res |= instrumentMemInst(Inst, ShadowBase, AppMemMask, DL);
+    Res = Res || instrumentMemInst(Inst, ShadowBase, AppMemMask, DL);
 
   return Res;
 }

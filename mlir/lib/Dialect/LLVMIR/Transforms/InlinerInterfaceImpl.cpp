@@ -354,7 +354,7 @@ static void createNewAliasScopesFromNoAliasParameter(
             if (auto ssaCopy = object.getDefiningOp<LLVM::SSACopyOp>()) {
               // If that value is based on a noalias parameter, it is guaranteed
               // to not alias with any other object.
-              aliasesOtherKnownObject |= !noAliasParams.contains(ssaCopy);
+              aliasesOtherKnownObject = aliasesOtherKnownObject || !noAliasParams.contains(ssaCopy);
               return false;
             }
 

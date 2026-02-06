@@ -487,7 +487,7 @@ Loop *polly::getLoopSurroundingScop(Scop &S, LoopInfo &LI) {
   while (L) {
     bool AllContained = true;
     for (auto *BB : S.blocks())
-      AllContained &= L->contains(BB);
+      AllContained = AllContained && L->contains(BB);
     if (AllContained)
       break;
     L = L->getParentLoop();

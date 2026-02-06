@@ -1280,7 +1280,7 @@ void ODRHash::AddStructuralValue(const APValue &Value) {
       for (APValue::LValuePathEntry E : Value.getLValuePath()) {
         if (const auto *AT = TypeSoFar->getAsArrayTypeUnsafe()) {
           if (const auto *CAT = dyn_cast<ConstantArrayType>(AT))
-            OnePastTheEnd |= CAT->getSize() == E.getAsArrayIndex();
+            OnePastTheEnd = OnePastTheEnd || CAT->getSize() == E.getAsArrayIndex();
           TypeSoFar = AT->getElementType();
         } else {
           const Decl *D = E.getAsBaseOrMember().getPointer();

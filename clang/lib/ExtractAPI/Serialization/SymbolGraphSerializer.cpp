@@ -998,7 +998,7 @@ bool SymbolGraphSerializer::visitTypedefRecord(const TypedefRecord *Record) {
   bool ShouldDrop = Record->UnderlyingType.Name.empty();
   // enums declared with `NS_OPTION` have a named enum and a named typedef, with
   // the same name
-  ShouldDrop |= (Record->UnderlyingType.Name == Record->Name);
+  ShouldDrop = ShouldDrop || (Record->UnderlyingType.Name == Record->Name);
   if (ShouldDrop)
     return true;
 

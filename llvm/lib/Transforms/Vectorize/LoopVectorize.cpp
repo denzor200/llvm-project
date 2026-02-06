@@ -8168,7 +8168,7 @@ VPlanPtr LoopVectorizationPlanner::tryToBuildVPlanWithVPRecipes(
   // TODO: Consider using getDecisionAndClampRange here to split up VPlans.
   bool IVUpdateMayOverflow = false;
   for (ElementCount VF : Range)
-    IVUpdateMayOverflow |= !isIndvarOverflowCheckKnownFalse(&CM, VF);
+    IVUpdateMayOverflow = IVUpdateMayOverflow || !isIndvarOverflowCheckKnownFalse(&CM, VF);
 
   TailFoldingStyle Style = CM.getTailFoldingStyle(IVUpdateMayOverflow);
   // Use NUW for the induction increment if we proved that it won't overflow in
@@ -9922,7 +9922,7 @@ LoopVectorizeResult LoopVectorizePass::runImpl(Function &F) {
   // will simplify all loops, regardless of whether anything end up being
   // vectorized.
   for (const auto &L : *LI)
-    Changed |= CFGChanged |=
+    Changed |= CFGChanged = CFGChanged ||
         simplifyLoop(L, DT, LI, SE, AC, nullptr, false /* PreserveLCSSA */);
 
   // Build up a worklist of inner-loops to vectorize. This is necessary as
@@ -9941,9 +9941,9 @@ LoopVectorizeResult LoopVectorizePass::runImpl(Function &F) {
 
     // For the inner loops we actually process, form LCSSA to simplify the
     // transform.
-    Changed |= formLCSSARecursively(*L, *DT, LI, SE);
+    Changed = Changed || formLCSSARecursively(*L, *DT, LI, SE);
 
-    Changed |= CFGChanged |= processLoop(L);
+    Changed |= CFGChanged = CFGChanged || processLoop(L);
 
     if (Changed) {
       LAIs->clear();

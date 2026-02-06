@@ -335,16 +335,16 @@ static bool updatePruning(const DWARFDie &Die, CompileUnit &CU,
   // Prune this DIE if it is either a forward declaration inside a
   // DW_TAG_module or a DW_TAG_module that contains nothing but
   // forward declarations.
-  Info.Prune &= (Die.getTag() == dwarf::DW_TAG_module) ||
+  Info.Prune = Info.Prune && ((Die.getTag() == dwarf::DW_TAG_module) ||
                 (isTypeTag(Die.getTag()) &&
-                 dwarf::toUnsigned(Die.find(dwarf::DW_AT_declaration), 0));
+                 dwarf::toUnsigned(Die.find(dwarf::DW_AT_declaration), 0)));
 
   // Only prune forward declarations inside a DW_TAG_module for which a
   // definition exists elsewhere.
   if (ModulesEndOffset == 0)
-    Info.Prune &= Info.Ctxt && Info.Ctxt->getCanonicalDIEOffset();
+    Info.Prune = Info.Prune && Info.Ctxt && Info.Ctxt->getCanonicalDIEOffset();
   else
-    Info.Prune &= Info.Ctxt && Info.Ctxt->getCanonicalDIEOffset() > 0 &&
+    Info.Prune = Info.Prune && Info.Ctxt && Info.Ctxt->getCanonicalDIEOffset() > 0 &&
                   Info.Ctxt->getCanonicalDIEOffset() <= ModulesEndOffset;
 
   return Info.Prune;

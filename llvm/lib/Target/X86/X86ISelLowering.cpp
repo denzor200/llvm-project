@@ -5484,7 +5484,7 @@ static bool isConstantPowerOf2(SDValue V, unsigned EltSizeInBIts,
 
   bool IsPow2OrUndef = true;
   for (unsigned I = 0, E = EltBits.size(); I != E; ++I)
-    IsPow2OrUndef &= UndefElts[I] || EltBits[I].isPowerOf2();
+    IsPow2OrUndef = IsPow2OrUndef && (UndefElts[I] || EltBits[I].isPowerOf2());
   return IsPow2OrUndef;
 }
 
@@ -5524,7 +5524,7 @@ static SDValue IsNOT(SDValue V, SelectionDAG &DAG) {
       // Don't fold min_signed_value -> (min_signed_value - 1)
       bool MinSigned = false;
       for (APInt &Elt : EltBits) {
-        MinSigned |= Elt.isMinSignedValue();
+        MinSigned = MinSigned || Elt.isMinSignedValue();
         Elt -= 1;
       }
       if (!MinSigned) {
@@ -6057,8 +6057,8 @@ static void computeZeroableShuffleElements(ArrayRef<int> Mask,
       bool AllZero = true;
       for (int j = 0; j < Scale; ++j) {
         SDValue Op = V.getOperand((M * Scale) + j);
-        AllUndef &= Op.isUndef();
-        AllZero &= X86::isZeroNode(Op);
+        AllUndef = AllUndef && Op.isUndef();
+        AllZero = AllZero && X86::isZeroNode(Op);
       }
       if (AllUndef)
         KnownUndef.setBit(i);
@@ -7642,12 +7642,12 @@ static SDValue EltsFromConsecutiveLoads(EVT VT, ArrayRef<SDValue> Elts,
         if (RepeatedLoads[i % SubElems].isUndef())
           RepeatedLoads[i % SubElems] = Elt;
         else
-          Match &= (RepeatedLoads[i % SubElems] == Elt);
+          Match = Match && (RepeatedLoads[i % SubElems] == Elt);
       }
 
       // We must have loads at both ends of the repetition.
-      Match &= !RepeatedLoads.front().isUndef();
-      Match &= !RepeatedLoads.back().isUndef();
+      Match = Match && !RepeatedLoads.front().isUndef();
+      Match = Match && !RepeatedLoads.back().isUndef();
       if (!Match)
         continue;
 
@@ -8528,7 +8528,7 @@ static bool isAddSubOrSubAdd(const BuildVectorSDNode *BV,
 
     // Increment the number of extractions done.
     ++NumExtracts;
-    HasAllowContract &= Op->getFlags().hasAllowContract();
+    HasAllowContract = HasAllowContract && Op->getFlags().hasAllowContract();
   }
 
   // Ensure we have found an opcode for both parities and that they are
@@ -8935,7 +8935,7 @@ static SDValue lowerBuildVectorToBitOp(BuildVectorSDNode *Op, const SDLoc &DL,
   for (SDValue Elt : Op->ops()) {
     SDValue LHS = Elt.getOperand(0);
     SDValue RHS = Elt.getOperand(1);
-    RHSAllConst &= isa<ConstantSDNode>(RHS);
+    RHSAllConst = RHSAllConst && isa<ConstantSDNode>(RHS);
     LHSElts.push_back(LHS);
     RHSElts.push_back(RHS);
   }
@@ -10689,8 +10689,8 @@ static bool matchShuffleWithUNPCK(MVT VT, SDValue &V1, SDValue &V2,
     int M2 = TargetMask[i + 1];
     Undef1 = Undef1 && (SM_SentinelUndef == M1);
     Undef2 = Undef2 && (SM_SentinelUndef == M2);
-    Zero1 &= isUndefOrZero(M1);
-    Zero2 &= isUndefOrZero(M2);
+    Zero1 = Zero1 && isUndefOrZero(M1);
+    Zero2 = Zero2 && isUndefOrZero(M2);
   }
   assert(!((Undef1 || Zero1) && (Undef2 || Zero2)) &&
          "Zeroable shuffle detected");
@@ -10731,8 +10731,8 @@ static bool matchShuffleWithUNPCK(MVT VT, SDValue &V1, SDValue &V2,
           (M == SM_SentinelUndef))
         continue;
 
-      MatchLo &= (M == Unpckl[i]);
-      MatchHi &= (M == Unpckh[i]);
+      MatchLo = MatchLo && (M == Unpckl[i]);
+      MatchHi = MatchHi && (M == Unpckh[i]);
     }
 
     if (MatchLo || MatchHi) {
@@ -11625,8 +11625,8 @@ static SDValue lowerShuffleAsUNPCKAndPermute(const SDLoc &DL, MVT VT,
     bool MatchLoAnyLane = false, MatchHiAnyLane = false;
     for (int Lane = 0; Lane != NumElts; Lane += NumLaneElts) {
       int Lo = Lane, Mid = Lane + NumHalfLaneElts, Hi = Lane + NumLaneElts;
-      MatchLoAnyLane |= isUndefOrInRange(NormM, Lo, Mid);
-      MatchHiAnyLane |= isUndefOrInRange(NormM, Mid, Hi);
+      MatchLoAnyLane = MatchLoAnyLane || isUndefOrInRange(NormM, Lo, Mid);
+      MatchHiAnyLane = MatchHiAnyLane || isUndefOrInRange(NormM, Mid, Hi);
       if (MatchLoAnyLane || MatchHiAnyLane) {
         assert((MatchLoAnyLane ^ MatchHiAnyLane) &&
                "Failed to match UNPCKLO/UNPCKHI");
@@ -11923,12 +11923,12 @@ static SDValue lowerShuffleAsDecomposedShuffleMerge(
     if (M >= 0 && M < NumElts) {
       V1Mask[i] = M;
       FinalMask[i] = i;
-      V1Zero &= Zeroable[i];
+      V1Zero = V1Zero && Zeroable[i];
       IsAlternating = IsAlternating && ((i & 1) == 0);
     } else if (M >= NumElts) {
       V2Mask[i] = M - NumElts;
       FinalMask[i] = i + NumElts;
-      V2Zero &= Zeroable[i];
+      V2Zero = V2Zero && Zeroable[i];
       IsAlternating = IsAlternating && ((i & 1) == 1);
     }
   }
@@ -15097,8 +15097,8 @@ static SDValue lowerV16I8Shuffle(const SDLoc &DL, ArrayRef<int> Mask,
       // Unpack the bytes to form the i16s that will be shuffled into place.
       bool EvenInUse = false, OddInUse = false;
       for (int i = 0; i < 16; i += 2) {
-        EvenInUse |= (Mask[i + 0] >= 0);
-        OddInUse |= (Mask[i + 1] >= 0);
+        EvenInUse = EvenInUse || (Mask[i + 0] >= 0);
+        OddInUse = OddInUse || (Mask[i + 1] >= 0);
         if (EvenInUse && OddInUse)
           break;
       }
@@ -30005,9 +30005,9 @@ static SDValue LowerMUL(SDValue Op, const X86Subtarget &Subtarget,
       if (BIsBuildVector) {
         for (auto [Idx, Val] : enumerate(B->ops())) {
           if ((Idx % NumEltsPerLane) >= (NumEltsPerLane / 2))
-            IsHiLaneAllZeroOrUndef &= isNullConstantOrUndef(Val);
+            IsHiLaneAllZeroOrUndef = IsHiLaneAllZeroOrUndef && isNullConstantOrUndef(Val);
           else
-            IsLoLaneAllZeroOrUndef &= isNullConstantOrUndef(Val);
+            IsLoLaneAllZeroOrUndef = IsLoLaneAllZeroOrUndef && isNullConstantOrUndef(Val);
         }
       }
       if (!(IsLoLaneAllZeroOrUndef || IsHiLaneAllZeroOrUndef)) {
@@ -39758,9 +39758,9 @@ static bool matchUnaryShuffle(MVT MaskVT, ArrayRef<int> Mask,
         }
         unsigned Pos = (i * Scale) + 1;
         unsigned Len = Scale - 1;
-        MatchAny &= isUndefInRange(Mask, Pos, Len);
-        MatchZero &= isUndefOrZeroInRange(Mask, Pos, Len);
-        MatchSign &= isUndefOrEqualInRange(Mask, (int)i, Pos, Len);
+        MatchAny = MatchAny && isUndefInRange(Mask, Pos, Len);
+        MatchZero = MatchZero && isUndefOrZeroInRange(Mask, Pos, Len);
+        MatchSign = MatchSign && isUndefOrEqualInRange(Mask, (int)i, Pos, Len);
       }
       if (MatchAny || MatchSign || MatchZero) {
         assert((MatchSign || MatchZero) &&
@@ -40189,15 +40189,15 @@ static bool matchBinaryShuffle(MVT MaskVT, ArrayRef<int> Mask,
           if (M == SM_SentinelUndef)
             continue;
           if (M == SM_SentinelZero) {
-            IsBlend &= V1Known.Zero[i] && V2Known.Zero[i];
+            IsBlend = IsBlend && V1Known.Zero[i] && V2Known.Zero[i];
             continue;
           }
           if (M == (int)i) {
-            IsBlend &= V2Known.Zero[i] || V1Known.One[i];
+            IsBlend = IsBlend && (V2Known.Zero[i] || V1Known.One[i]);
             continue;
           }
           if (M == (int)(i + NumMaskElts)) {
-            IsBlend &= V1Known.Zero[i] || V2Known.One[i];
+            IsBlend = IsBlend && (V1Known.Zero[i] || V2Known.One[i]);
             continue;
           }
           llvm_unreachable("will not get here.");
@@ -46520,8 +46520,8 @@ static SDValue combineBitcast(SDNode *N, SelectionDAG &DAG,
       bool LowUndef = true, AllUndefOrZero = true;
       for (unsigned i = 1, e = SrcVT.getVectorNumElements(); i != e; ++i) {
         SDValue Op = N0.getOperand(i);
-        LowUndef &= Op.isUndef() || (i >= e/2);
-        AllUndefOrZero &= isNullConstantOrUndef(Op);
+        LowUndef = LowUndef && (Op.isUndef() || (i >= e/2));
+        AllUndefOrZero = AllUndefOrZero && isNullConstantOrUndef(Op);
       }
       if (AllUndefOrZero) {
         SDValue N00 = N0.getOperand(0);
@@ -47834,7 +47834,7 @@ static SDValue combineExtractVectorElt(SDNode *N, SelectionDAG &DAG,
           Use->getOperand(0).getResNo() == ResNo &&
           Use->getValueType(0) == MVT::i1) {
         BoolExtracts.push_back(Use);
-        IsVar |= !isa<ConstantSDNode>(Use->getOperand(1));
+        IsVar = IsVar || !isa<ConstantSDNode>(Use->getOperand(1));
         return true;
       }
       return false;
@@ -49208,7 +49208,7 @@ static SDValue combineCarryThroughADD(SDValue EFLAGS, SelectionDAG &DAG) {
              Carry.getOpcode() == ISD::ZERO_EXTEND ||
              (Carry.getOpcode() == ISD::AND &&
               isOneConstant(Carry.getOperand(1)))) {
-        FoundAndLSB |= Carry.getOpcode() == ISD::AND;
+        FoundAndLSB = FoundAndLSB || (Carry.getOpcode() == ISD::AND);
         Carry = Carry.getOperand(0);
       }
       if (Carry.getOpcode() == X86ISD::SETCC ||
@@ -55808,9 +55808,9 @@ static SDValue combineX86FPLogicOp(SDNode *N, SelectionDAG &DAG,
   // Check if this will constant fold as a generic op.
   bool WillFold = false;
   if (DAG.getTargetLoweringInfo().isCommutativeBinOp(N->getOpcode())) {
-    WillFold |= Op0.isUndef() || Op1.isUndef();
-    WillFold |= Op0.getOpcode() == ISD::ConstantFP &&
-                Op1.getOpcode() == ISD::ConstantFP;
+    WillFold = WillFold || Op0.isUndef() || Op1.isUndef();
+    WillFold = WillFold || (Op0.getOpcode() == ISD::ConstantFP &&
+                Op1.getOpcode() == ISD::ConstantFP);
   }
 
   // If this will fold away or we have integer vector types available, use the
@@ -59606,8 +59606,8 @@ static SDValue combineConcatVectorOps(const SDLoc &DL, MVT VT,
         SDValue BC = peekThroughBitcasts(SubOps[I].getOperand(Op));
         unsigned SubSize = BC.getValueSizeInBits();
         unsigned EltSize = BC.getScalarValueSizeInBits();
-        AllConstants &= IsOpConstant(BC);
-        AllSubs &= BC.getOpcode() == ISD::EXTRACT_SUBVECTOR &&
+        AllConstants = AllConstants && IsOpConstant(BC);
+        AllSubs = AllSubs && BC.getOpcode() == ISD::EXTRACT_SUBVECTOR &&
                    BC.getOperand(0).getValueSizeInBits() == VecSize &&
                    (BC.getConstantOperandVal(1) * EltSize) == (I * SubSize);
       }
@@ -59618,7 +59618,7 @@ static SDValue combineConcatVectorOps(const SDLoc &DL, MVT VT,
       bool AllConstants = true;
       SmallVector<SDValue> Subs;
       for (SDValue SubOp : SubOps) {
-        AllConstants &= IsOpConstant(peekThroughBitcasts(SubOp.getOperand(I)));
+        AllConstants = AllConstants && IsOpConstant(peekThroughBitcasts(SubOp.getOperand(I)));
         Subs.push_back(SubOp.getOperand(I));
       }
       if (AllConstants ||
@@ -60253,10 +60253,10 @@ static SDValue combineConcatVectorOps(const SDLoc &DL, MVT VT,
               return Opc == ISD::FMA || Opc == X86ISD::FMSUB ||
                      Opc == X86ISD::FNMSUB || Opc == X86ISD::FNMADD;
             };
-            Inner0 &= IsAnyFMA(Op.getOperand(1).getOpcode()) &&
+            Inner0 = Inner0 && IsAnyFMA(Op.getOperand(1).getOpcode()) &&
                       (Op.getOperand(1).getOperand(0) == Op.getOperand(0) ||
                        Op.getOperand(1).getOperand(1) == Op.getOperand(0));
-            Inner1 &= IsAnyFMA(Op.getOperand(0).getOpcode()) &&
+            Inner1 = Inner1 && IsAnyFMA(Op.getOperand(0).getOpcode()) &&
                       (Op.getOperand(0).getOperand(0) == Op.getOperand(1) ||
                        Op.getOperand(0).getOperand(1) == Op.getOperand(1));
           }
@@ -60542,7 +60542,7 @@ static SDValue combineConcatVectorOps(const SDLoc &DL, MVT VT,
       for (unsigned I = 0; I != NumOps; ++I) {
         LHS[I] = SrcOps[I][SrcMasks[I][0] / NumOpElts];
         RHS[I] = SrcOps[I][SrcMasks[I][1] / NumOpElts];
-        Unary &= LHS[I] == RHS[I];
+        Unary = Unary && LHS[I] == RHS[I];
         for (unsigned J = 0; J != NumOpElts; ++J)
           SHUFPDMask |= (SrcMasks[I][J] & 1) << ((I * NumOpElts) + J);
       }

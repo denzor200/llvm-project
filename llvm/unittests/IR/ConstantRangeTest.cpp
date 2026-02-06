@@ -1799,7 +1799,7 @@ void ICmpTestImpl(CmpInst::Predicate Pred) {
         bool Exhaustive = true;
         ForeachNumInConstantRange(CR1, [&](const APInt &N1) {
           ForeachNumInConstantRange(CR2, [&](const APInt &N2) {
-            Exhaustive &= ICmpInst::compare(N1, N2, Pred);
+            Exhaustive = Exhaustive && ICmpInst::compare(N1, N2, Pred);
           });
         });
         EXPECT_EQ(CR1.icmp(Pred, CR2), Exhaustive);
@@ -2974,8 +2974,8 @@ void testConstantRangeICmpPredEquivalence(ICmpInst::Predicate SrcPred, T Func) {
           ForeachNumInConstantRange(CR2, [&](const APInt &N2) {
             if (!TrulyEquivalent)
               return;
-            TrulyEquivalent &= ICmpInst::compare(N1, N2, SrcPred) ==
-                               ICmpInst::compare(N1, N2, TgtPred);
+            TrulyEquivalent = TrulyEquivalent && (ICmpInst::compare(N1, N2, SrcPred) ==
+                               ICmpInst::compare(N1, N2, TgtPred));
           });
         });
         ASSERT_EQ(TrulyEquivalent, ExpectedEquivalent);

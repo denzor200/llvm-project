@@ -329,7 +329,7 @@ void ModuleSummaryIndex::propagateAttributes(
       propagateAttributesToRefs(S.get(), MarkedNonReadWriteOnly);
 
       // If the flag from any summary is false, the GV is not DSOLocal.
-      IsDSOLocal &= S->isDSOLocal();
+      IsDSOLocal = IsDSOLocal && S->isDSOLocal();
     }
     if (!IsDSOLocal)
       // Mark the flag in all summaries false so that we can do quick check

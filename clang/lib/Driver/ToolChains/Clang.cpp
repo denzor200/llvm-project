@@ -173,7 +173,7 @@ static bool addExceptionArgs(const ArgList &Args, types::ID InputType,
                    options::OPT_fno_objc_exceptions, true)) {
     CmdArgs.push_back("-fobjc-exceptions");
 
-    EH |= shouldUseExceptionTablesForObjCExceptions(objcRuntime, Triple);
+    EH = EH || shouldUseExceptionTablesForObjCExceptions(objcRuntime, Triple);
   }
 
   if (types::isCXX(InputType)) {
@@ -4916,7 +4916,7 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
   // device mode (i.e., getToolchain().getTriple() is NVPTX/AMDGCN, not
   // Windows), we need to pass Windows-specific flags to cc1.
   if (IsCuda || IsHIP || IsSYCL)
-    IsWindowsMSVC |= AuxTriple && AuxTriple->isWindowsMSVCEnvironment();
+    IsWindowsMSVC = IsWindowsMSVC || (AuxTriple && AuxTriple->isWindowsMSVCEnvironment());
 
   // C++ is not supported for IAMCU.
   if (IsIAMCU && types::isCXX(Input.getType()))

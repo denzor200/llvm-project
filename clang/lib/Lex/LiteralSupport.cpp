@@ -1550,12 +1550,12 @@ bool NumericLiteralParser::GetIntegerValue(llvm::APInt &Val) {
 
     // Multiply by radix, did overflow occur on the multiply?
     Val *= RadixVal;
-    OverflowOccurred |= Val.udiv(RadixVal) != OldVal;
+    OverflowOccurred = OverflowOccurred || Val.udiv(RadixVal) != OldVal;
 
     // Add value, did overflow occur on the value?
     //   (a + b) ult b  <=> overflow
     Val += CharVal;
-    OverflowOccurred |= Val.ult(CharVal);
+    OverflowOccurred = OverflowOccurred || Val.ult(CharVal);
   }
   return OverflowOccurred;
 }
@@ -1693,10 +1693,10 @@ bool NumericLiteralParser::GetFixedPointValue(llvm::APInt &StoreVal, unsigned Sc
   bool IntOverflowOccurred = false;
   auto MaxVal = llvm::APInt::getMaxValue(StoreVal.getBitWidth());
   if (Val.getBitWidth() > StoreVal.getBitWidth()) {
-    IntOverflowOccurred |= Val.ugt(MaxVal.zext(Val.getBitWidth()));
+    IntOverflowOccurred = IntOverflowOccurred || Val.ugt(MaxVal.zext(Val.getBitWidth()));
     StoreVal = Val.trunc(StoreVal.getBitWidth());
   } else if (Val.getBitWidth() < StoreVal.getBitWidth()) {
-    IntOverflowOccurred |= Val.zext(MaxVal.getBitWidth()).ugt(MaxVal);
+    IntOverflowOccurred = IntOverflowOccurred || Val.zext(MaxVal.getBitWidth()).ugt(MaxVal);
     StoreVal = Val.zext(StoreVal.getBitWidth());
   } else {
     StoreVal = Val;
@@ -1908,7 +1908,7 @@ CharLiteralParser::CharLiteralParser(const char *begin, const char *end,
     LitVal = 0;
     for (size_t i = 0; i < NumCharsSoFar; ++i) {
       // check for enough leading zeros to shift into
-      multi_char_too_long |= (LitVal.countl_zero() < 8);
+      multi_char_too_long = multi_char_too_long || (LitVal.countl_zero() < 8);
       LitVal <<= 8;
       LitVal = LitVal + (codepoint_buffer[i] & 0xFF);
     }

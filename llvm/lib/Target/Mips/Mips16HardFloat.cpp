@@ -516,7 +516,7 @@ bool Mips16HardFloat::runOnModule(Module &M) {
     }
     if (F->isDeclaration() || F->hasFnAttribute("mips16_fp_stub") ||
         F->hasFnAttribute("nomips16")) continue;
-    Modified |= fixupFPReturnAndCall(*F, &M, TM);
+    Modified = Modified || fixupFPReturnAndCall(*F, &M, TM);
     FPParamVariant V = whichFPParamVariantNeeded(*F);
     if (V != NoSig) {
       Modified = true;

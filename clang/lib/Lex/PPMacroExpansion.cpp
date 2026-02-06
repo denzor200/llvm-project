@@ -228,7 +228,7 @@ void Preprocessor::updateModuleMacroInfo(const IdentifierInfo *II,
       MD = MD->getPrevious();
     if (auto *DMD = dyn_cast_or_null<DefMacroDirective>(MD)) {
       MI = DMD->getInfo();
-      IsSystemMacro &= SourceMgr.isInSystemHeader(DMD->getLocation());
+      IsSystemMacro = IsSystemMacro && SourceMgr.isInSystemHeader(DMD->getLocation());
     }
   }
   for (auto *Active : Info.ActiveModuleMacros) {
@@ -246,8 +246,8 @@ void Preprocessor::updateModuleMacroInfo(const IdentifierInfo *II,
     if (MI && NewMI != MI &&
         !MI->isIdenticalTo(*NewMI, *this, /*Syntactically=*/true))
       IsAmbiguous = true;
-    IsSystemMacro &= Active->getOwningModule()->IsSystem ||
-                     SourceMgr.isInSystemHeader(NewMI->getDefinitionLoc());
+    IsSystemMacro = IsSystemMacro && (Active->getOwningModule()->IsSystem ||
+                     SourceMgr.isInSystemHeader(NewMI->getDefinitionLoc()));
     MI = NewMI;
   }
   Info.IsAmbiguous = IsAmbiguous && !IsSystemMacro;

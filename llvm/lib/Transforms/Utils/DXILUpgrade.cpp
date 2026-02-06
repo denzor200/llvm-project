@@ -40,7 +40,7 @@ PreservedAnalyses DXILUpgradePass::run(Module &M, ModuleAnalysisManager &AM) {
   PA.preserveSet<AllAnalysesOn<Function>>();
 
   bool Changed = false;
-  Changed |= handleValVerMetadata(M);
+  Changed = Changed || handleValVerMetadata(M);
 
   if (!Changed)
     return PreservedAnalyses::all();

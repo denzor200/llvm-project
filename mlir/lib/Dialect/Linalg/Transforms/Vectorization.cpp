@@ -1007,7 +1007,7 @@ static bool isLoopInvariantIdx(LinalgOp &linalgOp, Value &val,
 
   bool result = true;
   for (auto op : ancestor->getOperands())
-    result &= isLoopInvariantIdx(linalgOp, op, resType);
+    result = result && isLoopInvariantIdx(linalgOp, op, resType);
 
   return result;
 }
@@ -1066,7 +1066,7 @@ static bool isContiguousLoadIdx(LinalgOp &linalgOp, Value &val,
 
   bool result = false;
   for (auto op : ancestor->getOperands())
-    result |= isContiguousLoadIdx(linalgOp, op, foundIndexOp, resType);
+    result = result || isContiguousLoadIdx(linalgOp, op, foundIndexOp, resType);
 
   return result;
 }
@@ -1115,7 +1115,7 @@ getTensorExtractMemoryAccessPattern(tensor::ExtractOp extractOp,
     if (inputShape.getShape()[i] == 1)
       continue;
 
-    leadingIdxsLoopInvariant &= isLoopInvariantIdx(linalgOp, indexVal, resType);
+    leadingIdxsLoopInvariant = leadingIdxsLoopInvariant && isLoopInvariantIdx(linalgOp, indexVal, resType);
   }
 
   if (!leadingIdxsLoopInvariant) {
@@ -1808,7 +1808,7 @@ static VectorType getCollapsedVecType(VectorType type,
     bool flag = false;
     for (unsigned d = 0; d < dim; ++d) {
       size *= shape[currentDim + d];
-      flag |= scalableFlags[currentDim + d];
+      flag = flag || scalableFlags[currentDim + d];
     }
     newShape.push_back(size);
     newScalableFlags.push_back(flag);
@@ -2604,7 +2604,7 @@ vectorizeScalableVectorPrecondition(Operation *op,
   int64_t idx = scalableFlags.size() - 1;
   while (!scalableFlags[idx]) {
     bool isNonUnitDim = (inputVectorSizes[idx] != 1);
-    seenNonUnitParallel |=
+    seenNonUnitParallel = seenNonUnitParallel ||
         (iterators[idx] == utils::IteratorType::parallel && isNonUnitDim);
 
     iterators.pop_back();

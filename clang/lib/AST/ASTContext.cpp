@@ -3122,7 +3122,7 @@ static auto getCanonicalTemplateArguments(const ASTContext &C,
                                           ArrayRef<TemplateArgument> Args,
                                           bool &AnyNonCanonArgs) {
   SmallVector<TemplateArgument, 16> CanonArgs(Args);
-  AnyNonCanonArgs |= C.canonicalizeTemplateArguments(CanonArgs);
+  AnyNonCanonArgs = AnyNonCanonArgs || C.canonicalizeTemplateArguments(CanonArgs);
   return CanonArgs;
 }
 
@@ -3132,7 +3132,7 @@ bool ASTContext::canonicalizeTemplateArguments(
   for (auto &Arg : Args) {
     TemplateArgument OrigArg = Arg;
     Arg = getCanonicalTemplateArgument(Arg);
-    AnyNonCanonArgs |= !Arg.structurallyEquals(OrigArg);
+    AnyNonCanonArgs = AnyNonCanonArgs || !Arg.structurallyEquals(OrigArg);
   }
   return AnyNonCanonArgs;
 }
@@ -5968,10 +5968,10 @@ QualType ASTContext::getTemplateSpecializationType(
     SmallVector<TemplateArgument, 4> CanonArgsVec;
     if (CanonicalArgs.empty()) {
       CanonArgsVec = SmallVector<TemplateArgument, 4>(SpecifiedArgs);
-      NonCanonical |= canonicalizeTemplateArguments(CanonArgsVec);
+      NonCanonical = NonCanonical || canonicalizeTemplateArguments(CanonArgsVec);
       CanonicalArgs = CanonArgsVec;
     } else {
-      NonCanonical |= !llvm::equal(
+      NonCanonical = NonCanonical || !llvm::equal(
           SpecifiedArgs, CanonicalArgs,
           [](const TemplateArgument &A, const TemplateArgument &B) {
             return A.structurallyEquals(B);

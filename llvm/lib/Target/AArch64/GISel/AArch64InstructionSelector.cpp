@@ -1267,9 +1267,9 @@ AArch64InstructionSelector::emitSelect(Register Dst, Register True,
     return false;
   };
 
-  Optimized |= TryFoldBinOpIntoSelect(False, True, /*Invert = */ false);
-  Optimized |= TryFoldBinOpIntoSelect(True, False, /*Invert = */ true);
-  Optimized |= TryOptSelectCst();
+  Optimized = Optimized || TryFoldBinOpIntoSelect(False, True, /*Invert = */ false);
+  Optimized = Optimized || TryFoldBinOpIntoSelect(True, False, /*Invert = */ true);
+  Optimized = Optimized || TryOptSelectCst();
   auto SelectInst = MIB.buildInstr(Opc, {Dst}, {True, False}).addImm(CC);
   constrainSelectedInstRegOperands(*SelectInst, TII, TRI, RBI);
   return &*SelectInst;

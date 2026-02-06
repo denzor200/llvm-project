@@ -1561,12 +1561,12 @@ template <class ELFT> void Writer<ELFT>::finalizeAddressDependentContent() {
     if (ctx.arg.fixCortexA53Errata843419) {
       if (changed)
         ctx.script->assignAddresses();
-      changed |= a64p.createFixes();
+      changed = changed || a64p.createFixes();
     }
     if (ctx.arg.fixCortexA8) {
       if (changed)
         ctx.script->assignAddresses();
-      changed |= a32p.createFixes();
+      changed = changed || a32p.createFixes();
     }
 
     finalizeSynthetic(ctx, ctx.in.got.get());
@@ -1596,13 +1596,13 @@ template <class ELFT> void Writer<ELFT>::finalizeAddressDependentContent() {
         part.relrAuthDyn->relocs.erase(it, part.relrAuthDyn->relocs.end());
       }
       if (part.relaDyn)
-        changed |= part.relaDyn->updateAllocSize(ctx);
+        changed = changed || part.relaDyn->updateAllocSize(ctx);
       if (part.relrDyn)
-        changed |= part.relrDyn->updateAllocSize(ctx);
+        changed = changed || part.relrDyn->updateAllocSize(ctx);
       if (part.relrAuthDyn)
-        changed |= part.relrAuthDyn->updateAllocSize(ctx);
+        changed = changed || part.relrAuthDyn->updateAllocSize(ctx);
       if (part.memtagGlobalDescriptors)
-        changed |= part.memtagGlobalDescriptors->updateAllocSize(ctx);
+        changed = changed || part.memtagGlobalDescriptors->updateAllocSize(ctx);
     }
 
     std::pair<const OutputSection *, const Defined *> changes =

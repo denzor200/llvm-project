@@ -662,7 +662,7 @@ void SPIRVModuleAnalysis::processOtherInstrs(const Module &M) {
               NS::DebugTypeBasic, NS::DebugTypePointer};
           bool IsGlobalDI = false;
           for (unsigned Idx = 0; Idx < std::size(GlobalNonSemanticDITy); ++Idx)
-            IsGlobalDI |= Ins.getImm() == GlobalNonSemanticDITy[Idx];
+            IsGlobalDI = IsGlobalDI || (Ins.getImm() == GlobalNonSemanticDITy[Idx]);
           if (IsGlobalDI)
             collectOtherInstr(MI, MAI, SPIRV::MB_NonSemanticGlobalDI, IS);
         } else if (OpCode == SPIRV::OpName || OpCode == SPIRV::OpMemberName) {

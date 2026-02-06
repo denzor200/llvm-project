@@ -131,14 +131,14 @@ RequiresExpr::RequiresExpr(ASTContext &C, SourceLocation RequiresKWLoc,
   bool Dependent = false;
   bool ContainsUnexpandedParameterPack = false;
   for (ParmVarDecl *P : LocalParameters) {
-    Dependent |= P->getType()->isInstantiationDependentType();
-    ContainsUnexpandedParameterPack |=
+    Dependent = Dependent || P->getType()->isInstantiationDependentType();
+    ContainsUnexpandedParameterPack = ContainsUnexpandedParameterPack ||
         P->getType()->containsUnexpandedParameterPack();
   }
   RequiresExprBits.IsSatisfied = true;
   for (concepts::Requirement *R : Requirements) {
-    Dependent |= R->isDependent();
-    ContainsUnexpandedParameterPack |= R->containsUnexpandedParameterPack();
+    Dependent = Dependent || R->isDependent();
+    ContainsUnexpandedParameterPack = ContainsUnexpandedParameterPack || R->containsUnexpandedParameterPack();
     if (!Dependent) {
       RequiresExprBits.IsSatisfied = R->isSatisfied();
       if (!RequiresExprBits.IsSatisfied)

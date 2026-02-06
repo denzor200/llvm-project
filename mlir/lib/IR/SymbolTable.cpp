@@ -359,7 +359,7 @@ void SymbolTable::walkSymbolTables(
   bool isSymbolTable = op->hasTrait<OpTrait::SymbolTable>();
   if (isSymbolTable) {
     SymbolOpInterface symbol = dyn_cast<SymbolOpInterface>(op);
-    allSymUsesVisible |= !symbol || symbol.isPrivate();
+    allSymUsesVisible = allSymUsesVisible || !symbol || symbol.isPrivate();
   } else {
     // Otherwise if 'op' is not a symbol table, any nested symbols are
     // guaranteed to be hidden.

@@ -247,9 +247,9 @@ static AllocTokenOptions resolveOptions(AllocTokenOptions Opts,
   if (auto *Val = IntModuleFlagOrNull("alloc-token-max"))
     Opts.MaxTokens = Val->getZExtValue();
   if (auto *Val = IntModuleFlagOrNull("alloc-token-fast-abi"))
-    Opts.FastABI |= Val->isOne();
+    Opts.FastABI = Opts.FastABI || Val->isOne();
   if (auto *Val = IntModuleFlagOrNull("alloc-token-extended"))
-    Opts.Extended |= Val->isOne();
+    Opts.Extended = Opts.Extended || Val->isOne();
 
   // Allow overriding options from command line options.
   if (ClMaxTokens.getNumOccurrences())
@@ -376,7 +376,7 @@ bool AllocToken::instrumentFunction(Function &F) {
   bool Modified = false;
 
   for (auto &[CB, Func] : AllocCalls)
-    Modified |= replaceAllocationCall(CB, Func, ORE, *TLI);
+    Modified = Modified || replaceAllocationCall(CB, Func, ORE, *TLI);
 
   for (auto *II : IntrinsicInsts) {
     replaceIntrinsicInst(II, ORE);
@@ -572,7 +572,7 @@ PreservedAnalyses AllocTokenPass::run(Module &M, ModuleAnalysisManager &MAM) {
   for (Function &F : M) {
     if (F.empty())
       continue; // declaration
-    Modified |= Pass.instrumentFunction(F);
+    Modified = Modified || Pass.instrumentFunction(F);
   }
 
   return Modified ? PreservedAnalyses::none().preserveSet<CFGAnalyses>()

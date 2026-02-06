@@ -2819,7 +2819,7 @@ bool SILoadStoreOptimizer::run(MachineFunction &MF) {
 
       do {
         OptimizeAgain = false;
-        Modified |= optimizeBlock(MergeableInsts);
+        Modified = Modified || optimizeBlock(MergeableInsts);
       } while (OptimizeAgain);
     }
 

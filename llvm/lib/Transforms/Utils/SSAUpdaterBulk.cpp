@@ -278,7 +278,7 @@ bool EliminateNewDuplicatePHINodes(BasicBlock *BB,
   bool Changed = false;
   for (auto I = BB->phis().begin(); I != FirstExistingPN; ++I) {
     for (auto J = std::next(I); J != FirstExistingPN;) {
-      Changed |= replaceIfIdentical(*J++, *I);
+      Changed = Changed || replaceIfIdentical(*J++, *I);
     }
   }
 
@@ -287,7 +287,7 @@ bool EliminateNewDuplicatePHINodes(BasicBlock *BB,
     auto I = BB->phis().begin();
     assert(I != FirstExistingPN); // Should be at least one new PHI.
     do {
-      Changed |= replaceIfIdentical(*I++, ExistingPHI);
+      Changed = Changed || replaceIfIdentical(*I++, ExistingPHI);
     } while (I != FirstExistingPN);
     if (BB->phis().begin() == FirstExistingPN)
       return Changed;

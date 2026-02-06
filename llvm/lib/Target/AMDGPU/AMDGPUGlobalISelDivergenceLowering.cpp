@@ -321,13 +321,13 @@ bool AMDGPUGlobalISelDivergenceLowering::runOnMachineFunction(
   // lowering and replaces them with new instructions.
 
   // Non-i1 temporal divergence lowering.
-  Changed |= Helper.lowerTemporalDivergence();
+  Changed = Changed || Helper.lowerTemporalDivergence();
   // This covers both uniform and divergent i1s. Lane masks are in sgpr and need
   // to be updated in each iteration.
-  Changed |= Helper.lowerTemporalDivergenceI1();
+  Changed = Changed || Helper.lowerTemporalDivergenceI1();
   // Temporal divergence lowering of divergent i1 phi used outside of the cycle
   // could also be handled by lowerPhis but we do it in lowerTempDivergenceI1
   // since in some case lowerPhis does unnecessary lane mask merging.
-  Changed |= Helper.lowerPhis();
+  Changed = Changed || Helper.lowerPhis();
   return Changed;
 }

@@ -2740,7 +2740,7 @@ void InstrRefBasedLDV::buildMLocValueMap(
       // Join the values in all predecessor blocks.
       bool InLocsChanged;
       InLocsChanged = mlocJoin(*MBB, Visited, MOutLocs, MInLocs[*MBB]);
-      InLocsChanged |= Visited.insert(MBB).second;
+      InLocsChanged = InLocsChanged || Visited.insert(MBB).second;
 
       // Don't examine transfer function if we've visited this loc at least
       // once, and inlocs haven't changed.
@@ -2775,7 +2775,7 @@ void InstrRefBasedLDV::buildMLocValueMap(
       // the transfer function, and mlocJoin.
       bool OLChanged = false;
       for (auto Location : MTracker->locations()) {
-        OLChanged |= MOutLocs[*MBB][Location.Idx.asU64()] != Location.Value;
+        OLChanged = OLChanged || MOutLocs[*MBB][Location.Idx.asU64()] != Location.Value;
         MOutLocs[*MBB][Location.Idx.asU64()] = Location.Value;
       }
 

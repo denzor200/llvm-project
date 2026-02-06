@@ -227,7 +227,7 @@ void CodeMetrics::analyzeBasicBlock(
   // if someone is using a blockaddress without an indirectbr, and that
   // reference somehow ends up in another function or global, we probably
   // don't want to inline this function.
-  notDuplicatable |= isa<IndirectBrInst>(BB->getTerminator());
+  notDuplicatable = notDuplicatable || isa<IndirectBrInst>(BB->getTerminator());
 
   // Remember NumInsts for this BB.
   InstructionCost NumInstsThisBB = NumInsts - NumInstsBeforeThisBB;

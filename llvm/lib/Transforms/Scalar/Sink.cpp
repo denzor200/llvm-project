@@ -216,7 +216,7 @@ static bool iterativelySinkInstructions(Function &F, DominatorTree &DT,
     LLVM_DEBUG(dbgs() << "Sinking iteration " << NumSinkIter << "\n");
     // Process all basic blocks.
     for (BasicBlock &I : F)
-      MadeChange |= ProcessBlock(I, DT, LI, AA);
+      MadeChange = MadeChange || ProcessBlock(I, DT, LI, AA);
     EverMadeChange = EverMadeChange || MadeChange;
     NumSinkIter++;
   } while (MadeChange);

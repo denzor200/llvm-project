@@ -2093,7 +2093,7 @@ static Value *evaluateInDifferentElementOrder(Value *V, ArrayRef<int> Mask,
         else
           V = I->getOperand(i);
         NewOps.push_back(V);
-        NeedsRebuild |= (V != I->getOperand(i));
+        NeedsRebuild = NeedsRebuild || (V != I->getOperand(i));
       }
       if (NeedsRebuild)
         return buildNew(I, NewOps, Builder);

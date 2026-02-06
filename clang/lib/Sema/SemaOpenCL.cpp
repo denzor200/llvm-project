@@ -207,7 +207,7 @@ static bool checkOpenCLEnqueueLocalSizeArgs(Sema &S, CallExpr *TheCall,
                                             unsigned Start, unsigned End) {
   bool IllegalParams = false;
   for (unsigned I = Start; I <= End; ++I)
-    IllegalParams |= checkOpenCLEnqueueIntType(S, TheCall->getArg(I),
+    IllegalParams = IllegalParams || checkOpenCLEnqueueIntType(S, TheCall->getArg(I),
                                                S.Context.getSizeType());
   return IllegalParams;
 }

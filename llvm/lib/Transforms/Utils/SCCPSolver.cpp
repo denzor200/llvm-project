@@ -1004,7 +1004,7 @@ public:
       solve();
       ResolvedUndefs = false;
       for (Function &F : M)
-        ResolvedUndefs |= resolvedUndefsIn(F);
+        ResolvedUndefs = ResolvedUndefs || resolvedUndefsIn(F);
     }
   }
 
@@ -1014,7 +1014,7 @@ public:
       solve();
       ResolvedUndefs = false;
       for (Function *F : WorkList)
-        ResolvedUndefs |= resolvedUndefsIn(*F);
+        ResolvedUndefs = ResolvedUndefs || resolvedUndefsIn(*F);
     }
   }
 
@@ -1025,7 +1025,7 @@ public:
       ResolvedUndefs = false;
       for (Value *V : Invalidated)
         if (auto *I = dyn_cast<Instruction>(V))
-          ResolvedUndefs |= resolvedUndef(*I);
+          ResolvedUndefs = ResolvedUndefs || resolvedUndef(*I);
     }
     Invalidated.clear();
   }
@@ -1657,7 +1657,7 @@ void SCCPInstVisitor::visitSelectInst(SelectInst &I) {
 
   ValueLatticeElement &State = ValueState[&I];
   bool Changed = State.mergeIn(TVal);
-  Changed |= State.mergeIn(FVal);
+  Changed = Changed || State.mergeIn(FVal);
   if (Changed)
     pushUsersToWorkListMsg(State, &I);
 }
@@ -2300,7 +2300,7 @@ bool SCCPInstVisitor::resolvedUndefsIn(Function &F) {
       continue;
 
     for (Instruction &I : BB)
-      MadeChange |= resolvedUndef(I);
+      MadeChange = MadeChange || resolvedUndef(I);
   }
 
   LLVM_DEBUG(if (MadeChange) dbgs()

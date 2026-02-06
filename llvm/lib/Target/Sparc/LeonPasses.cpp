@@ -304,20 +304,20 @@ bool ErrataWorkaround::runOnMachineFunction(MachineFunction &MF) {
   TRI = ST->getRegisterInfo();
 
   if (ST->fixTN0010())
-    Changed |= checkSeqTN0010First(MF.front());
+    Changed = Changed || checkSeqTN0010First(MF.front());
 
   for (auto &MBB : MF) {
     for (auto &I : MBB) {
       if (ST->fixTN0009()) {
-        Changed |= checkSeqTN0009A(I);
-        Changed |= checkSeqTN0009B(I);
+        Changed = Changed || checkSeqTN0009A(I);
+        Changed = Changed || checkSeqTN0009B(I);
       }
       if (ST->fixTN0010())
-        Changed |= checkSeqTN0010(I);
+        Changed = Changed || checkSeqTN0010(I);
       if (ST->fixTN0012())
-        Changed |= checkSeqTN0012(I);
+        Changed = Changed || checkSeqTN0012(I);
       if (ST->fixTN0013())
-        Changed |= checkSeqTN0013(I);
+        Changed = Changed || checkSeqTN0013(I);
     }
   }
   return Changed;

@@ -380,7 +380,7 @@ bool MLxExpansion::runOnMachineFunction(MachineFunction &Fn) {
 
   bool Modified = false;
   for (MachineBasicBlock &MBB : Fn)
-    Modified |= ExpandFPMLxInstructions(MBB);
+    Modified = Modified || ExpandFPMLxInstructions(MBB);
 
   return Modified;
 }

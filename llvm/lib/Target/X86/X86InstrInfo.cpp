@@ -10563,7 +10563,7 @@ struct LDTLSCleanup : public MachineFunctionPass {
 
     // Visit the children of this block in the dominator tree.
     for (MachineDomTreeNode *I : Node->children())
-      Changed |= VisitNode(I, TLSBaseAddrReg);
+      Changed = Changed || VisitNode(I, TLSBaseAddrReg);
 
     return Changed;
   }

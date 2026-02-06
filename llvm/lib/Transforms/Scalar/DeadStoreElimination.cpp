@@ -2279,10 +2279,10 @@ struct DSEState {
       uint64_t DeadSize = Loc.Size.getValue();
       GetPointerBaseWithConstantOffset(Ptr, DeadStart, DL);
       OverlapIntervalsTy &IntervalMap = OI.second;
-      Changed |= tryToShortenEnd(DeadI, IntervalMap, DeadStart, DeadSize);
+      Changed = Changed || tryToShortenEnd(DeadI, IntervalMap, DeadStart, DeadSize);
       if (IntervalMap.empty())
         continue;
-      Changed |= tryToShortenBegin(DeadI, IntervalMap, DeadStart, DeadSize);
+      Changed = Changed || tryToShortenBegin(DeadI, IntervalMap, DeadStart, DeadSize);
     }
     return Changed;
   }
@@ -2651,15 +2651,15 @@ static bool eliminateDeadStores(Function &F, AliasAnalysis &AA, MemorySSA &MSSA,
     MemoryDefWrapper KillingDefWrapper(
         KillingDef, State.getLocForInst(KillingDef->getMemoryInst(),
                                         EnableInitializesImprovement));
-    MadeChange |= State.eliminateDeadDefs(KillingDefWrapper);
+    MadeChange = MadeChange || State.eliminateDeadDefs(KillingDefWrapper);
   }
 
   if (EnablePartialOverwriteTracking)
     for (auto &KV : State.IOLs)
-      MadeChange |= State.removePartiallyOverlappedStores(KV.second);
+      MadeChange = MadeChange || State.removePartiallyOverlappedStores(KV.second);
 
-  MadeChange |= State.eliminateRedundantStoresOfExistingValues();
-  MadeChange |= State.eliminateDeadWritesAtEndOfFunction();
+  MadeChange = MadeChange || State.eliminateRedundantStoresOfExistingValues();
+  MadeChange = MadeChange || State.eliminateDeadWritesAtEndOfFunction();
 
   while (!State.ToRemove.empty()) {
     Instruction *DeadInst = State.ToRemove.pop_back_val();

@@ -4519,7 +4519,7 @@ private:
           Last->addCopyableElement(V);
         if (!isConstant(V)) {
           auto *I = dyn_cast<CastInst>(V);
-          AllConstsOrCasts &= I && I->getType()->isIntegerTy();
+          AllConstsOrCasts = AllConstsOrCasts && I && I->getType()->isIntegerTy();
           if (UserTreeIdx.EdgeIdx != UINT_MAX || !UserTreeIdx.UserTE ||
               !UserTreeIdx.UserTE->isGather())
             ValueToGatherNodes.try_emplace(V).first->getSecond().insert(Last);
@@ -7892,7 +7892,7 @@ static bool areTwoInsertFromSameBuildVector(
       return V->hasOneUse();
     if (IE1 && IE1 != V) {
       unsigned Idx1 = getElementIndex(IE1).value_or(*Idx2);
-      IsReusedIdx |= ReusedIdx.test(Idx1);
+      IsReusedIdx = IsReusedIdx || ReusedIdx.test(Idx1);
       ReusedIdx.set(Idx1);
       if ((IE1 != VU && !IE1->hasOneUse()) || IsReusedIdx)
         IE1 = nullptr;
@@ -7901,7 +7901,7 @@ static bool areTwoInsertFromSameBuildVector(
     }
     if (IE2 && IE2 != VU) {
       unsigned Idx2 = getElementIndex(IE2).value_or(*Idx1);
-      IsReusedIdx |= ReusedIdx.test(Idx2);
+      IsReusedIdx = IsReusedIdx || ReusedIdx.test(Idx2);
       ReusedIdx.set(Idx2);
       if ((IE2 != V && !IE2->hasOneUse()) || IsReusedIdx)
         IE2 = nullptr;
@@ -11202,7 +11202,7 @@ class InstructionsCompatibilityAnalysis {
     for (Value *V : VL) {
       auto *I = dyn_cast<Instruction>(V);
       if (!I) {
-        AnyUndef |= isa<UndefValue>(V);
+        AnyUndef = AnyUndef || isa<UndefValue>(V);
         continue;
       }
       if (!DT.isReachableFromEntry(I->getParent()))
@@ -12104,7 +12104,7 @@ void BoUpSLP::buildTreeRec(ArrayRef<Value *> VLRef, unsigned Depth,
       bool IsIdentity = true;
       for (int I = 0, E = VL.size(); I < E; ++I) {
         CurrentOrder[Indices.top().second] = I;
-        IsIdentity &= Indices.top().second == I;
+        IsIdentity = IsIdentity && (Indices.top().second == I);
         Indices.pop();
       }
       if (IsIdentity)
@@ -18263,7 +18263,7 @@ BoUpSLP::isGatherShuffledSingleRegisterEntry(
                         Entries[Pair.first]->Scalars.begin(),
                         find(Entries[Pair.first]->Scalars, VL[Pair.second]))
                   : Entries[Pair.first]->findLaneForValue(VL[Pair.second]));
-    IsIdentity &= Mask[Idx] == Pair.second;
+    IsIdentity = IsIdentity && (Mask[Idx] == Pair.second);
   }
   if (ForOrder || IsIdentity || Entries.empty()) {
     switch (Entries.size()) {
@@ -19887,7 +19887,7 @@ ResTy BoUpSLP::processBuildVector(const TreeEntry *E, Type *ScalarTy,
       }
       if (Vec2) {
         IsUsedInExpr = false;
-        IsNonPoisoned &= isGuaranteedNotToBePoison(Vec1, AC) &&
+        IsNonPoisoned = IsNonPoisoned && isGuaranteedNotToBePoison(Vec1, AC) &&
                          isGuaranteedNotToBePoison(Vec2, AC);
         ShuffleBuilder.add(Vec1, Vec2, ExtractMask);
       } else if (Vec1) {
@@ -19935,7 +19935,7 @@ ResTy BoUpSLP::processBuildVector(const TreeEntry *E, Type *ScalarTy,
           IsUsedInExpr = false;
           ShuffleBuilder.add(*TEs.front(), *TEs.back(), VecMask);
           if (TEs.front()->VectorizedValue && TEs.back()->VectorizedValue)
-            IsNonPoisoned &=
+            IsNonPoisoned = IsNonPoisoned &&
                 isGuaranteedNotToBePoison(TEs.front()->VectorizedValue, AC) &&
                 isGuaranteedNotToBePoison(TEs.back()->VectorizedValue, AC);
         }
@@ -24062,11 +24062,11 @@ bool SLPVectorizerPass::runImpl(Function &F, ScalarEvolution *SE_,
     if (!Stores.empty()) {
       LLVM_DEBUG(dbgs() << "SLP: Found stores for " << Stores.size()
                         << " underlying objects.\n");
-      Changed |= vectorizeStoreChains(R);
+      Changed = Changed || vectorizeStoreChains(R);
     }
 
     // Vectorize trees that end at reductions.
-    Changed |= vectorizeChainsInBlock(BB, R);
+    Changed = Changed || vectorizeChainsInBlock(BB, R);
 
     // Vectorize the index computations of getelementptr instructions. This
     // is primarily intended to catch gather-like idioms ending at
@@ -24074,7 +24074,7 @@ bool SLPVectorizerPass::runImpl(Function &F, ScalarEvolution *SE_,
     if (!GEPs.empty()) {
       LLVM_DEBUG(dbgs() << "SLP: Found GEPs for " << GEPs.size()
                         << " underlying objects.\n");
-      Changed |= vectorizeGEPIndices(BB, R);
+      Changed = Changed || vectorizeGEPIndices(BB, R);
     }
   }
 
@@ -27131,7 +27131,7 @@ bool SLPVectorizerPass::vectorizeRootInstruction(PHINode *P, Instruction *Root,
                                                  BasicBlock *BB, BoUpSLP &R) {
   SmallVector<WeakTrackingVH> PostponedInsts;
   bool Res = vectorizeHorReduction(P, Root, BB, R, PostponedInsts);
-  Res |= tryToVectorize(PostponedInsts, R);
+  Res = Res || tryToVectorize(PostponedInsts, R);
   return Res;
 }
 
@@ -27140,7 +27140,7 @@ bool SLPVectorizerPass::tryToVectorize(ArrayRef<WeakTrackingVH> Insts,
   bool Res = false;
   for (Value *V : Insts)
     if (auto *Inst = dyn_cast<Instruction>(V); Inst && !R.isDeleted(Inst))
-      Res |= tryToVectorize(Inst, R);
+      Res = Res || tryToVectorize(Inst, R);
   return Res;
 }
 
@@ -27395,7 +27395,7 @@ bool SLPVectorizerPass::vectorizeCmpInsts(iterator_range<ItT> CmpInsts,
       continue;
     for (Value *Op : I->operands())
       if (auto *RootOp = dyn_cast<Instruction>(Op)) {
-        Changed |= vectorizeRootInstruction(nullptr, RootOp, BB, R);
+        Changed = Changed || vectorizeRootInstruction(nullptr, RootOp, BB, R);
         if (R.isDeleted(I))
           break;
       }
@@ -27404,7 +27404,7 @@ bool SLPVectorizerPass::vectorizeCmpInsts(iterator_range<ItT> CmpInsts,
   for (CmpInst *I : CmpInsts) {
     if (R.isDeleted(I))
       continue;
-    Changed |= tryToVectorize(I, R);
+    Changed = Changed || tryToVectorize(I, R);
   }
   // Try to vectorize list of compares.
   // Sort by type, compare predicate, etc.
@@ -27456,29 +27456,29 @@ bool SLPVectorizerPass::vectorizeInserts(InstSetVector &Instructions,
     if (R.isDeleted(I) || isa<CmpInst>(I))
       continue;
     if (auto *LastInsertValue = dyn_cast<InsertValueInst>(I)) {
-      OpsChanged |=
+      OpsChanged = OpsChanged ||
           vectorizeInsertValueInst(LastInsertValue, BB, R, /*MaxVFOnly=*/true);
     } else if (auto *LastInsertElem = dyn_cast<InsertElementInst>(I)) {
-      OpsChanged |=
+      OpsChanged = OpsChanged ||
           vectorizeInsertElementInst(LastInsertElem, BB, R, /*MaxVFOnly=*/true);
     }
     // pass2 - try to vectorize reductions only
     if (R.isDeleted(I))
       continue;
-    OpsChanged |= vectorizeHorReduction(nullptr, I, BB, R, PostponedInsts);
+    OpsChanged = OpsChanged || vectorizeHorReduction(nullptr, I, BB, R, PostponedInsts);
     if (R.isDeleted(I) || isa<CmpInst>(I))
       continue;
     // pass3 - try to match and vectorize a buildvector sequence.
     if (auto *LastInsertValue = dyn_cast<InsertValueInst>(I)) {
-      OpsChanged |=
+      OpsChanged = OpsChanged ||
           vectorizeInsertValueInst(LastInsertValue, BB, R, /*MaxVFOnly=*/false);
     } else if (auto *LastInsertElem = dyn_cast<InsertElementInst>(I)) {
-      OpsChanged |= vectorizeInsertElementInst(LastInsertElem, BB, R,
+      OpsChanged = OpsChanged || vectorizeInsertElementInst(LastInsertElem, BB, R,
                                                /*MaxVFOnly=*/false);
     }
   }
   // Now try to vectorize postponed instructions.
-  OpsChanged |= tryToVectorize(PostponedInsts, R);
+  OpsChanged = OpsChanged || tryToVectorize(PostponedInsts, R);
 
   Instructions.clear();
   return OpsChanged;
@@ -27722,7 +27722,7 @@ bool SLPVectorizerPass::vectorizeChainsInBlock(BasicBlock *BB, BoUpSLP &R) {
   auto VectorizeInsertsAndCmps = [&](bool VectorizeCmps) {
     bool Changed = vectorizeInserts(PostProcessInserts, BB, R);
     if (VectorizeCmps) {
-      Changed |= vectorizeCmpInsts(reverse(PostProcessCmps), BB, R);
+      Changed = Changed || vectorizeCmpInsts(reverse(PostProcessCmps), BB, R);
       PostProcessCmps.clear();
     }
     PostProcessInserts.clear();
@@ -27817,8 +27817,8 @@ bool SLPVectorizerPass::vectorizeChainsInBlock(BasicBlock *BB, BoUpSLP &R) {
         // to investigate if we can safely turn on slp-vectorize-hor-store
         // instead to allow lookup for reduction chains in all non-vectorized
         // stores (need to check side effects and compile time).
-        TryToVectorizeRoot |= (I == Stores.end() || I->second.size() == 1) &&
-                              SI->getValueOperand()->hasOneUse();
+        TryToVectorizeRoot = TryToVectorizeRoot || ((I == Stores.end() || I->second.size() == 1) &&
+                              SI->getValueOperand()->hasOneUse());
       }
       if (TryToVectorizeRoot) {
         for (auto *V : It->operand_values()) {
@@ -27827,13 +27827,13 @@ bool SLPVectorizerPass::vectorizeChainsInBlock(BasicBlock *BB, BoUpSLP &R) {
           if (auto *VI = dyn_cast<Instruction>(V);
               VI && !IsInPostProcessInstrs(VI))
             // Try to match and vectorize a horizontal reduction.
-            OpsChanged |= vectorizeRootInstruction(nullptr, VI, BB, R);
+            OpsChanged = OpsChanged || vectorizeRootInstruction(nullptr, VI, BB, R);
         }
       }
       // Start vectorization of post-process list of instructions from the
       // top-tree instructions to try to vectorize as many instructions as
       // possible.
-      OpsChanged |=
+      OpsChanged = OpsChanged ||
           VectorizeInsertsAndCmps(/*VectorizeCmps=*/It->isTerminator());
       if (OpsChanged) {
         // We would like to start over since some instructions are deleted
@@ -27948,7 +27948,7 @@ bool SLPVectorizerPass::vectorizeGEPIndices(BasicBlock *BB, BoUpSLP &R) {
       // performed in parallel. It's likely that detecting this pattern in a
       // bottom-up phase will be simpler and less costly than building a
       // full-blown top-down phase beginning at the consecutive loads.
-      Changed |= tryToVectorizeList(Bundle, R);
+      Changed = Changed || tryToVectorizeList(Bundle, R);
     }
   }
   return Changed;
@@ -28032,7 +28032,7 @@ bool SLPVectorizerPass::vectorizeStoreChains(BoUpSLP &R) {
       // if the copyables are first in the list.
       if (I1 && !I2)
         return false;
-      SameParent &= I1 && I2 && I1->getParent() == I2->getParent();
+      SameParent = SameParent && I1 && I2 && I1->getParent() == I2->getParent();
       SmallVector<Value *> NewVL(VL.size() + 1);
       for (auto [SI, V] : zip(VL, NewVL))
         V = SI->getValueOperand();
@@ -28067,7 +28067,7 @@ bool SLPVectorizerPass::vectorizeStoreChains(BoUpSLP &R) {
     // to follow the stores order (reversed to meet the memory dependecies).
     SmallVector<StoreInst *> ReversedStores(Pair.second.rbegin(),
                                             Pair.second.rend());
-    Changed |= tryToVectorizeSequence<StoreInst>(
+    Changed = Changed || tryToVectorizeSequence<StoreInst>(
         ReversedStores, StoreSorter, AreCompatibleStores,
         [&](ArrayRef<StoreInst *> Candidates, bool) {
           return vectorizeStores(Candidates, R, Attempted);

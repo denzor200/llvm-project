@@ -1911,7 +1911,7 @@ public:
             std::max(NumNegativeBits, InitVal.getSignificantBits());
       }
 
-      MembersRepresentableByInt &= isRepresentableIntegerValue(InitVal, IntTy);
+      MembersRepresentableByInt = MembersRepresentableByInt = MembersRepresentableByInt && isRepresentableIntegerValue(InitVal, IntTy);
     }
 
     // If we have an empty set of enumerators we still need one bit.

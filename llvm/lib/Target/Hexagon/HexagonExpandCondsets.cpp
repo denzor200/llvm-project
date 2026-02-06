@@ -1279,7 +1279,7 @@ bool HexagonExpandCondsets::runOnMachineFunction(MachineFunction &MF) {
 
   // Try to coalesce the target of a mux with one of its sources.
   // This could eliminate a register copy in some circumstances.
-  Changed |= coalesceSegments(Condsets, CoalUpd);
+  Changed = Changed || coalesceSegments(Condsets, CoalUpd);
 
   // Update kill flags on all source operands. This is done here because
   // at this moment (when expand-condsets runs), there are no kill flags
@@ -1303,7 +1303,7 @@ bool HexagonExpandCondsets::runOnMachineFunction(MachineFunction &MF) {
   // goal is to update the kill flags, since predication will rely on
   // them.
   for (MachineInstr *MI : Condsets)
-    Changed |= split(*MI, PredUpd);
+    Changed = Changed || split(*MI, PredUpd);
   Condsets.clear(); // The contents of Condsets are invalid here anyway.
 
   // Do not update live ranges after splitting. Recalculation of live
@@ -1319,7 +1319,7 @@ bool HexagonExpandCondsets::runOnMachineFunction(MachineFunction &MF) {
   // Walk over all the instructions again, so we may catch pre-existing
   // cases that were not created in the previous step.
   for (auto &B : MF)
-    Changed |= predicateInBlock(B, PredUpd);
+    Changed = Changed || predicateInBlock(B, PredUpd);
   LLVM_DEBUG(LIS->print(dbgs() << "After predicating\n"));
 
   PredUpd.insert(CoalUpd.begin(), CoalUpd.end());

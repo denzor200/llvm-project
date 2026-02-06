@@ -778,7 +778,7 @@ PreservedAnalyses MemorySanitizerPass::run(Module &M,
     if (F.empty())
       continue;
     MemorySanitizer Msan(*F.getParent(), Options);
-    Modified |=
+    Modified = Modified ||
         Msan.sanitizeFunction(F, FAM.getResult<TargetLibraryAnalysis>(F));
   }
 
@@ -7114,7 +7114,7 @@ struct MemorySanitizerVisitor : public InstVisitor<MemorySanitizerVisitor> {
     if (Function *Func = CB.getCalledFunction()) {
       // __sanitizer_unaligned_{load,store} functions may be called by users
       // and always expects shadows in the TLS. So don't check them.
-      MayCheckCall &= !Func->getName().starts_with("__sanitizer_unaligned_");
+      MayCheckCall = MayCheckCall && !Func->getName().starts_with("__sanitizer_unaligned_");
     }
 
     unsigned ArgOffset = 0;

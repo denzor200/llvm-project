@@ -13,7 +13,7 @@ namespace llvm::sandboxir {
 bool FunctionPassManager::runOnFunction(Function &F, const Analyses &A) {
   bool Change = false;
   for (auto &Pass : Passes) {
-    Change |= Pass->runOnFunction(F, A);
+    Change = Change || Pass->runOnFunction(F, A);
     // TODO: run the verifier.
   }
   // TODO: Check ChangeAll against hashes before/after.
@@ -23,7 +23,7 @@ bool FunctionPassManager::runOnFunction(Function &F, const Analyses &A) {
 bool RegionPassManager::runOnRegion(Region &R, const Analyses &A) {
   bool Change = false;
   for (auto &Pass : Passes) {
-    Change |= Pass->runOnRegion(R, A);
+    Change = Change || Pass->runOnRegion(R, A);
     // TODO: run the verifier.
   }
   // TODO: Check ChangeAll against hashes before/after.

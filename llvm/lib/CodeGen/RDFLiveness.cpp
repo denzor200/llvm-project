@@ -708,7 +708,7 @@ void Liveness::computePhiInfo() {
               continue;
             if (RegisterRef SS = ClearIn(RegisterRef(R.Id, M), MidDefs, SM)) {
               NodeRefSet &RS = RealUseMap[P.first][SS.Id];
-              Changed |= RS.insert({V.first, SS.Mask}).second;
+              Changed = Changed || RS.insert({V.first, SS.Mask}).second;
             }
           }
         }

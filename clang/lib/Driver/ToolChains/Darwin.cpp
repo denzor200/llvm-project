@@ -2896,7 +2896,7 @@ void DarwinClang::AddGnuCPlusPlusIncludePaths(
     IsBaseFound = AddGnuCPlusPlusIncludePaths(
         DriverArgs, CC1Args, UsrIncludeCxx, "4.2.1", "i686-apple-darwin10",
         arch == llvm::Triple::x86_64 ? "x86_64" : "");
-    IsBaseFound |= AddGnuCPlusPlusIncludePaths(
+    IsBaseFound = IsBaseFound || AddGnuCPlusPlusIncludePaths(
         DriverArgs, CC1Args, UsrIncludeCxx, "4.0.0", "i686-apple-darwin8", "");
     break;
 
@@ -2905,7 +2905,7 @@ void DarwinClang::AddGnuCPlusPlusIncludePaths(
     IsBaseFound =
         AddGnuCPlusPlusIncludePaths(DriverArgs, CC1Args, UsrIncludeCxx, "4.2.1",
                                     "arm-apple-darwin10", "v7");
-    IsBaseFound |=
+    IsBaseFound = IsBaseFound ||
         AddGnuCPlusPlusIncludePaths(DriverArgs, CC1Args, UsrIncludeCxx, "4.2.1",
                                     "arm-apple-darwin10", "v6");
     break;

@@ -966,7 +966,7 @@ void X86_32ABIInfo::computeInfo(CGFunctionInfo &FI) const {
 
     Args[I].info =
         classifyArgumentType(Args[I].type, State, I);
-    UsedInAlloca |= (Args[I].info.getKind() == ABIArgInfo::InAlloca);
+    UsedInAlloca = UsedInAlloca || (Args[I].info.getKind() == ABIArgInfo::InAlloca);
   }
 
   // If we needed to use inalloca for any argument, do a second pass and rewrite

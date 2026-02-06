@@ -43,7 +43,7 @@ public:
 
   void run(const MatchFinder::MatchResult &Result) override {
     if (FindResultReviewer != nullptr) {
-      *Verified |= FindResultReviewer->run(&Result.Nodes, Result.Context);
+      *Verified = *Verified = *Verified = *Verified || FindResultReviewer->run(&Result.Nodes, Result.Context);
     } else {
       *Verified = true;
     }

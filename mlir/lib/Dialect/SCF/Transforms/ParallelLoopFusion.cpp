@@ -256,7 +256,7 @@ void mlir::scf::naivelyFuseParallelOps(
         continue;
       }
       // TODO: Handle region side effects properly.
-      noSideEffects &= isMemoryEffectFree(&op) && op.getNumRegions() == 0;
+      noSideEffects = noSideEffects && isMemoryEffectFree(&op) && op.getNumRegions() == 0;
     }
     for (MutableArrayRef<ParallelOp> ploops : ploopChains) {
       for (int i = 0, e = ploops.size(); i + 1 < e; ++i)

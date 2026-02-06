@@ -355,7 +355,7 @@ bool BPFCheckAndAdjustIR::sinkMinMax(Module &M) {
         auto OtherLoopFilter = [&](Instruction *I) {
           return LI.getLoopFor(I->getParent()) != BBLoop;
         };
-        Changed |= sinkMinMaxInBB(*BB, OtherLoopFilter);
+        Changed = Changed || sinkMinMaxInBB(*BB, OtherLoopFilter);
       }
   }
 
@@ -636,7 +636,7 @@ bool BPFCheckAndAdjustIR::insertASpaceCasts(Module &M) {
         I.eraseFromParent();
       }
     }
-    Changed |= !CastsCache.empty();
+    Changed = Changed || !CastsCache.empty();
   }
   // Merge all globals within same address space into single
   // .addr_space.<addr space no> section

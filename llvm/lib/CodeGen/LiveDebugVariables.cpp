@@ -1128,7 +1128,7 @@ void UserValue::computeIntervals(MachineRegisterInfo &MRI,
     for (unsigned LocNo : DbgValue.loc_nos()) {
       const MachineOperand &LocMO = locations[LocNo];
       if (!LocMO.isReg() || !LocMO.getReg().isVirtual()) {
-        ShouldExtendDef |= !LocMO.isReg();
+        ShouldExtendDef = ShouldExtendDef || !LocMO.isReg();
         continue;
       }
       ShouldExtendDef = true;
@@ -1482,7 +1482,7 @@ UserValue::splitRegister(Register OldReg, ArrayRef<Register> NewRegs,
     const MachineOperand *Loc = &locations[LocNo];
     if (!Loc->isReg() || Loc->getReg() != OldReg)
       continue;
-    DidChange |= splitLocation(LocNo, NewRegs, LIS);
+    DidChange = DidChange || splitLocation(LocNo, NewRegs, LIS);
   }
   return DidChange;
 }
@@ -1535,7 +1535,7 @@ void LiveDebugVariables::LDVImpl::splitRegister(Register OldReg,
   // updating.
   bool DidChange = false;
   for (UserValue *UV = lookupVirtReg(OldReg); UV; UV = UV->getNext())
-    DidChange |= UV->splitRegister(OldReg, NewRegs, *LIS);
+    DidChange = DidChange || UV->splitRegister(OldReg, NewRegs, *LIS);
 
   if (!DidChange)
     return;

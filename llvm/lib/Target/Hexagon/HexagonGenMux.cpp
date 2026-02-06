@@ -365,7 +365,7 @@ bool HexagonGenMux::runOnMachineFunction(MachineFunction &MF) {
   HRI = MF.getSubtarget<HexagonSubtarget>().getRegisterInfo();
   bool Changed = false;
   for (auto &I : MF)
-    Changed |= genMuxInBlock(I);
+    Changed = Changed || genMuxInBlock(I);
   return Changed;
 }
 

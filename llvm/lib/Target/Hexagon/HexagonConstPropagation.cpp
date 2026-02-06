@@ -515,7 +515,7 @@ bool LatticeCell::meet(const LatticeCell &L) {
     return add(L.properties());
   for (unsigned i = 0; i < L.size(); ++i) {
     const Constant *LC = L.Values[i];
-    Changed |= add(LC);
+    Changed = Changed || add(LC);
   }
   return Changed;
 }
@@ -652,7 +652,7 @@ Bottomize:
     LLVM_DEBUG(dbgs() << "  edge from " << printMBBReference(*PB) << ": "
                       << printReg(UseR.Reg, &MCE.TRI, UseR.SubReg) << SrcC
                       << '\n');
-    Changed |= Eval ? DefC.meet(SrcC)
+    Changed = Changed || Eval ? DefC.meet(SrcC)
                     : DefC.setBottom();
     Cells.update(DefR.Reg, DefC);
     if (DefC.isBottom())
@@ -978,7 +978,7 @@ bool MachineConstPropagator::rewrite(MachineFunction &MF) {
       if (InstrExec.count(&MI)) {
         if (MI.isBranch() && !HaveTargets)
           continue;
-        Changed |= MCE.rewrite(MI, Cells);
+        Changed = Changed || MCE.rewrite(MI, Cells);
       }
     }
     // The rewriting could rewrite PHI nodes to non-PHI nodes, causing
@@ -2350,7 +2350,7 @@ bool HexagonConstEvaluator::rewrite(MachineInstr &MI, const CellMap &Inputs) {
   // a register that is not compile-time constant), then try to rewrite
   // register operands that are known to be constant with immediates.
   if (!AllDefs)
-    Changed |= rewriteHexConstUses(MI, Inputs);
+    Changed = Changed || rewriteHexConstUses(MI, Inputs);
 
   return Changed;
 }
@@ -2816,7 +2816,7 @@ bool HexagonConstEvaluator::rewriteHexConstDefs(MachineInstr &MI,
         continue;
       }
       const LatticeCell &L = Inputs.get(R.Reg);
-      Const &= L.isSingle();
+      Const = Const && L.isSingle();
       if (!Const)
         break;
     }

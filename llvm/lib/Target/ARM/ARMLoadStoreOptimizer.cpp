@@ -2110,11 +2110,11 @@ bool ARMLoadStoreOpt::runOnMachineFunction(MachineFunction &Fn) {
 
   bool Modified = false, ModifiedLDMReturn = false;
   for (MachineBasicBlock &MBB : Fn) {
-    Modified |= LoadStoreMultipleOpti(MBB);
+    Modified = Modified || LoadStoreMultipleOpti(MBB);
     if (STI->hasV5TOps() && !AFI->shouldSignReturnAddress())
-      ModifiedLDMReturn |= MergeReturnIntoLDM(MBB);
+      ModifiedLDMReturn = ModifiedLDMReturn || MergeReturnIntoLDM(MBB);
     if (isThumb1)
-      Modified |= CombineMovBx(MBB);
+      Modified = Modified || CombineMovBx(MBB);
   }
   Modified = Modified || ModifiedLDMReturn;
 
@@ -2207,7 +2207,7 @@ bool ARMPreAllocLoadStoreOpt::runOnMachineFunction(MachineFunction &Fn) {
 
   bool Modified = DistributeIncrements();
   for (MachineBasicBlock &MFI : Fn)
-    Modified |= RescheduleLoadStoreInstrs(&MFI);
+    Modified = Modified || RescheduleLoadStoreInstrs(&MFI);
 
   return Modified;
 }
@@ -2600,14 +2600,14 @@ ARMPreAllocLoadStoreOpt::RescheduleLoadStoreInstrs(MachineBasicBlock *MBB) {
     for (unsigned Base : LdBases) {
       SmallVectorImpl<MachineInstr *> &Lds = Base2LdsMap[Base];
       if (Lds.size() > 1)
-        RetVal |= RescheduleOps(MBB, Lds, Base, true, MI2LocMap, RegisterMap);
+        RetVal = RetVal || RescheduleOps(MBB, Lds, Base, true, MI2LocMap, RegisterMap);
     }
 
     // Re-schedule stores.
     for (unsigned Base : StBases) {
       SmallVectorImpl<MachineInstr *> &Sts = Base2StsMap[Base];
       if (Sts.size() > 1)
-        RetVal |= RescheduleOps(MBB, Sts, Base, false, MI2LocMap, RegisterMap);
+        RetVal = RetVal || RescheduleOps(MBB, Sts, Base, false, MI2LocMap, RegisterMap);
     }
 
     if (MBBI != E) {
@@ -3291,7 +3291,7 @@ bool ARMPreAllocLoadStoreOpt::DistributeIncrements() {
   }
 
   for (auto Base : Visited)
-    Changed |= DistributeIncrements(Base);
+    Changed = Changed || DistributeIncrements(Base);
 
   return Changed;
 }

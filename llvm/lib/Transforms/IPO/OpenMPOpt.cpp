@@ -957,13 +957,13 @@ struct OpenMPOpt {
                       << " functions\n");
 
     if (IsModulePass) {
-      Changed |= runAttributor(IsModulePass);
+      Changed = Changed || runAttributor(IsModulePass);
 
       // Recollect uses, in case Attributor deleted any.
       OMPInfoCache.recollectUses();
 
       // TODO: This should be folded into buildCustomStateMachine.
-      Changed |= rewriteDeviceCodeStateMachine();
+      Changed = Changed || rewriteDeviceCodeStateMachine();
 
       if (remarksEnabled())
         analysisGlobalization();
@@ -973,16 +973,16 @@ struct OpenMPOpt {
       if (PrintOpenMPKernels)
         printKernels();
 
-      Changed |= runAttributor(IsModulePass);
+      Changed = Changed || runAttributor(IsModulePass);
 
       // Recollect uses, in case Attributor deleted any.
       OMPInfoCache.recollectUses();
 
-      Changed |= deleteParallelRegions();
+      Changed = Changed || deleteParallelRegions();
 
       if (HideMemoryTransferLatency)
-        Changed |= hideMemTransfersLatency();
-      Changed |= deduplicateRuntimeCalls();
+        Changed = Changed || hideMemTransfersLatency();
+      Changed = Changed || deduplicateRuntimeCalls();
       if (EnableParallelRegionMerging) {
         if (mergeParallelRegions()) {
           deduplicateRuntimeCalls();
@@ -992,7 +992,7 @@ struct OpenMPOpt {
     }
 
     if (OMPInfoCache.OpenMPPostLink)
-      Changed |= removeRuntimeSymbols();
+      Changed = Changed || removeRuntimeSymbols();
 
     return Changed;
   }
@@ -1508,7 +1508,7 @@ private:
 
     for (Function *F : SCC) {
       for (auto DeduplicableRuntimeCallID : DeduplicableRuntimeCallIDs)
-        Changed |= deduplicateRuntimeCalls(
+        Changed = Changed || deduplicateRuntimeCalls(
             *F, OMPInfoCache.RFIs[DeduplicableRuntimeCallID]);
 
       // __kmpc_global_thread_num is special as we can replace it with an
@@ -1519,7 +1519,7 @@ private:
           GTIdArg = &Arg;
           break;
         }
-      Changed |= deduplicateRuntimeCalls(
+      Changed = Changed || deduplicateRuntimeCalls(
           *F, OMPInfoCache.RFIs[OMPRTL___kmpc_global_thread_num], GTIdArg);
     }
 
@@ -2999,15 +2999,15 @@ bool AAExecutionDomainFunction::mergeInPredecessor(
     bool InitialEdgeOnly) {
 
   bool Changed = false;
-  Changed |=
+  Changed = Changed ||
       setAndRecord(ED.IsExecutedByInitialThreadOnly,
                    InitialEdgeOnly || (PredED.IsExecutedByInitialThreadOnly &&
                                        ED.IsExecutedByInitialThreadOnly));
 
-  Changed |= setAndRecord(ED.IsReachedFromAlignedBarrierOnly,
+  Changed = Changed || setAndRecord(ED.IsReachedFromAlignedBarrierOnly,
                           ED.IsReachedFromAlignedBarrierOnly &&
                               PredED.IsReachedFromAlignedBarrierOnly);
-  Changed |= setAndRecord(ED.EncounteredNonLocalSideEffect,
+  Changed = Changed || setAndRecord(ED.EncounteredNonLocalSideEffect,
                           ED.EncounteredNonLocalSideEffect ||
                               PredED.EncounteredNonLocalSideEffect);
   // Do not track assumptions and barriers as part of Changed.
@@ -3061,13 +3061,13 @@ bool AAExecutionDomainFunction::handleCallees(Attributor &A,
 
   bool Changed = false;
   auto &FnED = BEDMap[nullptr];
-  Changed |= setAndRecord(FnED.IsReachedFromAlignedBarrierOnly,
+  Changed = Changed || setAndRecord(FnED.IsReachedFromAlignedBarrierOnly,
                           FnED.IsReachedFromAlignedBarrierOnly &&
                               EntryBBED.IsReachedFromAlignedBarrierOnly);
-  Changed |= setAndRecord(FnED.IsReachingAlignedBarrierOnly,
+  Changed = Changed || setAndRecord(FnED.IsReachingAlignedBarrierOnly,
                           FnED.IsReachingAlignedBarrierOnly &&
                               ExitED.IsReachingAlignedBarrierOnly);
-  Changed |= setAndRecord(FnED.IsExecutedByInitialThreadOnly,
+  Changed = Changed || setAndRecord(FnED.IsExecutedByInitialThreadOnly,
                           EntryBBED.IsExecutedByInitialThreadOnly);
   return Changed;
 }
@@ -3080,10 +3080,10 @@ ChangeStatus AAExecutionDomainFunction::updateImpl(Attributor &A) {
   // traversal. \p CB is the aligned barrier, \p ED is the execution domain when
   // it was encountered.
   auto HandleAlignedBarrier = [&](CallBase &CB, ExecutionDomainTy &ED) {
-    Changed |= AlignedBarriers.insert(&CB);
+    Changed = Changed || AlignedBarriers.insert(&CB);
     // First, update the barrier ED kept in the separate CEDMap.
     auto &CallInED = CEDMap[{&CB, PRE}];
-    Changed |= mergeInPredecessor(A, CallInED, ED);
+    Changed = Changed || mergeInPredecessor(A, CallInED, ED);
     CallInED.IsReachingAlignedBarrierOnly = true;
     // Next adjust the ED we use for the traversal.
     ED.EncounteredNonLocalSideEffect = false;
@@ -3092,7 +3092,7 @@ ChangeStatus AAExecutionDomainFunction::updateImpl(Attributor &A) {
     ED.clearAssumeInstAndAlignedBarriers();
     ED.addAlignedBarrier(A, CB);
     auto &CallOutED = CEDMap[{&CB, POST}];
-    Changed |= mergeInPredecessor(A, CallOutED, ED);
+    Changed = Changed || mergeInPredecessor(A, CallOutED, ED);
   };
 
   auto *LivenessAA =
@@ -3114,7 +3114,7 @@ ChangeStatus AAExecutionDomainFunction::updateImpl(Attributor &A) {
     ExecutionDomainTy ED;
     // Propagate "incoming edges" into information about this block.
     if (IsEntryBB) {
-      Changed |= handleCallees(A, ED);
+      Changed = Changed || handleCallees(A, ED);
     } else {
       // For live non-entry blocks we only propagate
       // information via live edges.
@@ -3213,7 +3213,7 @@ ChangeStatus AAExecutionDomainFunction::updateImpl(Attributor &A) {
         // Record how we entered the call, then accumulate the effect of the
         // call in ED for potential use by the callee.
         auto &CallInED = CEDMap[{CB, PRE}];
-        Changed |= mergeInPredecessor(A, CallInED, ED);
+        Changed = Changed || mergeInPredecessor(A, CallInED, ED);
 
         // If we have a sync-definition we can check if it starts/ends in an
         // aligned barrier. If we are unsure we assume any sync breaks
@@ -3234,26 +3234,26 @@ ChangeStatus AAExecutionDomainFunction::updateImpl(Attributor &A) {
               ED.EncounteredNonLocalSideEffect =
                   CalleeED.EncounteredNonLocalSideEffect;
             if (!CalleeED.IsReachingAlignedBarrierOnly) {
-              Changed |=
+              Changed = Changed ||
                   setAndRecord(CallInED.IsReachingAlignedBarrierOnly, false);
               SyncInstWorklist.push_back(&I);
             }
             if (CalleeED.IsReachedFromAlignedBarrierOnly)
               mergeInPredecessorBarriersAndAssumptions(A, ED, CalleeED);
             auto &CallOutED = CEDMap[{CB, POST}];
-            Changed |= mergeInPredecessor(A, CallOutED, ED);
+            Changed = Changed || mergeInPredecessor(A, CallOutED, ED);
             continue;
           }
         }
         if (!IsNoSync) {
           ED.IsReachedFromAlignedBarrierOnly = false;
-          Changed |= setAndRecord(CallInED.IsReachingAlignedBarrierOnly, false);
+          Changed = Changed || setAndRecord(CallInED.IsReachingAlignedBarrierOnly, false);
           SyncInstWorklist.push_back(&I);
         }
         AlignedBarrierLastInBlock = AlignedBarrierLastInBlock && ED.IsReachedFromAlignedBarrierOnly;
-        ED.EncounteredNonLocalSideEffect |= !CB->doesNotAccessMemory();
+        ED.EncounteredNonLocalSideEffect = ED.EncounteredNonLocalSideEffect || !CB->doesNotAccessMemory();
         auto &CallOutED = CEDMap[{CB, POST}];
-        Changed |= mergeInPredecessor(A, CallOutED, ED);
+        Changed = Changed || mergeInPredecessor(A, CallOutED, ED);
       }
 
       if (!I.mayHaveSideEffects() && !I.mayReadFromMemory())
@@ -3293,18 +3293,18 @@ ChangeStatus AAExecutionDomainFunction::updateImpl(Attributor &A) {
     if (!isa<UnreachableInst>(BB.getTerminator()) &&
         !BB.getTerminator()->getNumSuccessors()) {
 
-      Changed |= mergeInPredecessor(A, InterProceduralED, ED);
+      Changed = Changed || mergeInPredecessor(A, InterProceduralED, ED);
 
       auto &FnED = BEDMap[nullptr];
       if (IsKernel && !IsExplicitlyAligned)
         FnED.IsReachingAlignedBarrierOnly = false;
-      Changed |= mergeInPredecessor(A, FnED, ED);
+      Changed = Changed || mergeInPredecessor(A, FnED, ED);
 
       if (!FnED.IsReachingAlignedBarrierOnly) {
         IsEndAndNotReachingAlignedBarriersOnly = true;
         SyncInstWorklist.push_back(BB.getTerminator());
         auto &BBED = BEDMap[&BB];
-        Changed |= setAndRecord(BBED.IsReachingAlignedBarrierOnly, false);
+        Changed = Changed || setAndRecord(BBED.IsReachingAlignedBarrierOnly, false);
       }
     }
 
@@ -3340,13 +3340,13 @@ ChangeStatus AAExecutionDomainFunction::updateImpl(Attributor &A) {
       if (!CB)
         continue;
       auto &CallOutED = CEDMap[{CB, POST}];
-      Changed |= setAndRecord(CallOutED.IsReachingAlignedBarrierOnly, false);
+      Changed = Changed || setAndRecord(CallOutED.IsReachingAlignedBarrierOnly, false);
       auto &CallInED = CEDMap[{CB, PRE}];
       HitAlignedBarrierOrKnownEnd =
           AlignedBarriers.count(CB) || !CallInED.IsReachingAlignedBarrierOnly;
       if (HitAlignedBarrierOrKnownEnd)
         break;
-      Changed |= setAndRecord(CallInED.IsReachingAlignedBarrierOnly, false);
+      Changed = Changed || setAndRecord(CallInED.IsReachingAlignedBarrierOnly, false);
     }
     if (HitAlignedBarrierOrKnownEnd)
       continue;
@@ -3364,7 +3364,7 @@ ChangeStatus AAExecutionDomainFunction::updateImpl(Attributor &A) {
     }
     if (SyncBB != &EntryBB)
       continue;
-    Changed |=
+    Changed = Changed ||
         setAndRecord(InterProceduralED.IsReachingAlignedBarrierOnly, false);
   }
 
@@ -4753,10 +4753,10 @@ struct AAKernelInfoFunction : AAKernelInfo {
       if (!CBAA)
         return false;
       getState() ^= CBAA->getState();
-      AllSPMDStatesWereFixed &= CBAA->SPMDCompatibilityTracker.isAtFixpoint();
-      AllParallelRegionStatesWereFixed &=
+      AllSPMDStatesWereFixed = AllSPMDStatesWereFixed && CBAA->SPMDCompatibilityTracker.isAtFixpoint();
+      AllParallelRegionStatesWereFixed = AllParallelRegionStatesWereFixed &&
           CBAA->ReachedKnownParallelRegions.isAtFixpoint();
-      AllParallelRegionStatesWereFixed &=
+      AllParallelRegionStatesWereFixed = AllParallelRegionStatesWereFixed &&
           CBAA->ReachedUnknownParallelRegions.isAtFixpoint();
       return true;
     };
@@ -5153,7 +5153,7 @@ struct AAKernelInfoCallSite : AAKernelInfo {
     /// Check nested parallelism
     auto *FnAA = A.getAAFor<AAKernelInfo>(
         *this, IRPosition::function(*ParallelRegion), DepClassTy::OPTIONAL);
-    NestedParallelism |= !FnAA || !FnAA->getState().isValidState() ||
+    NestedParallelism = NestedParallelism || !FnAA || !FnAA->getState().isValidState() ||
                          !FnAA->ReachedKnownParallelRegions.empty() ||
                          !FnAA->ReachedKnownParallelRegions.isValidState() ||
                          !FnAA->ReachedUnknownParallelRegions.isValidState() ||
@@ -5760,7 +5760,7 @@ PreservedAnalyses OpenMPOptPass::run(Module &M, ModuleAnalysisManager &AM) {
         }
       }
 
-    Changed |=
+    Changed = Changed ||
         Attributor::internalizeFunctions(InternalizeFns, InternalizedMap);
   }
 
@@ -5808,7 +5808,7 @@ PreservedAnalyses OpenMPOptPass::run(Module &M, ModuleAnalysisManager &AM) {
   Attributor A(Functions, InfoCache, AC);
 
   OpenMPOpt OMPOpt(SCC, CGUpdater, OREGetter, InfoCache, A);
-  Changed |= OMPOpt.run(true);
+  Changed = Changed || OMPOpt.run(true);
 
   // Optionally inline device functions for potentially better performance.
   if (AlwaysInlineDeviceFunctions && isOpenMPDevice(M))

@@ -236,7 +236,7 @@ TEST(PluginInlineOrderTest, NoInlineFoo) {
     CallGraph CGraph = CallGraph(*CI.OutputM);
     for (auto &Node : CGraph) {
       for (auto &Edge : *Node.second) {
-        FoundFoo |= Edge.second->getFunction()->getName() == "foo";
+        FoundFoo = FoundFoo || Edge.second->getFunction()->getName() == "foo";
       }
     }
     ASSERT_TRUE(FoundFoo);

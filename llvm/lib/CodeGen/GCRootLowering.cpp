@@ -242,7 +242,7 @@ bool DoLowering(Function &F, GCStrategy &S) {
     }
 
   if (Roots.size())
-    MadeChange |= InsertRootInitializers(F, Roots);
+    MadeChange = MadeChange || InsertRootInitializers(F, Roots);
 
   return MadeChange;
 }

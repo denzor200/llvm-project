@@ -1814,11 +1814,11 @@ bool SampleProfileLoader::emitAnnotations(Function &F) {
 
   DenseSet<GlobalValue::GUID> InlinedGUIDs;
   if (CallsitePrioritizedInline)
-    Changed |= inlineHotFunctionsWithPriority(F, InlinedGUIDs);
+    Changed = Changed || inlineHotFunctionsWithPriority(F, InlinedGUIDs);
   else
-    Changed |= inlineHotFunctions(F, InlinedGUIDs);
+    Changed = Changed || inlineHotFunctions(F, InlinedGUIDs);
 
-  Changed |= computeAndPropagateWeights(F, InlinedGUIDs);
+  Changed = Changed || computeAndPropagateWeights(F, InlinedGUIDs);
 
   if (Changed)
     generateMDProfMetadata(F);
@@ -2221,7 +2221,7 @@ bool SampleProfileLoader::runOnModule(Module &M, ModuleAnalysisManager &AM,
   for (auto *F : buildFunctionOrder(M, CG)) {
     assert(!F->isDeclaration());
     clearFunctionData();
-    retval |= runOnFunction(*F, AM);
+    retval = retval || runOnFunction(*F, AM);
   }
 
   // Account for cold calls not inlined....

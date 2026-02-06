@@ -7889,9 +7889,9 @@ bool llvm::verifyModule(const Module &M, raw_ostream *OS,
 
   bool Broken = false;
   for (const Function &F : M)
-    Broken |= !V.verify(F);
+    Broken = Broken || !V.verify(F);
 
-  Broken |= !V.verify();
+  Broken = Broken || !V.verify();
   if (BrokenDebugInfo)
     *BrokenDebugInfo = V.hasBrokenDebugInfo();
   // Note that this function's return value is inverted from what you would
@@ -7934,9 +7934,9 @@ struct VerifierLegacyPass : public FunctionPass {
     bool HasErrors = false;
     for (Function &F : M)
       if (F.isDeclaration())
-        HasErrors |= !V->verify(F);
+        HasErrors = HasErrors || !V->verify(F);
 
-    HasErrors |= !V->verify();
+    HasErrors = HasErrors || !V->verify();
     if (FatalErrors && (HasErrors || V->hasBrokenDebugInfo()))
       report_fatal_error("Broken module found, compilation aborted!");
     return false;

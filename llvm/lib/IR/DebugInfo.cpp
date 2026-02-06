@@ -624,10 +624,10 @@ bool llvm::StripDebugInfo(Module &M) {
   }
 
   for (Function &F : M)
-    Changed |= stripDebugInfo(F);
+    Changed = Changed || stripDebugInfo(F);
 
   for (auto &GV : M.globals()) {
-    Changed |= GV.eraseMetadata(LLVMContext::MD_dbg);
+    Changed = Changed || GV.eraseMetadata(LLVMContext::MD_dbg);
   }
 
   if (GVMaterializer *Materializer = M.getMaterializer())
@@ -2358,7 +2358,7 @@ PreservedAnalyses AssignmentTrackingPass::run(Module &M,
                                               ModuleAnalysisManager &AM) {
   bool Changed = false;
   for (auto &F : M)
-    Changed |= runOnFunction(F);
+    Changed = Changed || runOnFunction(F);
 
   if (!Changed)
     return PreservedAnalyses::all();

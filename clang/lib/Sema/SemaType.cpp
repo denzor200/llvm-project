@@ -2665,7 +2665,7 @@ QualType Sema::BuildFunctionType(QualType T,
                                  const FunctionProtoType::ExtProtoInfo &EPI) {
   bool Invalid = false;
 
-  Invalid |= CheckFunctionReturnType(T, Loc);
+  Invalid = Invalid || CheckFunctionReturnType(T, Loc);
 
   for (unsigned Idx = 0, Cnt = ParamTypes.size(); Idx < Cnt; ++Idx) {
     // FIXME: Loc is too inprecise here, should use proper locations for args.
@@ -8481,10 +8481,10 @@ static void HandlePtrAuthQualifier(ASTContext &Ctx, QualType &T,
 
   bool IsInvalid = false;
   unsigned IsAddressDiscriminated, ExtraDiscriminator;
-  IsInvalid |= !S.checkPointerAuthDiscriminatorArg(IsAddressDiscriminatedArg,
+  IsInvalid = IsInvalid || !S.checkPointerAuthDiscriminatorArg(IsAddressDiscriminatedArg,
                                                    PointerAuthDiscArgKind::Addr,
                                                    IsAddressDiscriminated);
-  IsInvalid |= !S.checkPointerAuthDiscriminatorArg(
+  IsInvalid = IsInvalid || !S.checkPointerAuthDiscriminatorArg(
       ExtraDiscriminatorArg, PointerAuthDiscArgKind::Extra, ExtraDiscriminator);
 
   if (IsInvalid) {

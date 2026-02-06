@@ -321,7 +321,7 @@ bool MVEVPTBlock::runOnMachineFunction(MachineFunction &Fn) {
 
   bool Modified = false;
   for (MachineBasicBlock &MBB : Fn)
-    Modified |= InsertVPTBlocks(MBB);
+    Modified = Modified || InsertVPTBlocks(MBB);
 
   LLVM_DEBUG(dbgs() << "**************************************\n");
   return Modified;

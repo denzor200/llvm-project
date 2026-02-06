@@ -261,7 +261,7 @@ static bool runImpl(LoopInfo &LI, DominatorTree &DT) {
   auto Loops = LI.getLoopsInPreorder();
   for (auto *L : Loops) {
     LLVM_DEBUG(dbgs() << "Processing loop:\n"; L->print(dbgs()));
-    Changed |= unifyLoopExits(DT, LI, L);
+    Changed = Changed || unifyLoopExits(DT, LI, L);
   }
   return Changed;
 }

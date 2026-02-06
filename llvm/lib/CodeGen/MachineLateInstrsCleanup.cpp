@@ -122,7 +122,7 @@ bool MachineLateInstrsCleanup::run(MachineFunction &MF) {
   bool Changed = false;
   ReversePostOrderTraversal<MachineFunction *> RPOT(&MF);
   for (MachineBasicBlock *MBB : RPOT)
-    Changed |= processBlock(MBB);
+    Changed = Changed || processBlock(MBB);
 
   return Changed;
 }

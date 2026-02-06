@@ -101,7 +101,7 @@ bool inferAlignment(Function &F, AssumptionCache &AC, DominatorTree &DT) {
   // pass first, because it may improve the alignments we infer below.
   for (BasicBlock &BB : F) {
     for (Instruction &I : BB) {
-      Changed |= tryToImproveAlign(
+      Changed = Changed || tryToImproveAlign(
           DL, &I, [&](Value *PtrOp, Align OldAlign, Align PrefAlign) {
             if (PrefAlign > OldAlign)
               return std::max(OldAlign,
@@ -157,7 +157,7 @@ bool inferAlignment(Function &F, AssumptionCache &AC, DominatorTree &DT) {
     BestBasePointerAligns.clear();
 
     for (Instruction &I : BB) {
-      Changed |= tryToImproveAlign(
+      Changed = Changed || tryToImproveAlign(
           DL, &I, [&](Value *PtrOp, Align OldAlign, Align PrefAlign) {
             return std::max(InferFromKnownBits(I, PtrOp),
                             InferFromBasePointer(PtrOp, OldAlign));

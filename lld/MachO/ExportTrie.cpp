@@ -281,7 +281,7 @@ size_t TrieBuilder::build() {
     offset = 0;
     more = false;
     for (TrieNode *node : nodes)
-      more |= node->updateOffset(offset);
+      more = more || node->updateOffset(offset);
   } while (more);
 
   return offset;

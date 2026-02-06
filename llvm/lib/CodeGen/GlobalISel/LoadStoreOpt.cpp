@@ -337,7 +337,7 @@ bool LoadStoreOpt::mergeStores(SmallVectorImpl<GStore *> &StoresToMerge) {
     // Perform the actual merging.
     SmallVector<GStore *, 8> SingleMergeStores(
         StoresToMerge.begin(), StoresToMerge.begin() + NumStoresToMerge);
-    AnyMerged |= doSingleStoreMerge(SingleMergeStores);
+    AnyMerged = AnyMerged || doSingleStoreMerge(SingleMergeStores);
     StoresToMerge.erase(StoresToMerge.begin(),
                         StoresToMerge.begin() + NumStoresToMerge);
   } while (StoresToMerge.size() > 1);
@@ -592,7 +592,7 @@ bool LoadStoreOpt::mergeBlockStores(MachineBasicBlock &MBB) {
         // Store wasn't eligible to be added. May need to record it as a
         // potential alias.
         if (operationAliasesWithCandidate(*StoreMI, Candidate)) {
-          Changed |= processMergeCandidate(Candidate);
+          Changed = Changed || processMergeCandidate(Candidate);
           continue;
         }
         Candidate.addPotentialAlias(*StoreMI);
@@ -606,7 +606,7 @@ bool LoadStoreOpt::mergeBlockStores(MachineBasicBlock &MBB) {
 
     // We're dealing with some other kind of instruction.
     if (isInstHardMergeHazard(MI)) {
-      Changed |= processMergeCandidate(Candidate);
+      Changed = Changed || processMergeCandidate(Candidate);
       Candidate.Stores.clear();
       continue;
     }
@@ -617,7 +617,7 @@ bool LoadStoreOpt::mergeBlockStores(MachineBasicBlock &MBB) {
     if (operationAliasesWithCandidate(MI, Candidate)) {
       // We have a potential alias, so process the current candidate if we can
       // and then continue looking for a new candidate.
-      Changed |= processMergeCandidate(Candidate);
+      Changed = Changed || processMergeCandidate(Candidate);
       continue;
     }
 
@@ -627,7 +627,7 @@ bool LoadStoreOpt::mergeBlockStores(MachineBasicBlock &MBB) {
   }
 
   // Process any candidate left after finishing searching the entire block.
-  Changed |= processMergeCandidate(Candidate);
+  Changed = Changed || processMergeCandidate(Candidate);
 
   // Erase instructions now that we're no longer iterating over the block.
   for (auto *MI : InstsToErase)
@@ -920,8 +920,8 @@ bool LoadStoreOpt::mergeTruncStoresBlock(MachineBasicBlock &BB) {
 bool LoadStoreOpt::mergeFunctionStores(MachineFunction &MF) {
   bool Changed = false;
   for (auto &BB : MF){
-    Changed |= mergeBlockStores(BB);
-    Changed |= mergeTruncStoresBlock(BB);
+    Changed = Changed || mergeBlockStores(BB);
+    Changed = Changed || mergeTruncStoresBlock(BB);
   }
 
   // Erase all dead instructions left over by the merging.
@@ -980,7 +980,7 @@ bool LoadStoreOpt::runOnMachineFunction(MachineFunction &MF) {
 
   init(MF);
   bool Changed = false;
-  Changed |= mergeFunctionStores(MF);
+  Changed = Changed || mergeFunctionStores(MF);
 
   LegalStoreSizes.clear();
   return Changed;

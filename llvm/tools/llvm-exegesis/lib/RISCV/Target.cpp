@@ -378,10 +378,10 @@ void RISCVSnippetGenerator<BaseT>::annotateWithVType(
         // For floating point operations, only select SEW of the supported FLEN.
         if (isRVVFloatingPointOp(VPseudoOpcode)) {
           bool Supported = false;
-          Supported |= isZvfhminZvfbfminOpcodes(BaseOpcode) && *SEW == 16;
-          Supported |= STI.hasFeature(RISCV::FeatureStdExtZvfh) && *SEW == 16;
-          Supported |= STI.hasFeature(RISCV::FeatureStdExtF) && *SEW == 32;
-          Supported |= STI.hasFeature(RISCV::FeatureStdExtD) && *SEW == 64;
+          Supported = Supported || (isZvfhminZvfbfminOpcodes(BaseOpcode) && *SEW == 16);
+          Supported = Supported || (STI.hasFeature(RISCV::FeatureStdExtZvfh) && *SEW == 16);
+          Supported = Supported || (STI.hasFeature(RISCV::FeatureStdExtF) && *SEW == 32);
+          Supported = Supported || (STI.hasFeature(RISCV::FeatureStdExtD) && *SEW == 64);
           if (!Supported) {
             SEW = SEWCandidates.erase(SEW);
             continue;

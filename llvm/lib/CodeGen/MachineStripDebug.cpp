@@ -74,7 +74,7 @@ struct StripDebugMachineModule : public ModulePass {
       }
     }
 
-    Changed |= stripDebugifyMetadata(M);
+    Changed = Changed || stripDebugifyMetadata(M);
 
     return Changed;
   }

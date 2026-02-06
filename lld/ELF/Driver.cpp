@@ -1736,7 +1736,7 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
                        << "= value: " << option.second;
         continue;
       }
-      hasGcsReportDynamic |= option.first == "gcs-report-dynamic";
+      hasGcsReportDynamic = hasGcsReportDynamic || option.first == "gcs-report-dynamic";
     }
   }
 

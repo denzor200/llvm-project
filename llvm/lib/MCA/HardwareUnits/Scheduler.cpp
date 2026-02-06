@@ -104,7 +104,7 @@ void Scheduler::issueInstruction(
     SmallVectorImpl<InstRef> &ReadyInstructions) {
   const Instruction &Inst = *IR.getInstruction();
   bool HasDependentUsers = Inst.hasDependentUsers();
-  HasDependentUsers |= Inst.isMemOp() && LSU.hasDependentUsers(IR);
+  HasDependentUsers = HasDependentUsers || (Inst.isMemOp() && LSU.hasDependentUsers(IR));
 
   Resources->releaseBuffers(Inst.getUsedBuffers());
   issueInstructionImpl(IR, UsedResources);

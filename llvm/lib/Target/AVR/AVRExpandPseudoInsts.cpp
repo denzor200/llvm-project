@@ -111,7 +111,7 @@ bool AVRExpandPseudo::expandMBB(MachineBasicBlock &MBB) {
   BlockIt MBBI = MBB.begin(), E = MBB.end();
   while (MBBI != E) {
     BlockIt NMBBI = std::next(MBBI);
-    Modified |= expandMI(MBB, MBBI);
+    Modified = Modified || expandMI(MBB, MBBI);
     MBBI = NMBBI;
   }
 

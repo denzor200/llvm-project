@@ -2907,7 +2907,7 @@ void Generic_GCC::GCCInstallationDetector::ScanLibDirForGCCTriple(
     }
   }
 
-  IsValid |=
+  IsValid = IsValid ||
       SelectGCCInstallationDirectory(Installations, Args, SelectedInstallation);
 }
 

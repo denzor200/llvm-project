@@ -730,13 +730,13 @@ static bool simplifyLoopCFG(Loop &L, DominatorTree &DT, LoopInfo &LI,
   bool Changed = false;
 
   // Constant-fold terminators with known constant conditions.
-  Changed |= constantFoldTerminators(L, DT, LI, SE, MSSAU, IsLoopDeleted);
+  Changed = Changed || constantFoldTerminators(L, DT, LI, SE, MSSAU, IsLoopDeleted);
 
   if (IsLoopDeleted)
     return true;
 
   // Eliminate unconditional branches by merging blocks into their predecessors.
-  Changed |= mergeBlocksIntoPredecessors(L, DT, LI, MSSAU, SE);
+  Changed = Changed || mergeBlocksIntoPredecessors(L, DT, LI, MSSAU, SE);
 
   if (Changed)
     SE.forgetTopmostLoop(&L);

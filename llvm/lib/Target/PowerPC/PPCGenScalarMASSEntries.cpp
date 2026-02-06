@@ -127,7 +127,7 @@ bool PPCGenScalarMASSEntries::runOnModule(Module &M) {
     for (auto *User : TheUsers)
       if (auto *CI = dyn_cast_or_null<CallInst>(User)) {
         if (isCandidateSafeToLower(*CI))
-          Changed |= createScalarMASSCall(Iter->second, *CI, Func);
+          Changed = Changed || createScalarMASSCall(Iter->second, *CI, Func);
       }
   }
 

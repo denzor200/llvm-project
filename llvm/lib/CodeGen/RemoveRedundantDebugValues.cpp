@@ -205,8 +205,8 @@ bool RemoveRedundantDebugValuesImpl::reduceDbgValues(MachineFunction &MF) {
   bool Changed = false;
 
   for (auto &MBB : MF) {
-    Changed |= reduceDbgValsBackwardScan(MBB);
-    Changed |= reduceDbgValsForwardScan(MBB);
+    Changed = Changed || reduceDbgValsBackwardScan(MBB);
+    Changed = Changed || reduceDbgValsForwardScan(MBB);
   }
 
   return Changed;

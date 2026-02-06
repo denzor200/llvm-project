@@ -131,7 +131,7 @@ public:
                          enum PermissionKinds permission) {
       if (incoming.IsSet(permission))
       {
-        SetPermission(permission, !(m_permissions[permission] |
+        SetPermission(permission, !(m_permissions[permission] ||
             incoming.m_permissions[permission]));
       }
     }

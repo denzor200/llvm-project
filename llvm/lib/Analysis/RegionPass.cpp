@@ -68,7 +68,7 @@ bool RGPassManager::runOnFunction(Function &F) {
   for (Region *R : RQ) {
     for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index) {
       RegionPass *RP = (RegionPass *)getContainedPass(Index);
-      Changed |= RP->doInitialization(R, *this);
+      Changed = Changed || RP->doInitialization(R, *this);
     }
   }
 
@@ -150,7 +150,7 @@ bool RGPassManager::runOnFunction(Function &F) {
   // Finalization
   for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index) {
     RegionPass *P = (RegionPass*)getContainedPass(Index);
-    Changed |= P->doFinalization();
+    Changed = Changed || P->doFinalization();
   }
 
   // Print the region tree after all pass.

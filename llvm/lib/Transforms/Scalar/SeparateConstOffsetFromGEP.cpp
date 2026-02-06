@@ -1028,9 +1028,9 @@ bool SeparateConstOffsetFromGEP::reorderGEP(GetElementPtrInst *GEP,
     auto IsKnownNonNegative = [this](Value *V) {
       return isKnownNonNegative(V, *DL);
     };
-    IsChainInBounds &= all_of(GEP->indices(), IsKnownNonNegative);
+    IsChainInBounds = IsChainInBounds && all_of(GEP->indices(), IsKnownNonNegative);
     if (IsChainInBounds)
-      IsChainInBounds &= all_of(PtrGEP->indices(), IsKnownNonNegative);
+      IsChainInBounds = IsChainInBounds && all_of(PtrGEP->indices(), IsKnownNonNegative);
   }
 
   IRBuilder<> Builder(GEP);
@@ -1078,7 +1078,7 @@ bool SeparateConstOffsetFromGEP::splitGEP(GetElementPtrInst *GEP) {
   TargetTransformInfo &TTI = GetTTI(*GEP->getFunction());
 
   if (!NeedsExtraction && !ExtractBase) {
-    Changed |= reorderGEP(GEP, TTI);
+    Changed = Changed || reorderGEP(GEP, TTI);
     return Changed;
   }
 
@@ -1142,10 +1142,10 @@ bool SeparateConstOffsetFromGEP::splitGEP(GetElementPtrInst *GEP) {
   }
   if (ExtractBase) {
     GEPOperator *Base = cast<GEPOperator>(GEP->getPointerOperand());
-    AllNUWPreserved &= Base->hasNoUnsignedWrap();
-    NewGEPInBounds &= Base->isInBounds();
-    NewGEPNUSW &= Base->hasNoUnsignedSignedWrap();
-    AllOffsetsNonNegative &= BaseByteOffset.isNonNegative();
+    AllNUWPreserved = AllNUWPreserved && Base->hasNoUnsignedWrap();
+    NewGEPInBounds = NewGEPInBounds && Base->isInBounds();
+    NewGEPNUSW = NewGEPNUSW && Base->hasNoUnsignedSignedWrap();
+    AllOffsetsNonNegative = AllOffsetsNonNegative && BaseByteOffset.isNonNegative();
 
     GEP->setOperand(0, NewBase);
     RecursivelyDeleteTriviallyDeadInstructions(Base);
@@ -1267,12 +1267,12 @@ bool SeparateConstOffsetFromGEP::run(Function &F) {
 
     for (Instruction &I : llvm::make_early_inc_range(*B))
       if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(&I))
-        Changed |= splitGEP(GEP);
+        Changed = Changed || splitGEP(GEP);
     // No need to split GEP ConstantExprs because all its indices are constant
     // already.
   }
 
-  Changed |= reuniteExts(F);
+  Changed = Changed || reuniteExts(F);
 
   if (VerifyNoDeadCode)
     verifyNoDeadCode(F);
@@ -1358,7 +1358,7 @@ bool SeparateConstOffsetFromGEP::reuniteExts(Function &F) {
   for (const auto Node : depth_first(DT)) {
     BasicBlock *BB = Node->getBlock();
     for (Instruction &I : llvm::make_early_inc_range(*BB))
-      Changed |= reuniteExts(&I);
+      Changed = Changed || reuniteExts(&I);
   }
   return Changed;
 }

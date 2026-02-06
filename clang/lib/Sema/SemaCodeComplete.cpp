@@ -5998,7 +5998,7 @@ void SemaCodeCompletion::CodeCompleteMemberReferenceExpr(
   if (CodeCompleter->includeFixIts()) {
     const CharSourceRange OpRange =
         CharSourceRange::getTokenRange(OpLoc, OpLoc);
-    CompletionSucceded |= DoCompletion(
+    CompletionSucceded = CompletionSucceded || DoCompletion(
         OtherOpBase, !IsArrow,
         FixItHint::CreateReplacement(OpRange, IsArrow ? "." : "->"));
   }
