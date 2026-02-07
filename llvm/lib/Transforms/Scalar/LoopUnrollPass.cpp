@@ -965,7 +965,7 @@ bool llvm::computeUnrollCount(
       UP.AllowExpensiveTripCount = true;
       UP.Force = true;
     }
-    UP.Runtime |= (PragmaCount > 0);
+    UP.Runtime = UP.Runtime || (PragmaCount > 0);
     return ExplicitUnroll;
   } else {
     if (ExplicitUnroll && TripCount != 0) {
@@ -1025,7 +1025,7 @@ bool llvm::computeUnrollCount(
   // Before starting partial unrolling, set up.partial to true,
   // if user explicitly asked  for unrolling
   if (TripCount)
-    UP.Partial |= ExplicitUnroll;
+    UP.Partial = UP.Partial || ExplicitUnroll;
 
   // 6th priority is partial unrolling.
   // Try partial unroll only when TripCount could be statically calculated.
@@ -1092,7 +1092,7 @@ bool llvm::computeUnrollCount(
         UP.AllowExpensiveTripCount = true;
     }
   }
-  UP.Runtime |= PragmaEnableUnroll || PragmaCount > 0 || UserUnrollCount;
+  UP.Runtime = UP.Runtime || PragmaEnableUnroll || PragmaCount > 0 || UserUnrollCount;
   if (!UP.Runtime) {
     LLVM_DEBUG(
         dbgs() << "  will not try to unroll loop with runtime trip count "
@@ -1281,7 +1281,7 @@ tryToUnrollLoop(Loop *L, DominatorTree &DT, LoopInfo *LI, ScalarEvolution &SE,
   //
   // TODO: This is somewhat conservative; we could allow the remainder if the
   // trip count is uniform.
-  UP.AllowRemainder &= UCE.ConvergenceAllowsRuntime;
+  UP.AllowRemainder = UP.AllowRemainder && UCE.ConvergenceAllowsRuntime;
 
   // Try to find the trip count upper bound if we cannot find the exact trip
   // count.
@@ -1301,7 +1301,7 @@ tryToUnrollLoop(Loop *L, DominatorTree &DT, LoopInfo *LI, ScalarEvolution &SE,
   if (!UP.Count)
     return LoopUnrollResult::Unmodified;
 
-  UP.Runtime &= UCE.ConvergenceAllowsRuntime;
+  UP.Runtime = UP.Runtime && UCE.ConvergenceAllowsRuntime;
 
   if (PP.PeelCount) {
     assert(UP.Count == 1 && "Cannot perform peel and unroll in the same step");
@@ -1338,7 +1338,7 @@ tryToUnrollLoop(Loop *L, DominatorTree &DT, LoopInfo *LI, ScalarEvolution &SE,
   // count and the unroll count doesn't divide the known trip multiple.
   // TODO: This decision should probably be pushed up into
   // computeUnrollCount().
-  UP.Runtime &= TripCount == 0 && TripMultiple % UP.Count != 0;
+  UP.Runtime = UP.Runtime && TripCount == 0 && TripMultiple % UP.Count != 0;
 
   // Save loop properties before it is transformed.
   MDNode *OrigLoopID = L->getLoopID();
@@ -1662,7 +1662,7 @@ PreservedAnalyses LoopUnrollPass::run(Function &F,
         UnrollOpts.AllowRuntime, UnrollOpts.AllowUpperBound, LocalAllowPeeling,
         UnrollOpts.AllowProfileBasedPeeling, UnrollOpts.FullUnrollMaxCount,
         &AA);
-    Changed |= Result != LoopUnrollResult::Unmodified;
+    Changed = Changed || Result != LoopUnrollResult::Unmodified;
 
     // The parent must not be damaged by unrolling!
 #ifndef NDEBUG

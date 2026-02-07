@@ -1225,7 +1225,7 @@ protected:
           unsigned ElementMinRequiredSize =
               IntElement->getValue().getSignificantBits() - 1;
           // In case one element is signed then all the vector is signed.
-          isSigned |= signedElement;
+          isSigned = isSigned || signedElement;
           // Save the max required bit size between all the elements.
           MinRequiredSize = std::max(MinRequiredSize, ElementMinRequiredSize);
         } else {

@@ -384,7 +384,7 @@ static Value *getUnwindDestTokenHelper(Instruction *EHPad,
       if (isa<CatchPadInst>(ExitedPad))
         continue;
       MemoMap[ExitedPad] = UnwindDestToken;
-      ExitedOriginalPad |= (ExitedPad == EHPad);
+      ExitedOriginalPad = ExitedOriginalPad || (ExitedPad == EHPad);
     }
 
     if (ExitedOriginalPad)
@@ -2960,7 +2960,7 @@ void llvm::InlineFunctionImpl(CallBase &CB, InlineFunctionInfo &IFI,
         }
 
         if (Function *F = CI->getCalledFunction())
-          InlinedDeoptimizeCalls |=
+          InlinedDeoptimizeCalls = InlinedDeoptimizeCalls ||
               F->getIntrinsicID() == Intrinsic::experimental_deoptimize;
 
         // We need to reduce the strength of any inlined tail calls.  For

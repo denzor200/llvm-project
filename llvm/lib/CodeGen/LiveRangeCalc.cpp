@@ -249,7 +249,7 @@ bool LiveRangeCalc::findReachingDefs(LiveRange &LR, MachineBasicBlock &UseMBB,
        // it as null if Pred is live-through with an unknown value.
        auto EP = LR.extendInBlock(Undefs, Start, End);
        VNInfo *VNI = EP.first;
-       FoundUndef |= EP.second;
+       FoundUndef = FoundUndef || EP.second;
        setLiveOutValue(Pred, EP.second ? &UndefVNI : VNI);
        if (VNI) {
          if (TheVNI && TheVNI != VNI)
@@ -269,7 +269,7 @@ bool LiveRangeCalc::findReachingDefs(LiveRange &LR, MachineBasicBlock &UseMBB,
   }
 
   LiveIn.clear();
-  FoundUndef |= (TheVNI == nullptr || TheVNI == &UndefVNI);
+  FoundUndef = FoundUndef || (TheVNI == nullptr || TheVNI == &UndefVNI);
   if (!Undefs.empty() && FoundUndef)
     UniqueVNI = false;
 

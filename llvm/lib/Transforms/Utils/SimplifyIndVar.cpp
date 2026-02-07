@@ -1043,7 +1043,7 @@ bool simplifyLoopIVs(Loop *L, ScalarEvolution *SE, DominatorTree *DT,
   for (BasicBlock::iterator I = L->getHeader()->begin(); isa<PHINode>(I); ++I) {
     const auto &[C, _] =
         simplifyUsersOfIV(cast<PHINode>(I), SE, DT, LI, TTI, Dead, Rewriter);
-    Changed |= C;
+    Changed = Changed || C;
   }
   return Changed;
 }

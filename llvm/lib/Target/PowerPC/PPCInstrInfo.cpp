@@ -5681,8 +5681,8 @@ PPCInstrInfo::isSignOrZeroExtended(const unsigned Reg,
 
       Register SrcReg = MI->getOperand(I).getReg();
       auto SrcExt = isSignOrZeroExtended(SrcReg, BinOpDepth + 1, MRI);
-      IsSExt &= SrcExt.first;
-      IsZExt &= SrcExt.second;
+      IsSExt = IsSExt && SrcExt.first;
+      IsZExt = IsZExt && SrcExt.second;
     }
     return std::pair<bool, bool>(IsSExt, IsZExt);
   }

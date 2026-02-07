@@ -434,8 +434,8 @@ static LinearExpression GetLinearExpression(
       // case where it is both nuw and nsw.
       bool NUW = true, NSW = true;
       if (isa<OverflowingBinaryOperator>(BOp)) {
-        NUW &= BOp->hasNoUnsignedWrap();
-        NSW &= BOp->hasNoSignedWrap();
+        NUW = NUW && BOp->hasNoUnsignedWrap();
+        NSW = NSW && BOp->hasNoSignedWrap();
       }
       if (!Val.canDistributeOver(NUW, NSW))
         return Val;
@@ -461,8 +461,8 @@ static LinearExpression GetLinearExpression(
         E = GetLinearExpression(Val.withValue(BOp->getOperand(0), false), DL,
                                 Depth + 1, AC, DT);
         E.Offset += RHS;
-        E.IsNUW &= NUW;
-        E.IsNSW &= NSW;
+        E.IsNUW = E.IsNUW && NUW;
+        E.IsNSW = E.IsNSW && NSW;
         break;
       }
       case Instruction::Sub: {
@@ -470,7 +470,7 @@ static LinearExpression GetLinearExpression(
                                 Depth + 1, AC, DT);
         E.Offset -= RHS;
         E.IsNUW = false; // sub nuw x, y is not add nuw x, -y.
-        E.IsNSW &= NSW;
+        E.IsNSW = E.IsNSW && NSW;
         break;
       }
       case Instruction::Mul:
@@ -491,8 +491,8 @@ static LinearExpression GetLinearExpression(
                                 Depth + 1, AC, DT);
         E.Offset <<= RHS.getLimitedValue();
         E.Scale <<= RHS.getLimitedValue();
-        E.IsNUW &= NUW;
-        E.IsNSW &= NSW;
+        E.IsNUW = E.IsNUW && NUW;
+        E.IsNSW = E.IsNSW && NSW;
         break;
       }
       return E;

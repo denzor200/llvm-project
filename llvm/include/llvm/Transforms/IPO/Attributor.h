@@ -2931,12 +2931,12 @@ struct BooleanState : public IntegerStateBase<bool, true, false> {
   BooleanState(base_t Assumed) : super(Assumed) {}
 
   /// Set the assumed value to \p Value but never below the known one.
-  void setAssumed(bool Value) { Assumed &= (Known | Value); }
+  void setAssumed(bool Value) { Assumed = Assumed && (Known || Value); }
 
   /// Set the known and asssumed value to \p Value.
   void setKnown(bool Value) {
-    Known |= Value;
-    Assumed |= Value;
+    Known = Known || Value;
+    Assumed = Assumed || Value;
   }
 
   /// Return true if the state is assumed to hold.
@@ -2955,12 +2955,12 @@ private:
       Known = (Assumed = Value);
   }
   void joinOR(base_t AssumedValue, base_t KnownValue) override {
-    Known |= KnownValue;
-    Assumed |= AssumedValue;
+    Known = Known || KnownValue;
+    Assumed = Assumed || AssumedValue;
   }
   void joinAND(base_t AssumedValue, base_t KnownValue) override {
-    Known &= KnownValue;
-    Assumed &= AssumedValue;
+    Known = Known && KnownValue;
+    Assumed = Assumed && AssumedValue;
   }
 };
 
@@ -5972,7 +5972,7 @@ struct AAPointerInfo : public AbstractAttribute {
         if (isUnknown())
           return true;
         LPos = Result.first;
-        Changed |= Result.second;
+        Changed = Changed || Result.second;
       }
       return Changed;
     }

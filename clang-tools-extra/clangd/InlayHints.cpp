@@ -810,7 +810,7 @@ private:
           Cfg.InlayHints.Parameters;
 
       const bool IsDefault = isa<CXXDefaultArgExpr>(Args[I]);
-      HasNonDefaultArgs |= !IsDefault;
+      HasNonDefaultArgs = HasNonDefaultArgs || !IsDefault;
       if (IsDefault) {
         if (Cfg.InlayHints.DefaultArguments) {
           const auto SourceText = Lexer::getSourceText(

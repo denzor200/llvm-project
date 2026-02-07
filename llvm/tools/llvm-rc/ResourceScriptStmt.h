@@ -40,32 +40,32 @@ public:
   bool isLong() const { return Long; }
 
   RCInt &operator+=(const RCInt &Rhs) {
-    std::tie(Val, Long) = std::make_pair(Val + Rhs.Val, Long | Rhs.Long);
+    std::tie(Val, Long) = std::make_pair(Val + Rhs.Val, Long || Rhs.Long);
     return *this;
   }
 
   RCInt &operator-=(const RCInt &Rhs) {
-    std::tie(Val, Long) = std::make_pair(Val - Rhs.Val, Long | Rhs.Long);
+    std::tie(Val, Long) = std::make_pair(Val - Rhs.Val, Long || Rhs.Long);
     return *this;
   }
 
   RCInt &operator*=(const RCInt &Rhs) {
-    std::tie(Val, Long) = std::make_pair(Val * Rhs.Val, Long | Rhs.Long);
+    std::tie(Val, Long) = std::make_pair(Val * Rhs.Val, Long || Rhs.Long);
     return *this;
   }
 
   RCInt &operator/=(const RCInt &Rhs) {
-    std::tie(Val, Long) = std::make_pair(Val / Rhs.Val, Long | Rhs.Long);
+    std::tie(Val, Long) = std::make_pair(Val / Rhs.Val, Long || Rhs.Long);
     return *this;
   }
 
   RCInt &operator|=(const RCInt &Rhs) {
-    std::tie(Val, Long) = std::make_pair(Val | Rhs.Val, Long | Rhs.Long);
+    std::tie(Val, Long) = std::make_pair(Val | Rhs.Val, Long || Rhs.Long);
     return *this;
   }
 
   RCInt &operator&=(const RCInt &Rhs) {
-    std::tie(Val, Long) = std::make_pair(Val & Rhs.Val, Long | Rhs.Long);
+    std::tie(Val, Long) = std::make_pair(Val & Rhs.Val, Long || Rhs.Long);
     return *this;
   }
 

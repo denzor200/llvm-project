@@ -309,8 +309,8 @@ public:
     HasAnyMD5 = false;
   }
   void trackMD5Usage(bool MD5Used) {
-    HasAllMD5 &= MD5Used;
-    HasAnyMD5 |= MD5Used;
+    HasAllMD5 = HasAllMD5 && MD5Used;
+    HasAnyMD5 = HasAnyMD5 || MD5Used;
   }
   bool isMD5UsageConsistent() const {
     return MCDwarfFiles.empty() || (HasAllMD5 == HasAnyMD5);

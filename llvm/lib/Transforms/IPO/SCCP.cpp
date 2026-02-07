@@ -214,7 +214,7 @@ static bool runIPSCCP(
           CB->setAttributes(UpdateAttrs(CB->getAttributes()));
         }
       }
-      MadeChanges |= ReplacedPointerArg;
+      MadeChanges = MadeChanges || ReplacedPointerArg;
     }
 
     SmallPtrSet<Value *, 32> InsertedValues;

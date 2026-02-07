@@ -675,7 +675,7 @@ static const MCExpr *tryFoldHelper(const MCExpr *Expr, KnownBitsMap &KBM,
     for (const MCExpr *Arg : AGVK->getArgs()) {
       const MCExpr *NewArg = tryFoldHelper(Arg, KBM, Ctx);
       NewArgs.push_back(NewArg);
-      Changed |= Arg != NewArg;
+      Changed = Changed || Arg != NewArg;
     }
     return Changed ? AMDGPUMCExpr::create(AGVK->getKind(), NewArgs, Ctx) : Expr;
   }

@@ -3697,7 +3697,7 @@ static void printOverrideString(const CodeCompletionString &CCS,
       printOverrideString(*Chunk.Optional, NameAndSignature, NameAndSignature);
       continue;
     }
-    SeenTypedChunk |= Chunk.Kind == CodeCompletionString::CK_TypedText;
+    SeenTypedChunk = SeenTypedChunk || Chunk.Kind == CodeCompletionString::CK_TypedText;
     if (SeenTypedChunk)
       NameAndSignature += Chunk.Text;
     else

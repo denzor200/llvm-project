@@ -790,7 +790,7 @@ public:
     RU.Roots[1] = R1;
     RU.Artificial = R0->Artificial;
     if (R1)
-      RU.Artificial |= R1->Artificial;
+      RU.Artificial = RU.Artificial = RU.Artificial || R1->Artificial;
     return RegUnits.size() - 1;
   }
 

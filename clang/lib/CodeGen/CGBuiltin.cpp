@@ -881,7 +881,7 @@ EncompassingIntegerType(ArrayRef<struct WidthAndSignedness> Types) {
   // If any of the given types is signed, we must return a signed type.
   bool Signed = false;
   for (const auto &Type : Types) {
-    Signed |= Type.Signed;
+    Signed = Signed || Type.Signed;
   }
 
   // The encompassing type must have a width greater than or equal to the width

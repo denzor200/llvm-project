@@ -430,7 +430,7 @@ static Value *rewriteGlobalVariablesInConstant(
                                                        IRBuilderAtEntry);
     }
     // Do not use short-circuiting, here. We need to traverse the whole tree.
-    ReplacedAnyOperands |= ReplacedValue != nullptr;
+    ReplacedAnyOperands = ReplacedAnyOperands || ReplacedValue != nullptr;
     ReplacedValues.push_back(ReplacedValue);
   }
 

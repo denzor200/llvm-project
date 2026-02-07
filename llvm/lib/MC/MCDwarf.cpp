@@ -1218,7 +1218,7 @@ void MCGenDwarfInfo::Emit(MCStreamer *MCOS) {
   const bool UseRangesSection =
       MCOS->getContext().getGenDwarfSectionSyms().size() > 1 &&
       MCOS->getContext().getDwarfVersion() >= 3;
-  CreateDwarfSectionSymbols |= UseRangesSection;
+  CreateDwarfSectionSymbols = CreateDwarfSectionSymbols || UseRangesSection;
 
   MCOS->switchSection(context.getObjectFileInfo()->getDwarfInfoSection());
   if (CreateDwarfSectionSymbols) {

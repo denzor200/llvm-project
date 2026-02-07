@@ -205,7 +205,7 @@ Value *PHITransAddr::translateSubExpr(Value *V, BasicBlock *CurBB,
       Value *GEPOp = translateSubExpr(Op, CurBB, PredBB, DT);
       if (!GEPOp) return nullptr;
 
-      AnyChanged |= GEPOp != Op;
+      AnyChanged = AnyChanged || GEPOp != Op;
       GEPOps.push_back(GEPOp);
     }
 

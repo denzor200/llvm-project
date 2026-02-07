@@ -922,7 +922,7 @@ PreservedAnalyses IRCEPass::run(Function &F, FunctionAnalysisManager &AM) {
                                  /*PreserveLCSSA=*/false);
       Changed |= formLCSSARecursively(*L, DT, &LI, &SE);
     }
-    Changed |= CFGChanged;
+    Changed = Changed || CFGChanged;
 
     if (CFGChanged && !SkipProfitabilityChecks) {
       PreservedAnalyses PA = PreservedAnalyses::all();

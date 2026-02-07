@@ -167,7 +167,7 @@ bool AMDGPUSetWavePriority::run(MachineFunction &MF) {
     unsigned NumFollowingVALUInsts = 0;
     for (const MachineBasicBlock *Succ : MBB->successors()) {
       const MBBInfo &SuccInfo = MBBInfos[Succ];
-      SuccsMayReachVMEMLoad |= SuccInfo.MayReachVMEMLoad;
+      SuccsMayReachVMEMLoad = SuccsMayReachVMEMLoad || SuccInfo.MayReachVMEMLoad;
       NumFollowingVALUInsts =
           std::max(NumFollowingVALUInsts, SuccInfo.NumVALUInstsAtStart);
     }

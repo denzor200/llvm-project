@@ -6542,7 +6542,7 @@ bool Sema::isTemplateTemplateParameterAtLeastAsSpecializedAs(
       return false;
     PArgs = std::move(CTAI.SugaredConverted);
     if (StrictPackMatch)
-      *StrictPackMatch |= CTAI.StrictPackMatch;
+      *StrictPackMatch = *StrictPackMatch || CTAI.StrictPackMatch;
   }
 
   // Determine whether P1 is at least as specialized as P2.

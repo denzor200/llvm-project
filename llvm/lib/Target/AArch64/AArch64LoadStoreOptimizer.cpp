@@ -3112,7 +3112,7 @@ bool AArch64LoadStoreOpt::runOnMachineFunction(MachineFunction &Fn) {
   bool enableNarrowZeroStOpt = !Subtarget->requiresStrictAlign();
   for (auto &MBB : Fn) {
     auto M = optimizeBlock(MBB, enableNarrowZeroStOpt);
-    Modified |= M;
+    Modified = Modified || M;
   }
 
   return Modified;

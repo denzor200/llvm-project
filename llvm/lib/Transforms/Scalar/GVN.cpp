@@ -2615,7 +2615,7 @@ bool GVNPass::propagateEquality(
             else
               NumReplacements = replaceDominatedUsesWith(
                   NotCmp, NotVal, *DT, std::get<Instruction *>(Root));
-            Changed |= NumReplacements > 0;
+            Changed = Changed || NumReplacements > 0;
             NumGVNEqProp += NumReplacements;
             // Cached information for anything that uses NotCmp will be invalid.
             if (MD)
@@ -2825,7 +2825,7 @@ bool GVNPass::runImpl(Function &F, AssumptionCache &RunAC, DominatorTree &RunDT,
     if (RemovedBlock)
       ++NumGVNBlocks;
 
-    Changed |= RemovedBlock;
+    Changed = Changed || RemovedBlock;
   }
   DTU.flush();
 
@@ -2834,7 +2834,7 @@ bool GVNPass::runImpl(Function &F, AssumptionCache &RunAC, DominatorTree &RunDT,
     LLVM_DEBUG(dbgs() << "GVN iteration: " << Iteration << "\n");
     (void) Iteration;
     ShouldContinue = iterateOnFunction(F);
-    Changed |= ShouldContinue;
+    Changed = Changed || ShouldContinue;
     ++Iteration;
   }
 
@@ -2845,7 +2845,7 @@ bool GVNPass::runImpl(Function &F, AssumptionCache &RunAC, DominatorTree &RunDT,
     bool PREChanged = true;
     while (PREChanged) {
       PREChanged = performPRE(F);
-      Changed |= PREChanged;
+      Changed = Changed || PREChanged;
     }
   }
 

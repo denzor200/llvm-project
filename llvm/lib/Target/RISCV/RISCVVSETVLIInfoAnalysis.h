@@ -88,16 +88,16 @@ struct DemandedFields {
 
   // Make this the result of demanding both the fields in this and B.
   void doUnion(const DemandedFields &B) {
-    VLAny |= B.VLAny;
-    VLZeroness |= B.VLZeroness;
+    VLAny = VLAny || B.VLAny;
+    VLZeroness = VLZeroness || B.VLZeroness;
     SEW = std::max(SEW, B.SEW);
     LMUL = std::max(LMUL, B.LMUL);
-    SEWLMULRatio |= B.SEWLMULRatio;
-    TailPolicy |= B.TailPolicy;
-    MaskPolicy |= B.MaskPolicy;
-    VILL |= B.VILL;
-    AltFmt |= B.AltFmt;
-    TWiden |= B.TWiden;
+    SEWLMULRatio = SEWLMULRatio || B.SEWLMULRatio;
+    TailPolicy = TailPolicy || B.TailPolicy;
+    MaskPolicy = MaskPolicy || B.MaskPolicy;
+    VILL = VILL || B.VILL;
+    AltFmt = AltFmt || B.AltFmt;
+    TWiden = TWiden || B.TWiden;
   }
 
 #if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)

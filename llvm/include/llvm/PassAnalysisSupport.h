@@ -265,7 +265,7 @@ AnalysisType &Pass::getAnalysisID(AnalysisID PI, Function &F, bool *Changed) {
 
   assert(ResultPass && "Unable to find requested analysis info");
   if (Changed)
-    *Changed |= LocalChanged;
+    *Changed = *Changed || LocalChanged;
   else
     assert(!LocalChanged &&
            "A pass trigged a code update but the update status is lost");

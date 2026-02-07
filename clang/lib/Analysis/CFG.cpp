@@ -1207,8 +1207,8 @@ private:
         const bool Combine = IsAnd ? (Res1.isTrue() && Res2.isTrue())
                                    : (Res1.isTrue() || Res2.isTrue());
 
-        AlwaysTrue &= Combine;
-        AlwaysFalse &= !Combine;
+        AlwaysTrue = AlwaysTrue && Combine;
+        AlwaysFalse = AlwaysFalse && !Combine;
 
         LHSAlwaysTrue &= Res1.isTrue();
         LHSAlwaysFalse &= Res1.isFalse();
@@ -4539,7 +4539,7 @@ CFGBlock *CFGBuilder::VisitSwitchStmt(SwitchStmt *Terminator) {
   //       We also consider this successor reachable if
   //       BuildOpts.SwitchReqDefaultCoveredEnum is true.
   bool SwitchAlwaysHasSuccessor = false;
-  SwitchAlwaysHasSuccessor |= switchExclusivelyCovered;
+  SwitchAlwaysHasSuccessor = SwitchAlwaysHasSuccessor || switchExclusivelyCovered;
   SwitchAlwaysHasSuccessor |=
       !BuildOpts.AssumeReachableDefaultInSwitchStatements &&
       Terminator->isAllEnumCasesCovered() && Terminator->getSwitchCaseList();

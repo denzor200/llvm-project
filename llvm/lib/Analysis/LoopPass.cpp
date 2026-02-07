@@ -203,7 +203,7 @@ bool LPPassManager::runOnFunction(Function &F) {
         }
 #endif
 
-        Changed |= LocalChanged;
+        Changed = Changed || LocalChanged;
         if (EmitICRemark) {
           unsigned NewSize = F.getInstructionCount();
           // Update the size of the function, emit a remark, and update the

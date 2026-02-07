@@ -1028,7 +1028,7 @@ RegisterCoalescer::removeCopyByCommutingDef(const CoalescerPair &CP,
                                            : SR.getVNInfoAt(CopyIdx);
             assert(BSubValNo != nullptr);
             auto P = addSegmentsWithValNo(SR, BSubValNo, SA, ASubValNo);
-            ShrinkB |= P.second;
+            ShrinkB = ShrinkB || P.second;
             if (P.first)
               BSubValNo->def = ASubValNo->def;
           },
@@ -1048,7 +1048,7 @@ RegisterCoalescer::removeCopyByCommutingDef(const CoalescerPair &CP,
 
   BValNo->def = AValNo->def;
   auto P = addSegmentsWithValNo(IntB, BValNo, IntA, AValNo);
-  ShrinkB |= P.second;
+  ShrinkB = ShrinkB || P.second;
   LLVM_DEBUG(dbgs() << "\t\textended: " << IntB << '\n');
 
   LIS->removeVRegDefAt(IntA, AValNo->def);
@@ -4077,7 +4077,7 @@ bool RegisterCoalescer::copyCoalesceWorkList(
     }
     bool Again = false;
     bool Success = joinCopy(MI, Again, CurrentErasedInstrs);
-    Progress |= Success;
+    Progress = Progress || Success;
     if (Success || !Again)
       MI = nullptr;
   }

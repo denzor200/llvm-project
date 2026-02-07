@@ -146,7 +146,7 @@ bool SuspendCrossingInfo::computeBlockData(
 
     if constexpr (!Initialize) {
       B.Changed = (B.Kills != SavedKills) || (B.Consumes != SavedConsumes);
-      Changed |= B.Changed;
+      Changed = Changed || B.Changed;
     }
   }
 
