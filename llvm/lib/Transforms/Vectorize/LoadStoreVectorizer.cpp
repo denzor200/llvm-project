@@ -484,7 +484,7 @@ bool Vectorizer::run() {
 
     for (auto It = Barriers.begin(), End = std::prev(Barriers.end()); It != End;
          ++It)
-      Changed |= runOnPseudoBB(*It, *std::next(It));
+      Changed = Changed || runOnPseudoBB(*It, *std::next(It));
 
     for (Instruction *I : ToErase) {
       // These will get deleted in deleteExtraElements.
@@ -521,7 +521,7 @@ bool Vectorizer::runOnPseudoBB(BasicBlock::iterator Begin,
   bool Changed = false;
   for (const auto &[EqClassKey, EqClass] :
        collectEquivalenceClasses(Begin, End))
-    Changed |= runOnEquivalenceClass(EqClassKey, EqClass);
+    Changed = Changed || runOnEquivalenceClass(EqClassKey, EqClass);
 
   return Changed;
 }
@@ -541,7 +541,7 @@ bool Vectorizer::runOnEquivalenceClass(const EqClassKey &EqClassKey,
   LLVM_DEBUG(dbgs() << "LSV: Got " << Chains.size()
                     << " nontrivial chains.\n";);
   for (Chain &C : Chains)
-    Changed |= runOnChain(C);
+    Changed = Changed || runOnChain(C);
   return Changed;
 }
 
@@ -561,7 +561,7 @@ bool Vectorizer::runOnChain(Chain &C) {
   for (auto &C : splitChainByMayAliasInstrs(C))
     for (auto &C : splitChainByContiguity(C))
       for (auto &C : splitChainByAlignment(C))
-        Changed |= vectorizeChain(C);
+        Changed = Changed || vectorizeChain(C);
   return Changed;
 }
 

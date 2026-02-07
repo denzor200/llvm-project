@@ -737,13 +737,13 @@ const DYLDRendezvous::ThreadInfo &DYLDRendezvous::GetThreadInfo() {
   if (!m_thread_info.valid) {
     bool ok = true;
 
-    ok &= FindMetadata("_thread_db_pthread_dtvp", eOffset,
+    ok = ok && FindMetadata("_thread_db_pthread_dtvp", eOffset,
                        m_thread_info.dtv_offset);
-    ok &=
+    ok = ok &&
         FindMetadata("_thread_db_dtv_dtv", eSize, m_thread_info.dtv_slot_size);
-    ok &= FindMetadata("_thread_db_link_map_l_tls_modid", eOffset,
+    ok = ok && FindMetadata("_thread_db_link_map_l_tls_modid", eOffset,
                        m_thread_info.modid_offset);
-    ok &= FindMetadata("_thread_db_dtv_t_pointer_val", eOffset,
+    ok = ok && FindMetadata("_thread_db_dtv_t_pointer_val", eOffset,
                        m_thread_info.tls_offset);
 
     if (ok)

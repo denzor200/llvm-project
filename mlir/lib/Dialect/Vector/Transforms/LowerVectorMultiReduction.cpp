@@ -190,7 +190,7 @@ public:
       if (isReduction) {
         reductionDims.push_back(i);
         reductionShapes.push_back(srcShape[i]);
-        isReductionDimScalable |= srcScalableDims[i];
+        isReductionDimScalable = isReductionDimScalable || srcScalableDims[i];
       } else {
         parallelDims.push_back(i);
         parallelShapes.push_back(srcShape[i]);

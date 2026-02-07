@@ -1955,7 +1955,7 @@ bool SimplifyCFGOpt::hoistCommonCodeFromSuccessors(Instruction *TI,
     bool HasTerminator = I1->isTerminator();
     for (auto &SuccIter : OtherSuccIterRange) {
       Instruction *I2 = &*SuccIter;
-      HasTerminator |= I2->isTerminator();
+      HasTerminator = HasTerminator || I2->isTerminator();
       if (AllInstsAreIdentical && (!areIdenticalUpToCommutativity(I1, I2) ||
                                    MMRAMetadata(*I1) != MMRAMetadata(*I2)))
         AllInstsAreIdentical = false;
@@ -3322,7 +3322,7 @@ bool SimplifyCFGOpt::speculativelyExecuteBB(BranchInst *BI,
   bool Convert =
       SpeculatedStore != nullptr || !SpeculatedConditionalLoadsStores.empty();
   InstructionCost Cost = 0;
-  Convert |= validateAndCostRequiredSelects(BB, ThenBB, EndBB,
+  Convert = Convert || validateAndCostRequiredSelects(BB, ThenBB, EndBB,
                                             SpeculatedInstructions, Cost, TTI);
   if (!Convert || Cost > Budget)
     return false;
@@ -3717,7 +3717,7 @@ bool SimplifyCFGOpt::foldCondBranchOnValueKnownInPredecessor(BranchInst *BI) {
     // Note that None means "we changed things, but recurse further."
     Result =
         foldCondBranchOnValueKnownInPredecessorImpl(BI, DTU, DL, Options.AC);
-    EverChanged |= Result == std::nullopt || *Result;
+    EverChanged = EverChanged || Result == std::nullopt || *Result;
   } while (Result == std::nullopt);
   return EverChanged;
 }
@@ -4209,7 +4209,7 @@ bool llvm::foldBranchToCommonDest(BranchInst *BI, DomTreeUpdater *DTU,
     // I must be safe to execute unconditionally.
     if (!isSafeToSpeculativelyExecute(&I))
       return false;
-    SawVectorOp |= isVectorOp(I);
+    SawVectorOp = SawVectorOp || isVectorOp(I);
 
     // Account for the cost of duplicating this instruction into each
     // predecessor. Ignore free instructions.
@@ -4581,7 +4581,7 @@ static bool mergeConditionalStores(BranchInst *PBI, BranchInst *QBI,
 
   bool Changed = false;
   for (auto *Address : CommonAddresses)
-    Changed |=
+    Changed = Changed ||
         mergeConditionalStoreToAddress(PTB, PFB, QTB, QFB, PostBB, Address,
                                        InvertPCond, InvertQCond, DTU, DL, TTI);
   return Changed;
@@ -6919,7 +6919,7 @@ SwitchReplacement::SwitchReplacement(
           LinearMappingPossible = false;
           break;
         }
-        NonMonotonic |=
+        NonMonotonic = NonMonotonic ||
             Dist.isStrictlyPositive() ? Val.sle(PrevVal) : Val.sgt(PrevVal);
       }
       PrevVal = Val;
@@ -8887,11 +8887,11 @@ bool SimplifyCFGOpt::simplifyOnce(BasicBlock *BB) {
 
   // Check to see if we can constant propagate this terminator instruction
   // away...
-  Changed |= ConstantFoldTerminator(BB, /*DeleteDeadConditions=*/true,
+  Changed = Changed || ConstantFoldTerminator(BB, /*DeleteDeadConditions=*/true,
                                     /*TLI=*/nullptr, DTU);
 
   // Check for and eliminate duplicate PHI nodes in this block.
-  Changed |= EliminateDuplicatePHINodes(BB);
+  Changed = Changed || EliminateDuplicatePHINodes(BB);
 
   // Check for and remove branches that will always cause undefined behavior.
   if (removeUndefIntroducingPredecessor(BB, DTU, Options.AC))
@@ -8931,22 +8931,22 @@ bool SimplifyCFGOpt::simplifyOnce(BasicBlock *BB) {
   Builder.SetInsertPoint(Terminator);
   switch (Terminator->getOpcode()) {
   case Instruction::Br:
-    Changed |= simplifyBranch(cast<BranchInst>(Terminator), Builder);
+    Changed = Changed || simplifyBranch(cast<BranchInst>(Terminator), Builder);
     break;
   case Instruction::Resume:
-    Changed |= simplifyResume(cast<ResumeInst>(Terminator), Builder);
+    Changed = Changed || simplifyResume(cast<ResumeInst>(Terminator), Builder);
     break;
   case Instruction::CleanupRet:
-    Changed |= simplifyCleanupReturn(cast<CleanupReturnInst>(Terminator));
+    Changed = Changed || simplifyCleanupReturn(cast<CleanupReturnInst>(Terminator));
     break;
   case Instruction::Switch:
-    Changed |= simplifySwitch(cast<SwitchInst>(Terminator), Builder);
+    Changed = Changed || simplifySwitch(cast<SwitchInst>(Terminator), Builder);
     break;
   case Instruction::Unreachable:
-    Changed |= simplifyUnreachable(cast<UnreachableInst>(Terminator));
+    Changed = Changed || simplifyUnreachable(cast<UnreachableInst>(Terminator));
     break;
   case Instruction::IndirectBr:
-    Changed |= simplifyIndirectBr(cast<IndirectBrInst>(Terminator));
+    Changed = Changed || simplifyIndirectBr(cast<IndirectBrInst>(Terminator));
     break;
   }
 
@@ -8962,7 +8962,7 @@ bool SimplifyCFGOpt::run(BasicBlock *BB) {
 
     // Perform one round of simplifcation. Resimplify flag will be set if
     // another iteration is requested.
-    Changed |= simplifyOnce(BB);
+    Changed = Changed || simplifyOnce(BB);
   } while (Resimplify);
 
   return Changed;

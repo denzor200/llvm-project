@@ -239,7 +239,7 @@ public:
               !SII->shouldClusterMemOps(CI.BaseOps, 0, false, BaseOps, 0, false,
                                         2, 2)))) {
           // Finish the current clause.
-          Changed |= emitClause(CI, SII);
+          Changed = Changed || emitClause(CI, SII);
           CI = ClauseInfo();
         }
 
@@ -264,7 +264,7 @@ public:
 
       // Finish the last clause in the basic block if any.
       if (CI.Length)
-        Changed |= emitClause(CI, SII);
+        Changed = Changed || emitClause(CI, SII);
     }
 
     return Changed;

@@ -1728,7 +1728,7 @@ bool LLParser::parseFnAttributeValuePairs(AttrBuilder &B,
       //
       //   define void @foo() #1 { ... }
       if (InAttrGrp) {
-        HaveError |= error(
+        HaveError = HaveError || error(
             Lex.getLoc(),
             "cannot have an attribute group reference in an attribute group");
       } else {
@@ -1762,7 +1762,7 @@ bool LLParser::parseFnAttributeValuePairs(AttrBuilder &B,
     // attribute on a function declaration/definition or added to an attribute
     // group and later moved to the alignment field.
     if (!Attribute::canUseAsFnAttr(Attr) && Attr != Attribute::Alignment)
-      HaveError |= error(Loc, "this attribute does not apply to functions");
+      HaveError = HaveError || error(Loc, "this attribute does not apply to functions");
   }
 
   if (ME != MemoryEffects::unknown())
@@ -2046,9 +2046,9 @@ bool LLParser::parseOptionalParamOrReturnAttrs(AttrBuilder &B, bool IsParam) {
       return true;
 
     if (IsParam && !Attribute::canUseAsParamAttr(Attr))
-      HaveError |= error(Loc, "this attribute does not apply to parameters");
+      HaveError = HaveError || error(Loc, "this attribute does not apply to parameters");
     if (!IsParam && !Attribute::canUseAsRetAttr(Attr))
-      HaveError |= error(Loc, "this attribute does not apply to return values");
+      HaveError = HaveError || error(Loc, "this attribute does not apply to return values");
   }
 }
 
@@ -9140,7 +9140,7 @@ bool LLParser::parseUseListOrderIndexes(SmallVectorImpl<unsigned> &Indexes) {
     // Update consistency checks.
     Offset += Index - Indexes.size();
     Max = std::max(Max, Index);
-    IsOrdered &= Index == Indexes.size();
+    IsOrdered = IsOrdered && Index == Indexes.size();
 
     Indexes.push_back(Index);
   } while (EatIfPresent(lltok::comma));

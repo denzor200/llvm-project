@@ -48,7 +48,7 @@ bool MergedIndex::fuzzyFind(
   unsigned MergedCount = 0;
   // Number of results ignored due to staleness.
   unsigned StaticDropped = 0;
-  More |= Dynamic->fuzzyFind(Req, [&](const Symbol &S) {
+  More = More || Dynamic->fuzzyFind(Req, [&](const Symbol &S) {
     ++DynamicCount;
     DynB.insert(S);
   });
@@ -57,7 +57,7 @@ bool MergedIndex::fuzzyFind(
   llvm::DenseSet<SymbolID> ReportedDynSymbols;
   {
     auto DynamicContainsFile = Dynamic->indexedFiles();
-    More |= Static->fuzzyFind(Req, [&](const Symbol &S) {
+    More = More || Static->fuzzyFind(Req, [&](const Symbol &S) {
       ++StaticCount;
       auto DynS = Dyn.find(S.ID);
       // If symbol also exist in the dynamic index, just merge and report.
@@ -131,7 +131,7 @@ bool MergedIndex::refs(const RefsRequest &Req,
   // and we can't reliably deduplicate them because offsets may differ slightly.
   // We consider the dynamic index authoritative and report all its refs,
   // and only report static index refs from other files.
-  More |= Dynamic->refs(Req, [&](const Ref &O) {
+  More = More || Dynamic->refs(Req, [&](const Ref &O) {
     Callback(O);
     assert(Remaining != 0);
     --Remaining;
@@ -165,7 +165,7 @@ bool MergedIndex::containedRefs(
   // and we can't reliably deduplicate them because offsets may differ slightly.
   // We consider the dynamic index authoritative and report all its refs,
   // and only report static index refs from other files.
-  More |= Dynamic->containedRefs(Req, [&](const auto &O) {
+  More = More || Dynamic->containedRefs(Req, [&](const auto &O) {
     Callback(O);
     assert(Remaining != 0);
     --Remaining;

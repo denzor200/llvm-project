@@ -948,7 +948,7 @@ MCSection *TargetLoweringObjectFileELF::SelectSectionForGlobal(
     else
       EmitUniqueSection = TM.getDataSections();
   }
-  EmitUniqueSection |= GO->hasComdat();
+  EmitUniqueSection = EmitUniqueSection || GO->hasComdat();
   return selectELFSectionForGlobal(getContext(), GO, Kind, getMangler(), TM,
                                    Used.count(GO), EmitUniqueSection, Flags,
                                    &NextUniqueID);
@@ -2310,7 +2310,7 @@ MCSection *TargetLoweringObjectFileWasm::SelectSectionForGlobal(
     EmitUniqueSection = TM.getFunctionSections();
   else
     EmitUniqueSection = TM.getDataSections();
-  EmitUniqueSection |= GO->hasComdat();
+  EmitUniqueSection = EmitUniqueSection || GO->hasComdat();
   bool Retain = Used.count(GO);
   EmitUniqueSection = EmitUniqueSection || Retain;
 

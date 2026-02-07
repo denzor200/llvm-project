@@ -121,7 +121,7 @@ public:
     bool Changed = false;
     PromotionCacheTy PromotionCache;
     for (auto &MF : M) {
-      Changed |= runOnFunction(MF, PromotionCache);
+      Changed = Changed || runOnFunction(MF, PromotionCache);
     }
     return Changed;
   }

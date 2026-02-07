@@ -335,9 +335,9 @@ public:
     Changed = eliminateRedundantMov();
     if (SupportGotol)
       Changed = adjustBranch() || Changed;
-    Changed |= insertMissingCallerSavedSpills();
-    Changed |= removeMayGotoZero();
-    Changed |= addExitAfterUnreachable();
+    Changed = Changed || insertMissingCallerSavedSpills();
+    Changed = Changed || removeMayGotoZero();
+    Changed = Changed || addExitAfterUnreachable();
     return Changed;
   }
 };
@@ -621,7 +621,7 @@ static void collectBPFFastCalls(const TargetRegisterInfo *TRI,
       for (MCRegister R : CallerSavedRegs) {
         bool DoSpillFill = false;
         for (MCPhysReg SR : TRI->subregs(R))
-          DoSpillFill |= !MI.definesRegister(SR, TRI) && LiveRegs.contains(SR);
+          DoSpillFill = DoSpillFill || !MI.definesRegister(SR, TRI) && LiveRegs.contains(SR);
         if (!DoSpillFill)
           continue;
         LiveCallerSavedRegs |= 1 << R;
@@ -656,7 +656,7 @@ bool BPFMIPreEmitPeephole::insertMissingCallerSavedSpills() {
   bool Changed = false;
   for (MachineBasicBlock &BB : *MF) {
     collectBPFFastCalls(TRI, LiveRegs, BB, Calls);
-    Changed |= !Calls.empty();
+    Changed = Changed || !Calls.empty();
     for (BPFFastCall &Call : Calls) {
       int64_t CurOffset = MinFixedObjOffset;
       for (MCRegister Reg : CallerSavedRegs) {

@@ -2187,11 +2187,11 @@ bool ThunkCreator::createThunks(uint32_t pass,
           }
 
         for (auto &p : isd->thunkSections)
-          addressesChanged |= p.first->assignOffsets();
+          addressesChanged = addressesChanged || p.first->assignOffsets();
       });
 
   for (auto &p : thunkedSections)
-    addressesChanged |= p.second->assignOffsets();
+    addressesChanged = addressesChanged || p.second->assignOffsets();
 
   // Merge all created synthetic ThunkSections back into OutputSection
   mergeThunks(outputSections);

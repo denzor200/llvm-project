@@ -3349,7 +3349,7 @@ static bool collectUnswitchCandidatesWithInjections(
 
   bool Found = false;
   for (auto &It : CandidatesULT)
-    Found |= insertCandidatesWithPendingInjections(
+    Found = Found || insertCandidatesWithPendingInjections(
         UnswitchCandidates, L, ICmpInst::ICMP_ULT, It.second, DT);
   return Found;
 }

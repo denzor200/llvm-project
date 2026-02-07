@@ -22,7 +22,7 @@ bool RegionsFromMetadata::runOnFunction(Function &F, const Analyses &A) {
       sandboxir::Region::createRegionsFromMD(F, A.getTTI());
   bool Change = false;
   for (auto &R : Regions) {
-    Change |= RPM.runOnRegion(*R, A);
+    Change = Change || RPM.runOnRegion(*R, A);
   }
   return Change;
 }

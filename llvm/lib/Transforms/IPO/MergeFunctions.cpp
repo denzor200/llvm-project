@@ -474,7 +474,7 @@ template <typename FuncContainer> bool MergeFunctions::run(FuncContainer &M) {
         continue;
       Function *F = cast<Function>(I);
       if (!F->isDeclaration() && !F->hasAvailableExternallyLinkage()) {
-        Changed |= insert(F);
+        Changed = Changed || insert(F);
       }
     }
     LLVM_DEBUG(dbgs() << "size of FnTree: " << FnTree.size() << '\n');

@@ -293,7 +293,7 @@ bool TailDuplicator::tailDuplicateBlocks() {
     if (!shouldTailDuplicate(IsSimple, MBB))
       continue;
 
-    MadeChange |= tailDuplicateAndUpdate(IsSimple, &MBB, nullptr);
+    MadeChange = MadeChange || tailDuplicateAndUpdate(IsSimple, &MBB, nullptr);
   }
 
   if (PreRegAlloc && TailDupVerify)

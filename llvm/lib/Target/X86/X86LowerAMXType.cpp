@@ -1070,7 +1070,7 @@ bool X86LowerAMXCast::combineLdSt(SmallVectorImpl<Instruction *> &Casts) {
       //  -->
       //  %19 = tail call x86_amx @llvm.x86.tilezero.internal(i16 %row, i16 %col)
       if (isa<ConstantAggregateZero>(Cast->getOperand(0))) {
-        Change |= combineTilezero(cast<IntrinsicInst>(Cast));
+        Change = Change || combineTilezero(cast<IntrinsicInst>(Cast));
         continue;
       }
 
@@ -1151,7 +1151,7 @@ bool X86LowerAMXCast::combineAMXcast(TargetLibraryInfo *TLI) {
   LLVM_DEBUG(dbgs() << "[LowerAMXTYpe][combineAMXcast] IR dump after combine "
                        "Vec2Tile and Tile2Vec:\n";
              Func.dump());
-  Change |= combineLdSt(LiveCasts);
+  Change = Change || combineLdSt(LiveCasts);
   EraseInst(LiveCasts);
   LLVM_DEBUG(dbgs() << "[LowerAMXTYpe][combineAMXcast] IR dump after combine "
                        "AMXCast and load/store:\n";
@@ -1181,7 +1181,7 @@ bool X86LowerAMXCast::combineAMXcast(TargetLibraryInfo *TLI) {
   // have no uses. We do some DeadCodeElimination for them.
   while (!DeadInst.empty()) {
     Instruction *I = DeadInst.pop_back_val();
-    Change |= DCEInstruction(I, DeadInst, TLI);
+    Change = Change || DCEInstruction(I, DeadInst, TLI);
   }
   LLVM_DEBUG(dbgs() << "[LowerAMXTYpe][combineAMXcast] IR dump after "
                        "optimizeAMXCastFromPhi:\n";
@@ -1273,7 +1273,7 @@ bool X86LowerAMXCast::transformAllAMXCast() {
   }
 
   for (auto *Inst : WorkLists) {
-    Change |= transformAMXCast(cast<IntrinsicInst>(Inst));
+    Change = Change || transformAMXCast(cast<IntrinsicInst>(Inst));
   }
 
   return Change;
@@ -1291,13 +1291,13 @@ bool lowerAmxType(Function &F, const TargetMachine *TM,
 
   bool C = false;
   X86LowerAMXCast LAC(F);
-  C |= LAC.combineAMXcast(TLI);
+  C = C || LAC.combineAMXcast(TLI);
   // There might be remaining AMXcast after combineAMXcast and they should be
   // handled elegantly.
-  C |= LAC.transformAllAMXCast();
+  C = C || LAC.transformAllAMXCast();
 
   X86LowerAMXType LAT(F);
-  C |= LAT.visit();
+  C = C || LAT.visit();
 
   // Prepare for fast register allocation at O0.
   // Todo: May better check the volatile model of AMX code, not just

@@ -140,8 +140,8 @@ isBigEndian(const SmallDenseMap<int64_t, int64_t, 8> &MemOffset2Idx,
       return std::nullopt;
     const int64_t Idx = MemOffsetAndIdx->second - LowestIdx;
     assert(Idx >= 0 && "Expected non-negative byte offset?");
-    LittleEndian &= Idx == littleEndianByteAt(Width, MemOffset);
-    BigEndian &= Idx == bigEndianByteAt(Width, MemOffset);
+    LittleEndian = LittleEndian && Idx == littleEndianByteAt(Width, MemOffset);
+    BigEndian = BigEndian && Idx == bigEndianByteAt(Width, MemOffset);
     if (!BigEndian && !LittleEndian)
       return std::nullopt;
   }
@@ -4609,7 +4609,7 @@ bool CombinerHelper::matchRotateOutOfRange(MachineInstr &MI) const {
   bool OutOfRange = false;
   auto MatchOutOfRange = [Bitsize, &OutOfRange](const Constant *C) {
     if (auto *CI = dyn_cast<ConstantInt>(C))
-      OutOfRange |= CI->getValue().uge(Bitsize);
+      OutOfRange = OutOfRange || CI->getValue().uge(Bitsize);
     return true;
   };
   return matchUnaryPredicate(MRI, AmtReg, MatchOutOfRange) && OutOfRange;

@@ -1210,10 +1210,10 @@ private:
         AlwaysTrue = AlwaysTrue && Combine;
         AlwaysFalse = AlwaysFalse && !Combine;
 
-        LHSAlwaysTrue &= Res1.isTrue();
-        LHSAlwaysFalse &= Res1.isFalse();
-        RHSAlwaysTrue &= Res2.isTrue();
-        RHSAlwaysFalse &= Res2.isFalse();
+        LHSAlwaysTrue = LHSAlwaysTrue && Res1.isTrue();
+        LHSAlwaysFalse = LHSAlwaysFalse && Res1.isFalse();
+        RHSAlwaysTrue = RHSAlwaysTrue && Res2.isTrue();
+        RHSAlwaysFalse = RHSAlwaysFalse && Res2.isFalse();
       }
 
       if (AlwaysTrue || AlwaysFalse) {
@@ -4540,7 +4540,7 @@ CFGBlock *CFGBuilder::VisitSwitchStmt(SwitchStmt *Terminator) {
   //       BuildOpts.SwitchReqDefaultCoveredEnum is true.
   bool SwitchAlwaysHasSuccessor = false;
   SwitchAlwaysHasSuccessor = SwitchAlwaysHasSuccessor || switchExclusivelyCovered;
-  SwitchAlwaysHasSuccessor |=
+  SwitchAlwaysHasSuccessor = SwitchAlwaysHasSuccessor ||
       !BuildOpts.AssumeReachableDefaultInSwitchStatements &&
       Terminator->isAllEnumCasesCovered() && Terminator->getSwitchCaseList();
   addSuccessor(SwitchTerminatedBlock, DefaultCaseBlock,

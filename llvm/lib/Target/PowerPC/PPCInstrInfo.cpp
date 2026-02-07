@@ -3999,7 +3999,7 @@ bool PPCInstrInfo::combineRLWINM(MachineInstr &MI,
     LLVM_DEBUG(dbgs() << "To: ");
     LLVM_DEBUG(MI.dump());
   }
-  if (Simplified & MRI->use_nodbg_empty(FoldingReg) &&
+  if (Simplified && MRI->use_nodbg_empty(FoldingReg) &&
       !SrcMI->hasImplicitDef()) {
     // If FoldingReg has no non-debug use and it has no implicit def (it
     // is not RLWINMO or RLWINM8o), it's safe to delete its def SrcMI.
@@ -4793,7 +4793,7 @@ bool PPCInstrInfo::simplifyToLI(MachineInstr &MI, MachineInstr &DefMI,
     // and not clear the left bits. If we're setting the CR bit, we will use
     // ANDI_rec which won't sign extend, so that's safe.
     bool ValueFits = isUInt<15>(InVal.getSExtValue());
-    ValueFits |= ((Opc == PPC::RLWINM_rec || Opc == PPC::RLWINM8_rec) &&
+    ValueFits = ValueFits || ((Opc == PPC::RLWINM_rec || Opc == PPC::RLWINM8_rec) &&
                   isUInt<16>(InVal.getSExtValue()));
     if (ValueFits) {
       ReplaceWithLI = true;
@@ -5581,8 +5581,8 @@ PPCInstrInfo::isSignOrZeroExtended(const unsigned Reg,
         &MF->getFunction().getEntryBlock()) {
       Register VReg = MI->getOperand(0).getReg();
       if (MF->getRegInfo().isLiveIn(VReg)) {
-        IsSExt |= FuncInfo->isLiveInSExt(VReg);
-        IsZExt |= FuncInfo->isLiveInZExt(VReg);
+        IsSExt = IsSExt || FuncInfo->isLiveInSExt(VReg);
+        IsZExt = IsZExt || FuncInfo->isLiveInZExt(VReg);
         return std::pair<bool, bool>(IsSExt, IsZExt);
       }
     }
@@ -5618,8 +5618,8 @@ PPCInstrInfo::isSignOrZeroExtended(const unsigned Reg,
     const IntegerType *IntTy = dyn_cast<IntegerType>(CalleeFn->getReturnType());
     if (IntTy && IntTy->getBitWidth() <= 32) {
       const AttributeSet &Attrs = CalleeFn->getAttributes().getRetAttrs();
-      IsSExt |= Attrs.hasAttribute(Attribute::SExt);
-      IsZExt |= Attrs.hasAttribute(Attribute::ZExt);
+      IsSExt = IsSExt || Attrs.hasAttribute(Attribute::SExt);
+      IsZExt = IsZExt || Attrs.hasAttribute(Attribute::ZExt);
       return std::pair<bool, bool>(IsSExt, IsZExt);
     }
 

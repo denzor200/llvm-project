@@ -189,7 +189,7 @@ bool X86FastTileConfigImpl::runOnMachineFunction(MachineFunction &MFunc) {
 
   // Loop over all of the basic blocks, eliminating virtual register references
   for (MachineBasicBlock &MBB : MFunc)
-    Change |= configBasicBlock(MBB);
+    Change = Change || configBasicBlock(MBB);
 
   return Change;
 }

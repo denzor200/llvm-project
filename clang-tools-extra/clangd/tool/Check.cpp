@@ -472,8 +472,8 @@ bool check(llvm::StringRef File, const ThreadsafeFS &TFS,
     if (RangeStr.empty()) {
       End = Begin;
     } else {
-      ParseError |= !RangeStr.consume_front("-");
-      ParseError |= RangeStr.consumeInteger(0, End);
+      ParseError = ParseError || !RangeStr.consume_front("-");
+      ParseError = ParseError || RangeStr.consumeInteger(0, End);
     }
     if (ParseError || !RangeStr.empty() || Begin <= 0 || End < Begin) {
       elog("Invalid --check-lines specified. Use Begin-End format, e.g. 3-17");

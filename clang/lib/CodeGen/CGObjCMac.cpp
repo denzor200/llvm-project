@@ -6663,7 +6663,7 @@ void CGObjCNonFragileABIMac::GenerateCategory(const ObjCCategoryImplDecl *OCD) {
     values.add(protocolList);
     values.add(propertyList);
     values.add(classPropertyList);
-    isEmptyCategory &= protocolList->isNullValue() &&
+    isEmptyCategory = isEmptyCategory && protocolList->isNullValue() &&
                        propertyList->isNullValue() &&
                        classPropertyList->isNullValue();
   } else {

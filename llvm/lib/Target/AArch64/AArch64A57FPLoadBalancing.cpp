@@ -317,7 +317,7 @@ bool AArch64A57FPLoadBalancing::runOnMachineFunction(MachineFunction &F) {
   RCI.runOnMachineFunction(F);
 
   for (auto &MBB : F) {
-    Changed |= runOnBasicBlock(MBB);
+    Changed = Changed || runOnBasicBlock(MBB);
   }
 
   return Changed;
@@ -393,7 +393,7 @@ bool AArch64A57FPLoadBalancing::runOnBasicBlock(MachineBasicBlock &MBB) {
   int Parity = 0;
 
   for (auto &I : V)
-    Changed |= colorChainSet(std::move(I), MBB, Parity);
+    Changed = Changed || colorChainSet(std::move(I), MBB, Parity);
 
   return Changed;
 }
@@ -482,7 +482,7 @@ bool AArch64A57FPLoadBalancing::colorChainSet(std::vector<Chain*> GV,
                         << ColorNames[(int)C] << "\n");
     }
 
-    Changed |= colorChain(G, C, MBB);
+    Changed = Changed || colorChain(G, C, MBB);
 
     Parity += (C == Color::Even) ? G->size() : -G->size();
     PreferredColor = Parity < 0 ? Color::Even : Color::Odd;

@@ -40,11 +40,11 @@ static bool runOnBasicBlock(BasicBlock &BB) {
   bool Changed = false;
   for (Instruction &Inst : make_early_inc_range(BB)) {
     if (FenceInst *FI = dyn_cast<FenceInst>(&Inst))
-      Changed |= LowerFenceInst(FI);
+      Changed = Changed || LowerFenceInst(FI);
     else if (AtomicCmpXchgInst *CXI = dyn_cast<AtomicCmpXchgInst>(&Inst))
-      Changed |= lowerAtomicCmpXchgInst(CXI);
+      Changed = Changed || lowerAtomicCmpXchgInst(CXI);
     else if (AtomicRMWInst *RMWI = dyn_cast<AtomicRMWInst>(&Inst))
-      Changed |= lowerAtomicRMWInst(RMWI);
+      Changed = Changed || lowerAtomicRMWInst(RMWI);
     else if (LoadInst *LI = dyn_cast<LoadInst>(&Inst)) {
       if (LI->isAtomic())
         LowerLoadInst(LI);
@@ -59,7 +59,7 @@ static bool runOnBasicBlock(BasicBlock &BB) {
 static bool lowerAtomics(Function &F) {
   bool Changed = false;
   for (BasicBlock &BB : F) {
-    Changed |= runOnBasicBlock(BB);
+    Changed = Changed || runOnBasicBlock(BB);
   }
   return Changed;
 }

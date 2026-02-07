@@ -78,7 +78,7 @@ bool RISCVZacasABIFix::runOnFunction(Function &F) {
   bool MadeChange = false;
   for (auto &BB : F)
     for (Instruction &I : llvm::make_early_inc_range(BB))
-      MadeChange |= visit(I);
+      MadeChange = MadeChange || visit(I);
 
   return MadeChange;
 }

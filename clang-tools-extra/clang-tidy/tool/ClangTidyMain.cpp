@@ -706,12 +706,12 @@ int clangTidyMain(int argc, const char **argv) {
     bool AnyInvalid = false;
     for (const auto &[Opts, Source] : RawOptions) {
       if (Opts.Checks)
-        AnyInvalid |= verifyChecks(Valid.Checks, *Opts.Checks, Source);
+        AnyInvalid = AnyInvalid || verifyChecks(Valid.Checks, *Opts.Checks, Source);
       if (Opts.HeaderFileExtensions && Opts.ImplementationFileExtensions)
-        AnyInvalid |=
+        AnyInvalid = AnyInvalid ||
             verifyFileExtensions(*Opts.HeaderFileExtensions,
                                  *Opts.ImplementationFileExtensions, Source);
-      AnyInvalid |= verifyOptions(Valid.Options, Opts.CheckOptions, Source);
+      AnyInvalid = AnyInvalid || verifyOptions(Valid.Options, Opts.CheckOptions, Source);
     }
     if (AnyInvalid)
       return 1;

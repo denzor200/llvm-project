@@ -378,7 +378,7 @@ bool WebAssemblyAsmTypeCheck::checkTryTable(SMLoc ErrorLoc,
             ErrorMsgBase + "type mismatch, catch tag type is " +
             getTypesString(SentTypes) + ", but destination's type is " +
             getTypesString(DestTypes);
-        Error |= typeError(ErrorLoc, ErrorMsg);
+        Error = Error || typeError(ErrorLoc, ErrorMsg);
       }
     } else {
       Error = typeError(ErrorLoc, ErrorMsgBase + "invalid depth " +
@@ -458,7 +458,7 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
       Error = true;
       PopTypes.push_back(Any{});
     }
-    Error |= popTypes(ErrorLoc, PopTypes);
+    Error = Error || popTypes(ErrorLoc, PopTypes);
     return Error;
   }
 
@@ -478,7 +478,7 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
       PopTypes.push_back(Any{});
     }
     PopTypes.push_back(wasm::ValType::I32);
-    Error |= popTypes(ErrorLoc, PopTypes);
+    Error = Error || popTypes(ErrorLoc, PopTypes);
     pushType(wasm::ValType::I32);
     return Error;
   }
@@ -494,31 +494,31 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
       PopTypes.push_back(Any{});
     }
     PopTypes.push_back(wasm::ValType::I32);
-    Error |= popTypes(ErrorLoc, PopTypes);
+    Error = Error || popTypes(ErrorLoc, PopTypes);
     return Error;
   }
 
   if (Name == "memory.fill") {
     Type = Is64 ? wasm::ValType::I64 : wasm::ValType::I32;
     bool Error = popType(ErrorLoc, Type);
-    Error |= popType(ErrorLoc, wasm::ValType::I32);
-    Error |= popType(ErrorLoc, Type);
+    Error = Error || popType(ErrorLoc, wasm::ValType::I32);
+    Error = Error || popType(ErrorLoc, Type);
     return Error;
   }
 
   if (Name == "memory.copy") {
     Type = Is64 ? wasm::ValType::I64 : wasm::ValType::I32;
     bool Error = popType(ErrorLoc, Type);
-    Error |= popType(ErrorLoc, Type);
-    Error |= popType(ErrorLoc, Type);
+    Error = Error || popType(ErrorLoc, Type);
+    Error = Error || popType(ErrorLoc, Type);
     return Error;
   }
 
   if (Name == "memory.init") {
     Type = Is64 ? wasm::ValType::I64 : wasm::ValType::I32;
     bool Error = popType(ErrorLoc, wasm::ValType::I32);
-    Error |= popType(ErrorLoc, wasm::ValType::I32);
-    Error |= popType(ErrorLoc, Type);
+    Error = Error || popType(ErrorLoc, wasm::ValType::I32);
+    Error = Error || popType(ErrorLoc, Type);
     return Error;
   }
 
@@ -530,9 +530,9 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
       Name == "try_table") {
     bool Error = Name == "if" && popType(ErrorLoc, wasm::ValType::I32);
     // Pop block input parameters and check their types are correct
-    Error |= popTypes(ErrorLoc, LastSig.Params);
+    Error = Error || popTypes(ErrorLoc, LastSig.Params);
     if (Name == "try_table")
-      Error |= checkTryTable(ErrorLoc, Inst);
+      Error = Error || checkTryTable(ErrorLoc, Inst);
     // Push a new block info
     BlockInfoStack.push_back({LastSig, Stack.size(), Name == "loop"});
     // Push back block input parameters
@@ -576,7 +576,7 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
   if (Name == "br" || Name == "br_if") {
     bool Error = false;
     if (Name == "br_if")
-      Error |= popType(ErrorLoc, wasm::ValType::I32); // cond
+      Error = Error || popType(ErrorLoc, wasm::ValType::I32); // cond
     const MCOperand &Operand = Inst.getOperand(0);
     if (Operand.isImm()) {
       unsigned Level = Operand.getImm();
@@ -584,9 +584,9 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
         const auto &DestBlockInfo =
             BlockInfoStack[BlockInfoStack.size() - Level - 1];
         if (DestBlockInfo.IsLoop)
-          Error |= checkTypes(ErrorLoc, DestBlockInfo.Sig.Params, false);
+          Error = Error || checkTypes(ErrorLoc, DestBlockInfo.Sig.Params, false);
         else
-          Error |= checkTypes(ErrorLoc, DestBlockInfo.Sig.Returns, false);
+          Error = Error || checkTypes(ErrorLoc, DestBlockInfo.Sig.Returns, false);
       } else {
         Error = typeError(ErrorLoc, StringRef("br: invalid depth ") +
                                         std::to_string(Level));
@@ -609,9 +609,9 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
   if (Name == "call_indirect" || Name == "return_call_indirect") {
     // Function value.
     bool Error = popType(ErrorLoc, wasm::ValType::I32);
-    Error |= checkSig(ErrorLoc, LastSig);
+    Error = Error || checkSig(ErrorLoc, LastSig);
     if (Name == "return_call_indirect") {
-      Error |= endOfFunction(ErrorLoc, false);
+      Error = Error || endOfFunction(ErrorLoc, false);
       pushType(Polymorphic{});
     }
     return Error;
@@ -622,11 +622,11 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
     const wasm::WasmSignature *Sig = nullptr;
     if (!getSignature(Operands[1]->getStartLoc(), Inst.getOperand(0),
                       wasm::WASM_SYMBOL_TYPE_FUNCTION, Sig))
-      Error |= checkSig(ErrorLoc, *Sig);
+      Error = Error || checkSig(ErrorLoc, *Sig);
     else
       Error = true;
     if (Name == "return_call") {
-      Error |= endOfFunction(ErrorLoc, false);
+      Error = Error || endOfFunction(ErrorLoc, false);
       pushType(Polymorphic{});
     }
     return Error;
@@ -648,7 +648,7 @@ bool WebAssemblyAsmTypeCheck::typeCheck(SMLoc ErrorLoc, const MCInst &Inst,
     const wasm::WasmSignature *Sig = nullptr;
     if (!getSignature(Operands[1]->getStartLoc(), Inst.getOperand(0),
                       wasm::WASM_SYMBOL_TYPE_TAG, Sig))
-      Error |= checkSig(ErrorLoc, *Sig);
+      Error = Error || checkSig(ErrorLoc, *Sig);
     else
       Error = true;
     pushType(Polymorphic{});

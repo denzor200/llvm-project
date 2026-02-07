@@ -76,7 +76,7 @@ bool PPCExpandAtomicPseudo::runOnMachineFunction(MachineFunction &MF) {
          MBBI != MBBE;) {
       MachineInstr &MI = *MBBI;
       MachineBasicBlock::iterator NMBBI = std::next(MBBI);
-      Changed |= expandMI(MBB, MI, NMBBI);
+      Changed = Changed || expandMI(MBB, MI, NMBBI);
       MBBI = NMBBI;
     }
   }

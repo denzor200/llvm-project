@@ -18,7 +18,7 @@ two:
 
 .text
 .balign 4
-DEFINE_COMPILERRT_FUNCTION(__floatundisf)
+DEFINE_COMPILERRT_FUNCTION(int__floatundisf)
 	movq		$1,			%rsi
 	testq		%rdi,		%rdi
 	js			1f

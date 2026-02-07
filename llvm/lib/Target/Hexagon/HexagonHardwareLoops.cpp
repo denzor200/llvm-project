@@ -388,7 +388,7 @@ bool HexagonHardwareLoops::runOnMachineFunction(MachineFunction &MF) {
     if (L->isOutermost()) {
       bool L0Used = false;
       bool L1Used = false;
-      Changed |= convertToHardwareLoop(L, L0Used, L1Used);
+      Changed = Changed || convertToHardwareLoop(L, L0Used, L1Used);
     }
 
   return Changed;
@@ -1171,7 +1171,7 @@ bool HexagonHardwareLoops::convertToHardwareLoop(MachineLoop *L,
 
   // Process nested loops first.
   for (MachineLoop *I : *L) {
-    Changed |= convertToHardwareLoop(I, RecL0used, RecL1used);
+    Changed = Changed || convertToHardwareLoop(I, RecL0used, RecL1used);
     L0Used = L0Used || RecL0used;
     L1Used = L1Used || RecL1used;
   }

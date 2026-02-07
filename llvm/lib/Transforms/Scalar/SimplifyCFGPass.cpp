@@ -216,7 +216,7 @@ static bool tailMergeBlocksWithSimilarFunctionTerminators(Function &F,
   std::vector<DominatorTree::UpdateType> Updates;
 
   for (ArrayRef<BasicBlock *> BBs : make_second_range(Structure))
-    Changed |= performBlockTailMerging(F, BBs, DTU ? &Updates : nullptr);
+    Changed = Changed || performBlockTailMerging(F, BBs, DTU ? &Updates : nullptr);
 
   if (DTU)
     DTU->applyUpdates(Updates);
@@ -275,9 +275,9 @@ static bool simplifyFunctionCFGImpl(Function &F, const TargetTransformInfo &TTI,
   DomTreeUpdater DTU(DT, DomTreeUpdater::UpdateStrategy::Eager);
 
   bool EverChanged = removeUnreachableBlocks(F, DT ? &DTU : nullptr);
-  EverChanged |=
+  EverChanged = EverChanged ||
       tailMergeBlocksWithSimilarFunctionTerminators(F, DT ? &DTU : nullptr);
-  EverChanged |= iterativelySimplifyCFG(F, TTI, DT ? &DTU : nullptr, Options);
+  EverChanged = EverChanged || iterativelySimplifyCFG(F, TTI, DT ? &DTU : nullptr, Options);
 
   // If neither pass changed anything, we're done.
   if (!EverChanged) return false;
@@ -292,7 +292,7 @@ static bool simplifyFunctionCFGImpl(Function &F, const TargetTransformInfo &TTI,
 
   do {
     EverChanged = iterativelySimplifyCFG(F, TTI, DT ? &DTU : nullptr, Options);
-    EverChanged |= removeUnreachableBlocks(F, DT ? &DTU : nullptr);
+    EverChanged = EverChanged || removeUnreachableBlocks(F, DT ? &DTU : nullptr);
   } while (EverChanged);
 
   return true;

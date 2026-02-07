@@ -180,7 +180,7 @@ void SymbolQualitySignals::merge(const CodeCompletionResult &SemaCCResult) {
   Category = categorize(SemaCCResult);
 
   if (SemaCCResult.Declaration) {
-    ImplementationDetail |= isImplementationDetail(SemaCCResult.Declaration);
+    ImplementationDetail = ImplementationDetail || isImplementationDetail(SemaCCResult.Declaration);
     if (auto *ID = SemaCCResult.Declaration->getIdentifier())
       ReservedName = ReservedName || isReservedName(ID->getName());
   } else if (SemaCCResult.Kind == CodeCompletionResult::RK_Macro)
@@ -286,7 +286,7 @@ computeScope(const NamedDecl *D) {
 void SymbolRelevanceSignals::merge(const Symbol &IndexResult) {
   SymbolURI = IndexResult.CanonicalDeclaration.FileURI;
   SymbolScope = IndexResult.Scope;
-  IsInstanceMember |= isInstanceMember(IndexResult.SymInfo);
+  IsInstanceMember = IsInstanceMember || isInstanceMember(IndexResult.SymInfo);
   if (!(IndexResult.Flags & Symbol::VisibleOutsideFile)) {
     Scope = AccessibleScope::FileScope;
   }
@@ -341,7 +341,7 @@ void SymbolRelevanceSignals::merge(const CodeCompletionResult &SemaCCResult) {
                               ? 1.0
                               : 0.6;
     SemaFileProximityScore = std::max(DeclProximity, SemaFileProximityScore);
-    IsInstanceMember |= isInstanceMember(SemaCCResult.Declaration);
+    IsInstanceMember = IsInstanceMember || isInstanceMember(SemaCCResult.Declaration);
     InBaseClass = InBaseClass || SemaCCResult.InBaseClass;
   }
 

@@ -786,11 +786,11 @@ bool remove_dots(SmallVectorImpl<char> &the_path, bool remove_dot_dot,
 
     // Eat the slash, and check if it is the preferred separator.
     if (!remaining.empty()) {
-      needs_change |= remaining.front() != preferred_separator(style);
+      needs_change = needs_change || remaining.front() != preferred_separator(style);
       remaining = remaining.drop_front();
       // The path needs to be rewritten if it has a trailing slash.
       // FIXME: This is emergent behavior that could be removed.
-      needs_change |= remaining.empty();
+      needs_change = needs_change || remaining.empty();
     }
 
     // Check for path traversal components or double separators.
@@ -813,7 +813,7 @@ bool remove_dots(SmallVectorImpl<char> &the_path, bool remove_dot_dot,
   SmallString<256> buffer = root;
   // "root" could be "/", which may need to be translated into "\".
   make_preferred(buffer, style);
-  needs_change |= root != buffer;
+  needs_change = needs_change || root != buffer;
 
   // Avoid rewriting the path unless we have to.
   if (!needs_change)

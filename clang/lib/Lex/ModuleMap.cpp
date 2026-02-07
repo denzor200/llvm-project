@@ -470,7 +470,7 @@ static bool violatesPrivateInclude(Module *RequestingModule,
         Header.getModule()->getHeaders(Module::HK_Private),
         Header.getModule()->getHeaders(Module::HK_PrivateTextual)};
     for (auto Hs : HeaderList)
-      IsPrivate |= llvm::any_of(
+      IsPrivate = IsPrivate || llvm::any_of(
           Hs, [&](const Module::Header &H) { return H.Entry == IncFileEnt; });
     assert(IsPrivate && "inconsistent headers and roles");
   }

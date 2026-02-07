@@ -614,7 +614,7 @@ bool FixupStatepointCallerSavedImpl::run(MachineFunction &MF) {
     if (MaxStatepointsWithRegs.getNumOccurrences() &&
         NumStatepoints >= MaxStatepointsWithRegs)
       AllowGCPtrInCSR = false;
-    Changed |= SPP.process(*I, AllowGCPtrInCSR);
+    Changed = Changed || SPP.process(*I, AllowGCPtrInCSR);
   }
   return Changed;
 }

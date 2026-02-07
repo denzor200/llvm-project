@@ -147,7 +147,7 @@ bool SIPreEmitPeephole::optimizeVccBranch(MachineInstr &MI) const {
         return false;
       break;
     }
-    ReadsCond |= A->readsRegister(CondReg, TRI);
+    ReadsCond = ReadsCond || A->readsRegister(CondReg, TRI);
   }
   if (A == E)
     return false;
@@ -176,8 +176,8 @@ bool SIPreEmitPeephole::optimizeVccBranch(MachineInstr &MI) const {
         break;
       if (M->modifiesRegister(SReg, TRI))
         return Changed;
-      ReadsSreg |= M->readsRegister(SReg, TRI);
-      ModifiesExec |= M->modifiesRegister(ExecReg, TRI);
+      ReadsSreg = ReadsSreg || M->readsRegister(SReg, TRI);
+      ModifiesExec = ModifiesExec || M->modifiesRegister(ExecReg, TRI);
     }
     if (M == E)
       return Changed;
@@ -736,10 +736,10 @@ bool SIPreEmitPeephole::run(MachineFunction &MF) {
       switch (MI.getOpcode()) {
       case AMDGPU::S_CBRANCH_VCCZ:
       case AMDGPU::S_CBRANCH_VCCNZ:
-        Changed |= optimizeVccBranch(MI);
+        Changed = Changed || optimizeVccBranch(MI);
         break;
       case AMDGPU::S_CBRANCH_EXECZ:
-        Changed |= removeExeczBranch(MI, MBB);
+        Changed = Changed || removeExeczBranch(MI, MBB);
         break;
       }
     }

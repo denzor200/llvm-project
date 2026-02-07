@@ -54,7 +54,7 @@ bool NVPTXReplaceImageHandles::runOnMachineFunction(MachineFunction &MF) {
 
   for (MachineBasicBlock &MBB : MF)
     for (MachineInstr &MI : MBB)
-      Changed |= processInstr(MI);
+      Changed = Changed || processInstr(MI);
 
   // Now clean up any handle-access instructions
   // This is needed in debug mode when code cleanup passes are not executed,

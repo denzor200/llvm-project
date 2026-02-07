@@ -5280,7 +5280,7 @@ static void getIntOperandsFromRegisterString(StringRef RegString,
     for (StringRef Field : Fields) {
       // Need to trim out leading 'cp' characters and get the integer field.
       unsigned IntField;
-      AllIntFields &= !Field.trim("CPcp").getAsInteger(10, IntField);
+      AllIntFields = AllIntFields && !Field.trim("CPcp").getAsInteger(10, IntField);
       Ops.push_back(CurDAG->getTargetConstant(IntField, DL, MVT::i32));
     }
 

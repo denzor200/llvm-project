@@ -411,7 +411,7 @@ static bool replaceFoldableUses(Instruction *Cond, Value *ToVal,
     // of BB, where we know Cond is ToVal.
     if (!isGuaranteedToTransferExecutionToSuccessor(&I))
       break;
-    Changed |= I.replaceUsesOfWith(Cond, ToVal);
+    Changed = Changed || I.replaceUsesOfWith(Cond, ToVal);
   }
   if (Cond->use_empty() && !Cond->mayHaveSideEffects()) {
     Cond->eraseFromParent();

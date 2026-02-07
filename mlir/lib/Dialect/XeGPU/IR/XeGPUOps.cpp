@@ -379,7 +379,7 @@ LogicalResult CreateNdDescOp::verify() {
   // check source type matches the rank if it is a memref.
   // It also should have the same ElementType as TensorDesc.
   if (auto memrefTy = dyn_cast<MemRefType>(getSourceType()))
-    invalidElemTy |= memrefTy.getElementType() != getElementType();
+    invalidElemTy = invalidElemTy || memrefTy.getElementType() != getElementType();
 
   if (llvm::isa<IntegerType>(getSourceType())) {
     // strides and shape must present for integer source.

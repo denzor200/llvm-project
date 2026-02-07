@@ -1305,7 +1305,7 @@ bool SIPeepholeSDWA::convertToSDWA(MachineInstr &MI,
     // was already destroyed). So if SDWAOperand is also a potential MI then do
     // not apply it.
     if (PotentialMatches.count(Operand->getParentInst()) == 0)
-      Converted |= Operand->convertToSDWA(*SDWAInst, TII);
+      Converted = Converted || Operand->convertToSDWA(*SDWAInst, TII);
   }
 
   if (!Converted) {

@@ -139,7 +139,7 @@ static const Type *getFullyQualifiedTemplateType(const ASTContext &Ctx,
     // cheap to copy and potentially modified by
     // getFullyQualifedTemplateArgument
     TemplateArgument Arg(TemplateArgs[I]);
-    MightHaveChanged |=
+    MightHaveChanged = MightHaveChanged ||
         getFullyQualifiedTemplateArgument(Ctx, Arg, WithGlobalNsPrefix);
     FQArgs.push_back(Arg);
   }
@@ -172,7 +172,7 @@ getFullyQualifiedTemplateType(const ASTContext &Ctx,
   // Cheap to copy and potentially modified by
   // getFullyQualifedTemplateArgument.
   for (TemplateArgument Arg : TST->template_arguments()) {
-    MightHaveChanged |=
+    MightHaveChanged = MightHaveChanged ||
         getFullyQualifiedTemplateArgument(Ctx, Arg, WithGlobalNsPrefix);
     FQArgs.push_back(Arg);
   }

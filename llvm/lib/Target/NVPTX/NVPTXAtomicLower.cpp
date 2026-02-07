@@ -50,7 +50,7 @@ bool NVPTXAtomicLower::runOnFunction(Function &F) {
 
   bool Changed = false;
   for (AtomicRMWInst *RMWI : LocalMemoryAtomics)
-    Changed |= lowerAtomicRMWInst(RMWI);
+    Changed = Changed || lowerAtomicRMWInst(RMWI);
   return Changed;
 }
 

@@ -39,7 +39,7 @@ void ClassDefinitionDumper::start(const ClassLayout &Layout) {
   prettyPrintClassIntro(Layout);
 
   PrettyClassLayoutGraphicalDumper Dumper(Printer, 1, 0);
-  DumpedAnything |= Dumper.start(Layout);
+  DumpedAnything = DumpedAnything || Dumper.start(Layout);
 
   prettyPrintClassOutro(Layout);
 }

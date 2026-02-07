@@ -144,7 +144,7 @@ static bool runUniformIntrinsicCombine(Function &F, const UniformityInfo &UI) {
     auto *II = dyn_cast<IntrinsicInst>(&I);
     if (!II)
       continue;
-    IsChanged |= optimizeUniformIntrinsic(*II, UI, Tracker);
+    IsChanged = IsChanged || optimizeUniformIntrinsic(*II, UI, Tracker);
   }
   return IsChanged;
 }

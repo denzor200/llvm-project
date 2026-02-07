@@ -223,10 +223,10 @@ int Disassembler::disassemble(const Target &T, MCSubtargetInfo &STI,
     }
 
     // It's a real token, get the bytes and emit them
-    ErrorOccurred |= byteArrayFromString(ByteArray, Str, SM, HexBytes);
+    ErrorOccurred = ErrorOccurred || byteArrayFromString(ByteArray, Str, SM, HexBytes);
 
     if (!ByteArray.first.empty())
-      ErrorOccurred |= printInsts(*DisAsm, ByteArray, SM, Streamer,
+      ErrorOccurred = ErrorOccurred || printInsts(*DisAsm, ByteArray, SM, Streamer,
                                   InAtomicBlock, STI, NumBenchmarkRuns);
   }
 

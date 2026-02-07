@@ -459,9 +459,9 @@ static bool hasPCRelativeForm(MachineInstr &Use) {
       const TargetRegisterInfo *TRI = MF.getSubtarget().getRegisterInfo();
       SmallVector<MachineInstr *, 4> InstrsToErase;
       for (MachineBasicBlock &MBB : MF) {
-        Changed |= removeRedundantLIs(MBB, TRI);
-        Changed |= addLinkerOpt(MBB, TRI);
-        Changed |= removeAccPrimeUnprime(MBB);
+        Changed = Changed || removeRedundantLIs(MBB, TRI);
+        Changed = Changed || addLinkerOpt(MBB, TRI);
+        Changed = Changed || removeAccPrimeUnprime(MBB);
         for (MachineInstr &MI : MBB) {
           unsigned Opc = MI.getOpcode();
           if (Opc == PPC::UNENCODED_NOP) {

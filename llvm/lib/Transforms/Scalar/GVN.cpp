@@ -2027,7 +2027,7 @@ bool GVNPass::processNonLocalLoad(LoadInst *Load) {
           dyn_cast<GetElementPtrInst>(Load->getOperand(0))) {
     for (Use &U : GEP->indices())
       if (Instruction *I = dyn_cast<Instruction>(U.get()))
-        Changed |= performScalarPRE(I);
+        Changed = Changed || performScalarPRE(I);
   }
 
   // Step 2: Analyze the availability of the load.
@@ -2716,11 +2716,11 @@ bool GVNPass::processInstruction(Instruction *I) {
 
     Value *TrueVal = ConstantInt::getTrue(TrueSucc->getContext());
     BasicBlockEdge TrueE(Parent, TrueSucc);
-    Changed |= propagateEquality(BranchCond, TrueVal, TrueE);
+    Changed = Changed || propagateEquality(BranchCond, TrueVal, TrueE);
 
     Value *FalseVal = ConstantInt::getFalse(FalseSucc->getContext());
     BasicBlockEdge FalseE(Parent, FalseSucc);
-    Changed |= propagateEquality(BranchCond, FalseVal, FalseE);
+    Changed = Changed || propagateEquality(BranchCond, FalseVal, FalseE);
 
     return Changed;
   }
@@ -2741,7 +2741,7 @@ bool GVNPass::processInstruction(Instruction *I) {
       // If there is only a single edge, propagate the case value into it.
       if (SwitchEdges.lookup(Dst) == 1) {
         BasicBlockEdge E(Parent, Dst);
-        Changed |= propagateEquality(SwitchCond, Case.getCaseValue(), E);
+        Changed = Changed || propagateEquality(SwitchCond, Case.getCaseValue(), E);
       }
     }
     return Changed;
@@ -2876,12 +2876,12 @@ bool GVNPass::processBlock(BasicBlock *BB) {
   // obvious duplicates.  The first pass of GVN will tend to create
   // identical phis, and the second or later passes can eliminate them.
   SmallPtrSet<PHINode *, 8> PHINodesToRemove;
-  ChangedFunction |= EliminateDuplicatePHINodes(BB, PHINodesToRemove);
+  ChangedFunction = ChangedFunction || EliminateDuplicatePHINodes(BB, PHINodesToRemove);
   for (PHINode *PN : PHINodesToRemove) {
     removeInstruction(PN);
   }
   for (Instruction &Inst : make_early_inc_range(*BB))
-    ChangedFunction |= processInstruction(&Inst);
+    ChangedFunction = ChangedFunction || processInstruction(&Inst);
   return ChangedFunction;
 }
 
@@ -3113,7 +3113,7 @@ bool GVNPass::performPRE(Function &F) {
                               BE = CurrentBlock->end();
          BI != BE;) {
       Instruction *CurInst = &*BI++;
-      Changed |= performScalarPRE(CurInst);
+      Changed = Changed || performScalarPRE(CurInst);
     }
   }
 
@@ -3148,7 +3148,7 @@ bool GVNPass::splitCriticalEdges() {
   bool Changed = false;
   do {
     std::pair<Instruction *, unsigned> Edge = ToSplit.pop_back_val();
-    Changed |= SplitCriticalEdge(Edge.first, Edge.second,
+    Changed = Changed || SplitCriticalEdge(Edge.first, Edge.second,
                                  CriticalEdgeSplittingOptions(DT, LI, MSSAU)) !=
                nullptr;
   } while (!ToSplit.empty());
@@ -3172,7 +3172,7 @@ bool GVNPass::iterateOnFunction(Function &F) {
   ReversePostOrderTraversal<Function *> RPOT(&F);
 
   for (BasicBlock *BB : RPOT)
-    Changed |= processBlock(BB);
+    Changed = Changed || processBlock(BB);
 
   return Changed;
 }

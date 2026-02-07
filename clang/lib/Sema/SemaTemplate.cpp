@@ -458,7 +458,7 @@ bool Sema::LookupTemplateName(LookupResult &Found, Scope *S, CXXScopeSpec &SS,
     // of the postfix-expression finds a type template. In the latter case, the
     // name is nonetheless dependent, and we may resolve it to a member of an
     // unknown specialization when we come to instantiate the template.
-    IsDependent |= Found.wasNotFoundInCurrentInstantiation();
+    IsDependent = IsDependent || Found.wasNotFoundInCurrentInstantiation();
   }
 
   if (SS.isEmpty() && (ObjectType.isNull() || Found.empty())) {
@@ -482,7 +482,7 @@ bool Sema::LookupTemplateName(LookupResult &Found, Scope *S, CXXScopeSpec &SS,
       ObjectTypeSearchedInScope = true;
     }
 
-    IsDependent |= Found.wasNotFoundInCurrentInstantiation();
+    IsDependent = IsDependent || Found.wasNotFoundInCurrentInstantiation();
   }
 
   if (Found.isAmbiguous())
@@ -1607,7 +1607,7 @@ NamedDecl *Sema::ActOnNonTypeTemplateParameter(Scope *S, Declarator &D,
         assert(TL.getConceptReference()->getTemplateArgsAsWritten());
         for (auto &Loc :
              TL.getConceptReference()->getTemplateArgsAsWritten()->arguments())
-          Invalid |= DiagnoseUnexpandedParameterPack(
+          Invalid = Invalid || DiagnoseUnexpandedParameterPack(
               Loc, UnexpandedParameterPackContext::UPPC_TypeConstraint);
       }
       if (!Invalid &&

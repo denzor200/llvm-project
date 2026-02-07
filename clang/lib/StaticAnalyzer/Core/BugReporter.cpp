@@ -488,7 +488,7 @@ static bool removeUnneededCalls(const PathDiagnosticConstruct &C,
 
         // We never throw away an event, but we do throw it away wholesale
         // as part of a path if we throw the entire path away.
-        containsSomethingInteresting |= !event.isPrunable();
+        containsSomethingInteresting = containsSomethingInteresting || !event.isPrunable();
         break;
       }
       case PathDiagnosticPiece::ControlFlow:

@@ -248,7 +248,7 @@ static bool suppressAPXForRelocation(MachineFunction &MF) {
     return false;
   const X86Subtarget &ST = MF.getSubtarget<X86Subtarget>();
   bool Changed = handleInstructionWithEGPR(MF, ST);
-  Changed |= handleNDDOrNFInstructions(MF, ST);
+  Changed = Changed || handleNDDOrNFInstructions(MF, ST);
 
   return Changed;
 }

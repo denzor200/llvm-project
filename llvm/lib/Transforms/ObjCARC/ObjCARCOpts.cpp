@@ -1336,7 +1336,7 @@ bool ObjCARCOpt::VisitInstructionBottomUp(
     Arg = GetArgRCIdentityRoot(Inst);
 
     BottomUpPtrState &S = MyStates.getPtrBottomUpState(Arg);
-    NestingDetected |= S.InitBottomUp(MDKindCache, Inst);
+    NestingDetected = NestingDetected || S.InitBottomUp(MDKindCache, Inst);
     break;
   }
   case ARCInstKind::RetainBlock:
@@ -1431,7 +1431,7 @@ bool ObjCARCOpt::VisitBottomUp(BasicBlock *BB,
 
     LLVM_DEBUG(dbgs() << "    Visiting " << *Inst << "\n");
 
-    NestingDetected |= VisitInstructionBottomUp(Inst, BB, Retains, MyStates);
+    NestingDetected = NestingDetected || VisitInstructionBottomUp(Inst, BB, Retains, MyStates);
 
     // Bail out if the number of pointers being tracked becomes too large so
     // that this pass can complete in a reasonable amount of time.
@@ -1448,7 +1448,7 @@ bool ObjCARCOpt::VisitBottomUp(BasicBlock *BB,
        PE(MyStates.pred_end()); PI != PE; ++PI) {
     BasicBlock *Pred = *PI;
     if (InvokeInst *II = dyn_cast<InvokeInst>(&Pred->back()))
-      NestingDetected |= VisitInstructionBottomUp(II, BB, Retains, MyStates);
+      NestingDetected = NestingDetected || VisitInstructionBottomUp(II, BB, Retains, MyStates);
   }
 
   LLVM_DEBUG(dbgs() << "\nFinal State:\n" << BBStates[BB] << "\n");
@@ -1525,7 +1525,7 @@ bool ObjCARCOpt::VisitInstructionTopDown(
   case ARCInstKind::RetainRV: {
     Arg = GetArgRCIdentityRoot(Inst);
     TopDownPtrState &S = MyStates.getPtrTopDownState(Arg);
-    NestingDetected |= S.InitTopDown(Class, Inst);
+    NestingDetected = NestingDetected || S.InitTopDown(Class, Inst);
     // A retain can be a potential use; proceed to the generic checking
     // code below.
     break;
@@ -1618,7 +1618,7 @@ bool ObjCARCOpt::VisitTopDown(
   for (Instruction &Inst : *BB) {
     LLVM_DEBUG(dbgs() << "    Visiting " << Inst << "\n");
 
-    NestingDetected |= VisitInstructionTopDown(
+    NestingDetected = NestingDetected || VisitInstructionTopDown(
         &Inst, Releases, MyStates, ReleaseInsertPtToRCIdentityRoots);
 
     // Bail out if the number of pointers being tracked becomes too large so
@@ -1734,7 +1734,7 @@ bool ObjCARCOpt::Visit(Function &F,
   // Use reverse-postorder on the reverse CFG for bottom-up.
   bool BottomUpNestingDetected = false;
   for (BasicBlock *BB : llvm::reverse(ReverseCFGPostOrder)) {
-    BottomUpNestingDetected |= VisitBottomUp(BB, BBStates, Retains);
+    BottomUpNestingDetected = BottomUpNestingDetected || VisitBottomUp(BB, BBStates, Retains);
     if (DisableRetainReleasePairing)
       return false;
   }
@@ -1746,7 +1746,7 @@ bool ObjCARCOpt::Visit(Function &F,
   // Use reverse-postorder for top-down.
   bool TopDownNestingDetected = false;
   for (BasicBlock *BB : llvm::reverse(PostOrder)) {
-    TopDownNestingDetected |=
+    TopDownNestingDetected = TopDownNestingDetected ||
         VisitTopDown(BB, BBStates, Releases, ReleaseInsertPtToRCIdentityRoots);
     if (DisableRetainReleasePairing)
       return false;

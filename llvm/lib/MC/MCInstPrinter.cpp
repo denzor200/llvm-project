@@ -70,11 +70,11 @@ static bool matchAliasCondition(const MCInst &MI, const MCSubtargetInfo *STI,
   // predicate result bit to whether the expression will return true, and only
   // return the real result at the end of list marker.
   if (C.Kind == AliasPatternCond::K_OrFeature) {
-    OrPredicateResult |= STI->getFeatureBits().test(C.Value);
+    OrPredicateResult = OrPredicateResult || STI->getFeatureBits().test(C.Value);
     return true;
   }
   if (C.Kind == AliasPatternCond::K_OrNegFeature) {
-    OrPredicateResult |= !(STI->getFeatureBits().test(C.Value));
+    OrPredicateResult = OrPredicateResult || !(STI->getFeatureBits().test(C.Value));
     return true;
   }
   if (C.Kind == AliasPatternCond::K_EndOrFeatures) {

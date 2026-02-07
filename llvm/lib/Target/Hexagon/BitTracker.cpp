@@ -200,7 +200,7 @@ bool BT::RegisterCell::meet(const RegisterCell &RC, Register SelfR) {
   bool Changed = false;
   for (uint16_t i = 0, n = Bits.size(); i < n; ++i) {
     const BitValue &RCV = RC[i];
-    Changed |= Bits[i].meet(RCV, BitRef(SelfR, i));
+    Changed = Changed || Bits[i].meet(RCV, BitRef(SelfR, i));
   }
   return Changed;
 }
@@ -822,7 +822,7 @@ void BT::visitPHI(const MachineInstr &PI) {
     if (Trace)
       dbgs() << " input reg: " << printReg(RU.Reg, &ME.TRI, RU.Sub)
              << " cell: " << ResC << "\n";
-    Changed |= DefC.meet(ResC, DefRR.Reg);
+    Changed = Changed || DefC.meet(ResC, DefRR.Reg);
   }
 
   if (Changed) {

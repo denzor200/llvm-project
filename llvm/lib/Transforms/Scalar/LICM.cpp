@@ -465,7 +465,7 @@ bool LoopInvariantCodeMotion::runOnLoop(Loop *L, AAResults *AA, LoopInfo *LI,
   // us to sink instructions in one pass, without iteration.  After sinking
   // instructions, we perform another pass to hoist them out of the loop.
   if (L->hasDedicatedExits())
-    Changed |=
+    Changed = Changed ||
         LoopNestMode
             ? sinkRegionForLoopNest(DT->getNode(L->getHeader()), AA, LI, DT,
                                     TLI, TTI, L, MSSAU, &SafetyInfo, Flags, ORE)
@@ -473,7 +473,7 @@ bool LoopInvariantCodeMotion::runOnLoop(Loop *L, AAResults *AA, LoopInfo *LI,
                          MSSAU, &SafetyInfo, Flags, ORE);
   Flags.setIsSink(false);
   if (Preheader)
-    Changed |= hoistRegion(DT->getNode(L->getHeader()), AA, LI, DT, AC, TLI, L,
+    Changed = Changed || hoistRegion(DT->getNode(L->getHeader()), AA, LI, DT, AC, TLI, L,
                            MSSAU, SE, &SafetyInfo, Flags, ORE, LoopNestMode,
                            LicmAllowSpeculation);
 
@@ -515,7 +515,7 @@ bool LoopInvariantCodeMotion::runOnLoop(Loop *L, AAResults *AA, LoopInfo *LI,
         LocalPromoted = false;
         for (auto [PointerMustAliases, HasReadsOutsideSet] :
              collectPromotionCandidates(MSSA, AA, L)) {
-          LocalPromoted |= promoteLoopAccessesToScalars(
+          LocalPromoted = LocalPromoted || promoteLoopAccessesToScalars(
               PointerMustAliases, ExitBlocks, InsertPts, MSSAInsertPts, PIC, LI,
               DT, AC, TLI, TTI, L, MSSAU, &SafetyInfo, ORE,
               LicmAllowSpeculation, HasReadsOutsideSet);
@@ -637,7 +637,7 @@ bool llvm::sinkRegionForLoopNest(DomTreeNode *N, AAResults *AA, LoopInfo *LI,
   appendLoopsToWorklist(*CurLoop, Worklist);
   while (!Worklist.empty()) {
     Loop *L = Worklist.pop_back_val();
-    Changed |= sinkRegion(DT->getNode(L->getHeader()), AA, LI, DT, TLI, TTI, L,
+    Changed = Changed || sinkRegion(DT->getNode(L->getHeader()), AA, LI, DT, TLI, TTI, L,
                           MSSAU, SafetyInfo, Flags, ORE, CurLoop);
   }
   return Changed;

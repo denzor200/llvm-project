@@ -294,7 +294,7 @@ bool AMDGPUCodeGenPrepareImpl::run() {
   for (BasicBlock &BB : reverse(F)) {
     for (Instruction &I : make_early_inc_range(reverse(BB))) {
       if (!isInstructionTriviallyDead(&I, TLI))
-        MadeChange |= visit(I);
+        MadeChange = MadeChange || visit(I);
     }
   }
 

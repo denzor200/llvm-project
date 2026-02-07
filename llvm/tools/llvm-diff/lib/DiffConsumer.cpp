@@ -152,7 +152,7 @@ void DiffConsumer::enterContext(const Value *L, const Value *R) {
 }
 
 void DiffConsumer::exitContext() {
-  Differences |= contexts.back().Differences;
+  Differences = Differences || contexts.back().Differences;
   contexts.pop_back();
   Indent -= 2;
 }

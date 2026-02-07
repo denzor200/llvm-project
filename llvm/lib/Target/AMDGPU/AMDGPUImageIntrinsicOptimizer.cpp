@@ -307,7 +307,7 @@ static bool imageIntrinsicOptimizerImpl(Function &F, const TargetMachine *TM) {
       SmallVector<SmallVector<IntrinsicInst *, 4>> MergeableInsts;
 
       SectionEnd = collectMergeableInsts(I, E, MergeableInsts);
-      Modified |= optimizeSection(MergeableInsts);
+      Modified = Modified || optimizeSection(MergeableInsts);
     }
   }
 

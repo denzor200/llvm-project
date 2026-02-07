@@ -283,7 +283,7 @@ public:
       StrippedAtomics = stripAtomics(M);
       StrippedTLS = stripThreadLocals(M);
     } else if (!Features[WebAssembly::FeatureBulkMemory]) {
-      StrippedTLS |= stripThreadLocals(M);
+      StrippedTLS = StrippedTLS || stripThreadLocals(M);
     }
 
     if (StrippedAtomics && !StrippedTLS)

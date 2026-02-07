@@ -197,13 +197,13 @@ class PPCBoolRetToInt : public FunctionPass {
       for (auto &I : BB) {
         if (auto *R = dyn_cast<ReturnInst>(&I))
           if (F.getReturnType()->isIntegerTy(1))
-            Changed |=
+            Changed = Changed ||
               runOnUse(R->getOperandUse(0), PromotablePHINodes, Bool2IntMap);
 
         if (auto *CI = dyn_cast<CallInst>(&I))
           for (auto &U : CI->operands())
             if (U->getType()->isIntegerTy(1))
-              Changed |= runOnUse(U, PromotablePHINodes, Bool2IntMap);
+              Changed = Changed || runOnUse(U, PromotablePHINodes, Bool2IntMap);
       }
     }
 

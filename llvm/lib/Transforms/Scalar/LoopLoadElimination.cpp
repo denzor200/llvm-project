@@ -658,7 +658,7 @@ static bool eliminateLoadsAcrossLoops(Function &F, LoopInfo &LI,
 
   for (Loop *TopLevelLoop : LI)
     for (Loop *L : depth_first(TopLevelLoop)) {
-      Changed |= simplifyLoop(L, &DT, &LI, SE, AC, /*MSSAU*/ nullptr, false);
+      Changed = Changed || simplifyLoop(L, &DT, &LI, SE, AC, /*MSSAU*/ nullptr, false);
       // We only handle inner-most loops.
       if (L->isInnermost())
         Worklist.push_back(L);
@@ -671,7 +671,7 @@ static bool eliminateLoadsAcrossLoops(Function &F, LoopInfo &LI,
       continue;
     // The actual work is performed by LoadEliminationForLoop.
     LoadEliminationForLoop LEL(L, &LI, LAIs.getInfo(*L), &DT, BFI, PSI);
-    Changed |= LEL.processLoop();
+    Changed = Changed || LEL.processLoop();
     if (Changed)
       LAIs.clear();
   }

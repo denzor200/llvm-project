@@ -207,11 +207,11 @@ public:
     bool Changed = false;
 
     // expand vastart before vacopy as vastart may introduce a vacopy
-    Changed |= expandIntrinsicUsers<Intrinsic::vastart, VAStartInst>(
+    Changed = Changed || expandIntrinsicUsers<Intrinsic::vastart, VAStartInst>(
         M, Builder, IntrinsicArgType);
-    Changed |= expandIntrinsicUsers<Intrinsic::vaend, VAEndInst>(
+    Changed = Changed || expandIntrinsicUsers<Intrinsic::vaend, VAEndInst>(
         M, Builder, IntrinsicArgType);
-    Changed |= expandIntrinsicUsers<Intrinsic::vacopy, VACopyInst>(
+    Changed = Changed || expandIntrinsicUsers<Intrinsic::vacopy, VACopyInst>(
         M, Builder, IntrinsicArgType);
     return Changed;
   }
@@ -355,7 +355,7 @@ bool ExpandVariadics::runOnModule(Module &M) {
   // Lowering needs to run on all functions exactly once.
   // Optimize could run on functions containing va_start exactly once.
   for (Function &F : make_early_inc_range(M))
-    Changed |= runOnFunction(M, Builder, &F);
+    Changed = Changed || runOnFunction(M, Builder, &F);
 
   // After runOnFunction, all known calls to known variadic functions have been
   // replaced. va_start intrinsics are presently (and invalidly!) only present
@@ -366,11 +366,11 @@ bool ExpandVariadics::runOnModule(Module &M) {
   {
     // 0 and AllocaAddrSpace are sufficient for the targets implemented so far
     unsigned Addrspace = 0;
-    Changed |= expandVAIntrinsicUsersWithAddrspace(M, Builder, Addrspace);
+    Changed = Changed || expandVAIntrinsicUsersWithAddrspace(M, Builder, Addrspace);
 
     Addrspace = DL.getAllocaAddrSpace();
     if (Addrspace != 0)
-      Changed |= expandVAIntrinsicUsersWithAddrspace(M, Builder, Addrspace);
+      Changed = Changed || expandVAIntrinsicUsersWithAddrspace(M, Builder, Addrspace);
   }
 
   if (Mode != ExpandVariadicsMode::Lowering)
@@ -389,7 +389,7 @@ bool ExpandVariadics::runOnModule(Module &M) {
           if (CB->isIndirectCall()) {
             FunctionType *FTy = CB->getFunctionType();
             if (FTy->isVarArg())
-              Changed |= expandCall(M, Builder, CB, FTy, /*NF=*/nullptr);
+              Changed = Changed || expandCall(M, Builder, CB, FTy, /*NF=*/nullptr);
           }
         }
       }
@@ -448,7 +448,7 @@ bool ExpandVariadics::runOnFunction(Module &M, IRBuilder<> &Builder,
     if (CallBase *CB = dyn_cast<CallBase>(U)) {
       Value *CalledOperand = CB->getCalledOperand();
       if (VariadicWrapper == CalledOperand)
-        Changed |=
+        Changed = Changed ||
             expandCall(M, Builder, CB, VariadicWrapper->getFunctionType(),
                        FixedArityReplacement);
     }

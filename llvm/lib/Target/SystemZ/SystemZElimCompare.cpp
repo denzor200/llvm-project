@@ -730,7 +730,7 @@ bool SystemZElimCompare::runOnMachineFunction(MachineFunction &F) {
 
   bool Changed = false;
   for (auto &MBB : F)
-    Changed |= processBlock(MBB);
+    Changed = Changed || processBlock(MBB);
 
   return Changed;
 }

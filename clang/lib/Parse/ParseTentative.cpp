@@ -612,7 +612,7 @@ Parser::isCXX11AttributeSpecifier(bool Disambiguate,
     ConsumeBracket();
 
     bool IsAttribute = SkipUntil(tok::r_square);
-    IsAttribute &= Tok.is(tok::r_square);
+    IsAttribute = IsAttribute && Tok.is(tok::r_square);
 
     return IsAttribute ? CXX11AttributeKind::AttributeSpecifier
                        : CXX11AttributeKind::InvalidAttributeSpecifier;
@@ -832,7 +832,7 @@ Parser::TPResult Parser::TryParseOperatorId() {
   if (getLangOpts().CPlusPlus11 && isTokenStringLiteral()) {
     bool FoundUDSuffix = false;
     do {
-      FoundUDSuffix |= Tok.hasUDSuffix();
+      FoundUDSuffix = FoundUDSuffix || Tok.hasUDSuffix();
       ConsumeStringToken();
     } while (isTokenStringLiteral());
 
@@ -1747,7 +1747,7 @@ Parser::TPResult Parser::TryParseParameterDeclarationClause(
     bool SeenType = false;
     bool DeclarationSpecifierIsAuto = Tok.is(tok::kw_auto);
     do {
-      SeenType |= isCXXDeclarationSpecifierAType();
+      SeenType = SeenType || isCXXDeclarationSpecifierAType();
       if (TryConsumeDeclarationSpecifier() == TPResult::Error)
         return TPResult::Error;
 

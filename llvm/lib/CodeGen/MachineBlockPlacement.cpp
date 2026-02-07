@@ -1934,7 +1934,7 @@ void MachineBlockPlacement::buildChain(const MachineBasicBlock *HeadBB,
     MachineBasicBlock *BestSucc = Result.BB;
     bool ShouldTailDup = Result.ShouldTailDup;
     if (allowTailDupPlacement(*F))
-      ShouldTailDup |= (BestSucc && canTailDuplicateUnplacedPreds(
+      ShouldTailDup = ShouldTailDup || (BestSucc && canTailDuplicateUnplacedPreds(
                                         BB, BestSucc, Chain, BlockFilter));
 
     // If an immediate successor isn't available, look for the best viable

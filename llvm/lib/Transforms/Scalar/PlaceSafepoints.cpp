@@ -270,7 +270,7 @@ bool PlaceSafepointsPass::runImpl(Function &F, const TargetLibraryInfo &TLI) {
   // defs.  When there are basic blocks unreachable from the entry, dominance
   // and reachablity queries return non-sensical results.  Thus, we preprocess
   // the function to ensure these properties hold.
-  Modified |= removeUnreachableBlocks(F);
+  Modified = Modified || removeUnreachableBlocks(F);
 
   // STEP 1 - Insert the safepoint polling locations.  We do not need to
   // actually insert parse points yet.  That will be done for all polls and

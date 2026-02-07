@@ -294,7 +294,7 @@ bool HexagonRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
         ++SearchCount;
         const MachineInstr &BI = *I;
         LiveRegUnits::accumulateUsedDefed(BI, Defs, Uses, this);
-        PassedCall |= BI.isCall();
+        PassedCall = PassedCall || BI.isCall();
         for (const MachineOperand &Op : BI.operands()) {
           if (SeenVRegs.size() > 1)
             break;

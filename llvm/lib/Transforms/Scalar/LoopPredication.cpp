@@ -1236,10 +1236,10 @@ bool LoopPredication::runOnLoop(Loop *Loop) {
   SCEVExpander Expander(*SE, "loop-predication");
   bool Changed = false;
   for (auto *Guard : Guards)
-    Changed |= widenGuardConditions(Guard, Expander);
+    Changed = Changed || widenGuardConditions(Guard, Expander);
   for (auto *Guard : GuardsAsWidenableBranches)
-    Changed |= widenWidenableBranchGuardConditions(Guard, Expander);
-  Changed |= predicateLoopExits(L, Expander);
+    Changed = Changed || widenWidenableBranchGuardConditions(Guard, Expander);
+  Changed = Changed || predicateLoopExits(L, Expander);
 
   if (MSSAU && VerifyMemorySSA)
     MSSAU->getMemorySSA()->verifyMemorySSA();

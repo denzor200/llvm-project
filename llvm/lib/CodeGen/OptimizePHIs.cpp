@@ -96,7 +96,7 @@ bool OptimizePHIs::run(MachineFunction &Fn) {
   // 32-bit targets.
   bool Changed = false;
   for (MachineBasicBlock &MBB : Fn)
-    Changed |= OptimizeBB(MBB);
+    Changed = Changed || OptimizeBB(MBB);
 
   return Changed;
 }

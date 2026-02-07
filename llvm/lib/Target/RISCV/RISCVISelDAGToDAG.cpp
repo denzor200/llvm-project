@@ -156,12 +156,12 @@ void RISCVDAGToDAGISel::PostprocessISelDAG() {
     if (N->use_empty() || !N->isMachineOpcode())
       continue;
 
-    MadeChange |= doPeepholeSExtW(N);
+    MadeChange = MadeChange || doPeepholeSExtW(N);
 
     // FIXME: This is here only because the VMerge transform doesn't
     // know how to handle masked true inputs.  Once that has been moved
     // to post-ISEL, this can be deleted as well.
-    MadeChange |= doPeepholeMaskedRVV(cast<MachineSDNode>(N));
+    MadeChange = MadeChange || doPeepholeMaskedRVV(cast<MachineSDNode>(N));
   }
 
   CurDAG->setRoot(Dummy.getValue());
@@ -172,7 +172,7 @@ void RISCVDAGToDAGISel::PostprocessISelDAG() {
   // be merged back into each of the patterns (i.e. there's no good
   // reason not to go directly to NoReg), but is being done this way
   // to allow easy backporting.
-  MadeChange |= doPeepholeNoRegPassThru();
+  MadeChange = MadeChange || doPeepholeNoRegPassThru();
 
   if (MadeChange)
     CurDAG->RemoveDeadNodes();
@@ -1718,14 +1718,14 @@ void RISCVDAGToDAGISel::Select(SDNode *Node) {
         isInt<12>(C2) ||
         (C2 == UINT64_C(0xFFFF) && Subtarget->hasStdExtZbb());
     // With XTHeadBb, we can use TH.EXTU.
-    IsANDIOrZExt |= C2 == UINT64_C(0xFFFF) && Subtarget->hasVendorXTHeadBb();
+    IsANDIOrZExt = IsANDIOrZExt || C2 == UINT64_C(0xFFFF) && Subtarget->hasVendorXTHeadBb();
     if (IsANDIOrZExt && (isInt<12>(N1C->getSExtValue()) || !N0.hasOneUse()))
       break;
     // If this can be a ZEXT.w, don't do this if the ZEXT has multiple users or
     // the constant is a simm32.
     bool IsZExtW = C2 == UINT64_C(0xFFFFFFFF) && Subtarget->hasStdExtZba();
     // With XTHeadBb, we can use TH.EXTU.
-    IsZExtW |= C2 == UINT64_C(0xFFFFFFFF) && Subtarget->hasVendorXTHeadBb();
+    IsZExtW = IsZExtW || C2 == UINT64_C(0xFFFFFFFF) && Subtarget->hasVendorXTHeadBb();
     if (IsZExtW && (isInt<32>(N1C->getSExtValue()) || !N0.hasOneUse()))
       break;
 

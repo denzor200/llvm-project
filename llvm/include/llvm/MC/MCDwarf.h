@@ -325,7 +325,7 @@ public:
     RootFile.Checksum = Checksum;
     RootFile.Source = Source;
     trackMD5Usage(Checksum.has_value());
-    HasAnySource |= Source.has_value();
+    HasAnySource = HasAnySource || Source.has_value();
   }
 
   void resetFileTable() {
@@ -411,7 +411,7 @@ public:
     Header.RootFile.Checksum = Checksum;
     Header.RootFile.Source = Source;
     Header.trackMD5Usage(Checksum.has_value());
-    Header.HasAnySource |= Source.has_value();
+    Header.HasAnySource = Header.HasAnySource || Source.has_value();
   }
 
   void resetFileTable() { Header.resetFileTable(); }

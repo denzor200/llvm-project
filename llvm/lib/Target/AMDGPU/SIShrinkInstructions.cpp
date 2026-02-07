@@ -947,7 +947,7 @@ bool SIShrinkInstructions::run(MachineFunction &MF) {
 
       // Try to use s_cmpk_*
       if (MI.isCompare() && TII->isSOPC(MI)) {
-        Changed |= shrinkScalarCompare(MI);
+        Changed = Changed || shrinkScalarCompare(MI);
         continue;
       }
 
@@ -986,7 +986,7 @@ bool SIShrinkInstructions::run(MachineFunction &MF) {
 
       if (IsPostRA && TII->isMIMG(MI.getOpcode()) &&
           ST->getGeneration() >= AMDGPUSubtarget::GFX10) {
-        Changed |= shrinkMIMG(MI);
+        Changed = Changed || shrinkMIMG(MI);
         continue;
       }
 
@@ -1002,14 +1002,14 @@ bool SIShrinkInstructions::run(MachineFunction &MF) {
           MI.getOpcode() == AMDGPU::V_FMA_F16_gfx9_fake16_e64 ||
           (MI.getOpcode() == AMDGPU::V_FMA_F64_e64 &&
            ST->hasFmaakFmamkF64Insts())) {
-        Changed |= shrinkMadFma(MI);
+        Changed = Changed || shrinkMadFma(MI);
         continue;
       }
 
       // If there is no chance we will shrink it and use VCC as sdst to get
       // a 32 bit form try to replace dead sdst with NULL.
       if (TII->isVOP3(MI.getOpcode())) {
-        Changed |= tryReplaceDeadSDST(MI);
+        Changed = Changed || tryReplaceDeadSDST(MI);
         if (!TII->hasVALU32BitEncoding(MI.getOpcode())) {
           continue;
         }
@@ -1020,7 +1020,7 @@ bool SIShrinkInstructions::run(MachineFunction &MF) {
         // it.
         if (!MI.isCommutable() || !TII->commuteInstruction(MI) ||
             !TII->canShrink(MI, *MRI)) {
-          Changed |= tryReplaceDeadSDST(MI);
+          Changed = Changed || tryReplaceDeadSDST(MI);
           continue;
         }
 

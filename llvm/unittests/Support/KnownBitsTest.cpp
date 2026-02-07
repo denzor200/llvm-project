@@ -294,11 +294,11 @@ TEST(KnownBitsTest, SignPredicatesExhaustive) {
       bool AllNonZero = true;
 
       ForeachNumInKnownBits(Known, [&](const APInt &N) {
-        AllNegative &= N.isNegative();
-        AllNonNegative &= N.isNonNegative();
-        AllStrictlyPositive &= N.isStrictlyPositive();
-        AllNonPositive &= N.isNonPositive();
-        AllNonZero &= !N.isZero();
+        AllNegative = AllNegative && N.isNegative();
+        AllNonNegative = AllNonNegative && N.isNonNegative();
+        AllStrictlyPositive = AllStrictlyPositive && N.isStrictlyPositive();
+        AllNonPositive = AllNonPositive && N.isNonPositive();
+        AllNonZero = AllNonZero && !N.isZero();
       });
 
       // isNegative() is optimal: returns true iff sign bit is known one.
@@ -630,26 +630,26 @@ TEST(KnownBitsTest, ICmpExhaustive) {
 
       ForeachNumInKnownBits(Known1, [&](const APInt &N1) {
         ForeachNumInKnownBits(Known2, [&](const APInt &N2) {
-          AllEQ &= N1.eq(N2);
-          AllNE &= N1.ne(N2);
-          AllUGT &= N1.ugt(N2);
-          AllUGE &= N1.uge(N2);
-          AllULT &= N1.ult(N2);
-          AllULE &= N1.ule(N2);
-          AllSGT &= N1.sgt(N2);
-          AllSGE &= N1.sge(N2);
-          AllSLT &= N1.slt(N2);
-          AllSLE &= N1.sle(N2);
-          NoneEQ &= !N1.eq(N2);
-          NoneNE &= !N1.ne(N2);
-          NoneUGT &= !N1.ugt(N2);
-          NoneUGE &= !N1.uge(N2);
-          NoneULT &= !N1.ult(N2);
-          NoneULE &= !N1.ule(N2);
-          NoneSGT &= !N1.sgt(N2);
-          NoneSGE &= !N1.sge(N2);
-          NoneSLT &= !N1.slt(N2);
-          NoneSLE &= !N1.sle(N2);
+          AllEQ = AllEQ && N1.eq(N2);
+          AllNE = AllNE && N1.ne(N2);
+          AllUGT = AllUGT && N1.ugt(N2);
+          AllUGE = AllUGE && N1.uge(N2);
+          AllULT = AllULT && N1.ult(N2);
+          AllULE = AllULE && N1.ule(N2);
+          AllSGT = AllSGT && N1.sgt(N2);
+          AllSGE = AllSGE && N1.sge(N2);
+          AllSLT = AllSLT && N1.slt(N2);
+          AllSLE = AllSLE && N1.sle(N2);
+          NoneEQ = NoneEQ && !N1.eq(N2);
+          NoneNE = NoneNE && !N1.ne(N2);
+          NoneUGT = NoneUGT && !N1.ugt(N2);
+          NoneUGE = NoneUGE && !N1.uge(N2);
+          NoneULT = NoneULT && !N1.ult(N2);
+          NoneULE = NoneULE && !N1.ule(N2);
+          NoneSGT = NoneSGT && !N1.sgt(N2);
+          NoneSGE = NoneSGE && !N1.sge(N2);
+          NoneSLT = NoneSLT && !N1.slt(N2);
+          NoneSLE = NoneSLE && !N1.sle(N2);
         });
       });
 
@@ -818,7 +818,7 @@ TEST(KnownBitsTest, CommonBitsSet) {
       bool HasCommonBitsSet = false;
       ForeachNumInKnownBits(Known1, [&](const APInt &N1) {
         ForeachNumInKnownBits(Known2, [&](const APInt &N2) {
-          HasCommonBitsSet |= N1.intersects(N2);
+          HasCommonBitsSet = HasCommonBitsSet || N1.intersects(N2);
         });
       });
       if (!Known1.hasConflict() && !Known2.hasConflict()) {

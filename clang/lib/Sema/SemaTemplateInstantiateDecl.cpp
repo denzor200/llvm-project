@@ -5498,7 +5498,7 @@ bool TemplateDeclInstantiator::SubstDefaultedFunction(FunctionDecl *New,
                                                   DA.getDecl(), TemplateArgs);
       if (!D)
         return true;
-      AnyChanged |= (D != DA.getDecl());
+      AnyChanged = AnyChanged || (D != DA.getDecl());
       Lookups.push_back(DeclAccessPair::make(D, DA.getAccess()));
     }
 

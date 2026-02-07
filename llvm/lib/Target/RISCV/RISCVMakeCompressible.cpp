@@ -365,7 +365,7 @@ static Register analyzeCompressibleUses(MachineInstr &FirstMI,
     RegImmPair CandidateRegImm = getRegImmPairPreventingCompression(MI);
     if (CandidateRegImm.Reg == RegImm.Reg &&
         CandidateRegImm.Imm == RegImm.Imm) {
-      XqciloLdSt |= isXqciloLdSt(MI);
+      XqciloLdSt = XqciloLdSt || isXqciloLdSt(MI);
       MIs.push_back(&MI);
     }
 

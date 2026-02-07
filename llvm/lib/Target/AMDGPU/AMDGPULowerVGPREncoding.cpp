@@ -72,7 +72,7 @@ class AMDGPULowerVGPREncoding {
       if (New.MSBits) {
         if (*New.MSBits != MSBits.value_or(0)) {
           Updated = true;
-          Rewritten |= MSBits.has_value();
+          Rewritten = Rewritten || MSBits.has_value();
         }
         MSBits = New.MSBits;
       }
@@ -86,7 +86,7 @@ class AMDGPULowerVGPREncoding {
     bool update(const ModeTy &New, bool &Rewritten) {
       bool Updated = false;
       for (unsigned I : seq(OpNum))
-        Updated |= Ops[I].update(New.Ops[I], Rewritten);
+        Updated = Updated || Ops[I].update(New.Ops[I], Rewritten);
       return Updated;
     }
 
@@ -460,11 +460,11 @@ bool AMDGPULowerVGPREncoding::run(MachineFunction &MF) {
 
       if (MI.getOpcode() == AMDGPU::S_SETREG_IMM32_B32 &&
           ST.hasSetregVGPRMSBFixup()) {
-        Changed |= handleSetregMode(MI);
+        Changed = Changed || handleSetregMode(MI);
         continue;
       }
 
-      Changed |= runOnMachineInstr(MI);
+      Changed = Changed || runOnMachineInstr(MI);
 
       if (ClauseRemaining)
         --ClauseRemaining;

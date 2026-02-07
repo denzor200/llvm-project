@@ -104,7 +104,7 @@ bool ExpandPseudo::expand() {
 
   for (auto &MBB : MF) {
     for (Iter I = MBB.begin(), End = MBB.end(); I != End;)
-      Expanded |= expandInstr(MBB, I++);
+      Expanded = Expanded || expandInstr(MBB, I++);
   }
 
   return Expanded;

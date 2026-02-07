@@ -1016,7 +1016,7 @@ bool RISCVInsertVSETVLI::runOnMachineFunction(MachineFunction &MF) {
   // Phase 1 - determine how VL/VTYPE are affected by the each block.
   for (const MachineBasicBlock &MBB : MF) {
     VSETVLIInfo TmpStatus;
-    HaveVectorOp |= computeVLVTYPEChanges(MBB, TmpStatus);
+    HaveVectorOp = HaveVectorOp || computeVLVTYPEChanges(MBB, TmpStatus);
     // Initial exit state is whatever change we found in the block.
     BlockData &BBInfo = BlockInfo[MBB.getNumber()];
     BBInfo.Exit = TmpStatus;

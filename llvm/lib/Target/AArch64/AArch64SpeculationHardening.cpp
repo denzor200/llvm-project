@@ -512,7 +512,7 @@ bool AArch64SpeculationHardening::slhLoads(MachineBasicBlock &MBB) {
         // It might be a worthwhile optimization to not harden that
         // base register increment/decrement when the increment/decrement is
         // an immediate.
-        Modified |= makeGPRSpeculationSafe(MBB, NextMBBI, MI, Def.getReg());
+        Modified = Modified || makeGPRSpeculationSafe(MBB, NextMBBI, MI, Def.getReg());
       }
 
     if (HardenAddressLoadedFrom)
@@ -533,7 +533,7 @@ bool AArch64SpeculationHardening::slhLoads(MachineBasicBlock &MBB) {
         if (!(AArch64::GPR32allRegClass.contains(Reg) ||
               AArch64::GPR64allRegClass.contains(Reg)))
           continue;
-        Modified |= makeGPRSpeculationSafe(MBB, MBBI, MI, Reg);
+        Modified = Modified || makeGPRSpeculationSafe(MBB, MBBI, MI, Reg);
       }
   }
   return Modified;
@@ -632,16 +632,16 @@ bool AArch64SpeculationHardening::lowerSpeculationSafeValuePseudos(
         }
 
     if (NeedToEmitBarrier && !UsesFullSpeculationBarrier)
-      Modified |= insertCSDB(MBB, MBBI, DL);
+      Modified = Modified || insertCSDB(MBB, MBBI, DL);
 
-    Modified |=
+    Modified = Modified ||
         expandSpeculationSafeValue(MBB, MBBI, UsesFullSpeculationBarrier);
 
     MBBI = NMBBI;
   }
 
   if (RegsNeedingCSDBBeforeUse.any() && !UsesFullSpeculationBarrier)
-    Modified |= insertCSDB(MBB, MBBI, DL);
+    Modified = Modified || insertCSDB(MBB, MBBI, DL);
 
   return Modified;
 }
@@ -666,7 +666,7 @@ bool AArch64SpeculationHardening::runOnMachineFunction(MachineFunction &MF) {
         dbgs() << "***** AArch64SpeculationHardening - automatic insertion of "
                   "SpeculationSafeValue intrinsics *****\n");
     for (auto &MBB : MF)
-      Modified |= slhLoads(MBB);
+      Modified = Modified || slhLoads(MBB);
   }
 
   // 2. Add instrumentation code to function entry and exits.
@@ -685,8 +685,8 @@ bool AArch64SpeculationHardening::runOnMachineFunction(MachineFunction &MF) {
   // 3. Add instrumentation code to every basic block.
   for (auto &MBB : MF) {
     bool UsesFullSpeculationBarrier = false;
-    Modified |= instrumentControlFlow(MBB, UsesFullSpeculationBarrier);
-    Modified |=
+    Modified = Modified || instrumentControlFlow(MBB, UsesFullSpeculationBarrier);
+    Modified = Modified ||
         lowerSpeculationSafeValuePseudos(MBB, UsesFullSpeculationBarrier);
   }
 

@@ -791,10 +791,10 @@ static bool isTLIScalarize(const TargetLibraryInfo &TLI, const CallInst &CI) {
     TLI.getWidestVF(ScalarName, WidestFixedVF, WidestScalableVF);
     for (ElementCount VF = ElementCount::getFixed(2);
          ElementCount::isKnownLE(VF, WidestFixedVF); VF *= 2)
-      Scalarize &= !TLI.isFunctionVectorizable(ScalarName, VF);
+      Scalarize = Scalarize && !TLI.isFunctionVectorizable(ScalarName, VF);
     for (ElementCount VF = ElementCount::getScalable(1);
          ElementCount::isKnownLE(VF, WidestScalableVF); VF *= 2)
-      Scalarize &= !TLI.isFunctionVectorizable(ScalarName, VF);
+      Scalarize = Scalarize && !TLI.isFunctionVectorizable(ScalarName, VF);
     assert((WidestScalableVF.isZero() || !Scalarize) &&
            "Caller may decide to scalarize a variant using a scalable VF");
   }
@@ -809,7 +809,7 @@ bool LoopVectorizationLegality::canVectorizeInstrs() {
   for (BasicBlock *BB : TheLoop->blocks()) {
     // Scan the instructions in the block and look for hazards.
     for (Instruction &I : *BB) {
-      Result &= canVectorizeInstr(I);
+      Result = Result && canVectorizeInstr(I);
       if (!DoExtraAnalysis && !Result)
         return false;
     }

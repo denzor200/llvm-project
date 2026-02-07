@@ -1009,10 +1009,10 @@ bool DwarfLinkerForBinary::AddressManager::findValidRelocsInDebugSections(
 
     SectionName = SectionName.substr(SectionName.find_first_not_of("._"));
     if (SectionName == "debug_info")
-      FoundValidRelocs |=
+      FoundValidRelocs = FoundValidRelocs ||
           findValidRelocs(Section, Obj, DMO, ValidDebugInfoRelocs);
     if (SectionName == "debug_addr")
-      FoundValidRelocs |=
+      FoundValidRelocs = FoundValidRelocs ||
           findValidRelocs(Section, Obj, DMO, ValidDebugAddrRelocs);
   }
   return FoundValidRelocs;

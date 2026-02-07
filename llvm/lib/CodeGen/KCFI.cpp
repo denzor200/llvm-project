@@ -103,7 +103,7 @@ bool KCFI::runOnMachineFunction(MachineFunction &MF) {
                                            MIE = MBB.instr_end();
          MII != MIE; ++MII) {
       if (MII->isCall() && MII->getCFIType())
-        Changed |= emitCheck(MBB, MII);
+        Changed = Changed || emitCheck(MBB, MII);
     }
   }
 

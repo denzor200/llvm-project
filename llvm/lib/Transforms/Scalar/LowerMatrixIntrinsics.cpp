@@ -1069,7 +1069,7 @@ public:
     // to fold into consuming multiply or add.
     for (BasicBlock &BB : Func) {
       for (Instruction &I : llvm::make_early_inc_range(BB)) {
-        Changed |= liftTranspose(I);
+        Changed = Changed || liftTranspose(I);
       }
     }
     return Changed;
@@ -1117,7 +1117,7 @@ public:
 
     bool Changed = false;
     if (!isMinimal()) {
-      Changed |= optimizeTransposes();
+      Changed = Changed || optimizeTransposes();
       if (PrintAfterTransposeOpt) {
         dbgs() << "Dump after matrix transpose optimization:\n";
         Func.print(dbgs());
@@ -1152,7 +1152,7 @@ public:
       if (!FusedInsts.contains(CI))
         LowerMatrixMultiplyFused(CI, FusedInsts, LifetimeEnds);
 
-    Changed |= !FusedInsts.empty();
+    Changed = Changed || !FusedInsts.empty();
 
     // Fourth, pre-process all the PHINode's. The incoming values will be
     // assigned later in VisitPHI.

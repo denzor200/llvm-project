@@ -52,7 +52,7 @@ struct Filler : public MachineFunctionPass {
 
     bool Changed = false;
     for (MachineBasicBlock &MBB : MF)
-      Changed |= runOnMachineBasicBlock(MBB);
+      Changed = Changed || runOnMachineBasicBlock(MBB);
     return Changed;
   }
 

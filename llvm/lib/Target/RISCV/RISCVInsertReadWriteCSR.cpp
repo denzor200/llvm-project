@@ -184,9 +184,9 @@ bool RISCVInsertReadWriteCSR::runOnMachineFunction(MachineFunction &MF) {
 
   for (MachineBasicBlock &MBB : MF) {
     if (DisableFRMInsertOpt)
-      Changed |= emitWriteRoundingMode(MBB);
+      Changed = Changed || emitWriteRoundingMode(MBB);
     else
-      Changed |= emitWriteRoundingModeOpt(MBB);
+      Changed = Changed || emitWriteRoundingModeOpt(MBB);
   }
 
   return Changed;

@@ -54,7 +54,7 @@ bool AArch64RedundantCondBranch::runOnMachineFunction(MachineFunction &MF) {
 
   bool Changed = false;
   for (MachineBasicBlock &MBB : MF)
-    Changed |= optimizeTerminators(&MBB, TII);
+    Changed = Changed || optimizeTerminators(&MBB, TII);
   return Changed;
 }
 

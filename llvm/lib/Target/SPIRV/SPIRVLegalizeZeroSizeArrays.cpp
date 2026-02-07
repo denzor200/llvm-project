@@ -183,7 +183,7 @@ Constant *SPIRVLegalizeZeroSizeArraysImpl::legalizeConstant(Constant *C) {
     for (Use &U : CE->operands()) {
       Constant *LegalizedOp = legalizeConstant(cast<Constant>(U));
       Ops.push_back(LegalizedOp);
-      Changed |= LegalizedOp != cast<Constant>(U.get());
+      Changed = Changed || LegalizedOp != cast<Constant>(U.get());
     }
     if (Changed)
       return CE->getWithOperands(Ops);

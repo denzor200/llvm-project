@@ -1893,7 +1893,7 @@ bool SemaObjC::CheckMessageArgumentTypes(
 
       ExprResult Arg = SemaRef.DefaultVariadicArgumentPromotion(
           Args[i], VariadicCallType::Method, nullptr);
-      IsError |= Arg.isInvalid();
+      IsError = IsError || Arg.isInvalid();
       Args[i] = Arg.get();
     }
   } else {
@@ -1911,7 +1911,7 @@ bool SemaObjC::CheckMessageArgumentTypes(
   SemaRef.DiagnoseSentinelCalls(Method, SelLoc, Args);
 
   // Do additional checkings on method.
-  IsError |=
+  IsError = IsError ||
       CheckObjCMethodCall(Method, SelLoc, ArrayRef(Args.data(), Args.size()));
 
   return IsError;

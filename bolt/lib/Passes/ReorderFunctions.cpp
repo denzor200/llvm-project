@@ -158,7 +158,7 @@ void ReorderFunctions::printStats(BinaryContext &BC,
 
   bool PrintDetailed = opts::Verbosity > 1;
 #ifndef NDEBUG
-  PrintDetailed |=
+  PrintDetailed = PrintDetailed ||
       (DebugFlag && isCurrentDebugType("hfsort") && opts::Verbosity > 0);
 #endif
   uint64_t TotalSize = 0;

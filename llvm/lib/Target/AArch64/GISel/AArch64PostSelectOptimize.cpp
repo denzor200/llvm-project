@@ -103,7 +103,7 @@ bool AArch64PostSelectOptimize::doPeepholeOpts(MachineBasicBlock &MBB) {
   for (auto &MI : make_early_inc_range(MBB)) {
     bool CurrentIterChanged = foldSimpleCrossClassCopies(MI);
     if (!CurrentIterChanged)
-      CurrentIterChanged |= foldCopyDup(MI);
+      CurrentIterChanged = CurrentIterChanged || foldCopyDup(MI);
     Changed = Changed || CurrentIterChanged;
   }
   return Changed;
@@ -298,8 +298,8 @@ bool AArch64PostSelectOptimize::runOnMachineFunction(MachineFunction &MF) {
 
   bool Changed = false;
   for (auto &BB : MF) {
-    Changed |= optimizeNZCVDefs(BB);
-    Changed |= doPeepholeOpts(BB);
+    Changed = Changed || optimizeNZCVDefs(BB);
+    Changed = Changed || doPeepholeOpts(BB);
   }
   return Changed;
 }

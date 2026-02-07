@@ -1494,7 +1494,7 @@ PreservedAnalyses StructurizeCFGPass::run(Function &F,
       continue;
     }
 
-    Changed |= SCFG.run(R, DT, TTI);
+    Changed = Changed || SCFG.run(R, DT, TTI);
   }
   if (!Changed)
     return PreservedAnalyses::all();

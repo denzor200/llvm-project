@@ -473,7 +473,7 @@ static bool isSafeToIgnoreCWD(const CowCompilerInvocation &CI) {
   bool AnyRelative = false;
   CI.visitPaths([&](StringRef Path) {
     assert(!AnyRelative && "Continuing path visitation despite returning true");
-    AnyRelative |= !Path.empty() && !llvm::sys::path::is_absolute(Path);
+    AnyRelative = AnyRelative || !Path.empty() && !llvm::sys::path::is_absolute(Path);
     return AnyRelative;
   });
   return !AnyRelative;

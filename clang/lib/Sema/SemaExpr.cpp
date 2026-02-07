@@ -5548,13 +5548,13 @@ struct ImmediateCallVisitor : DynamicRecursiveASTVisitor {
 
   bool VisitCallExpr(CallExpr *E) override {
     if (const FunctionDecl *FD = E->getDirectCallee())
-      HasImmediateCalls |= FD->isImmediateFunction();
+      HasImmediateCalls = HasImmediateCalls || FD->isImmediateFunction();
     return DynamicRecursiveASTVisitor::VisitStmt(E);
   }
 
   bool VisitCXXConstructExpr(CXXConstructExpr *E) override {
     if (const FunctionDecl *FD = E->getConstructor())
-      HasImmediateCalls |= FD->isImmediateFunction();
+      HasImmediateCalls = HasImmediateCalls || FD->isImmediateFunction();
     return DynamicRecursiveASTVisitor::VisitStmt(E);
   }
 
@@ -6185,7 +6185,7 @@ bool Sema::GatherArgumentsForCall(SourceLocation CallLoc, FunctionDecl *FDecl,
       for (Expr *A : Args.slice(ArgIx)) {
         QualType paramType; // ignored
         ExprResult arg = checkUnknownAnyArg(CallLoc, A, paramType);
-        Invalid |= arg.isInvalid();
+        Invalid = Invalid || arg.isInvalid();
         AllArgs.push_back(arg.get());
       }
 
@@ -6193,7 +6193,7 @@ bool Sema::GatherArgumentsForCall(SourceLocation CallLoc, FunctionDecl *FDecl,
     } else {
       for (Expr *A : Args.slice(ArgIx)) {
         ExprResult Arg = DefaultVariadicArgumentPromotion(A, CallType, FDecl);
-        Invalid |= Arg.isInvalid();
+        Invalid = Invalid || Arg.isInvalid();
         AllArgs.push_back(Arg.get());
       }
     }
@@ -12566,7 +12566,7 @@ static QualType checkArithmeticOrEnumeralThreeWayCompare(Sema &S,
 
   bool HasNarrowing = checkThreeWayNarrowingConversion(
       S, Type, LHS.get(), LHSType, LHS.get()->getBeginLoc());
-  HasNarrowing |= checkThreeWayNarrowingConversion(S, Type, RHS.get(), RHSType,
+  HasNarrowing = HasNarrowing || checkThreeWayNarrowingConversion(S, Type, RHS.get(), RHSType,
                                                    RHS.get()->getBeginLoc());
   if (HasNarrowing)
     return QualType();
@@ -14793,7 +14793,7 @@ QualType Sema::CheckAddressOfOperand(ExprResult &OrigOp, SourceLocation OpLoc) {
           ReturnOrParamTypeIsIncomplete(
               RetTy, OpLoc, MD->getReturnTypeSourceRange().getBegin());
       for (auto *PVD : MD->parameters())
-        IsIncomplete |= ReturnOrParamTypeIsIncomplete(PVD->getType(), OpLoc,
+        IsIncomplete = IsIncomplete || ReturnOrParamTypeIsIncomplete(PVD->getType(), OpLoc,
                                                       PVD->getBeginLoc());
       if (IsIncomplete)
         return QualType();
@@ -21538,7 +21538,7 @@ ExprResult Sema::CheckPlaceholderExpr(Expr *E) {
     TemplateArgumentListInfo TAL(ULE->getLAngleLoc(), ULE->getRAngleLoc());
     bool HasAnyDependentTA = false;
     for (const TemplateArgumentLoc &Arg : ULE->template_arguments()) {
-      HasAnyDependentTA |= Arg.getArgument().isDependent();
+      HasAnyDependentTA = HasAnyDependentTA || Arg.getArgument().isDependent();
       TAL.addArgument(Arg);
     }
 

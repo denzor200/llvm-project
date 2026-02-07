@@ -15871,7 +15871,7 @@ static bool PrepareArgumentsForCallToObjectOfClassType(
           S.PerformCopyInitialization(InitializedEntity::InitializeParameter(
                                           S.Context, Method->getParamDecl(i)),
                                       SourceLocation(), Arg);
-      IsError |= InputInit.isInvalid();
+      IsError = IsError || InputInit.isInvalid();
       Arg = InputInit.getAs<Expr>();
     } else {
       ExprResult DefArg =
@@ -16628,7 +16628,7 @@ Sema::BuildCallToObjectOfClassType(Scope *S, Expr *Obj,
   // Initialize the object parameter.
   llvm::SmallVector<Expr *, 8> NewArgs;
   if (Method->isExplicitObjectMemberFunction()) {
-    IsError |= PrepareExplicitObjectArgument(*this, Method, Obj, Args, NewArgs);
+    IsError = IsError || PrepareExplicitObjectArgument(*this, Method, Obj, Args, NewArgs);
   } else {
     ExprResult ObjRes = PerformImplicitObjectArgumentInitialization(
         Object.get(), /*Qualifier=*/std::nullopt, Best->FoundDecl, Method);
@@ -16639,7 +16639,7 @@ Sema::BuildCallToObjectOfClassType(Scope *S, Expr *Obj,
     MethodArgs.push_back(Object.get());
   }
 
-  IsError |= PrepareArgumentsForCallToObjectOfClassType(
+  IsError = IsError || PrepareArgumentsForCallToObjectOfClassType(
       *this, MethodArgs, Method, Args, LParenLoc);
 
   // If this is a variadic call, handle args passed through "...".
@@ -16648,7 +16648,7 @@ Sema::BuildCallToObjectOfClassType(Scope *S, Expr *Obj,
     for (unsigned i = NumParams, e = Args.size(); i < e; i++) {
       ExprResult Arg = DefaultVariadicArgumentPromotion(
           Args[i], VariadicCallType::Method, nullptr);
-      IsError |= Arg.isInvalid();
+      IsError = IsError || Arg.isInvalid();
       MethodArgs.push_back(Arg.get());
     }
   }

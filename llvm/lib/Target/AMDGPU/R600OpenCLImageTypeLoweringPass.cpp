@@ -236,12 +236,12 @@ class R600OpenCLImageTypeLoweringPass : public ModulePass {
 
         Argument &SizeArg = *(++ArgI);
         Argument &FormatArg = *(++ArgI);
-        Modified |= replaceImageUses(Arg, ResourceID, SizeArg, FormatArg);
+        Modified = Modified || replaceImageUses(Arg, ResourceID, SizeArg, FormatArg);
 
       // Handle sampler type.
       } else if (IsSamplerType(Type)) {
         uint32_t ResourceID = NumSamplerArgs++;
-        Modified |= replaceSamplerUses(Arg, ResourceID);
+        Modified = Modified || replaceSamplerUses(Arg, ResourceID);
       }
     }
     for (auto *Inst : InstsToErase)
@@ -342,7 +342,7 @@ class R600OpenCLImageTypeLoweringPass : public ModulePass {
         Modified = true;
       }
 
-      Modified |= replaceImageAndSamplerUses(F, KernelMDNode);
+      Modified = Modified || replaceImageAndSamplerUses(F, KernelMDNode);
     }
 
     return Modified;

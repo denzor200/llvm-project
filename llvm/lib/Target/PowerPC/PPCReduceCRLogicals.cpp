@@ -408,7 +408,7 @@ private:
     // Not using a range-based for loop here as the vector may grow while being
     // operated on.
     for (unsigned i = 0; i < AllCRLogicalOps.size(); i++)
-      Changed |= handleCROp(i);
+      Changed = Changed || handleCROp(i);
     return Changed;
   }
 

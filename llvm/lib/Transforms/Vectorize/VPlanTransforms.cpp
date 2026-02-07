@@ -588,8 +588,8 @@ void VPlanTransforms::createAndOptimizeReplicateRegions(VPlan &Plan) {
   bool ShouldSimplify = true;
   while (ShouldSimplify) {
     ShouldSimplify = sinkScalarOperands(Plan);
-    ShouldSimplify |= mergeReplicateRegionsIntoSuccessors(Plan);
-    ShouldSimplify |= mergeBlocksIntoPredecessors(Plan);
+    ShouldSimplify = ShouldSimplify || mergeReplicateRegionsIntoSuccessors(Plan);
+    ShouldSimplify = ShouldSimplify || mergeBlocksIntoPredecessors(Plan);
   }
 }
 
@@ -2158,9 +2158,9 @@ void VPlanTransforms::optimizeForVFAndUF(VPlan &Plan, ElementCount BestVF,
   assert(Plan.hasUF(BestUF) && "BestUF is not available in Plan");
 
   bool MadeChange = tryToReplaceALMWithWideALM(Plan, BestVF, BestUF);
-  MadeChange |= simplifyBranchConditionForVFAndUF(Plan, BestVF, BestUF, PSE);
-  MadeChange |= optimizeVectorInductionWidthForTCAndVFUF(Plan, BestVF, BestUF);
-  MadeChange |= simplifyKnownEVL(Plan, BestVF, PSE);
+  MadeChange = MadeChange || simplifyBranchConditionForVFAndUF(Plan, BestVF, BestUF, PSE);
+  MadeChange = MadeChange || optimizeVectorInductionWidthForTCAndVFUF(Plan, BestVF, BestUF);
+  MadeChange = MadeChange || simplifyKnownEVL(Plan, BestVF, PSE);
 
   if (MadeChange) {
     Plan.setVF(BestVF);
@@ -3491,7 +3491,7 @@ void VPlanTransforms::dropPoisonGeneratingRecipes(
                I < NumMembers; ++I) {
             Instruction *Member = InterGroup->getMember(I);
             if (Member)
-              NeedPredication |= BlockNeedsPredication(Member->getParent());
+              NeedPredication = NeedPredication || BlockNeedsPredication(Member->getParent());
           }
 
           if (NeedPredication)
@@ -4513,7 +4513,7 @@ collectComplementaryPredicatedMemOps(VPlan &Plan,
         if (TypeI == TypeJ) {
           // Check if any operation in the group has a complementary mask with
           // another, that is M1 == NOT(M2) or M2 == NOT(M1).
-          HasComplementaryMask |= match(MaskI, m_Not(m_Specific(MaskJ))) ||
+          HasComplementaryMask = HasComplementaryMask || match(MaskI, m_Not(m_Specific(MaskJ))) ||
                                   match(MaskJ, m_Not(m_Specific(MaskI)));
           Group.push_back(RecipeJ);
           RecipeJ = nullptr;

@@ -351,7 +351,7 @@ static bool arePointersStillQualCompatible(QualType ArgType, QualType ParamType,
       (!ParamType.hasQualifiers() || IsParamContinuouslyConst);
   // Check whether the parameter's constness continues at the current pointer
   // level.
-  IsParamContinuouslyConst &= ParamType.isConstQualified();
+  IsParamContinuouslyConst = IsParamContinuouslyConst && ParamType.isConstQualified();
 
   return AreTypesQualCompatible;
 }

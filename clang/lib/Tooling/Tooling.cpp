@@ -313,7 +313,7 @@ void addExpandedResponseFiles(std::vector<std::string> &CommandLine,
   for (auto &Arg : CommandLine) {
     Argv.push_back(Arg.c_str());
     if (!Arg.empty())
-      SeenRSPFile |= Arg.front() == '@';
+      SeenRSPFile = SeenRSPFile || Arg.front() == '@';
   }
   if (!SeenRSPFile)
     return;

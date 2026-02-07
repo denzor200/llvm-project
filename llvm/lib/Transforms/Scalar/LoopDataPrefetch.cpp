@@ -223,7 +223,7 @@ bool LoopDataPrefetch::run() {
 
   for (Loop *I : *LI)
     for (Loop *L : depth_first(I))
-      MadeChange |= runOnLoop(L);
+      MadeChange = MadeChange || runOnLoop(L);
 
   return MadeChange;
 }

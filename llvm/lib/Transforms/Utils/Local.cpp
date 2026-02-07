@@ -744,12 +744,12 @@ bool llvm::SimplifyInstructionsInBlock(BasicBlock *BB,
     // We're visiting this instruction now, so make sure it's not in the
     // worklist from an earlier visit.
     if (!WorkList.count(I))
-      MadeChange |= simplifyAndDCEInstruction(I, WorkList, DL, TLI);
+      MadeChange = MadeChange || simplifyAndDCEInstruction(I, WorkList, DL, TLI);
   }
 
   while (!WorkList.empty()) {
     Instruction *I = WorkList.pop_back_val();
-    MadeChange |= simplifyAndDCEInstruction(I, WorkList, DL, TLI);
+    MadeChange = MadeChange || simplifyAndDCEInstruction(I, WorkList, DL, TLI);
   }
   return MadeChange;
 }
@@ -2847,7 +2847,7 @@ static bool markAliveBlocks(Function &F,
       }
     }
 
-    Changed |= ConstantFoldTerminator(BB, true, nullptr, DTU);
+    Changed = Changed || ConstantFoldTerminator(BB, true, nullptr, DTU);
     for (BasicBlock *Successor : successors(BB))
       if (Reachable.insert(Successor).second)
         Worklist.push_back(Successor);
@@ -3838,9 +3838,9 @@ bool llvm::recognizeBSwapOrBitReverseIdiom(
       DemandedMask.clearBit(BitIdx);
       continue;
     }
-    OKForBSwap &= bitTransformIsCorrectForBSwap(BitProvenance[BitIdx], BitIdx,
+    OKForBSwap = OKForBSwap && bitTransformIsCorrectForBSwap(BitProvenance[BitIdx], BitIdx,
                                                 DemandedBW);
-    OKForBitReverse &= bitTransformIsCorrectForBitReverse(BitProvenance[BitIdx],
+    OKForBitReverse = OKForBitReverse && bitTransformIsCorrectForBitReverse(BitProvenance[BitIdx],
                                                           BitIdx, DemandedBW);
   }
 
@@ -4064,7 +4064,7 @@ void OverflowTracking::mergeFlags(Instruction &I) {
     HasNSW = HasNSW && I.hasNoSignedWrap();
   }
   if (auto *DisjointOp = dyn_cast<PossiblyDisjointInst>(&I))
-    IsDisjoint &= DisjointOp->isDisjoint();
+    IsDisjoint = IsDisjoint && DisjointOp->isDisjoint();
 }
 
 void OverflowTracking::applyFlags(Instruction &I) {

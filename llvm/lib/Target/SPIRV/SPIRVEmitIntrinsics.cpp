@@ -103,7 +103,7 @@ class GlobalVariableUsers {
         auto It = GlobalIsUsedByGlobal.find(UserGV);
         if (It == GlobalIsUsedByGlobal.end())
           continue;
-        Changed |= set_union(UserGlobals, It->second);
+        Changed = Changed || set_union(UserGlobals, It->second);
       }
     }
     return Changed;
@@ -3256,7 +3256,7 @@ bool SPIRVEmitIntrinsics::runOnModule(Module &M) {
 
   TodoType.clear();
   for (auto &F : M)
-    Changed |= runOnFunction(F);
+    Changed = Changed || runOnFunction(F);
 
   // Specify function parameters after all functions were processed.
   for (auto &F : M) {
@@ -3269,10 +3269,10 @@ bool SPIRVEmitIntrinsics::runOnModule(Module &M) {
   }
 
   CanTodoType = false;
-  Changed |= postprocessTypes(M);
+  Changed = Changed || postprocessTypes(M);
 
   if (HaveFunPtrs)
-    Changed |= processFunctionPointers(M);
+    Changed = Changed || processFunctionPointers(M);
 
   return Changed;
 }

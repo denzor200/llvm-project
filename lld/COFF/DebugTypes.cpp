@@ -671,7 +671,7 @@ void TpiSource::mergeTypeRecord(TypeIndex curIndex, CVType ty) {
     bool success = ty.length() >= 12;
     TypeIndex funcId = curIndex;
     if (success)
-      success &= remapTypeIndex(funcId, TiRefKind::IndexRef);
+      success = success && remapTypeIndex(funcId, TiRefKind::IndexRef);
     TypeIndex funcType =
         *reinterpret_cast<const TypeIndex *>(&newRec.data()[8]);
     if (success) {

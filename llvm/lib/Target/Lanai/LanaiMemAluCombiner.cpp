@@ -406,7 +406,7 @@ bool LanaiMemAluCombiner::runOnMachineFunction(MachineFunction &MF) {
   TII = MF.getSubtarget<LanaiSubtarget>().getInstrInfo();
   bool Modified = false;
   for (MachineBasicBlock &MBB : MF)
-    Modified |= combineMemAluInBasicBlock(&MBB);
+    Modified = Modified || combineMemAluInBasicBlock(&MBB);
   return Modified;
 }
 } // namespace

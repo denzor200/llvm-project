@@ -88,7 +88,7 @@ bool unifyReturnBlocks(Function &F) {
 PreservedAnalyses UnifyFunctionExitNodesPass::run(Function &F,
                                                   FunctionAnalysisManager &AM) {
   bool Changed = false;
-  Changed |= unifyUnreachableBlocks(F);
-  Changed |= unifyReturnBlocks(F);
+  Changed = Changed || unifyUnreachableBlocks(F);
+  Changed = Changed || unifyReturnBlocks(F);
   return Changed ? PreservedAnalyses() : PreservedAnalyses::all();
 }

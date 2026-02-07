@@ -272,14 +272,14 @@ static bool rescheduleCanonically(unsigned &PseudoIdempotentInstCount,
 
     LLVM_DEBUG(
         dbgs() << "Rescheduling Multi-Use Instructions Lexographically.");
-    Changed |= rescheduleLexographically(
+    Changed = Changed || rescheduleLexographically(
         MultiUsers[E.second], MBB,
         [&]() -> MachineBasicBlock::iterator { return UseI; });
   }
 
   PseudoIdempotentInstCount = PseudoIdempotentInstructions.size();
   LLVM_DEBUG(dbgs() << "Rescheduling Idempotent Instructions Lexographically.");
-  Changed |= rescheduleLexographically(
+  Changed = Changed || rescheduleLexographically(
       PseudoIdempotentInstructions, MBB,
       [&]() -> MachineBasicBlock::iterator { return MBB->begin(); });
 
@@ -368,19 +368,19 @@ static bool runOnBasicBlock(MachineBasicBlock *MBB,
 
   LLVM_DEBUG(dbgs() << "MBB Before Canonical Copy Propagation:\n";
              MBB->dump(););
-  Changed |= propagateLocalCopies(MBB);
+  Changed = Changed || propagateLocalCopies(MBB);
   LLVM_DEBUG(dbgs() << "MBB After Canonical Copy Propagation:\n"; MBB->dump(););
 
   LLVM_DEBUG(dbgs() << "MBB Before Scheduling:\n"; MBB->dump(););
   unsigned IdempotentInstCount = 0;
-  Changed |= rescheduleCanonically(IdempotentInstCount, MBB);
+  Changed = Changed || rescheduleCanonically(IdempotentInstCount, MBB);
   LLVM_DEBUG(dbgs() << "MBB After Scheduling:\n"; MBB->dump(););
 
-  Changed |= Renamer.renameVRegs(MBB, BasicBlockNum);
+  Changed = Changed || Renamer.renameVRegs(MBB, BasicBlockNum);
 
   // TODO: Consider dropping this. Dropping kill defs is probably not
   // semantically sound.
-  Changed |= doDefKillClear(MBB);
+  Changed = Changed || doDefKillClear(MBB);
 
   LLVM_DEBUG(dbgs() << "Updated MachineBasicBlock:\n"; MBB->dump();
              dbgs() << "\n");

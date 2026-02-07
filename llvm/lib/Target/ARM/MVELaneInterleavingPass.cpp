@@ -412,7 +412,7 @@ bool MVELaneInterleaving::runOnFunction(Function &F) {
           (isa<TruncInst>(I) || isa<FPTruncInst>(I))) ||
          isAddReduction(I)) &&
         !Visited.count(&I))
-      Changed |= tryInterleave(&I, Visited);
+      Changed = Changed || tryInterleave(&I, Visited);
   }
 
   return Changed;

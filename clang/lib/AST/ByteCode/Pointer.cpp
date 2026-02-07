@@ -824,7 +824,7 @@ std::optional<APValue> Pointer::toRValue(const Context &Ctx,
             if (OptPrimType T = Ctx.classify(FieldTy)) {
               TYPE_SWITCH(*T, Value = FP.deref<T>().toAPValue(ASTCtx));
             } else {
-              Ok &= Composite(FieldTy, FP, Value);
+              Ok = Ok && Composite(FieldTy, FP, Value);
             }
             ActiveField = FP.getFieldDesc()->asFieldDecl();
             break;
@@ -847,7 +847,7 @@ std::optional<APValue> Pointer::toRValue(const Context &Ctx,
           if (OptPrimType T = Ctx.classify(FieldTy)) {
             TYPE_SWITCH(*T, Value = FP.deref<T>().toAPValue(ASTCtx));
           } else {
-            Ok &= Composite(FieldTy, FP, Value);
+            Ok = Ok && Composite(FieldTy, FP, Value);
           }
         }
 
@@ -855,7 +855,7 @@ std::optional<APValue> Pointer::toRValue(const Context &Ctx,
           const Record::Base *BD = Record->getBase(I);
           QualType BaseTy = Ctx.getASTContext().getCanonicalTagType(BD->Decl);
           const Pointer &BP = Ptr.atField(BD->Offset);
-          Ok &= Composite(BaseTy, BP, R.getStructBase(I));
+          Ok = Ok && Composite(BaseTy, BP, R.getStructBase(I));
         }
 
         for (unsigned I = 0; I < NV; ++I) {
@@ -863,7 +863,7 @@ std::optional<APValue> Pointer::toRValue(const Context &Ctx,
           QualType VirtBaseTy =
               Ctx.getASTContext().getCanonicalTagType(VD->Decl);
           const Pointer &VP = Ptr.atField(VD->Offset);
-          Ok &= Composite(VirtBaseTy, VP, R.getStructBase(NB + I));
+          Ok = Ok && Composite(VirtBaseTy, VP, R.getStructBase(NB + I));
         }
       }
       return Ok;
@@ -886,7 +886,7 @@ std::optional<APValue> Pointer::toRValue(const Context &Ctx,
         if (ElemT) {
           TYPE_SWITCH(*ElemT, Slot = Ptr.elem<T>(I).toAPValue(ASTCtx));
         } else {
-          Ok &= Composite(ElemTy, Ptr.atIndex(I).narrow(), Slot);
+          Ok = Ok && Composite(ElemTy, Ptr.atIndex(I).narrow(), Slot);
         }
       }
       return Ok;

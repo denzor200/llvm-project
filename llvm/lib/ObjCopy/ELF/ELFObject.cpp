@@ -1975,7 +1975,7 @@ Expected<std::vector<IHexRecord>> IHexReader::parse() const {
       return parseError(LineNo, R.takeError());
     if (R->Type == IHexRecord::EndOfFile)
       break;
-    HasSections |= (R->Type == IHexRecord::Data);
+    HasSections = HasSections || (R->Type == IHexRecord::Data);
     Records.push_back(*R);
   }
   if (!HasSections)

@@ -321,7 +321,7 @@ public:
                                    bool OnlyPartial) override {
     bool newDeclFound = false;
     for (size_t i = 0; i < Sources.size(); ++i)
-      newDeclFound |= Sources[i]->LoadExternalSpecializations(D, OnlyPartial);
+      newDeclFound = newDeclFound || Sources[i]->LoadExternalSpecializations(D, OnlyPartial);
     return newDeclFound;
   }
 
@@ -330,7 +330,7 @@ public:
       llvm::ArrayRef<clang::TemplateArgument> TemplateArgs) override {
     bool newDeclFound = false;
     for (size_t i = 0; i < Sources.size(); ++i)
-      newDeclFound |= Sources[i]->LoadExternalSpecializations(D, TemplateArgs);
+      newDeclFound = newDeclFound || Sources[i]->LoadExternalSpecializations(D, TemplateArgs);
     return newDeclFound;
   }
 

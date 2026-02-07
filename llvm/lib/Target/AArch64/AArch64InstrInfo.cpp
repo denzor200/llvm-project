@@ -7616,114 +7616,114 @@ static bool getFMAPatterns(MachineInstr &Root,
            "FADDHrr does not have register operands");
 
     Found  = Match(AArch64::FMULHrr, 1, MCP::FMULADDH_OP1);
-    Found |= Match(AArch64::FMULHrr, 2, MCP::FMULADDH_OP2);
+    Found = Found || Match(AArch64::FMULHrr, 2, MCP::FMULADDH_OP2);
     break;
   case AArch64::FADDSrr:
     assert(Root.getOperand(1).isReg() && Root.getOperand(2).isReg() &&
            "FADDSrr does not have register operands");
 
-    Found |= Match(AArch64::FMULSrr, 1, MCP::FMULADDS_OP1) ||
+    Found = Found || Match(AArch64::FMULSrr, 1, MCP::FMULADDS_OP1) ||
              Match(AArch64::FMULv1i32_indexed, 1, MCP::FMLAv1i32_indexed_OP1);
 
-    Found |= Match(AArch64::FMULSrr, 2, MCP::FMULADDS_OP2) ||
+    Found = Found || Match(AArch64::FMULSrr, 2, MCP::FMULADDS_OP2) ||
              Match(AArch64::FMULv1i32_indexed, 2, MCP::FMLAv1i32_indexed_OP2);
     break;
   case AArch64::FADDDrr:
-    Found |= Match(AArch64::FMULDrr, 1, MCP::FMULADDD_OP1) ||
+    Found = Found || Match(AArch64::FMULDrr, 1, MCP::FMULADDD_OP1) ||
              Match(AArch64::FMULv1i64_indexed, 1, MCP::FMLAv1i64_indexed_OP1);
 
-    Found |= Match(AArch64::FMULDrr, 2, MCP::FMULADDD_OP2) ||
+    Found = Found || Match(AArch64::FMULDrr, 2, MCP::FMULADDD_OP2) ||
              Match(AArch64::FMULv1i64_indexed, 2, MCP::FMLAv1i64_indexed_OP2);
     break;
   case AArch64::FADDv4f16:
-    Found |= Match(AArch64::FMULv4i16_indexed, 1, MCP::FMLAv4i16_indexed_OP1) ||
+    Found = Found || Match(AArch64::FMULv4i16_indexed, 1, MCP::FMLAv4i16_indexed_OP1) ||
              Match(AArch64::FMULv4f16, 1, MCP::FMLAv4f16_OP1);
 
-    Found |= Match(AArch64::FMULv4i16_indexed, 2, MCP::FMLAv4i16_indexed_OP2) ||
+    Found = Found || Match(AArch64::FMULv4i16_indexed, 2, MCP::FMLAv4i16_indexed_OP2) ||
              Match(AArch64::FMULv4f16, 2, MCP::FMLAv4f16_OP2);
     break;
   case AArch64::FADDv8f16:
-    Found |= Match(AArch64::FMULv8i16_indexed, 1, MCP::FMLAv8i16_indexed_OP1) ||
+    Found = Found || Match(AArch64::FMULv8i16_indexed, 1, MCP::FMLAv8i16_indexed_OP1) ||
              Match(AArch64::FMULv8f16, 1, MCP::FMLAv8f16_OP1);
 
-    Found |= Match(AArch64::FMULv8i16_indexed, 2, MCP::FMLAv8i16_indexed_OP2) ||
+    Found = Found || Match(AArch64::FMULv8i16_indexed, 2, MCP::FMLAv8i16_indexed_OP2) ||
              Match(AArch64::FMULv8f16, 2, MCP::FMLAv8f16_OP2);
     break;
   case AArch64::FADDv2f32:
-    Found |= Match(AArch64::FMULv2i32_indexed, 1, MCP::FMLAv2i32_indexed_OP1) ||
+    Found = Found || Match(AArch64::FMULv2i32_indexed, 1, MCP::FMLAv2i32_indexed_OP1) ||
              Match(AArch64::FMULv2f32, 1, MCP::FMLAv2f32_OP1);
 
-    Found |= Match(AArch64::FMULv2i32_indexed, 2, MCP::FMLAv2i32_indexed_OP2) ||
+    Found = Found || Match(AArch64::FMULv2i32_indexed, 2, MCP::FMLAv2i32_indexed_OP2) ||
              Match(AArch64::FMULv2f32, 2, MCP::FMLAv2f32_OP2);
     break;
   case AArch64::FADDv2f64:
-    Found |= Match(AArch64::FMULv2i64_indexed, 1, MCP::FMLAv2i64_indexed_OP1) ||
+    Found = Found || Match(AArch64::FMULv2i64_indexed, 1, MCP::FMLAv2i64_indexed_OP1) ||
              Match(AArch64::FMULv2f64, 1, MCP::FMLAv2f64_OP1);
 
-    Found |= Match(AArch64::FMULv2i64_indexed, 2, MCP::FMLAv2i64_indexed_OP2) ||
+    Found = Found || Match(AArch64::FMULv2i64_indexed, 2, MCP::FMLAv2i64_indexed_OP2) ||
              Match(AArch64::FMULv2f64, 2, MCP::FMLAv2f64_OP2);
     break;
   case AArch64::FADDv4f32:
-    Found |= Match(AArch64::FMULv4i32_indexed, 1, MCP::FMLAv4i32_indexed_OP1) ||
+    Found = Found || Match(AArch64::FMULv4i32_indexed, 1, MCP::FMLAv4i32_indexed_OP1) ||
              Match(AArch64::FMULv4f32, 1, MCP::FMLAv4f32_OP1);
 
-    Found |= Match(AArch64::FMULv4i32_indexed, 2, MCP::FMLAv4i32_indexed_OP2) ||
+    Found = Found || Match(AArch64::FMULv4i32_indexed, 2, MCP::FMLAv4i32_indexed_OP2) ||
              Match(AArch64::FMULv4f32, 2, MCP::FMLAv4f32_OP2);
     break;
   case AArch64::FSUBHrr:
     Found  = Match(AArch64::FMULHrr, 1, MCP::FMULSUBH_OP1);
-    Found |= Match(AArch64::FMULHrr, 2, MCP::FMULSUBH_OP2);
-    Found |= Match(AArch64::FNMULHrr, 1, MCP::FNMULSUBH_OP1);
+    Found = Found || Match(AArch64::FMULHrr, 2, MCP::FMULSUBH_OP2);
+    Found = Found || Match(AArch64::FNMULHrr, 1, MCP::FNMULSUBH_OP1);
     break;
   case AArch64::FSUBSrr:
     Found = Match(AArch64::FMULSrr, 1, MCP::FMULSUBS_OP1);
 
-    Found |= Match(AArch64::FMULSrr, 2, MCP::FMULSUBS_OP2) ||
+    Found = Found || Match(AArch64::FMULSrr, 2, MCP::FMULSUBS_OP2) ||
              Match(AArch64::FMULv1i32_indexed, 2, MCP::FMLSv1i32_indexed_OP2);
 
-    Found |= Match(AArch64::FNMULSrr, 1, MCP::FNMULSUBS_OP1);
+    Found = Found || Match(AArch64::FNMULSrr, 1, MCP::FNMULSUBS_OP1);
     break;
   case AArch64::FSUBDrr:
     Found = Match(AArch64::FMULDrr, 1, MCP::FMULSUBD_OP1);
 
-    Found |= Match(AArch64::FMULDrr, 2, MCP::FMULSUBD_OP2) ||
+    Found = Found || Match(AArch64::FMULDrr, 2, MCP::FMULSUBD_OP2) ||
              Match(AArch64::FMULv1i64_indexed, 2, MCP::FMLSv1i64_indexed_OP2);
 
-    Found |= Match(AArch64::FNMULDrr, 1, MCP::FNMULSUBD_OP1);
+    Found = Found || Match(AArch64::FNMULDrr, 1, MCP::FNMULSUBD_OP1);
     break;
   case AArch64::FSUBv4f16:
-    Found |= Match(AArch64::FMULv4i16_indexed, 2, MCP::FMLSv4i16_indexed_OP2) ||
+    Found = Found || Match(AArch64::FMULv4i16_indexed, 2, MCP::FMLSv4i16_indexed_OP2) ||
              Match(AArch64::FMULv4f16, 2, MCP::FMLSv4f16_OP2);
 
-    Found |= Match(AArch64::FMULv4i16_indexed, 1, MCP::FMLSv4i16_indexed_OP1) ||
+    Found = Found || Match(AArch64::FMULv4i16_indexed, 1, MCP::FMLSv4i16_indexed_OP1) ||
              Match(AArch64::FMULv4f16, 1, MCP::FMLSv4f16_OP1);
     break;
   case AArch64::FSUBv8f16:
-    Found |= Match(AArch64::FMULv8i16_indexed, 2, MCP::FMLSv8i16_indexed_OP2) ||
+    Found = Found || Match(AArch64::FMULv8i16_indexed, 2, MCP::FMLSv8i16_indexed_OP2) ||
              Match(AArch64::FMULv8f16, 2, MCP::FMLSv8f16_OP2);
 
-    Found |= Match(AArch64::FMULv8i16_indexed, 1, MCP::FMLSv8i16_indexed_OP1) ||
+    Found = Found || Match(AArch64::FMULv8i16_indexed, 1, MCP::FMLSv8i16_indexed_OP1) ||
              Match(AArch64::FMULv8f16, 1, MCP::FMLSv8f16_OP1);
     break;
   case AArch64::FSUBv2f32:
-    Found |= Match(AArch64::FMULv2i32_indexed, 2, MCP::FMLSv2i32_indexed_OP2) ||
+    Found = Found || Match(AArch64::FMULv2i32_indexed, 2, MCP::FMLSv2i32_indexed_OP2) ||
              Match(AArch64::FMULv2f32, 2, MCP::FMLSv2f32_OP2);
 
-    Found |= Match(AArch64::FMULv2i32_indexed, 1, MCP::FMLSv2i32_indexed_OP1) ||
+    Found = Found || Match(AArch64::FMULv2i32_indexed, 1, MCP::FMLSv2i32_indexed_OP1) ||
              Match(AArch64::FMULv2f32, 1, MCP::FMLSv2f32_OP1);
     break;
   case AArch64::FSUBv2f64:
-    Found |= Match(AArch64::FMULv2i64_indexed, 2, MCP::FMLSv2i64_indexed_OP2) ||
+    Found = Found || Match(AArch64::FMULv2i64_indexed, 2, MCP::FMLSv2i64_indexed_OP2) ||
              Match(AArch64::FMULv2f64, 2, MCP::FMLSv2f64_OP2);
 
-    Found |= Match(AArch64::FMULv2i64_indexed, 1, MCP::FMLSv2i64_indexed_OP1) ||
+    Found = Found || Match(AArch64::FMULv2i64_indexed, 1, MCP::FMLSv2i64_indexed_OP1) ||
              Match(AArch64::FMULv2f64, 1, MCP::FMLSv2f64_OP1);
     break;
   case AArch64::FSUBv4f32:
-    Found |= Match(AArch64::FMULv4i32_indexed, 2, MCP::FMLSv4i32_indexed_OP2) ||
+    Found = Found || Match(AArch64::FMULv4i32_indexed, 2, MCP::FMLSv4i32_indexed_OP2) ||
              Match(AArch64::FMULv4f32, 2, MCP::FMLSv4f32_OP2);
 
-    Found |= Match(AArch64::FMULv4i32_indexed, 1, MCP::FMLSv4i32_indexed_OP1) ||
+    Found = Found || Match(AArch64::FMULv4i32_indexed, 1, MCP::FMLSv4i32_indexed_OP1) ||
              Match(AArch64::FMULv4f32, 1, MCP::FMLSv4f32_OP1);
     break;
   }
@@ -7759,23 +7759,23 @@ static bool getFMULPatterns(MachineInstr &Root,
     return false;
   case AArch64::FMULv2f32:
     Found = Match(AArch64::DUPv2i32lane, 1, MCP::FMULv2i32_indexed_OP1);
-    Found |= Match(AArch64::DUPv2i32lane, 2, MCP::FMULv2i32_indexed_OP2);
+    Found = Found || Match(AArch64::DUPv2i32lane, 2, MCP::FMULv2i32_indexed_OP2);
     break;
   case AArch64::FMULv2f64:
     Found = Match(AArch64::DUPv2i64lane, 1, MCP::FMULv2i64_indexed_OP1);
-    Found |= Match(AArch64::DUPv2i64lane, 2, MCP::FMULv2i64_indexed_OP2);
+    Found = Found || Match(AArch64::DUPv2i64lane, 2, MCP::FMULv2i64_indexed_OP2);
     break;
   case AArch64::FMULv4f16:
     Found = Match(AArch64::DUPv4i16lane, 1, MCP::FMULv4i16_indexed_OP1);
-    Found |= Match(AArch64::DUPv4i16lane, 2, MCP::FMULv4i16_indexed_OP2);
+    Found = Found || Match(AArch64::DUPv4i16lane, 2, MCP::FMULv4i16_indexed_OP2);
     break;
   case AArch64::FMULv4f32:
     Found = Match(AArch64::DUPv4i32lane, 1, MCP::FMULv4i32_indexed_OP1);
-    Found |= Match(AArch64::DUPv4i32lane, 2, MCP::FMULv4i32_indexed_OP2);
+    Found = Found || Match(AArch64::DUPv4i32lane, 2, MCP::FMULv4i32_indexed_OP2);
     break;
   case AArch64::FMULv8f16:
     Found = Match(AArch64::DUPv8i16lane, 1, MCP::FMULv8i16_indexed_OP1);
-    Found |= Match(AArch64::DUPv8i16lane, 2, MCP::FMULv8i16_indexed_OP2);
+    Found = Found || Match(AArch64::DUPv8i16lane, 2, MCP::FMULv8i16_indexed_OP2);
     break;
   }
 
@@ -10552,7 +10552,7 @@ AArch64InstrInfo::getOutlinableRanges(MachineBasicBlock &MBB,
       CreateNewRangeStartingAt(MI.getIterator());
       continue;
     }
-    LRAvailableEverywhere &= LRU.available(AArch64::LR);
+    LRAvailableEverywhere = LRAvailableEverywhere && LRU.available(AArch64::LR);
     RangeBegin = MI.getIterator();
     ++RangeLen;
   }

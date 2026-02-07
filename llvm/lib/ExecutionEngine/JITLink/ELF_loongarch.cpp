@@ -514,7 +514,7 @@ static bool relaxOnce(LinkGraph &G, RelaxAux &Aux) {
   bool Changed = false;
 
   for (auto &[B, BlockAux] : Aux.Blocks)
-    Changed |= relaxBlock(G, *B, BlockAux);
+    Changed = Changed || relaxBlock(G, *B, BlockAux);
 
   return Changed;
 }

@@ -140,7 +140,7 @@ static bool runNVVMIntrRange(Function &F) {
   bool Changed = false;
   for (Instruction &I : instructions(F))
     if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(&I))
-      Changed |= ProccessIntrinsic(II);
+      Changed = Changed || ProccessIntrinsic(II);
 
   return Changed;
 }

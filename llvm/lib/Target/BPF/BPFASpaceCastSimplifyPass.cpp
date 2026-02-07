@@ -78,7 +78,7 @@ PreservedAnalyses BPFASpaceCastSimplifyPass::run(Function &F,
     for (Instruction &I : BB)
       if (auto It = CastGEPCast::match(&I))
         WorkList.push_back(It.value());
-    Changed |= !WorkList.empty();
+    Changed = Changed || !WorkList.empty();
 
     while (!WorkList.empty()) {
       CastGEPCast InsnChain = WorkList.pop_back_val();

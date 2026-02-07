@@ -502,7 +502,7 @@ public:
     bool Skip = First->EmbedFileNotFound(FileName);
     // Make sure to invoke the second callback, no matter if the first already
     // returned true to skip the file.
-    Skip |= Second->EmbedFileNotFound(FileName);
+    Skip = Skip = Skip || Second->EmbedFileNotFound(FileName);
     return Skip;
   }
 
@@ -517,7 +517,7 @@ public:
     bool Skip = First->FileNotFound(FileName);
     // Make sure to invoke the second callback, no matter if the first already
     // returned true to skip the file.
-    Skip |= Second->FileNotFound(FileName);
+    Skip = Skip = Skip || Second->FileNotFound(FileName);
     return Skip;
   }
 

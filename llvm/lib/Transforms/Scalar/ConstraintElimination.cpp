@@ -1223,7 +1223,7 @@ void State::addInfoFor(BasicBlock &BB) {
       break;
     }
 
-    GuaranteedToExecute &= isGuaranteedToTransferExecutionToSuccessor(&I);
+    GuaranteedToExecute = GuaranteedToExecute && isGuaranteedToTransferExecutionToSuccessor(&I);
   }
 
   if (auto *Switch = dyn_cast<SwitchInst>(BB.getTerminator())) {
@@ -1909,7 +1909,7 @@ static bool eliminateConstraints(Function &F, DominatorTree &DT, LoopInfo &LI,
       LLVM_DEBUG(dbgs() << "Processing condition to simplify: " << *Inst
                         << "\n");
       if (auto *II = dyn_cast<WithOverflowInst>(Inst)) {
-        Changed |= tryToSimplifyOverflowMath(II, Info, ToRemove);
+        Changed = Changed || tryToSimplifyOverflowMath(II, Info, ToRemove);
       } else if (auto *Cmp = dyn_cast<ICmpInst>(Inst)) {
         bool Simplified = checkAndReplaceCondition(
             Cmp, Info, CB.NumIn, CB.NumOut, CB.getContextInst(),
@@ -1922,9 +1922,9 @@ static bool eliminateConstraints(Function &F, DominatorTree &DT, LoopInfo &LI,
         }
         Changed = Changed || Simplified;
       } else if (auto *MinMax = dyn_cast<MinMaxIntrinsic>(Inst)) {
-        Changed |= checkAndReplaceMinMax(MinMax, Info, ToRemove);
+        Changed = Changed || checkAndReplaceMinMax(MinMax, Info, ToRemove);
       } else if (auto *CmpIntr = dyn_cast<CmpIntrinsic>(Inst)) {
-        Changed |= checkAndReplaceCmp(CmpIntr, Info, ToRemove);
+        Changed = Changed || checkAndReplaceCmp(CmpIntr, Info, ToRemove);
       }
       continue;
     }

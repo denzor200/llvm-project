@@ -1253,7 +1253,7 @@ struct AAPointerInfoImpl
 
       // Track if all interesting accesses are in the same `nosync` function as
       // the given instruction.
-      AllInSameNoSyncFn &= Acc.getRemoteInst()->getFunction() == &Scope;
+      AllInSameNoSyncFn = AllInSameNoSyncFn && Acc.getRemoteInst()->getFunction() == &Scope;
 
       InterferingAccesses.push_back({&Acc, Exact});
       return true;
@@ -4478,7 +4478,7 @@ struct AAIsDeadReturned : public AAIsDeadValueImpl {
     auto RetInstPred = [&](Instruction &I) {
       ReturnInst &RI = cast<ReturnInst>(I);
       if (!isa<UndefValue>(RI.getReturnValue()))
-        AnyChange |= A.changeUseAfterManifest(RI.getOperandUse(0), UV);
+        AnyChange = AnyChange || A.changeUseAfterManifest(RI.getOperandUse(0), UV);
       return true;
     };
     bool UsedAssumedInformation = false;
@@ -8678,7 +8678,7 @@ protected:
     auto *&Accesses = AccessKind2Accesses[llvm::Log2_32(MLK)];
     if (!Accesses)
       Accesses = new (Allocator) AccessSet();
-    Changed |= Accesses->insert(AccessInfo{I, Ptr, AK}).second;
+    Changed = Changed || Accesses->insert(AccessInfo{I, Ptr, AK}).second;
     if (MLK == NO_UNKOWN_MEM)
       MLK = NO_LOCATIONS;
     State.removeAssumedBits(MLK);
@@ -8932,7 +8932,7 @@ struct AAMemoryLocationFunction final : public AAMemoryLocationImpl {
                                             UsedAssumedInformation))
       return indicatePessimisticFixpoint();
 
-    Changed |= AssumedState != getAssumed();
+    Changed = Changed || AssumedState != getAssumed();
     return Changed ? ChangeStatus::CHANGED : ChangeStatus::UNCHANGED;
   }
 
@@ -9805,7 +9805,7 @@ struct AAPotentialConstantValuesImpl : AAPotentialConstantValues {
         return false;
       S.insert(CI->getValue());
     }
-    ContainsUndef &= S.empty();
+    ContainsUndef = ContainsUndef && S.empty();
 
     return true;
   }
@@ -11337,7 +11337,7 @@ struct AAPotentialValuesFloating : AAPotentialValuesImpl {
     bool ScopeIsLocal = (II.S & AA::Intraprocedural);
     bool AllLocal = ScopeIsLocal;
     bool DynamicallyUnique = llvm::all_of(PotentialCopies, [&](Value *PC) {
-      AllLocal &= AA::isValidInScope(*PC, getAnchorScope());
+      AllLocal = AllLocal && AA::isValidInScope(*PC, getAnchorScope());
       return AA::isDynamicallyUnique(A, *this, *PC);
     });
     if (!DynamicallyUnique) {
@@ -11436,7 +11436,7 @@ struct AAPotentialValuesFloating : AAPotentialValuesImpl {
       else
         NewOps[Idx] = Op;
 
-      SomeSimplified |= (NewOps[Idx] != Op);
+      SomeSimplified = SomeSimplified || (NewOps[Idx] != Op);
       ++Idx;
     }
 
@@ -11951,7 +11951,7 @@ struct AAAssumptionInfoFunction final : AAAssumptionInfoImpl {
       if (!AssumptionAA)
         return false;
       // Get the set of assumptions shared by all of this function's callers.
-      Changed |= getIntersection(AssumptionAA->getAssumed());
+      Changed = Changed || getIntersection(AssumptionAA->getAssumed());
       return !getAssumed().empty() || !getKnown().empty();
     };
 
@@ -12075,7 +12075,7 @@ struct AAUnderlyingObjectsImpl
           continue;
         if (UO && UO != Obj) {
           if (isa<AllocaInst>(UO) || isa<GlobalValue>(UO)) {
-            Changed |= UnderlyingObjects.insert(UO);
+            Changed = Changed || UnderlyingObjects.insert(UO);
             continue;
           }
 
@@ -12083,7 +12083,7 @@ struct AAUnderlyingObjectsImpl
               *this, IRPosition::value(*UO), DepClassTy::OPTIONAL);
           auto Pred = [&](Value &V) {
             if (&V == UO)
-              Changed |= UnderlyingObjects.insert(UO);
+              Changed = Changed || UnderlyingObjects.insert(UO);
             else
               Values.emplace_back(V, nullptr);
             return true;
@@ -12092,12 +12092,12 @@ struct AAUnderlyingObjectsImpl
           if (!OtherAA || !OtherAA->forallUnderlyingObjects(Pred, Scope))
             llvm_unreachable(
                 "The forall call should not return false at this position");
-          UsedAssumedInformation |= !OtherAA->getState().isAtFixpoint();
+          UsedAssumedInformation = UsedAssumedInformation || !OtherAA->getState().isAtFixpoint();
           continue;
         }
 
         if (isa<SelectInst>(Obj)) {
-          Changed |= handleIndirect(A, *Obj, UnderlyingObjects, Scope,
+          Changed = Changed || handleIndirect(A, *Obj, UnderlyingObjects, Scope,
                                     UsedAssumedInformation);
           continue;
         }
@@ -12105,22 +12105,22 @@ struct AAUnderlyingObjectsImpl
           // Explicitly look through PHIs as we do not care about dynamically
           // uniqueness.
           for (unsigned u = 0, e = PHI->getNumIncomingValues(); u < e; u++) {
-            Changed |=
+            Changed = Changed ||
                 handleIndirect(A, *PHI->getIncomingValue(u), UnderlyingObjects,
                                Scope, UsedAssumedInformation);
           }
           continue;
         }
 
-        Changed |= UnderlyingObjects.insert(Obj);
+        Changed = Changed || UnderlyingObjects.insert(Obj);
       }
 
       return Changed;
     };
 
     bool Changed = false;
-    Changed |= DoUpdate(IntraAssumedUnderlyingObjects, AA::Intraprocedural);
-    Changed |= DoUpdate(InterAssumedUnderlyingObjects, AA::Interprocedural);
+    Changed = Changed || DoUpdate(IntraAssumedUnderlyingObjects, AA::Intraprocedural);
+    Changed = Changed || DoUpdate(InterAssumedUnderlyingObjects, AA::Interprocedural);
     if (!UsedAssumedInformation)
       indicateOptimisticFixpoint();
     return Changed ? ChangeStatus::CHANGED : ChangeStatus::UNCHANGED;
@@ -12152,13 +12152,13 @@ private:
     const auto *AA = A.getAAFor<AAUnderlyingObjects>(
         *this, IRPosition::value(V), DepClassTy::OPTIONAL);
     auto Pred = [&](Value &V) {
-      Changed |= UnderlyingObjects.insert(&V);
+      Changed = Changed || UnderlyingObjects.insert(&V);
       return true;
     };
     if (!AA || !AA->forallUnderlyingObjects(Pred, Scope))
       llvm_unreachable(
           "The forall call should not return false at this position");
-    UsedAssumedInformation |= !AA->getState().isAtFixpoint();
+    UsedAssumedInformation = UsedAssumedInformation || !AA->getState().isAtFixpoint();
     return Changed;
   }
 
@@ -13126,16 +13126,16 @@ struct AAAddressSpaceImpl : public AAAddressSpace {
       if (!A.isRunOn(Inst->getFunction()))
         return true;
       if (auto *LI = dyn_cast<LoadInst>(Inst)) {
-        Changed |=
+        Changed = Changed ||
             makeChange(A, LI, U, OriginalValue, NewPtrTy, UseOriginalValue);
       } else if (auto *SI = dyn_cast<StoreInst>(Inst)) {
-        Changed |=
+        Changed = Changed ||
             makeChange(A, SI, U, OriginalValue, NewPtrTy, UseOriginalValue);
       } else if (auto *RMW = dyn_cast<AtomicRMWInst>(Inst)) {
-        Changed |=
+        Changed = Changed ||
             makeChange(A, RMW, U, OriginalValue, NewPtrTy, UseOriginalValue);
       } else if (auto *CmpX = dyn_cast<AtomicCmpXchgInst>(Inst)) {
-        Changed |=
+        Changed = Changed ||
             makeChange(A, CmpX, U, OriginalValue, NewPtrTy, UseOriginalValue);
       }
       return true;

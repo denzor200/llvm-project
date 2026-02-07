@@ -679,7 +679,7 @@ class SPIRVStructurizer : public FunctionPass {
   bool sortSelectionMergeHeaders(Function &F) {
     bool Modified = false;
     for (BasicBlock &BB : F) {
-      Modified |= sortSelectionMerge(F, BB);
+      Modified = Modified || sortSelectionMerge(F, BB);
     }
     return Modified;
   }
@@ -836,7 +836,7 @@ class SPIRVStructurizer : public FunctionPass {
   bool fixupConstruct(Splitter &S, DivergentConstruct *Node) {
     bool Modified = false;
     for (auto &Child : Node->Children)
-      Modified |= fixupConstruct(S, Child.get());
+      Modified = Modified || fixupConstruct(S, Child.get());
 
     // This construct is the root construct. Does not represent any real
     // construct, just a way to access the first level of the forest.
@@ -1071,7 +1071,7 @@ class SPIRVStructurizer : public FunctionPass {
         if (Node == Header || Node == Merge)
           return true;
 
-        HasBadBlock |= MergeBlocks.count(Node) != 0 ||
+        HasBadBlock = HasBadBlock || MergeBlocks.count(Node) != 0 ||
                        ContinueBlocks.count(Node) != 0 ||
                        HeaderBlocks.count(Node) != 0;
         return !HasBadBlock;
@@ -1119,35 +1119,35 @@ public:
     // In LLVM, Switches are allowed to have several cases branching to the same
     // basic block. This is allowed in SPIR-V, but can make structurizing SPIR-V
     // harder, so first remove edge cases.
-    Modified |= splitSwitchCases(F);
+    Modified = Modified || splitSwitchCases(F);
 
     // LLVM allows conditional branches to have both side jumping to the same
     // block. It also allows switched to have a single default, or just one
     // case. Cleaning this up now.
-    Modified |= simplifyBranches(F);
+    Modified = Modified || simplifyBranches(F);
 
     // At this state, we should have a reducible CFG with cycles.
     // STEP 1: Adding OpLoopMerge instructions to loop headers.
-    Modified |= addMergeForLoops(F);
+    Modified = Modified || addMergeForLoops(F);
 
     // STEP 2: adding OpSelectionMerge to each node with an in-degree >= 2.
-    Modified |= addMergeForNodesWithMultiplePredecessors(F);
+    Modified = Modified || addMergeForNodesWithMultiplePredecessors(F);
 
     // STEP 3:
     // Sort selection merge, the largest construct goes first.
     // This simplifies the next step.
-    Modified |= sortSelectionMergeHeaders(F);
+    Modified = Modified || sortSelectionMergeHeaders(F);
 
     // STEP 4: As this stage, we can have a single basic block with multiple
     // OpLoopMerge/OpSelectionMerge instructions. Splitting this block so each
     // BB has a single merge instruction.
-    Modified |= splitBlocksWithMultipleHeaders(F);
+    Modified = Modified || splitBlocksWithMultipleHeaders(F);
 
     // STEP 5: In the previous steps, we added merge blocks the loops and
     // natural merge blocks (in-degree >= 2). What remains are conditions with
     // an exiting branch (return, unreachable). In such case, we must start from
     // the header, and add headers to divergent construct with no headers.
-    Modified |= addMergeForDivergentBlocks(F);
+    Modified = Modified || addMergeForDivergentBlocks(F);
 
     // STEP 6: At this stage, we have several divergent construct defines by a
     // header and a merge block. But their boundaries have no constraints: a
@@ -1155,7 +1155,7 @@ public:
     // edges are called critical edges. What we need is to split those edges
     // into several parts. Each part exiting the parent's construct by its merge
     // block.
-    Modified |= splitCriticalEdges(F);
+    Modified = Modified || splitCriticalEdges(F);
 
     // STEP 7: The previous steps possibly created a lot of "proxy" blocks.
     // Blocks with a single unconditional branch, used to create a valid
@@ -1166,15 +1166,15 @@ public:
     // loop construct without an OpSelectionMerge, but this requires a straight
     // jump. If a proxy block lies between the conditional branch and the
     // parent's merge, the CFG is not valid.
-    Modified |= removeUselessBlocks(F);
+    Modified = Modified || removeUselessBlocks(F);
 
     // STEP 8: Final fix-up steps: our tree boundaries are correct, but some
     // blocks are branching with no header. Those are often simple conditional
     // branches with 1 or 2 returning edges. Adding a header for those.
-    Modified |= addHeaderToRemainingDivergentDAG(F);
+    Modified = Modified || addHeaderToRemainingDivergentDAG(F);
 
     // STEP 9: sort basic blocks to match both the LLVM & SPIR-V requirements.
-    Modified |= sortBlocks(F);
+    Modified = Modified || sortBlocks(F);
 
     return Modified;
   }

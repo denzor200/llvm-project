@@ -118,7 +118,7 @@ void LoopUnroll::runOnOperation() {
       break;
     bool unrolled = false;
     for (auto forOp : loops)
-      unrolled |= succeeded(runOnAffineForOp(forOp));
+      unrolled = unrolled || succeeded(runOnAffineForOp(forOp));
     if (!unrolled)
       // Break out if nothing was unrolled.
       break;

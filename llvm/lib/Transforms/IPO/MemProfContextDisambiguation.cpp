@@ -6144,7 +6144,7 @@ unsigned MemProfContextDisambiguation::recordICPInfo(
     // See if any of the clones of the indirect callsite for this
     // profiled target should call a cloned version of the profiled
     // target. We only need to do the ICP here if so.
-    ICPNeeded |= llvm::any_of(StackNode.Clones,
+    ICPNeeded = ICPNeeded || llvm::any_of(StackNode.Clones,
                               [](unsigned CloneNo) { return CloneNo != 0; });
     // Every callsite in the same function should have been cloned the same
     // number of times.

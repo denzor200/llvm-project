@@ -212,140 +212,140 @@ bool SystemZShortenInst::processBlock(MachineBasicBlock &MBB) {
   for (MachineInstr &MI : llvm::reverse(MBB)) {
     switch (MI.getOpcode()) {
     case SystemZ::IILF:
-      Changed |= shortenIIF(MI, SystemZ::LLILL, SystemZ::LLILH);
+      Changed = Changed || shortenIIF(MI, SystemZ::LLILL, SystemZ::LLILH);
       break;
 
     case SystemZ::IIHF:
-      Changed |= shortenIIF(MI, SystemZ::LLIHL, SystemZ::LLIHH);
+      Changed = Changed || shortenIIF(MI, SystemZ::LLIHL, SystemZ::LLIHH);
       break;
 
     case SystemZ::WFADB:
-      Changed |= shortenOn001AddCC(MI, SystemZ::ADBR);
+      Changed = Changed || shortenOn001AddCC(MI, SystemZ::ADBR);
       break;
 
     case SystemZ::WFASB:
-      Changed |= shortenOn001AddCC(MI, SystemZ::AEBR);
+      Changed = Changed || shortenOn001AddCC(MI, SystemZ::AEBR);
       break;
 
     case SystemZ::WFDDB:
-      Changed |= shortenOn001(MI, SystemZ::DDBR);
+      Changed = Changed || shortenOn001(MI, SystemZ::DDBR);
       break;
 
     case SystemZ::WFDSB:
-      Changed |= shortenOn001(MI, SystemZ::DEBR);
+      Changed = Changed || shortenOn001(MI, SystemZ::DEBR);
       break;
 
     case SystemZ::WFIDB:
-      Changed |= shortenFPConv(MI, SystemZ::FIDBRA);
+      Changed = Changed || shortenFPConv(MI, SystemZ::FIDBRA);
       break;
 
     case SystemZ::WFISB:
-      Changed |= shortenFPConv(MI, SystemZ::FIEBRA);
+      Changed = Changed || shortenFPConv(MI, SystemZ::FIEBRA);
       break;
 
     case SystemZ::WLDEB:
-      Changed |= shortenOn01(MI, SystemZ::LDEBR);
+      Changed = Changed || shortenOn01(MI, SystemZ::LDEBR);
       break;
 
     case SystemZ::WLEDB:
-      Changed |= shortenFPConv(MI, SystemZ::LEDBRA);
+      Changed = Changed || shortenFPConv(MI, SystemZ::LEDBRA);
       break;
 
     case SystemZ::WFMDB:
-      Changed |= shortenOn001(MI, SystemZ::MDBR);
+      Changed = Changed || shortenOn001(MI, SystemZ::MDBR);
       break;
 
     case SystemZ::WFMSB:
-      Changed |= shortenOn001(MI, SystemZ::MEEBR);
+      Changed = Changed || shortenOn001(MI, SystemZ::MEEBR);
       break;
 
     case SystemZ::WFMADB:
-      Changed |= shortenFusedFPOp(MI, SystemZ::MADBR);
+      Changed = Changed || shortenFusedFPOp(MI, SystemZ::MADBR);
       break;
 
     case SystemZ::WFMASB:
-      Changed |= shortenFusedFPOp(MI, SystemZ::MAEBR);
+      Changed = Changed || shortenFusedFPOp(MI, SystemZ::MAEBR);
       break;
 
     case SystemZ::WFMSDB:
-      Changed |= shortenFusedFPOp(MI, SystemZ::MSDBR);
+      Changed = Changed || shortenFusedFPOp(MI, SystemZ::MSDBR);
       break;
 
     case SystemZ::WFMSSB:
-      Changed |= shortenFusedFPOp(MI, SystemZ::MSEBR);
+      Changed = Changed || shortenFusedFPOp(MI, SystemZ::MSEBR);
       break;
 
     case SystemZ::WFLCDB:
-      Changed |= shortenOn01(MI, SystemZ::LCDFR);
+      Changed = Changed || shortenOn01(MI, SystemZ::LCDFR);
       break;
 
     case SystemZ::WFLCSB:
-      Changed |= shortenOn01(MI, SystemZ::LCDFR_32);
+      Changed = Changed || shortenOn01(MI, SystemZ::LCDFR_32);
       break;
 
     case SystemZ::WFLNDB:
-      Changed |= shortenOn01(MI, SystemZ::LNDFR);
+      Changed = Changed || shortenOn01(MI, SystemZ::LNDFR);
       break;
 
     case SystemZ::WFLNSB:
-      Changed |= shortenOn01(MI, SystemZ::LNDFR_32);
+      Changed = Changed || shortenOn01(MI, SystemZ::LNDFR_32);
       break;
 
     case SystemZ::WFLPDB:
-      Changed |= shortenOn01(MI, SystemZ::LPDFR);
+      Changed = Changed || shortenOn01(MI, SystemZ::LPDFR);
       break;
 
     case SystemZ::WFLPSB:
-      Changed |= shortenOn01(MI, SystemZ::LPDFR_32);
+      Changed = Changed || shortenOn01(MI, SystemZ::LPDFR_32);
       break;
 
     case SystemZ::WFSQDB:
-      Changed |= shortenOn01(MI, SystemZ::SQDBR);
+      Changed = Changed || shortenOn01(MI, SystemZ::SQDBR);
       break;
 
     case SystemZ::WFSQSB:
-      Changed |= shortenOn01(MI, SystemZ::SQEBR);
+      Changed = Changed || shortenOn01(MI, SystemZ::SQEBR);
       break;
 
     case SystemZ::WFSDB:
-      Changed |= shortenOn001AddCC(MI, SystemZ::SDBR);
+      Changed = Changed || shortenOn001AddCC(MI, SystemZ::SDBR);
       break;
 
     case SystemZ::WFSSB:
-      Changed |= shortenOn001AddCC(MI, SystemZ::SEBR);
+      Changed = Changed || shortenOn001AddCC(MI, SystemZ::SEBR);
       break;
 
     case SystemZ::WFCDB:
-      Changed |= shortenOn01(MI, SystemZ::CDBR);
+      Changed = Changed || shortenOn01(MI, SystemZ::CDBR);
       break;
 
     case SystemZ::WFCSB:
-      Changed |= shortenOn01(MI, SystemZ::CEBR);
+      Changed = Changed || shortenOn01(MI, SystemZ::CEBR);
       break;
 
     case SystemZ::WFKDB:
-      Changed |= shortenOn01(MI, SystemZ::KDBR);
+      Changed = Changed || shortenOn01(MI, SystemZ::KDBR);
       break;
 
     case SystemZ::WFKSB:
-      Changed |= shortenOn01(MI, SystemZ::KEBR);
+      Changed = Changed || shortenOn01(MI, SystemZ::KEBR);
       break;
 
     case SystemZ::VL32:
       // For z13 we prefer LDE over LE to avoid partial register dependencies.
-      Changed |= shortenOn0(MI, SystemZ::LDE32);
+      Changed = Changed || shortenOn0(MI, SystemZ::LDE32);
       break;
 
     case SystemZ::VST32:
-      Changed |= shortenOn0(MI, SystemZ::STE);
+      Changed = Changed || shortenOn0(MI, SystemZ::STE);
       break;
 
     case SystemZ::VL64:
-      Changed |= shortenOn0(MI, SystemZ::LD);
+      Changed = Changed || shortenOn0(MI, SystemZ::LD);
       break;
 
     case SystemZ::VST64:
-      Changed |= shortenOn0(MI, SystemZ::STD);
+      Changed = Changed || shortenOn0(MI, SystemZ::STD);
       break;
 
     default: {
@@ -391,7 +391,7 @@ bool SystemZShortenInst::runOnMachineFunction(MachineFunction &F) {
 
   bool Changed = false;
   for (auto &MBB : F)
-    Changed |= processBlock(MBB);
+    Changed = Changed || processBlock(MBB);
 
   return Changed;
 }

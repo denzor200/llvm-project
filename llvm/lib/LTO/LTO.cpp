@@ -664,7 +664,7 @@ void LTO::addModuleToGlobalRes(ArrayRef<InputFile::Symbol> Syms,
       SymbolName = GlobalResolutionSymbolSaver->save(SymbolName);
 
     auto &GlobalRes = (*GlobalResolutions)[SymbolName];
-    GlobalRes.UnnamedAddr &= Sym.isUnnamedAddr();
+    GlobalRes.UnnamedAddr = GlobalRes.UnnamedAddr && Sym.isUnnamedAddr();
     if (Res.Prevailing) {
       assert(!GlobalRes.Prevailing &&
              "Multiple prevailing defs are not allowed");
@@ -713,7 +713,7 @@ void LTO::addModuleToGlobalRes(ArrayRef<InputFile::Symbol> Syms,
 
     // Flag as visible outside of summary if visible from a regular object or
     // from a module that does not have a summary.
-    GlobalRes.VisibleOutsideSummary |=
+    GlobalRes.VisibleOutsideSummary = GlobalRes.VisibleOutsideSummary ||
         (Res.VisibleToRegularObj || Sym.isUsed() || IsLibcall || !InSummary);
 
     GlobalRes.ExportDynamic |= Res.ExportDynamic;

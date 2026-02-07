@@ -159,7 +159,7 @@ bool SpeculativeExecutionPass::runImpl(Function &F, TargetTransformInfo *TTI) {
   this->TTI = TTI;
   bool Changed = false;
   for (auto& B : F) {
-    Changed |= runOnBasicBlock(B);
+    Changed = Changed || runOnBasicBlock(B);
   }
   return Changed;
 }

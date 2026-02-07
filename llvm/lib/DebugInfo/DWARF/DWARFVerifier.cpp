@@ -2205,10 +2205,10 @@ bool DWARFVerifier::handleDebugStrOffsets() {
       DwoLegacyDwarf4Format = InfoFormat;
   });
 
-  Success &= verifyDebugStrOffsets(
+  Success = Success && verifyDebugStrOffsets(
       DwoLegacyDwarf4Format, ".debug_str_offsets.dwo",
       DObj.getStrOffsetsDWOSection(), DObj.getStrDWOSection());
-  Success &= verifyDebugStrOffsets(
+  Success = Success && verifyDebugStrOffsets(
       /*LegacyFormat=*/std::nullopt, ".debug_str_offsets",
       DObj.getStrOffsetsSection(), DObj.getStrSection());
   return Success;

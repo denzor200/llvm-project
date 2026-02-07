@@ -255,9 +255,9 @@ std::optional<bool> BufferOriginAnalysis::isSameAllocation(Value v1, Value v2) {
     for (Value v : origin) {
       if (isa<BaseMemRefType>(v.getType()) && analysis.mayBeTerminalBuffer(v)) {
         terminal.insert(v);
-        allAllocs &= hasAllocateSideEffect(v);
-        allAllocsOrFuncEntryArgs &=
-            isFunctionArgument(v) || hasAllocateSideEffect(v);
+        allAllocs = allAllocs && hasAllocateSideEffect(v);
+        allAllocsOrFuncEntryArgs = allAllocsOrFuncEntryArgs &&
+            (isFunctionArgument(v) || hasAllocateSideEffect(v));
       }
     }
     assert(!terminal.empty() && "expected non-empty terminal set");
@@ -280,7 +280,7 @@ std::optional<bool> BufferOriginAnalysis::isSameAllocation(Value v1, Value v2) {
   // Check if there is overlap between the terminal buffers of `v1` and `v2`.
   bool distinctTerminalSets = true;
   for (Value v : terminal1)
-    distinctTerminalSets &= !terminal2.contains(v);
+    distinctTerminalSets = distinctTerminalSets && !terminal2.contains(v);
   // If there is overlap between the terminal buffers of `v1` and `v2`, we
   // cannot make an accurate decision without further analysis.
   if (!distinctTerminalSets)

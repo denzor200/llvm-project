@@ -159,7 +159,7 @@ class BENCHMARK_EXPORT PerfCountersMeasurement final {
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
     ClobberMemory();
-    valid_read_ &= counters_.Snapshot(&start_values_);
+    valid_read_ = valid_read_ && counters_.Snapshot(&start_values_);
     ClobberMemory();
 
     return valid_read_;
@@ -171,7 +171,7 @@ class BENCHMARK_EXPORT PerfCountersMeasurement final {
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
     ClobberMemory();
-    valid_read_ &= counters_.Snapshot(&end_values_);
+    valid_read_ = valid_read_ && counters_.Snapshot(&end_values_);
     ClobberMemory();
 
     for (size_t i = 0; i < counters_.names().size(); ++i) {

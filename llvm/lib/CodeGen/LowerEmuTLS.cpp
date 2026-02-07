@@ -62,7 +62,7 @@ PreservedAnalyses LowerEmuTLSPass::run(Module &M, ModuleAnalysisManager &MAM) {
       TlsVars.push_back(&G);
   }
   for (const auto *G : TlsVars)
-    Changed |= addEmuTlsVar(M, G);
+    Changed = Changed || addEmuTlsVar(M, G);
 
   if (!Changed)
     return PreservedAnalyses::all();
@@ -100,7 +100,7 @@ bool LowerEmuTLS::runOnModule(Module &M) {
       TlsVars.append({&G});
   }
   for (const auto *const G : TlsVars)
-    Changed |= addEmuTlsVar(M, G);
+    Changed = Changed || addEmuTlsVar(M, G);
   return Changed;
 }
 

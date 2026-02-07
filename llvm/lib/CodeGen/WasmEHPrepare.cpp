@@ -186,8 +186,8 @@ static void eraseDeadBBsAndChildren(const Container &BBs) {
 
 bool WasmEHPrepareImpl::runOnFunction(Function &F) {
   bool Changed = false;
-  Changed |= prepareThrows(F);
-  Changed |= prepareEHPads(F);
+  Changed = Changed || prepareThrows(F);
+  Changed = Changed || prepareEHPads(F);
   return Changed;
 }
 

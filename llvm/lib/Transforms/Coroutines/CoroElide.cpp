@@ -465,7 +465,7 @@ PreservedAnalyses CoroElidePass::run(Function &F, FunctionAnalysisManager &AM) {
   bool Changed = false;
   for (auto *CII : FEI.getCoroIds()) {
     CoroIdElider CIE(CII, FEI, AA, DT, ORE);
-    Changed |= CIE.attemptElide();
+    Changed = Changed || CIE.attemptElide();
   }
 
   return Changed ? PreservedAnalyses::none() : PreservedAnalyses::all();

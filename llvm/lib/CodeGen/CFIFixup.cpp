@@ -336,7 +336,7 @@ bool CFIFixup::runOnMachineFunction(MachineFunction &MF) {
   // preceeds the prologue.
   for (MachineBasicBlock &MBB :
        make_range(std::next(PrologueBlock->getIterator()), MF.end())) {
-    Change |=
+    Change = Change ||
         fixupBlock(MBB, BlockInfo, InsertionPts, {PrologueBlock, PrologueEnd});
   }
 

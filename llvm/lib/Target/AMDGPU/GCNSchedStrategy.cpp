@@ -540,7 +540,7 @@ SUnit *GCNSchedStrategy::pickNodeBidirectional(bool &IsTopNode,
 
   TryCand.Reason = NoCand;
   if (BotPending || TopPending) {
-    PickedPending |= tryPendingCandidate(Cand, TopCand, nullptr);
+    PickedPending = PickedPending || tryPendingCandidate(Cand, TopCand, nullptr);
   } else {
     tryCandidate(Cand, TryCand, nullptr);
   }
@@ -2716,7 +2716,7 @@ bool PreRARematStage::setObjective() {
     GCNRPTarget &Target = RPTargets.emplace_back(MaxSGPRs, MaxVGPRs, MF, RP);
     if (!Target.satisfied())
       TargetRegions.set(I);
-    HasVectorRegisterExcess |= Target.hasVectorRegisterExcess();
+    HasVectorRegisterExcess = HasVectorRegisterExcess || Target.hasVectorRegisterExcess();
   }
 
   if (HasVectorRegisterExcess || DAG.MinOccupancy >= MFI.getMaxWavesPerEU()) {

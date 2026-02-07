@@ -938,9 +938,9 @@ void InstrInfoEmitter::run(raw_ostream &OS) {
   std::vector<std::vector<const Record *>> ImplicitLists;
   unsigned ImplicitListSize = 0;
   for (const CodeGenInstruction *Inst : NumberedInstructions) {
-    HasUseLogicalOperandMappings |=
+    HasUseLogicalOperandMappings = HasUseLogicalOperandMappings ||
         Inst->TheDef->getValueAsBit("UseLogicalOperandMappings");
-    HasUseNamedOperandTable |=
+    HasUseNamedOperandTable = HasUseNamedOperandTable ||
         Inst->TheDef->getValueAsBit("UseNamedOperandTable");
 
     std::vector<const Record *> ImplicitOps = Inst->ImplicitUses;

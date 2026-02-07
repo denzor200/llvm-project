@@ -1958,7 +1958,7 @@ private:
 
     // Run the query against the index.
     SymbolSlab::Builder ResultsBuilder;
-    Incomplete |= Opts.Index->fuzzyFind(
+    Incomplete = Incomplete || Opts.Index->fuzzyFind(
         Req, [&](const Symbol &Sym) { ResultsBuilder.insert(Sym); });
     return std::move(ResultsBuilder).build();
   }

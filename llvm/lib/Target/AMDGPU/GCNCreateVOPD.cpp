@@ -189,7 +189,7 @@ public:
       }
     }
     for (auto &CI : ReplaceCandidates) {
-      Changed |= doReplace(SII, CI);
+      Changed = Changed || doReplace(SII, CI);
     }
 
     return Changed;

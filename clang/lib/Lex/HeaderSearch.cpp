@@ -1152,7 +1152,7 @@ OptionalFileEntryRef HeaderSearch::LookupFile(
       // A filename is mapped when a header map remapped it to a relative path
       // used in subsequent header search or to an absolute path pointing to an
       // existing file.
-      *IsMapped |= (!MappedName.empty() || (IsInHeaderMap && File));
+      *IsMapped = *IsMapped || (!MappedName.empty() || (IsInHeaderMap && File));
     if (IsFrameworkFound)
       // Because we keep a filename remapped for subsequent search directory
       // lookups, ignore IsFrameworkFoundInDir after the first remapping and not

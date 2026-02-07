@@ -1106,7 +1106,7 @@ static LazyCallGraph::SCC &updateCGAndAnalysisManagerForPass(
           for (SCC *MergedC : MergedSCCs) {
             assert(MergedC != &TargetC && "Cannot merge away the target SCC!");
 
-            HasFunctionAnalysisProxy |=
+            HasFunctionAnalysisProxy = HasFunctionAnalysisProxy ||
                 AM.getCachedResult<FunctionAnalysisManagerCGSCCProxy>(
                     *MergedC) != nullptr;
 

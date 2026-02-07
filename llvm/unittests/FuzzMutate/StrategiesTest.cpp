@@ -272,7 +272,7 @@ TEST(InstModificationIRStrategyTest, ICmp) {
   for (int i = 0; i < 100; ++i) {
     Mutator->mutateModule(*M, Seed + i, IRMutator::getModuleSize(*M) + 100);
     EXPECT_TRUE(!verifyModule(*M, &errs()));
-    FoundNE |= CI->getPredicate() == CmpInst::ICMP_NE;
+    FoundNE = FoundNE || CI->getPredicate() == CmpInst::ICMP_NE;
   }
 
   EXPECT_TRUE(FoundNE);
@@ -297,7 +297,7 @@ TEST(InstModificationIRStrategyTest, FCmp) {
   for (int i = 0; i < 100; ++i) {
     Mutator->mutateModule(*M, Seed + i, IRMutator::getModuleSize(*M) + 100);
     EXPECT_TRUE(!verifyModule(*M, &errs()));
-    FoundONE |= CI->getPredicate() == CmpInst::FCMP_ONE;
+    FoundONE = FoundONE || CI->getPredicate() == CmpInst::FCMP_ONE;
   }
 
   EXPECT_TRUE(FoundONE);
@@ -322,7 +322,7 @@ TEST(InstModificationIRStrategyTest, GEP) {
   for (int i = 0; i < 100; ++i) {
     Mutator->mutateModule(*M, Seed + i, IRMutator::getModuleSize(*M) + 100);
     EXPECT_TRUE(!verifyModule(*M, &errs()));
-    FoundInbounds |= GEP->isInBounds();
+    FoundInbounds = FoundInbounds || GEP->isInBounds();
   }
 
   EXPECT_TRUE(FoundInbounds);

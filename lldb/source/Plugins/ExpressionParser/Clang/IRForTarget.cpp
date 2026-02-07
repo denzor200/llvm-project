@@ -155,7 +155,7 @@ static bool isGuardVariableSymbol(llvm::StringRef mangled_symbol,
   bool result =
       mangled_symbol.starts_with("_ZGV"); // Itanium ABI guard variable
   if (check_ms_abi)
-    result |= mangled_symbol.ends_with("@4IA"); // Microsoft ABI
+    result = result || mangled_symbol.ends_with("@4IA"); // Microsoft ABI
   return result;
 }
 

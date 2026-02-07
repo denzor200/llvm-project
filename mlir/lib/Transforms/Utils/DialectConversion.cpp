@@ -1256,7 +1256,7 @@ performReplaceValue(RewriterBase &rewriter, Value from, Value repl,
     bool result =
         user->getBlock() != replBlock || replOp->isBeforeInBlock(user);
     if (result && functor)
-      result &= functor(operand);
+      result = result && functor(operand);
     return result;
   });
 }

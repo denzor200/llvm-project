@@ -539,7 +539,7 @@ private:
   bool runBeforeAdding(StringRef Name) const {
     bool ShouldAdd = true;
     for (auto &C : BeforeCallbacks)
-      ShouldAdd &= C(Name);
+      ShouldAdd = ShouldAdd && C(Name);
     return ShouldAdd;
   }
 

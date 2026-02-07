@@ -1059,7 +1059,7 @@ public:
     bool Changed = false;
     for (const auto *Op : Expr->operands()) {
       Operands.push_back(visit(Op));
-      Changed |= Op != Operands.back();
+      Changed = Changed || Op != Operands.back();
     }
     return !Changed ? Expr : SE.getAddExpr(Operands, Expr->getNoWrapFlags());
   }
@@ -1069,7 +1069,7 @@ public:
     bool Changed = false;
     for (const auto *Op : Expr->operands()) {
       Operands.push_back(visit(Op));
-      Changed |= Op != Operands.back();
+      Changed = Changed || Op != Operands.back();
     }
     return !Changed ? Expr : SE.getMulExpr(Operands, Expr->getNoWrapFlags());
   }
@@ -2288,7 +2288,7 @@ CollectAddOperandsWithScales(SmallDenseMap<const SCEV *, APInt, 16> &M,
       if (Mul->getNumOperands() == 2 && isa<SCEVAddExpr>(Mul->getOperand(1))) {
         // A multiplication of a constant with another add; recurse.
         const SCEVAddExpr *Add = cast<SCEVAddExpr>(Mul->getOperand(1));
-        Interesting |=
+        Interesting = Interesting ||
           CollectAddOperandsWithScales(M, NewOps, AccumulatedConstant,
                                        Add->operands(), NewScale, SE);
       } else {
@@ -3109,7 +3109,7 @@ static bool containsConstantInAddMulChain(const SCEV *StartExpr) {
     bool FoundConstant = false;
 
     bool follow(const SCEV *S) {
-      FoundConstant |= isa<SCEVConstant>(S);
+      FoundConstant = FoundConstant || isa<SCEVConstant>(S);
       return isa<SCEVAddExpr>(S) || isa<SCEVMulExpr>(S);
     }
 
@@ -15985,9 +15985,9 @@ void ScalarEvolution::LoopGuards::collectFromBlock(
   Guards.PreserveNSW = true;
   for (const SCEV *Expr : ExprsToRewrite) {
     const SCEV *RewriteTo = Guards.RewriteMap[Expr];
-    Guards.PreserveNUW &=
+    Guards.PreserveNUW = Guards.PreserveNUW &&
         SE.getUnsignedRange(Expr).contains(SE.getUnsignedRange(RewriteTo));
-    Guards.PreserveNSW &=
+    Guards.PreserveNSW = Guards.PreserveNSW &&
         SE.getSignedRange(Expr).contains(SE.getSignedRange(RewriteTo));
   }
 
@@ -16113,7 +16113,7 @@ const SCEV *ScalarEvolution::LoopGuards::rewrite(const SCEV *Expr) const {
       for (const auto *Op : Expr->operands()) {
         Operands.push_back(
             SCEVRewriteVisitor<SCEVLoopGuardRewriter>::visit(Op));
-        Changed |= Op != Operands.back();
+        Changed = Changed || Op != Operands.back();
       }
       // We are only replacing operands with equivalent values, so transfer the
       // flags from the original expression.
@@ -16129,7 +16129,7 @@ const SCEV *ScalarEvolution::LoopGuards::rewrite(const SCEV *Expr) const {
       for (const auto *Op : Expr->operands()) {
         Operands.push_back(
             SCEVRewriteVisitor<SCEVLoopGuardRewriter>::visit(Op));
-        Changed |= Op != Operands.back();
+        Changed = Changed || Op != Operands.back();
       }
       // We are only replacing operands with equivalent values, so transfer the
       // flags from the original expression.

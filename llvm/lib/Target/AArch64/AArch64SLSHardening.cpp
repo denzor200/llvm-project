@@ -139,7 +139,7 @@ struct SLSHardeningInserter : ThunkInserter<SLSHardeningInserter, ThunksSet> {
 public:
   const char *getThunkPrefix() { return CommonNamePrefix.data(); }
   bool mayUseThunk(const MachineFunction &MF) {
-    ComdatThunks &= !MF.getSubtarget<AArch64Subtarget>().hardenSlsNoComdat();
+    ComdatThunks = ComdatThunks && !MF.getSubtarget<AArch64Subtarget>().hardenSlsNoComdat();
     // We are inserting barriers aside from thunk calls, so
     // check hardenSlsRetBr() as well.
     return MF.getSubtarget<AArch64Subtarget>().hardenSlsBlr() ||

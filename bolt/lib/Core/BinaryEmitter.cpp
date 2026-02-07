@@ -251,7 +251,7 @@ void BinaryEmitter::emitFunctions() {
         Streamer.setAllowAutoPadding(false);
 
       FunctionLayout &Layout = Function->getLayout();
-      Emitted |= emitFunction(*Function, Layout.getMainFragment());
+      Emitted = Emitted || emitFunction(*Function, Layout.getMainFragment());
 
       if (Function->isSplit()) {
         if (opts::X86AlignBranchBoundaryHotOnly)
@@ -264,7 +264,7 @@ void BinaryEmitter::emitFunctions() {
           // are generated
           if (FF.empty() && !Function->hasConstantIsland())
             continue;
-          Emitted |= emitFunction(*Function, FF);
+          Emitted = Emitted || emitFunction(*Function, FF);
         }
       }
 

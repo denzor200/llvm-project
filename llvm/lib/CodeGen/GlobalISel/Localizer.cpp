@@ -219,6 +219,6 @@ bool Localizer::runOnMachineFunction(MachineFunction &MF) {
   LocalizedSetVecT LocalizedInstrs;
 
   bool Changed = localizeInterBlock(MF, LocalizedInstrs);
-  Changed |= localizeIntraBlock(LocalizedInstrs);
+  Changed = Changed || localizeIntraBlock(LocalizedInstrs);
   return Changed;
 }

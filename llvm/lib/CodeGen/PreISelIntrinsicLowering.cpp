@@ -625,14 +625,14 @@ bool PreISelIntrinsicLowering::lowerIntrinsics(Module &M) const {
     case Intrinsic::memset:
     case Intrinsic::memset_inline:
     case Intrinsic::experimental_memset_pattern:
-      Changed |= expandMemIntrinsicUses(F, CMap);
+      Changed = Changed || expandMemIntrinsicUses(F, CMap);
       break;
     case Intrinsic::load_relative:
-      Changed |= lowerLoadRelative(F);
+      Changed = Changed || lowerLoadRelative(F);
       break;
     case Intrinsic::is_constant:
     case Intrinsic::objectsize:
-      Changed |= forEachCall(F, [&](CallInst *CI) {
+      Changed = Changed || forEachCall(F, [&](CallInst *CI) {
         Function *Parent = CI->getParent()->getParent();
         TargetLibraryInfo &TLI = LookupTLI(*Parent);
         // Intrinsics in unreachable code are not lowered.
@@ -657,91 +657,91 @@ bool PreISelIntrinsicLowering::lowerIntrinsics(Module &M) const {
       });
       break;
     case Intrinsic::objc_autorelease:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_autorelease);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_autorelease);
       break;
     case Intrinsic::objc_autoreleasePoolPop:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_autoreleasePoolPop);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_autoreleasePoolPop);
       break;
     case Intrinsic::objc_autoreleasePoolPush:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_autoreleasePoolPush);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_autoreleasePoolPush);
       break;
     case Intrinsic::objc_autoreleaseReturnValue:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_autoreleaseReturnValue);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_autoreleaseReturnValue);
       break;
     case Intrinsic::objc_copyWeak:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_copyWeak);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_copyWeak);
       break;
     case Intrinsic::objc_destroyWeak:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_destroyWeak);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_destroyWeak);
       break;
     case Intrinsic::objc_initWeak:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_initWeak);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_initWeak);
       break;
     case Intrinsic::objc_loadWeak:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_loadWeak);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_loadWeak);
       break;
     case Intrinsic::objc_loadWeakRetained:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_loadWeakRetained);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_loadWeakRetained);
       break;
     case Intrinsic::objc_moveWeak:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_moveWeak);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_moveWeak);
       break;
     case Intrinsic::objc_release:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_release, true);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_release, true);
       break;
     case Intrinsic::objc_retain:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_retain, true);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_retain, true);
       break;
     case Intrinsic::objc_retainAutorelease:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_retainAutorelease);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_retainAutorelease);
       break;
     case Intrinsic::objc_retainAutoreleaseReturnValue:
-      Changed |=
+      Changed = Changed ||
           lowerObjCCall(F, RTLIB::impl_objc_retainAutoreleaseReturnValue);
       break;
     case Intrinsic::objc_retainAutoreleasedReturnValue:
-      Changed |=
+      Changed = Changed ||
           lowerObjCCall(F, RTLIB::impl_objc_retainAutoreleasedReturnValue);
       break;
     case Intrinsic::objc_claimAutoreleasedReturnValue:
-      Changed |=
+      Changed = Changed ||
           lowerObjCCall(F, RTLIB::impl_objc_claimAutoreleasedReturnValue);
       break;
     case Intrinsic::objc_retainBlock:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_retainBlock);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_retainBlock);
       break;
     case Intrinsic::objc_storeStrong:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_storeStrong);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_storeStrong);
       break;
     case Intrinsic::objc_storeWeak:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_storeWeak);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_storeWeak);
       break;
     case Intrinsic::objc_unsafeClaimAutoreleasedReturnValue:
-      Changed |=
+      Changed = Changed ||
           lowerObjCCall(F, RTLIB::impl_objc_unsafeClaimAutoreleasedReturnValue);
       break;
     case Intrinsic::objc_retainedObject:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_retainedObject);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_retainedObject);
       break;
     case Intrinsic::objc_unretainedObject:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_unretainedObject);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_unretainedObject);
       break;
     case Intrinsic::objc_unretainedPointer:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_unretainedPointer);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_unretainedPointer);
       break;
     case Intrinsic::objc_retain_autorelease:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_retain_autorelease);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_retain_autorelease);
       break;
     case Intrinsic::objc_sync_enter:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_sync_enter);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_sync_enter);
       break;
     case Intrinsic::objc_sync_exit:
-      Changed |= lowerObjCCall(F, RTLIB::impl_objc_sync_exit);
+      Changed = Changed || lowerObjCCall(F, RTLIB::impl_objc_sync_exit);
       break;
     case Intrinsic::exp:
     case Intrinsic::exp2:
     case Intrinsic::log:
-      Changed |= forEachCall(F, [&](CallInst *CI) {
+      Changed = Changed || forEachCall(F, [&](CallInst *CI) {
         Type *Ty = CI->getArgOperand(0)->getType();
         if (!TM || !isa<ScalableVectorType>(Ty))
           return false;
@@ -754,7 +754,7 @@ bool PreISelIntrinsicLowering::lowerIntrinsics(Module &M) const {
       });
       break;
     case Intrinsic::protected_field_ptr:
-      Changed |= expandProtectedFieldPtr(F);
+      Changed = Changed || expandProtectedFieldPtr(F);
       break;
     }
   }

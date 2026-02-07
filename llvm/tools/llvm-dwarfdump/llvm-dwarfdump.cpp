@@ -626,7 +626,7 @@ static bool collectLineTableSources(const DWARFDebugLine::LineTable &LT,
                 E = LastIndex ? *LastIndex + 1 : 0;
        I < E; ++I) {
     std::string Path;
-    Result &= LT.getFileNameByIndex(
+    Result = Result && LT.getFileNameByIndex(
         I, CompDir, DILineInfoSpecifier::FileLineInfoKind::AbsoluteFilePath,
         Path);
     Sources.push_back(std::move(Path));
@@ -648,7 +648,7 @@ static bool collectObjectSources(ObjectFile &Obj, DWARFContext &DICtx,
     const DWARFDebugLine::LineTable *LT = DICtx.getLineTableForUnit(CU.get());
     StringRef CompDir = CU->getCompilationDir();
     if (LT) {
-      Result &= collectLineTableSources(*LT, CompDir, Sources);
+      Result = Result && collectLineTableSources(*LT, CompDir, Sources);
     } else {
       // Since there's no line table for this CU, collect the name from the CU
       // itself.
@@ -683,7 +683,7 @@ static bool collectObjectSources(ObjectFile &Obj, DWARFContext &DICtx,
 
       DWARFDebugLine::LineTable LT =
           Parser.parseNext(RecoverableErrorHandler, UnrecoverableErrorHandler);
-      Result &= collectLineTableSources(LT, /*CompDir=*/"", Sources);
+      Result = Result && collectLineTableSources(LT, /*CompDir=*/"", Sources);
     }
   }
 
@@ -796,7 +796,7 @@ static bool handleArchive(StringRef Filename, Archive &Arch,
     auto NameOrErr = Child.getName();
     error(Filename, NameOrErr.takeError());
     std::string Name = (Filename + "(" + NameOrErr.get() + ")").str();
-    Result &= handleBuffer(Name, BuffOrErr.get(), HandleObj, OS);
+    Result = Result && handleBuffer(Name, BuffOrErr.get(), HandleObj, OS);
   }
   error(Filename, std::move(Err));
 
@@ -952,19 +952,19 @@ int main(int argc, char **argv) {
     else
       parallel::strategy = hardware_concurrency(VerifyNumThreads);
     for (StringRef Object : Objects)
-      Success &= handleFile(Object, verifyObjectFile, OutputFile.os());
+      Success = Success && handleFile(Object, verifyObjectFile, OutputFile.os());
   } else if (Statistics) {
     for (StringRef Object : Objects)
-      Success &= handleFile(Object, collectStatsForObjectFile, OutputFile.os());
+      Success = Success && handleFile(Object, collectStatsForObjectFile, OutputFile.os());
   } else if (ShowSectionSizes) {
     for (StringRef Object : Objects)
-      Success &= handleFile(Object, collectObjectSectionSizes, OutputFile.os());
+      Success = Success && handleFile(Object, collectObjectSectionSizes, OutputFile.os());
   } else if (ShowSources) {
     for (StringRef Object : Objects)
-      Success &= handleFile(Object, collectObjectSources, OutputFile.os());
+      Success = Success && handleFile(Object, collectObjectSources, OutputFile.os());
   } else {
     for (StringRef Object : Objects)
-      Success &= handleFile(Object, dumpObjectFile, OutputFile.os());
+      Success = Success && handleFile(Object, dumpObjectFile, OutputFile.os());
   }
 
   if (ShowVariableCoverage) {
@@ -973,7 +973,7 @@ int main(int argc, char **argv) {
       return showVariableCoverage(Obj, DICtx, CombineInstances, OS);
     };
     for (StringRef Object : Objects)
-      Success &= handleFile(Object, showCoverage, OutputFile.os());
+      Success = Success && handleFile(Object, showCoverage, OutputFile.os());
   }
 
   return Success ? EXIT_SUCCESS : EXIT_FAILURE;

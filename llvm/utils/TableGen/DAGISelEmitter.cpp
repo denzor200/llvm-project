@@ -96,15 +96,15 @@ struct PatternSortingPredicate {
 
     if (LT.getNumTypes() != 0) {
       for (auto [_, VT] : LT.getType(0)) {
-        LHSIsVector |= VT.isVector();
-        LHSIsFP |= VT.isFloatingPoint();
+        LHSIsVector = LHSIsVector || VT.isVector();
+        LHSIsFP = LHSIsFP || VT.isFloatingPoint();
       }
     }
 
     if (RT.getNumTypes() != 0) {
       for (auto [_, VT] : RT.getType(0)) {
-        RHSIsVector |= VT.isVector();
-        RHSIsFP |= VT.isFloatingPoint();
+        RHSIsVector = RHSIsVector || VT.isVector();
+        RHSIsFP = RHSIsFP || VT.isFloatingPoint();
       }
     }
 

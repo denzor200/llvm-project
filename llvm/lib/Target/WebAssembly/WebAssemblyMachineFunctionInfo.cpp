@@ -96,8 +96,8 @@ void llvm::computeSignatureVTs(const FunctionType *Ty,
     bool HasSwiftErrorArg = false;
     bool HasSwiftSelfArg = false;
     for (const auto &Arg : TargetFunc->args()) {
-      HasSwiftErrorArg |= Arg.hasAttribute(Attribute::SwiftError);
-      HasSwiftSelfArg |= Arg.hasAttribute(Attribute::SwiftSelf);
+      HasSwiftErrorArg = HasSwiftErrorArg || Arg.hasAttribute(Attribute::SwiftError);
+      HasSwiftSelfArg = HasSwiftSelfArg || Arg.hasAttribute(Attribute::SwiftSelf);
     }
     if (!HasSwiftErrorArg)
       Params.push_back(PtrVT);

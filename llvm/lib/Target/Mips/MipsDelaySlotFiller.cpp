@@ -198,7 +198,7 @@ namespace {
       TM = &F.getTarget();
       bool Changed = false;
       for (MachineBasicBlock &MBB : F)
-        Changed |= runOnMachineBasicBlock(MBB);
+        Changed = Changed || runOnMachineBasicBlock(MBB);
 
       // This pass invalidates liveness information when it reorders
       // instructions to fill delay slot. Without this, -verify-machineinstrs
@@ -508,8 +508,8 @@ bool InspectMemInstr::hasHazard(const MachineInstr &MI) {
 
   OrigSeenLoad = SeenLoad;
   OrigSeenStore = SeenStore;
-  SeenLoad |= MI.mayLoad();
-  SeenStore |= MI.mayStore();
+  SeenLoad = SeenLoad || MI.mayLoad();
+  SeenStore = SeenStore || MI.mayStore();
 
   // If MI is an ordered or volatile memory reference, disallow moving
   // subsequent loads and stores to delay slot.
@@ -548,16 +548,16 @@ bool MemDefsUses::hasHazard_(const MachineInstr &MI) {
   SmallVector<ValueType, 4> Objs;
   if (getUnderlyingObjects(MI, Objs)) {
     for (ValueType VT : Objs)
-      HasHazard |= updateDefsUses(VT, MI.mayStore());
+      HasHazard = HasHazard || updateDefsUses(VT, MI.mayStore());
     return HasHazard;
   }
 
   // No underlying objects found.
   HasHazard = MI.mayStore() && (OrigSeenLoad || OrigSeenStore);
-  HasHazard |= MI.mayLoad() || OrigSeenStore;
+  HasHazard = HasHazard || MI.mayLoad() || OrigSeenStore;
 
-  SeenNoObjLoad |= MI.mayLoad();
-  SeenNoObjStore |= MI.mayStore();
+  SeenNoObjLoad = SeenNoObjLoad || MI.mayLoad();
+  SeenNoObjStore = SeenNoObjStore || MI.mayStore();
 
   return HasHazard;
 }
@@ -1008,8 +1008,8 @@ bool MipsDelaySlotFiller::delayHasHazard(const MachineInstr &Candidate,
 
   bool HasHazard = Candidate.isImplicitDef();
 
-  HasHazard |= IM.hasHazard(Candidate);
-  HasHazard |= RegDU.update(Candidate, 0, Candidate.getNumOperands());
+  HasHazard = HasHazard || IM.hasHazard(Candidate);
+  HasHazard = HasHazard || RegDU.update(Candidate, 0, Candidate.getNumOperands());
 
   return HasHazard;
 }

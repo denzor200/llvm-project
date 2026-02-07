@@ -129,7 +129,7 @@ LoopPassManager::runWithLoopNestPasses(Loop &L, LoopAnalysisManager &AM,
     PA.intersect(std::move(*PassPA));
 
     // Check if the current pass preserved the loop-nest object or not.
-    IsLoopNestPtrValid &= PassPA->getChecker<LoopNestAnalysis>().preserved();
+    IsLoopNestPtrValid = IsLoopNestPtrValid && PassPA->getChecker<LoopNestAnalysis>().preserved();
 
     // After running the loop pass, the parent loop might change and we need to
     // notify the updater, otherwise U.ParentL might gets outdated and triggers

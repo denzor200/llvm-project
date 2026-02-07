@@ -476,7 +476,7 @@ bool MipsConstantIslands::runOnMachineFunction(MachineFunction &mf) {
   LLVM_DEBUG(dumpBBs());
 
   /// Remove dead constant pool entries.
-  MadeChange |= removeUnusedCPEntries();
+  MadeChange = MadeChange || removeUnusedCPEntries();
 
   // Iteratively place constant pool entries and fix up branches until there
   // is no change.
@@ -486,7 +486,7 @@ bool MipsConstantIslands::runOnMachineFunction(MachineFunction &mf) {
     LLVM_DEBUG(dbgs() << "Beginning CP iteration #" << NoCPIters << '\n');
     bool CPChange = false;
     for (unsigned i = 0, e = CPUsers.size(); i != e; ++i)
-      CPChange |= handleConstantPoolUser(i);
+      CPChange = CPChange || handleConstantPoolUser(i);
     if (CPChange && ++NoCPIters > 30)
       report_fatal_error("Constant Island pass failed to converge!");
     LLVM_DEBUG(dumpBBs());
@@ -498,7 +498,7 @@ bool MipsConstantIslands::runOnMachineFunction(MachineFunction &mf) {
     LLVM_DEBUG(dbgs() << "Beginning BR iteration #" << NoBRIters << '\n');
     bool BRChange = false;
     for (unsigned i = 0, e = ImmBranches.size(); i != e; ++i)
-      BRChange |= fixupImmediateBr(ImmBranches[i]);
+      BRChange = BRChange || fixupImmediateBr(ImmBranches[i]);
     if (BRChange && ++NoBRIters > 30)
       report_fatal_error("Branch Fix Up pass failed to converge!");
     LLVM_DEBUG(dumpBBs());

@@ -414,7 +414,7 @@ bool MCPlusBuilder::removeAnnotation(MCInst &Inst, unsigned Index) const {
 }
 
 void MCPlusBuilder::stripAnnotations(MCInst &Inst, bool KeepTC) const {
-  KeepTC &= hasAnnotation(Inst, MCAnnotation::kTailCall);
+  KeepTC = KeepTC && hasAnnotation(Inst, MCAnnotation::kTailCall);
 
   removeAnnotations(Inst);
 

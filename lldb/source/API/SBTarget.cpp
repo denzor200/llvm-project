@@ -2251,7 +2251,7 @@ SBError SBTarget::ClearModuleLoadAddress(lldb::SBModule module) {
           for (size_t sect_idx = 0; sect_idx < num_sections; ++sect_idx) {
             SectionSP section_sp(section_list->GetSectionAtIndex(sect_idx));
             if (section_sp)
-              changed |= target_sp->SetSectionUnloaded(section_sp);
+              changed = changed || target_sp->SetSectionUnloaded(section_sp);
           }
           if (changed) {
             ModuleList module_list;

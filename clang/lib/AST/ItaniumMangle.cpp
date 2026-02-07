@@ -6852,7 +6852,7 @@ void CXXNameMangler::mangleValueInTemplateArg(QualType T, const APValue &V,
       for (APValue::LValuePathEntry E : V.getLValuePath()) {
         if (auto *AT = TypeSoFar->getAsArrayTypeUnsafe()) {
           if (auto *CAT = dyn_cast<ConstantArrayType>(AT))
-            OnePastTheEnd |= CAT->getSize() == E.getAsArrayIndex();
+            OnePastTheEnd = OnePastTheEnd || CAT->getSize() == E.getAsArrayIndex();
           TypeSoFar = AT->getElementType();
         } else {
           const Decl *D = E.getAsBaseOrMember().getPointer();

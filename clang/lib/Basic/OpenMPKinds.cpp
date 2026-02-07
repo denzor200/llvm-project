@@ -982,7 +982,7 @@ void clang::getOpenMPCaptureRegions(
 
   bool MayNeedUnknownRegion = false;
   for (OpenMPDirectiveKind L : getLeafConstructsOrSelf(DKind))
-    MayNeedUnknownRegion |= GetRegionsForLeaf(L);
+    MayNeedUnknownRegion = MayNeedUnknownRegion || GetRegionsForLeaf(L);
 
   // We need OMPD_unknown when no regions were added, and specific leaf
   // constructs were present. Push a single OMPD_unknown as the capture

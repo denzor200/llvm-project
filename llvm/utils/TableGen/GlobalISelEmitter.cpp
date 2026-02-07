@@ -935,8 +935,8 @@ Expected<InstructionMatcher &> GlobalISelEmitter::createAndImportSelDAGMatcher(
         //
         // Note that we have to look at the i-1th parameter, because we don't
         // have the intrinsic ID in the intrinsic's parameter list.
-        OperandIsAPointer |= II->isParamAPointer(I - 1);
-        OperandIsImmArg |= II->isParamImmArg(I - 1);
+        OperandIsAPointer = OperandIsAPointer || II->isParamAPointer(I - 1);
+        OperandIsImmArg = OperandIsImmArg || II->isParamImmArg(I - 1);
       }
 
       if (auto Error =

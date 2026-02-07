@@ -183,7 +183,7 @@ static bool runIPSCCP(
       bool ReplacedPointerArg = false;
       for (Argument &Arg : F.args()) {
         if (!Arg.use_empty() && Solver.tryToReplaceWithConstant(&Arg)) {
-          ReplacedPointerArg |= Arg.getType()->isPointerTy();
+          ReplacedPointerArg = ReplacedPointerArg || Arg.getType()->isPointerTy();
           ++NumArgsElimed;
         }
       }
@@ -230,7 +230,7 @@ static bool runIPSCCP(
         continue;
       }
 
-      MadeChanges |= Solver.simplifyInstsInBlock(
+      MadeChanges = MadeChanges || Solver.simplifyInstsInBlock(
           BB, InsertedValues, NumInstRemoved, NumInstReplaced);
     }
 
@@ -251,7 +251,7 @@ static bool runIPSCCP(
 
     BasicBlock *NewUnreachableBB = nullptr;
     for (BasicBlock &BB : F)
-      MadeChanges |= Solver.removeNonFeasibleEdges(&BB, DTU, NewUnreachableBB);
+      MadeChanges = MadeChanges || Solver.removeNonFeasibleEdges(&BB, DTU, NewUnreachableBB);
 
     for (BasicBlock *DeadBB : BlocksToErase)
       if (!DeadBB->hasAddressTaken())

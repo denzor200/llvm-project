@@ -229,7 +229,7 @@ bool LiveRangeCalc::findReachingDefs(LiveRange &LR, MachineBasicBlock &UseMBB,
       }
     }
 #endif
-    FoundUndef |= MBB->pred_empty();
+    FoundUndef = FoundUndef || MBB->pred_empty();
 
     for (MachineBasicBlock *Pred : MBB->predecessors()) {
        // Is this a known live-out block?

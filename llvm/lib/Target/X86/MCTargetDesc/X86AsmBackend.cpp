@@ -846,9 +846,9 @@ bool X86AsmBackend::padInstructionEncoding(MCFragment &RF,
                                            unsigned &RemainingSize) const {
   bool Changed = false;
   if (RemainingSize != 0)
-    Changed |= padInstructionViaRelaxation(RF, Emitter, RemainingSize);
+    Changed = Changed || padInstructionViaRelaxation(RF, Emitter, RemainingSize);
   if (RemainingSize != 0)
-    Changed |= padInstructionViaPrefix(RF, Emitter, RemainingSize);
+    Changed = Changed || padInstructionViaPrefix(RF, Emitter, RemainingSize);
   return Changed;
 }
 
@@ -916,7 +916,7 @@ bool X86AsmBackend::finishLayout() const {
         // Give the backend a chance to play any tricks it wishes to increase
         // the encoding size of the given instruction.  Target independent code
         // will try further relaxation, but target's may play further tricks.
-        Changed |= padInstructionEncoding(RF, Asm->getEmitter(), RemainingSize);
+        Changed = Changed || padInstructionEncoding(RF, Asm->getEmitter(), RemainingSize);
 
         // If we have an instruction which hasn't been fully relaxed, we can't
         // skip past it and insert bytes before it.  Changing its starting

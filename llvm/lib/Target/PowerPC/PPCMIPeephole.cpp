@@ -597,7 +597,7 @@ bool PPCMIPeephole::simplifyCode() {
         Register MIDestReg = MI.getOperand(0).getReg();
         bool Folded = false;
         for (MachineInstr& UseMI : MRI->use_instructions(MIDestReg))
-          Folded |= TII->onlyFoldImmediate(UseMI, MI, MIDestReg);
+          Folded = Folded || TII->onlyFoldImmediate(UseMI, MI, MIDestReg);
         if (MRI->use_nodbg_empty(MIDestReg)) {
           ++NumLoadImmZeroFoldedAndRemoved;
           ToErase = &MI;
@@ -1249,7 +1249,7 @@ bool PPCMIPeephole::simplifyCode() {
         break;
       }
       case PPC::RLDICR: {
-        Simplified |= emitRLDICWhenLoweringJumpTables(MI, ToErase) ||
+        Simplified = Simplified || emitRLDICWhenLoweringJumpTables(MI, ToErase) ||
                       combineSEXTAndSHL(MI, ToErase);
         break;
       }
@@ -1398,13 +1398,13 @@ bool PPCMIPeephole::simplifyCode() {
   }
 
   // Eliminate all the TOC save instructions which are redundant.
-  Simplified |= eliminateRedundantTOCSaves(TOCSaves);
+  Simplified = Simplified || eliminateRedundantTOCSaves(TOCSaves);
   PPCFunctionInfo *FI = MF->getInfo<PPCFunctionInfo>();
   if (FI->mustSaveTOC())
     NumTOCSavesInPrologue++;
 
   // We try to eliminate redundant compare instruction.
-  Simplified |= eliminateRedundantCompare();
+  Simplified = Simplified || eliminateRedundantCompare();
 
   // If we have made any modifications and added any registers to the set of
   // registers for which we need to update the kill flags, do so by recomputing

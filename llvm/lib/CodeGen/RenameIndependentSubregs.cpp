@@ -447,7 +447,7 @@ bool RenameIndependentSubregs::run(MachineFunction &MF) {
     if (!LI.hasSubRanges())
       continue;
 
-    Changed |= renameComponents(LI);
+    Changed = Changed || renameComponents(LI);
   }
 
   return Changed;

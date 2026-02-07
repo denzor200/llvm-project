@@ -451,7 +451,7 @@ Parser::ParseOpenMPDeclareMapperDirective(AccessSpecifier AS) {
   }
 
   // Consume ')'.
-  IsCorrect &= !T.consumeClose();
+  IsCorrect = IsCorrect && !T.consumeClose();
   if (!IsCorrect) {
     SkipUntil(tok::annot_pragma_openmp_end, Parser::StopBeforeMatch);
     return DeclGroupPtrTy();
@@ -1557,7 +1557,7 @@ bool Parser::parseOMPDeclareVariantMatchClause(SourceLocation Loc,
 
               // If the kind is the same but the raw string not, we don't want
               // to skip out on the property.
-              MergedProperty |= Property.RawString == ParentProperty.RawString;
+              MergedProperty = MergedProperty || Property.RawString == ParentProperty.RawString;
 
               if (Property.RawString == ParentProperty.RawString &&
                   Selector.ScoreOrCondition == ParentSelector.ScoreOrCondition)

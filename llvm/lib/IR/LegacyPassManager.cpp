@@ -316,10 +316,10 @@ bool FunctionPassManagerImpl::doInitialization(Module &M) {
   dumpPasses();
 
   for (ImmutablePass *ImPass : getImmutablePasses())
-    Changed |= ImPass->doInitialization(M);
+    Changed = Changed || ImPass->doInitialization(M);
 
   for (unsigned Index = 0; Index < getNumContainedManagers(); ++Index)
-    Changed |= getContainedManager(Index)->doInitialization(M);
+    Changed = Changed || getContainedManager(Index)->doInitialization(M);
 
   return Changed;
 }
@@ -328,10 +328,10 @@ bool FunctionPassManagerImpl::doFinalization(Module &M) {
   bool Changed = false;
 
   for (int Index = getNumContainedManagers() - 1; Index >= 0; --Index)
-    Changed |= getContainedManager(Index)->doFinalization(M);
+    Changed = Changed || getContainedManager(Index)->doFinalization(M);
 
   for (ImmutablePass *ImPass : getImmutablePasses())
-    Changed |= ImPass->doFinalization(M);
+    Changed = Changed || ImPass->doFinalization(M);
 
   return Changed;
 }
@@ -355,7 +355,7 @@ bool FunctionPassManagerImpl::run(Function &F) {
 
   initializeAllAnalysisInfo();
   for (unsigned Index = 0; Index < getNumContainedManagers(); ++Index) {
-    Changed |= getContainedManager(Index)->runOnFunction(F);
+    Changed = Changed || getContainedManager(Index)->runOnFunction(F);
     F.getContext().yield();
   }
 
@@ -524,16 +524,16 @@ bool PassManagerImpl::run(Module &M) {
   dumpPasses();
 
   for (ImmutablePass *ImPass : getImmutablePasses())
-    Changed |= ImPass->doInitialization(M);
+    Changed = Changed || ImPass->doInitialization(M);
 
   initializeAllAnalysisInfo();
   for (unsigned Index = 0; Index < getNumContainedManagers(); ++Index) {
-    Changed |= getContainedManager(Index)->runOnModule(M);
+    Changed = Changed || getContainedManager(Index)->runOnModule(M);
     M.getContext().yield();
   }
 
   for (ImmutablePass *ImPass : getImmutablePasses())
-    Changed |= ImPass->doFinalization(M);
+    Changed = Changed || ImPass->doFinalization(M);
 
   return Changed;
 }
@@ -1395,7 +1395,7 @@ bool FPPassManager::runOnFunction(Function &F) {
 #ifdef EXPENSIVE_CHECKS
       uint64_t RefHash = FP->structuralHash(F);
 #endif
-      LocalChanged |= FP->runOnFunction(F);
+      LocalChanged = LocalChanged || FP->runOnFunction(F);
 
 #if defined(EXPENSIVE_CHECKS) && !defined(NDEBUG)
       if (!LocalChanged && (RefHash != FP->structuralHash(F))) {
@@ -1441,7 +1441,7 @@ bool FPPassManager::runOnModule(Module &M) {
   bool Changed = false;
 
   for (Function &F : M)
-    Changed |= runOnFunction(F);
+    Changed = Changed || runOnFunction(F);
 
   return Changed;
 }
@@ -1450,7 +1450,7 @@ bool FPPassManager::doInitialization(Module &M) {
   bool Changed = false;
 
   for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index)
-    Changed |= getContainedPass(Index)->doInitialization(M);
+    Changed = Changed || getContainedPass(Index)->doInitialization(M);
 
   return Changed;
 }
@@ -1459,7 +1459,7 @@ bool FPPassManager::doFinalization(Module &M) {
   bool Changed = false;
 
   for (int Index = getNumContainedPasses() - 1; Index >= 0; --Index)
-    Changed |= getContainedPass(Index)->doFinalization(M);
+    Changed = Changed || getContainedPass(Index)->doFinalization(M);
 
   return Changed;
 }
@@ -1479,12 +1479,12 @@ MPPassManager::runOnModule(Module &M) {
   // Initialize on-the-fly passes
   for (auto &OnTheFlyManager : OnTheFlyManagers) {
     legacy::FunctionPassManagerImpl *FPP = OnTheFlyManager.second;
-    Changed |= FPP->doInitialization(M);
+    Changed = Changed || FPP->doInitialization(M);
   }
 
   // Initialize module passes
   for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index)
-    Changed |= getContainedPass(Index)->doInitialization(M);
+    Changed = Changed || getContainedPass(Index)->doInitialization(M);
 
   unsigned InstrCount;
   StringMap<std::pair<unsigned, unsigned>> FunctionToInstrCount;
@@ -1510,7 +1510,7 @@ MPPassManager::runOnModule(Module &M) {
       uint64_t RefHash = MP->structuralHash(M);
 #endif
 
-      LocalChanged |= MP->runOnModule(M);
+      LocalChanged = LocalChanged || MP->runOnModule(M);
 
 #ifdef EXPENSIVE_CHECKS
       assert((LocalChanged || (RefHash == MP->structuralHash(M))) &&
@@ -1546,7 +1546,7 @@ MPPassManager::runOnModule(Module &M) {
 
   // Finalize module passes
   for (int Index = getNumContainedPasses() - 1; Index >= 0; --Index)
-    Changed |= getContainedPass(Index)->doFinalization(M);
+    Changed = Changed || getContainedPass(Index)->doFinalization(M);
 
   // Finalize on-the-fly passes
   for (auto &OnTheFlyManager : OnTheFlyManagers) {
@@ -1554,7 +1554,7 @@ MPPassManager::runOnModule(Module &M) {
     // We don't know when is the last time an on-the-fly pass is run,
     // so we need to releaseMemory / finalize here
     FPP->releaseMemoryOnTheFly();
-    Changed |= FPP->doFinalization(M);
+    Changed = Changed || FPP->doFinalization(M);
   }
 
   return Changed;

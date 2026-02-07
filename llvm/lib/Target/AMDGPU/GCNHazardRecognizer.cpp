@@ -1533,8 +1533,8 @@ static bool shouldRunLdsBranchVmemWARHazardFixup(const MachineFunction &MF,
   bool HasVmem = false;
   for (auto &MBB : MF) {
     for (auto &MI : MBB) {
-      HasLds |= SIInstrInfo::isDS(MI) || SIInstrInfo::isLDSDMA(MI);
-      HasVmem |= SIInstrInfo::isVMEM(MI);
+      HasLds = HasLds || SIInstrInfo::isDS(MI) || SIInstrInfo::isLDSDMA(MI);
+      HasVmem = HasVmem || SIInstrInfo::isVMEM(MI);
       if (HasLds && HasVmem)
         return true;
     }

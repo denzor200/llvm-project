@@ -684,7 +684,7 @@ bool MicroMipsSizeReduce::ReduceMBB(MachineBasicBlock &MBB) {
       continue;
 
     // Try to reduce 32-bit instruction into 16-bit instruction
-    Modified |= ReduceMI(MII, NextMII);
+    Modified = Modified || ReduceMI(MII, NextMII);
   }
 
   return Modified;
@@ -787,7 +787,7 @@ bool MicroMipsSizeReduce::runOnMachineFunction(MachineFunction &MF) {
   MachineFunction::iterator I = MF.begin(), E = MF.end();
 
   for (; I != E; ++I)
-    Modified |= ReduceMBB(*I);
+    Modified = Modified || ReduceMBB(*I);
   return Modified;
 }
 

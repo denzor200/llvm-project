@@ -2462,7 +2462,7 @@ static bool ConvertMaskedBuiltinArgs(Sema &S, CallExpr *TheCall) {
     if (Converted.isInvalid())
       return true;
     TheCall->setArg(Arg, Converted.get());
-    TypeDependent |= Converted.get()->isTypeDependent();
+    TypeDependent = TypeDependent || Converted.get()->isTypeDependent();
   }
 
   if (TypeDependent)
@@ -4199,11 +4199,11 @@ void Sema::checkCall(NamedDecl *FDecl, const FunctionProtoType *Proto,
         if (Attr && Attr->isNewZT0())
           CallerHasZT0State = true;
         if (const auto *FPT = CallerFD->getType()->getAs<FunctionProtoType>()) {
-          CallerHasZAState |=
+          CallerHasZAState = CallerHasZAState ||
               FunctionType::getArmZAState(
                   FPT->getExtProtoInfo().AArch64SMEAttributes) !=
               FunctionType::ARM_None;
-          CallerHasZT0State |=
+          CallerHasZT0State = CallerHasZT0State ||
               FunctionType::getArmZT0State(
                   FPT->getExtProtoInfo().AArch64SMEAttributes) !=
               FunctionType::ARM_None;
@@ -9502,7 +9502,7 @@ static bool CompareFormatSpecifiers(Sema &S, const StringLiteral *Ref,
       if (FmtIter->getPosition() > RefIter->getPosition())
         break;
 
-      HadError |=
+      HadError = HadError ||
           !FmtIter->VerifyCompatible(S, *RefIter, FmtExpr, InFunctionCall);
     }
 
@@ -9679,7 +9679,7 @@ bool Sema::ValidateFormatString(FormatStringType Type,
     for (++Iter;
          Iter != End && Iter->getPosition() == FirstInGroup.getPosition();
          ++Iter) {
-      HadError |= !Iter->VerifyCompatible(*this, FirstInGroup, Str, true);
+      HadError = HadError || !Iter->VerifyCompatible(*this, FirstInGroup, Str, true);
     }
   }
   return !HadError;
@@ -11585,7 +11585,7 @@ static std::optional<IntRange> TryGetExprRange(ASTContext &C, const Expr *E,
       return std::nullopt;
 
     IntRange C = Combine(*L, *R);
-    C.NonNegative |= T->isUnsignedIntegerOrEnumerationType();
+    C.NonNegative = C.NonNegative || T->isUnsignedIntegerOrEnumerationType();
     C.Width = std::min(C.Width, MaxWidth);
     return C;
   }
@@ -12569,7 +12569,7 @@ static void CheckImplicitArgumentConversions(Sema &S, const CallExpr *TheCall,
 
     bool IsSwapped = ((I > 0) && IsImplicitBoolFloatConversion(
                                      S, TheCall->getArg(I - 1), false));
-    IsSwapped |= ((I < (N - 1)) && IsImplicitBoolFloatConversion(
+    IsSwapped = IsSwapped || ((I < (N - 1)) && IsImplicitBoolFloatConversion(
                                        S, TheCall->getArg(I + 1), false));
     if (IsSwapped) {
       // Warn on this floating-point to bool conversion.

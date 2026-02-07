@@ -341,7 +341,7 @@ static bool markKernelArgsAsInreg(Module &M, const TargetMachine &TM) {
     Changed = Changed || NumPreloadedExplicitArgs > 0;
   }
 
-  Changed |= !FunctionsToErase.empty();
+  Changed = Changed || !FunctionsToErase.empty();
   // Erase cloned functions if we needed to update the kernel signature to
   // support preloading hidden kernel arguments.
   for (auto *F : FunctionsToErase)

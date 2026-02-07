@@ -102,7 +102,7 @@ bool RISCVLateBranchOpt::runOnMachineFunction(MachineFunction &Fn) {
 
   bool Changed = false;
   for (MachineBasicBlock &MBB : Fn)
-    Changed |= runOnBasicBlock(MBB);
+    Changed = Changed || runOnBasicBlock(MBB);
   return Changed;
 }
 

@@ -118,7 +118,7 @@ bool CopyPropagation::scanBlock(MachineBasicBlock *B) {
 
   MachineDomTreeNode *N = MDT.getNode(B);
   for (auto *I : *N)
-    Changed |= scanBlock(I->getBlock());
+    Changed = Changed || scanBlock(I->getBlock());
 
   DFG.releaseBlock(BA.Id, DefM);
   return Changed;

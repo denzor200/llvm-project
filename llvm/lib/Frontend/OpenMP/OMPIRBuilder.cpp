@@ -10229,7 +10229,7 @@ Expected<std::pair<Value *, Value *>> OpenMPIRBuilder::emitAtomicUpdate(
   default:
     emitRMWOp = false;
   }
-  emitRMWOp &= XElemTy->isIntegerTy();
+  emitRMWOp = emitRMWOp && XElemTy->isIntegerTy();
 
   std::pair<Value *, Value *> Res;
   if (emitRMWOp) {

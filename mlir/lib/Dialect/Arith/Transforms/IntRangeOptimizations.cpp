@@ -141,7 +141,7 @@ struct MaterializeKnownConstantValues : public RewritePattern {
     bool hasConstantRegionArgs = false;
     for (Region &region : op->getRegions()) {
       for (Block &block : region.getBlocks()) {
-        hasConstantRegionArgs |=
+        hasConstantRegionArgs = hasConstantRegionArgs ||
             llvm::any_of(block.getArguments(), needsReplacing);
       }
     }
@@ -150,7 +150,7 @@ struct MaterializeKnownConstantValues : public RewritePattern {
 
     bool replacedAll = (op->getNumResults() != 0);
     for (Value v : op->getResults())
-      replacedAll &=
+      replacedAll = replacedAll &&
           (succeeded(maybeReplaceWithConstant(solver, rewriter, v)) ||
            v.use_empty());
     if (replacedAll && isOpTriviallyDead(op)) {

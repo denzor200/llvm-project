@@ -351,32 +351,32 @@ bool SIAnnotateControlFlow::run() {
 
     if (!Term || Term->isUnconditional()) {
       if (isTopOfStack(BB))
-        Changed |= closeControlFlow(BB);
+        Changed = Changed || closeControlFlow(BB);
 
       continue;
     }
 
     if (I.nodeVisited(Term->getSuccessor(1))) {
       if (isTopOfStack(BB))
-        Changed |= closeControlFlow(BB);
+        Changed = Changed || closeControlFlow(BB);
 
       if (DT->dominates(Term->getSuccessor(1), BB))
-        Changed |= handleLoop(Term);
+        Changed = Changed || handleLoop(Term);
       continue;
     }
 
     if (isTopOfStack(BB)) {
       PHINode *Phi = dyn_cast<PHINode>(Term->getCondition());
       if (Phi && Phi->getParent() == BB && isElse(Phi) && !hasKill(BB)) {
-        Changed |= insertElse(Term);
-        Changed |= eraseIfUnused(Phi);
+        Changed = Changed || insertElse(Term);
+        Changed = Changed || eraseIfUnused(Phi);
         continue;
       }
 
-      Changed |= closeControlFlow(BB);
+      Changed = Changed || closeControlFlow(BB);
     }
 
-    Changed |= openIf(Term);
+    Changed = Changed || openIf(Term);
   }
 
   if (!Stack.empty()) {

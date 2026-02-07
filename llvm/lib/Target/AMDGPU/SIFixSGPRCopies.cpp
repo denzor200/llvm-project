@@ -832,9 +832,9 @@ void SIFixSGPRCopies::processPHINode(MachineInstr &MI) {
     for (const auto &Use : MRI->use_operands(Reg)) {
       HasUses = true;
       const MachineInstr *UseMI = Use.getParent();
-      AllAGPRUses &= (UseMI->isCopy() &&
+      AllAGPRUses = AllAGPRUses && ((UseMI->isCopy() &&
                       TRI->isAGPR(*MRI, UseMI->getOperand(0).getReg())) ||
-                     TRI->isAGPR(*MRI, Use.getReg());
+                     TRI->isAGPR(*MRI, Use.getReg()));
       if (UseMI->isCopy() || UseMI->isRegSequence()) {
         if (Visited.insert(UseMI).second)
           worklist.insert(UseMI);

@@ -524,7 +524,7 @@ public:
     // Final to emit wait instructions.
     bool Changed = false;
     for (auto &MBB : MF)
-      Changed |= runOnMachineBasicBlock(MBB, true);
+      Changed = Changed || runOnMachineBasicBlock(MBB, true);
 
     BlockState.clear();
     return Changed;

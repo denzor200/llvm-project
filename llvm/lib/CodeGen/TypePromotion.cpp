@@ -988,7 +988,7 @@ bool TypePromotionImpl::run(Function &F, const TargetMachine *TM,
                             << "register for ZExt type\n");
           continue;
         }
-        MadeChange |= TryToPromote(Phi, PromoteWidth, LI);
+        MadeChange = MadeChange || TryToPromote(Phi, PromoteWidth, LI);
       } else if (auto *ICmp = dyn_cast<ICmpInst>(&I)) {
         // Search up from icmps to try to promote their operands.
         // Skip signed or pointer compares
@@ -1000,7 +1000,7 @@ bool TypePromotionImpl::run(Function &F, const TargetMachine *TM,
         for (auto &Op : ICmp->operands()) {
           if (auto *OpI = dyn_cast<Instruction>(Op)) {
             if (auto PromotedWidth = GetPromoteWidth(OpI)) {
-              MadeChange |= TryToPromote(OpI, PromotedWidth, LI);
+              MadeChange = MadeChange || TryToPromote(OpI, PromotedWidth, LI);
               break;
             }
           }

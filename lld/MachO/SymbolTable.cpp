@@ -42,7 +42,7 @@ std::pair<Symbol *, bool> SymbolTable::insert(StringRef name,
     symVector.push_back(sym);
   }
 
-  sym->isUsedInRegularObj |= !file || isa<ObjFile>(file);
+  sym->isUsedInRegularObj = sym->isUsedInRegularObj || !file || isa<ObjFile>(file);
   return {sym, p.second};
 }
 

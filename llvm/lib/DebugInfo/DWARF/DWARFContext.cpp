@@ -1403,18 +1403,18 @@ bool DWARFContext::verify(raw_ostream &OS, DIDumpOptions DumpOpts) {
   bool Success = true;
   DWARFVerifier verifier(OS, *this, DumpOpts);
 
-  Success &= verifier.handleDebugAbbrev();
+  Success = Success && verifier.handleDebugAbbrev();
   if (DumpOpts.DumpType & DIDT_DebugCUIndex)
-    Success &= verifier.handleDebugCUIndex();
+    Success = Success && verifier.handleDebugCUIndex();
   if (DumpOpts.DumpType & DIDT_DebugTUIndex)
-    Success &= verifier.handleDebugTUIndex();
+    Success = Success && verifier.handleDebugTUIndex();
   if (DumpOpts.DumpType & DIDT_DebugInfo)
-    Success &= verifier.handleDebugInfo();
+    Success = Success && verifier.handleDebugInfo();
   if (DumpOpts.DumpType & DIDT_DebugLine)
-    Success &= verifier.handleDebugLine();
+    Success = Success && verifier.handleDebugLine();
   if (DumpOpts.DumpType & DIDT_DebugStrOffsets)
-    Success &= verifier.handleDebugStrOffsets();
-  Success &= verifier.handleAccelTables();
+    Success = Success && verifier.handleDebugStrOffsets();
+  Success = Success && verifier.handleAccelTables();
   verifier.summarize();
   return Success;
 }

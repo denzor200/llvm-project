@@ -829,7 +829,7 @@ public:
     bool Changed = false;
     for (const auto *Op : Expr->operands()) {
       Operands.push_back(((SC *)this)->visit(Op));
-      Changed |= Op != Operands.back();
+      Changed = Changed || Op != Operands.back();
     }
     return !Changed ? Expr : SE.getAddExpr(Operands);
   }
@@ -839,7 +839,7 @@ public:
     bool Changed = false;
     for (const auto *Op : Expr->operands()) {
       Operands.push_back(((SC *)this)->visit(Op));
-      Changed |= Op != Operands.back();
+      Changed = Changed || Op != Operands.back();
     }
     return !Changed ? Expr : SE.getMulExpr(Operands);
   }
@@ -856,7 +856,7 @@ public:
     bool Changed = false;
     for (const auto *Op : Expr->operands()) {
       Operands.push_back(((SC *)this)->visit(Op));
-      Changed |= Op != Operands.back();
+      Changed = Changed || Op != Operands.back();
     }
     return !Changed ? Expr
                     : SE.getAddRecExpr(Operands, Expr->getLoop(),
@@ -868,7 +868,7 @@ public:
     bool Changed = false;
     for (const auto *Op : Expr->operands()) {
       Operands.push_back(((SC *)this)->visit(Op));
-      Changed |= Op != Operands.back();
+      Changed = Changed || Op != Operands.back();
     }
     return !Changed ? Expr : SE.getSMaxExpr(Operands);
   }
@@ -878,7 +878,7 @@ public:
     bool Changed = false;
     for (const auto *Op : Expr->operands()) {
       Operands.push_back(((SC *)this)->visit(Op));
-      Changed |= Op != Operands.back();
+      Changed = Changed || Op != Operands.back();
     }
     return !Changed ? Expr : SE.getUMaxExpr(Operands);
   }
@@ -888,7 +888,7 @@ public:
     bool Changed = false;
     for (const auto *Op : Expr->operands()) {
       Operands.push_back(((SC *)this)->visit(Op));
-      Changed |= Op != Operands.back();
+      Changed = Changed || Op != Operands.back();
     }
     return !Changed ? Expr : SE.getSMinExpr(Operands);
   }
@@ -898,7 +898,7 @@ public:
     bool Changed = false;
     for (const auto *Op : Expr->operands()) {
       Operands.push_back(((SC *)this)->visit(Op));
-      Changed |= Op != Operands.back();
+      Changed = Changed || Op != Operands.back();
     }
     return !Changed ? Expr : SE.getUMinExpr(Operands);
   }
@@ -908,7 +908,7 @@ public:
     bool Changed = false;
     for (const auto *Op : Expr->operands()) {
       Operands.push_back(((SC *)this)->visit(Op));
-      Changed |= Op != Operands.back();
+      Changed = Changed || Op != Operands.back();
     }
     return !Changed ? Expr : SE.getUMinExpr(Operands, /*Sequential=*/true);
   }

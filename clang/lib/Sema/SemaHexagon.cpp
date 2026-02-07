@@ -270,13 +270,13 @@ bool SemaHexagon::CheckHexagonBuiltinArgument(unsigned BuiltinID,
     int32_t Min = A.IsSigned ? -(1 << (A.BitWidth - 1)) : 0;
     int32_t Max = (1 << (A.IsSigned ? A.BitWidth - 1 : A.BitWidth)) - 1;
     if (!A.Align) {
-      Error |= SemaRef.BuiltinConstantArgRange(TheCall, A.OpNum, Min, Max);
+      Error = Error || SemaRef.BuiltinConstantArgRange(TheCall, A.OpNum, Min, Max);
     } else {
       unsigned M = 1 << A.Align;
       Min *= M;
       Max *= M;
-      Error |= SemaRef.BuiltinConstantArgRange(TheCall, A.OpNum, Min, Max);
-      Error |= SemaRef.BuiltinConstantArgMultiple(TheCall, A.OpNum, M);
+      Error = Error || SemaRef.BuiltinConstantArgRange(TheCall, A.OpNum, Min, Max);
+      Error = Error || SemaRef.BuiltinConstantArgMultiple(TheCall, A.OpNum, M);
     }
   }
   return Error;

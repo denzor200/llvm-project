@@ -847,7 +847,7 @@ bool MachineSinking::run(MachineFunction &MF) {
     CEMergeCandidates.clear();
     ToSplit.clear();
     for (auto &MBB : MF)
-      MadeChange |= ProcessBlock(MBB);
+      MadeChange = MadeChange || ProcessBlock(MBB);
 
     // If we have anything we marked as toSplit, split it now.
     MachineDomTreeUpdater MDTU(DT, PDT,
@@ -2372,7 +2372,7 @@ bool PostRAMachineSinkingImpl::run(MachineFunction &MF) {
   ModifiedRegUnits.init(*TRI);
   UsedRegUnits.init(*TRI);
   for (auto &BB : MF)
-    Changed |= tryToSinkCopy(BB, MF, TRI, TII);
+    Changed = Changed || tryToSinkCopy(BB, MF, TRI, TII);
 
   return Changed;
 }

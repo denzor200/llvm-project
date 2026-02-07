@@ -1832,7 +1832,7 @@ bool PeepholeOptimizer::run(MachineFunction &MF) {
       if (isMoveImmediate(*MI, ImmDefRegs, ImmDefMIs)) {
         SeenMoveImm = true;
       } else {
-        Changed |= optimizeExtInstr(*MI, MBB, LocalMIs);
+        Changed = Changed || optimizeExtInstr(*MI, MBB, LocalMIs);
         // optimizeExtInstr might have created new instructions after MI
         // and before the already incremented MII. Adjust MII so that the
         // next iteration sees the new instructions.
@@ -1840,7 +1840,7 @@ bool PeepholeOptimizer::run(MachineFunction &MF) {
         ++MII;
         if (SeenMoveImm) {
           bool Deleted;
-          Changed |= foldImmediate(*MI, ImmDefRegs, ImmDefMIs, Deleted);
+          Changed = Changed || foldImmediate(*MI, ImmDefRegs, ImmDefMIs, Deleted);
           if (Deleted) {
             LocalMIs.erase(MI);
             continue;

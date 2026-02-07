@@ -664,7 +664,7 @@ bool A15SDOptimizer::runOnMachineFunction(MachineFunction &Fn) {
 
   for (MachineBasicBlock &MBB : Fn) {
     for (MachineInstr &MI : MBB) {
-      Modified |= runOnInstruction(&MI);
+      Modified = Modified || runOnInstruction(&MI);
     }
   }
 

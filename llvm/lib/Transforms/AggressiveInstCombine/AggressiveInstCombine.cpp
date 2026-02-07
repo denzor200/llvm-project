@@ -959,7 +959,7 @@ static bool mergePartStores(SmallVectorImpl<PartStore> &Parts,
     int64_t ValOffsetFromFirst = Part.ValOffset - First->ValOffset;
     if (PtrOffsetFromFirst * 8 != ValOffsetFromFirst ||
         LastEndOffsetFromFirst != ValOffsetFromFirst) {
-      Changed |= mergeConsecutivePartStores(ArrayRef(First, &Part),
+      Changed = Changed || mergeConsecutivePartStores(ArrayRef(First, &Part),
                                             LastEndOffsetFromFirst, DL, TTI);
       First = &Part;
       LastEndOffsetFromFirst = Part.ValWidth;
@@ -969,7 +969,7 @@ static bool mergePartStores(SmallVectorImpl<PartStore> &Parts,
     LastEndOffsetFromFirst = ValOffsetFromFirst + Part.ValWidth;
   }
 
-  Changed |= mergeConsecutivePartStores(ArrayRef(First, Parts.end()),
+  Changed = Changed || mergeConsecutivePartStores(ArrayRef(First, Parts.end()),
                                         LastEndOffsetFromFirst, DL, TTI);
   return Changed;
 }
@@ -990,7 +990,7 @@ static bool foldConsecutiveStores(BasicBlock &BB, const DataLayout &DL,
         continue;
       }
 
-      MadeChange |= mergePartStores(Parts, DL, TTI);
+      MadeChange = MadeChange || mergePartStores(Parts, DL, TTI);
       Parts.clear();
       Parts.push_back(std::move(*Part));
       continue;
@@ -1003,13 +1003,13 @@ static bool foldConsecutiveStores(BasicBlock &BB, const DataLayout &DL,
         (I.mayReadOrWriteMemory() &&
          isModOrRefSet(BatchAA.getModRefInfo(
              &I, MemoryLocation::getBeforeOrAfter(Parts[0].PtrBase))))) {
-      MadeChange |= mergePartStores(Parts, DL, TTI);
+      MadeChange = MadeChange || mergePartStores(Parts, DL, TTI);
       Parts.clear();
       continue;
     }
   }
 
-  MadeChange |= mergePartStores(Parts, DL, TTI);
+  MadeChange = MadeChange || mergePartStores(Parts, DL, TTI);
   return MadeChange;
 }
 
@@ -1823,23 +1823,23 @@ static bool foldUnusualPatterns(Function &F, DominatorTree &DT,
     // TODO: It would be more efficient if we removed dead instructions
     // iteratively in this loop rather than waiting until the end.
     for (Instruction &I : make_early_inc_range(llvm::reverse(BB))) {
-      MadeChange |= foldAnyOrAllBitsSet(I);
-      MadeChange |= foldGuardedFunnelShift(I, DT);
-      MadeChange |= tryToRecognizePopCount(I);
-      MadeChange |= tryToFPToSat(I, TTI);
-      MadeChange |= tryToRecognizeTableBasedCttz(I, DL);
-      MadeChange |= foldConsecutiveLoads(I, DL, TTI, AA, DT);
-      MadeChange |= foldPatternedLoads(I, DL);
-      MadeChange |= foldICmpOrChain(I, DL, TTI, AA, DT);
-      MadeChange |= foldMulHigh(I);
+      MadeChange = MadeChange || foldAnyOrAllBitsSet(I);
+      MadeChange = MadeChange || foldGuardedFunnelShift(I, DT);
+      MadeChange = MadeChange || tryToRecognizePopCount(I);
+      MadeChange = MadeChange || tryToFPToSat(I, TTI);
+      MadeChange = MadeChange || tryToRecognizeTableBasedCttz(I, DL);
+      MadeChange = MadeChange || foldConsecutiveLoads(I, DL, TTI, AA, DT);
+      MadeChange = MadeChange || foldPatternedLoads(I, DL);
+      MadeChange = MadeChange || foldICmpOrChain(I, DL, TTI, AA, DT);
+      MadeChange = MadeChange || foldMulHigh(I);
       // NOTE: This function introduces erasing of the instruction `I`, so it
       // needs to be called at the end of this sequence, otherwise we may make
       // bugs.
-      MadeChange |= foldLibCalls(I, TTI, TLI, AC, DT, DL, MadeCFGChange);
+      MadeChange = MadeChange || foldLibCalls(I, TTI, TLI, AC, DT, DL, MadeCFGChange);
     }
 
     // Do this separately to avoid redundantly scanning stores multiple times.
-    MadeChange |= foldConsecutiveStores(BB, DL, TTI, AA);
+    MadeChange = MadeChange || foldConsecutiveStores(BB, DL, TTI, AA);
   }
 
   // We're done with transforms, so remove dead instructions.
@@ -1858,8 +1858,8 @@ static bool runImpl(Function &F, AssumptionCache &AC, TargetTransformInfo &TTI,
   bool MadeChange = false;
   const DataLayout &DL = F.getDataLayout();
   TruncInstCombine TIC(AC, TLI, DL, DT);
-  MadeChange |= TIC.run(F);
-  MadeChange |= foldUnusualPatterns(F, DT, TTI, TLI, AA, AC, MadeCFGChange);
+  MadeChange = MadeChange || TIC.run(F);
+  MadeChange = MadeChange || foldUnusualPatterns(F, DT, TTI, TLI, AA, AC, MadeCFGChange);
   return MadeChange;
 }
 

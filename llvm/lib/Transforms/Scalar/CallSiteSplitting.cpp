@@ -525,7 +525,7 @@ static bool doCallSiteSplitting(Function &F, TargetLibraryInfo &TLI,
       // Check if such path is possible before attempting the splitting.
       bool IsMustTail = CB->isMustTailCall();
 
-      Changed |= tryToSplitCallSite(*CB, TTI, DTU);
+      Changed = Changed || tryToSplitCallSite(*CB, TTI, DTU);
 
       // There're no interesting instructions after this. The call site
       // itself might have been erased on splitting.

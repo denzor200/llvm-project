@@ -107,7 +107,7 @@ public:
     if (!ND)
       return;
 
-    ReadedSpecifiedName |= ND->getName().contains(SpeficiedName);
+    ReadedSpecifiedName = ReadedSpecifiedName || ND->getName().contains(SpeficiedName);
     if (Mode == CheckingMode::Forbidden) {
       EXPECT_FALSE(ReadedSpecifiedName);
     }

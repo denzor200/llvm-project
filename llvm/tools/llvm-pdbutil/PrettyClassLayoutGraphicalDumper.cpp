@@ -132,7 +132,7 @@ void PrettyClassLayoutGraphicalDumper::dump(
     uint32_t ChildOffsetZero = ClassOffsetZero + Layout.getOffsetInParent();
     PrettyClassLayoutGraphicalDumper BaseDumper(Printer, RecursionLevel + 1,
                                                 ChildOffsetZero);
-    DumpedAnything |= BaseDumper.start(Layout);
+    DumpedAnything = DumpedAnything || BaseDumper.start(Layout);
     Printer.Unindent();
   }
 

@@ -163,7 +163,7 @@ bool ExpandPostRA::run(MachineFunction &MF) {
       // Expand standard pseudos.
       switch (MI.getOpcode()) {
       case TargetOpcode::SUBREG_TO_REG:
-        MadeChange |= LowerSubregToReg(&MI);
+        MadeChange = MadeChange || LowerSubregToReg(&MI);
         break;
       case TargetOpcode::COPY:
         TII->lowerCopy(&MI, TRI);

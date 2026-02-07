@@ -83,7 +83,7 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
     bool print_header = !printed_header_;
     // --- or if the format is tabular and this run
     //     has different fields from the prev header
-    print_header |= (output_options_ & OO_Tabular) &&
+    print_header = print_header || (output_options_ & OO_Tabular) &&
                     (!internal::SameNames(run.counters, prev_counters_));
     if (print_header) {
       printed_header_ = true;

@@ -2442,7 +2442,7 @@ bool ARMTTIImpl::isHardwareLoopProfitable(Loop *L, ScalarEvolution &SE,
           return false;
         }
         if (auto *II = dyn_cast<IntrinsicInst>(&I))
-          IsTailPredLoop |=
+          IsTailPredLoop = IsTailPredLoop ||
               II->getIntrinsicID() == Intrinsic::get_active_lane_mask ||
               II->getIntrinsicID() == Intrinsic::arm_mve_vctp8 ||
               II->getIntrinsicID() == Intrinsic::arm_mve_vctp16 ||

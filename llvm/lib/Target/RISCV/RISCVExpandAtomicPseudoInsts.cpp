@@ -80,7 +80,7 @@ bool RISCVExpandAtomicPseudo::runOnMachineFunction(MachineFunction &MF) {
 
   bool Modified = false;
   for (auto &MBB : MF)
-    Modified |= expandMBB(MBB);
+    Modified = Modified || expandMBB(MBB);
 
 #ifndef NDEBUG
   const unsigned NewSize = getInstSizeInBytes(MF);
@@ -95,7 +95,7 @@ bool RISCVExpandAtomicPseudo::expandMBB(MachineBasicBlock &MBB) {
   MachineBasicBlock::iterator MBBI = MBB.begin(), E = MBB.end();
   while (MBBI != E) {
     MachineBasicBlock::iterator NMBBI = std::next(MBBI);
-    Modified |= expandMI(MBB, MBBI, NMBBI);
+    Modified = Modified || expandMI(MBB, MBBI, NMBBI);
     MBBI = NMBBI;
   }
 

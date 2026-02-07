@@ -582,7 +582,7 @@ Expected<SmallVector<StringRef>> getInput(const ArgList &Args) {
       if (!ExtractOrErr)
         return ExtractOrErr.takeError();
 
-      Extracted |= *ExtractOrErr;
+      Extracted = Extracted || *ExtractOrErr;
       if (!*ExtractOrErr)
         continue;
 

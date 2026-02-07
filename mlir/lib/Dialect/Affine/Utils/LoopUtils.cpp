@@ -2465,7 +2465,7 @@ mlir::affine::affineDataCopyGenerate(Block::iterator begin, Block::iterator end,
             end = nEnd;
             totalCopyBuffersSizeInBytes += sizeInBytes;
           }
-          ret = ret & succeeded(iRet);
+          ret = ret && succeeded(iRet);
         }
       };
   processRegions(readRegions);

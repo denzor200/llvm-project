@@ -41,7 +41,7 @@ bool llvm::GenericUniformityAnalysisImpl<MachineSSAContext>::markDefsDivergent(
     assert(!op.getSubReg());
     if (TRI.isUniformReg(MRI, RBI, op.getReg()))
       continue;
-    insertedDivergent |= markDivergent(op.getReg());
+    insertedDivergent = insertedDivergent || markDivergent(op.getReg());
   }
   return insertedDivergent;
 }

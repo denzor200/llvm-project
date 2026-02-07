@@ -630,7 +630,7 @@ bool RISCVGatherScatterLowering::runOnFunction(Function &F) {
 
   // Rewrite gather/scatter to form strided load/store if possible.
   for (auto *II : Worklist)
-    Changed |= tryCreateStridedLoadStore(II);
+    Changed = Changed || tryCreateStridedLoadStore(II);
 
   // Remove any dead phis.
   while (!MaybeDeadPHIs.empty()) {

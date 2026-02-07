@@ -668,7 +668,7 @@ bool HexagonOptAddrMode::processAddBases(NodeAddr<StmtNode *> AddSN,
 
     // If we reached this point, then we can modify MI to use the result of
     // FirstReachedMI
-    Changed |= updateAddBases(CurrentMI, FirstReachedMI, NewOffset);
+    Changed = Changed || updateAddBases(CurrentMI, FirstReachedMI, NewOffset);
 
     // Update the reachingDef of the Current AddI use after change
     CurrentInstUN.Addr->linkToDef(CurrentInstUN.Id, FirstReachedUseDN);
@@ -756,7 +756,7 @@ bool HexagonOptAddrMode::processAddUses(NodeAddr<StmtNode *> AddSN,
     MachineInstr *UseMI = OwnerN.Addr->getCode();
     LLVM_DEBUG(dbgs() << "\t\t[MI <BB#" << UseMI->getParent()->getNumber()
                       << ">]: " << *UseMI << "\n");
-    Changed |= updateAddUses(AddMI, UseMI);
+    Changed = Changed || updateAddUses(AddMI, UseMI);
 
     // Set the reachingDef for UseNode under consideration
     // after updating the Add use. This local change is
@@ -1064,7 +1064,7 @@ bool HexagonOptAddrMode::processBlock(NodeAddr<BlockNode *> BA) {
                       << Print<NodeAddr<InstrNode *>>(IA, *DFG) << '\n');
 
     if (MI->getOpcode() == Hexagon::A2_addi)
-      Changed |= processAddBases(SA, MI);
+      Changed = Changed || processAddBases(SA, MI);
     NodeList UNodeList;
     getAllRealUses(SA, UNodeList);
 
@@ -1082,7 +1082,7 @@ bool HexagonOptAddrMode::processBlock(NodeAddr<BlockNode *> BA) {
     // This transformation is only performed if all uses can be updated and
     // the offset isn't required to be constant extended.
     if (MI->getOpcode() == Hexagon::A2_addi) {
-      Changed |= processAddUses(SA, MI, UNodeList);
+      Changed = Changed || processAddUses(SA, MI, UNodeList);
       continue;
     }
 
@@ -1175,7 +1175,7 @@ bool HexagonOptAddrMode::runOnMachineFunction(MachineFunction &MF) {
                     << Print<NodeAddr<FuncNode *>>(FA, *DFG) << "\n");
 
   for (NodeAddr<BlockNode *> BA : FA.Addr->members(*DFG))
-    Changed |= processBlock(BA);
+    Changed = Changed || processBlock(BA);
 
   for (auto *MI : Deleted)
     MI->eraseFromParent();

@@ -2352,7 +2352,7 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     std::string String(Record.begin(), Record.end());
 
     // Test for upgrading !llvm.loop.
-    HasSeenOldLoopTags |= mayBeOldLoopAttachmentTag(String);
+    HasSeenOldLoopTags = HasSeenOldLoopTags || mayBeOldLoopAttachmentTag(String);
     ++NumMDStringLoaded;
     Metadata *MD = MDString::get(Context, String);
     MetadataList.assignValue(MD, NextMetadataNo);

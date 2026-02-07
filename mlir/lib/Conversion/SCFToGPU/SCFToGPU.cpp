@@ -744,7 +744,7 @@ ParallelToGpuLaunchLowering::matchAndRewrite(ParallelOp parallelOp,
         }
       }
       // TODO: Handle region side effects properly.
-      seenSideeffects |=
+      seenSideeffects = seenSideeffects ||
           !isMemoryEffectFree(clone) || clone->getNumRegions() != 0;
       // If we are no longer in the innermost scope, sideeffects are disallowed.
       if (seenSideeffects && leftNestingScope)

@@ -741,12 +741,12 @@ bool X86OptimizeLEAsImpl::runOnMachineFunction(
       continue;
 
     // Remove redundant LEA instructions.
-    Changed |= removeRedundantLEAs(LEAs);
+    Changed = Changed || removeRedundantLEAs(LEAs);
 
     // Remove redundant address calculations. Do it only for -Os/-Oz since only
     // a code size gain is expected from this part of the pass.
     if (llvm::shouldOptimizeForSize(&MBB, PSI, MBFI))
-      Changed |= removeRedundantAddrCalc(LEAs);
+      Changed = Changed || removeRedundantAddrCalc(LEAs);
   }
 
   return Changed;

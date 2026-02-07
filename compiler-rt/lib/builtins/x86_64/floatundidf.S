@@ -34,7 +34,7 @@ twop84:
 
 .text
 .balign 4
-DEFINE_COMPILERRT_FUNCTION(__floatundidf)
+DEFINE_COMPILERRT_FUNCTION(int__floatundidf)
 	movd	%edi,							%xmm0 // low 32 bits of a
 	shrq	$32,							%rdi  // high 32 bits of a
 	orq		REL_ADDR(twop84),				%rdi  // 0x1p84 + a_hi (no rounding occurs)

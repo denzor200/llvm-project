@@ -1728,7 +1728,7 @@ void TwoAddressInstructionImpl::processTiedPairs(MachineInstr *MI,
       LiveInterval &LI = LIS->getInterval(RegB);
       bool ShrinkLI = true;
       for (auto &S : LI.subranges())
-        ShrinkLI &= Shrink(S, S.LaneMask);
+        ShrinkLI = ShrinkLI && Shrink(S, S.LaneMask);
       if (ShrinkLI)
         Shrink(LI, LaneBitmask::getAll());
     }

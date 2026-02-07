@@ -350,7 +350,7 @@ bool AtomicExpandImpl::processAtomicInstr(Instruction *I) {
     }
 
     if (FenceOrdering != AtomicOrdering::Monotonic) {
-      MadeChange |= bracketInstWithFences(I, FenceOrdering);
+      MadeChange = MadeChange || bracketInstWithFences(I, FenceOrdering);
     }
   } else if (TLI->shouldInsertTrailingSeqCstFenceForAtomicStore(I) &&
              !(CASI && TLI->shouldExpandAtomicCmpXchgInIR(CASI) ==
@@ -365,9 +365,9 @@ bool AtomicExpandImpl::processAtomicInstr(Instruction *I) {
   }
 
   if (LI)
-    MadeChange |= tryExpandAtomicLoad(LI);
+    MadeChange = MadeChange || tryExpandAtomicLoad(LI);
   else if (SI)
-    MadeChange |= tryExpandAtomicStore(SI);
+    MadeChange = MadeChange || tryExpandAtomicStore(SI);
   else if (RMWI) {
     // There are two different ways of expanding RMW instructions:
     // - into a load if it is idempotent
@@ -378,10 +378,10 @@ bool AtomicExpandImpl::processAtomicInstr(Instruction *I) {
       MadeChange = true;
 
     } else {
-      MadeChange |= tryExpandAtomicRMW(RMWI);
+      MadeChange = MadeChange || tryExpandAtomicRMW(RMWI);
     }
   } else if (CASI)
-    MadeChange |= tryExpandAtomicCmpXchg(CASI);
+    MadeChange = MadeChange || tryExpandAtomicCmpXchg(CASI);
 
   return MadeChange;
 }

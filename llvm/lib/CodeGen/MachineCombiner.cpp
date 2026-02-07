@@ -723,7 +723,7 @@ bool MachineCombiner::runOnMachineFunction(MachineFunction &MF) {
 
   // Try to combine instructions.
   for (auto &MBB : MF)
-    Changed |= combineInstructions(&MBB);
+    Changed = Changed || combineInstructions(&MBB);
 
   return Changed;
 }

@@ -2835,7 +2835,7 @@ MicrosoftRecordLayoutBuilder::layoutNonVirtualBases(const CXXRecordDecl *RD) {
   // Iterate through the bases and lay out the non-virtual ones.
   for (const CXXBaseSpecifier &Base : RD->bases()) {
     const CXXRecordDecl *BaseDecl = Base.getType()->getAsCXXRecordDecl();
-    HasPolymorphicBaseClass |= BaseDecl->isPolymorphic();
+    HasPolymorphicBaseClass = HasPolymorphicBaseClass || BaseDecl->isPolymorphic();
     const ASTRecordLayout &BaseLayout = Context.getASTRecordLayout(BaseDecl);
     // Mark and skip virtual bases.
     if (Base.isVirtual()) {

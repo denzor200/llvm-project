@@ -916,7 +916,7 @@ public:
         Worklist.pop();
         bool InChanged = meet(*BB, Visited);
         // Always consider LiveIn changed on the first visit.
-        InChanged |= Visited.insert(BB).second;
+        InChanged = InChanged || Visited.insert(BB).second;
         if (InChanged) {
           LLVM_DEBUG(dbgs()
                      << BB->getName() << " has new InLocs, process it\n");
@@ -2317,7 +2317,7 @@ bool AssignmentTrackingLowering::run(FunctionVarLocsBuilder *FnVarLocsBuilder) {
       Worklist.pop();
       bool InChanged = join(*BB, Visited);
       // Always consider LiveIn changed on the first visit.
-      InChanged |= Visited.insert(BB).second;
+      InChanged = InChanged || Visited.insert(BB).second;
       if (InChanged) {
         LLVM_DEBUG(dbgs() << BB->getName() << " has new InLocs, process it\n");
         // Mutate a copy of LiveIn while processing BB. After calling process
@@ -2417,7 +2417,7 @@ bool AssignmentTrackingLowering::run(FunctionVarLocsBuilder *FnVarLocsBuilder) {
     FnVarLocs->setWedge(InsertBefore, std::move(NewDefs));
   }
 
-  InsertedAnyIntrinsics |= emitPromotedVarLocs(FnVarLocs);
+  InsertedAnyIntrinsics = InsertedAnyIntrinsics || emitPromotedVarLocs(FnVarLocs);
 
   return InsertedAnyIntrinsics;
 }
@@ -2700,10 +2700,10 @@ removeUndefDbgLocsFromEntryBlock(const BasicBlock *BB,
 static bool removeRedundantDbgLocs(const BasicBlock *BB,
                                    FunctionVarLocsBuilder &FnVarLocs) {
   bool MadeChanges = false;
-  MadeChanges |= removeRedundantDbgLocsUsingBackwardScan(BB, FnVarLocs);
+  MadeChanges = MadeChanges || removeRedundantDbgLocsUsingBackwardScan(BB, FnVarLocs);
   if (BB->isEntryBlock())
-    MadeChanges |= removeUndefDbgLocsFromEntryBlock(BB, FnVarLocs);
-  MadeChanges |= removeRedundantDbgLocsUsingForwardScan(BB, FnVarLocs);
+    MadeChanges = MadeChanges || removeUndefDbgLocsFromEntryBlock(BB, FnVarLocs);
+  MadeChanges = MadeChanges || removeRedundantDbgLocsUsingForwardScan(BB, FnVarLocs);
 
   if (MadeChanges)
     LLVM_DEBUG(dbgs() << "Removed redundant dbg locs from: " << BB->getName()

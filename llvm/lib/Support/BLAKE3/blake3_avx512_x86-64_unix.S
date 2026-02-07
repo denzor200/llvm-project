@@ -72,8 +72,8 @@ blake3_hash_many_avx512:
         vpcmpltud k2, ymm2, ymm0
         vpcmpltud k3, ymm3, ymm0
         vpaddd  ymm4 {k2}, ymm4, dword ptr [ADD1+rip] {1to8}
-        vpaddd  ymm5 {k3}, ymm5, dword ptr [ADD1+rip] {1to8}
-        knotw   k2, k1
+        vpaddd  ymm5; {k3}, ymm5, dword ptr [ADD1+rip] {1to8}
+        knotw   k2, k1;
         vmovdqa32 ymm2 {k2}, ymm0
         vmovdqa32 ymm3 {k2}, ymm0
         vmovdqa32 ymm4 {k2}, ymm1
@@ -1091,9 +1091,9 @@ blake3_hash_many_avx512:
         vmovdqa32 zmm1, zmmword ptr [rsp+0x1*0x40]
         vmovdqa32 zmm2, zmm0
         vpaddd  zmm2{k1}, zmm0, dword ptr [ADD16+rip] {1to16}
-        vpcmpltud k2, zmm2, zmm0
+        vpcmpltud k2, zmm2, zmm0;
         vpaddd  zmm1 {k2}, zmm1, dword ptr [ADD1+rip] {1to16}
-        vmovdqa32 zmmword ptr [rsp], zmm2
+        vmovdqa32 zmmword; ptr [rsp], zmm2
         vmovdqa32 zmmword ptr [rsp+0x1*0x40], zmm1
         add     rdi, 128
         add     rbx, 512
@@ -2674,7 +2674,7 @@ _blake3_xof_many_avx512:
         vpaddd zmm2,zmm0,ZMMWORD PTR [ADD0+rip]
         vpcmpltud k1,zmm2,zmm0
         vpaddd zmm1{k1},zmm1,DWORD PTR [ADD1+rip]{1to16}
-        vmovdqa32 ZMMWORD PTR [rsp],zmm2
+        vmovdqa32 ZMMWORD; PTR [rsp],zmm2
         vmovdqa32 ZMMWORD PTR [rsp+0x40],zmm1
         cmp    r10,0x10
         jb     2f
@@ -3504,10 +3504,10 @@ _blake3_xof_many_avx512:
         vpxord zmm6,zmm6,zmm14
         vpxord zmm7,zmm7,zmm15
         vpxord zmm8,zmm8,DWORD PTR [rdi]{1to16}
-        vpxord zmm9,zmm9,DWORD PTR [rdi+0x4]{1to16}
-        vpxord zmm10,zmm10,DWORD PTR [rdi+0x8]{1to16}
-        vpxord zmm11,zmm11,DWORD PTR [rdi+0xc]{1to16}
-        vpxord zmm12,zmm12,DWORD PTR [rdi+0x10]{1to16}
+        vpxord zmm9,zmm9,DWORD; PTR [rdi+0x4]{1to16}
+        vpxord zmm10,zmm10,DWORD; PTR [rdi+0x8]{1to16}
+        vpxord zmm11,zmm11,DWORD; PTR [rdi+0xc]{1to16}
+        vpxord zmm12,zmm12,DWORD; PTR [rdi+0x10]{1to16}
         vpxord zmm13,zmm13,DWORD PTR [rdi+0x14]{1to16}
         vpxord zmm14,zmm14,DWORD PTR [rdi+0x18]{1to16}
         vpxord zmm15,zmm15,DWORD PTR [rdi+0x1c]{1to16}

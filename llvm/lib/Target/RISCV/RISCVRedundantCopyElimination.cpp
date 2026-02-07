@@ -224,7 +224,7 @@ bool RISCVRedundantCopyElimination::runOnMachineFunction(MachineFunction &MF) {
 
   bool Changed = false;
   for (MachineBasicBlock &MBB : MF)
-    Changed |= optimizeBlock(MBB);
+    Changed = Changed || optimizeBlock(MBB);
 
   return Changed;
 }

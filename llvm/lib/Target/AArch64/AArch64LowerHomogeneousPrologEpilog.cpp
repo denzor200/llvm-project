@@ -113,7 +113,7 @@ bool AArch64LowerHomogeneousPE::run() {
     MachineFunction *MF = MMI->getMachineFunction(F);
     if (!MF)
       continue;
-    Changed |= runOnMachineFunction(*MF);
+    Changed = Changed || runOnMachineFunction(*MF);
   }
 
   return Changed;
@@ -648,7 +648,7 @@ bool AArch64LowerHomogeneousPE::runOnMBB(MachineBasicBlock &MBB) {
   MachineBasicBlock::iterator MBBI = MBB.begin(), E = MBB.end();
   while (MBBI != E) {
     MachineBasicBlock::iterator NMBBI = std::next(MBBI);
-    Modified |= runOnMI(MBB, MBBI, NMBBI);
+    Modified = Modified || runOnMI(MBB, MBBI, NMBBI);
     MBBI = NMBBI;
   }
 
@@ -660,7 +660,7 @@ bool AArch64LowerHomogeneousPE::runOnMachineFunction(MachineFunction &MF) {
 
   bool Modified = false;
   for (auto &MBB : MF)
-    Modified |= runOnMBB(MBB);
+    Modified = Modified || runOnMBB(MBB);
   return Modified;
 }
 

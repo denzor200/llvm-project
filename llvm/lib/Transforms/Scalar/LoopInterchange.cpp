@@ -2031,7 +2031,7 @@ bool LoopInterchangeTransform::transform(
       I.moveBeforePreserving(OuterLoopHeader->getTerminator()->getIterator());
   }
 
-  Transformed |= adjustLoopLinks();
+  Transformed = Transformed || adjustLoopLinks();
   if (!Transformed) {
     LLVM_DEBUG(dbgs() << "adjustLoopLinks failed\n");
     return false;

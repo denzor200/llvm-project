@@ -3720,11 +3720,11 @@ static bool GenerateTargetSpecificAttrChecks(const Record *R,
   }
 
   // If the attribute is specific to particular OSes, check those.
-  AnyTargetChecks |= GenerateTargetSpecificAttrCheck(
+  AnyTargetChecks = AnyTargetChecks || GenerateTargetSpecificAttrCheck(
       R, Test, FnName, "OSes", "T.getOS()", "llvm::Triple::");
 
   // If one or more object formats is specified, check those.
-  AnyTargetChecks |=
+  AnyTargetChecks = AnyTargetChecks ||
       GenerateTargetSpecificAttrCheck(R, Test, FnName, "ObjectFormats",
                                       "T.getObjectFormat()", "llvm::Triple::");
 
@@ -4739,7 +4739,7 @@ GenerateSpellingTargetRequirements(const Record &Attr,
     const Record *Target = TargetSpelling->getValueAsDef("Target");
     std::vector<StringRef> Arches = Target->getValueAsListOfStrings("Arches");
     std::string FnName = "isTargetSpelling";
-    UsesT |= GenerateTargetSpecificAttrChecks(Target, Arches, Test, &FnName);
+    UsesT = UsesT || GenerateTargetSpecificAttrChecks(Target, Arches, Test, &FnName);
     Test += ")";
     if (TargetIndex != TargetSpellings.size() - 1)
       Test += " || ";

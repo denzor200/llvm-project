@@ -1356,10 +1356,10 @@ std::optional<int32_t> RootSignatureParser::handleIntLiteral(bool Negated) {
 
   // So we then need to check that it doesn't overflow as a 32-bit signed int:
   int64_t MaxNegativeMagnitude = -int64_t(std::numeric_limits<int32_t>::min());
-  Overflowed |= (Negated && MaxNegativeMagnitude < Val.getExtValue());
+  Overflowed = Overflowed || (Negated && MaxNegativeMagnitude < Val.getExtValue());
 
   int64_t MaxPositiveMagnitude = int64_t(std::numeric_limits<int32_t>::max());
-  Overflowed |= (!Negated && MaxPositiveMagnitude < Val.getExtValue());
+  Overflowed = Overflowed || (!Negated && MaxPositiveMagnitude < Val.getExtValue());
 
   if (Overflowed) {
     // Report that the value has overflowed

@@ -1206,14 +1206,14 @@ bool WinEHPrepareImpl::cleanupPreparedFunclets(Function &F) {
   // Clean-up some of the mess we made by removing useles PHI nodes, trivial
   // branches, etc.
   for (BasicBlock &BB : llvm::make_early_inc_range(F)) {
-    Changed |= SimplifyInstructionsInBlock(&BB);
-    Changed |= ConstantFoldTerminator(&BB, /*DeleteDeadConditions=*/true);
-    Changed |= MergeBlockIntoPredecessor(&BB);
+    Changed = Changed || SimplifyInstructionsInBlock(&BB);
+    Changed = Changed || ConstantFoldTerminator(&BB, /*DeleteDeadConditions=*/true);
+    Changed = Changed || MergeBlockIntoPredecessor(&BB);
   }
 
   // We might have some unreachable blocks after cleaning up some impossible
   // control flow.
-  Changed |= removeUnreachableBlocks(F);
+  Changed = Changed || removeUnreachableBlocks(F);
 
   return Changed;
 }
@@ -1242,18 +1242,18 @@ bool WinEHPrepareImpl::prepareExplicitEH(Function &F) {
   // Determine which blocks are reachable from which funclet entries.
   colorFunclets(F);
 
-  Changed |= cloneCommonBlocks(F);
+  Changed = Changed || cloneCommonBlocks(F);
 
   if (!DisableDemotion)
-    Changed |= demotePHIsOnFunclets(F, DemoteCatchSwitchPHIOnly ||
+    Changed = Changed || demotePHIsOnFunclets(F, DemoteCatchSwitchPHIOnly ||
                                            DemoteCatchSwitchPHIOnlyOpt);
 
   if (!DisableCleanups) {
     assert(!verifyFunction(F, &dbgs()));
-    Changed |= removeImplausibleInstructions(F);
+    Changed = Changed || removeImplausibleInstructions(F);
 
     assert(!verifyFunction(F, &dbgs()));
-    Changed |= cleanupPreparedFunclets(F);
+    Changed = Changed || cleanupPreparedFunclets(F);
   }
 
   LLVM_DEBUG(verifyPreparedFunclets(F));

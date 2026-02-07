@@ -280,10 +280,10 @@ bool HexagonBitSimplify::visitBlock(MachineBasicBlock &B, Transformation &T,
   NewAVs.insert(Defs);
 
   for (auto *DTN : children<MachineDomTreeNode*>(MDT->getNode(&B)))
-    Changed |= visitBlock(*(DTN->getBlock()), T, NewAVs);
+    Changed = Changed || visitBlock(*(DTN->getBlock()), T, NewAVs);
 
   if (!T.TopDown)
-    Changed |= T.processBlock(B, AVs);
+    Changed = Changed || T.processBlock(B, AVs);
 
   return Changed;
 }
@@ -996,7 +996,7 @@ bool DeadCodeElimination::runOnNode(MachineDomTreeNode *N) {
   bool Changed = false;
 
   for (auto *DTN : children<MachineDomTreeNode*>(N))
-    Changed |= runOnNode(DTN);
+    Changed = Changed || runOnNode(DTN);
 
   MachineBasicBlock *B = N->getBlock();
   std::vector<MachineInstr*> Instrs;
@@ -1699,7 +1699,7 @@ bool CopyPropagation::propagateRegCopy(MachineInstr &MI) {
         unsigned SubLo = HRI.getHexagonSubRegIndex(RC, Hexagon::ps_sub_lo);
         unsigned SubHi = HRI.getHexagonSubRegIndex(RC, Hexagon::ps_sub_hi);
         Changed  = HBS::replaceSubWithSub(RD.Reg, SubLo, SL.Reg, SL.Sub, MRI);
-        Changed |= HBS::replaceSubWithSub(RD.Reg, SubHi, SH.Reg, SH.Sub, MRI);
+        Changed = Changed || HBS::replaceSubWithSub(RD.Reg, SubHi, SH.Reg, SH.Sub, MRI);
       }
       break;
     }
@@ -1710,7 +1710,7 @@ bool CopyPropagation::propagateRegCopy(MachineInstr &MI) {
       unsigned SubHi = HRI.getHexagonSubRegIndex(RC, Hexagon::ps_sub_hi);
       BitTracker::RegisterRef RH = MI.getOperand(1), RL = MI.getOperand(2);
       Changed  = HBS::replaceSubWithSub(RD.Reg, SubLo, RL.Reg, RL.Sub, MRI);
-      Changed |= HBS::replaceSubWithSub(RD.Reg, SubHi, RH.Reg, RH.Sub, MRI);
+      Changed = Changed || HBS::replaceSubWithSub(RD.Reg, SubHi, RH.Reg, RH.Sub, MRI);
       break;
     }
     case Hexagon::A4_combineir:
@@ -1736,7 +1736,7 @@ bool CopyPropagation::processBlock(MachineBasicBlock &B, const RegisterSet&) {
     unsigned Opc = I->getOpcode();
     if (!CopyPropagation::isCopyReg(Opc, true))
       continue;
-    Changed |= propagateRegCopy(*I);
+    Changed = Changed || propagateRegCopy(*I);
   }
 
   return Changed;
@@ -2791,7 +2791,7 @@ bool HexagonBitSimplify::runOnMachineFunction(MachineFunction &MF) {
 
   RegisterSet AIG;  // Available registers for IG.
   ConstGeneration ImmG(BT, HII, MRI);
-  Changed |= visitBlock(Entry, ImmG, AIG);
+  Changed = Changed || visitBlock(Entry, ImmG, AIG);
 
   RegisterSet ARE;  // Available registers for RIE.
   RedundantInstrElimination RIE(BT, HII, HRI, MRI);
@@ -2803,18 +2803,18 @@ bool HexagonBitSimplify::runOnMachineFunction(MachineFunction &MF) {
 
   RegisterSet ACG;  // Available registers for CG.
   CopyGeneration CopyG(BT, HII, HRI, MRI);
-  Changed |= visitBlock(Entry, CopyG, ACG);
+  Changed = Changed || visitBlock(Entry, CopyG, ACG);
 
   RegisterSet ACP;  // Available registers for CP.
   CopyPropagation CopyP(HRI, MRI);
-  Changed |= visitBlock(Entry, CopyP, ACP);
+  Changed = Changed || visitBlock(Entry, CopyP, ACP);
 
   Changed = DeadCodeElimination(MF, *MDT).run() || Changed;
 
   BT.run();
   RegisterSet ABS;  // Available registers for BS.
   BitSimplification BitS(BT, *MDT, HII, HRI, MRI, MF);
-  Changed |= visitBlock(Entry, BitS, ABS);
+  Changed = Changed || visitBlock(Entry, BitS, ABS);
 
   Changed = DeadCodeElimination(MF, *MDT).run() || Changed;
 
@@ -3352,7 +3352,7 @@ bool HexagonLoopRescheduling::runOnMachineFunction(MachineFunction &MF) {
 
   bool Changed = false;
   for (auto &C : Cand)
-    Changed |= processLoop(C);
+    Changed = Changed || processLoop(C);
 
   return Changed;
 }

@@ -501,7 +501,7 @@ bool MachineCSEImpl::isProfitableToCSE(Register CSReg, Register Reg,
   // it unless the defined value is already used in the BB of the new use.
   bool HasPHI = false;
   for (MachineInstr &UseMI : MRI->use_nodbg_instructions(CSReg)) {
-    HasPHI |= UseMI.isPHI();
+    HasPHI = HasPHI || UseMI.isPHI();
     if (UseMI.getParent() == MI->getParent())
       return true;
   }
@@ -785,7 +785,7 @@ bool MachineCSEImpl::PerformCSE(MachineDomTreeNode *Node) {
   for (MachineDomTreeNode *Node : Scopes) {
     MachineBasicBlock *MBB = Node->getBlock();
     EnterScope(MBB);
-    Changed |= ProcessBlockCSE(MBB);
+    Changed = Changed || ProcessBlockCSE(MBB);
     // If it's a leaf node, it's done. Traverse upwards to pop ancestors.
     ExitScopeIfDone(Node, OpenChildren);
   }
@@ -909,7 +909,7 @@ bool MachineCSEImpl::PerformSimplePRE(MachineDominatorTree *DT) {
     append_range(BBs, Node->children());
 
     MachineBasicBlock *MBB = Node->getBlock();
-    Changed |= ProcessBlockPRE(DT, MBB);
+    Changed = Changed || ProcessBlockPRE(DT, MBB);
 
   } while (!BBs.empty());
 

@@ -1492,7 +1492,7 @@ bool Attributor::getAssumedSimplifiedValues(
           getOrCreateAAFor<AAPotentialValues>(IRP, AA, DepClassTy::OPTIONAL);
       if (PotentialValuesAA &&
           PotentialValuesAA->getAssumedSimplifiedValues(*this, Values, S)) {
-        UsedAssumedInformation |= !PotentialValuesAA->isAtFixpoint();
+        UsedAssumedInformation = UsedAssumedInformation || !PotentialValuesAA->isAtFixpoint();
       } else if (IRP.getPositionKind() != IRPosition::IRP_RETURNED) {
         Values.push_back({IRP.getAssociatedValue(), IRP.getCtxI()});
       } else {
@@ -2967,7 +2967,7 @@ bool Attributor::shouldSeedAttribute(AbstractAttribute &AA) {
     Result = llvm::is_contained(SeedAllowList, AA.getName());
   Function *Fn = AA.getAnchorScope();
   if (FunctionSeedAllowList.size() != 0 && Fn)
-    Result &= llvm::is_contained(FunctionSeedAllowList, Fn->getName());
+    Result = Result && llvm::is_contained(FunctionSeedAllowList, Fn->getName());
 #endif
   return Result;
 }

@@ -238,7 +238,7 @@ ParsedType Sema::getDestructorName(const IdentifierInfo &II,
     if (Failed || SearchType.isNull())
       return nullptr;
 
-    IsDependent |= SearchType->isDependentType();
+    IsDependent = IsDependent || SearchType->isDependentType();
 
     LookupResult Found(*this, &II, NameLoc, LookupDestructorName);
     DeclContext *LookupCtx = computeDeclContext(SearchType);
@@ -252,7 +252,7 @@ ParsedType Sema::getDestructorName(const IdentifierInfo &II,
     if (Failed)
       return nullptr;
 
-    IsDependent |= isDependentScopeSpecifier(LookupSS);
+    IsDependent = IsDependent || isDependentScopeSpecifier(LookupSS);
     DeclContext *LookupCtx = computeDeclContext(LookupSS, EnteringContext);
     if (!LookupCtx)
       return nullptr;

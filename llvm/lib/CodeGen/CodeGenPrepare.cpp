@@ -612,7 +612,7 @@ bool CodeGenPrepare::_run(Function &F) {
       // optimization to those blocks.
       BasicBlock *Next = BB->getNextNode();
       if (!llvm::shouldOptimizeForSize(BB, PSI, BFI.get()))
-        EverMadeChange |= bypassSlowDivision(BB, BypassWidths);
+        EverMadeChange = EverMadeChange || bypassSlowDivision(BB, BypassWidths);
       BB = Next;
     }
   }
@@ -620,19 +620,19 @@ bool CodeGenPrepare::_run(Function &F) {
   // Get rid of @llvm.assume builtins before attempting to eliminate empty
   // blocks, since there might be blocks that only contain @llvm.assume calls
   // (plus arguments that we can get rid of).
-  EverMadeChange |= eliminateAssumptions(F);
+  EverMadeChange = EverMadeChange || eliminateAssumptions(F);
 
   // Eliminate blocks that contain only PHI nodes and an
   // unconditional branch.
-  EverMadeChange |= eliminateMostlyEmptyBlocks(F);
+  EverMadeChange = EverMadeChange || eliminateMostlyEmptyBlocks(F);
 
   ModifyDT ModifiedDT = ModifyDT::NotModifyDT;
   if (!DisableBranchOpts)
-    EverMadeChange |= splitBranchCondition(F, ModifiedDT);
+    EverMadeChange = EverMadeChange || splitBranchCondition(F, ModifiedDT);
 
   // Split some critical edges where one of the sources is an indirect branch,
   // to help generate sane code for PHIs involving such edges.
-  EverMadeChange |=
+  EverMadeChange = EverMadeChange ||
       SplitIndirectBrCriticalEdges(F, /*IgnoreBlocksWithoutPHI=*/true);
 
   // If we are optimzing huge function, we need to consider the build time.
@@ -685,10 +685,10 @@ bool CodeGenPrepare::_run(Function &F) {
     FuncIterated = IsHugeFunc;
 
     if (EnableTypePromotionMerge && !ValToSExtendedUses.empty())
-      MadeChange |= mergeSExts(F);
+      MadeChange = MadeChange || mergeSExts(F);
     if (!LargeOffsetGEPMap.empty())
-      MadeChange |= splitLargeGEPOffsets();
-    MadeChange |= optimizePhiTypes(F);
+      MadeChange = MadeChange || splitLargeGEPOffsets();
+    MadeChange = MadeChange || optimizePhiTypes(F);
 
     if (MadeChange)
       eliminateFallThrough(F, DT.get());
@@ -721,7 +721,7 @@ bool CodeGenPrepare::_run(Function &F) {
     SmallSetVector<BasicBlock *, 8> WorkList;
     for (BasicBlock &BB : F) {
       SmallVector<BasicBlock *, 2> Successors(successors(&BB));
-      MadeChange |= ConstantFoldTerminator(&BB, true);
+      MadeChange = MadeChange || ConstantFoldTerminator(&BB, true);
       if (!MadeChange)
         continue;
 
@@ -731,7 +731,7 @@ bool CodeGenPrepare::_run(Function &F) {
     }
 
     // Delete the dead blocks and any of their dead successors.
-    MadeChange |= !WorkList.empty();
+    MadeChange = MadeChange || !WorkList.empty();
     while (!WorkList.empty()) {
       BasicBlock *BB = WorkList.pop_back_val();
       SmallVector<BasicBlock *, 2> Successors(successors(BB));
@@ -746,7 +746,7 @@ bool CodeGenPrepare::_run(Function &F) {
     // Merge pairs of basic blocks with unconditional branches, connected by
     // a single edge.
     if (EverMadeChange || MadeChange)
-      MadeChange |= eliminateFallThrough(F);
+      MadeChange = MadeChange || eliminateFallThrough(F);
 
     EverMadeChange = EverMadeChange || MadeChange;
   }
@@ -758,13 +758,13 @@ bool CodeGenPrepare::_run(Function &F) {
         if (auto *SP = dyn_cast<GCStatepointInst>(&I))
           Statepoints.push_back(SP);
     for (auto &I : Statepoints)
-      EverMadeChange |= simplifyOffsetableRelocate(*I);
+      EverMadeChange = EverMadeChange || simplifyOffsetableRelocate(*I);
   }
 
   // Do this last to clean up use-before-def scenarios introduced by other
   // preparatory transforms.
-  EverMadeChange |= placeDbgValues(F);
-  EverMadeChange |= placePseudoProbes(F);
+  EverMadeChange = EverMadeChange || placeDbgValues(F);
+  EverMadeChange = EverMadeChange || placePseudoProbes(F);
 
 #ifndef NDEBUG
   if (VerifyBFIUpdates)
@@ -931,7 +931,7 @@ bool CodeGenPrepare::eliminateMostlyEmptyBlocks(Function &F) {
   for (auto &Block : llvm::drop_begin(F)) {
     // Delete phi nodes that could block deleting other empty blocks.
     if (!DisableDeletePHIs)
-      MadeChange |= DeleteDeadPHIs(&Block, TLInfo);
+      MadeChange = MadeChange || DeleteDeadPHIs(&Block, TLInfo);
     Blocks.push_back(&Block);
   }
 
@@ -6590,7 +6590,7 @@ bool CodeGenPrepare::optimizeInlineAsmInst(CallInst *CS) {
     if (OpInfo.ConstraintType == TargetLowering::C_Memory &&
         OpInfo.isIndirect) {
       Value *OpVal = CS->getArgOperand(ArgNo++);
-      MadeChange |= optimizeMemoryInst(CS, OpVal, OpVal->getType(), ~0u);
+      MadeChange = MadeChange || optimizeMemoryInst(CS, OpVal, OpVal->getType(), ~0u);
     } else if (OpInfo.Type == InlineAsm::isInput)
       ArgNo++;
   }
@@ -7006,7 +7006,7 @@ bool CodeGenPrepare::optimizePhiType(
             return false;
           if (Defs.insert(OpBC).second) {
             Worklist.push_back(OpBC);
-            AnyAnchored |= !isa<LoadInst>(OpBC->getOperand(0)) &&
+            AnyAnchored = AnyAnchored || !isa<LoadInst>(OpBC->getOperand(0)) &&
                            !isa<ExtractElementInst>(OpBC->getOperand(0));
           }
         } else if (auto *OpC = dyn_cast<ConstantData>(V))
@@ -7036,7 +7036,7 @@ bool CodeGenPrepare::optimizePhiType(
         if (OpBC->getType() != ConvertTy)
           return false;
         Uses.insert(OpBC);
-        AnyAnchored |=
+        AnyAnchored = AnyAnchored ||
             any_of(OpBC->users(), [](User *U) { return !isa<StoreInst>(U); });
       } else {
         return false;
@@ -7103,7 +7103,7 @@ bool CodeGenPrepare::optimizePhiTypes(Function &F) {
   // Attempt to optimize all the phis in the functions to the correct type.
   for (auto &BB : F)
     for (auto &Phi : BB.phis())
-      Changed |= optimizePhiType(&Phi, Visited, DeletedInstrs);
+      Changed = Changed || optimizePhiType(&Phi, Visited, DeletedInstrs);
 
   // Remove any old phi's that have been converted.
   for (auto *I : DeletedInstrs) {
@@ -8126,7 +8126,7 @@ bool CodeGenPrepare::optimizeSwitchPhiConstants(SwitchInst *SI) {
 
 bool CodeGenPrepare::optimizeSwitchInst(SwitchInst *SI) {
   bool Changed = optimizeSwitchType(SI);
-  Changed |= optimizeSwitchPhiConstants(SI);
+  Changed = Changed || optimizeSwitchPhiConstants(SI);
   return Changed;
 }
 
@@ -8931,7 +8931,7 @@ bool CodeGenPrepare::optimizeInst(Instruction *I, ModifyDT &ModifiedDT) {
           return true;
 
         bool MadeChange = optimizeExt(I);
-        return MadeChange | optimizeExtUses(I);
+        return MadeChange || optimizeExtUses(I);
       }
     }
     return AnyChange;
@@ -8949,7 +8949,7 @@ bool CodeGenPrepare::optimizeInst(Instruction *I, ModifyDT &ModifiedDT) {
     LI->setMetadata(LLVMContext::MD_invariant_group, nullptr);
     bool Modified = optimizeLoadExt(LI);
     unsigned AS = LI->getPointerAddressSpace();
-    Modified |= optimizeMemoryInst(I, I->getOperand(0), LI->getType(), AS);
+    Modified = Modified || optimizeMemoryInst(I, I->getOperand(0), LI->getType(), AS);
     return Modified;
   }
 
@@ -9091,7 +9091,7 @@ bool CodeGenPrepare::optimizeBlock(BasicBlock &BB, ModifyDT &ModifiedDT) {
     CurInstIterator = BB.begin();
     ModifiedDT = ModifyDT::NotModifyDT;
     while (CurInstIterator != BB.end()) {
-      MadeChange |= optimizeInst(&*CurInstIterator++, ModifiedDT);
+      MadeChange = MadeChange || optimizeInst(&*CurInstIterator++, ModifiedDT);
       if (ModifiedDT != ModifyDT::NotModifyDT) {
         // For huge function we tend to quickly go though the inner optmization
         // opportunities in the BB. So we go back to the BB head to re-optimize
@@ -9117,7 +9117,7 @@ bool CodeGenPrepare::optimizeBlock(BasicBlock &BB, ModifyDT &ModifiedDT) {
       }
     }
   }
-  MadeChange |= dupRetToEnableTailCallOpts(&BB, ModifiedDT);
+  MadeChange = MadeChange || dupRetToEnableTailCallOpts(&BB, ModifiedDT);
 
   return MadeChange;
 }
@@ -9125,7 +9125,7 @@ bool CodeGenPrepare::optimizeBlock(BasicBlock &BB, ModifyDT &ModifiedDT) {
 bool CodeGenPrepare::fixupDbgVariableRecordsOnInst(Instruction &I) {
   bool AnyChange = false;
   for (DbgVariableRecord &DVR : filterDbgVars(I.getDbgRecordRange()))
-    AnyChange |= fixupDbgVariableRecord(DVR);
+    AnyChange = AnyChange || fixupDbgVariableRecord(DVR);
   return AnyChange;
 }
 

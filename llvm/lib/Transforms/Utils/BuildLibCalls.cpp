@@ -230,8 +230,8 @@ static bool setArgNoUndef(Function &F, unsigned ArgNo) {
 
 static bool setRetAndArgsNoUndef(Function &F) {
   bool UndefAdded = false;
-  UndefAdded |= setRetNoUndef(F);
-  UndefAdded |= setArgsNoUndef(F);
+  UndefAdded = UndefAdded || setRetNoUndef(F);
+  UndefAdded = UndefAdded || setArgsNoUndef(F);
   return UndefAdded;
 }
 
@@ -320,7 +320,7 @@ bool llvm::inferNonMandatoryLibFuncAttrs(Function &F,
   bool Changed = false;
 
   if (F.getParent() != nullptr && F.getParent()->getRtLibUseGOT())
-    Changed |= setNonLazyBind(F);
+    Changed = Changed || setNonLazyBind(F);
 
   switch (TheLibFunc) {
   case LibFunc_nan:
@@ -329,20 +329,20 @@ bool llvm::inferNonMandatoryLibFuncAttrs(Function &F,
   case LibFunc_strlen:
   case LibFunc_strnlen:
   case LibFunc_wcslen:
-    Changed |= setOnlyReadsMemory(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_strchr:
   case LibFunc_strrchr:
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setOnlyReadsMemory(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setWillReturn(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setOnlyReadsMemory(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setWillReturn(F);
     break;
   case LibFunc_strtol:
   case LibFunc_strtod:
@@ -351,438 +351,438 @@ bool llvm::inferNonMandatoryLibFuncAttrs(Function &F,
   case LibFunc_strtoll:
   case LibFunc_strtold:
   case LibFunc_strtoull:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_strcat:
   case LibFunc_strncat:
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setWillReturn(F);
-    Changed |= setReturnedArg(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
-    Changed |= setDoesNotAlias(F, 0);
-    Changed |= setDoesNotAlias(F, 1);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setReturnedArg(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
+    Changed = Changed || setDoesNotAlias(F, 0);
+    Changed = Changed || setDoesNotAlias(F, 1);
     break;
   case LibFunc_strcpy:
   case LibFunc_strncpy:
-    Changed |= setReturnedArg(F, 0);
+    Changed = Changed || setReturnedArg(F, 0);
     [[fallthrough]];
   case LibFunc_stpcpy:
   case LibFunc_stpncpy:
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyWritesMemory(F, 0);
-    Changed |= setOnlyReadsMemory(F, 1);
-    Changed |= setDoesNotAlias(F, 0);
-    Changed |= setDoesNotAlias(F, 1);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyWritesMemory(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
+    Changed = Changed || setDoesNotAlias(F, 0);
+    Changed = Changed || setDoesNotAlias(F, 1);
     break;
   case LibFunc_strxfrm:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_strcmp:      // 0,1
   case LibFunc_strspn:      // 0,1
   case LibFunc_strncmp:     // 0,1
   case LibFunc_strcspn:     // 0,1
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setWillReturn(F);
-    Changed |= setOnlyReadsMemory(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setOnlyReadsMemory(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_strcoll:
   case LibFunc_strcasecmp:  // 0,1
   case LibFunc_strncasecmp: //
     // Those functions may depend on the locale, which may be accessed through
     // global memory.
-    Changed |= setOnlyReadsMemory(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_strstr:
   case LibFunc_strpbrk:
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setOnlyReadsMemory(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setOnlyReadsMemory(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_strtok:
   case LibFunc_strtok_r:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_scanf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_setbuf:
   case LibFunc_setvbuf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_strndup:
-    Changed |= setArgNoUndef(F, 1);
+    Changed = Changed || setArgNoUndef(F, 1);
     [[fallthrough]];
   case LibFunc_strdup:
-    Changed |= setAllocFamily(F, "malloc");
-    Changed |= setOnlyAccessesInaccessibleMemOrArgMem(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setAllocFamily(F, "malloc");
+    Changed = Changed || setOnlyAccessesInaccessibleMemOrArgMem(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_stat:
   case LibFunc_statvfs:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_sscanf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_sprintf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotAlias(F, 0);
-    Changed |= setOnlyWritesMemory(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotAlias(F, 0);
+    Changed = Changed || setOnlyWritesMemory(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_snprintf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotAlias(F, 0);
-    Changed |= setOnlyWritesMemory(F, 0);
-    Changed |= setDoesNotCapture(F, 2);
-    Changed |= setOnlyReadsMemory(F, 2);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotAlias(F, 0);
+    Changed = Changed || setOnlyWritesMemory(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 2);
+    Changed = Changed || setOnlyReadsMemory(F, 2);
     break;
   case LibFunc_setitimer:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setDoesNotCapture(F, 2);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setDoesNotCapture(F, 2);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_system:
     // May throw; "system" is a valid pthread cancellation point.
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_aligned_alloc:
-    Changed |= setAlignedAllocParam(F, 0);
-    Changed |= setAllocSize(F, 1, std::nullopt);
-    Changed |= setAllocKind(F, AllocFnKind::Alloc | AllocFnKind::Uninitialized | AllocFnKind::Aligned);
+    Changed = Changed || setAlignedAllocParam(F, 0);
+    Changed = Changed || setAllocSize(F, 1, std::nullopt);
+    Changed = Changed || setAllocKind(F, AllocFnKind::Alloc | AllocFnKind::Uninitialized | AllocFnKind::Aligned);
     [[fallthrough]];
   case LibFunc_valloc:
   case LibFunc_malloc:
   case LibFunc_vec_malloc:
-    Changed |= setAllocSize(F, 0, std::nullopt);
+    Changed = Changed || setAllocSize(F, 0, std::nullopt);
     [[fallthrough]];
   case LibFunc_pvalloc:
-    Changed |= setAllocFamily(F, TheLibFunc == LibFunc_vec_malloc ? "vec_malloc"
+    Changed = Changed || setAllocFamily(F, TheLibFunc == LibFunc_vec_malloc ? "vec_malloc"
                                                                   : "malloc");
-    Changed |= setAllocKind(F, AllocFnKind::Alloc | AllocFnKind::Uninitialized);
-    Changed |= setOnlyAccessesInaccessibleMemory(F);
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setWillReturn(F);
+    Changed = Changed || setAllocKind(F, AllocFnKind::Alloc | AllocFnKind::Uninitialized);
+    Changed = Changed || setOnlyAccessesInaccessibleMemory(F);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
+    Changed = Changed || setWillReturn(F);
     break;
   case LibFunc_memcmp:
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setOnlyReadsMemory(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setOnlyReadsMemory(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_memchr:
   case LibFunc_memrchr:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setOnlyReadsMemory(F);
-    Changed |= setWillReturn(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setOnlyReadsMemory(F);
+    Changed = Changed || setWillReturn(F);
     break;
   case LibFunc_modf:
   case LibFunc_modff:
   case LibFunc_modfl:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setWillReturn(F);
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setOnlyWritesMemory(F);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setOnlyWritesMemory(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_memcpy:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotAlias(F, 0);
-    Changed |= setReturnedArg(F, 0);
-    Changed |= setOnlyWritesMemory(F, 0);
-    Changed |= setDoesNotAlias(F, 1);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotAlias(F, 0);
+    Changed = Changed || setReturnedArg(F, 0);
+    Changed = Changed || setOnlyWritesMemory(F, 0);
+    Changed = Changed || setDoesNotAlias(F, 1);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_memmove:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setWillReturn(F);
-    Changed |= setReturnedArg(F, 0);
-    Changed |= setOnlyWritesMemory(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setReturnedArg(F, 0);
+    Changed = Changed || setOnlyWritesMemory(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_mempcpy:
   case LibFunc_memccpy:
-    Changed |= setWillReturn(F);
+    Changed = Changed || setWillReturn(F);
     [[fallthrough]];
   case LibFunc_memcpy_chk:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setDoesNotAlias(F, 0);
-    Changed |= setOnlyWritesMemory(F, 0);
-    Changed |= setDoesNotAlias(F, 1);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setDoesNotAlias(F, 0);
+    Changed = Changed || setOnlyWritesMemory(F, 0);
+    Changed = Changed || setDoesNotAlias(F, 1);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_memalign:
-    Changed |= setAllocFamily(F, "malloc");
-    Changed |= setAllocKind(F, AllocFnKind::Alloc | AllocFnKind::Aligned |
+    Changed = Changed || setAllocFamily(F, "malloc");
+    Changed = Changed || setAllocKind(F, AllocFnKind::Alloc | AllocFnKind::Aligned |
                                    AllocFnKind::Uninitialized);
-    Changed |= setAllocSize(F, 1, std::nullopt);
-    Changed |= setAlignedAllocParam(F, 0);
-    Changed |= setOnlyAccessesInaccessibleMemory(F);
-    Changed |= setRetNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setWillReturn(F);
+    Changed = Changed || setAllocSize(F, 1, std::nullopt);
+    Changed = Changed || setAlignedAllocParam(F, 0);
+    Changed = Changed || setOnlyAccessesInaccessibleMemory(F);
+    Changed = Changed || setRetNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
+    Changed = Changed || setWillReturn(F);
     break;
   case LibFunc_mkdir:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_mktime:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_realloc:
   case LibFunc_reallocf:
   case LibFunc_vec_realloc:
-    Changed |= setAllocFamily(
+    Changed = Changed || setAllocFamily(
         F, TheLibFunc == LibFunc_vec_realloc ? "vec_malloc" : "malloc");
-    Changed |= setAllocKind(F, AllocFnKind::Realloc);
-    Changed |= setAllocatedPointerParam(F, 0);
-    Changed |= setAllocSize(F, 1, std::nullopt);
-    Changed |= setOnlyAccessesInaccessibleMemOrArgMem(F);
-    Changed |= setRetNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setArgNoUndef(F, 1);
+    Changed = Changed || setAllocKind(F, AllocFnKind::Realloc);
+    Changed = Changed || setAllocatedPointerParam(F, 0);
+    Changed = Changed || setAllocSize(F, 1, std::nullopt);
+    Changed = Changed || setOnlyAccessesInaccessibleMemOrArgMem(F);
+    Changed = Changed || setRetNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setArgNoUndef(F, 1);
     break;
   case LibFunc_reallocarray:
-    Changed |= setAllocFamily(F, "malloc");
-    Changed |= setAllocKind(F, AllocFnKind::Realloc);
-    Changed |= setAllocatedPointerParam(F, 0);
-    Changed |= setAllocSize(F, 1, 2);
-    Changed |= setOnlyAccessesInaccessibleMemOrArgMem(F);
-    Changed |= setRetNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setArgNoUndef(F, 1);
-    Changed |= setArgNoUndef(F, 2);
+    Changed = Changed || setAllocFamily(F, "malloc");
+    Changed = Changed || setAllocKind(F, AllocFnKind::Realloc);
+    Changed = Changed || setAllocatedPointerParam(F, 0);
+    Changed = Changed || setAllocSize(F, 1, 2);
+    Changed = Changed || setOnlyAccessesInaccessibleMemOrArgMem(F);
+    Changed = Changed || setRetNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setArgNoUndef(F, 1);
+    Changed = Changed || setArgNoUndef(F, 2);
     break;
   case LibFunc_read:
     // May throw; "read" is a valid pthread cancellation point.
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_rewind:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_rmdir:
   case LibFunc_remove:
   case LibFunc_realpath:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_rename:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_readlink:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_write:
     // May throw; "write" is a valid pthread cancellation point.
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_bcopy:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
-    Changed |= setOnlyWritesMemory(F, 1);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
+    Changed = Changed || setOnlyWritesMemory(F, 1);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_bcmp:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setOnlyReadsMemory(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setOnlyReadsMemory(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_bzero:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyWritesMemory(F, 0);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyWritesMemory(F, 0);
     break;
   case LibFunc_calloc:
   case LibFunc_vec_calloc:
-    Changed |= setAllocFamily(F, TheLibFunc == LibFunc_vec_calloc ? "vec_malloc"
+    Changed = Changed || setAllocFamily(F, TheLibFunc == LibFunc_vec_calloc ? "vec_malloc"
                                                                   : "malloc");
-    Changed |= setAllocKind(F, AllocFnKind::Alloc | AllocFnKind::Zeroed);
-    Changed |= setAllocSize(F, 0, 1);
-    Changed |= setOnlyAccessesInaccessibleMemory(F);
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setWillReturn(F);
+    Changed = Changed || setAllocKind(F, AllocFnKind::Alloc | AllocFnKind::Zeroed);
+    Changed = Changed || setAllocSize(F, 0, 1);
+    Changed = Changed || setOnlyAccessesInaccessibleMemory(F);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
+    Changed = Changed || setWillReturn(F);
     break;
   case LibFunc_chmod:
   case LibFunc_chown:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_ctermid:
   case LibFunc_clearerr:
   case LibFunc_closedir:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_atoi:
   case LibFunc_atol:
   case LibFunc_atof:
   case LibFunc_atoll:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setOnlyReadsMemory(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setOnlyReadsMemory(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_access:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_fopen:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_fdopen:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_feof:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_free:
   case LibFunc_vec_free:
-    Changed |= setAllocFamily(F, TheLibFunc == LibFunc_vec_free ? "vec_malloc"
+    Changed = Changed || setAllocFamily(F, TheLibFunc == LibFunc_vec_free ? "vec_malloc"
                                                                 : "malloc");
-    Changed |= setAllocKind(F, AllocFnKind::Free);
-    Changed |= setAllocatedPointerParam(F, 0);
-    Changed |= setOnlyAccessesInaccessibleMemOrArgMem(F);
-    Changed |= setArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setAllocKind(F, AllocFnKind::Free);
+    Changed = Changed || setAllocatedPointerParam(F, 0);
+    Changed = Changed || setOnlyAccessesInaccessibleMemOrArgMem(F);
+    Changed = Changed || setArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_fseek:
   case LibFunc_ftell:
@@ -797,414 +797,414 @@ bool llvm::inferNonMandatoryLibFuncAttrs(Function &F,
   case LibFunc_flockfile:
   case LibFunc_funlockfile:
   case LibFunc_ftrylockfile:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_ferror:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F);
     break;
   case LibFunc_fputc:
   case LibFunc_fputc_unlocked:
   case LibFunc_fstat:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_frexp:
   case LibFunc_frexpf:
   case LibFunc_frexpl:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setWillReturn(F);
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setOnlyWritesMemory(F);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setOnlyWritesMemory(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_fstatvfs:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_fgets:
   case LibFunc_fgets_unlocked:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 2);
-    Changed |= setOnlyWritesMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 2);
+    Changed = Changed || setOnlyWritesMemory(F, 0);
     break;
   case LibFunc_fread:
   case LibFunc_fread_unlocked:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 3);
-    Changed |= setOnlyWritesMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 3);
+    Changed = Changed || setOnlyWritesMemory(F, 0);
     break;
   case LibFunc_fwrite:
   case LibFunc_fwrite_unlocked:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 3);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 3);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_fputs:
   case LibFunc_fputs_unlocked:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_fscanf:
   case LibFunc_fprintf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_fgetpos:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_getc:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_getlogin_r:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_getc_unlocked:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_getenv:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setOnlyReadsMemory(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setOnlyReadsMemory(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_gets:
   case LibFunc_getchar:
   case LibFunc_getchar_unlocked:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
     break;
   case LibFunc_getitimer:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_getpwnam:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_ungetc:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_uname:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_unlink:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_unsetenv:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_utime:
   case LibFunc_utimes:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_putc:
   case LibFunc_putc_unlocked:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_puts:
   case LibFunc_printf:
   case LibFunc_perror:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_pread:
     // May throw; "pread" is a valid pthread cancellation point.
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_pwrite:
     // May throw; "pwrite" is a valid pthread cancellation point.
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_putchar:
   case LibFunc_putchar_unlocked:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
     break;
   case LibFunc_popen:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_pclose:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_vscanf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_vsscanf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_vfscanf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_vprintf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_vfprintf:
   case LibFunc_vsprintf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_vsnprintf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 2);
-    Changed |= setOnlyReadsMemory(F, 2);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 2);
+    Changed = Changed || setOnlyReadsMemory(F, 2);
     break;
   case LibFunc_open:
     // May throw; "open" is a valid pthread cancellation point.
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_opendir:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_tmpfile:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
     break;
   case LibFunc_times:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_htonl:
   case LibFunc_htons:
   case LibFunc_ntohl:
   case LibFunc_ntohs:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setDoesNotAccessMemory(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setDoesNotAccessMemory(F);
     break;
   case LibFunc_lstat:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_lchown:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_qsort:
     // May throw/callback; places call through function pointer.
     // Cannot give undef pointer/size
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotCapture(F, 3);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotCapture(F, 3);
     break;
   case LibFunc_dunder_strndup:
-    Changed |= setArgNoUndef(F, 1);
+    Changed = Changed || setArgNoUndef(F, 1);
     [[fallthrough]];
   case LibFunc_dunder_strdup:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setWillReturn(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_dunder_strtok_r:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_under_IO_getc:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_under_IO_putc:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_dunder_isoc99_scanf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_stat64:
   case LibFunc_lstat64:
   case LibFunc_statvfs64:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_dunder_isoc99_sscanf:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_fopen64:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 0);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     break;
   case LibFunc_fseeko64:
   case LibFunc_ftello64:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
     break;
   case LibFunc_tmpfile64:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setRetDoesNotAlias(F);
     break;
   case LibFunc_fstat64:
   case LibFunc_fstatvfs64:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_open64:
     // May throw; "open" is a valid pthread cancellation point.
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyReadsMemory(F, 0);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setOnlyReadsMemory(F, 0);
     break;
   case LibFunc_gettimeofday:
     // Currently some platforms have the restrict keyword on the arguments to
     // gettimeofday. To be conservative, do not add noalias to gettimeofday's
     // arguments.
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
     break;
   case LibFunc_memset_pattern4:
   case LibFunc_memset_pattern8:
   case LibFunc_memset_pattern16:
-    Changed |= setDoesNotCapture(F, 0);
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyReadsMemory(F, 1);
+    Changed = Changed || setDoesNotCapture(F, 0);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyReadsMemory(F, 1);
     [[fallthrough]];
   case LibFunc_memset:
-    Changed |= setWillReturn(F);
+    Changed = Changed || setWillReturn(F);
     [[fallthrough]];
   case LibFunc_memset_chk:
-    Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setOnlyWritesMemory(F, 0);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
+    Changed = Changed || setOnlyAccessesArgMemory(F);
+    Changed = Changed || setOnlyWritesMemory(F, 0);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
     break;
   case LibFunc_abort:
-    Changed |= setIsCold(F);
-    Changed |= setNoReturn(F);
-    Changed |= setDoesNotThrow(F);
+    Changed = Changed || setIsCold(F);
+    Changed = Changed || setNoReturn(F);
+    Changed = Changed || setDoesNotThrow(F);
     break;
   case LibFunc_terminate:
     // May callback; terminate_handler may be called
-    Changed |= setIsCold(F);
-    Changed |= setNoReturn(F);
+    Changed = Changed || setIsCold(F);
+    Changed = Changed || setNoReturn(F);
     break;
   case LibFunc_cxa_throw:
-    Changed |= setIsCold(F);
-    Changed |= setNoReturn(F);
+    Changed = Changed || setIsCold(F);
+    Changed = Changed || setNoReturn(F);
     // Don't add `nofree` on `__cxa_throw`
     return Changed;
   // int __nvvm_reflect(const char *)
   case LibFunc_nvvm_reflect:
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotAccessMemory(F);
-    Changed |= setDoesNotThrow(F);
+    Changed = Changed || setRetAndArgsNoUndef(F);
+    Changed = Changed || setDoesNotAccessMemory(F);
+    Changed = Changed || setDoesNotThrow(F);
     break;
   case LibFunc_acos:
   case LibFunc_acosf:
@@ -1319,11 +1319,11 @@ bool llvm::inferNonMandatoryLibFuncAttrs(Function &F,
   case LibFunc_tanhf:
   case LibFunc_tanhl:
   case LibFunc_tanl:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setDoesNotFreeMemory(F);
-    Changed |= setWillReturn(F);
-    Changed |= setOnlyWritesErrnoMemory(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setDoesNotFreeMemory(F);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setOnlyWritesErrnoMemory(F);
     break;
   case LibFunc_abs:
   case LibFunc_cbrt:
@@ -1374,31 +1374,31 @@ bool llvm::inferNonMandatoryLibFuncAttrs(Function &F,
   case LibFunc_trunc:
   case LibFunc_truncf:
   case LibFunc_truncl:
-    Changed |= setDoesNotAccessMemory(F);
+    Changed = Changed || setDoesNotAccessMemory(F);
     [[fallthrough]];
   case LibFunc_isascii:
   case LibFunc_isdigit:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setDoesNotFreeMemory(F);
-    Changed |= setWillReturn(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setDoesNotFreeMemory(F);
+    Changed = Changed || setWillReturn(F);
     break;
   case LibFunc_sincos:
   case LibFunc_sincosf:
   case LibFunc_sincosl:
-    Changed |= setDoesNotCapture(F, 1);
-    Changed |= setOnlyWritesMemory(F, 1);
+    Changed = Changed || setDoesNotCapture(F, 1);
+    Changed = Changed || setOnlyWritesMemory(F, 1);
     [[fallthrough]];
   case LibFunc_remquo:
   case LibFunc_remquof:
   case LibFunc_remquol:
-    Changed |= setDoesNotThrow(F);
-    Changed |= setDoesNotCallback(F);
-    Changed |= setDoesNotFreeMemory(F);
-    Changed |= setOnlyWritesMemory(F, 2);
-    Changed |= setDoesNotCapture(F, 2);
-    Changed |= setWillReturn(F);
-    Changed |= setOnlyWritesArgMemOrErrnoMem(F);
+    Changed = Changed || setDoesNotThrow(F);
+    Changed = Changed || setDoesNotCallback(F);
+    Changed = Changed || setDoesNotFreeMemory(F);
+    Changed = Changed || setOnlyWritesMemory(F, 2);
+    Changed = Changed || setDoesNotCapture(F, 2);
+    Changed = Changed || setWillReturn(F);
+    Changed = Changed || setOnlyWritesArgMemOrErrnoMem(F);
     break;
   default:
     // FIXME: It'd be really nice to cover all the library functions we're
@@ -1408,7 +1408,7 @@ bool llvm::inferNonMandatoryLibFuncAttrs(Function &F,
   // We have to do this step after AllocKind has been inferred on functions so
   // we can reliably identify free-like and realloc-like functions.
   if (!isLibFreeFunction(&F, TheLibFunc) && !isReallocLikeFn(&F))
-    Changed |= setDoesNotFreeMemory(F);
+    Changed = Changed || setDoesNotFreeMemory(F);
   return Changed;
 }
 

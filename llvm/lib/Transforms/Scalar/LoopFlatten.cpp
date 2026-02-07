@@ -1017,7 +1017,7 @@ PreservedAnalyses LoopFlattenPass::run(LoopNest &LN, LoopAnalysisManager &LAM,
     if (!OuterLoop)
       continue;
     FlattenInfo FI(OuterLoop, InnerLoop);
-    Changed |=
+    Changed = Changed ||
         FlattenLoopPair(FI, &AR.DT, &AR.LI, &AR.SE, &AR.AC, &AR.TTI, &U,
                         MSSAU ? &*MSSAU : nullptr, LAIM.getInfo(*OuterLoop));
   }

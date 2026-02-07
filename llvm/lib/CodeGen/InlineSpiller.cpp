@@ -770,7 +770,7 @@ void InlineSpiller::reMaterializeAll() {
       assert(!MI.isDebugInstr() && "Did not expect to find a use in debug "
              "instruction that isn't a DBG_VALUE");
 
-      anyRemat |= reMaterializeFor(LI, MI);
+      anyRemat = anyRemat || reMaterializeFor(LI, MI);
     }
   }
   if (!anyRemat)

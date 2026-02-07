@@ -774,7 +774,7 @@ bool LoopRotate::rotateLoop(Loop *L, bool SimplifiedLatch) {
       if (!PredLoop || PredLoop->contains(Exit) ||
           isa<IndirectBrInst>(ExitPred->getTerminator()))
         continue;
-      SplitLatchEdge |= L->getLoopLatch() == ExitPred;
+      SplitLatchEdge = SplitLatchEdge || L->getLoopLatch() == ExitPred;
       BasicBlock *ExitSplit = SplitCriticalEdge(
           ExitPred, Exit,
           CriticalEdgeSplittingOptions(DT, LI, MSSAU).setPreserveLCSSA());

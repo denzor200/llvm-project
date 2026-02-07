@@ -854,13 +854,13 @@ bool LoongArchOptWInstrs::runOnMachineFunction(MachineFunction &MF) {
     return false;
 
   bool MadeChange = false;
-  MadeChange |= removeSExtWInstrs(MF, TII, ST, MRI);
+  MadeChange = MadeChange || removeSExtWInstrs(MF, TII, ST, MRI);
 
   if (!(DisableCvtToDSuffix || ST.preferWInst()))
-    MadeChange |= convertToDSuffixes(MF, TII, ST, MRI);
+    MadeChange = MadeChange || convertToDSuffixes(MF, TII, ST, MRI);
 
   if (ST.preferWInst())
-    MadeChange |= convertToWSuffixes(MF, TII, ST, MRI);
+    MadeChange = MadeChange || convertToWSuffixes(MF, TII, ST, MRI);
 
   return MadeChange;
 }
