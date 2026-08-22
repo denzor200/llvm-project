@@ -101,6 +101,11 @@ Improvements to clang-tidy
 New checks
 ^^^^^^^^^^
 
+- New :doc:`bugprone-mem-56-cpp
+  <clang-tidy/checks/bugprone/mem-56-cpp>` check.
+
+  FIXME: Write a short description.
+
 - New :doc:`performance-expensive-value-or
   <clang-tidy/checks/performance/expensive-value-or>` check.
 

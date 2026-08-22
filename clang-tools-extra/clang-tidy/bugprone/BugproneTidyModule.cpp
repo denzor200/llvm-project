@@ -48,6 +48,7 @@
 #include "LambdaFunctionNameCheck.h"
 #include "MacroParenthesesCheck.h"
 #include "MacroRepeatedSideEffectsCheck.h"
+#include "Mem56CppCheck.h"
 #include "MisleadingSetterOfReferenceCheck.h"
 #include "MisplacedOperatorInStrlenInAllocCheck.h"
 #include "MisplacedPointerArithmeticInAllocCheck.h"
@@ -184,6 +185,8 @@ public:
         "bugprone-incorrect-enable-if");
     CheckFactories.registerCheck<IncorrectEnableSharedFromThisCheck>(
         "bugprone-incorrect-enable-shared-from-this");
+    CheckFactories.registerCheck<Mem56CppCheck>(
+        "bugprone-mem-56-cpp");
     CheckFactories.registerCheck<UnintendedCharOstreamOutputCheck>(
         "bugprone-unintended-char-ostream-output");
     CheckFactories.registerCheck<ReturnConstRefFromParameterCheck>(

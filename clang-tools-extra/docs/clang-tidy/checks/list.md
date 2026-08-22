@@ -117,6 +117,7 @@ zircon/*
 | {doc}`bugprone-lambda-function-name <bugprone/lambda-function-name>` |  |
 | {doc}`bugprone-macro-parentheses <bugprone/macro-parentheses>` | Yes |
 | {doc}`bugprone-macro-repeated-side-effects <bugprone/macro-repeated-side-effects>` |  |
+| {doc}`bugprone-mem-56-cpp <bugprone/mem-56-cpp>` |  |
 | {doc}`bugprone-misleading-setter-of-reference <bugprone/misleading-setter-of-reference>` |  |
 | {doc}`bugprone-misplaced-operator-in-strlen-in-alloc <bugprone/misplaced-operator-in-strlen-in-alloc>` | Yes |
 | {doc}`bugprone-misplaced-pointer-arithmetic-in-alloc <bugprone/misplaced-pointer-arithmetic-in-alloc>` | Yes |
