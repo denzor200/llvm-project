@@ -265,6 +265,7 @@ zircon/*
 | {doc}`misc-const-correctness <misc/const-correctness>` | Yes |
 | {doc}`misc-coroutine-hostile-raii <misc/coroutine-hostile-raii>` |  |
 | {doc}`misc-definitions-in-headers <misc/definitions-in-headers>` | Yes |
+| {doc}`misc-double-shared-ptr <misc/double-shared-ptr>` |  |
 | {doc}`misc-explicit-constructor <misc/explicit-constructor>` | Yes |
 | {doc}`misc-header-include-cycle <misc/header-include-cycle>` |  |
 | {doc}`misc-include-cleaner <misc/include-cleaner>` | Yes |

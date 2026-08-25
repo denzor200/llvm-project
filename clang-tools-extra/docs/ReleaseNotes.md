@@ -92,6 +92,11 @@ infrastructure are described first, followed by tool-specific sections.
 
 #### New checks
 
+- New {doc}`misc-double-shared-ptr
+  <clang-tidy/checks/misc/double-shared-ptr>` check.
+
+  FIXME: Write a short description.
+
 - New {doc}`performance-expensive-value-or
   <clang-tidy/checks/performance/expensive-value-or>` check.
 

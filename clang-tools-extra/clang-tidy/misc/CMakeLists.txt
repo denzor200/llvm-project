@@ -23,6 +23,7 @@ add_clang_library(clangTidyMiscModule STATIC
   ConstCorrectnessCheck.cpp
   CoroutineHostileRAIICheck.cpp
   DefinitionsInHeadersCheck.cpp
+  DoubleSharedPtrCheck.cpp
   ExplicitConstructorCheck.cpp
   HeaderIncludeCycleCheck.cpp
   IncludeCleanerCheck.cpp
