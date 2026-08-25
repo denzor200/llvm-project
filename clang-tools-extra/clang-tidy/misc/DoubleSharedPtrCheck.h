@@ -56,23 +56,23 @@ private:
         : Context(C), Function(F) {}
   };
 
-  bool analyzeFunction(ASTContext &Context, const FunctionDecl *Func);
+  bool analyzeFunction(ASTContext &Context, const FunctionDecl *Func, const SourceManager& SM);
   void analyzeBlock(const CFGBlock *Block,
                     llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
-                    FunctionAnalysisContext &FuncCtx);
+                    FunctionAnalysisContext &FuncCtx, const SourceManager& SM);
   
   void handleAssignment(const BinaryOperator *BO,
                         llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
-                        FunctionAnalysisContext &FuncCtx);
+                        FunctionAnalysisContext &FuncCtx, const SourceManager& SM);
   void handleSharedPtrConstructor(const CXXConstructExpr *Ctor,
                                   llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
-                                  FunctionAnalysisContext &FuncCtx);
+                                  FunctionAnalysisContext &FuncCtx, const SourceManager& SM);
   void handleDeclStmt(const DeclStmt *DS,
                       llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
-                      FunctionAnalysisContext &FuncCtx);
+                      FunctionAnalysisContext &FuncCtx, const SourceManager& SM);
   void handleReturnStmt(const ReturnStmt *RS,
                         llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
-                        FunctionAnalysisContext &FuncCtx);
+                        FunctionAnalysisContext &FuncCtx, const SourceManager& SM);
   
   bool isSharedPtrConstructor(const CXXConstructExpr *Ctor);
   const VarDecl *getUnderlyingVarDecl(const Expr *E);
@@ -95,7 +95,12 @@ private:
   void analyzeBlockForDiagnostics(
       const CFGBlock *Block,
       const llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
-      FunctionAnalysisContext &FuncCtx);
+      FunctionAnalysisContext &FuncCtx, const SourceManager& SM);
+
+  void dumpState(const llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
+                 const char *Label);
+  void dumpStateSwitch(const VarStateInfo& SI, const SourceManager& SM);
+  void dumpPtrVars(const llvm::SmallPtrSet<const VarDecl *, 32> &PtrVars);
 
   // Опции - используем StringRef вместо vector<string>
   std::string IgnoredFunctions;

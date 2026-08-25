@@ -16,6 +16,24 @@ using namespace clang::ast_matchers;
 
 namespace clang::tidy::misc {
 
+namespace {
+std::string printSourceLocation(clang::SourceLocation Loc, 
+                         const clang::SourceManager& SM) {
+    if (Loc.isInvalid()) {
+      return "<invalid>";
+    }
+
+      // Получить полное имя файла, строку и колонку
+      StringRef filepath = SM.getFilename(Loc);
+      unsigned line = SM.getSpellingLineNumber(Loc);
+      unsigned column = SM.getSpellingColumnNumber(Loc);
+      StringRef filename = llvm::sys::path::filename(filepath);
+
+      return filename.str() + ":" + std::to_string(line) + ":" +
+             std::to_string(column);
+}
+}
+
 DoubleSharedPtrCheck::DoubleSharedPtrCheck(StringRef Name,
                                            ClangTidyContext *Context)
     : ClangTidyCheck(Name, Context),
@@ -54,11 +72,13 @@ void DoubleSharedPtrCheck::check(const MatchFinder::MatchResult &Result) {
       return;
   }
 
-  analyzeFunction(*Result.Context, Func);
+  analyzeFunction(*Result.Context, Func, *Result.SourceManager);
 }
 
 bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
-                                           const FunctionDecl *Func) {
+                                           const FunctionDecl *Func,
+                                           const SourceManager& SM) {
+  llvm::errs() << "analizing function " << Func->getNameAsString() << "\n";
   const auto *Body = Func->getBody();
   if (!Body)
     return false;
@@ -80,6 +100,7 @@ bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
   // Собираем все переменные-указатели в функции
   llvm::SmallPtrSet<const VarDecl *, 32> PtrVars;
   
+  // TODO: arguments must be collected too
   std::function<void(const Stmt*)> CollectPtrVars = 
       [&](const Stmt *S) {
     if (!S) return;
@@ -102,6 +123,8 @@ bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
   };
   
   CollectPtrVars(Body);
+
+  dumpPtrVars(PtrVars);
 
   // Инициализируем состояния для каждого блока
   llvm::DenseMap<const CFGBlock *, llvm::DenseMap<const VarDecl *, VarStateInfo>> BlockStates;
@@ -156,7 +179,7 @@ bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
       
       // Анализируем блок с этим состоянием
       auto BlockOutState = BlockInState;
-      analyzeBlock(Block, BlockOutState, FuncCtx);
+      analyzeBlock(Block, BlockOutState, FuncCtx, SM);
       
       // Проверяем, изменилось ли состояние блока
       auto It = BlockStates.find(Block);
@@ -167,12 +190,21 @@ bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
     }
   }
   
+    // dumpState для отладки (можно закомментировать)
+  // for (const auto *Block : *FuncCtx.TheCFG) {
+  //   auto It = BlockStates.find(Block);
+  //   if (It != BlockStates.end()) {
+  //     std::string Label = "Block " + std::to_string(Block->getBlockID());
+  //     dumpState(It->second, Label.c_str());
+  //   }
+  // }
+
   // После достижения фиксированной точки, проверяем все блоки на наличие ошибок
   for (const auto *Block : *FuncCtx.TheCFG) {
     auto It = BlockStates.find(Block);
     if (It != BlockStates.end()) {
       // Повторно анализируем с финальными состояниями для генерации диагностик
-      analyzeBlockForDiagnostics(Block, It->second, FuncCtx);
+      analyzeBlockForDiagnostics(Block, It->second, FuncCtx, SM);
     }
   }
 
@@ -251,7 +283,7 @@ bool DoubleSharedPtrCheck::statesEqual(
 void DoubleSharedPtrCheck::analyzeBlockForDiagnostics(
     const CFGBlock *Block,
     const llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
-    FunctionAnalysisContext &FuncCtx) {
+    FunctionAnalysisContext &FuncCtx, const SourceManager& SM) {
   
   // Копируем состояния для модификации внутри блока
   auto LocalStates = States;
@@ -262,14 +294,14 @@ void DoubleSharedPtrCheck::analyzeBlockForDiagnostics(
 
       if (const auto *BO = dyn_cast<BinaryOperator>(S)) {
         if (BO->getOpcode() == BO_Assign) {
-          handleAssignment(BO, LocalStates, FuncCtx);
+          handleAssignment(BO, LocalStates, FuncCtx, SM);
         }
       } else if (const auto *Ctor = dyn_cast<CXXConstructExpr>(S)) {
         if (isSharedPtrConstructor(Ctor)) {
-          handleSharedPtrConstructor(Ctor, LocalStates, FuncCtx);
+          handleSharedPtrConstructor(Ctor, LocalStates, FuncCtx, SM);
         }
       } else if (const auto *DS = dyn_cast<DeclStmt>(S)) {
-        handleDeclStmt(DS, LocalStates, FuncCtx);
+        handleDeclStmt(DS, LocalStates, FuncCtx, SM);
       }
     }
   }
@@ -278,7 +310,7 @@ void DoubleSharedPtrCheck::analyzeBlockForDiagnostics(
 void DoubleSharedPtrCheck::analyzeBlock(
     const CFGBlock *Block,
     llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
-    FunctionAnalysisContext &FuncCtx) {
+    FunctionAnalysisContext &FuncCtx, const SourceManager& SM) {
   
   for (const auto &Element : *Block) {
     if (auto Stmt = Element.getAs<CFGStmt>()) {
@@ -286,16 +318,16 @@ void DoubleSharedPtrCheck::analyzeBlock(
 
       if (const auto *BO = dyn_cast<BinaryOperator>(S)) {
         if (BO->getOpcode() == BO_Assign) {
-          handleAssignment(BO, States, FuncCtx);
+          handleAssignment(BO, States, FuncCtx, SM);
         }
       } else if (const auto *Ctor = dyn_cast<CXXConstructExpr>(S)) {
         if (isSharedPtrConstructor(Ctor)) {
-          handleSharedPtrConstructor(Ctor, States, FuncCtx);
+          handleSharedPtrConstructor(Ctor, States, FuncCtx, SM);
         }
       } else if (const auto *DS = dyn_cast<DeclStmt>(S)) {
-        handleDeclStmt(DS, States, FuncCtx);
+        handleDeclStmt(DS, States, FuncCtx, SM);
       } else if (const auto *RS = dyn_cast<ReturnStmt>(S)) {
-        handleReturnStmt(RS, States, FuncCtx);
+        handleReturnStmt(RS, States, FuncCtx, SM);
       }
     }
   }
@@ -304,7 +336,7 @@ void DoubleSharedPtrCheck::analyzeBlock(
 void DoubleSharedPtrCheck::handleAssignment(
     const BinaryOperator *BO,
     llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
-    FunctionAnalysisContext &FuncCtx) {
+    FunctionAnalysisContext &FuncCtx, const SourceManager& SM) {
   
   const auto *LHS = dyn_cast<DeclRefExpr>(BO->getLHS());
   if (!LHS)
@@ -327,8 +359,10 @@ void DoubleSharedPtrCheck::handleAssignment(
     State.State = OWNING_PTR;
     State.CurrentNew = dyn_cast<CXXNewExpr>(RHS->IgnoreParenImpCasts());
     State.LastChangeLoc = BO->getBeginLoc();
+    dumpStateSwitch(State, SM);
     
   } else if (isNullPointer(RHS)) {
+    
     State.State = PLAIN_PTR;
     State.CurrentNew = nullptr;
     State.LastChangeLoc = BO->getBeginLoc();
@@ -346,13 +380,14 @@ void DoubleSharedPtrCheck::handleAssignment(
     State.State = PLAIN_PTR;
     State.CurrentNew = nullptr;
     State.LastChangeLoc = BO->getBeginLoc();
+    dumpStateSwitch(State, SM);
   }
 }
 
 void DoubleSharedPtrCheck::handleSharedPtrConstructor(
     const CXXConstructExpr *Ctor,
     llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
-    FunctionAnalysisContext &FuncCtx) {
+    FunctionAnalysisContext &FuncCtx, const SourceManager& SM) {
   
   if (Ctor->getNumArgs() != 1)
     return;
@@ -375,17 +410,19 @@ void DoubleSharedPtrCheck::handleSharedPtrConstructor(
   } else if (State.State == OWNING_PTR && State.CurrentNew) {
     State.State = SHARED_PTR;
     State.LastChangeLoc = Ctor->getBeginLoc();
+    dumpStateSwitch(State, SM);
   } else {
     State.State = SHARED_PTR;
     State.CurrentNew = nullptr;
     State.LastChangeLoc = Ctor->getBeginLoc();
+    dumpStateSwitch(State, SM);
   }
 }
 
 void DoubleSharedPtrCheck::handleDeclStmt(
     const DeclStmt *DS,
     llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
-    FunctionAnalysisContext &FuncCtx) {
+    FunctionAnalysisContext &FuncCtx, const SourceManager& SM) {
   
   for (const auto *D : DS->decls()) {
     if (const auto *VD = dyn_cast<VarDecl>(D)) {
@@ -404,10 +441,12 @@ void DoubleSharedPtrCheck::handleDeclStmt(
           State.State = OWNING_PTR;
           State.CurrentNew = dyn_cast<CXXNewExpr>(Init->IgnoreParenImpCasts());
           State.LastChangeLoc = VD->getLocation();
+          dumpStateSwitch(State, SM);
         } else if (isNullPointer(Init)) {
           State.State = PLAIN_PTR;
           State.CurrentNew = nullptr;
           State.LastChangeLoc = VD->getLocation();
+          dumpStateSwitch(State, SM);
         }
       }
     }
@@ -417,7 +456,7 @@ void DoubleSharedPtrCheck::handleDeclStmt(
 void DoubleSharedPtrCheck::handleReturnStmt(
     const ReturnStmt *RS,
     llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
-    FunctionAnalysisContext &FuncCtx) {
+    FunctionAnalysisContext &FuncCtx, const SourceManager& SM) {
   
   const auto *RetVal = RS->getRetValue();
   if (!RetVal)
@@ -431,6 +470,7 @@ void DoubleSharedPtrCheck::handleReturnStmt(
   if (It != States.end()) {
     It->second.State = DEAD_PTR;
     It->second.LastChangeLoc = RS->getBeginLoc();
+    dumpStateSwitch(It->second, SM);
   }
 }
 
@@ -519,6 +559,43 @@ void DoubleSharedPtrCheck::reportDoubleOwnership(
        "consider using std::shared_ptr::reset() or "
        "reassigning the raw pointer to nullptr before second use",
        DiagnosticIDs::Note);
+}
+
+void DoubleSharedPtrCheck::dumpState(
+    const llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
+    const char *Label) {
+  llvm::errs() << "=== " << Label << " ===\n";
+  for (const auto &KV : States) {
+    const auto *Var = KV.first;
+    const VarStateInfo &State = KV.second;
+    llvm::errs() << "  " << Var->getName() << ": ";
+    switch (State.State) {
+      case PLAIN_PTR: llvm::errs() << "PLAIN_PTR"; break;
+      case OWNING_PTR: llvm::errs() << "OWNING_PTR"; break;
+      case SHARED_PTR: llvm::errs() << "SHARED_PTR"; break;
+      case DEAD_PTR: llvm::errs() << "DEAD_PTR"; break;
+    }
+    llvm::errs() << "\n";
+  }
+}
+
+void DoubleSharedPtrCheck::dumpStateSwitch(const VarStateInfo& SI, const SourceManager& SM) {
+  StringRef StateName;
+  switch (SI.State) {
+    case PLAIN_PTR: StateName = "PLAIN_PTR"; break;
+    case OWNING_PTR: StateName = "OWNING_PTR"; break;
+    case SHARED_PTR: StateName = "SHARED_PTR"; break;
+    case DEAD_PTR: StateName = "DEAD_PTR"; break;
+  }
+  llvm::errs() << "[" << reinterpret_cast<const void*>(&SI) << "] " << SI.Var->getNameAsString() << " switched to " << StateName << " at "
+               << printSourceLocation(SI.LastChangeLoc, SM) << "\n";
+}
+
+void DoubleSharedPtrCheck::dumpPtrVars(const llvm::SmallPtrSet<const VarDecl *, 32> &PtrVars) {
+  llvm::errs() << "PTR_VARS: ";
+  for (const VarDecl *PtrVar : PtrVars)
+    llvm::errs() << PtrVar->getQualifiedNameAsString() << " ";
+  llvm::errs() << "\n";
 }
 
 } // namespace clang::tidy::misc
