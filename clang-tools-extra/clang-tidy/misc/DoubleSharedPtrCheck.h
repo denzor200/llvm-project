@@ -82,7 +82,21 @@ private:
   void reportDoubleOwnership(const VarStateInfo &State,
                              const CXXConstructExpr *SecondCtor,
                              FunctionAnalysisContext &FuncCtx);
+                             
+    // Новые методы для работы с состояниями
+  void mergeStates(
+      llvm::DenseMap<const VarDecl *, VarStateInfo> &Dest,
+      const llvm::DenseMap<const VarDecl *, VarStateInfo> &Src);
   
+  bool statesEqual(
+      const llvm::DenseMap<const VarDecl *, VarStateInfo> &A,
+      const llvm::DenseMap<const VarDecl *, VarStateInfo> &B);
+  
+  void analyzeBlockForDiagnostics(
+      const CFGBlock *Block,
+      const llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
+      FunctionAnalysisContext &FuncCtx);
+
   // Опции - используем StringRef вместо vector<string>
   std::string IgnoredFunctions;
 };
