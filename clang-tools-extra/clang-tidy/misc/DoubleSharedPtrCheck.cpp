@@ -10,6 +10,7 @@
 #include "clang/Analysis/CFG.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/StringRef.h"
+#include "PointerStateAnalyzer.hpp"
 #include <sstream>
 
 using namespace clang::ast_matchers;
@@ -78,7 +79,7 @@ void DoubleSharedPtrCheck::check(const MatchFinder::MatchResult &Result) {
 bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
                                            const FunctionDecl *Func,
                                            const SourceManager& SM) {
-  llvm::errs() << "analizing function " << Func->getNameAsString() << "\n";
+  llvm::outs() << "analizing function " << Func->getNameAsString() << "\n";
   const auto *Body = Func->getBody();
   if (!Body)
     return false;
@@ -126,16 +127,22 @@ bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
 
   dumpPtrVars(PtrVars);
 
-  // TODO: implement this
+  const auto transitions = analyzeTransitions(PtrVars, *FuncCtx.TheCFG);
+  for (const auto& [var, transList] : transitions) {
+      llvm::outs() << "Var: " << var->getName() << "\n";
+      for (const auto& t : transList) {
+          llvm::outs() << "  " << t.fromState << " -> " << t.toState << "\n";
+      }
+  }
 
   return true;
 }
 
 void DoubleSharedPtrCheck::dumpPtrVars(const llvm::SmallPtrSet<const VarDecl *, 32> &PtrVars) {
-  llvm::errs() << "PTR_VARS: ";
+  llvm::outs() << "PTR_VARS: ";
   for (const VarDecl *PtrVar : PtrVars)
-    llvm::errs() << PtrVar->getQualifiedNameAsString() << " ";
-  llvm::errs() << "\n";
+    llvm::outs() << PtrVar->getQualifiedNameAsString() << " ";
+  llvm::outs() << "\n";
 }
 
 } // namespace clang::tidy::misc

@@ -3,6 +3,7 @@
 #include <memory>
 #include <utility>
 
+
 // ============================================================================
 // TEST 1: Базовый случай двойного владения
 // ============================================================================
@@ -14,6 +15,16 @@ void test_basic_double_ownership() {
   // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
   // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
 }
+
+void test_basic_double_two_conditions_ok(bool cond) {
+  int* a = new int(42);
+  if (cond) {
+    std::shared_ptr<int> p1(a);
+  } else {
+    std::shared_ptr<int> p2(a);
+  }
+}
+
 
 // ============================================================================
 // TEST 2: Объявление и инициализация в одной строке
@@ -315,3 +326,32 @@ void test_dereference() {
   // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
 }
 
+void test_argument(int* a) {
+  a = new int(42);
+  std::shared_ptr<int> p1(a);
+  // Это должно вызвать предупреждение
+  std::shared_ptr<int> p2(a);
+  // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
+}
+
+struct A {int* val;};
+
+void test_inside_structure() {
+  A a;
+  a.val = new int(42);
+  std::shared_ptr<int> p1(a.val);
+  // Это должно вызвать предупреждение
+  std::shared_ptr<int> p2(a.val);
+  // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
+}
+
+void test_inside_structure_and_argument(A& a) {
+  a.val = new int(42);
+  std::shared_ptr<int> p1(a.val);
+  // Это должно вызвать предупреждение
+  std::shared_ptr<int> p2(a.val);
+  // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
+}
