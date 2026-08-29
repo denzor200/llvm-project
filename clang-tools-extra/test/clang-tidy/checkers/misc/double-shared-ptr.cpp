@@ -24,6 +24,14 @@ void test_basic_double_two_conditions_ok(bool cond) {
   }
 }
 
+void test_basic_no_double_ownership() {
+  int* a = new int(42);
+  std::shared_ptr<int> p1(a);
+  a = nullptr;
+  std::shared_ptr<int> p2(a);
+}
+
+
 
 // ============================================================================
 // TEST 2: Объявление и инициализация в одной строке
