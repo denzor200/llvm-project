@@ -26,16 +26,28 @@ void DoubleSharedPtrCheck::storeOptions(ClangTidyOptions::OptionMap &Opts) {
 }
 
 void DoubleSharedPtrCheck::registerMatchers(MatchFinder *Finder) {
+  const auto IsSharedPtr = hasAnyName(SharedPointers);
+  const auto IsUniquePtr = hasAnyName(UniquePointers);
+  const auto IsSmartPtr = anyOf(IsSharedPtr, IsUniquePtr);
+
+  const auto IsSharedPtrRecord = cxxRecordDecl(IsSharedPtr);
+  const auto IsUniquePtrRecord = cxxRecordDecl(IsUniquePtr);
+  const auto IsSmartPtrRecord = cxxRecordDecl(IsSmartPtr);
+
+  auto ResetCallMatcher = cxxMemberCallExpr(
+      on(hasType(hasUnqualifiedDesugaredType(recordType(
+          hasDeclaration(classTemplateSpecializationDecl(IsSmartPtr)))))),
+      callee(cxxMethodDecl(ofClass(IsSmartPtrRecord),
+                           hasName("reset"))
+                 ));
   // Ищем функции, которые содержат потенциально опасные операции
   const auto DangerousFunction = functionDecl(
-      hasAnyBody(anything()),  // hasAnyBody требует аргумент!
+      hasAnyBody(anything()),
       anyOf(
-          hasDescendant(binaryOperator(
-              hasOperatorName("="),
-              hasLHS(declRefExpr(to(varDecl().bind("ptr-var")))),
-              hasRHS(cxxNewExpr().bind("new-expr")))
-              .bind("assign-new")),
-          hasDescendant(cxxConstructExpr().bind("shared-ctor"))
+          hasDescendant(cxxNewExpr()),
+          hasDescendant(ResetCallMatcher),
+          hasDescendant(cxxConstructExpr(/*TODO: shared_ptr*/))
+
       )
   ).bind("func");
 
@@ -120,17 +132,25 @@ bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
   for (const auto& [var, transList] : transitions) {
     for (const auto& t : transList) {
       if (t.fromState == t.toState && t.fromState == PS_SmartPtrWrapper) {
-          const auto* SmartPtrCtor = dyn_cast<const CXXConstructExpr>(t.stmt);
-          if (!SmartPtrCtor)
-            continue;
-          const Expr* PointerArg = SmartPtrCtor->getArg(0);
-          if (!PointerArg)
-            continue;
-          const SourceLocation Loc = PointerArg->getBeginLoc();
-          if (Loc.isInvalid())
-            continue;
-          diag(Loc, "passing a raw pointer '%0' to %1 constructor may cause double deletion")
-              << getRawPointerDescription(PointerArg, Context) << SmartPtrCtor->getType();
+          if (const auto* SmartPtrCtor = dyn_cast<const CXXConstructExpr>(t.stmt)) {
+            const Expr* PointerArg = SmartPtrCtor->getArg(0);
+            if (!PointerArg)
+              continue;
+            const SourceLocation Loc = PointerArg->getBeginLoc();
+            if (Loc.isInvalid())
+              continue;
+            diag(Loc, "passing a raw pointer '%0' to %1 constructor may cause double deletion")
+                << getRawPointerDescription(PointerArg, Context) << SmartPtrCtor->getType();
+          } else if (const auto* ResetCall = dyn_cast<const CXXMemberCallExpr>(t.stmt)) {
+            const Expr* PointerArg = ResetCall->getArg(0);
+            if (!PointerArg)
+              continue;
+            const SourceLocation Loc = PointerArg->getBeginLoc();
+            if (Loc.isInvalid())
+              continue;
+            diag(Loc, "passing a raw pointer '%0' to %1 reset method may cause double deletion")
+                << getRawPointerDescription(PointerArg, Context) << ResetCall->getImplicitObjectArgument()->getType();
+          }
       }
     }
   }

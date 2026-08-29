@@ -81,6 +81,7 @@
 #include "clang/AST/StmtVisitor.h"
 #include "clang/Analysis/CFG.h"
 #include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <algorithm>
 #include <map>
@@ -321,7 +322,7 @@ private:
     const llvm::SmallPtrSet<const clang::FieldDecl*, 32>& PtrFields;
     ptr_state_detail::StateMap& CurrentState; // состояние конкретного блока (снаружи: IN -> по итогу OUT)
     std::map<PointerLocation, std::vector<Transition>>* Sink;
-    llvm::SmallPtrSet<const clang::Stmt*, 32> ProcessedConstructs; // дедуп в рамках ОДНОГО вызова обработки блока
+    llvm::SmallPtrSet<const clang::Stmt*, 32> ProcessedConstructsAndResets; // дедуп в рамках ОДНОГО вызова обработки блока
 
     // Пытается распознать E как отслеживаемую локацию:
     //  - DeclRefExpr(var), где var - в PtrVars (обычная указатель-переменная)
@@ -431,6 +432,9 @@ private:
             if (const auto* CE = llvm::dyn_cast<clang::CXXConstructExpr>(S))
                 handleSmartPtrConstruct(CE, S);
 
+            if (const auto* ME = llvm::dyn_cast<clang::CXXMemberCallExpr>(S))
+                handleSmartPtrReset(ME, S);
+
             for (const clang::Stmt* Child : S->children())
                 Worklist.push_back(Child);
         }
@@ -440,7 +444,7 @@ private:
                                    const clang::Stmt* EnclosingStmt) {
         if (!ptr_state_detail::isSmartPtrType(CE->getType()))
             return;
-        if (!ProcessedConstructs.insert(CE).second)
+        if (!ProcessedConstructsAndResets.insert(CE).second)
             return; // уже обработан в рамках этого вызова
 
         for (const clang::Expr* Arg : CE->arguments()) {
@@ -448,6 +452,29 @@ private:
             if (resolveLocation(Arg, Loc))
                 addTransition(Loc, PS_SmartPtrWrapper, EnclosingStmt);
         }
+    }
+
+    void handleSmartPtrReset(const clang::CXXMemberCallExpr* ME,
+                             const clang::Stmt* EnclosingStmt) {
+        if (ME->getMethodDecl()->getName() != "reset")
+            return;
+        if (!ptr_state_detail::isSmartPtrType(ME->getImplicitObjectArgument()->getType()))
+            return;
+        if (!ProcessedConstructsAndResets.insert(ME).second)
+            return; // уже обработан в рамках этого вызова
+        
+
+        //llvm::errs() << "------------DUMPS BEGIN_______\n";
+        for (const clang::Expr* Arg : ME->arguments()) {
+            
+            //Arg->dump();
+            PointerLocation Loc;
+            if (resolveLocation(Arg, Loc)) {
+                //llvm::outs() << "handleSmartPtrReset location resolved\n";
+                addTransition(Loc, PS_SmartPtrWrapper, EnclosingStmt);
+            }
+        }
+        //llvm::errs() << "------------DUMPS END_______\n";
     }
 };
 

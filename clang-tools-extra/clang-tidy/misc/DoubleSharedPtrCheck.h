@@ -31,6 +31,11 @@ private:
   void dumpPtrVars(const llvm::SmallPtrSet<const VarDecl *, 32> &PtrVars);
   void dumpPtrFields(const llvm::SmallPtrSet<const FieldDecl *, 32> &PtrFields);
 
+private:
+  // TODO: must be loaded from config
+  const std::vector<StringRef> SharedPointers{"::std::shared_ptr", "::boost::shared_ptr"};
+  const std::vector<StringRef> UniquePointers{"::std::unique_ptr"};
+  const std::vector<StringRef> DefaultDeleters{"::std::default_delete"};
 };
 
 } // namespace clang::tidy::misc
