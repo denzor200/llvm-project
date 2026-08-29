@@ -101,6 +101,7 @@ private:
                  const char *Label);
   void dumpStateSwitch(const VarStateInfo& SI, const SourceManager& SM);
   void dumpPtrVars(const llvm::SmallPtrSet<const VarDecl *, 32> &PtrVars);
+  void dumpPtrFields(const llvm::SmallPtrSet<const FieldDecl *, 32> &PtrFields);
 
   // Опции - используем StringRef вместо vector<string>
   std::string IgnoredFunctions;

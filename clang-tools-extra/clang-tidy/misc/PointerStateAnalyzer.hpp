@@ -9,58 +9,127 @@
 //   2 - NewPointer        (результат new, например a = new int;)
 //   3 - SharedPtrWrapper  (передан в std::shared_ptr)
 //
-// АРХИТЕКТУРА (важно, т.к. предыдущая версия здесь ошибалась):
+// ==========================================================================
+// ИСТОРИЯ РЕДИЗАЙНА (важно для понимания текущей архитектуры)
+// ==========================================================================
 //
-// Наивный однопроходный обход блоков в RPO с ОДНИМ общим "текущим
-// состоянием" на переменную для всей функции даёт неверный результат
-// на ветвлениях: состояние, оставшееся после обработки одной ветки
-// if/else, "утекает" в соседнюю ветку вместо того, чтобы обе ветки
-// стартовали от состояния их общего предка. Пример:
+// v1: один линейный проход по блокам CFG (RPO) с ОДНИМ общим "текущим
+//     состоянием" на переменную для всей функции. Ломался на ветвлениях:
+//     состояние одной ветки if/else "утекало" в другую.
 //
-//   int* a = new int;
-//   if (cond) { std::shared_ptr<int> p1(a); }
-//   else      { std::shared_ptr<int> p2(a); }
+// v2: честный per-block forward dataflow (IN/OUT состояния, join на
+//     слияниях путей). Решил проблему ветвлений, НО ключом состояния
+//     по-прежнему был голый `const clang::VarDecl*` — то есть можно было
+//     отслеживать только ЦЕЛЫЕ переменные-указатели, но НЕ поля структур:
 //
-// Наивный обход даёт a: 0->2, 2->3, 3->3 (вторая ветка "видит" состояние
-// первой). Правильно: 0->2, 2->3, 2->3 — обе ветки независимо стартуют
-// от состояния 2, которое было у "a" на выходе из общего предка.
+//         struct A { int* val; };
+//         void f(A& a) {
+//             a.val = new int(42);              // LHS - MemberExpr, не DeclRefExpr!
+//             std::shared_ptr<int> p(a.val);     // аргумент - тоже MemberExpr!
+//         }
 //
-// Поэтому здесь реализован обычный forward dataflow по CFG:
-//   IN[B]  = join(OUT[P] для всех предшественников P блока B)
-//   OUT[B] = результат применения "передаточной функции" блока B к IN[B]
-//   join(x, y) = x, если x == y; иначе Unknown (конфликт путей)
+//     `a.val = ...` - это clang::BinaryOperator, чей LHS - clang::MemberExpr,
+//     а не DeclRefExpr. Старый asTrackedVar() распознавал только
+//     DeclRefExpr->VarDecl и на MemberExpr молча возвращал nullptr - в
+//     результате присваивание ВООБЩЕ не замечалось, ни как транзакция, ни
+//     как источник заражения для shared_ptr-обёртки.
 //
-// Фаза 1 (fixpoint): вычисляем стабильные IN/OUT для каждого блока
-// итеративно (chaotic iteration), НЕ записывая переходы — только чтобы
-// получить корректные "входные" состояния для каждого блока. Нужна из-за
-// циклов (back edges), где OUT тела цикла влияет на IN условия цикла.
+// v3 (текущая): ключ состояния обобщён до PointerLocation - "корневая
+//     переменная" + (возможно пустая) цепочка clang::FieldDecl. Пустая
+//     цепочка = обычная переменная-указатель (как раньше). Непустая =
+//     доступ к полю через `.` или `->` (a.val, a->val, a.b.val, ...).
 //
-// Фаза 2 (эмиссия): проходим блоки ЕЩЁ РАЗ, ровно по одному разу, начиная
-// каждый блок с его финального стабильного IN, и уже по-настоящему
-// записываем Transition. Это даёт детерминированный список переходов на
-// каждую переменную, не зависящий от порядка обхода фазы 1.
+//     Симметрично появился НОВЫЙ входной параметр PtrFields - множество
+//     указательных clang::FieldDecl, которые нужно отслеживать (по
+//     аналогии с тем, как PtrVars задаёт множество отслеживаемых
+//     переменных). Без этого узнать "какие поля структур - указатели и
+//     нас интересуют" неоткуда: сама структура (`A a;`) не указатель и
+//     никогда не попадёт в PtrVars.
 //
-// Ограничение: join сейчас — "по значению": если два пути на входе в
-// блок дают одному вару разные состояния, IN для этого вара становится
-// Unknown (мы не трекаем множества возможных состояний / не делаем
-// полноценный path-sensitive анализ). Для большинства реальных
-// диагностик этого достаточно; при необходимости join можно заменить на
-// хранение набора состояний вместо одного значения.
+//     ЭТО МЕНЯЕТ ПУБЛИЧНУЮ СИГНАТУРУ analyzeTransitions() и тип ключа в
+//     возвращаемой map (теперь PointerLocation, а не VarDecl*) - если у
+//     вас есть код, читающий Result[someVarDecl], его придётся обновить
+//     на Result[PointerLocation{someVarDecl, {}}] (для простых переменных
+//     путь пустой, так что это прямая замена).
+//
+// ==========================================================================
+// ЧТО ВСЁ ЕЩЁ НЕ ПОДДЕРЖИВАЕТСЯ (сознательные ограничения v3)
+// ==========================================================================
+//
+// - Никакого alias-анализа: `A* p = &a; p->val` и `a.val` считаются
+//   РАЗНЫМИ локациями (у них разные "корневые" VarDecl - p и a
+//   соответственно), хотя физически это одна и та же память. Это
+//   классическое ограничение field-sensitive-но-не-alias-sensitive
+//   анализа; полноценный points-to анализ - совершенно другая по
+//   трудозатратам задача.
+// - Базой пути должен быть DeclRefExpr (переменная) - индексация массива
+//   (arr[i].val), результат вызова функции (getStruct().val) не
+//   отслеживаются: resolveBase() на них вернёт nullopt, обращение
+//   молча игнорируется (без транзакции), а не падает и не выдаёт мусор.
+// - `this->val` внутри методов класса пока не поддержан (CXXThisExpr не
+//   обрабатывается resolveBase()) - при необходимости расширяется прямым
+//   добавлением ветки для CXXThisExpr с отдельным "корнем", отличным от
+//   VarDecl* (например, sentinel-значением).
+// - Инициализация полей через списки инициализации в конструкторах
+//   (member-initializer list) и агрегатную инициализацию (`A a{ptr};`)
+//   не разбирается отдельно - только явные присваивания вида `a.val = ...`
+//   и передача `a.val` аргументом в конструктор shared_ptr.
 
 #include "clang/AST/Decl.h"
 #include "clang/AST/Expr.h"
 #include "clang/AST/ExprCXX.h"
 #include "clang/AST/StmtVisitor.h"
 #include "clang/Analysis/CFG.h"
-#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
 
 #include <algorithm>
 #include <map>
+#include <set>
 #include <vector>
 
 // ---------------------------------------------------------------------
-// Публичный интерфейс (в соответствии с требуемой сигнатурой)
+// PointerLocation — обобщённый ключ отслеживаемой "ячейки" (переменная
+// целиком, либо доступ к полю/цепочке полей от неё).
+// ---------------------------------------------------------------------
+
+struct PointerLocation {
+    // Root == nullptr && IsThis == true  => доступ через (неявный/явный) this
+    //                                        (a внутри метода == this->a)
+    // Root != nullptr                    => обычная переменная/параметр
+    const clang::VarDecl* Root = nullptr;
+    std::vector<const clang::FieldDecl*> Path;                // [] => сама переменная Root (для Root!=nullptr);
+                                                                // [f] => Root.f / Root->f / this->f;
+                                                                // [f1,f2] => Root.f1.f2 и т.п.
+    bool IsThis = false;                                       // поле стоит ПОСЛЕДНИМ:
+                                                                // старый двухаргументный агрегатный
+                                                                // инициализатор PointerLocation{Root, Path}
+                                                                // остаётся корректным (IsThis=false по умолчанию).
+
+    bool operator==(const PointerLocation& O) const {
+        return Root == O.Root && IsThis == O.IsThis && Path == O.Path;
+    }
+    bool operator<(const PointerLocation& O) const {
+        if (Root != O.Root)
+            return Root < O.Root;
+        if (IsThis != O.IsThis)
+            return IsThis < O.IsThis;
+        return Path < O.Path; // лексикографически по указателям - достаточно для строгого порядка в std::map
+    }
+};
+
+// Человекочитаемое имя локации - для логов/отладки/тестов (не используется
+// самим анализом).
+inline std::string describeLocation(const PointerLocation& Loc) {
+    std::string S = Loc.IsThis ? "this" : (Loc.Root ? Loc.Root->getName().str() : "<null>");
+    for (size_t i = 0; i < Loc.Path.size(); ++i) {
+        S += (Loc.IsThis && i == 0) ? "->" : ".";
+        S += Loc.Path[i]->getName().str();
+    }
+    return S;
+}
+
+// ---------------------------------------------------------------------
+// Публичный интерфейс
 // ---------------------------------------------------------------------
 
 enum PointerState : unsigned {
@@ -76,8 +145,11 @@ struct Transition {
     const clang::Stmt* stmt;   // инструкция, вызвавшая переход
 };
 
-std::map<const clang::VarDecl*, std::vector<Transition>> analyzeTransitions(
+// ВНИМАНИЕ: сигнатура изменилась относительно предыдущих версий -
+// добавлен PtrFields, ключ результата теперь PointerLocation.
+std::map<PointerLocation, std::vector<Transition>> analyzeTransitions(
     const llvm::SmallPtrSet<const clang::VarDecl*, 32>& PtrVars,
+    const llvm::SmallPtrSet<const clang::FieldDecl*, 32>& PtrFields,
     const clang::CFG& cfg);
 
 // ---------------------------------------------------------------------
@@ -86,7 +158,12 @@ std::map<const clang::VarDecl*, std::vector<Transition>> analyzeTransitions(
 
 namespace ptr_state_detail {
 
-using StateMap = llvm::DenseMap<const clang::VarDecl*, unsigned>;
+using StateMap = std::map<PointerLocation, unsigned>;
+
+inline unsigned getState(const StateMap& M, const PointerLocation& Loc) {
+    auto It = M.find(Loc);
+    return It == M.end() ? PS_Unknown : It->second;
+}
 
 // Проверка, что тип (после раскрытия typedef/using) — специализация std::shared_ptr
 inline bool isStdSharedPtrType(clang::QualType QT) {
@@ -121,72 +198,66 @@ inline const clang::Expr* stripWrappers(const clang::Expr* E) {
     return E;
 }
 
-// Если выражение (после снятия обёрток) — ссылка на отслеживаемую
-// переменную-указатель, возвращает её VarDecl, иначе nullptr.
-inline const clang::VarDecl* asTrackedVar(
-        const clang::Expr* E,
-        const llvm::SmallPtrSet<const clang::VarDecl*, 32>& PtrVars) {
+// Структурное (без проверки PtrVars/PtrFields) распознавание "пути":
+// DeclRefExpr(var) -> {var, []}; MemberExpr(base, field) -> resolveBase(base) + [field].
+// Используется как для базы MemberExpr (где сама база - структура, а не
+// указатель, и НЕ обязана быть в PtrVars), так и внутри resolveLocation.
+// Останавливается (возвращает nullopt) на всём, что не DeclRefExpr и не
+// MemberExpr - индексация массива, вызов функции, this и т.п. (см.
+// ограничения в шапке файла).
+inline bool resolveBase(const clang::Expr* E, PointerLocation& Out) {
     E = stripWrappers(E);
     if (!E)
-        return nullptr;
+        return false;
+
     if (const auto* DRE = llvm::dyn_cast<clang::DeclRefExpr>(E)) {
-        if (const auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl())) {
-            if (PtrVars.count(VD))
-                return VD;
-        }
-    }
-    return nullptr;
-}
-
-// Состояние по умолчанию (Unknown) для всех отслеживаемых переменных.
-inline StateMap initialState(const llvm::SmallPtrSet<const clang::VarDecl*, 32>& PtrVars) {
-    StateMap S;
-    for (const clang::VarDecl* VD : PtrVars)
-        S[VD] = PS_Unknown;
-    return S;
-}
-
-// join двух состояний на слиянии путей: совпадают -> берём значение,
-// расходятся -> Unknown (честно отражаем потерю точности, а не
-// произвольно выбираем одну из веток).
-inline StateMap joinStates(const StateMap& A, const StateMap& B,
-                            const llvm::SmallPtrSet<const clang::VarDecl*, 32>& PtrVars) {
-    StateMap Result;
-    for (const clang::VarDecl* VD : PtrVars) {
-        unsigned a = A.lookup(VD);
-        unsigned b = B.lookup(VD);
-        Result[VD] = (a == b) ? a : PS_Unknown;
-    }
-    return Result;
-}
-
-inline bool statesEqual(const StateMap& A, const StateMap& B,
-                         const llvm::SmallPtrSet<const clang::VarDecl*, 32>& PtrVars) {
-    for (const clang::VarDecl* VD : PtrVars)
-        if (A.lookup(VD) != B.lookup(VD))
+        const auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl());
+        if (!VD)
             return false;
-    return true;
+        Out.Root = VD;
+        Out.IsThis = false;
+        Out.Path.clear();
+        return true;
+    }
+
+    // this->val / val (неявный this) внутри метода класса.
+    if (llvm::isa<clang::CXXThisExpr>(E)) {
+        Out.Root = nullptr;
+        Out.IsThis = true;
+        Out.Path.clear();
+        return true;
+    }
+
+    if (const auto* ME = llvm::dyn_cast<clang::MemberExpr>(E)) {
+        const auto* FD = llvm::dyn_cast<clang::FieldDecl>(ME->getMemberDecl());
+        if (!FD)
+            return false; // метод, статическое поле и т.п. - не путь к данным
+        if (!resolveBase(ME->getBase(), Out))
+            return false;
+        Out.Path.push_back(FD);
+        return true;
+    }
+
+    return false; // arr[i].val, f().val и т.п. - не поддержано
 }
 
 } // namespace ptr_state_detail
 
 // Основной visitor — применяет "передаточную функцию" одного блока к
 // переданному состоянию. Создаётся заново на каждый вызов
-// processBlock(), поэтому не хранит межблочного состояния сам по себе:
-// всё входное/выходное состояние передаётся явно снаружи (см.
-// analyzeTransitions). Это то, что делает возможным честный per-block
-// dataflow вместо одного общего состояния на весь обход.
+// runBlockTransfer(), не хранит межблочного состояния сам.
 class PointerStateVisitor
     : public clang::ConstStmtVisitor<PointerStateVisitor> {
 public:
     // Sink == nullptr -> переходы не записываются, только считается
-    // итоговое состояние (используется в фазе 1 / fixpoint).
-    // Sink != nullptr -> переходы записываются (фаза 2 / эмиссия).
+    // итоговое состояние (используется в фазе 1 / fixpoint, и в фазе
+    // предварительного обнаружения локаций).
     PointerStateVisitor(
             const llvm::SmallPtrSet<const clang::VarDecl*, 32>& Vars,
+            const llvm::SmallPtrSet<const clang::FieldDecl*, 32>& Fields,
             ptr_state_detail::StateMap& State,
-            std::map<const clang::VarDecl*, std::vector<Transition>>* Sink)
-        : PtrVars(Vars), CurrentState(State), Sink(Sink) {}
+            std::map<PointerLocation, std::vector<Transition>>* Sink)
+        : PtrVars(Vars), PtrFields(Fields), CurrentState(State), Sink(Sink) {}
 
     // int* a = nullptr; / int* a = new int; / int* b = a; ...
     void VisitDeclStmt(const clang::DeclStmt* DS) {
@@ -196,23 +267,24 @@ public:
                 continue;
             if (const clang::Expr* Init = VD->getInit()) {
                 unsigned NewState = classify(Init);
-                addTransition(VD, NewState, DS);
+                addTransition(PointerLocation{VD, {}}, NewState, DS);
             }
         }
-        // std::shared_ptr<int> sp(a); -> "a" тоже заражается SharedPtrWrapper
+        // std::shared_ptr<int> sp(a); / std::shared_ptr<int> sp(a.val); ->
+        // "a" / "a.val" тоже заражается SharedPtrWrapper
         scanForSharedPtrWrap(DS);
     }
 
-    // a = ...; (в т.ч. a = new int; / a = b; / a = nullptr;)
+    // a = ...; / a.val = ...; (в т.ч. = new int; / = b; / = nullptr;)
     void VisitBinaryOperator(const clang::BinaryOperator* BO) {
         if (BO->getOpcode() != clang::BO_Assign) {
             scanForSharedPtrWrap(BO);
             return;
         }
-        if (const clang::VarDecl* VD =
-                ptr_state_detail::asTrackedVar(BO->getLHS(), PtrVars)) {
+        PointerLocation Loc;
+        if (resolveLocation(BO->getLHS(), Loc)) {
             unsigned NewState = classify(BO->getRHS());
-            addTransition(VD, NewState, BO);
+            addTransition(Loc, NewState, BO);
         }
         scanForSharedPtrWrap(BO);
     }
@@ -223,16 +295,51 @@ public:
     }
 
     // Любая другая инструкция: просто ищем внутри неё "заражение" через
-    // передачу указателя в конструктор std::shared_ptr.
+    // передачу указателя/поля в конструктор std::shared_ptr.
     void VisitStmt(const clang::Stmt* S) {
         scanForSharedPtrWrap(S);
     }
 
 private:
     const llvm::SmallPtrSet<const clang::VarDecl*, 32>& PtrVars;
+    const llvm::SmallPtrSet<const clang::FieldDecl*, 32>& PtrFields;
     ptr_state_detail::StateMap& CurrentState; // состояние конкретного блока (снаружи: IN -> по итогу OUT)
-    std::map<const clang::VarDecl*, std::vector<Transition>>* Sink;
+    std::map<PointerLocation, std::vector<Transition>>* Sink;
     llvm::SmallPtrSet<const clang::Stmt*, 32> ProcessedConstructs; // дедуп в рамках ОДНОГО вызова обработки блока
+
+    // Пытается распознать E как отслеживаемую локацию:
+    //  - DeclRefExpr(var), где var - в PtrVars (обычная указатель-переменная)
+    //  - MemberExpr(base, field), где field - в PtrFields (a.val / a->val),
+    //    а base распознаётся СТРУКТУРНО (без проверки PtrVars для base -
+    //    ведь base обычно НЕ указатель, а структура/объект).
+    bool resolveLocation(const clang::Expr* E, PointerLocation& Out) {
+        const clang::Expr* S = ptr_state_detail::stripWrappers(E);
+        if (!S)
+            return false;
+
+        if (const auto* DRE = llvm::dyn_cast<clang::DeclRefExpr>(S)) {
+            const auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl());
+            if (VD && PtrVars.count(VD)) {
+                Out.Root = VD;
+                Out.IsThis = false;
+                Out.Path.clear();
+                return true;
+            }
+            return false;
+        }
+
+        if (const auto* ME = llvm::dyn_cast<clang::MemberExpr>(S)) {
+            const auto* FD = llvm::dyn_cast<clang::FieldDecl>(ME->getMemberDecl());
+            if (!FD || !PtrFields.count(FD))
+                return false;
+            if (!ptr_state_detail::resolveBase(ME->getBase(), Out))
+                return false;
+            Out.Path.push_back(FD);
+            return true;
+        }
+
+        return false;
+    }
 
     // Определяет состояние, в которое переходит указатель, если ему
     // присваивается/инициализируется значением выражения E.
@@ -257,17 +364,17 @@ private:
         }
 
         // редкий случай: указателю напрямую присваивается результат
-        // конструирования shared_ptr (типы обычно не совпадут, но
-        // оставляем для общности API)
+        // конструирования shared_ptr
         if (const auto* CE = llvm::dyn_cast<clang::CXXConstructExpr>(S)) {
             if (ptr_state_detail::isStdSharedPtrType(CE->getType()))
                 return PS_SharedPtrWrapper;
         }
 
-        // b = a;  -> заражение ТЕКУЩИМ (для этого блока) состоянием источника
-        if (const clang::VarDecl* Src =
-                ptr_state_detail::asTrackedVar(S, PtrVars))
-            return CurrentState.lookup(Src);
+        // b = a;  /  b = a.val;  -> заражение ТЕКУЩИМ (для этого блока)
+        // состоянием источника
+        PointerLocation SrcLoc;
+        if (resolveLocation(S, SrcLoc))
+            return ptr_state_detail::getState(CurrentState, SrcLoc);
 
         // Неизвестное выражение указательного типа (вызов функции,
         // приведение типа и т.п.) считаем обычным указателем.
@@ -277,21 +384,19 @@ private:
         return PS_Unknown;
     }
 
-    void addTransition(const clang::VarDecl* VD, unsigned NewState,
+    void addTransition(const PointerLocation& Loc, unsigned NewState,
                         const clang::Stmt* S) {
-        unsigned From = CurrentState[VD];
+        unsigned From = ptr_state_detail::getState(CurrentState, Loc);
         if (Sink)
-            (*Sink)[VD].push_back(Transition{From, NewState, S});
-        // Состояние обновляем всегда (даже в фазе 1 без записи), иначе
-        // не сможем вычислить корректный OUT[Block].
-        CurrentState[VD] = NewState;
+            (*Sink)[Loc].push_back(Transition{From, NewState, S});
+        CurrentState[Loc] = NewState;
     }
 
     // Ищет CXXConstructExpr типа std::shared_ptr внутри поддерева S и
-    // помечает как SharedPtrWrapper любые отслеживаемые переменные-указатели,
+    // помечает как SharedPtrWrapper любые отслеживаемые локации,
     // переданные аргументами конструктора.
     //
-    // Обход итеративный (явный стек в куче), а не рекурсивный — рекурсия
+    // Обход итеративный (явный стек в куче), а не рекурсивный - рекурсия
     // переполняет стек вызовов на глубоко вложенных выражениях (было
     // подтверждено AddressSanitizer: stack-overflow).
     void scanForSharedPtrWrap(const clang::Stmt* Root) {
@@ -319,18 +424,13 @@ private:
                                    const clang::Stmt* EnclosingStmt) {
         if (!ptr_state_detail::isStdSharedPtrType(CE->getType()))
             return;
-        // Защита от повторной обработки одного и того же узла в рамках
-        // ОДНОГО вызова обработки блока (может встретиться и как
-        // отдельный CFGStmt, и через рекурсию от родительской
-        // инструкции).
         if (!ProcessedConstructs.insert(CE).second)
-            return;
+            return; // уже обработан в рамках этого вызова
 
         for (const clang::Expr* Arg : CE->arguments()) {
-            if (const clang::VarDecl* VD =
-                    ptr_state_detail::asTrackedVar(Arg, PtrVars)) {
-                addTransition(VD, PS_SharedPtrWrapper, EnclosingStmt);
-            }
+            PointerLocation Loc;
+            if (resolveLocation(Arg, Loc))
+                addTransition(Loc, PS_SharedPtrWrapper, EnclosingStmt);
         }
     }
 };
@@ -377,14 +477,15 @@ computeReversePostOrder(const clang::CFG& Cfg) {
 
 // Прогоняет "передаточную функцию" одного блока: на входе IN-состояние,
 // на выходе итоговое (OUT) состояние. Если Sink != nullptr, попутно
-// записывает переходы (для фазы эмиссии).
+// записывает переходы.
 inline ptr_state_detail::StateMap runBlockTransfer(
         const clang::CFGBlock& Block,
         const llvm::SmallPtrSet<const clang::VarDecl*, 32>& PtrVars,
+        const llvm::SmallPtrSet<const clang::FieldDecl*, 32>& PtrFields,
         const ptr_state_detail::StateMap& In,
-        std::map<const clang::VarDecl*, std::vector<Transition>>* Sink) {
+        std::map<PointerLocation, std::vector<Transition>>* Sink) {
     ptr_state_detail::StateMap Working = In;
-    PointerStateVisitor Visitor(PtrVars, Working, Sink);
+    PointerStateVisitor Visitor(PtrVars, PtrFields, Working, Sink);
     for (const clang::CFGElement& Elem : Block) {
         if (auto CS = Elem.getAs<clang::CFGStmt>()) {
             if (const clang::Stmt* S = CS->getStmt())
@@ -394,34 +495,81 @@ inline ptr_state_detail::StateMap runBlockTransfer(
     return Working;
 }
 
+// Домен анализа заранее НЕ известен целиком (в отличие от v2, где им был
+// просто PtrVars): локации вида a.val обнаруживаются только при обходе
+// тела функции. Поэтому перед fixpoint-фазой делаем лёгкий
+// предварительный проход по всем блокам НЕЗАВИСИМО (без протягивания
+// состояния между блоками - оно здесь не нужно), собирая множество всех
+// PointerLocation, которые вообще когда-либо являются целью
+// присваивания/инициализации/аргументом shared_ptr-обёртки.
+inline std::set<PointerLocation> discoverLocations(
+        const std::vector<const clang::CFGBlock*>& Order,
+        const llvm::SmallPtrSet<const clang::VarDecl*, 32>& PtrVars,
+        const llvm::SmallPtrSet<const clang::FieldDecl*, 32>& PtrFields) {
+    std::set<PointerLocation> Domain;
+    for (const clang::VarDecl* VD : PtrVars)
+        Domain.insert(PointerLocation{VD, {}});
+
+    for (const clang::CFGBlock* Block : Order) {
+        if (!Block)
+            continue;
+        ptr_state_detail::StateMap Scratch; // одноразовый, пустой на входе каждого блока
+        runBlockTransfer(*Block, PtrVars, PtrFields, Scratch, /*Sink=*/nullptr);
+        for (const auto& KV : Scratch)
+            Domain.insert(KV.first);
+    }
+    return Domain;
+}
+
 // ---------------------------------------------------------------------
 // Реализация публичной функции
 // ---------------------------------------------------------------------
 
-inline std::map<const clang::VarDecl*, std::vector<Transition>>
+inline std::map<PointerLocation, std::vector<Transition>>
 analyzeTransitions(const llvm::SmallPtrSet<const clang::VarDecl*, 32>& PtrVars,
+                    const llvm::SmallPtrSet<const clang::FieldDecl*, 32>& PtrFields,
                     const clang::CFG& cfg) {
     using ptr_state_detail::StateMap;
 
-    std::map<const clang::VarDecl*, std::vector<Transition>> Result;
-    for (const clang::VarDecl* VD : PtrVars)
-        Result[VD]; // гарантируем наличие ключа даже без переходов
+    std::map<PointerLocation, std::vector<Transition>> Result;
 
     std::vector<const clang::CFGBlock*> Order = computeReversePostOrder(cfg);
-    if (Order.empty())
+    if (Order.empty()) {
+        for (const clang::VarDecl* VD : PtrVars)
+            Result[PointerLocation{VD, {}}]; // гарантируем ключ даже без CFG-блоков
         return Result;
+    }
 
-    llvm::DenseMap<const clang::CFGBlock*, StateMap> InState;
-    llvm::DenseMap<const clang::CFGBlock*, StateMap> OutState;
+    std::set<PointerLocation> Domain = discoverLocations(Order, PtrVars, PtrFields);
+    for (const PointerLocation& Loc : Domain)
+        Result[Loc]; // гарантируем наличие ключа даже без переходов
+
+    auto initialState = [&]() {
+        StateMap S;
+        for (const PointerLocation& Loc : Domain)
+            S[Loc] = PS_Unknown;
+        return S;
+    };
+    auto joinStates = [&](const StateMap& A, const StateMap& B) {
+        StateMap R;
+        for (const PointerLocation& Loc : Domain) {
+            unsigned a = ptr_state_detail::getState(A, Loc);
+            unsigned b = ptr_state_detail::getState(B, Loc);
+            R[Loc] = (a == b) ? a : PS_Unknown;
+        }
+        return R;
+    };
+    auto statesEqual = [&](const StateMap& A, const StateMap& B) {
+        for (const PointerLocation& Loc : Domain)
+            if (ptr_state_detail::getState(A, Loc) != ptr_state_detail::getState(B, Loc))
+                return false;
+        return true;
+    };
+
+    std::map<const clang::CFGBlock*, StateMap> InState;
+    std::map<const clang::CFGBlock*, StateMap> OutState;
 
     // ---- Фаза 1: fixpoint по IN/OUT состояниям, без записи переходов ----
-    //
-    // Обычная "chaotic iteration": пересчитываем IN/OUT для всех блоков
-    // в RPO-порядке, пока что-то меняется. Для ациклического CFG сходится
-    // за один проход; циклы (back edges) могут потребовать нескольких —
-    // отсюда ограничение MaxIters как защита от неожиданного незавершения
-    // на патологических случаях (само состояние — не строго монотонная
-    // решётка, т.к. присваивания могут "откатывать" состояние назад).
     const int MaxIters = static_cast<int>(Order.size()) * 4 + 16;
     bool Changed = true;
     int Iter = 0;
@@ -430,10 +578,6 @@ analyzeTransitions(const llvm::SmallPtrSet<const clang::VarDecl*, 32>& PtrVars,
         ++Iter;
 
         for (const clang::CFGBlock* Block : Order) {
-            // IN[Block] = join(OUT[P]) по всем предшественникам, чьи OUT
-            // уже известны хотя бы приближённо. Если предшественников с
-            // известным OUT нет (первый проход, либо блок без входящих
-            // рёбер) — считаем Unknown для всех переменных.
             StateMap NewIn;
             bool HaveAny = false;
             for (auto PredIt = Block->pred_begin(); PredIt != Block->pred_end(); ++PredIt) {
@@ -447,26 +591,24 @@ analyzeTransitions(const llvm::SmallPtrSet<const clang::VarDecl*, 32>& PtrVars,
                     NewIn = It->second;
                     HaveAny = true;
                 } else {
-                    NewIn = ptr_state_detail::joinStates(NewIn, It->second, PtrVars);
+                    NewIn = joinStates(NewIn, It->second);
                 }
             }
             if (!HaveAny)
-                NewIn = ptr_state_detail::initialState(PtrVars);
+                NewIn = initialState();
 
             auto InIt = InState.find(Block);
-            bool InChanged = (InIt == InState.end()) ||
-                              !ptr_state_detail::statesEqual(InIt->second, NewIn, PtrVars);
+            bool InChanged = (InIt == InState.end()) || !statesEqual(InIt->second, NewIn);
             if (InChanged) {
                 InState[Block] = NewIn;
                 Changed = true;
             }
 
             StateMap NewOut =
-                runBlockTransfer(*Block, PtrVars, InState[Block], /*Sink=*/nullptr);
+                runBlockTransfer(*Block, PtrVars, PtrFields, InState[Block], /*Sink=*/nullptr);
 
             auto OutIt = OutState.find(Block);
-            bool OutChanged = (OutIt == OutState.end()) ||
-                               !ptr_state_detail::statesEqual(OutIt->second, NewOut, PtrVars);
+            bool OutChanged = (OutIt == OutState.end()) || !statesEqual(OutIt->second, NewOut);
             if (OutChanged) {
                 OutState[Block] = NewOut;
                 Changed = true;
@@ -476,9 +618,8 @@ analyzeTransitions(const llvm::SmallPtrSet<const clang::VarDecl*, 32>& PtrVars,
 
     // ---- Фаза 2: эмиссия — каждый блок ровно один раз, с финальным IN ----
     for (const clang::CFGBlock* Block : Order) {
-        StateMap In = InState.count(Block) ? InState[Block]
-                                            : ptr_state_detail::initialState(PtrVars);
-        runBlockTransfer(*Block, PtrVars, In, &Result);
+        StateMap In = InState.count(Block) ? InState[Block] : initialState();
+        runBlockTransfer(*Block, PtrVars, PtrFields, In, &Result);
     }
 
     return Result;

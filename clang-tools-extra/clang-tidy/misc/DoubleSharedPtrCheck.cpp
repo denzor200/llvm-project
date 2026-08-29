@@ -6,6 +6,7 @@
 
 #include "DoubleSharedPtrCheck.h"
 #include "clang/AST/ASTContext.h"
+#include "clang/AST/Decl.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Analysis/CFG.h"
 #include "llvm/ADT/SmallPtrSet.h"
@@ -94,12 +95,9 @@ bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
   if (!TheCFG)
     return false;
 
-  // Инициализируем контекст анализа
-  FunctionAnalysisContext FuncCtx(const_cast<ASTContext *>(&Context), Func);
-  FuncCtx.TheCFG = std::move(TheCFG);
-
   // Собираем все переменные-указатели в функции
   llvm::SmallPtrSet<const VarDecl *, 32> PtrVars;
+  llvm::SmallPtrSet<const FieldDecl*, 32> PtrFields;
   
   // TODO: arguments must be collected too
   std::function<void(const Stmt*)> CollectPtrVars = 
@@ -111,8 +109,14 @@ bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
         if (const auto *VD = dyn_cast<VarDecl>(D)) {
           if (VD->getType()->isPointerType()) {
             PtrVars.insert(VD);
-            FuncCtx.VarIndexMap[VD] = FuncCtx.GlobalStates.size();
-            FuncCtx.GlobalStates.emplace_back(VD);
+          }
+        }
+      }
+    } else if (const auto *MS = dyn_cast<MemberExpr>(S)) {
+      if (const auto* MD = MS->getMemberDecl()) {
+        if (const auto *FD = dyn_cast<FieldDecl>(MD)) {
+          if (FD->getType()->isPointerType()) {
+            PtrFields.insert(FD);
           }
         }
       }
@@ -126,10 +130,11 @@ bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
   CollectPtrVars(Body);
 
   dumpPtrVars(PtrVars);
+  dumpPtrFields(PtrFields);
 
-  const auto transitions = analyzeTransitions(PtrVars, *FuncCtx.TheCFG);
+  const auto transitions = analyzeTransitions(PtrVars, PtrFields, *TheCFG);
   for (const auto& [var, transList] : transitions) {
-      llvm::outs() << "Var: " << var->getName() << "\n";
+      llvm::outs() << "Var: " << describeLocation(var) << "\n";
       for (const auto& t : transList) {
           llvm::outs() << "  " << t.fromState << " -> " << t.toState << "\n";
       }
@@ -142,6 +147,13 @@ void DoubleSharedPtrCheck::dumpPtrVars(const llvm::SmallPtrSet<const VarDecl *, 
   llvm::outs() << "PTR_VARS: ";
   for (const VarDecl *PtrVar : PtrVars)
     llvm::outs() << PtrVar->getQualifiedNameAsString() << " ";
+  llvm::outs() << "\n";
+}
+
+void DoubleSharedPtrCheck::dumpPtrFields(const llvm::SmallPtrSet<const FieldDecl *, 32> &PtrFields) {
+  llvm::outs() << "PTR_FIELDS: ";
+  for (const FieldDecl *PtrField : PtrFields)
+    llvm::outs() << PtrField->getQualifiedNameAsString() << " ";
   llvm::outs() << "\n";
 }
 

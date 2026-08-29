@@ -355,3 +355,29 @@ void test_inside_structure_and_argument(A& a) {
   // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
   // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
 }
+
+class test_inside_a_class {
+  int* a = nullptr;
+public:
+  void operator() () {
+    a = new int(42);
+    std::shared_ptr<int> p1(a);
+    // Это должно вызвать предупреждение
+    std::shared_ptr<int> p2(a);
+    // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+    // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
+  }
+};
+
+class test_inside_a_class_with_this {
+  int* a = nullptr;
+public:
+  void operator() () {
+    this->a = new int(42);
+    std::shared_ptr<int> p1(this->a);
+    // Это должно вызвать предупреждение
+    std::shared_ptr<int> p2(this->a);
+    // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+    // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
+  }
+};
