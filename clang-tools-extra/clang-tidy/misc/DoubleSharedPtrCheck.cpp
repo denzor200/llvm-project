@@ -46,7 +46,8 @@ void DoubleSharedPtrCheck::registerMatchers(MatchFinder *Finder) {
       anyOf(
           hasDescendant(cxxNewExpr()),
           hasDescendant(ResetCallMatcher),
-          hasDescendant(cxxConstructExpr(/*TODO: shared_ptr*/))
+          hasDescendant(cxxConstructExpr(hasDeclaration(
+            cxxConstructorDecl(ofClass(IsSmartPtrRecord)))))
 
       )
   ).bind("func");
