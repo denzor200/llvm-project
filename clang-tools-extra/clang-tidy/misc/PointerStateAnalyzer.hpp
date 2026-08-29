@@ -7,7 +7,7 @@
 //   0 - Unknown          (начальное состояние)
 //   1 - PlainPointer      (обычный указатель, например int* a = nullptr;)
 //   2 - NewPointer        (результат new, например a = new int;)
-//   3 - SharedPtrWrapper  (передан в std::shared_ptr)
+//   3 - SmartPtrWrapper  (передан в std::shared_ptr)
 //
 // ==========================================================================
 // ИСТОРИЯ РЕДИЗАЙНА (важно для понимания текущей архитектуры)
@@ -133,10 +133,10 @@ inline std::string describeLocation(const PointerLocation& Loc) {
 // ---------------------------------------------------------------------
 
 enum PointerState : unsigned {
-    PS_Unknown          = 0,
+    PS_Unknown           = 0,
     PS_PlainPointer      = 1,
     PS_NewPointer        = 2,
-    PS_SharedPtrWrapper  = 3
+    PS_SmartPtrWrapper   = 3
 };
 
 struct Transition {
@@ -165,6 +165,7 @@ inline unsigned getState(const StateMap& M, const PointerLocation& Loc) {
     return It == M.end() ? PS_Unknown : It->second;
 }
 
+// TODO: boost::shared_ptr
 // Проверка, что тип (после раскрытия typedef/using) — специализация std::shared_ptr
 inline bool isStdSharedPtrType(clang::QualType QT) {
     QT = QT.getCanonicalType();
@@ -174,6 +175,21 @@ inline bool isStdSharedPtrType(clang::QualType QT) {
     if (RD->getName() != "shared_ptr")
         return false;
     return RD->isInStdNamespace();
+}
+
+// Проверка, что тип (после раскрытия typedef/using) — специализация std::unique_ptr
+inline bool isStdUniquePtrType(clang::QualType QT) {
+    QT = QT.getCanonicalType();
+    const clang::CXXRecordDecl* RD = QT->getAsCXXRecordDecl();
+    if (!RD)
+        return false;
+    if (RD->getName() != "unique_ptr")
+        return false;
+    return RD->isInStdNamespace();
+}
+
+inline bool isSmartPtrType(clang::QualType QT) {
+    return isStdSharedPtrType(QT) || isStdUniquePtrType(QT);
 }
 
 // Снимаем обёртки, не несущие семантической нагрузки для классификации
@@ -271,14 +287,14 @@ public:
             }
         }
         // std::shared_ptr<int> sp(a); / std::shared_ptr<int> sp(a.val); ->
-        // "a" / "a.val" тоже заражается SharedPtrWrapper
-        scanForSharedPtrWrap(DS);
+        // "a" / "a.val" тоже заражается SmartPtrWrapper
+        scanForSmartPtrWrap(DS);
     }
 
     // a = ...; / a.val = ...; (в т.ч. = new int; / = b; / = nullptr;)
     void VisitBinaryOperator(const clang::BinaryOperator* BO) {
         if (BO->getOpcode() != clang::BO_Assign) {
-            scanForSharedPtrWrap(BO);
+            scanForSmartPtrWrap(BO);
             return;
         }
         PointerLocation Loc;
@@ -286,18 +302,18 @@ public:
             unsigned NewState = classify(BO->getRHS());
             addTransition(Loc, NewState, BO);
         }
-        scanForSharedPtrWrap(BO);
+        scanForSmartPtrWrap(BO);
     }
 
-    // Прямая встреча конструктора shared_ptr как отдельного элемента CFG
+    // Прямая встреча конструктора смартпоинтера как отдельного элемента CFG
     void VisitCXXConstructExpr(const clang::CXXConstructExpr* CE) {
-        handleSharedPtrConstruct(CE, CE);
+        handleSmartPtrConstruct(CE, CE);
     }
 
     // Любая другая инструкция: просто ищем внутри неё "заражение" через
-    // передачу указателя/поля в конструктор std::shared_ptr.
+    // передачу указателя/поля в конструктор смартпоинтера.
     void VisitStmt(const clang::Stmt* S) {
-        scanForSharedPtrWrap(S);
+        scanForSmartPtrWrap(S);
     }
 
 private:
@@ -364,10 +380,10 @@ private:
         }
 
         // редкий случай: указателю напрямую присваивается результат
-        // конструирования shared_ptr
+        // конструирования умного указателя
         if (const auto* CE = llvm::dyn_cast<clang::CXXConstructExpr>(S)) {
-            if (ptr_state_detail::isStdSharedPtrType(CE->getType()))
-                return PS_SharedPtrWrapper;
+            if (ptr_state_detail::isSmartPtrType(CE->getType()))
+                return PS_SmartPtrWrapper;
         }
 
         // b = a;  /  b = a.val;  -> заражение ТЕКУЩИМ (для этого блока)
@@ -392,14 +408,14 @@ private:
         CurrentState[Loc] = NewState;
     }
 
-    // Ищет CXXConstructExpr типа std::shared_ptr внутри поддерева S и
-    // помечает как SharedPtrWrapper любые отслеживаемые локации,
+    // Ищет CXXConstructExpr типа shared_ptr или unique_ptr внутри поддерева S и
+    // помечает как SmartPtrWrapper любые отслеживаемые локации,
     // переданные аргументами конструктора.
     //
     // Обход итеративный (явный стек в куче), а не рекурсивный - рекурсия
     // переполняет стек вызовов на глубоко вложенных выражениях (было
     // подтверждено AddressSanitizer: stack-overflow).
-    void scanForSharedPtrWrap(const clang::Stmt* Root) {
+    void scanForSmartPtrWrap(const clang::Stmt* Root) {
         if (!Root)
             return;
 
@@ -413,16 +429,16 @@ private:
                 continue;
 
             if (const auto* CE = llvm::dyn_cast<clang::CXXConstructExpr>(S))
-                handleSharedPtrConstruct(CE, S);
+                handleSmartPtrConstruct(CE, S);
 
             for (const clang::Stmt* Child : S->children())
                 Worklist.push_back(Child);
         }
     }
 
-    void handleSharedPtrConstruct(const clang::CXXConstructExpr* CE,
+    void handleSmartPtrConstruct(const clang::CXXConstructExpr* CE,
                                    const clang::Stmt* EnclosingStmt) {
-        if (!ptr_state_detail::isStdSharedPtrType(CE->getType()))
+        if (!ptr_state_detail::isSmartPtrType(CE->getType()))
             return;
         if (!ProcessedConstructs.insert(CE).second)
             return; // уже обработан в рамках этого вызова
@@ -430,7 +446,7 @@ private:
         for (const clang::Expr* Arg : CE->arguments()) {
             PointerLocation Loc;
             if (resolveLocation(Arg, Loc))
-                addTransition(Loc, PS_SharedPtrWrapper, EnclosingStmt);
+                addTransition(Loc, PS_SmartPtrWrapper, EnclosingStmt);
         }
     }
 };

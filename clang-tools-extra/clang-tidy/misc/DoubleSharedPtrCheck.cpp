@@ -148,7 +148,7 @@ bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
 
   for (const auto& [var, transList] : transitions) {
     for (const auto& t : transList) {
-      if (t.fromState == t.toState && t.fromState == PS_SharedPtrWrapper) {
+      if (t.fromState == t.toState && t.fromState == PS_SmartPtrWrapper) {
           const auto* SmartPtrCtor = dyn_cast<const CXXConstructExpr>(t.stmt);
           if (!SmartPtrCtor)
             continue;

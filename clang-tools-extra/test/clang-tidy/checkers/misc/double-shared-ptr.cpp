@@ -163,8 +163,7 @@ void test_unique_ptr() {
   int* a = new int(42);
   std::unique_ptr<int> u1(a);  // OK
   std::unique_ptr<int> u2(a);  // Это тоже ошибка, но не наш случай
-  // Мы проверяем только shared_ptr
-  // TODO: check it also
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::unique_ptr<int>' constructor may cause double deletion
 }
 
 // ============================================================================
