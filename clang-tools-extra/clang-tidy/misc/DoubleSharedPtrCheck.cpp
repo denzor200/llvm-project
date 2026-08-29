@@ -98,8 +98,7 @@ bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
   // Собираем все переменные-указатели в функции
   llvm::SmallPtrSet<const VarDecl *, 32> PtrVars;
   llvm::SmallPtrSet<const FieldDecl*, 32> PtrFields;
-  
-  // TODO: arguments must be collected too
+
   std::function<void(const Stmt*)> CollectPtrVars = 
       [&](const Stmt *S) {
     if (!S) return;
