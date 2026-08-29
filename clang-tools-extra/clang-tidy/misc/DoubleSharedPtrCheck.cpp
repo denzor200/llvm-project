@@ -11,40 +11,18 @@
 #include "clang/Analysis/CFG.h"
 #include "clang/Basic/SourceLocation.h"
 #include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/ADT/StringRef.h"
-#include "llvm/Support/Casting.h"
 #include "PointerStateAnalyzer.hpp"
-#include <sstream>
 
 using namespace clang::ast_matchers;
 
 namespace clang::tidy::misc {
 
-namespace {
-std::string printSourceLocation(clang::SourceLocation Loc, 
-                         const clang::SourceManager& SM) {
-    if (Loc.isInvalid()) {
-      return "<invalid>";
-    }
-
-      // Получить полное имя файла, строку и колонку
-      StringRef filepath = SM.getFilename(Loc);
-      unsigned line = SM.getSpellingLineNumber(Loc);
-      unsigned column = SM.getSpellingColumnNumber(Loc);
-      StringRef filename = llvm::sys::path::filename(filepath);
-
-      return filename.str() + ":" + std::to_string(line) + ":" +
-             std::to_string(column);
-}
-}
-
 DoubleSharedPtrCheck::DoubleSharedPtrCheck(StringRef Name,
                                            ClangTidyContext *Context)
-    : ClangTidyCheck(Name, Context),
-      IgnoredFunctions(Options.get("IgnoredFunctions", "")) {}
+    : ClangTidyCheck(Name, Context)
+     {}
 
 void DoubleSharedPtrCheck::storeOptions(ClangTidyOptions::OptionMap &Opts) {
-  Options.store(Opts, "IgnoredFunctions", IgnoredFunctions);
 }
 
 void DoubleSharedPtrCheck::registerMatchers(MatchFinder *Finder) {
@@ -68,13 +46,6 @@ void DoubleSharedPtrCheck::check(const MatchFinder::MatchResult &Result) {
   const auto *Func = Result.Nodes.getNodeAs<FunctionDecl>("func");
   if (!Func || !Func->hasBody())
     return;
-
-  // Проверяем, не игнорируется ли эта функция
-  if (!IgnoredFunctions.empty()) {
-    std::string FuncName = Func->getNameAsString();
-    if (IgnoredFunctions.find(FuncName) != std::string::npos)
-      return;
-  }
 
   analyzeFunction(*Result.Context, Func, *Result.SourceManager);
 }
