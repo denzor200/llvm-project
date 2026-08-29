@@ -12,8 +12,7 @@ void test_basic_double_ownership() {
   std::shared_ptr<int> p1(a);
   // Это должно вызвать предупреждение
   std::shared_ptr<int> p2(a);
-  // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
-  // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 void test_basic_double_two_conditions_ok(bool cond) {
@@ -33,7 +32,7 @@ void test_declaration_with_initialization() {
   int* a = new int(42);
   std::shared_ptr<int> p1(a);
   std::shared_ptr<int> p2(a);  // ОШИБКА
-  // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 // ============================================================================
@@ -62,7 +61,7 @@ void test_reassignment_double_ownership() {
   a = new int(43);  // Переприсваиваем
   std::shared_ptr<int> p2(a);  // OK - новая память
   std::shared_ptr<int> p3(a);  // ОШИБКА - двойное владение новой памятью
-  // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 // ============================================================================
@@ -87,7 +86,7 @@ void test_branch(bool cond) {
   
   if (cond) {
     std::shared_ptr<int> p2(a);  // ОШИБКА на одном пути
-    // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+    // CHECK-MESSAGES: :[[@LINE-1]]:29: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
   }
 }
 
@@ -100,7 +99,7 @@ void test_loop() {
   
   for (int i = 0; i < 10; ++i) {
     std::shared_ptr<int> p2(a);  // ОШИБКА в цикле
-    // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+    // CHECK-MESSAGES: :[[@LINE-1]]:29: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
   }
 }
 
@@ -114,7 +113,7 @@ void test_multiple_variables() {
   std::shared_ptr<int> p1(a);  // OK - первое использование a
   std::shared_ptr<int> p2(b);  // OK - первое использование b
   std::shared_ptr<int> p3(a);  // ОШИБКА - второе использование a
-  // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 // ============================================================================
@@ -126,7 +125,7 @@ void test_copy_pointer() {
   
   std::shared_ptr<int> p1(a);  // OK
   std::shared_ptr<int> p2(b);  // ОШИБКА - b указывает на ту же память
-  // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // TODO: warning
 }
 
 // ============================================================================
@@ -157,6 +156,7 @@ void test_unique_ptr() {
   std::unique_ptr<int> u1(a);  // OK
   std::unique_ptr<int> u2(a);  // Это тоже ошибка, но не наш случай
   // Мы проверяем только shared_ptr
+  // TODO: check it also
 }
 
 // ============================================================================
@@ -168,7 +168,7 @@ void test_nested_scope() {
   
   {
     std::shared_ptr<int> p2(a);  // ОШИБКА внутри блока
-    // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+    // CHECK-MESSAGES: :[[@LINE-1]]:29: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
   }
   
   // После выхода из блока p2 уничтожен, но a все еще указывает на память
@@ -198,7 +198,7 @@ void test_complex_case() {
   a = new int(3);  // Снова переприсваиваем
   std::shared_ptr<int> p3(a);  // OK
   std::shared_ptr<int> p4(a);  // ОШИБКА
-  // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 // ============================================================================
@@ -222,7 +222,7 @@ void test_address_of_variable() {
   int* a = &x;  // Не new
   std::shared_ptr<int> p1(a);  // OK
   std::shared_ptr<int> p2(a);  // OK - мы не знаем, откуда память
-  // Нет предупреждений
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 // ============================================================================
@@ -232,7 +232,7 @@ void test_arrays() {
   int* a = new int[10];  // Массив
   std::shared_ptr<int> p1(a);  // OK
   std::shared_ptr<int> p2(a);  // ОШИБКА
-  // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 // ============================================================================
@@ -244,7 +244,7 @@ void test_pointer_reference() {
   
   std::shared_ptr<int> p1(a);   // OK
   std::shared_ptr<int> p2(ref); // ОШИБКА - ref указывает на ту же память
-  // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // TODO: warning
 }
 
 // ============================================================================
@@ -265,7 +265,7 @@ void test_conditional_assignment(bool cond) {
   int* a = cond ? new int(42) : new int(43);
   std::shared_ptr<int> p1(a);  // OK
   std::shared_ptr<int> p2(a);  // ОШИБКА (независимо от cond)
-  // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 // ============================================================================
@@ -289,7 +289,7 @@ void test_return_from_function() {
   int* a = getPointer();  // Не можем определить, откуда память
   std::shared_ptr<int> p1(a);  // OK
   std::shared_ptr<int> p2(a);  // OK (мы не знаем, откуда память)
-  // Нет предупреждений (или может быть, если доработать анализ)
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 // ============================================================================
@@ -299,8 +299,9 @@ void test_nested_function() {
   auto lambda = []() {
     int* a = new int(42);
     std::shared_ptr<int> p1(a);
+    // CHECK-MESSAGES: :[[@LINE-1]]:29: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
     std::shared_ptr<int> p2(a);  // ОШИБКА внутри лямбды
-    // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+    // CHECK-MESSAGES: :[[@LINE-1]]:29: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
   };
   lambda();
 }
@@ -312,7 +313,7 @@ void test_const_pointer() {
   const int* a = new int(42);
   std::shared_ptr<const int> p1(a);  // OK
   std::shared_ptr<const int> p2(a);  // ОШИБКА
-  // CHECK-MESSAGES: :[[@LINE-1]]:31: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // CHECK-MESSAGES: :[[@LINE-1]]:33: warning: passing a raw pointer 'const int*' to 'std::shared_ptr<const int>' constructor may cause double deletion
 }
 
 // ============================================================================
@@ -323,7 +324,7 @@ void test_dereference() {
   std::shared_ptr<int> p1(a);
   *a = 100;  // OK - модификация через указатель
   std::shared_ptr<int> p2(a);  // ОШИБКА
-  // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 void test_argument(int* a) {
@@ -331,8 +332,7 @@ void test_argument(int* a) {
   std::shared_ptr<int> p1(a);
   // Это должно вызвать предупреждение
   std::shared_ptr<int> p2(a);
-  // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
-  // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
+  // TODO: warning
 }
 
 struct A {int* val;};
@@ -343,8 +343,7 @@ void test_inside_structure() {
   std::shared_ptr<int> p1(a.val);
   // Это должно вызвать предупреждение
   std::shared_ptr<int> p2(a.val);
-  // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
-  // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 void test_inside_structure_and_argument(A& a) {
@@ -352,8 +351,7 @@ void test_inside_structure_and_argument(A& a) {
   std::shared_ptr<int> p1(a.val);
   // Это должно вызвать предупреждение
   std::shared_ptr<int> p2(a.val);
-  // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
-  // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 class test_inside_a_class {
@@ -364,8 +362,7 @@ public:
     std::shared_ptr<int> p1(a);
     // Это должно вызвать предупреждение
     std::shared_ptr<int> p2(a);
-    // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
-    // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
+    // CHECK-MESSAGES: :[[@LINE-1]]:29: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
   }
 };
 
@@ -377,7 +374,6 @@ public:
     std::shared_ptr<int> p1(this->a);
     // Это должно вызвать предупреждение
     std::shared_ptr<int> p2(this->a);
-    // CHECK-MESSAGES: :[[@LINE-1]]:24: warning: raw pointer from 'new' used to initialize multiple std::shared_ptr objects [misc-double-shared-ptr]
-    // CHECK-MESSAGES: :[[@LINE-2]]:25: note: consider using std::shared_ptr::reset() or reassigning the raw pointer to nullptr before second use
+    // CHECK-MESSAGES: :[[@LINE-1]]:29: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
   }
 };

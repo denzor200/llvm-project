@@ -9,8 +9,10 @@
 #include "clang/AST/Decl.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Analysis/CFG.h"
+#include "clang/Basic/SourceLocation.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/Casting.h"
 #include "PointerStateAnalyzer.hpp"
 #include <sstream>
 
@@ -80,7 +82,7 @@ void DoubleSharedPtrCheck::check(const MatchFinder::MatchResult &Result) {
 bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
                                            const FunctionDecl *Func,
                                            const SourceManager& SM) {
-  llvm::outs() << "analizing function " << Func->getNameAsString() << "\n";
+  //llvm::outs() << "analizing function " << Func->getNameAsString() << "\n";
   const auto *Body = Func->getBody();
   if (!Body)
     return false;
@@ -128,18 +130,55 @@ bool DoubleSharedPtrCheck::analyzeFunction(ASTContext &Context,
   
   CollectPtrVars(Body);
 
-  dumpPtrVars(PtrVars);
-  dumpPtrFields(PtrFields);
+  //dumpPtrVars(PtrVars);
+  //dumpPtrFields(PtrFields);
 
   const auto transitions = analyzeTransitions(PtrVars, PtrFields, *TheCFG);
+  // for (const auto& [var, transList] : transitions) {
+  //     llvm::outs() << "Var: " << describeLocation(var) << "\n";
+  //     for (const auto& t : transList) {
+  //         llvm::outs() << "  " << t.fromState << " -> " << t.toState << "\n";
+  //     }
+  // }
+
   for (const auto& [var, transList] : transitions) {
-      llvm::outs() << "Var: " << describeLocation(var) << "\n";
-      for (const auto& t : transList) {
-          llvm::outs() << "  " << t.fromState << " -> " << t.toState << "\n";
+    for (const auto& t : transList) {
+      if (t.fromState == t.toState && t.fromState == PS_SharedPtrWrapper) {
+          const auto* SmartPtrCtor = dyn_cast<const CXXConstructExpr>(t.stmt);
+          if (!SmartPtrCtor)
+            continue;
+          const Expr* PointerArg = SmartPtrCtor->getArg(0);
+          if (!PointerArg)
+            continue;
+          const SourceLocation Loc = PointerArg->getBeginLoc();
+          if (Loc.isInvalid())
+            continue;
+          diag(Loc, "passing a raw pointer '%0' to %1 constructor may cause double deletion")
+              << getRawPointerDescription(PointerArg, Context) << SmartPtrCtor->getType();
       }
+    }
   }
 
   return true;
+}
+
+std::string DoubleSharedPtrCheck::getRawPointerDescription(
+    const Expr *PointerExpr, const ASTContext &Context) {
+  const QualType ExprType = PointerExpr->getType();
+
+  PrintingPolicy Policy(Context.getLangOpts());
+  Policy.SuppressSpecifiers = false;
+  Policy.SuppressTagKeyword = true;
+
+  std::string Result = ExprType.getAsString(Policy);
+
+  size_t Pos = Result.find(" *");
+  while (Pos != std::string::npos) {
+    Result.erase(Pos, 1); // remove the space
+    Pos = Result.find(" *", Pos);
+  }
+
+  return Result;
 }
 
 void DoubleSharedPtrCheck::dumpPtrVars(const llvm::SmallPtrSet<const VarDecl *, 32> &PtrVars) {

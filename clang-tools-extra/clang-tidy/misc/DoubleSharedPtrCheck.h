@@ -97,6 +97,9 @@ private:
       const llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
       FunctionAnalysisContext &FuncCtx, const SourceManager& SM);
 
+  std::string getRawPointerDescription(
+    const Expr *PointerExpr, const ASTContext &Context);
+
   void dumpState(const llvm::DenseMap<const VarDecl *, VarStateInfo> &States,
                  const char *Label);
   void dumpStateSwitch(const VarStateInfo& SI, const SourceManager& SM);
