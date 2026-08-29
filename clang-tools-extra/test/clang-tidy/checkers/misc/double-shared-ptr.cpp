@@ -134,7 +134,7 @@ void test_copy_pointer() {
 void test_function_parameter(int* a) {
   std::shared_ptr<int> p1(a);  // OK - память пришла извне
   std::shared_ptr<int> p2(a);  // OK - мы не знаем, откуда память
-  // Нет предупреждений
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 // ============================================================================
@@ -332,7 +332,7 @@ void test_argument(int* a) {
   std::shared_ptr<int> p1(a);
   // Это должно вызвать предупреждение
   std::shared_ptr<int> p2(a);
-  // TODO: warning
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int*' to 'std::shared_ptr<int>' constructor may cause double deletion
 }
 
 struct A {int* val;};
