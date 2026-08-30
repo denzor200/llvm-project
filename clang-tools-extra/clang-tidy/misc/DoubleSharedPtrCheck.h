@@ -23,6 +23,10 @@ public:
   void storeOptions(ClangTidyOptions::OptionMap &Opts) override;
 
 private:
+  void checkFlowSensitive(const ast_matchers::MatchFinder::MatchResult &Result);
+  
+private:
+  void emitDiagnostic(ASTContext &Context, const Expr* ConstructorOrMember);
   bool analyzeFunction(ASTContext &Context,
                       const FunctionDecl *Func,
                       const SourceManager& SM);
