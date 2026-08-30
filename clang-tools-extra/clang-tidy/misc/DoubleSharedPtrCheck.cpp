@@ -59,6 +59,7 @@ void DoubleSharedPtrCheck::registerMatchers(MatchFinder *Finder) {
       hasArgument(0, anyOf(ignoringParenCasts(cxxThisExpr()), ignoringParenCasts(SmartPtrGetCallMatcher)))).bind("reset-with-this-expr");
 
   // Ищем функции, которые содержат потенциально опасные операции
+  // TODO: rename to PotentiallyDangerousFunction
   const auto DangerousFunction = functionDecl(
       hasAnyBody(anything()),
       anyOf(
@@ -76,6 +77,7 @@ void DoubleSharedPtrCheck::registerMatchers(MatchFinder *Finder) {
 }
 
 void DoubleSharedPtrCheck::check(const MatchFinder::MatchResult &Result) {
+  // TODO: rename to "dangerous-ctor" and "dangerous-reset"
   const auto *CtorWithThisExpr = Result.Nodes.getNodeAs<CXXConstructExpr>("ctor-with-this-expr");
   const auto *ResetWithThisExpr = Result.Nodes.getNodeAs<CXXMemberCallExpr>("reset-with-this-expr");
   if (CtorWithThisExpr)
@@ -190,9 +192,20 @@ void DoubleSharedPtrCheck::emitDiagnostic(ASTContext &Context, const Expr* Const
     const SourceLocation Loc = PointerArg->getBeginLoc();
     if (Loc.isInvalid())
       return;
-    diag(Loc, "passing a raw pointer '%0' to %1 reset method may cause double deletion")
-        << getRawPointerDescription(PointerArg, Context) << ResetCall->getImplicitObjectArgument()->getType();
+    diag(Loc, "passing a raw pointer '%0' to '%1::reset' may cause double deletion")
+        << getRawPointerDescription(PointerArg, Context) << getSmartPointerDescription(ResetCall->getMethodDecl()->getParent(), Context);
   }
+}
+
+std::string DoubleSharedPtrCheck::getSmartPointerDescription(
+    const CXXRecordDecl *RecordDecl, const ASTContext &Context) {
+  const PrintingPolicy Policy = Context.getPrintingPolicy();
+
+  std::string Result;
+  llvm::raw_string_ostream OS(Result);
+  RecordDecl->getNameForDiagnostic(OS, Policy, /*Qualified=*/true);
+
+  return Result;
 }
 
 std::string DoubleSharedPtrCheck::getRawPointerDescription(

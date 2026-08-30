@@ -30,6 +30,8 @@ private:
   bool analyzeFunction(ASTContext &Context,
                       const FunctionDecl *Func,
                       const SourceManager& SM);
+  std::string getSmartPointerDescription(
+    const CXXRecordDecl *RecordDecl, const ASTContext &Context);
   std::string getRawPointerDescription(
     const Expr *PointerExpr, const ASTContext &Context);
   void dumpPtrVars(const llvm::SmallPtrSet<const VarDecl *, 32> &PtrVars);

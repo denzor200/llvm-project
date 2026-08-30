@@ -56,7 +56,7 @@ void f2() {
   // Any use of poly will now result in accessing freed memory.
   std::shared_ptr<D> c;
   c.reset(dynamic_cast<D *>(poly.get()));
-// CHECK-MESSAGES: :[[@LINE-1]]:11: warning: passing a raw pointer 'D*' to 'std::shared_ptr<D>' reset method may cause double deletion
+// CHECK-MESSAGES: :[[@LINE-1]]:11: warning: passing a raw pointer 'D*' to 'std::shared_ptr<D>::reset' may cause double deletion
   // Any use of poly will now result in accessing freed memory.
 }
 
@@ -78,7 +78,7 @@ struct S1 {
   std::shared_ptr<S1> g() { return std::shared_ptr<S1>(this); }
   // CHECK-MESSAGES: :[[@LINE-1]]:56: warning: passing a raw pointer 'S1*' to 'std::shared_ptr<S1>' constructor may cause double deletion
   std::shared_ptr<S1> g2() { std::shared_ptr<S1> s; s.reset(this); return s; }
-  // CHECK-MESSAGES: :[[@LINE-1]]:61: warning: passing a raw pointer 'S1*' to 'std::shared_ptr<S1>' reset method may cause double deletion
+  // CHECK-MESSAGES: :[[@LINE-1]]:61: warning: passing a raw pointer 'S1*' to 'std::shared_ptr<S1>::reset' may cause double deletion
 };
 
 void f4() {
