@@ -37,6 +37,7 @@ static auto smartPtrCtorTakingRawPointer() {
 }
 
 static auto smartPtrResetTakingRawPointer() {
+  // TODO: smart pointer names must be loaded from options
   static const auto IsSharedPtr = hasAnyName("::std::shared_ptr");
   static const auto IsUniquePtr = hasAnyName("::std::unique_ptr");
   static const auto IsSmartPtr = anyOf(IsSharedPtr, IsUniquePtr);
@@ -51,9 +52,9 @@ static auto smartPtrResetTakingRawPointer() {
 /// Contains information about a second "ownership transfer" of a raw
 /// pointer that already belongs to a smart pointer.
 struct OwnershipTransfer {
-  // The DeclRefExpr used as the argument of the second (problematic)
+  // The Expr used as the argument of the second (problematic)
   // smart-pointer construction.
-  const DeclRefExpr *DeclRef;
+  const Expr *DeclRef; // TODO: rename
 
   // TODO: change the comment
   // The CXXConstructExpr of that second construction (used to print the
@@ -302,6 +303,7 @@ void OwnershipTransferFinder::getReinits(
 static void emitDiagnostic(const ASTContext *Context,
                            const OwnershipTransfer &Transfer,
                            ClangTidyCheck *Check) {
+  // TODO: check is it a valid location
   const SourceLocation UseLoc = Transfer.DeclRef->getExprLoc();
   if (const auto *SmartPtrCtor = dyn_cast<const CXXConstructExpr>(Transfer.ConstructOrResetExpr)) {
       
@@ -373,9 +375,69 @@ void MultipleSmartPtrOwnersCheck::registerMatchers(MatchFinder *Finder) {
               )
               )).bind("transfer-call")),
       this);
+
+  // TODO: smart pointer names must be loaded from options
+  const auto IsSharedPtr = hasAnyName("::std::shared_ptr");
+  const auto IsUniquePtr = hasAnyName("::std::unique_ptr");
+  const auto IsSmartPtr = anyOf(IsSharedPtr, IsUniquePtr);
+
+  const auto IsSharedPtrRecord = cxxRecordDecl(IsSharedPtr);
+  const auto IsUniquePtrRecord = cxxRecordDecl(IsUniquePtr);
+  const auto IsSmartPtrRecord = cxxRecordDecl(IsSmartPtr);
+
+  const auto SmartPtrGetCallMatcher = cxxMemberCallExpr(
+        callee(cxxMethodDecl(hasName("get"))),
+        on(hasType(hasUnqualifiedDesugaredType(recordType(
+            hasDeclaration(classTemplateSpecializationDecl(IsSmartPtr)))))));
+
+  // Search for `std::shared_ptr(this);` or `std::shared_ptr(other_sp.get());`
+  const auto SmartPtrConstructorMatcher =
+      cxxConstructExpr(
+          hasDeclaration(cxxConstructorDecl(ofClass(IsSmartPtrRecord))),
+          hasArgument(0, anyOf(ignoringParenCasts(cxxThisExpr()),
+                                ignoringParenCasts(SmartPtrGetCallMatcher))))
+          .bind("dangerous-ctor");
+
+  // Search for `sp.reset(this);` or `sp.reset(other_sp.get())`
+  const auto ResetCallWithThisMatcher =
+      cxxMemberCallExpr(
+          on(hasType(hasUnqualifiedDesugaredType(recordType(
+              hasDeclaration(classTemplateSpecializationDecl(IsSmartPtr)))))),
+          callee(cxxMethodDecl(ofClass(IsSmartPtrRecord), hasName("reset"))),
+          hasArgument(0, anyOf(ignoringParenCasts(cxxThisExpr()),
+                                ignoringParenCasts(SmartPtrGetCallMatcher))))
+          .bind("dangerous-reset");
+
+  Finder->addMatcher(
+      traverse(
+          TK_AsIs,SmartPtrConstructorMatcher), this);
+  Finder->addMatcher(
+      traverse(
+          TK_AsIs,ResetCallWithThisMatcher), this);
 }
 
-void MultipleSmartPtrOwnersCheck::check(
+void MultipleSmartPtrOwnersCheck::check(const ast_matchers::MatchFinder::MatchResult &Result) {
+  const auto *CtorWithThisExpr =
+      Result.Nodes.getNodeAs<CXXConstructExpr>("dangerous-ctor");
+  const auto *ResetWithThisExpr =
+      Result.Nodes.getNodeAs<CXXMemberCallExpr>("dangerous-reset");
+  if (CtorWithThisExpr) {
+    const Expr *PointerArg = CtorWithThisExpr->getArg(0); // TODO: ignore parens??
+    if (!PointerArg)
+      return;
+    emitDiagnostic(Result.Context, {PointerArg, CtorWithThisExpr}, this);
+  }
+  else if (ResetWithThisExpr) {
+    const Expr *PointerArg = ResetWithThisExpr->getArg(0); // TODO: ignore parens??
+    if (!PointerArg)
+      return;
+    emitDiagnostic(Result.Context, {PointerArg, ResetWithThisExpr}, this);
+  }
+  else
+    checkFlowSensitive(Result);
+}
+
+void MultipleSmartPtrOwnersCheck::checkFlowSensitive(
     const MatchFinder::MatchResult &Result) {
   const auto *ContainingCtor =
       Result.Nodes.getNodeAs<CXXConstructorDecl>("containing-ctor");
