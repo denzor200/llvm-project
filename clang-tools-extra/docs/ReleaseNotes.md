@@ -92,6 +92,11 @@ infrastructure are described first, followed by tool-specific sections.
 
 #### New checks
 
+- New {doc}`bugprone-multiple-smart-ptr-owners
+  <clang-tidy/checks/bugprone/multiple-smart-ptr-owners>` check.
+
+  FIXME: Write a short description.
+
 - New {doc}`performance-expensive-value-or
   <clang-tidy/checks/performance/expensive-value-or>` check.
 

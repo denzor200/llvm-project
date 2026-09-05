@@ -56,6 +56,7 @@
 #include "MoveForwardingReferenceCheck.h"
 #include "MultiLevelImplicitPointerConversionCheck.h"
 #include "MultipleNewInOneExpressionCheck.h"
+#include "MultipleSmartPtrOwnersCheck.h"
 #include "MultipleStatementMacroCheck.h"
 #include "NarrowingConversionsCheck.h"
 #include "NoEscapeCheck.h"
@@ -184,6 +185,8 @@ public:
         "bugprone-incorrect-enable-if");
     CheckFactories.registerCheck<IncorrectEnableSharedFromThisCheck>(
         "bugprone-incorrect-enable-shared-from-this");
+    CheckFactories.registerCheck<MultipleSmartPtrOwnersCheck>(
+        "bugprone-multiple-smart-ptr-owners");
     CheckFactories.registerCheck<UnintendedCharOstreamOutputCheck>(
         "bugprone-unintended-char-ostream-output");
     CheckFactories.registerCheck<ReturnConstRefFromParameterCheck>(

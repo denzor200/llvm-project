@@ -125,6 +125,7 @@ zircon/*
 | {doc}`bugprone-move-forwarding-reference <bugprone/move-forwarding-reference>` | Yes |
 | {doc}`bugprone-multi-level-implicit-pointer-conversion <bugprone/multi-level-implicit-pointer-conversion>` |  |
 | {doc}`bugprone-multiple-new-in-one-expression <bugprone/multiple-new-in-one-expression>` |  |
+| {doc}`bugprone-multiple-smart-ptr-owners <bugprone/multiple-smart-ptr-owners>` |  |
 | {doc}`bugprone-multiple-statement-macro <bugprone/multiple-statement-macro>` |  |
 | {doc}`bugprone-narrowing-conversions <bugprone/narrowing-conversions>` |  |
 | {doc}`bugprone-no-escape <bugprone/no-escape>` |  |
