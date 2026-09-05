@@ -265,6 +265,23 @@ void test_nested_function2() {
   lambda();
 }
 
+
+using ptr_a_t = A*;
+using shared_ptr_a_t = std::shared_ptr<A>;
+using unique_ptr_a_t = std::unique_ptr<A>;
+
+void test_new_expression_with_aliases() {
+  ptr_a_t first = new A();
+  ptr_a_t second = new A();
+  shared_ptr_a_t a(first);
+  shared_ptr_a_t a2(first);
+  // CHECK-MESSAGES: :[[@LINE-1]]:21: warning: passing a raw pointer 'ptr_a_t' (aka 'A *') to 'shared_ptr_a_t' (aka 'std::shared_ptr<A>') constructor may cause double deletion
+  unique_ptr_a_t b(second);
+  unique_ptr_a_t b2(second);
+  // CHECK-MESSAGES: :[[@LINE-1]]:21: warning: passing a raw pointer 'ptr_a_t' (aka 'A *') to 'unique_ptr_a_t' (aka 'std::unique_ptr<A>') constructor may cause double deletion
+}
+
+
 // test_new_expression_ok_in_global
 // FIXME: support it
 /*
@@ -336,6 +353,21 @@ void test_new_expression_crossed_fail() {
   b.reset(second);
   std::unique_ptr<A> b2(second);
   // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: passing a raw pointer 'A *' to 'std::unique_ptr<A>' constructor may cause double deletion
+}
+
+void test_new_expression_reset_fail_with_aliases() {
+  ptr_a_t first = new A();
+  ptr_a_t second = new A();
+  shared_ptr_a_t a;
+  a.reset(first);
+  shared_ptr_a_t a2;
+  a2.reset(first);
+  // CHECK-MESSAGES: :[[@LINE-1]]:12: warning: passing a raw pointer 'ptr_a_t' (aka 'A *') to 'shared_ptr_a_t' (aka 'std::shared_ptr<A>') reset method may cause double deletion
+  unique_ptr_a_t b;
+  b.reset(second);
+  unique_ptr_a_t b2;
+  b2.reset(second);
+  // CHECK-MESSAGES: :[[@LINE-1]]:12: warning: passing a raw pointer 'ptr_a_t' (aka 'A *') to 'unique_ptr_a_t' (aka 'std::unique_ptr<A>') reset method may cause double deletion
 }
 
 

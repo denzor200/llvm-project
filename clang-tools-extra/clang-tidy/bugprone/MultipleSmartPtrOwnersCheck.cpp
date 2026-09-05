@@ -333,8 +333,18 @@ static void emitDiagnostic(const ASTContext *Context,
 }
 
 void MultipleSmartPtrOwnersCheck::registerMatchers(MatchFinder *Finder) {
+  // hasType(pointerType()) inspects the *sugared* type node as spelled at
+  // the variable's declaration. For `A *first`, that node already is a
+  // PointerType, so it matches directly. But for `ptr_a_t first` (a `using
+  // ptr_a_t = A*;` alias), the sugared node is a TypedefType wrapping a
+  // PointerType -- dyn_cast<PointerType> on it fails, so the whole matcher
+  // silently never fires for aliased declarations. hasUnqualifiedDesugaredType
+  // strips typedefs/using-aliases (and other sugar) before testing, exactly
+  // like the reference `bugprone-use-after-move` check does for its own
+  // standard-container/smart-pointer type matchers.
   const auto RawPtrArg =
-      declRefExpr(to(varDecl(hasType(pointerType())).bind("raw-ptr-var")))
+      declRefExpr(to(varDecl(hasType(hasUnqualifiedDesugaredType(pointerType())))
+                         .bind("raw-ptr-var")))
           .bind("arg");
 
   // Mirrors the shape of UseAfterMoveCheck's matcher: find the construct
