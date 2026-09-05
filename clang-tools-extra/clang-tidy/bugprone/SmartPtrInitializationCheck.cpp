@@ -11,10 +11,12 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/DeclCXX.h"
 #include "clang/AST/Expr.h"
-#include "clang/AST/StmtVisitor.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/ASTMatchers/ASTMatchers.h"
-#include "clang/Analysis/CFG.h"
+#include "clang/AST/RecursiveASTVisitor.h"
+#include <set>
+#include <tuple>
+#include <vector>
 #include <memory>
 #include <optional>
 
@@ -63,554 +65,203 @@ static const clang::Expr *stripWrappers(const clang::Expr *E) {
 
 namespace {
 
+/// Идентифицирует сырой указатель, за которым мы следим: переменную/
+/// параметр либо поле, до которого дошли цепочкой `.field` от одной из них
+/// (или от `this`).
 struct PointerLocation {
-  // Root == nullptr && IsThis == true  => via `this`
-  // Root != nullptr                    => regular variable/parameter
-  const clang::VarDecl *Root = nullptr;
-  std::vector<const clang::FieldDecl *>
-      Path; // [] => the variable Root itself (для Root!=nullptr);
-            // [f] => Root.f / Root->f / this->f;
-            // [f1,f2] => Root.f1.f2 and etc..
-  bool IsThis = false;
+  const clang::VarDecl *Root = nullptr; // nullptr означает "через `this`"
+  std::vector<const clang::FieldDecl *> Path;
 
-  bool operator==(const PointerLocation &O) const {
-    return Root == O.Root && IsThis == O.IsThis && Path == O.Path;
-  }
-  bool operator<(const PointerLocation &O) const {
-    if (Root != O.Root)
-      return Root < O.Root;
-    if (IsThis != O.IsThis)
-      return IsThis < O.IsThis;
-    return Path < O.Path; // lexicographically by pointers - sufficient for
-                          // strict ordering in std::map
+  bool operator<(const PointerLocation &Other) const {
+    return std::tie(Root, Path) < std::tie(Other.Root, Other.Path);
   }
 };
 
-enum PointerState : std::uint8_t {
-  PS_Unknown = 0,
-  PS_PlainPointer = 1,
-  PS_NewPointer = 2,
-  PS_SmartPtrWrapper = 3
-};
-
-struct Transition {
-  PointerState FromState;  // 0-3
-  PointerState ToState;    // 1-3
-  const clang::Stmt *Stmt; // instruction that caused the transition
-};
-
-class TransitionsFinder;
-
-// The main visitor applies the "transfer function" of one block to the
-// transferred state. It is created anew for each call to runBlockTransfer() and
-// does not store any inter-block state itself.
-class PointerStateVisitor
-    : public clang::ConstStmtVisitor<PointerStateVisitor> {
-  using StateMap = std::map<PointerLocation, PointerState>;
-  using VariablesSet = llvm::SmallPtrSet<const clang::VarDecl *, 32>;
-  using FieldsSet = llvm::SmallPtrSet<const clang::FieldDecl *, 32>;
-
-  static PointerState getState(const StateMap &M, const PointerLocation &Loc) {
-    const auto It = M.find(Loc);
-    return It == M.end() ? PS_Unknown : It->second;
-  }
-
+/// Проходит по телу одной функции один раз, в исходном порядке, запоминая,
+/// какие `PointerLocation` в данный момент принадлежат какому-то умному
+/// указателю. Если одна и та же локация передаётся *второму* умному
+/// указателю (в конструктор или в `.reset()`) без переприсваивания между
+/// этими двумя моментами — оба умных указателя попытаются удалить один и
+/// тот же объект; это и есть диагностируемый баг.
+///
+/// Это одиночный линейный проход, а не CFG dataflow-анализ: `if`/`switch`
+/// не обрабатываются специально (две взаимоисключающие ветки, каждая из
+/// которых по одному разу оборачивает один и тот же указатель, могут быть
+/// (ложно) помечены), а тело цикла проходится только один раз (баг,
+/// проявляющийся начиная со второй итерации, может быть пропущен). Взамен
+/// — ни CFG, ни фикспойнт-итерации, ни слияния состояний.
+class DoubleWrapVisitor
+    : public clang::RecursiveASTVisitor<DoubleWrapVisitor> {
 public:
-  // Sink == nullptr -> transitions are not recorded, only the final state is
-  // calculated (used in phase 1 / fixpoint, and in the preliminary location
-  // detection phase).
-  PointerStateVisitor(clang::ASTContext *Context, const VariablesSet &Vars,
-                      const FieldsSet &Fields,
-                      llvm::ArrayRef<StringRef> SharedPointers,
-                      llvm::ArrayRef<StringRef> UniquePointers, StateMap &State,
-                      std::map<PointerLocation, std::vector<Transition>> *Sink)
-      : Context(Context), PtrVars(Vars), PtrFields(Fields),
-        SharedPointers(SharedPointers), UniquePointers(UniquePointers),
-        CurrentState(State), Sink(Sink) {}
+  DoubleWrapVisitor(SmartPtrInitializationCheck &Check,
+                     clang::ASTContext &Context,
+                     llvm::ArrayRef<StringRef> SharedPointers,
+                     llvm::ArrayRef<StringRef> UniquePointers)
+      : Check(Check), Context(Context), SharedPointers(SharedPointers),
+        UniquePointers(UniquePointers) {}
 
-  // int* a = nullptr; / int* a = new int; / int* b = a; ...
-  void VisitDeclStmt(const clang::DeclStmt *DS) {
-    for (const clang::Decl *D : DS->decls()) {
-      const auto *VD = llvm::dyn_cast<clang::VarDecl>(D);
-      if (!VD || !PtrVars.contains(VD))
-        continue;
-      if (const clang::Expr *Init = VD->getInit()) {
-        const PointerState NewState = classify(Init);
-        addTransition(PointerLocation{VD, {}}, NewState, DS);
-      }
-    }
-    // std::shared_ptr<int> sp(a); / std::shared_ptr<int> sp(a.val); ->
-    // "a" / "a.val" also gets infected SmartPtrWrapper
-    scanForSmartPtrWrap(DS);
+  // Вложенные функции/методы -- это отдельные FunctionDecl, которые будут
+  // проанализированы независимо, когда матчер дойдёт до них напрямую, так
+  // что не спускаемся в их тела здесь -- иначе один и тот же баг был бы
+  // сообщён дважды.
+  bool TraverseLambdaExpr(clang::LambdaExpr *E) {
+    for (clang::Expr *Init : E->capture_inits())
+      if (Init)
+        TraverseStmt(Init);
+    return true;
+  }
+  bool TraverseDecl(clang::Decl *D) {
+    if (llvm::isa_and_nonnull<clang::FunctionDecl>(D))
+      return true;
+    return RecursiveASTVisitor::TraverseDecl(D);
+  }
+  
+  // if (cond) { ... } else { ... }
+  // Каждая ветка обходится независимо, начиная с одного и того же
+  // состояния "до if"; после if остаётся только то, что оказалось
+  // обёрнутым НА ОБОИХ путях -- иначе (как в примере с p1/p2 в разных
+  // ветках) обёртка одного и того же указателя в двух взаимоисключающих
+  // ветках ложно считалась бы двойной обёрткой.
+  bool TraverseIfStmt(clang::IfStmt *If) {
+    if (clang::Stmt *Init = If->getInit())
+      TraverseStmt(Init);
+    if (clang::VarDecl *CondVar = If->getConditionVariable())
+      TraverseDecl(CondVar);
+    if (clang::Expr *Cond = If->getCond())
+      TraverseStmt(Cond);
+
+    const std::set<PointerLocation> Before = Wrapped;
+
+    if (clang::Stmt *Then = If->getThen())
+      TraverseStmt(Then);
+    std::set<PointerLocation> AfterThen = std::move(Wrapped);
+
+    Wrapped = Before;
+    if (clang::Stmt *Else = If->getElse())
+      TraverseStmt(Else);
+    std::set<PointerLocation> AfterElse = std::move(Wrapped);
+
+    Wrapped.clear();
+    std::set_intersection(AfterThen.begin(), AfterThen.end(),
+                           AfterElse.begin(), AfterElse.end(),
+                           std::inserter(Wrapped, Wrapped.begin()));
+    return true;
   }
 
-  // a = ...; / a.val = ...; (etc = new int; / = b; / = nullptr;)
-  void VisitBinaryOperator(const clang::BinaryOperator *BO) {
-    if (BO->getOpcode() != clang::BO_Assign) {
-      scanForSmartPtrWrap(BO);
-      return;
+  // a = ...;  (любое переприсваивание снимает пометку владения для `a`,
+  // независимо от нового значения)
+  bool VisitBinaryOperator(const clang::BinaryOperator *BO) {
+    if (BO->getOpcode() == clang::BO_Assign) {
+      if (auto Loc = resolveLocation(BO->getLHS()))
+        Wrapped.erase(*Loc);
     }
-    if (auto Loc = resolveLocation(BO->getLHS())) {
-      const PointerState NewState = classify(BO->getRHS());
-      addTransition(std::move(*Loc), NewState, BO);
-    }
-    scanForSmartPtrWrap(BO);
+    return true;
   }
 
-  // Direct meeting of the smartpointer constructor as a separate element of CFG
-  void VisitCXXConstructExpr(const clang::CXXConstructExpr *CE) {
-    handleSmartPtrConstruct(CE, CE);
+  // int *a = ...;
+  bool VisitVarDecl(const clang::VarDecl *VD) {
+    if (VD->getInit() && VD->getType()->isPointerType())
+      Wrapped.erase(PointerLocation{VD, {}});
+    return true;
   }
 
-  // Any other instruction: simply search for "infection" inside it by passing a
-  // pointer/field to the smartpointer constructor.
-  void VisitStmt(const clang::Stmt *S) { scanForSmartPtrWrap(S); }
+  // std::shared_ptr<T> sp(arg); / std::unique_ptr<T> up(arg);
+  bool VisitCXXConstructExpr(const clang::CXXConstructExpr *CE) {
+    if (isSmartPtrType(CE->getType()))
+      checkArgs(CE, CE->arguments());
+    return true;
+  }
+
+  // sp.reset(arg);
+  bool VisitCXXMemberCallExpr(const clang::CXXMemberCallExpr *ME) {
+    const auto *MD = ME->getMethodDecl();
+    if (MD && MD->getDeclName().isIdentifier() && MD->getName() == "reset" &&
+        isSmartPtrType(ME->getImplicitObjectArgument()->getType()))
+      checkArgs(ME, ME->arguments());
+    return true;
+  }
 
 private:
-  clang::ASTContext *Context;
-  const VariablesSet &PtrVars;
-  const FieldsSet &PtrFields;
+  template <typename ArgRange>
+  void checkArgs(const clang::Expr *WrapExpr, ArgRange Args) {
+    for (const clang::Expr *Arg : Args) {
+      auto Loc = resolveLocation(Arg);
+      if (Loc && !Wrapped.insert(*Loc).second)
+        Check.emitDiagnostic(WrapExpr); // уже принадлежит другому умному указателю
+    }
+  }
 
-  const llvm::ArrayRef<StringRef> SharedPointers;
-  const llvm::ArrayRef<StringRef> UniquePointers;
+  bool isSmartPtrType(clang::QualType QT) {
+    const auto *RD = QT.getCanonicalType()->getAsCXXRecordDecl();
+    if (!RD || !RD->getDeclName().isIdentifier())
+      return false;
+    using namespace clang::ast_matchers;
+    return !match(cxxRecordDecl(hasAnyName(SharedPointers)), *RD, Context)
+                .empty() ||
+           !match(cxxRecordDecl(hasAnyName(UniquePointers)), *RD, Context)
+                .empty();
+  }
 
-  StateMap &CurrentState; // state of a specific block (outside: IN -> resulting
-                          // in OUT)
-  std::map<PointerLocation, std::vector<Transition>> *Sink;
-  llvm::SmallPtrSet<const clang::Stmt *, 32>
-      ProcessedConstructsAndResets; // dedup within ONE block processing call
-
-  // Structural (without PtrVars/PtrFields checking) "path" recognition:
-  // DeclRefExpr(var) -> {var, []}; MemberExpr(base, field) -> resolveBase(base)
-  // + [field].
-  // Used both for the MemberExpr base (where the base itself is a structure,
-  // not a pointer, and does NOT have to be in PtrVars) and within
-  // resolveLocation. Stops (returns nullopt) on anything that is not
-  // DeclRefExpr or MemberExpr - array indexing, function calls, this, etc. (see
-  // the file header for restrictions).
+  // Структурное распознавание базы цепочки доступа к полю:
+  // DeclRefExpr(var) -> {var}; `this` -> {nullptr};
+  // MemberExpr(base, field) -> resolveBase(base) + [field].
+  // Всё остальное (индексация массива, вызов функции, ...) не
+  // поддерживается и возвращает false.
   bool resolveBase(const clang::Expr *E, PointerLocation &Out) {
     E = stripWrappers(E);
     if (!E)
       return false;
-
     if (const auto *DRE = llvm::dyn_cast<clang::DeclRefExpr>(E)) {
       const auto *VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl());
       if (!VD)
         return false;
-      Out.Root = VD;
-      Out.IsThis = false;
-      Out.Path.clear();
+      Out = PointerLocation{VD, {}};
       return true;
     }
-
-    // this->val / val (imoplicit `this`) inside method of class.
     if (llvm::isa<clang::CXXThisExpr>(E)) {
-      Out.Root = nullptr;
-      Out.IsThis = true;
-      Out.Path.clear();
+      Out = PointerLocation{nullptr, {}};
       return true;
     }
-
     if (const auto *ME = llvm::dyn_cast<clang::MemberExpr>(E)) {
       const auto *FD = llvm::dyn_cast<clang::FieldDecl>(ME->getMemberDecl());
-      if (!FD)
-        return false; // a method, static field, etc. is not a path to data
-      if (!resolveBase(ME->getBase(), Out))
+      if (!FD || !resolveBase(ME->getBase(), Out))
         return false;
       Out.Path.push_back(FD);
       return true;
     }
-
-    return false; // arr[i].val, f().val и т.п. - not supported
+    return false;
   }
 
-  // Checking that a type (after expansion of typedef/using) is a specialization
-  // std::shared_ptr of std::unique_ptr
-  bool isSmartPtrType(clang::QualType QT) {
-    QT = QT.getCanonicalType();
-    const clang::CXXRecordDecl *RD = QT->getAsCXXRecordDecl();
-    if (!RD)
-      return false;
-    if (!RD->getDeclName().isIdentifier())
-      return false;
-
-    static const auto SharedPtrMatcher =
-        cxxRecordDecl(hasAnyName(SharedPointers));
-
-    static const auto UniquePtrMatcher =
-        cxxRecordDecl(hasAnyName(UniquePointers));
-
-    return !match(SharedPtrMatcher, *RD, *Context).empty() || !match(UniquePtrMatcher, *RD, *Context).empty();
-  }
-
-  // Attempts to recognize E as a tracked location:
-  // - DeclRefExpr(var), where var is in PtrVars (a regular pointer variable)
-  // - MemberExpr(base, field), where field is in PtrFields (a.val / a->val),
-  // and base is recognized STRUCTURALLY (without checking PtrVars for base -
-  // since base is usually NOT a pointer, but a structure/object).
+  // Распознаёт E как отслеживаемую локацию: указатель-переменную/параметр
+  // либо указатель-поле, достижимое через resolveBase().
   std::optional<PointerLocation> resolveLocation(const clang::Expr *E) {
-    PointerLocation Out;
     const clang::Expr *S = stripWrappers(E);
     if (!S)
       return std::nullopt;
-
     if (const auto *DRE = llvm::dyn_cast<clang::DeclRefExpr>(S)) {
       const auto *VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl());
-      if (VD && PtrVars.contains(VD)) {
-        Out.Root = VD;
-        Out.IsThis = false;
-        Out.Path.clear();
-        return Out;
-      }
+      if (VD && VD->getType()->isPointerType())
+        return PointerLocation{VD, {}};
       return std::nullopt;
     }
-
     if (const auto *ME = llvm::dyn_cast<clang::MemberExpr>(S)) {
       const auto *FD = llvm::dyn_cast<clang::FieldDecl>(ME->getMemberDecl());
-      if (!FD || !PtrFields.contains(FD))
+      if (!FD || !FD->getType()->isPointerType())
         return std::nullopt;
+      PointerLocation Out;
       if (!resolveBase(ME->getBase(), Out))
         return std::nullopt;
       Out.Path.push_back(FD);
       return Out;
     }
-
     return std::nullopt;
   }
 
-  // Defines the state that a pointer goes into when it is assigned/initialized
-  // with the value of expression E.
-  PointerState classify(const clang::Expr *E) {
-    const clang::Expr *S = stripWrappers(E);
-    if (!S)
-      return PS_PlainPointer;
-
-    // a = new int;
-    if (llvm::isa<clang::CXXNewExpr>(S))
-      return PS_NewPointer;
-
-    // a = nullptr; / a = NULL;
-    if (llvm::isa<clang::CXXNullPtrLiteralExpr>(S) ||
-        llvm::isa<clang::GNUNullExpr>(S))
-      return PS_PlainPointer;
-
-    // a = 0;
-    if (const auto *IL = llvm::dyn_cast<clang::IntegerLiteral>(S)) {
-      if (IL->getValue() == 0)
-        return PS_PlainPointer;
-    }
-
-    // rare case: the pointer is directly assigned the result of constructing a
-    // smart pointer
-    if (const auto *CE = llvm::dyn_cast<clang::CXXConstructExpr>(S)) {
-      if (isSmartPtrType(CE->getType()))
-        return PS_SmartPtrWrapper;
-    }
-
-    // b = a;  /  b = a.val;  -> infection with the CURRENT (for this block)
-    // state of the source
-    if (const auto SrcLoc = resolveLocation(S))
-      return getState(CurrentState, *SrcLoc);
-
-    // An unknown expression of a pointer type (function call, type cast, etc.)
-    // is considered an ordinary pointer.
-    if (S->getType()->isPointerType())
-      return PS_PlainPointer;
-
-    return PS_Unknown;
-  }
-
-  void addTransition(const PointerLocation &&Loc, PointerState NewState,
-                     const clang::Stmt *S) {
-    const PointerState From = getState(CurrentState, Loc);
-    if (Sink)
-      (*Sink)[Loc].push_back(Transition{From, NewState, S});
-    CurrentState[Loc] = NewState;
-  }
-
-  // Searches for a CXXConstructExpr of type shared_ptr or unique_ptr within the
-  // subtree of S and marks as SmartPtrWrapper any tracked locations passed as
-  // constructor arguments.
-  //
-  // The traversal is iterative (explicit stack on the heap), not recursive -
-  // recursion overflows the call stack on deeply nested expressions (confirmed
-  // by AddressSanitizer: stack-overflow).
-  void scanForSmartPtrWrap(const clang::Stmt *Root) {
-    if (!Root)
-      return;
-
-    std::vector<const clang::Stmt *> Worklist;
-    Worklist.push_back(Root);
-
-    while (!Worklist.empty()) {
-      const clang::Stmt *S = Worklist.back();
-      Worklist.pop_back();
-      if (!S)
-        continue;
-
-      if (const auto *CE = llvm::dyn_cast<clang::CXXConstructExpr>(S))
-        handleSmartPtrConstruct(CE, S);
-
-      if (const auto *ME = llvm::dyn_cast<clang::CXXMemberCallExpr>(S))
-        handleSmartPtrReset(ME, S);
-
-      for (const clang::Stmt *Child : S->children())
-        Worklist.push_back(Child);
-    }
-  }
-
-  void handleSmartPtrConstruct(const clang::CXXConstructExpr *CE,
-                               const clang::Stmt *EnclosingStmt) {
-    if (!isSmartPtrType(CE->getType()))
-      return;
-    if (!ProcessedConstructsAndResets.insert(CE).second)
-      return; // has already been processed within this call
-
-    for (const clang::Expr *Arg : CE->arguments()) {
-      if (auto Loc = resolveLocation(Arg))
-        addTransition(std::move(*Loc), PS_SmartPtrWrapper, EnclosingStmt);
-    }
-  }
-
-  void handleSmartPtrReset(const clang::CXXMemberCallExpr *ME,
-                           const clang::Stmt *EnclosingStmt) {
-    assert(ME);
-    if (!ME->getMethodDecl())
-      return;
-    if (!ME->getMethodDecl()->getDeclName().isIdentifier() ||
-        ME->getMethodDecl()->getName() != "reset")
-      return;
-    if (!isSmartPtrType(ME->getImplicitObjectArgument()->getType()))
-      return;
-    if (!ProcessedConstructsAndResets.insert(ME).second)
-      return; // has already been processed within this call
-
-    for (const clang::Expr *Arg : ME->arguments()) {
-      if (auto Loc = resolveLocation(Arg))
-        addTransition(std::move(*Loc), PS_SmartPtrWrapper, EnclosingStmt);
-    }
-  }
-};
-
-class TransitionsFinder {
-  ASTContext *Context;
-  const llvm::ArrayRef<StringRef> SharedPointers;
-  const llvm::ArrayRef<StringRef> UniquePointers;
-
-  using StateMap = std::map<PointerLocation, PointerState>;
-  using VariablesSet = llvm::SmallPtrSet<const clang::VarDecl *, 32>;
-  using FieldsSet = llvm::SmallPtrSet<const clang::FieldDecl *, 32>;
-
-  static PointerState getState(const StateMap &M, const PointerLocation &Loc) {
-    const auto It = M.find(Loc);
-    return It == M.end() ? PS_Unknown : It->second;
-  }
-
-public:
-  TransitionsFinder(ASTContext *TheContext,
-                    const llvm::ArrayRef<StringRef> &SharedPointers,
-                    const llvm::ArrayRef<StringRef> &UniquePointers)
-      : Context(TheContext), SharedPointers(SharedPointers),
-        UniquePointers(UniquePointers) {}
-
-  std::map<PointerLocation, std::vector<Transition>>
-  find(const VariablesSet &PtrVars, const FieldsSet &PtrFields,
-       const FunctionDecl *Func, Stmt *Body) {
-    // Settings to build CFG
-    CFG::BuildOptions Options;
-    Options.AddImplicitDtors = true;
-    Options.AddTemporaryDtors = true;
-    Options.AddInitializers = true;
-
-    const std::unique_ptr<CFG> TheCFG =
-        CFG::buildCFG(Func, Body, Context, Options);
-    if (!TheCFG)
-      return {};
-
-    return findInternally(PtrVars, PtrFields, *TheCFG);
-  }
-
-private:
-  // Reverse post-order traversal of CFG blocks (iterative DFS without recursion
-  // on the interpreter stack, to avoid dependence on the CFG depth).
-  static std::vector<const clang::CFGBlock *>
-  computeReversePostOrder(const clang::CFG &Cfg) {
-    std::vector<const clang::CFGBlock *> PostOrder;
-    llvm::SmallPtrSet<const clang::CFGBlock *, 32> Visited;
-
-    struct Frame {
-      const clang::CFGBlock *Block;
-      clang::CFGBlock::const_succ_iterator It;
-      clang::CFGBlock::const_succ_iterator End;
-    };
-
-    const clang::CFGBlock *Entry = &Cfg.getEntry();
-    if (!Entry)
-      return PostOrder;
-
-    std::vector<Frame> Stack;
-    Visited.insert(Entry);
-    Stack.push_back({Entry, Entry->succ_begin(), Entry->succ_end()});
-
-    while (!Stack.empty()) {
-      Frame &F = Stack.back();
-      if (F.It == F.End) {
-        PostOrder.push_back(F.Block);
-        Stack.pop_back();
-        continue;
-      }
-      const clang::CFGBlock *Succ = *F.It;
-      ++F.It;
-      if (!Succ || Visited.contains(Succ))
-        continue;
-      Visited.insert(Succ);
-      Stack.push_back({Succ, Succ->succ_begin(), Succ->succ_end()});
-    }
-
-    std::reverse(PostOrder.begin(), PostOrder.end());
-    return PostOrder;
-  }
-  // The analysis domain is NOT fully known in advance: locations like a.val are
-  // discovered only when traversing the function body. Therefore, before the
-  // fixpoint phase, we perform a light preliminary pass through all blocks
-  // INDEPENDENTLY (without propagating state between blocks—it's not needed
-  // here), collecting the set of all PointerLocation s that are ever the target
-  // of an assignment/initialization/argument to a smart pointer wrapper.
-  std::set<PointerLocation>
-  discoverLocations(const std::vector<const clang::CFGBlock *> &Order,
-                    const VariablesSet &PtrVars, const FieldsSet &PtrFields) {
-    std::set<PointerLocation> Domain;
-    for (const clang::VarDecl *VD : PtrVars)
-      Domain.insert(PointerLocation{VD, {}});
-
-    for (const clang::CFGBlock *Block : Order) {
-      if (!Block)
-        continue;
-      const StateMap Scratch; // disposable, empty at the entrance of each block
-      runBlockTransfer(*Block, PtrVars, PtrFields, Scratch, /*Sink=*/nullptr);
-      for (const auto &KV : Scratch)
-        Domain.insert(KV.first);
-    }
-    return Domain;
-  }
-  // Runs the "transfer function" of a single block: the input is the IN state,
-  // the output is the final (OUT) state. If Sink != nullptr, it also records
-  // the transitions.
-  StateMap
-  runBlockTransfer(const clang::CFGBlock &Block, const VariablesSet &PtrVars,
-                   const FieldsSet &PtrFields, const StateMap &In,
-                   std::map<PointerLocation, std::vector<Transition>> *Sink) {
-    StateMap Working = In;
-    PointerStateVisitor Visitor(Context, PtrVars, PtrFields, SharedPointers,
-                                UniquePointers, Working, Sink);
-    for (const clang::CFGElement &Elem : Block) {
-      if (auto CS = Elem.getAs<clang::CFGStmt>()) {
-        if (const clang::Stmt *S = CS->getStmt())
-          Visitor.Visit(S);
-      }
-    }
-    return Working;
-  }
-  std::map<PointerLocation, std::vector<Transition>>
-  findInternally(const VariablesSet &PtrVars, const FieldsSet &PtrFields,
-                 const clang::CFG &Cfg) {
-    std::map<PointerLocation, std::vector<Transition>> Result;
-
-    const std::vector<const clang::CFGBlock *> Order =
-        computeReversePostOrder(Cfg);
-    if (Order.empty()) {
-      for (const clang::VarDecl *VD : PtrVars)
-        Result[PointerLocation{VD,
-                               {}}]; // guarantee a key even without CFG blocks
-      return Result;
-    }
-
-    std::set<PointerLocation> Domain =
-        discoverLocations(Order, PtrVars, PtrFields);
-    for (const PointerLocation &Loc : Domain)
-      Result[Loc]; // guarantee the presence of a key even without transitions
-
-    const auto InitialState = [&] {
-      StateMap S;
-      for (const PointerLocation &Loc : Domain)
-        S[Loc] = PS_Unknown;
-      return S;
-    };
-    const auto JoinStates = [&](const StateMap &A, const StateMap &B) {
-      StateMap R;
-      for (const PointerLocation &Loc : Domain) {
-        const PointerState StateA = getState(A, Loc);
-        const PointerState StateB = getState(B, Loc);
-        R[Loc] = (StateA == StateB) ? StateA : PS_Unknown;
-      }
-      return R;
-    };
-    const auto StatesEqual = [&](const StateMap &A, const StateMap &B) {
-      return llvm::all_of(Domain, [&](const PointerLocation &Loc) {
-        return getState(A, Loc) == getState(B, Loc);
-      });
-    };
-
-    std::map<const clang::CFGBlock *, StateMap> InState;
-    std::map<const clang::CFGBlock *, StateMap> OutState;
-
-    // ---- Phase 1: Fixpoint on IN/OUT states, without recording transitions
-    const int MaxIters = static_cast<int>(Order.size()) * 4 + 16;
-    bool Changed = true;
-    int Iter = 0;
-    while (Changed && Iter < MaxIters) {
-      Changed = false;
-      ++Iter;
-
-      for (const clang::CFGBlock *Block : Order) {
-        StateMap NewIn;
-        bool HaveAny = false;
-        for (const clang::CFGBlock *Pred : Block->preds()) {
-          if (!Pred)
-            continue; // unreachable edge (AdjacentBlock == nullptr)
-          const auto It = OutState.find(Pred);
-          if (It == OutState.end())
-            continue; // the predecessor has not yet been processed in this pass
-          if (!HaveAny) {
-            NewIn = It->second;
-            HaveAny = true;
-          } else {
-            NewIn = JoinStates(NewIn, It->second);
-          }
-        }
-        if (!HaveAny)
-          NewIn = InitialState();
-
-        const auto InIt = InState.find(Block);
-        const bool InChanged =
-            (InIt == InState.end()) || !StatesEqual(InIt->second, NewIn);
-        if (InChanged) {
-          InState[Block] = NewIn;
-          Changed = true;
-        }
-
-        const StateMap NewOut = runBlockTransfer(
-            *Block, PtrVars, PtrFields, InState[Block], /*Sink=*/nullptr);
-
-        const auto OutIt = OutState.find(Block);
-        const bool OutChanged =
-            (OutIt == OutState.end()) || !StatesEqual(OutIt->second, NewOut);
-        if (OutChanged) {
-          OutState[Block] = NewOut;
-          Changed = true;
-        }
-      }
-    }
-
-    // ---- Phase 2: Emission - each block exactly once, with a final IN
-    for (const clang::CFGBlock *Block : Order) {
-      const StateMap In =
-          InState.count(Block) ? InState[Block] : InitialState();
-      runBlockTransfer(*Block, PtrVars, PtrFields, In, &Result);
-    }
-
-    return Result;
-  }
+  SmartPtrInitializationCheck &Check;
+  clang::ASTContext &Context;
+  llvm::ArrayRef<StringRef> SharedPointers;
+  llvm::ArrayRef<StringRef> UniquePointers;
+  std::set<PointerLocation> Wrapped;
 };
 
 } // namespace
@@ -637,124 +288,58 @@ public:
     const auto IsSharedPtr = hasAnyName(Check.SharedPointers);
     const auto IsUniquePtr = hasAnyName(Check.UniquePointers);
     const auto IsSmartPtr = anyOf(IsSharedPtr, IsUniquePtr);
-
-    const auto IsSharedPtrRecord = cxxRecordDecl(IsSharedPtr);
-    const auto IsUniquePtrRecord = cxxRecordDecl(IsUniquePtr);
     const auto IsSmartPtrRecord = cxxRecordDecl(IsSmartPtr);
 
-    const auto ResetCallMatcher = cxxMemberCallExpr(
-        on(hasType(hasUnqualifiedDesugaredType(recordType(
-            hasDeclaration(classTemplateSpecializationDecl(IsSmartPtr)))))),
-        callee(cxxMethodDecl(ofClass(IsSmartPtrRecord), hasName("reset"))));
     const auto SmartPtrGetCallMatcher = cxxMemberCallExpr(
         callee(cxxMethodDecl(hasName("get"))),
         on(hasType(hasUnqualifiedDesugaredType(recordType(
             hasDeclaration(classTemplateSpecializationDecl(IsSmartPtr)))))));
 
-    // Search for `std::shared_ptr(this);` or `std::shared_ptr(other_sp.get());`
-    const auto SmartPtrConstructorMatcher =
+    // `std::shared_ptr(this)` / `std::shared_ptr(other_sp.get())`
+    Finder->addMatcher(
         cxxConstructExpr(
             hasDeclaration(cxxConstructorDecl(ofClass(IsSmartPtrRecord))),
             hasArgument(0, anyOf(ignoringParenCasts(cxxThisExpr()),
-                                 ignoringParenCasts(SmartPtrGetCallMatcher))))
-            .bind("dangerous-ctor");
+                                  ignoringParenCasts(SmartPtrGetCallMatcher))))
+            .bind("dangerous-ctor"),
+        &Check);
 
-    // Search for `sp.reset(this);` or `sp.reset(other_sp.get())`
-    const auto ResetCallWithThisMatcher =
+    // `sp.reset(this)` / `sp.reset(other_sp.get())`
+    Finder->addMatcher(
         cxxMemberCallExpr(
             on(hasType(hasUnqualifiedDesugaredType(recordType(
                 hasDeclaration(classTemplateSpecializationDecl(IsSmartPtr)))))),
             callee(cxxMethodDecl(ofClass(IsSmartPtrRecord), hasName("reset"))),
             hasArgument(0, anyOf(ignoringParenCasts(cxxThisExpr()),
-                                 ignoringParenCasts(SmartPtrGetCallMatcher))))
-            .bind("dangerous-reset");
+                                  ignoringParenCasts(SmartPtrGetCallMatcher))))
+            .bind("dangerous-reset"),
+        &Check);
 
-    // Search a functions to perform data flow sensitive analysis.
-    const auto PotentiallyDangerousFunction =
-        functionDecl(
-            hasAnyBody(anything()),
-            anyOf(hasDescendant(cxxNewExpr()), hasDescendant(ResetCallMatcher),
-                  hasDescendant(cxxConstructExpr(hasDeclaration(
-                      cxxConstructorDecl(ofClass(IsSmartPtrRecord)))))))
-            .bind("func");
-
-    Finder->addMatcher(PotentiallyDangerousFunction, &Check);
-    Finder->addMatcher(SmartPtrConstructorMatcher, &Check);
-    Finder->addMatcher(ResetCallWithThisMatcher, &Check);
+    // Тело каждой функции/метода/лямбды один раз обходится
+    // DoubleWrapVisitor'ом; CFG строить не нужно, поэтому не нужен и
+    // предфильтр кандидатов.
+    Finder->addMatcher(functionDecl(hasBody(anything())).bind("func"), &Check);
   }
 
   void check(const ast_matchers::MatchFinder::MatchResult &Result) override {
-    const auto *CtorWithThisExpr =
-        Result.Nodes.getNodeAs<CXXConstructExpr>("dangerous-ctor");
-    const auto *ResetWithThisExpr =
-        Result.Nodes.getNodeAs<CXXMemberCallExpr>("dangerous-reset");
-    if (CtorWithThisExpr)
-      Check.emitDiagnostic(CtorWithThisExpr);
-    else if (ResetWithThisExpr)
-      Check.emitDiagnostic(ResetWithThisExpr);
-    else
-      checkFlowSensitive(Result);
+    if (const auto *Ctor =
+            Result.Nodes.getNodeAs<CXXConstructExpr>("dangerous-ctor")) {
+      Check.emitDiagnostic(Ctor);
+      return;
+    }
+    if (const auto *Reset =
+            Result.Nodes.getNodeAs<CXXMemberCallExpr>("dangerous-reset")) {
+      Check.emitDiagnostic(Reset);
+      return;
+    }
+    if (const auto *Func = Result.Nodes.getNodeAs<FunctionDecl>("func")) {
+      DoubleWrapVisitor(Check, *Result.Context, Check.SharedPointers,
+                         Check.UniquePointers)
+          .TraverseStmt(Func->getBody());
+    }
   }
 
   bool isStrictMode() override { return false; }
-
-private:
-  void
-  checkFlowSensitive(const ast_matchers::MatchFinder::MatchResult &Result) {
-    const auto *Func = Result.Nodes.getNodeAs<FunctionDecl>("func");
-    if (!Func || !Func->hasBody())
-      return;
-
-    Stmt *Body = Func->getBody();
-    if (!Body)
-      return;
-
-    // Collect all pointer variables inside the functions
-    llvm::SmallPtrSet<const VarDecl *, 32> PtrVars;
-    llvm::SmallPtrSet<const FieldDecl *, 32> PtrFields;
-
-    for (const ParmVarDecl *PVD : Func->parameters())
-      if (PVD->getType()->isPointerType())
-        PtrVars.insert(PVD);
-
-    std::function<void(const Stmt *)> CollectPtrVars = [&](const Stmt *S) {
-      if (!S)
-        return;
-
-      if (const auto *DS = dyn_cast<DeclStmt>(S)) {
-        for (const auto *D : DS->decls()) {
-          if (const auto *VD = dyn_cast<VarDecl>(D)) {
-            if (VD->getType()->isPointerType())
-              PtrVars.insert(VD);
-          }
-        }
-      } else if (const auto *MS = dyn_cast<MemberExpr>(S)) {
-        if (const auto *MD = MS->getMemberDecl()) {
-          if (const auto *FD = dyn_cast<FieldDecl>(MD)) {
-            if (FD->getType()->isPointerType())
-              PtrFields.insert(FD);
-          }
-        }
-      }
-
-      for (const auto *Child : S->children())
-        CollectPtrVars(Child);
-    };
-
-    CollectPtrVars(Body);
-
-    TransitionsFinder Finder(Result.Context, Check.SharedPointers,
-                             Check.UniquePointers);
-    const auto Transitions = Finder.find(PtrVars, PtrFields, Func, Body);
-    for (const auto &[_, TransList] : Transitions) {
-      for (const auto &T : TransList) {
-        if (T.FromState == T.ToState && T.FromState == PS_SmartPtrWrapper) {
-          if (const auto *E = dyn_cast<const Expr>(T.Stmt))
-            Check.emitDiagnostic(E);
-        }
-      }
-    }
-  }
 };
 
 class SmartPtrInitializationCheckStrictMode

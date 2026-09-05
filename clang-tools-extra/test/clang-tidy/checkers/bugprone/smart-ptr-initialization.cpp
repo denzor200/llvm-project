@@ -251,7 +251,6 @@ void test_nested_function() {
   auto lambda = []() {
     int* a = new int(42);
     std::shared_ptr<int> p1(a);
-    // CHECK-MESSAGES: :[[@LINE-1]]:29: warning: passing a raw pointer 'int *' to 'std::shared_ptr<int>' constructor may cause double deletion
     std::shared_ptr<int> p2(a);
     // CHECK-MESSAGES: :[[@LINE-1]]:29: warning: passing a raw pointer 'int *' to 'std::shared_ptr<int>' constructor may cause double deletion
   };
@@ -262,8 +261,8 @@ void test_nested_function2() {
   int* a = new int(42);
   auto lambda = [&]() {
     std::shared_ptr<int> p1(a);
-    // CHECK-MESSAGES: :[[@LINE-1]]:29: warning: passing a raw pointer 'int *' to 'std::shared_ptr<int>' constructor may cause double deletion
     std::shared_ptr<int> p2(a);
+    // CHECK-MESSAGES: :[[@LINE-1]]:29: warning: passing a raw pointer 'int *' to 'std::shared_ptr<int>' constructor may cause double deletion
   };
   lambda();
 }

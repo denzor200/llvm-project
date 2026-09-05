@@ -33,8 +33,10 @@ public:
   void check(const ast_matchers::MatchFinder::MatchResult &Result) override;
   void storeOptions(ClangTidyOptions::OptionMap &Opts) override;
 
-private:
+  // TODO: private
   void emitDiagnostic(const Expr *ConstructorOrMember);
+
+private:
   const std::vector<StringRef> SharedPointers;
   const std::vector<StringRef> UniquePointers;
   const std::vector<StringRef> DefaultDeleters;
