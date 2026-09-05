@@ -1,24 +1,6 @@
 // RUN: %check_clang_tidy %s bugprone-multiple-smart-ptr-owners %t
 
-namespace std {
-template <typename T> struct default_delete {};
-
-template <typename T, typename D = default_delete<T>> class unique_ptr {
-public:
-  unique_ptr() = default;
-  explicit unique_ptr(T *p) : ptr(p) {}
-  ~unique_ptr() { delete ptr; }
-  T *ptr = nullptr;
-};
-
-template <typename T> class shared_ptr {
-public:
-  shared_ptr() = default;
-  explicit shared_ptr(T *p) : ptr(p) {}
-  ~shared_ptr() { delete ptr; }
-  T *ptr = nullptr;
-};
-} // namespace std
+#include <memory>
 
 struct A {};
 bool cond();
