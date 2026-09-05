@@ -23,6 +23,37 @@ using namespace clang::tidy::utils;
 
 namespace clang::tidy::bugprone {
 
+// Remove wrappers that do not carry semantic load for classifying the value:
+// brackets, implicit casts, temporary objects, cleanup nodes.
+static const clang::Expr *stripWrappers(const clang::Expr *E) {
+  while (E) {
+    const clang::Expr *Prev = E;
+    E = E->IgnoreParens();
+    switch (E->getStmtClass()) {
+    case clang::Stmt::ImplicitCastExprClass:
+      E = cast<clang::ImplicitCastExpr>(E)->getSubExpr();
+      break;
+    case clang::Stmt::ExprWithCleanupsClass:
+      E = cast<clang::ExprWithCleanups>(E)->getSubExpr();
+      break;
+    case clang::Stmt::MaterializeTemporaryExprClass:
+      E = cast<clang::MaterializeTemporaryExpr>(E)->getSubExpr();
+      break;
+    case clang::Stmt::CXXBindTemporaryExprClass:
+      E = cast<clang::CXXBindTemporaryExpr>(E)->getSubExpr();
+      break;
+    case clang::Stmt::ConstantExprClass:
+      E = cast<clang::ConstantExpr>(E)->getSubExpr();
+      break;
+    default:
+      break;
+    }
+    if (E == Prev)
+      break;
+  }
+  return E;
+}
+
 namespace {
 
 /// A matcher fragment for the constructor of an owning smart pointer that
@@ -303,8 +334,9 @@ void OwnershipTransferFinder::getReinits(
 static void emitDiagnostic(const ASTContext *Context,
                            const OwnershipTransfer &Transfer,
                            ClangTidyCheck *Check) {
-  // TODO: check is it a valid location
-  const SourceLocation UseLoc = Transfer.DeclRef->getExprLoc();
+  const SourceLocation UseLoc = Transfer.DeclRef->getBeginLoc();
+  if (UseLoc.isInvalid())
+    return;
   if (const auto *SmartPtrCtor = dyn_cast<const CXXConstructExpr>(Transfer.ConstructOrResetExpr)) {
       
     Check->diag(UseLoc,
@@ -422,13 +454,13 @@ void MultipleSmartPtrOwnersCheck::check(const ast_matchers::MatchFinder::MatchRe
   const auto *ResetWithThisExpr =
       Result.Nodes.getNodeAs<CXXMemberCallExpr>("dangerous-reset");
   if (CtorWithThisExpr) {
-    const Expr *PointerArg = CtorWithThisExpr->getArg(0); // TODO: ignore parens??
+    const Expr *PointerArg = stripWrappers(CtorWithThisExpr->getArg(0));
     if (!PointerArg)
       return;
     emitDiagnostic(Result.Context, {PointerArg, CtorWithThisExpr}, this);
   }
   else if (ResetWithThisExpr) {
-    const Expr *PointerArg = ResetWithThisExpr->getArg(0); // TODO: ignore parens??
+    const Expr *PointerArg = stripWrappers(ResetWithThisExpr->getArg(0));
     if (!PointerArg)
       return;
     emitDiagnostic(Result.Context, {PointerArg, ResetWithThisExpr}, this);
