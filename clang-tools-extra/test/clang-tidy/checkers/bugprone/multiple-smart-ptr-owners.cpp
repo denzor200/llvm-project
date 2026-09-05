@@ -52,6 +52,18 @@ void test_loop_fail() {
   }
 }
 
+void test_loop_fail_with_reset() {
+  A *raw = new A();
+  std::shared_ptr<A> keep;
+  for (int i = 0; i < 3; ++i) {
+    std::shared_ptr<A> a;
+    a.reset(raw);
+    // CHECK-MESSAGES: :[[@LINE-1]]:13: warning: passing a raw pointer 'A *' to 'std::shared_ptr<A>' reset method may cause double deletion [bugprone-multiple-smart-ptr-owners]
+    // CHECK-MESSAGES: :[[@LINE-2]]:13: note: the second construction happens in a later loop iteration than the first
+    keep = a;
+  }
+}
+
 void test_ok_different_pointers() {
   A *p1 = new A();
   A *p2 = new A();

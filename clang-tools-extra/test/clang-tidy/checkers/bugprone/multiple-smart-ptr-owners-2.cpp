@@ -308,6 +308,38 @@ void test_basic_no_double_ownership(std::shared_ptr<int> p1, std::shared_ptr<int
   p2.reset(a);
 }
 
+
+void test_new_expression_reset_fail() {
+  A* first = new A();
+  A* second = new A();
+  std::shared_ptr<A> a;
+  a.reset(first);
+  std::shared_ptr<A> a2;
+  a2.reset(first);
+  // CHECK-MESSAGES: :[[@LINE-1]]:12: warning: passing a raw pointer 'A *' to 'std::shared_ptr<A>' reset method may cause double deletion
+  std::unique_ptr<A> b;
+  b.reset(second);
+  std::unique_ptr<A> b2;
+  b2.reset(second);
+  // CHECK-MESSAGES: :[[@LINE-1]]:12: warning: passing a raw pointer 'A *' to 'std::unique_ptr<A>' reset method may cause double deletion
+}
+
+
+void test_new_expression_crossed_fail() {
+  A* first = new A();
+  A* second = new A();
+  std::shared_ptr<A> a(first);
+  std::shared_ptr<A> a2;
+  a2.reset(first);
+  // CHECK-MESSAGES: :[[@LINE-1]]:12: warning: passing a raw pointer 'A *' to 'std::shared_ptr<A>' reset method may cause double deletion
+  std::unique_ptr<A> b;
+  b.reset(second);
+  std::unique_ptr<A> b2(second);
+  // CHECK-MESSAGES: :[[@LINE-1]]:25: warning: passing a raw pointer 'A *' to 'std::unique_ptr<A>' constructor may cause double deletion
+}
+
+
+
 bool can_take(std::shared_ptr<A> a);
 void take(std::shared_ptr<A> a);
 

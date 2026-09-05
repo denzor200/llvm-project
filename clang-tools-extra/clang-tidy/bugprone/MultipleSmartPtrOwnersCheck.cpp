@@ -31,8 +31,21 @@ namespace {
 /// raw pointer) never match `hasType(pointerType())` on the referenced
 /// variable, so they're naturally excluded.
 static auto smartPtrCtorTakingRawPointer() {
+  // TODO: smart pointer names must be loaded from options
   return cxxConstructExpr(hasDeclaration(cxxConstructorDecl(ofClass(
       cxxRecordDecl(hasAnyName("::std::unique_ptr", "::std::shared_ptr"))))));
+}
+
+static auto smartPtrResetTakingRawPointer() {
+  static const auto IsSharedPtr = hasAnyName("::std::shared_ptr");
+  static const auto IsUniquePtr = hasAnyName("::std::unique_ptr");
+  static const auto IsSmartPtr = anyOf(IsSharedPtr, IsUniquePtr);
+  static const auto IsSmartPtrRecord = cxxRecordDecl(IsSmartPtr);
+
+  return cxxMemberCallExpr(
+        on(hasType(hasUnqualifiedDesugaredType(recordType(
+            hasDeclaration(classTemplateSpecializationDecl(IsSmartPtr)))))),
+        callee(cxxMethodDecl(ofClass(IsSmartPtrRecord), hasName("reset"))));
 }
 
 /// Contains information about a second "ownership transfer" of a raw
@@ -42,9 +55,10 @@ struct OwnershipTransfer {
   // smart-pointer construction.
   const DeclRefExpr *DeclRef;
 
+  // TODO: change the comment
   // The CXXConstructExpr of that second construction (used to print the
   // smart-pointer type in the diagnostic).
-  const CXXConstructExpr *ConstructExpr;
+  const Expr *ConstructOrResetExpr;
 
   // Is the order in which the two constructions are evaluated undefined?
   bool EvaluationOrderUndefined = false;
@@ -78,7 +92,7 @@ private:
 
   void getOwnershipTransfers(
       const CFGBlock *Block, const Decl *RawPtrVar,
-      SmallVectorImpl<std::pair<const DeclRefExpr *, const CXXConstructExpr *>>
+      SmallVectorImpl<std::pair<const DeclRefExpr *, const Expr *>>
           *Transfers);
 
   void getReinits(const CFGBlock *Block, const ValueDecl *RawPtrVar,
@@ -147,7 +161,7 @@ OwnershipTransferFinder::findInternal(const CFGBlock *Block,
   if (!FirstTransfer)
     Visited.insert(Block);
 
-  SmallVector<std::pair<const DeclRefExpr *, const CXXConstructExpr *>, 1>
+  SmallVector<std::pair<const DeclRefExpr *, const Expr *>, 1>
       Transfers;
   llvm::SmallPtrSet<const Stmt *, 1> Reinits;
   getOwnershipTransfers(Block, RawPtrVar, &Transfers);
@@ -164,31 +178,31 @@ OwnershipTransferFinder::findInternal(const CFGBlock *Block,
   for (const Stmt *Reinit : ReinitsToDelete)
     Reinits.erase(Reinit);
 
-  for (const auto &[DeclRef, ConstructExpr] : Transfers) {
+  for (const auto &[DeclRef, ConstructOrResetExpr] : Transfers) {
     // Never match a transfer against itself.
-    if (ConstructExpr == FirstTransfer)
+    if (ConstructOrResetExpr == FirstTransfer)
       continue;
 
     if (!FirstTransfer ||
-        Sequence->potentiallyAfter(ConstructExpr, FirstTransfer)) {
+        Sequence->potentiallyAfter(ConstructOrResetExpr, FirstTransfer)) {
       // Does this transfer have a "saving" reinit -- i.e. one that
       // definitely (not just potentially) happens before it?
       bool HaveSavingReinit = false;
       for (const Stmt *Reinit : Reinits)
-        if (!Sequence->potentiallyAfter(Reinit, ConstructExpr))
+        if (!Sequence->potentiallyAfter(Reinit, ConstructOrResetExpr))
           HaveSavingReinit = true;
 
       if (!HaveSavingReinit) {
         OwnershipTransfer Result;
         Result.DeclRef = DeclRef;
-        Result.ConstructExpr = ConstructExpr;
+        Result.ConstructOrResetExpr = ConstructOrResetExpr;
 
         // Same order-of-evaluation caveat as UseAfterMoveCheck: if the
         // first transfer could also potentially come after this one, the
         // relative order between them is unspecified.
         Result.EvaluationOrderUndefined =
             FirstTransfer != nullptr &&
-            Sequence->potentiallyAfter(FirstTransfer, ConstructExpr);
+            Sequence->potentiallyAfter(FirstTransfer, ConstructOrResetExpr);
 
         return Result;
       }
@@ -211,16 +225,19 @@ OwnershipTransferFinder::findInternal(const CFGBlock *Block,
 
 void OwnershipTransferFinder::getOwnershipTransfers(
     const CFGBlock *Block, const Decl *RawPtrVar,
-    SmallVectorImpl<std::pair<const DeclRefExpr *, const CXXConstructExpr *>>
+    SmallVectorImpl<std::pair<const DeclRefExpr *, const Expr *>>
         *Transfers) {
   Transfers->clear();
 
   const auto DeclRefMatcher =
       declRefExpr(hasDeclaration(equalsNode(RawPtrVar))).bind("declref");
-  const auto TransferMatcher =
+  const auto TransferMatcher = anyOf(
       cxxConstructExpr(smartPtrCtorTakingRawPointer(),
                        hasArgument(0, ignoringParenImpCasts(DeclRefMatcher)))
-          .bind("construct");
+          .bind("construct"),
+      cxxMemberCallExpr(smartPtrResetTakingRawPointer(),
+                       hasArgument(0, ignoringParenImpCasts(DeclRefMatcher)))
+          .bind("reset"));
 
   for (const auto &Elem : *Block) {
     std::optional<CFGStmt> S = Elem.getAs<CFGStmt>();
@@ -228,15 +245,18 @@ void OwnershipTransferFinder::getOwnershipTransfers(
       continue;
 
     const SmallVector<BoundNodes, 1> Matches =
-        match(findAll(TransferMatcher), *S->getStmt(), *Context);
+        match(findAll(expr(TransferMatcher)), *S->getStmt(), *Context);
 
     for (const auto &Match : Matches) {
       const auto *DeclRef = Match.getNodeAs<DeclRefExpr>("declref");
       const auto *ConstructExpr =
           Match.getNodeAs<CXXConstructExpr>("construct");
-      if (DeclRef && ConstructExpr &&
+      const auto* ResetExpr =
+          Match.getNodeAs<CXXMemberCallExpr>("reset");
+      const Expr* ConstructOrResetExpr = ConstructExpr ? static_cast<const Expr*>(ConstructExpr) : static_cast<const Expr*>(ResetExpr);
+      if (DeclRef && ConstructOrResetExpr &&
           BlockMap->blockContainingStmt(DeclRef) == Block)
-        Transfers->push_back({DeclRef, ConstructExpr});
+        Transfers->push_back({DeclRef, ConstructOrResetExpr});
     }
   }
 
@@ -279,22 +299,24 @@ void OwnershipTransferFinder::getReinits(
   }
 }
 
-static void emitDiagnostic(const Expr *FirstTransfer, const ASTContext *Context,
+static void emitDiagnostic(const ASTContext *Context,
                            const OwnershipTransfer &Transfer,
                            ClangTidyCheck *Check) {
   const SourceLocation UseLoc = Transfer.DeclRef->getExprLoc();
-  const SourceLocation FirstLoc = FirstTransfer->getExprLoc();
+  if (const auto *SmartPtrCtor = dyn_cast<const CXXConstructExpr>(Transfer.ConstructOrResetExpr)) {
+      
+    Check->diag(UseLoc,
+              "passing a raw pointer %0 to %1 constructor may cause "
+              "double deletion")
+        << Transfer.DeclRef->getType() << SmartPtrCtor->getType();
 
-  const std::string PointerType =
-      Transfer.DeclRef->getType().getAsString(Context->getPrintingPolicy());
-  const std::string SmartPtrType =
-      Transfer.ConstructExpr->getType().getAsString(
-          Context->getPrintingPolicy());
+  } else if (const auto *ResetCall = dyn_cast<const CXXMemberCallExpr>(Transfer.ConstructOrResetExpr)) {
+  
+    Check->diag(UseLoc,
+              "passing a raw pointer %0 to %1 reset method may cause double deletion")
+        << Transfer.DeclRef->getType() << ResetCall->getObjectType();
 
-  Check->diag(UseLoc,
-             "passing a raw pointer '%0' to '%1' constructor may cause "
-             "double deletion")
-      << PointerType << SmartPtrType;
+  }
 
   if (Transfer.EvaluationOrderUndefined) {
     Check->diag(UseLoc,
@@ -321,15 +343,25 @@ void MultipleSmartPtrOwnersCheck::registerMatchers(MatchFinder *Finder) {
   Finder->addMatcher(
       traverse(
           TK_AsIs,
-          cxxConstructExpr(
-              smartPtrCtorTakingRawPointer(),
+          expr(anyOf(
+            cxxConstructExpr(
+                smartPtrCtorTakingRawPointer(),
+                hasArgument(0, ignoringParenImpCasts(RawPtrArg)),
+                anyOf(hasAncestor(compoundStmt(
+                          hasParent(lambdaExpr().bind("containing-lambda")))),
+                      hasAncestor(functionDecl(
+                          anyOf(cxxConstructorDecl().bind("containing-ctor"),
+                                functionDecl().bind("containing-func")))))),
+            cxxMemberCallExpr(
+              smartPtrResetTakingRawPointer(),
               hasArgument(0, ignoringParenImpCasts(RawPtrArg)),
               anyOf(hasAncestor(compoundStmt(
-                        hasParent(lambdaExpr().bind("containing-lambda")))),
-                    hasAncestor(functionDecl(
-                        anyOf(cxxConstructorDecl().bind("containing-ctor"),
-                              functionDecl().bind("containing-func"))))))
-              .bind("transfer-call")),
+                          hasParent(lambdaExpr().bind("containing-lambda")))),
+                      hasAncestor(functionDecl(
+                          anyOf(cxxConstructorDecl().bind("containing-ctor"),
+                                functionDecl().bind("containing-func")))))
+              )
+              )).bind("transfer-call")),
       this);
 }
 
@@ -342,7 +374,7 @@ void MultipleSmartPtrOwnersCheck::check(
   const auto *ContainingFunc =
       Result.Nodes.getNodeAs<FunctionDecl>("containing-func");
   const auto *TransferCall =
-      Result.Nodes.getNodeAs<CXXConstructExpr>("transfer-call");
+      Result.Nodes.getNodeAs<Expr>("transfer-call");
   const auto *Arg = Result.Nodes.getNodeAs<DeclRefExpr>("arg");
 
   if (!TransferCall || !Arg)
@@ -365,7 +397,7 @@ void MultipleSmartPtrOwnersCheck::check(
 
   OwnershipTransferFinder Finder(Result.Context);
   if (auto Transfer = Finder.find(CodeBlock, TransferCall, Arg))
-    emitDiagnostic(TransferCall, Result.Context, *Transfer, this);
+    emitDiagnostic(Result.Context, *Transfer, this);
 }
 
 } // namespace clang::tidy::bugprone
