@@ -104,9 +104,6 @@ struct OwnershipTransfer {
   // smart-pointer type in the diagnostic.
   const Expr *ConstructOrResetExpr;
 
-  // Is the order in which the two constructions are evaluated undefined?
-  bool EvaluationOrderUndefined = false;
-
   // Does the second transfer happen in a later loop iteration than the
   // first one?
   bool UseHappensInLaterLoopIteration = false;
@@ -242,14 +239,6 @@ OwnershipTransferFinder::findInternal(const CFGBlock *Block,
         OwnershipTransfer Result;
         Result.E = E;
         Result.ConstructOrResetExpr = ConstructOrResetExpr;
-
-        // Same order-of-evaluation caveat as UseAfterMoveCheck: if the
-        // first transfer could also potentially come after this one, the
-        // relative order between them is unspecified.
-        Result.EvaluationOrderUndefined =
-            FirstTransfer != nullptr &&
-            Sequence->potentiallyAfter(FirstTransfer, ConstructOrResetExpr);
-
         return Result;
       }
     }
@@ -397,13 +386,7 @@ static void emitDiagnostic(const OwnershipTransfer &Transfer,
         << PointerArg->getType() << ResetCall->getObjectType();
   }
 
-  if (Transfer.EvaluationOrderUndefined) {
-    Check->diag(UseLoc,
-                "the two smart-pointer constructions are unsequenced, i.e. "
-                "there is no guarantee about the order in which they are "
-                "evaluated",
-                DiagnosticIDs::Note);
-  } else if (Transfer.UseHappensInLaterLoopIteration) {
+  if (Transfer.UseHappensInLaterLoopIteration) {
     Check->diag(UseLoc,
                 "the second construction happens in a later loop iteration "
                 "than the first",
