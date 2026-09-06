@@ -318,21 +318,20 @@ void OwnershipTransferFinder::getReinits(
   const auto DeclRefMatcher =
       declRefExpr(hasDeclaration(equalsNode(RawPtrVar)));
   const auto ReinitMatcher =
-      stmt(anyOf(binaryOperation(hasOperatorName("="),
-                                 hasLHS(ignoringParenImpCasts(DeclRefMatcher))),
-                 declStmt(hasDescendant(equalsNode(RawPtrVar))),
-                 // Passing variable to a function as a non-const pointer.
-                 callExpr(forEachArgumentWithParam(
-                     unaryOperator(hasOperatorName("&"),
-                                   hasUnaryOperand(DeclRefMatcher)),
-                     unless(
-                         parmVarDecl(hasType(pointsTo(isConstQualified())))))),
-                 // Passing variable to a function as a non-const lvalue
-                 callExpr(forEachArgumentWithParam(
-                              traverse(TK_AsIs, DeclRefMatcher),
-                              unless(parmVarDecl(hasType(
-                                  references(qualType(isConstQualified())))))))
-                ))
+      stmt(anyOf(
+               binaryOperation(hasOperatorName("="),
+                               hasLHS(ignoringParenImpCasts(DeclRefMatcher))),
+               declStmt(hasDescendant(equalsNode(RawPtrVar))),
+               // Passing variable to a function as a non-const pointer.
+               callExpr(forEachArgumentWithParam(
+                   unaryOperator(hasOperatorName("&"),
+                                 hasUnaryOperand(DeclRefMatcher)),
+                   unless(parmVarDecl(hasType(pointsTo(isConstQualified())))))),
+               // Passing variable to a function as a non-const lvalue
+               callExpr(forEachArgumentWithParam(
+                   traverse(TK_AsIs, DeclRefMatcher),
+                   unless(parmVarDecl(
+                       hasType(references(qualType(isConstQualified())))))))))
           .bind("reinit");
 
   for (const auto &Elem : *Block) {
