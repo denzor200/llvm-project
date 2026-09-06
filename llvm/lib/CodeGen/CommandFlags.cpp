@@ -23,6 +23,7 @@
 #include "llvm/MC/MCTargetOptionsCommandFlags.h"
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/CommandLine.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/Path.h"
@@ -75,7 +76,6 @@ CGOPT_EXP(uint64_t, LargeDataThreshold)
 CGOPT(ExceptionHandling, ExceptionModel)
 CGOPT_EXP(CodeGenFileType, FileType)
 CGOPT(FramePointerKind, FramePointerUsage)
-CGOPT(bool, EnableNoTrappingFPMath)
 CGOPT(bool, EnableAIXExtendedAltivecABI)
 CGOPT(DenormalMode::DenormalModeKind, DenormalFPMath)
 CGOPT(DenormalMode::DenormalModeKind, DenormalFP32Math)
@@ -230,13 +230,6 @@ codegen::RegisterCodeGenFlags::RegisterCodeGenFlags() {
           clEnumValN(FramePointerKind::None, "none",
                      "Enable frame pointer elimination")));
   CGBINDOPT(FramePointerUsage);
-
-  static cl::opt<bool> EnableNoTrappingFPMath(
-      "enable-no-trapping-fp-math",
-      cl::desc("Enable setting the FP exceptions build "
-               "attribute not to use exceptions"),
-      cl::init(false));
-  CGBINDOPT(EnableNoTrappingFPMath);
 
   static const auto DenormFlagEnumOptions = cl::values(
       clEnumValN(DenormalMode::IEEE, "ieee", "IEEE 754 denormal numbers"),
@@ -584,12 +577,9 @@ TargetOptions
 codegen::InitTargetOptionsFromCodeGenFlags(const Triple &TheTriple) {
   TargetOptions Options;
   Options.AllowFPOpFusion = getFuseFPOps();
-  Options.NoTrappingFPMath = getEnableNoTrappingFPMath();
 
   Options.HonorSignDependentRoundingFPMathOption =
       getEnableHonorSignDependentRoundingFPMath();
-  if (getFloatABIForCalls() != FloatABI::Default)
-    Options.FloatABIType = getFloatABIForCalls();
   Options.EnableAIXExtendedAltivecABI = getEnableAIXExtendedAltivecABI();
   Options.NoZerosInBSS = getDontPlaceZerosInBSS();
   Options.GuaranteedTailCallOpt = getEnableGuaranteedTailCallOpt();
@@ -774,6 +764,25 @@ void codegen::setFunctionAttributes(Function &F, StringRef CPU,
 
 void codegen::setFunctionAttributes(Module &M, StringRef CPU,
                                     StringRef Features, StringRef TuneCPU) {
+  // Synthesize the "float-abi" module flag from the -float-abi option.
+  FloatABI::ABIType ABI = getFloatABIForCalls();
+  if (ABI != FloatABI::Default) {
+    if (auto *Existing =
+            dyn_cast_or_null<MDString>(M.getModuleFlag("float-abi"))) {
+      // The module already records a float ABI; -float-abi must not contradict
+      // it.
+      if (Existing->getString() != FloatABI::getABITypeName(ABI))
+        reportFatalUsageError(
+            "-float-abi=" + FloatABI::getABITypeName(ABI) +
+            " conflicts with the \"float-abi\" module flag \"" +
+            Existing->getString() + "\"");
+    } else {
+      M.addModuleFlag(
+          Module::Error, "float-abi",
+          MDString::get(M.getContext(), FloatABI::getABITypeName(ABI)));
+    }
+  }
+
   for (Function &F : M)
     setFunctionAttributes(F, CPU, Features, TuneCPU);
 }
