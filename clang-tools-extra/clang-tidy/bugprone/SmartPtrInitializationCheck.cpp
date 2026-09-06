@@ -17,6 +17,7 @@
 #include "clang/ASTMatchers/ASTMatchers.h"
 #include "clang/Analysis/Analyses/CFGReachabilityAnalysis.h"
 #include "clang/Analysis/CFG.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include <memory>
 #include <optional>
@@ -39,16 +40,19 @@ const auto DefaultDefaultDeleters = "::std::default_delete";
 /// Copy/move constructors (whose argument is another smart pointer, not a
 /// raw pointer) never match `hasType(pointerType())` on the referenced
 /// variable, so they're naturally excluded.
-static auto smartPtrCtorTakingRawPointer() {
-  // TODO: smart pointer names must be loaded from options
+static auto smartPtrCtorTakingRawPointer(llvm::ArrayRef<StringRef> SharedPointers, llvm::ArrayRef<StringRef> UniquePointers) {
+  static const auto IsSharedPtr = hasAnyName(SharedPointers);
+  static const auto IsUniquePtr = hasAnyName(UniquePointers);
+  static const auto IsSmartPtr = anyOf(IsSharedPtr, IsUniquePtr);
+  static const auto IsSmartPtrRecord = cxxRecordDecl(IsSmartPtr);
+
   return cxxConstructExpr(hasDeclaration(cxxConstructorDecl(ofClass(
-      cxxRecordDecl(hasAnyName("::std::unique_ptr", "::std::shared_ptr"))))));
+      IsSmartPtrRecord))));
 }
 
-static auto smartPtrResetTakingRawPointer() {
-  // TODO: smart pointer names must be loaded from options
-  static const auto IsSharedPtr = hasAnyName("::std::shared_ptr");
-  static const auto IsUniquePtr = hasAnyName("::std::unique_ptr");
+static auto smartPtrResetTakingRawPointer(llvm::ArrayRef<StringRef> SharedPointers, llvm::ArrayRef<StringRef> UniquePointers) {
+  static const auto IsSharedPtr = hasAnyName(SharedPointers);
+  static const auto IsUniquePtr = hasAnyName(UniquePointers);
   static const auto IsSmartPtr = anyOf(IsSharedPtr, IsUniquePtr);
   static const auto IsSmartPtrRecord = cxxRecordDecl(IsSmartPtr);
 
@@ -85,8 +89,8 @@ struct OwnershipTransfer {
 /// `UseAfterMoveFinder` in `UseAfterMoveCheck.cpp`.
 class OwnershipTransferFinder {
 public:
-  explicit OwnershipTransferFinder(ASTContext *TheContext)
-      : Context(TheContext) {}
+  explicit OwnershipTransferFinder(ASTContext *TheContext, llvm::ArrayRef<StringRef> SharedPointers, llvm::ArrayRef<StringRef> UniquePointers)
+      : Context(TheContext), SharedPointers(SharedPointers), UniquePointers(UniquePointers) {}
 
   // Within the given code block, finds the first ownership transfer of
   // 'RawPtrVar' that occurs after 'FirstTransfer' (the construct expression
@@ -108,7 +112,9 @@ private:
   void getReinits(const CFGBlock *Block, const ValueDecl *RawPtrVar,
                   llvm::SmallPtrSetImpl<const Stmt *> *Stmts);
 
-  ASTContext *Context;
+  ASTContext * const Context;
+  const llvm::ArrayRef<StringRef> SharedPointers;
+  const llvm::ArrayRef<StringRef> UniquePointers;
   std::unique_ptr<ExprSequence> Sequence;
   std::unique_ptr<StmtToBlockMap> BlockMap;
   llvm::SmallPtrSet<const CFGBlock *, 8> Visited;
@@ -239,10 +245,10 @@ void OwnershipTransferFinder::getOwnershipTransfers(
   const auto DeclRefMatcher =
       declRefExpr(hasDeclaration(equalsNode(RawPtrVar))).bind("declref");
   const auto TransferMatcher = anyOf(
-      cxxConstructExpr(smartPtrCtorTakingRawPointer(),
+      cxxConstructExpr(smartPtrCtorTakingRawPointer(SharedPointers, UniquePointers),
                        hasArgument(0, ignoringParenImpCasts(DeclRefMatcher)))
           .bind("construct"),
-      cxxMemberCallExpr(smartPtrResetTakingRawPointer(),
+      cxxMemberCallExpr(smartPtrResetTakingRawPointer(SharedPointers, UniquePointers),
                         hasArgument(0, ignoringParenImpCasts(DeclRefMatcher)))
           .bind("reset"));
 
@@ -438,7 +444,7 @@ public:
             TK_AsIs,
             expr(anyOf(
                      cxxConstructExpr(
-                         smartPtrCtorTakingRawPointer(),
+                         smartPtrCtorTakingRawPointer(Check.SharedPointers, Check.UniquePointers),
                          hasArgument(0, ignoringParenImpCasts(RawPtrArg)),
                          anyOf(hasAncestor(compoundStmt(hasParent(
                                    lambdaExpr().bind("containing-lambda")))),
@@ -446,7 +452,7 @@ public:
                                    cxxConstructorDecl().bind("containing-ctor"),
                                    functionDecl().bind("containing-func")))))),
                      cxxMemberCallExpr(
-                         smartPtrResetTakingRawPointer(),
+                         smartPtrResetTakingRawPointer(Check.SharedPointers, Check.UniquePointers),
                          hasArgument(0, ignoringParenImpCasts(RawPtrArg)),
                          anyOf(hasAncestor(compoundStmt(hasParent(
                                    lambdaExpr().bind("containing-lambda")))),
@@ -456,9 +462,8 @@ public:
                 .bind("transfer-call")),
         &Check);
 
-    // TODO: smart pointer names must be loaded from options
-    const auto IsSharedPtr = hasAnyName("::std::shared_ptr");
-    const auto IsUniquePtr = hasAnyName("::std::unique_ptr");
+    const auto IsSharedPtr = hasAnyName(Check.SharedPointers);
+    const auto IsUniquePtr = hasAnyName(Check.UniquePointers);
     const auto IsSmartPtr = anyOf(IsSharedPtr, IsUniquePtr);
 
     const auto IsSharedPtrRecord = cxxRecordDecl(IsSharedPtr);
@@ -541,7 +546,7 @@ private:
     if (!CodeBlock)
       return;
 
-    OwnershipTransferFinder Finder(Result.Context);
+    OwnershipTransferFinder Finder(Result.Context, Check.SharedPointers, Check.UniquePointers);
     if (auto Transfer = Finder.find(CodeBlock, TransferCall, Arg))
       emitDiagnostic(Result.Context, *Transfer, &Check);
   }
