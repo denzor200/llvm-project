@@ -40,17 +40,21 @@ const auto DefaultDefaultDeleters = "::std::default_delete";
 /// Copy/move constructors (whose argument is another smart pointer, not a
 /// raw pointer) never match `hasType(pointerType())` on the referenced
 /// variable, so they're naturally excluded.
-static auto smartPtrCtorTakingRawPointer(llvm::ArrayRef<StringRef> SharedPointers, llvm::ArrayRef<StringRef> UniquePointers) {
+static auto
+smartPtrCtorTakingRawPointer(llvm::ArrayRef<StringRef> SharedPointers,
+                             llvm::ArrayRef<StringRef> UniquePointers) {
   static const auto IsSharedPtr = hasAnyName(SharedPointers);
   static const auto IsUniquePtr = hasAnyName(UniquePointers);
   static const auto IsSmartPtr = anyOf(IsSharedPtr, IsUniquePtr);
   static const auto IsSmartPtrRecord = cxxRecordDecl(IsSmartPtr);
 
-  return cxxConstructExpr(hasDeclaration(cxxConstructorDecl(ofClass(
-      IsSmartPtrRecord))));
+  return cxxConstructExpr(
+      hasDeclaration(cxxConstructorDecl(ofClass(IsSmartPtrRecord))));
 }
 
-static auto smartPtrResetTakingRawPointer(llvm::ArrayRef<StringRef> SharedPointers, llvm::ArrayRef<StringRef> UniquePointers) {
+static auto
+smartPtrResetTakingRawPointer(llvm::ArrayRef<StringRef> SharedPointers,
+                              llvm::ArrayRef<StringRef> UniquePointers) {
   static const auto IsSharedPtr = hasAnyName(SharedPointers);
   static const auto IsUniquePtr = hasAnyName(UniquePointers);
   static const auto IsSmartPtr = anyOf(IsSharedPtr, IsUniquePtr);
@@ -70,22 +74,22 @@ static StatementMatcher makeReinitMatcher(const ValueDecl *RawPtrVar) {
   // via a shadowing DeclStmt in a nested scope) has the same effect.
   const auto DeclRefMatcher =
       declRefExpr(hasDeclaration(equalsNode(RawPtrVar)));
-  return stmt(anyOf(
-               binaryOperation(hasOperatorName("="),
-                               hasLHS(ignoringParenImpCasts(DeclRefMatcher))),
-               declStmt(hasDescendant(equalsNode(RawPtrVar))),
-               // Passing variable to a function as a non-const pointer.
-               callExpr(forEachArgumentWithParam(
-                   unaryOperator(hasOperatorName("&"),
-                                 hasUnaryOperand(DeclRefMatcher)),
-                   unless(parmVarDecl(hasType(pointsTo(isConstQualified())))))),
-               // Passing variable to a function as a non-const lvalue
-               callExpr(forEachArgumentWithParam(
-                   traverse(TK_AsIs, DeclRefMatcher),
-                   unless(parmVarDecl(
-                       hasType(references(qualType(isConstQualified())))))))))
-          .bind("reinit");
-
+  return stmt(anyOf(binaryOperation(
+                        hasOperatorName("="),
+                        hasLHS(ignoringParenImpCasts(DeclRefMatcher))),
+                    declStmt(hasDescendant(equalsNode(RawPtrVar))),
+                    // Passing variable to a function as a non-const pointer.
+                    callExpr(forEachArgumentWithParam(
+                        unaryOperator(hasOperatorName("&"),
+                                      hasUnaryOperand(DeclRefMatcher)),
+                        unless(parmVarDecl(
+                            hasType(pointsTo(isConstQualified())))))),
+                    // Passing variable to a function as a non-const lvalue
+                    callExpr(forEachArgumentWithParam(
+                        traverse(TK_AsIs, DeclRefMatcher),
+                        unless(parmVarDecl(hasType(
+                            references(qualType(isConstQualified())))))))))
+      .bind("reinit");
 }
 
 namespace {
@@ -94,11 +98,10 @@ namespace {
 struct OwnershipTransfer {
   // The Expr used as the argument of the second (problematic)
   // smart-pointer construction.
-  const Expr *DeclRef; // TODO: rename
+  const Expr *E;
 
-  // TODO: change the comment
-  // The CXXConstructExpr of that second construction (used to print the
-  // smart-pointer type in the diagnostic).
+  // The CXXConstructExpr or CXXMemberCallExpr that used to print the
+  // smart-pointer type in the diagnostic.
   const Expr *ConstructOrResetExpr;
 
   // Is the order in which the two constructions are evaluated undefined?
@@ -115,8 +118,11 @@ struct OwnershipTransfer {
 /// `UseAfterMoveFinder` in `UseAfterMoveCheck.cpp`.
 class OwnershipTransferFinder {
 public:
-  explicit OwnershipTransferFinder(ASTContext *TheContext, llvm::ArrayRef<StringRef> SharedPointers, llvm::ArrayRef<StringRef> UniquePointers)
-      : Context(TheContext), SharedPointers(SharedPointers), UniquePointers(UniquePointers) {}
+  explicit OwnershipTransferFinder(ASTContext *TheContext,
+                                   llvm::ArrayRef<StringRef> SharedPointers,
+                                   llvm::ArrayRef<StringRef> UniquePointers)
+      : Context(TheContext), SharedPointers(SharedPointers),
+        UniquePointers(UniquePointers) {}
 
   // Within the given code block, finds the first ownership transfer of
   // 'RawPtrVar' that occurs after 'FirstTransfer' (the construct expression
@@ -138,7 +144,7 @@ private:
   void getReinits(const CFGBlock *Block, const ValueDecl *RawPtrVar,
                   llvm::SmallPtrSetImpl<const Stmt *> *Stmts);
 
-  ASTContext * const Context;
+  ASTContext *const Context;
   const llvm::ArrayRef<StringRef> SharedPointers;
   const llvm::ArrayRef<StringRef> UniquePointers;
   std::unique_ptr<ExprSequence> Sequence;
@@ -177,7 +183,7 @@ OwnershipTransferFinder::find(Stmt *CodeBlock, const Expr *FirstTransfer,
 
   if (TheTransfer) {
     if (const CFGBlock *UseBlock =
-            BlockMap->blockContainingStmt(TheTransfer->DeclRef)) {
+            BlockMap->blockContainingStmt(TheTransfer->E)) {
       // Same reasoning as UseAfterMoveCheck: figure out whether the second
       // transfer can only happen in a later loop iteration than the first.
       CFGReverseBlockReachabilityAnalysis CFA(*TheCFG);
@@ -218,7 +224,7 @@ OwnershipTransferFinder::findInternal(const CFGBlock *Block,
   for (const Stmt *Reinit : ReinitsToDelete)
     Reinits.erase(Reinit);
 
-  for (const auto &[DeclRef, ConstructOrResetExpr] : Transfers) {
+  for (const auto &[E, ConstructOrResetExpr] : Transfers) {
     // Never match a transfer against itself.
     if (ConstructOrResetExpr == FirstTransfer)
       continue;
@@ -234,7 +240,7 @@ OwnershipTransferFinder::findInternal(const CFGBlock *Block,
 
       if (!HaveSavingReinit) {
         OwnershipTransfer Result;
-        Result.DeclRef = DeclRef;
+        Result.E = E;
         Result.ConstructOrResetExpr = ConstructOrResetExpr;
 
         // Same order-of-evaluation caveat as UseAfterMoveCheck: if the
@@ -270,13 +276,15 @@ void OwnershipTransferFinder::getOwnershipTransfers(
 
   const auto DeclRefMatcher =
       declRefExpr(hasDeclaration(equalsNode(RawPtrVar))).bind("declref");
-  const auto TransferMatcher = anyOf(
-      cxxConstructExpr(smartPtrCtorTakingRawPointer(SharedPointers, UniquePointers),
-                       hasArgument(0, ignoringParenImpCasts(DeclRefMatcher)))
-          .bind("construct"),
-      cxxMemberCallExpr(smartPtrResetTakingRawPointer(SharedPointers, UniquePointers),
-                        hasArgument(0, ignoringParenImpCasts(DeclRefMatcher)))
-          .bind("reset"));
+  const auto TransferMatcher =
+      anyOf(cxxConstructExpr(
+                smartPtrCtorTakingRawPointer(SharedPointers, UniquePointers),
+                hasArgument(0, ignoringParenImpCasts(DeclRefMatcher)))
+                .bind("construct"),
+            cxxMemberCallExpr(
+                smartPtrResetTakingRawPointer(SharedPointers, UniquePointers),
+                hasArgument(0, ignoringParenImpCasts(DeclRefMatcher)))
+                .bind("reset"));
 
   for (const auto &Elem : *Block) {
     std::optional<CFGStmt> S = Elem.getAs<CFGStmt>();
@@ -364,7 +372,8 @@ static void emitDiagnostic(const ASTContext *Context,
   SourceLocation UseLoc;
   if (const auto *SmartPtrCtor =
           dyn_cast<const CXXConstructExpr>(Transfer.ConstructOrResetExpr)) {
-    const Expr *PointerArg = stripWrappers(Transfer.DeclRef ? Transfer.DeclRef : SmartPtrCtor->getArg(0));
+    const Expr *PointerArg =
+        stripWrappers(Transfer.E ? Transfer.E : SmartPtrCtor->getArg(0));
     if (!PointerArg)
       return;
     UseLoc = PointerArg->getBeginLoc();
@@ -376,7 +385,8 @@ static void emitDiagnostic(const ASTContext *Context,
 
   } else if (const auto *ResetCall = dyn_cast<const CXXMemberCallExpr>(
                  Transfer.ConstructOrResetExpr)) {
-    const Expr *PointerArg = stripWrappers(Transfer.DeclRef ? Transfer.DeclRef : ResetCall->getArg(0));
+    const Expr *PointerArg =
+        stripWrappers(Transfer.E ? Transfer.E : ResetCall->getArg(0));
     if (!PointerArg)
       return;
     UseLoc = PointerArg->getBeginLoc();
@@ -446,7 +456,8 @@ public:
             TK_AsIs,
             expr(anyOf(
                      cxxConstructExpr(
-                         smartPtrCtorTakingRawPointer(Check.SharedPointers, Check.UniquePointers),
+                         smartPtrCtorTakingRawPointer(Check.SharedPointers,
+                                                      Check.UniquePointers),
                          hasArgument(0, ignoringParenImpCasts(RawPtrArg)),
                          anyOf(hasAncestor(compoundStmt(hasParent(
                                    lambdaExpr().bind("containing-lambda")))),
@@ -454,7 +465,8 @@ public:
                                    cxxConstructorDecl().bind("containing-ctor"),
                                    functionDecl().bind("containing-func")))))),
                      cxxMemberCallExpr(
-                         smartPtrResetTakingRawPointer(Check.SharedPointers, Check.UniquePointers),
+                         smartPtrResetTakingRawPointer(Check.SharedPointers,
+                                                       Check.UniquePointers),
                          hasArgument(0, ignoringParenImpCasts(RawPtrArg)),
                          anyOf(hasAncestor(compoundStmt(hasParent(
                                    lambdaExpr().bind("containing-lambda")))),
@@ -548,7 +560,8 @@ private:
     if (!CodeBlock)
       return;
 
-    OwnershipTransferFinder Finder(Result.Context, Check.SharedPointers, Check.UniquePointers);
+    OwnershipTransferFinder Finder(Result.Context, Check.SharedPointers,
+                                   Check.UniquePointers);
     if (auto Transfer = Finder.find(CodeBlock, TransferCall, Arg))
       emitDiagnostic(Result.Context, *Transfer, &Check);
   }
