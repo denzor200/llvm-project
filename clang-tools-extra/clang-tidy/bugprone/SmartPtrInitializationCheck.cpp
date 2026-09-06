@@ -34,37 +34,6 @@ const auto DefaultDefaultDeleters = "::std::default_delete";
 
 } // namespace
 
-// Remove wrappers that do not carry semantic load for classifying the value:
-// brackets, implicit casts, temporary objects, cleanup nodes.
-static const clang::Expr *stripWrappers(const clang::Expr *E) {
-  while (E) {
-    const clang::Expr *Prev = E;
-    E = E->IgnoreParens();
-    switch (E->getStmtClass()) {
-    case clang::Stmt::ImplicitCastExprClass:
-      E = cast<clang::ImplicitCastExpr>(E)->getSubExpr();
-      break;
-    case clang::Stmt::ExprWithCleanupsClass:
-      E = cast<clang::ExprWithCleanups>(E)->getSubExpr();
-      break;
-    case clang::Stmt::MaterializeTemporaryExprClass:
-      E = cast<clang::MaterializeTemporaryExpr>(E)->getSubExpr();
-      break;
-    case clang::Stmt::CXXBindTemporaryExprClass:
-      E = cast<clang::CXXBindTemporaryExpr>(E)->getSubExpr();
-      break;
-    case clang::Stmt::ConstantExprClass:
-      E = cast<clang::ConstantExpr>(E)->getSubExpr();
-      break;
-    default:
-      break;
-    }
-    if (E == Prev)
-      break;
-  }
-  return E;
-}
-
 /// A matcher fragment for the constructor of an owning smart pointer that
 /// takes a raw pointer, e.g. `std::unique_ptr<T>(p)` / `std::shared_ptr<T>(p)`.
 /// Copy/move constructors (whose argument is another smart pointer, not a
@@ -350,24 +319,65 @@ void OwnershipTransferFinder::getReinits(
   }
 }
 
+// Remove wrappers that do not carry semantic load for classifying the value:
+// brackets, implicit casts, temporary objects, cleanup nodes.
+static const clang::Expr *stripWrappers(const clang::Expr *E) {
+  while (E) {
+    const clang::Expr *Prev = E;
+    E = E->IgnoreParens();
+    switch (E->getStmtClass()) {
+    case clang::Stmt::ImplicitCastExprClass:
+      E = cast<clang::ImplicitCastExpr>(E)->getSubExpr();
+      break;
+    case clang::Stmt::ExprWithCleanupsClass:
+      E = cast<clang::ExprWithCleanups>(E)->getSubExpr();
+      break;
+    case clang::Stmt::MaterializeTemporaryExprClass:
+      E = cast<clang::MaterializeTemporaryExpr>(E)->getSubExpr();
+      break;
+    case clang::Stmt::CXXBindTemporaryExprClass:
+      E = cast<clang::CXXBindTemporaryExpr>(E)->getSubExpr();
+      break;
+    case clang::Stmt::ConstantExprClass:
+      E = cast<clang::ConstantExpr>(E)->getSubExpr();
+      break;
+    default:
+      break;
+    }
+    if (E == Prev)
+      break;
+  }
+  return E;
+}
+
 static void emitDiagnostic(const ASTContext *Context,
                            const OwnershipTransfer &Transfer,
                            ClangTidyCheck *Check) {
-  const SourceLocation UseLoc = Transfer.DeclRef->getBeginLoc();
-  if (UseLoc.isInvalid())
-    return;
+  SourceLocation UseLoc;
   if (const auto *SmartPtrCtor =
           dyn_cast<const CXXConstructExpr>(Transfer.ConstructOrResetExpr)) {
+    const Expr *PointerArg = stripWrappers(Transfer.DeclRef ? Transfer.DeclRef : SmartPtrCtor->getArg(0));
+    if (!PointerArg)
+      return;
+    UseLoc = PointerArg->getBeginLoc();
+    if (UseLoc.isInvalid())
+      return;
     Check->diag(UseLoc, "passing a raw pointer %0 to %1 constructor may cause "
                         "double deletion")
-        << Transfer.DeclRef->getType() << SmartPtrCtor->getType();
+        << PointerArg->getType() << SmartPtrCtor->getType();
 
   } else if (const auto *ResetCall = dyn_cast<const CXXMemberCallExpr>(
                  Transfer.ConstructOrResetExpr)) {
+    const Expr *PointerArg = stripWrappers(Transfer.DeclRef ? Transfer.DeclRef : ResetCall->getArg(0));
+    if (!PointerArg)
+      return;
+    UseLoc = PointerArg->getBeginLoc();
+    if (UseLoc.isInvalid())
+      return;
     Check->diag(
         UseLoc,
         "passing a raw pointer %0 to %1 reset method may cause double deletion")
-        << Transfer.DeclRef->getType() << ResetCall->getObjectType();
+        << PointerArg->getType() << ResetCall->getObjectType();
   }
 
   if (Transfer.EvaluationOrderUndefined) {
@@ -487,17 +497,11 @@ public:
         Result.Nodes.getNodeAs<CXXConstructExpr>("dangerous-ctor");
     const auto *ResetWithThisExpr =
         Result.Nodes.getNodeAs<CXXMemberCallExpr>("dangerous-reset");
-    if (CtorWithThisExpr) {
-      const Expr *PointerArg = stripWrappers(CtorWithThisExpr->getArg(0));
-      if (!PointerArg)
-        return;
-      emitDiagnostic(Result.Context, {PointerArg, CtorWithThisExpr}, &Check);
-    } else if (ResetWithThisExpr) {
-      const Expr *PointerArg = stripWrappers(ResetWithThisExpr->getArg(0));
-      if (!PointerArg)
-        return;
-      emitDiagnostic(Result.Context, {PointerArg, ResetWithThisExpr}, &Check);
-    } else
+    if (CtorWithThisExpr)
+      emitDiagnostic(Result.Context, {nullptr, CtorWithThisExpr}, &Check);
+    else if (ResetWithThisExpr)
+      emitDiagnostic(Result.Context, {nullptr, ResetWithThisExpr}, &Check);
+    else
       checkFlowSensitive(Result);
   }
 
@@ -689,7 +693,7 @@ private:
                      const ConditionalOperator *Cond) {
     if (Cond && validateConditionalOperator(Context, Cond))
       return;
-    Check.emitDiagnostic(ConstructorOrMember);
+    emitDiagnostic(&Context, {nullptr, ConstructorOrMember}, &Check);
   }
 
   bool validateConditionalOperator(ASTContext &Context,
@@ -763,34 +767,6 @@ void SmartPtrInitializationCheck::check(
 std::optional<TraversalKind>
 SmartPtrInitializationCheck::getCheckTraversalKind() const {
   return Impl->getCheckTraversalKind();
-}
-
-void SmartPtrInitializationCheck::emitDiagnostic(
-    const Expr *ConstructorOrMember) {
-  if (const auto *SmartPtrCtor =
-          dyn_cast<const CXXConstructExpr>(ConstructorOrMember)) {
-    const Expr *PointerArg = stripWrappers(SmartPtrCtor->getArg(0));
-    if (!PointerArg)
-      return;
-    const SourceLocation Loc = PointerArg->getBeginLoc();
-    if (Loc.isInvalid())
-      return;
-    diag(Loc, "passing a raw pointer %0 to %1 constructor may cause "
-              "double deletion")
-        << PointerArg->getType() << SmartPtrCtor->getType();
-  } else if (const auto *ResetCall =
-                 dyn_cast<const CXXMemberCallExpr>(ConstructorOrMember)) {
-    const Expr *PointerArg = stripWrappers(ResetCall->getArg(0));
-    if (!PointerArg)
-      return;
-    const SourceLocation Loc = PointerArg->getBeginLoc();
-    if (Loc.isInvalid())
-      return;
-    diag(
-        Loc,
-        "passing a raw pointer %0 to %1 reset method may cause double deletion")
-        << PointerArg->getType() << ResetCall->getObjectType();
-  }
 }
 
 } // namespace clang::tidy::bugprone

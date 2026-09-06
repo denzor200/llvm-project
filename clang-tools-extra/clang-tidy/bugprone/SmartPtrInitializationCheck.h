@@ -35,7 +35,6 @@ public:
   std::optional<TraversalKind> getCheckTraversalKind() const override;
 
 private:
-  void emitDiagnostic(const Expr *ConstructorOrMember);
   const std::vector<StringRef> SharedPointers;
   const std::vector<StringRef> UniquePointers;
   const std::vector<StringRef> DefaultDeleters;
