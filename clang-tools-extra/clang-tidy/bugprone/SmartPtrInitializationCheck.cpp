@@ -62,6 +62,32 @@ static auto smartPtrResetTakingRawPointer(llvm::ArrayRef<StringRef> SharedPointe
       callee(cxxMethodDecl(ofClass(IsSmartPtrRecord), hasName("reset"))));
 }
 
+static StatementMatcher makeReinitMatcher(const ValueDecl *RawPtrVar) {
+  // Reassigning the raw-pointer variable itself (to a new object, or to
+  // null) means it's no longer the same pointer, so any smart-pointer
+  // construction after this point refers to a different object and is not
+  // a double-deletion risk. Redeclaring the variable inside the block (e.g.
+  // via a shadowing DeclStmt in a nested scope) has the same effect.
+  const auto DeclRefMatcher =
+      declRefExpr(hasDeclaration(equalsNode(RawPtrVar)));
+  return stmt(anyOf(
+               binaryOperation(hasOperatorName("="),
+                               hasLHS(ignoringParenImpCasts(DeclRefMatcher))),
+               declStmt(hasDescendant(equalsNode(RawPtrVar))),
+               // Passing variable to a function as a non-const pointer.
+               callExpr(forEachArgumentWithParam(
+                   unaryOperator(hasOperatorName("&"),
+                                 hasUnaryOperand(DeclRefMatcher)),
+                   unless(parmVarDecl(hasType(pointsTo(isConstQualified())))))),
+               // Passing variable to a function as a non-const lvalue
+               callExpr(forEachArgumentWithParam(
+                   traverse(TK_AsIs, DeclRefMatcher),
+                   unless(parmVarDecl(
+                       hasType(references(qualType(isConstQualified())))))))))
+          .bind("reinit");
+
+}
+
 namespace {
 /// Contains information about a second "ownership transfer" of a raw
 /// pointer that already belongs to a smart pointer.
@@ -279,36 +305,12 @@ void OwnershipTransferFinder::getOwnershipTransfers(
   });
 }
 
-// TODO: makeReinitMatcher must be restored
 void OwnershipTransferFinder::getReinits(
     const CFGBlock *Block, const ValueDecl *RawPtrVar,
     llvm::SmallPtrSetImpl<const Stmt *> *Stmts) {
+  const auto ReinitMatcher = makeReinitMatcher(RawPtrVar);
+
   Stmts->clear();
-
-  // Reassigning the raw-pointer variable itself (to a new object, or to
-  // null) means it's no longer the same pointer, so any smart-pointer
-  // construction after this point refers to a different object and is not
-  // a double-deletion risk. Redeclaring the variable inside the block (e.g.
-  // via a shadowing DeclStmt in a nested scope) has the same effect.
-  const auto DeclRefMatcher =
-      declRefExpr(hasDeclaration(equalsNode(RawPtrVar)));
-  const auto ReinitMatcher =
-      stmt(anyOf(
-               binaryOperation(hasOperatorName("="),
-                               hasLHS(ignoringParenImpCasts(DeclRefMatcher))),
-               declStmt(hasDescendant(equalsNode(RawPtrVar))),
-               // Passing variable to a function as a non-const pointer.
-               callExpr(forEachArgumentWithParam(
-                   unaryOperator(hasOperatorName("&"),
-                                 hasUnaryOperand(DeclRefMatcher)),
-                   unless(parmVarDecl(hasType(pointsTo(isConstQualified())))))),
-               // Passing variable to a function as a non-const lvalue
-               callExpr(forEachArgumentWithParam(
-                   traverse(TK_AsIs, DeclRefMatcher),
-                   unless(parmVarDecl(
-                       hasType(references(qualType(isConstQualified())))))))))
-          .bind("reinit");
-
   for (const auto &Elem : *Block) {
     std::optional<CFGStmt> S = Elem.getAs<CFGStmt>();
     if (!S)
