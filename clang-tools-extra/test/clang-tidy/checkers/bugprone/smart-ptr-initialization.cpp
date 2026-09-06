@@ -53,6 +53,24 @@ void test_basic_no_double_ownership() {
   std::shared_ptr<int> p2(a);
 }
 
+void change(int**);
+
+void test_basic_no_double_ownership_complicated() {
+  int* a = new int(42);
+  std::shared_ptr<int> p1(a);
+  change(&a);
+  std::shared_ptr<int> p2(a);
+}
+
+void change_by_ref(int*&);
+
+void test_basic_no_double_ownership_complicated_2() {
+  int* a = new int(42);
+  std::shared_ptr<int> p1(a);
+  change_by_ref(a);
+  std::shared_ptr<int> p2(a);
+}
+
 void test_reassignment_valid() {
   int* a = new int(42);
   std::shared_ptr<int> p1(a);
@@ -167,6 +185,28 @@ void test_new_expression_fail_as_method() {
 }
 
 };
+
+using int_ptr_t = int*;
+
+void pass(const int_ptr_t* a);
+
+void test_fail_being_passed() {
+  int* a = new int(42);
+  std::shared_ptr<int> p1(a);
+  pass(&a);
+  std::shared_ptr<int> p2(a);
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int *' to 'std::shared_ptr<int>' constructor may cause double deletion
+}
+
+void pass_by_ref(const int_ptr_t& a);
+
+void test_fail_being_passed_by_ref() {
+  int* a = new int(42);
+  std::shared_ptr<int> p1(a);
+  pass_by_ref(a);
+  std::shared_ptr<int> p2(a);
+  // CHECK-MESSAGES: :[[@LINE-1]]:27: warning: passing a raw pointer 'int *' to 'std::shared_ptr<int>' constructor may cause double deletion
+}
 
 void test_reassignment_double_ownership() {
   int* a = new int(42);
