@@ -85,6 +85,9 @@ public:
   shared_ptr(shared_ptr &&) {}
   ~shared_ptr() {}
 
+  shared_ptr& operator= (const shared_ptr&) {  return *this; }
+  shared_ptr& operator= (const shared_ptr&&) { return *this; }
+
   T &operator*() const { return *this->get(); }
   T *operator->() const { return this->get(); }
   T *get() const { return ptr; }

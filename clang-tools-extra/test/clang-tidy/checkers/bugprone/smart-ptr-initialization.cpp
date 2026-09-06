@@ -208,6 +208,22 @@ void test_loop() {
   }
 }
 
+void test_complicated_loop() {
+  int* a = nullptr;
+  std::shared_ptr<int> p1;
+  std::shared_ptr<int> p2;
+
+  for (int i = 0; i < 10; ++i) {
+    if (i == 0)
+      a = new int(42);
+    else if (i == 1)
+      p1.reset(a);   // p1 takes ownership
+      // CHECK-MESSAGES: :[[@LINE-1]]:16: warning: passing a raw pointer 'int *' to 'std::shared_ptr<int>' reset method may cause double deletion
+    else if (i == 2)
+      p2.reset(a);   // p2 also attempts to own a
+  }
+}
+
 void test_multiple_variables() {
   int* a = new int(42);
   int* b = new int(43);
@@ -281,6 +297,19 @@ void test_new_expression_with_aliases() {
   // CHECK-MESSAGES: :[[@LINE-1]]:21: warning: passing a raw pointer 'ptr_a_t' (aka 'A *') to 'unique_ptr_a_t' (aka 'std::unique_ptr<A>') constructor may cause double deletion
 }
 
+// Loop where the same pointer is (re)constructed into an owner every
+// iteration without being reset first -- flagged, and recognized as
+// spanning loop iterations rather than a single straight-line block.
+void test_loop_fail() {
+  A *raw = new A();
+  std::shared_ptr<A> keep;
+  for (int i = 0; i < 3; ++i) {
+    std::shared_ptr<A> a(raw);
+    // CHECK-MESSAGES: :[[@LINE-1]]:26: warning: passing a raw pointer 'A *' to 'std::shared_ptr<A>' constructor may cause double deletion
+    // CHECK-MESSAGES: :[[@LINE-2]]:26: note: the second construction happens in a later loop iteration than the first
+    keep = a;
+  }
+}
 
 // test_new_expression_ok_in_global
 // FIXME: support it
@@ -370,6 +399,17 @@ void test_new_expression_reset_fail_with_aliases() {
   // CHECK-MESSAGES: :[[@LINE-1]]:12: warning: passing a raw pointer 'ptr_a_t' (aka 'A *') to 'unique_ptr_a_t' (aka 'std::unique_ptr<A>') reset method may cause double deletion
 }
 
+void test_loop_fail_with_reset() {
+  A *raw = new A();
+  std::shared_ptr<A> keep;
+  for (int i = 0; i < 3; ++i) {
+    std::shared_ptr<A> a;
+    a.reset(raw);
+    // CHECK-MESSAGES: :[[@LINE-1]]:13: warning: passing a raw pointer 'A *' to 'std::shared_ptr<A>' reset method may cause double deletion
+    // CHECK-MESSAGES: :[[@LINE-2]]:13: note: the second construction happens in a later loop iteration than the first
+    keep = a;
+  }
+}
 
 
 bool can_take(std::shared_ptr<A> a);

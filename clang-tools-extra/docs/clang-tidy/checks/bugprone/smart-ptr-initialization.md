@@ -108,28 +108,6 @@ void test_pointer_reference() {
 }
 ```
 
-- **Complex Control Flow**
-
-  This version of check fails to track pointer ownership through complex
-  control flow structures such as loops and conditionals:
-```cpp
-void test_complicated_loop() {
-  int* a = nullptr;
-  std::shared_ptr<int> p1;
-  std::shared_ptr<int> p2;
-
-  for (int i = 0; i < 10; ++i) {
-    if (i == 0)
-      a = new int(42);
-    else if (i == 1)
-      p1.reset(a);   // p1 takes ownership
-    else if (i == 2)
-      p2.reset(a);   // ERROR - p2 also attempts to own a
-    // No warning
-  }
-}
-```
-
 - **Pointers to Pointers**
 
   This version of check does not handle indirect memory access through pointers
