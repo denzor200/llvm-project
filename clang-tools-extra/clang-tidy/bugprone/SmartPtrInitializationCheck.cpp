@@ -366,8 +366,7 @@ static const clang::Expr *stripWrappers(const clang::Expr *E) {
   return E;
 }
 
-static void emitDiagnostic(const ASTContext *Context,
-                           const OwnershipTransfer &Transfer,
+static void emitDiagnostic(const OwnershipTransfer &Transfer,
                            ClangTidyCheck *Check) {
   SourceLocation UseLoc;
   if (const auto *SmartPtrCtor =
@@ -517,9 +516,9 @@ public:
     const auto *ResetWithThisExpr =
         Result.Nodes.getNodeAs<CXXMemberCallExpr>("dangerous-reset");
     if (CtorWithThisExpr)
-      emitDiagnostic(Result.Context, {nullptr, CtorWithThisExpr}, &Check);
+      emitDiagnostic({nullptr, CtorWithThisExpr}, &Check);
     else if (ResetWithThisExpr)
-      emitDiagnostic(Result.Context, {nullptr, ResetWithThisExpr}, &Check);
+      emitDiagnostic({nullptr, ResetWithThisExpr}, &Check);
     else
       checkFlowSensitive(Result);
   }
@@ -563,7 +562,7 @@ private:
     OwnershipTransferFinder Finder(Result.Context, Check.SharedPointers,
                                    Check.UniquePointers);
     if (auto Transfer = Finder.find(CodeBlock, TransferCall, Arg))
-      emitDiagnostic(Result.Context, *Transfer, &Check);
+      emitDiagnostic(*Transfer, &Check);
   }
 };
 
@@ -713,7 +712,7 @@ private:
                      const ConditionalOperator *Cond) {
     if (Cond && validateConditionalOperator(Context, Cond))
       return;
-    emitDiagnostic(&Context, {nullptr, ConstructorOrMember}, &Check);
+    emitDiagnostic({nullptr, ConstructorOrMember}, &Check);
   }
 
   bool validateConditionalOperator(ASTContext &Context,
